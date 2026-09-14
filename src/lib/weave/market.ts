@@ -1,10 +1,12 @@
 // ─────────────────────────────────────────────────────────────────────
 // THE WEAVE · Market — שוק האמת (השוק החכם של הרשת)
 //
-// הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה של הרשת
-// עצמה — PlanStage שנסגר, Checkpoint שנוצר, מספר אימותי ANCHOR,
-// סטטוס אימות — לא הצבעה ולא דעה. ההון: "נקודות אמת" (מוניטין
-// מוצהר; אפס כסף אמיתי — דוקטרינת האפס של הרשת נשמרת במלואה).
+// הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה — של
+// הרשת עצמה (PlanStage שנסגר, Checkpoint שנוצר, מספר אימותי
+// ANCHOR, סטטוס אימות) או של שרשרת ציבורית חיצונית חיה (גובה
+// בלוק ZERO 9369, בקריאה חסרת-מפתחות ב-$0) — לא הצבעה ולא
+// דעה. ההון: "נקודות אמת" (מוניטין מוצהר; אפס כסף אמיתי —
+// דוקטרינת האפס של הרשת נשמרת במלואה).
 //
 // מכניקת הספר — זהה ברוחה לספר האימותים:
 //   · כל אירוע (OPEN/STAKE/SETTLE/REFUND) הוא רשומה קנונית
@@ -36,17 +38,19 @@ import { GENESIS_HASH, hashText } from "./chain";
 import { recoverFromDigestEip191, signDigestEip191 } from "./evm";
 import { appendAttestation } from "./ledger";
 import { ensureDaemonAgent } from "./daemons";
+import { ZERO_MIN_TARGET_GAP, zeroBlockHeight } from "./zero";
 
 export const MARKET_GENESIS = GENESIS_HASH;
 export const STARTING_POINTS = 1000; // הון פתיחה מוצהר — נקודות אמת, לא כסף
 
-// ─── מטרות — מה שהרשת יכולה למדוד בעצמה ──
+// ─── מטרות — מה שהרשת יכולה למדוד בעצמה, ומה ששרשרת חיצונית מודדת עבורה ──
 
 export type MarketTarget =
   | { type: "stage-done"; code: string }
   | { type: "checkpoint-index"; index: number }
   | { type: "anchor-count"; count: number }
-  | { type: "attestation-status"; seq: number };
+  | { type: "attestation-status"; seq: number }
+  | { type: "zero-block-height"; height: number };
 
 export type MarketOutcome = "YES" | "NO";
 
@@ -67,6 +71,8 @@ export function targetLabel(target: MarketTarget): string {
       return `מספר אימותי ה-ANCHOR בספר יגיע ל-${target.count}`;
     case "attestation-status":
       return `אימות #${target.seq} יסומן VERIFIED (NO אם יופרך)`;
+    case "zero-block-height":
+      return `בלוק ה-ZERO (שרשרת EVM ציבורית 9369) יגיע לגובה ${target.height} — השופט: השרשרת החיצונית עצמה`;
   }
 }
 
@@ -112,49 +118,102 @@ export async function measureTarget(target: MarketTarget): Promise<TargetMeasure
       }
       return { resolved: false, evidence: `attestation #${target.seq} status=${att?.status ?? "NOT-FOUND"} — עדיין לא הוכרע` };
     }
+    case "zero-block-height": {
+      // השופט החיצוני — השרשרת הציבורית עצמה, בקריאה חסרת-מפתחות.
+      // גובה בלוק מונוטוני: ההכרעה האפשרית היחידה היא YES (הושג);
+      // אם לא הושג בפג התוקף — REFUND כנה. כשל RPC ⇒ לא מוכרע
+      // (fail-closed: אין המצאת תוצאה בלי מדידה).
+      try {
+        const j = await zeroBlockHeight();
+        if (j.height >= target.height) {
+          return {
+            resolved: true,
+            outcome: "YES",
+            evidence: `ZERO chainId=${j.chainId} blockNumber=${j.height} ≥ ${target.height} (נמדד חי מה-RPC הציבורי ${j.endpoint} ב-${j.measuredAt})`,
+          };
+        }
+        return {
+          resolved: false,
+          evidence: `ZERO chainId=${j.chainId} blockNumber=${j.height} < ${target.height} — עוד ${target.height - j.height} בלוקים (נמדד חי ב-${j.measuredAt})`,
+        };
+      } catch (e) {
+        return {
+          resolved: false,
+          evidence: `ZERO RPC unreachable (${e instanceof Error ? e.message : "rpc error"}) — לא מוכרע בלי מדידה (fail-closed)`,
+        };
+      }
+    }
   }
 }
 
-/** ולידציית מטרה בפתיחה — fail-closed, ללא מטרות דמיוניות */
+/** ולידציית מטרה בפתיחה — fail-closed, ללא מטרות דמיוניות.
+ *  כל דחייה נזרקת כ-MarketError(400) — הסיבה המדויקת מגיעה ללקוח,
+ *  לא מוסתרת מאחורי 500 כללי (הלקוח לומד למה נדחה, הרשת לא מסתירה). */
 export async function validateTarget(target: unknown): Promise<MarketTarget> {
   if (typeof target !== "object" || target === null) {
-    throw new Error("מטרה חסרה — שוק חייב מטרה מדידה");
+    throw new MarketError("מטרה חסרה — שוק חייב מטרה מדידה");
   }
   const t = target as Record<string, unknown>;
   switch (t.type) {
     case "stage-done": {
       const code = String(t.code ?? "").trim().toUpperCase();
       const stage = await db.planStage.findUnique({ where: { code } });
-      if (!stage) throw new Error(`שלב ${code || "?"} לא קיים בתוכנית — אין שוק על דבר שאינו ניתן למדידה`);
-      if (stage.state === "DONE") throw new Error(`שלב ${code} כבר נסגר (attSeq=${stage.attSeq}) — שוק על עבר אינו שוק`);
+      if (!stage) throw new MarketError(`שלב ${code || "?"} לא קיים בתוכנית — אין שוק על דבר שאינו ניתן למדידה`);
+      if (stage.state === "DONE") throw new MarketError(`שלב ${code} כבר נסגר (attSeq=${stage.attSeq}) — שוק על עבר אינו שוק`);
       return { type: "stage-done", code };
     }
     case "checkpoint-index": {
       const index = Number(t.index);
-      if (!Number.isInteger(index) || index <= 0) throw new Error("אינדקס checkpoint חייב להיות מספר טבעי");
+      if (!Number.isInteger(index) || index <= 0) throw new MarketError("אינדקס checkpoint חייב להיות מספר טבעי");
       const max = await db.checkpoint.findFirst({ orderBy: { index: "desc" } });
-      if (max && index <= max.index) throw new Error(`checkpoint #${index} כבר קיים (מקסימום ${max.index}) — שוק על עבר אינו שוק`);
+      if (max && index <= max.index) throw new MarketError(`checkpoint #${index} כבר קיים (מקסימום ${max.index}) — שוק על עבר אינו שוק`);
       return { type: "checkpoint-index", index };
     }
     case "anchor-count": {
       const count = Number(t.count);
-      if (!Number.isInteger(count) || count <= 0) throw new Error("כמות ANCHOR חייבת להיות מספר טבעי");
+      if (!Number.isInteger(count) || count <= 0) throw new MarketError("כמות ANCHOR חייבת להיות מספר טבעי");
       const current = await db.attestation.count({ where: { claimType: "ANCHOR" } });
-      if (count <= current) throw new Error(`כבר יש ${current} אימותי ANCHOR — שוק על עבר אינו שוק`);
+      if (count <= current) throw new MarketError(`כבר יש ${current} אימותי ANCHOR — שוק על עבר אינו שוק`);
       return { type: "anchor-count", count };
     }
     case "attestation-status": {
       const seq = Number(t.seq);
-      if (!Number.isInteger(seq)) throw new Error("seq אימות חייב להיות מספר שלם");
+      if (!Number.isInteger(seq)) throw new MarketError("seq אימות חייב להיות מספר שלם");
       const att = await db.attestation.findUnique({ where: { seq } });
-      if (!att) throw new Error(`אימות #${seq} לא קיים בספר`);
+      if (!att) throw new MarketError(`אימות #${seq} לא קיים בספר`);
       if (att.status === "VERIFIED" || att.status === "REFUTED") {
-        throw new Error(`אימות #${seq} כבר ${att.status} — שוק על עבר אינו שוק`);
+        throw new MarketError(`אימות #${seq} כבר ${att.status} — שוק על עבר אינו שוק`);
       }
       return { type: "attestation-status", seq };
     }
+    case "zero-block-height": {
+      const height = Number(t.height);
+      if (!Number.isInteger(height) || height <= 0) {
+        throw new MarketError("גובה בלוק חייב להיות מספר טבעי");
+      }
+      // השופט החיצוני חייב לענות בפתיחה — אין שוק על מטרה שאין לנו
+      // מדידה חיה עבורה (fail-closed כפול: שרשרת + כיוון).
+      let live: Awaited<ReturnType<typeof zeroBlockHeight>>;
+      try {
+        live = await zeroBlockHeight();
+      } catch (e) {
+        throw new MarketError(
+          `השופט החיצוני (ZERO 9369) לא עונה: ${e instanceof Error ? e.message : "rpc error"} — אין פתיחת שוק בלי מדידה חיה`,
+          503
+        );
+      }
+      if (height <= live.height) {
+        throw new MarketError(`בלוק ה-ZERO כבר בגובה ${live.height} — שוק על עבר אינו שוק`);
+      }
+      if (height - live.height < ZERO_MIN_TARGET_GAP) {
+        throw new MarketError(
+          `פער ${height - live.height} בלוקים קטן מהמינימום (${ZERO_MIN_TARGET_GAP} ≈ 5 דקות) — הטענה חייבת להיות עתידית-ממשית`
+        );
+      }
+      return { type: "zero-block-height", height };
+    }
     default:
-      throw new Error(`סוג מטרה לא נתמך (${String(t.type ?? "?")})`);
+      throw new MarketError(`סוג מטרה לא נתמך (${String(t.type ?? "?")})`);
   }
 }
 
@@ -638,6 +697,11 @@ export async function resolveOpenMarkets(): Promise<SettlementResult> {
   for (const listing of open) {
     const m = await measureTarget(listing.target);
     const expired = Date.parse(listing.byDate) <= Date.now();
+    // כנות הטענה: בית המשפט נקרא בשמו — הרשת עצמה או השרשרת החיצונית
+    const judgeNote =
+      listing.target.type === "zero-block-height"
+        ? "השופט: שרשרת ציבורית חיצונית חיה (ZERO 9369, קריאה חסרת-מפתחות), לא הצבעה"
+        : "השופט: המדידה של הרשת עצמה, לא הצבעה";
 
     if (m.resolved && (m.outcome === "YES" || m.outcome === "NO")) {
       // מתמטיקת הסליקה — פרו-רטה לצד המנצח; מקרי-קצה כנים
@@ -691,7 +755,7 @@ export async function resolveOpenMarkets(): Promise<SettlementResult> {
 
       const totalPaid = winners.reduce((a, w) => a + w.payout, 0);
       const att = await writeMarketAttestation(
-        `שוק האמת #${listing.marketSeq} "${listing.title}" — הוכרע ${m.outcome === "YES" ? "לחיוב (הטענה נמדאה)" : "לשלילה (הטענה הופרכה)"}: ${winners.length} מנצחים חילקו ${totalPaid} נקודות אמת; ${losers.length} מפסידים איבדו ${potLose}. השופט: המדידה של הרשת עצמה, לא הצבעה.`,
+        `שוק האמת #${listing.marketSeq} "${listing.title}" — הוכרע ${m.outcome === "YES" ? "לחיוב (הטענה נמדאה)" : "לשלילה (הטענה הופרכה)"}: ${winners.length} מנצחים חילקו ${totalPaid} נקודות אמת; ${losers.length} מפסידים איבדו ${potLose}. ${judgeNote}.`,
         `marketSeq=${listing.marketSeq} · disposition=SETTLED · outcome=${m.outcome} · resolution=${m.evidence} · winners=${winners.map((w) => `${w.agentId.slice(0, 8)}:${w.payout}`).join(",")} · losers=${losers.length} · potYes=${listing.potYes} potNo=${listing.potNo} · totalPaid=${totalPaid}`
       );
       result.settled.push({

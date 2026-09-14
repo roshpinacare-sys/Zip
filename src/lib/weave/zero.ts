@@ -206,6 +206,54 @@ export async function zeroReadiness(address?: string): Promise<ZeroReadiness> {
   }
 }
 
+// ─── השופט החיצוני — מדידת גובה חיה חסרת-מפתחות ──
+//
+// שוק האמת מרחיב את סוגי השופטים שלו: מעבר ל-DB של הרשת עצמה,
+// מטרת "zero-block-height" נמדדת מהשרשרת הציבורית החיצונית עצמה
+// (Z Chain 9369) — קריאת RPC ציבורית בלי מפתח, בלי כסף, ב-$0.
+// אותו fail-closed של כל הקו: שער chainId נוקשה, מספר שלם בטוח.
+
+/** קצב הבלוקים שנמדד (2026-09-14: 4 בלוקים ב-10 שניות) — לרמזי UI בלבד */
+export const ZERO_BLOCK_SECONDS_MEASURED = 2.5;
+
+/** פער מינימלי מהגובה הנוכחי לפתיחת שוק (120 בלוקים ≈ 5 דקות) —
+ *  הטענה חייבת להיות עתידית-ממשית, לא מרוץ-מילי-שניות */
+export const ZERO_MIN_TARGET_GAP = 120;
+
+export interface ZeroHeightMeasurement {
+  chainId: number;
+  height: number;
+  measuredAt: string;
+  endpoint: string;
+}
+
+// מטמון קצר (15ש') — השופט נקרא בכל GET של השוק ובכל מדידת מועמד;
+// הגובה מתקדם בבלוק ל-2.5 שניות, כך שהטריות נשמרת בסדר גודל של
+// התקדמות השרשרת עצמה.
+let zeroHeightCache: { at: number; value: ZeroHeightMeasurement } | null = null;
+const ZERO_HEIGHT_TTL_MS = 15_000;
+
+export async function zeroBlockHeight(): Promise<ZeroHeightMeasurement> {
+  if (zeroHeightCache && Date.now() - zeroHeightCache.at < ZERO_HEIGHT_TTL_MS) {
+    return zeroHeightCache.value;
+  }
+  const [{ value: chainIdHex, endpoint }, { value: blockHex }] = await Promise.all([
+    zeroRpc<string>("eth_chainId", []),
+    zeroRpc<string>("eth_blockNumber", []),
+  ]);
+  const chainId = parseInt(String(chainIdHex), 16);
+  if (chainId !== ZERO_CHAIN_ID) {
+    throw new Error(`chainId gate: node answered ${chainId}, expected ${ZERO_CHAIN_ID} (fail-closed)`);
+  }
+  const height = parseInt(String(blockHex), 16);
+  if (!Number.isSafeInteger(height) || height <= 0) {
+    throw new Error(`eth_blockNumber malformed: ${String(blockHex)}`);
+  }
+  const value: ZeroHeightMeasurement = { chainId, height, measuredAt: new Date().toISOString(), endpoint };
+  zeroHeightCache = { at: Date.now(), value };
+  return value;
+}
+
 // ─── העיגון החי — הפעולה המותרת-מבנית ──
 
 export interface ZeroAnchorOutcome {

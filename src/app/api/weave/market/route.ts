@@ -4,12 +4,15 @@
 // ספר השוק במלואו (replay דטרמיניסטי + אימות שרשרת וחתימות),
 // לוח ההון לכל סוכן, ומועמדי ההכרעה — מדידה חיה של כל מטרה
 // פתוחה בלי לסלק (הסליקה פעולה מפורשת, לא תופעת לוואי של GET).
+// openContext.zeroJudge — השופט החיצוני החי: גובה בלוק ZERO
+// בקריאה חסרת-מפתחות (לברירות מחדל חכמות בפתיחת שוק ולתצוגה).
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { jsonError } from "@/lib/weave/api";
 import { computeBook, measureTarget, STARTING_POINTS, type MarketTarget } from "@/lib/weave/market";
+import { ZERO_BLOCK_SECONDS_MEASURED, zeroBlockHeight } from "@/lib/weave/zero";
 
 export const dynamic = "force-dynamic";
 
@@ -33,19 +36,33 @@ export async function GET() {
       })
     );
 
-    // הקשר לפתיחת שווקים חדשים — מה שהרשת יכולה למדוד כרגע
-    const [planStages, lastCp, anchorCount, attestationCount] = await Promise.all([
+    // הקשר לפתיחת שווקים חדשים — מה שהרשת יכולה למדוד כרגע,
+    // ומה שהשרשרת החיצונית מודדת עבורה (חי, חסר-מפתחות)
+    const [planStages, lastCp, anchorCount, attestationCount, zeroJudge] = await Promise.all([
       db.planStage.findMany({ where: { state: { not: "DONE" } }, orderBy: { sortOrder: "asc" } }),
       db.checkpoint.findFirst({ orderBy: { index: "desc" } }),
       db.attestation.count({ where: { claimType: "ANCHOR" } }),
       db.attestation.count(),
+      zeroBlockHeight()
+        .then((j) => ({
+          reachable: true as const,
+          chainId: j.chainId,
+          height: j.height,
+          measuredAt: j.measuredAt,
+          endpoint: j.endpoint,
+          blockSeconds: ZERO_BLOCK_SECONDS_MEASURED,
+        }))
+        .catch((e: unknown) => ({
+          reachable: false as const,
+          error: e instanceof Error ? e.message : "zero rpc unreachable",
+        })),
     ]);
 
     return NextResponse.json({
       ok: true,
       market: {
         doctrine:
-          "הסחורה: הכרעה עתידית של טענות מדידות · השופט: המדידה של הרשת עצמה (PlanStage/Checkpoint/Attestation) · ההון: נקודות אמת — מוניטין מוצהר, אפס כסף · הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0",
+          "הסחורה: הכרעה עתידית של טענות מדידות · השופט: המדידה — של הרשת עצמה (PlanStage/Checkpoint/Attestation) או של שרשרת ציבורית חיצונית חיה (ZERO 9369, חסר-מפתחות) · ההון: נקודות אמת — מוניטין מוצהר, אפס כסף · הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0",
         startingPoints: STARTING_POINTS,
         book: {
           events: book.events,
@@ -65,6 +82,7 @@ export async function GET() {
           checkpointMax: lastCp?.index ?? 0,
           anchorCount,
           attestationCount,
+          zeroJudge,
         },
       },
     });

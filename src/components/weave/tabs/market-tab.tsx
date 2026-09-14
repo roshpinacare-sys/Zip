@@ -3,10 +3,12 @@
 // ─────────────────────────────────────────────────────────────────────
 // THE WEAVE · טאב 8 — שוק האמת (השוק החכם של הרשת)
 //
-// הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה של הרשת
-// עצמה — PlanStage שנסגר · Checkpoint שנוצר · מספר אימותי ANCHOR ·
-// סטטוס אימות. לא הצבעה, לא דעה, לא כסף — נקודות אמת (מוניטין
-// מוצהר). הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0.
+// הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה — של
+// הרשת עצמה (PlanStage שנסגר · Checkpoint שנוצר · מספר אימותי
+// ANCHOR · סטטוס אימות) או של שרשרת ציבורית חיצונית חיה (גובה
+// בלוק ZERO 9369 — השופט החיצוני, בקריאה חסרת-מפתחות ב-$0).
+// לא הצבעה, לא דעה, לא כסף — נקודות אמת (מוניטין מוצהר).
+// הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0.
 //
 // כל אירוע בספר השוק חתום EIP-191: STAKE בחתימת הסוכן שמהמר,
 // OPEN בחתימת הפותח, SETTLE/REFUND בחתימת מפתח הרשת.
@@ -17,6 +19,7 @@ import {
   Coins,
   ExternalLink,
   Gavel,
+  Globe,
   Plus,
   RefreshCw,
   Scale,
@@ -126,6 +129,16 @@ interface ResolvableView {
   action: "SETTLE" | "REFUND" | "HOLD";
 }
 
+interface ZeroJudgeView {
+  reachable: boolean;
+  chainId?: number;
+  height?: number;
+  measuredAt?: string;
+  endpoint?: string;
+  blockSeconds?: number;
+  error?: string;
+}
+
 interface MarketDTO {
   doctrine: string;
   startingPoints: number;
@@ -145,6 +158,7 @@ interface MarketDTO {
     checkpointMax: number;
     anchorCount: number;
     attestationCount: number;
+    zeroJudge: ZeroJudgeView | null;
   };
 }
 
@@ -239,7 +253,7 @@ export function MarketTab() {
             שוק האמת
           </h2>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            שוק חכם על טענות מדידות — השופט הוא המדידה של הרשת עצמה, לא הצבעה ולא דעה
+            שוק חכם על טענות מדידות — השופט הוא המדידה: של הרשת עצמה, או של שרשרת ציבורית חיצונית חיה (ZERO 9369) — לא הצבעה ולא דעה
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -292,11 +306,23 @@ export function MarketTab() {
                 <div className="mt-3">
                   <HashChip value={data.book.headHash} label="head" />
                 </div>
-                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-                  כל אירוע (OPEN/STAKE/SETTLE/REFUND) — רשומה קנונית hash-chained,
-                  חתומה EIP-191: ההימור בחתימת הסוכן שמהמר, מחזור החיים בחתימת מפתח
-                  הרשת. כל צומת יכול לחשב מחדש.
+                <p className="mt-2 text-xs text-muted-foreground">
+                  כל צומת יכול לחשב מחדש — ומטרות גובה-בלוק ZERO נמדדות מהשרשרת
+                  הציבורית עצמה, בקריאה חסרת-מפתחות. השוק לא ממציא תוצאות:
+                  כשל מדידה ⇒ לא מוכרע (fail-closed).
                 </p>
+                {data.openContext.zeroJudge?.reachable && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+                    <Globe className="size-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium">השופט החיצוני חי</span>
+                    <span className="font-mono text-xs text-muted-foreground" dir="ltr">
+                      ZERO {data.openContext.zeroJudge.chainId} · block {data.openContext.zeroJudge.height?.toLocaleString("en-US")}
+                    </span>
+                    <span className="ms-auto text-[10px] text-muted-foreground">
+                      נמדד {fmtDateTime(data.openContext.zeroJudge.measuredAt ?? "")}
+                    </span>
+                  </div>
+                )}
               </MotionCard>
 
               <MotionCard className="p-4 sm:p-6">
@@ -400,6 +426,7 @@ export function MarketTab() {
                     key={l.marketSeq}
                     listing={l}
                     agents={data.agents}
+                    zeroJudge={data.openContext.zeroJudge}
                     onStaked={load}
                   />
                 ))}
@@ -443,10 +470,12 @@ export function MarketTab() {
 function OpenMarketCard({
   listing,
   agents,
+  zeroJudge,
   onStaked,
 }: {
   listing: ListingView;
   agents: AgentCapitalView[];
+  zeroJudge: ZeroJudgeView | null;
   onStaked: () => void;
 }) {
   const [agentId, setAgentId] = useState("");
@@ -459,6 +488,17 @@ function OpenMarketCard({
   const total = listing.potYes + listing.potNo;
   const yesShare = total > 0 ? Math.round((listing.potYes / total) * 100) : 50;
   const expired = Date.parse(listing.byDate) <= Date.now();
+
+  // מטרת השופט החיצוני — התקדמות חיה מהשרשרת הציבורית
+  const zeroTarget =
+    listing.target?.type === "zero-block-height" ? Number(listing.target.height) : null;
+  const zeroLive = zeroJudge?.reachable ? (zeroJudge.height ?? null) : null;
+  const zeroProgress =
+    zeroTarget != null && zeroLive != null && zeroTarget > 0
+      ? Math.max(0, Math.min(100, Math.round((zeroLive / zeroTarget) * 100)))
+      : null;
+  const zeroRemaining =
+    zeroTarget != null && zeroLive != null ? Math.max(0, zeroTarget - zeroLive) : null;
 
   const submit = async () => {
     if (!agentId) {
@@ -502,6 +542,46 @@ function OpenMarketCard({
       <p className="mt-2 text-xs text-muted-foreground">
         <span className="font-medium">המטרה הנמדדת:</span> {listing.targetLabel}
       </p>
+
+      {zeroTarget != null && (
+        <div className="mt-2 rounded-lg border bg-muted/40 px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Globe className="size-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium">השופט החיצוני — שרשרת ZERO 9369</span>
+            {zeroLive != null ? (
+              <span className="ms-auto font-mono text-xs text-muted-foreground" dir="ltr">
+                live {zeroLive.toLocaleString("en-US")} / target {zeroTarget.toLocaleString("en-US")}
+              </span>
+            ) : (
+              <span className="ms-auto text-[10px] text-red-600 dark:text-red-400">
+                RPC לא זמין — המכריע יחכה למדידה (fail-closed)
+              </span>
+            )}
+          </div>
+          {zeroProgress != null && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    zeroProgress >= 100 ? "bg-emerald-500" : "bg-primary/70"
+                  )}
+                  style={{ width: `${zeroProgress}%` }}
+                />
+              </div>
+              <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
+                {zeroProgress}%
+              </span>
+              {zeroRemaining != null && zeroRemaining > 0 && (
+                <span className="text-[10px] text-muted-foreground" dir="ltr">
+                  · {zeroRemaining.toLocaleString("en-US")} blocks ≈{" "}
+                  {Math.max(1, Math.round((zeroRemaining * (zeroJudge?.blockSeconds ?? 2.5)) / 60))} min
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* סירי ההימורים */}
       <div className="mt-4">
@@ -710,7 +790,7 @@ function ClosedMarketCard({ listing }: { listing: ListingView }) {
 
 // ── דיאלוג פתיחת שוק ───────────────────────────────────────────────
 
-type TargetType = "stage-done" | "checkpoint-index" | "anchor-count" | "attestation-status";
+type TargetType = "stage-done" | "checkpoint-index" | "anchor-count" | "attestation-status" | "zero-block-height";
 
 function NewMarketDialog({
   open,
@@ -731,6 +811,7 @@ function NewMarketDialog({
   const [index, setIndex] = useState("");
   const [count, setCount] = useState("");
   const [seq, setSeq] = useState("");
+  const [height, setHeight] = useState("");
   const [byDate, setByDate] = useState("");
   const [createdBy, setCreatedBy] = useState("");
   const [busy, setBusy] = useState(false);
@@ -739,6 +820,12 @@ function NewMarketDialog({
     if (open && context) {
       setIndex(String(context.checkpointMax + 2));
       setCount(String(context.anchorCount + 3));
+      // ברירת מחדל חכמה לשופט החיצוני: הגובה החי + 4,320 בלוקים (≈3 שעות
+      // בקצב הנמדד) — טענה עתידית-ממשית באופק סביר להימור
+      const liveHeight = context.zeroJudge?.reachable ? context.zeroJudge.height : null;
+      if (liveHeight != null) {
+        setHeight(String(liveHeight + 4320));
+      }
       setByDate(new Date(Date.now() + 1000 * 60 * 60 * 14).toISOString().slice(0, 16));
     }
   }, [open, context]);
@@ -762,6 +849,8 @@ function NewMarketDialog({
             return { type, count: Number(count) };
           case "attestation-status":
             return { type, seq: Number(seq) };
+          case "zero-block-height":
+            return { type, height: Number(height) };
         }
       })();
       const res = await fetch("/api/weave/market/open", {
@@ -798,8 +887,9 @@ function NewMarketDialog({
             פתיחת שוק על טענה מדידה
           </DialogTitle>
           <DialogDescription>
-            המטרה חייבת להיות מדידה עתידית של הרשת עצמה — השופט הוא ה-DB, לא הצבעה.
-            שוק על עבר או על דבר שאינו ניתן למדידה יידחה (fail-closed).
+            המטרה חייבת להיות מדידה עתידית — של הרשת עצמה (ה-DB) או של
+            שרשרת ציבורית חיצונית חיה (ZERO 9369). שוק על עבר או על דבר
+            שאינו ניתן למדידה יידחה (fail-closed).
           </DialogDescription>
         </DialogHeader>
 
@@ -825,6 +915,7 @@ function NewMarketDialog({
                 <SelectItem value="checkpoint-index">checkpoint ייווצר</SelectItem>
                 <SelectItem value="anchor-count">כמות אימותי ANCHOR</SelectItem>
                 <SelectItem value="attestation-status">אימות יסומן VERIFIED</SelectItem>
+                <SelectItem value="zero-block-height">גובה בלוק ZERO (שופט חיצוני חי)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -885,6 +976,33 @@ function NewMarketDialog({
                 onChange={(e) => setSeq(e.target.value)}
                 placeholder="למשל: 27"
               />
+            </div>
+          )}
+
+          {type === "zero-block-height" && (
+            <div>
+              <Label className="text-xs">
+                גובה בלוק ZERO{" "}
+                {context?.zeroJudge?.reachable ? (
+                  <span className="font-mono" dir="ltr">
+                    (חי: {context.zeroJudge.height?.toLocaleString("en-US")})
+                  </span>
+                ) : (
+                  <span className="text-red-600 dark:text-red-400">(RPC לא זמין כרגע)</span>
+                )}
+              </Label>
+              <Input
+                className="mt-1 font-mono text-sm"
+                type="number"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+              />
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                השופט: השרשרת הציבורית עצמה (Z Chain 9369), בקריאה חסרת-מפתחות.
+                קצב נמדד: בלוק ל-2.5 שניות · 4,320 בלוקים ≈ 3 שעות · מינימום 120 בלוקים
+                מעל הגובה החי. ההכרעה היחידה האפשרית: YES כשהגובה הושג; פג תוקף
+                ללא השגה ⇒ החזר מלא.
+              </p>
             </div>
           )}
 
