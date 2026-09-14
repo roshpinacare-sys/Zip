@@ -64,6 +64,9 @@ jobs:
         run: bun scripts/weave-beat.ts
         env:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+          # משמרת ה-seal (G3): הסיסמה מ-Actions Secrets — הענן פותח
+          # את ה-seal בלי שום סוד בגיט (המעטפת בריפו חסרת-ערך לבדה)
+          WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
           # force-beat ⇒ דגל מפורש; הספים הם ברירת המחדל של הדוקטרינה
           WEAVE_FORCE_BEAT: ${{ inputs.mode == 'force-beat' && '1' || '0' }}
           WEAVE_STALE_MIN: '1560'

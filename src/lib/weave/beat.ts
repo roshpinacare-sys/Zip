@@ -294,6 +294,41 @@ export async function runBeat(
   }
   const cloudAgent = await ensureCloudAgent(cloudKeyHex);
 
+  // ── SOV-3 איחול-עצמי (BUILD) ──
+  // פעימת ענן = הפלטפורמה קמה מ-clone נקי ב-runner של GitHub Actions:
+  // checkout → bun install → prisma → ייבוא הספר → פתיחת seal → הפעימה הזו.
+  // אימות BUILD נרשם רק כשהשער פתוח, ורק בנתיב שממשיך לדחיפה —
+  // כך ההוכחה תמיד מגיעה ל-origin/main ולא נשארת ב-runner ארעי.
+  let sov3Att: { seq: number; entryHash: string } | null = null;
+  if (context.runner === "github-actions") {
+    const sov3 = await db.planStage.findUnique({ where: { code: "SOV-3" } });
+    if (sov3 && sov3.state !== "DONE") {
+      const buildClaim =
+        `איחול-עצמי: הפלטפורמה קמה מ-clone נקי ב-runner ענן — ` +
+        `install+prisma+ייבוא הספר+פתיחת seal ופעימה, בלי הסנדבוקס שלנו.`;
+      const buildEvidence = [
+        `runner=${context.runner}`,
+        `gitHead=${context.gitHead ?? "unknown"}`,
+        `repo=${context.repoSlug ?? "roshpinacare-sys/weave-core"}`,
+        context.runUrl ? `run=${context.runUrl}` : null,
+        `bun=${process.versions.bun ?? "?"} node=${process.versions.node ?? "?"}`,
+        `sealCustody=${process.env.WEAVE_SEAL_PASSPHRASE ? "github-secret" : "repo-meta-legacy"}`,
+        `verify: checked=${verify.checked} sigOk=${verify.sigOk} sigFail=${verify.sigFail}`,
+        `headHash=${verify.headHash}`,
+        `at=${at}`,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      const buildAtt = await appendAttestation({
+        agentId: cloudAgent.id,
+        claim: buildClaim,
+        claimType: "BUILD",
+        evidence: buildEvidence,
+      });
+      sov3Att = { seq: buildAtt.seq, entryHash: buildAtt.entryHash };
+    }
+  }
+
   const claim =
     `פעימת לב ריבונית: הספר אומת מחדש — ${verify.checked} רשומות, ` +
     `חתימות ${verify.sigOk}/${verify.checked}, head תואם. הרץ: ${
@@ -330,6 +365,11 @@ export async function runBeat(
     if (closed) gatesClosed.push(closed);
   } else {
     const closed = await closeStageWithAttestation("SOV-1", appended.seq);
+    if (closed) gatesClosed.push(closed);
+  }
+  // SOV-3 — נסגר על אימות ה-BUILD שנכתב באותה פעימת ענן (לפני אימות הפעימה)
+  if (sov3Att) {
+    const closed = await closeStageWithAttestation("SOV-3", sov3Att.seq);
     if (closed) gatesClosed.push(closed);
   }
 
