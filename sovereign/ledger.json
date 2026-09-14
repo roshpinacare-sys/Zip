@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T23:41:53.561Z",
-  "chainCount": 33,
-  "headHash": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+  "exportedAt": "2026-09-14T23:43:11.803Z",
+  "chainCount": 35,
+  "headHash": "0xcb73fb88bf77d40a27c7e2e1cca38ea1b64b249ad550ca1e223ace06ea71bc79",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -599,6 +599,36 @@
       "sig": "0xde6ab876c88e3ad5c276453f99b2ac72016a1b2292f5ad1a0cf9e50cfa5ed8e10ab87838f86651437d83d814c61d1ebf030666f086b992a03e62e9239e10072f1c",
       "signerAddr": "0x3f2c2a991EA6f7605561fabe85E5CB283a3986b2",
       "createdAt": "2026-09-14T23:41:53.512Z"
+    },
+    {
+      "id": "cmu1w21r30001sq3zktzcc54k",
+      "seq": 34,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 33 רשומות, חתימות 33/33, head תואם. הרץ: ה-runner הראשי (סנדבוקס/מקומי).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=local-primary · gitHead=538a984 · repo=roshpinacare-sys/weave-core · verify: valid=true checked=33 sigOk=33 sigFail=0 firstBreak=null · recomputedHead=0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308 · headHash=0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308 · at=2026-09-14T23:43:09.650Z",
+      "evidenceHash": "0x075a008e6d29618c701637f2a33031239cedec84496e868d82081f8f5952aa78",
+      "status": "VERIFIED",
+      "prevHash": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+      "entryHash": "0xe75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
+      "sig": "0x305f5b7b2f728bfc7ddc8f2bfe31e133937912684773e7ecbbeb6fc5a21248f80432d59cb15ee2128ad1a9db553f0c3ead7b29a5e1b976dcb2d46c473622c0c51b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-14T23:43:09.657Z"
+    },
+    {
+      "id": "cmu1w21vr0004sq3zle99ghjj",
+      "seq": 35,
+      "agentId": "cmu1tpcgz000rsqvbsefufeq9",
+      "claim": "עוגן-עוגנים: שרשרת הכלכלה של הצי (saos-net/0) נמדדה ב-replay דטרמיניסטי — stateRoot=…e6601494 בגובה 223,838 — ו שתי שרשראות האמת מעידות זו על זו.",
+      "claimType": "CROSSCHAIN",
+      "evidence": "net=saos-net/0 · stateRoot=29778d14850f7eb8a9f8415201dd0d8c109a5fc2342972399dfad56be6601494 · genesisHash=5a8b98311c8333efd361fc88972d3f0936216d6ff0e6d39ea7d8e30a35a12ad8 · height=223838 · lastBlockHash=55bb6f54dbce66b369f3848a2eda46d9cc759cd57a858133efdd37e4f9895fc1 · snapshotHeight=223800 · blocksInPack=512 · replay: hash=38/38 linkage=38/38 snapshotSelf=true · rootMatch=true heightMatch=true · soldiers=11 lpHolders=10 walletAgents=12 · issuer=headcorner · measuredBy=saosnet-status.cjs (deterministic replay) · at=2026-09-14T23:43:09.822Z",
+      "evidenceHash": "0xbd83d7e414c26d8ec9b611c92060c1469f3360d5c342f9dc835f606f34978c3c",
+      "status": "VERIFIED",
+      "prevHash": "0xe75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
+      "entryHash": "0xcb73fb88bf77d40a27c7e2e1cca38ea1b64b249ad550ca1e223ace06ea71bc79",
+      "sig": "0xa7a19db80c321e1899db379cd9c9aa5a192284fc089b3665603c58da0d860b1c64a71281cad750082e41b10b61302e0fabaa5e7ef027f636fae3d373499ca4f41b",
+      "signerAddr": "0x92678d1Fef5724265BCd263A7394D1C226b5f4e3",
+      "createdAt": "2026-09-14T23:43:09.827Z"
     }
   ],
   "checkpoints": [
@@ -1043,6 +1073,40 @@
       "anchorTx": null,
       "calldata": "0xeecdf927fa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
       "createdAt": "2026-09-14T23:41:53.549Z"
+    },
+    {
+      "id": "cmu1w21rl0002sq3z2jk48oop",
+      "index": 27,
+      "attFrom": 34,
+      "attTo": 34,
+      "leafCount": 1,
+      "root": "0xe75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
+      "prevRoot": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+      "entryHash": "0xccbb8e7d721be6a06b85fa126ff93fedf0afbcdb2cc6d28f7774719dd680f949",
+      "sig": "0x9a7cafeb1930dc6d2ec583babd862e76ef03dac2385f9121e2ab4435428cbb0a558211ed412d6286556618ba0c0ca5a7f4e3ec93bf75bc5610eb62086af776fe1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927e75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
+      "createdAt": "2026-09-14T23:43:09.681Z"
+    },
+    {
+      "id": "cmu1w21w00005sq3z8lcn86bb",
+      "index": 28,
+      "attFrom": 35,
+      "attTo": 35,
+      "leafCount": 1,
+      "root": "0xcb73fb88bf77d40a27c7e2e1cca38ea1b64b249ad550ca1e223ace06ea71bc79",
+      "prevRoot": "0xe75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
+      "entryHash": "0x4dadda139500966b74fc88e0fd1cf604c25bc9471fed7a586da1d269da17140d",
+      "sig": "0x963cc461f773c68fa87beaa6923e183c08197245bd7162065b0b9763c3420da412d1259b93a46db2a026e3fd62770eb9f672b381a0c2aa4e34925326782528c11b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927cb73fb88bf77d40a27c7e2e1cca38ea1b64b249ad550ca1e223ace06ea71bc79",
+      "createdAt": "2026-09-14T23:43:09.841Z"
     }
   ],
   "networkKey": {

@@ -1,32 +1,32 @@
 {
-  "at": "2026-09-14T22:41:42.322Z",
+  "at": "2026-09-14T23:43:09.650Z",
   "runner": "local-primary",
   "verdict": "LEDGER-VALID",
   "verify": {
     "valid": true,
-    "checked": 30,
-    "sigOk": 30,
+    "checked": 33,
+    "sigOk": 33,
     "sigFail": 0,
     "firstBreak": null,
     "errors": [],
-    "recomputedHead": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
-    "headHash": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7"
+    "recomputedHead": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+    "headHash": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308"
   },
   "beat": {
-    "seq": 31,
-    "entryHash": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
+    "seq": 34,
+    "entryHash": "0xe75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
     "status": "VERIFIED",
     "checkpoint": {
-      "index": 24,
-      "root": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
-      "attFrom": 31,
-      "attTo": 31
+      "index": 27,
+      "root": "0xe75659d80f90e46c66e47de374f5319bd6755a5f4f4e78e31508ab2fed9d53aa",
+      "attFrom": 34,
+      "attTo": 34
     }
   },
   "gatesClosed": [],
   "context": {
     "runner": "local-primary",
-    "gitHead": "f965f36",
+    "gitHead": "538a984",
     "repoSlug": "roshpinacare-sys/weave-core"
   },
   "market": {
@@ -36,13 +36,29 @@
     "checkpoint": null
   },
   "crosschain": {
-    "status": "SKIPPED",
-    "reason": "stateRoot זה כבר מעיד בספר (att 30) — המצב לא השתנה מאז; דילוג כנה",
-    "attSeq": 30,
+    "status": "ATTESTED",
+    "reason": "העדות נכתבה בספר וחתומה; ה-checkpoint יכסה והעוגנים יעידו (Steem/Hive + ZERO, ב-$0)",
+    "attSeq": 35,
     "net": {
       "netVersion": "saos-net/0",
       "height": 223838,
       "stateRoot": "29778d14850f7eb8a9f8415201dd0d8c109a5fc2342972399dfad56be6601494"
+    },
+    "checkpoint": {
+      "index": 28,
+      "root": "0xcb73fb88bf77d40a27c7e2e1cca38ea1b64b249ad550ca1e223ace06ea71bc79"
+    }
+  },
+  "archive": {
+    "status": "SKIPPED",
+    "reason": "שורש זה כבר מעיד בספר (att 33, CROSSCHAIN) — הארכיון לא השתנה מאז; דילוג כנה",
+    "attSeq": 33,
+    "snapshot": {
+      "repo": "roshpinacare-sys/anchor-baseline",
+      "commit": "f97ac018a8829a7c384469281b3a0c64b4846d8a",
+      "fileCount": 86,
+      "totalBytes": 474747,
+      "root": "0x4fd5063694faf29e41aa5ff8e82266b04dc3bf85b36c115c0b1d82891736c10b"
     },
     "checkpoint": null
   }
