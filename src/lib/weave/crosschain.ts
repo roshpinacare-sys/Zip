@@ -139,6 +139,11 @@ function isFullyVerified(replay: SaosnetReplay): boolean {
  * ATTESTED — עדות חדשה נכתבה; ה-checkpoint/הייצוא באחריות הקורא (סולם ההוכחות).
  */
 export async function crossAnchorSaosnet(): Promise<CrossAnchorResult> {
+  // 0. זהות העד קודם לדה-דופליקציה — משפחות ה-CROSSCHAIN נבדלות לפי
+  //    העד (SAOS-NET · ארכיון): חיפוש "ה-CROSSCHAIN האחרון" חסר-היקף
+  //    נשבר ברגע שעד שני נוסף (Task 19) והחזיר שכפול של אותה עדות.
+  const witness = await ensureSaosnetWitness();
+
   // 1. המדידה — replay דטרמיניסטי מלא (הראייה, לא טענה)
   const replay = await runSaosnetReplay(true);
   const { net, verify, economy, wallets } = replay;
@@ -152,10 +157,12 @@ export async function crossAnchorSaosnet(): Promise<CrossAnchorResult> {
     };
   }
 
-  // 2. דה-דופליקציה לפי stateRoot — אותו שורש = אותה עדות
+  // 2. דה-דופליקציה לפי stateRoot — אותו שורש = אותה עדות.
+  //    ממוקד-עד: רק עדויות SAOS-NET של העד הזה (לא כל CROSSCHAIN —
+  //    עד הארכיון וד אחר, וראיתו על שורש אחר).
   const needle = `stateRoot=${net.stateRoot}`;
   const lastCross = await db.attestation.findFirst({
-    where: { claimType: "CROSSCHAIN" },
+    where: { claimType: "CROSSCHAIN", agentId: witness.id },
     orderBy: { seq: "desc" },
   });
   if (lastCross && lastCross.evidence.includes(needle)) {
@@ -188,7 +195,6 @@ export async function crossAnchorSaosnet(): Promise<CrossAnchorResult> {
     `at=${new Date().toISOString()}`,
   ].join(" · ");
 
-  const witness = await ensureSaosnetWitness();
   const att = await appendAttestation({
     agentId: witness.id,
     claim,
@@ -204,7 +210,8 @@ export async function crossAnchorSaosnet(): Promise<CrossAnchorResult> {
   };
 }
 
-/** אינדקס ההצלבה לתצוגה — אימות ה-CROSSCHAIN האחרון + ניתוח שדות הראיה */
+/** אינדקס ההצלבה לתצוגה — אימות ה-CROSSCHAIN האחרון של עד SAOS-NET
+ *  (ממוקד-עד: משפחות ה-CROSSCHAIN נבדלות לפי העד) + ניתוח שדות הראיה */
 export async function lastSaosnetCrossAnchor(): Promise<{
   attSeq: number;
   stateRoot: string | null;
@@ -212,8 +219,10 @@ export async function lastSaosnetCrossAnchor(): Promise<{
   netVersion: string | null;
   at: string;
 } | null> {
+  const witness = await db.agent.findUnique({ where: { name: "weave-saosnet-witness" } });
+  if (!witness) return null;
   const last = await db.attestation.findFirst({
-    where: { claimType: "CROSSCHAIN" },
+    where: { claimType: "CROSSCHAIN", agentId: witness.id },
     orderBy: { seq: "desc" },
   });
   if (!last) return null;
