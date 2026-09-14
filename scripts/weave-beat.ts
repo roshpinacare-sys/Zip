@@ -37,6 +37,10 @@ const NO_PUSH = process.argv.includes("--no-push");
 // טריקות רעננות שהספר עצמו קובע: אימות אחרון או דחיפת גיט אחרונה
 const STALE_ATTMin = Number(process.env.WEAVE_STALE_MIN || 26 * 60); // 26 שעות
 const STALE_GIT_MIN = Number(process.env.WEAVE_GIT_STALE_MIN || 20 * 60); // 20 שעות
+// דגל השתלטות ידנית: דולג על דוקטרינת החיים — הענן לוקח פיקוד גם אם
+// הספר טרי (dispatch של force-beat). למד היטב: סף "999999" הפך הכול
+// ל"טרי" והענן נסוג — נתפס במדידה (run #2, 2026-09-14) ותוקן בדגל מפורש.
+const FORCE_BEAT = process.env.WEAVE_FORCE_BEAT === "1";
 
 function sh(cmd: string): string {
   try {
@@ -141,7 +145,10 @@ async function main(): Promise<void> {
   console.log(`[weave-beat] seal פתוח · cloud=${seal.cloudAddress} · network=${seal.networkAddress}`);
 
   // 4. דוקטרינת חיים (ענן בלבד): ספר טרי ⇒ אימות-בלבד, אין הרחבה
-  if (runner === "github-actions") {
+  //    force-beat דולג עליה — השתלטות ידנית מדגימה (SOV-2, אימון)
+  if (runner === "github-actions" && FORCE_BEAT) {
+    console.log("[weave-beat] FORCE-BEAT: dispatch ידני — הענן לוקח פיקוד ללא קשר לטריות");
+  } else if (runner === "github-actions") {
     const lastAtt = await db.attestation.findFirst({ orderBy: { createdAt: "desc" } });
     const attAgeMin = lastAtt
       ? (Date.now() - lastAtt.createdAt.getTime()) / 60000

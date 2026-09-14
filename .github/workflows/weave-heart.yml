@@ -64,8 +64,10 @@ jobs:
         run: bun scripts/weave-beat.ts
         env:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
-          WEAVE_STALE_MIN: ${{ inputs.mode == 'force-beat' && '999999' || '1560' }}
-          WEAVE_GIT_STALE_MIN: ${{ inputs.mode == 'force-beat' && '999999' || '1200' }}
+          # force-beat ⇒ דגל מפורש; הספים הם ברירת המחדל של הדוקטרינה
+          WEAVE_FORCE_BEAT: ${{ inputs.mode == 'force-beat' && '1' || '0' }}
+          WEAVE_STALE_MIN: '1560'
+          WEAVE_GIT_STALE_MIN: '1200'
 
       - name: Upload beat report (evidence)
         if: always()
