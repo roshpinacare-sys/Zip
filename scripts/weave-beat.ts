@@ -83,8 +83,8 @@ function secretGate(stagedDiff: string): string | null {
 // 64hex — כולל devKeyHex אמיתי או ערך חשוד בטקסט — נשארת ונתפסת ע"י השער.
 function filterKnownHashes(diff: string): string {
   const KNOWN_HASH_FIELDS =
-    /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id)"\s*:/i;
-  const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash)=/i;
+    /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx)"\s*:/i;
+  const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx)=/i;
   return diff
     .split("\n")
     .filter((line) => {

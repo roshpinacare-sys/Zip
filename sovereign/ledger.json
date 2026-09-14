@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T21:00:52.703Z",
-  "chainCount": 23,
-  "headHash": "0xd2dc6ff24fa75efc8692048881d86d0a6eadb1d95e2bc1151c408d47aaedbcd3",
+  "exportedAt": "2026-09-14T21:25:42.287Z",
+  "chainCount": 25,
+  "headHash": "0xa8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -58,6 +58,17 @@
       "nonce": 0,
       "rotatedAt": null,
       "createdAt": "2026-09-14T14:48:30.786Z"
+    },
+    {
+      "id": "cmu1r4lfs000fsqvb9d0nyqmm",
+      "name": "weave-market-regulator",
+      "role": "DAEMON",
+      "ethAddress": "0x3D0ab9984887DfEc431434017808E0B802e96184",
+      "pubKeyHex": "0x043c200e6c4834ee55c92a3778408ff0a897cf137558a64cc53d3ea264eab5d7c19bcee452f1cf16aa2a3807dfcd85e72947b1250428e1f7b2c3475169929cd6cc",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-14T21:25:10.408Z"
     }
   ],
   "attestations": [
@@ -405,6 +416,36 @@
       "sig": "0x5c9f10f963b2fb17ae43338bacea950d0f1dd0996ca622ab8e82145d893bda66282d41d97c6d796bd33f0742f89db948964e453ba842f480f6db85c026621a221c",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-14T21:00:52.675Z"
+    },
+    {
+      "id": "cmu1r4lfz000hsqvbhjb4ukiz",
+      "seq": 24,
+      "agentId": "cmu1r4lfs000fsqvb9d0nyqmm",
+      "claim": "שוק האמת #12 \"בדיקת מנגנון (נתיב ההחזר): checkpoint #999 — בלתי-ניתן להשגה בתוקף של 40 שניות\" — פג תוקף בלי הכרעה מדודה: כל ההימורים הוחזרו במלואם (2 סוכנים, 20 נקודות). השוק לא ממציא תוצאה.",
+      "claimType": "MARKET",
+      "evidence": "marketSeq=12 · disposition=REFUND/expired · byDate=2026-09-14T21:24:54.000Z · refunds=2 · points=20",
+      "evidenceHash": "0xd4c9668f10f570c71392470025fc3a8b20b32951f191d9d14a62a30605f9c2aa",
+      "status": "VERIFIED",
+      "prevHash": "0xd2dc6ff24fa75efc8692048881d86d0a6eadb1d95e2bc1151c408d47aaedbcd3",
+      "entryHash": "0xda79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20",
+      "sig": "0x32a4aaa2d75118d8156d69f850f7e0f37fbebc9176ab765711ff3d22d5e278ee005554adab0ef901dd8a84db9cfc739d77b91251e47e09540c05a8fb68bdac971c",
+      "signerAddr": "0x3D0ab9984887DfEc431434017808E0B802e96184",
+      "createdAt": "2026-09-14T21:25:10.411Z"
+    },
+    {
+      "id": "cmu1r5a0r0001sq4kvdhgxuqe",
+      "seq": 25,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 24 רשומות, חתימות 24/24, head תואם. הרץ: ה-runner הראשי (סנדבוקס/מקומי).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=local-primary · gitHead=ec25324 · repo=roshpinacare-sys/weave-core · verify: valid=true checked=24 sigOk=24 sigFail=0 firstBreak=null · recomputedHead=0xda79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20 · headHash=0xda79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20 · at=2026-09-14T21:25:42.257Z",
+      "evidenceHash": "0x78a8ad744dab0356c64d62fb1d5abfeec2e037ac4bc3625100f100a3da803d2b",
+      "status": "VERIFIED",
+      "prevHash": "0xda79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20",
+      "entryHash": "0xa8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
+      "sig": "0x327442c66d430dc97075eddc85ee1befa4be9801b6d73562232041ce41941be153c4720e940bdaeb0d280110e21acd888b97edc54178672281f8e750a4bda8361c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-14T21:25:42.261Z"
     }
   ],
   "checkpoints": [
@@ -679,6 +720,40 @@
       "anchorTx": null,
       "calldata": "0xeecdf927d2dc6ff24fa75efc8692048881d86d0a6eadb1d95e2bc1151c408d47aaedbcd3",
       "createdAt": "2026-09-14T21:00:52.697Z"
+    },
+    {
+      "id": "cmu1r4lgg000isqvbltyf5t8b",
+      "index": 17,
+      "attFrom": 24,
+      "attTo": 24,
+      "leafCount": 1,
+      "root": "0xda79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20",
+      "prevRoot": "0xd2dc6ff24fa75efc8692048881d86d0a6eadb1d95e2bc1151c408d47aaedbcd3",
+      "entryHash": "0xd90490dac91813682be939a9dbf35856878ab0fd4698036fef283e0478827f78",
+      "sig": "0xa0b4fa4c71e928e0cc74729885f935bdf46d50118d4aaf6b972bb7071241a50f54ecbdc2fcfd8dd66262d429ae2a00d0f846c1340271220a8e57b17cf45e77d71c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927da79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20",
+      "createdAt": "2026-09-14T21:25:10.432Z"
+    },
+    {
+      "id": "cmu1r5a140002sq4kgn1z465u",
+      "index": 18,
+      "attFrom": 25,
+      "attTo": 25,
+      "leafCount": 1,
+      "root": "0xa8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
+      "prevRoot": "0xda79f98adf2649323a8ce689904eceaec49c7d5f428e05c0c60395accc2dcb20",
+      "entryHash": "0xaf22efb70ecce120d1a447951c55a481c95676e8b173587229e9cd2813ef87be",
+      "sig": "0x0679177e6632833305b1dd7229cb3bee4143bd665d423fd14aa1f75d5b4171e81a41407664d8890aa2620eea2bc705e6ea2eae98b6d03eb7059105ea47ad180e1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927a8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
+      "createdAt": "2026-09-14T21:25:42.281Z"
     }
   ],
   "networkKey": {
@@ -1023,6 +1098,224 @@
       "state": "DONE",
       "attSeq": 13,
       "sortOrder": 32
+    }
+  ],
+  "marketEvents": [
+    {
+      "id": "cmu1r1d430000sqvb5w4rnolm",
+      "seq": 1,
+      "kind": "OPEN",
+      "payload": "{\"kind\":\"OPEN\",\"title\":\"קו העדות יתעבה: אימותי ANCHOR בספר יגיעו ל-9 עד מחר בצהריים\",\"target\":{\"type\":\"anchor-count\",\"count\":9},\"byDate\":\"2026-09-15T12:00:00.000Z\",\"createdBy\":\"cmu16xzwa001bsqwz1ryi8041\"}",
+      "payloadHash": "0xa7b824013213f0abf968794266a5aacd87e73408184f2eb8d4baeb537b2aa09f",
+      "prevHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+      "entryHash": "0x7e093edf3625f295f832939d09bbc1250f13567e1b1e99ec25a60ca7ad02df7c",
+      "sig": "0xd8b360305498367a73da75793f81fb71f07cf45d20d6429ddfeebdf1a4d261f24ba61d4c9ce7cf2c4f9f39aa5697a1beaf36ce08901ea808926bb10200c466b01b",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T21:22:39.615Z"
+    },
+    {
+      "id": "cmu1r1d6b0001sqvb69chxevx",
+      "seq": 2,
+      "kind": "OPEN",
+      "payload": "{\"kind\":\"OPEN\",\"title\":\"הספר יגדל: checkpoint #20 ייווצר עד מחר בצהריים\",\"target\":{\"type\":\"checkpoint-index\",\"index\":20},\"byDate\":\"2026-09-15T12:00:00.000Z\",\"createdBy\":\"cmu16xzwl001csqwzd8bsp80i\"}",
+      "payloadHash": "0x3cd28af3b219133024100c002b4950b01cc55d5f0878810cc8c4f04315fe8d1e",
+      "prevHash": "0x7e093edf3625f295f832939d09bbc1250f13567e1b1e99ec25a60ca7ad02df7c",
+      "entryHash": "0xd83280c94fc9b305b86687c51a9e947048ddad28e7824926637ecd568498425b",
+      "sig": "0x0d20521d95843819b67b599644c3a34da5eab0a861565684dfc039b94b3dbc9b6d06a29f8c7c87db84602ca9e2ddf393cb3450adf92f60a8ab2e1e102f6662de1b",
+      "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
+      "createdAt": "2026-09-14T21:22:39.726Z"
+    },
+    {
+      "id": "cmu1r1d710002sqvbg5r7xa35",
+      "seq": 3,
+      "kind": "OPEN",
+      "payload": "{\"kind\":\"OPEN\",\"title\":\"שלב L2 בתוכנית ייסגר עם אימות VERIFIED בתוך שבוע\",\"target\":{\"type\":\"stage-done\",\"code\":\"L2\"},\"byDate\":\"2026-09-21T21:00:00.000Z\",\"createdBy\":\"cmu16xzwt001dsqwzmchyssue\"}",
+      "payloadHash": "0xeb31f5a88bdbef655e46face19d4a528ffedd4a00b0d98508fcf816221b68830",
+      "prevHash": "0xd83280c94fc9b305b86687c51a9e947048ddad28e7824926637ecd568498425b",
+      "entryHash": "0xe496b7428153f8cb2ab02e928c15751d0bab52964e947a83479713e7bad9116c",
+      "sig": "0x586fd9ebc14e1cfd4101d47f39f2dfccd66a57a4cba7a9e8b41fe34f3bd87dac052eeed56a88efdc51a51b4439e3b974b8e12431f093e0e56b73294f672d56441c",
+      "signerAddr": "0x0bBE6e5361a2601737b8Ac9Dc2DCfAA8e85aC92c",
+      "createdAt": "2026-09-14T21:22:39.751Z"
+    },
+    {
+      "id": "cmu1r1nj60003sqvbux5o5bvt",
+      "seq": 4,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":1,\"agentId\":\"cmu16xzwa001bsqwz1ryi8041\",\"agentAddress\":\"0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a\",\"side\":\"YES\",\"points\":300,\"nonce\":1}",
+      "payloadHash": "0x06166f550d52268ccb3381b23662541ffbdb37f44f4953560f306fe07c290ea5",
+      "prevHash": "0xe496b7428153f8cb2ab02e928c15751d0bab52964e947a83479713e7bad9116c",
+      "entryHash": "0xbc95e4b4f67d1de710e5bcfa3a5812c90fbbc0d090e6460d0fda0e7c7e6a3ffc",
+      "sig": "0xbab61f85620792c3ebf0bc5bb5ebaca037c1b31af10c4eb127879b0ec44eb6dc0395db4336f377956f39f6db3e7d1ca7b9e126df813d4cb021405b115d1a64291c",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T21:22:53.150Z"
+    },
+    {
+      "id": "cmu1r1nk50004sqvbhnshcp5p",
+      "seq": 5,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":1,\"agentId\":\"cmu16xzwt001dsqwzmchyssue\",\"agentAddress\":\"0x0bBE6e5361a2601737b8Ac9Dc2DCfAA8e85aC92c\",\"side\":\"YES\",\"points\":200,\"nonce\":1}",
+      "payloadHash": "0x268242b687c18c2e3ebe0375720b5019b88259e6defa78de4a9963299afcce30",
+      "prevHash": "0xbc95e4b4f67d1de710e5bcfa3a5812c90fbbc0d090e6460d0fda0e7c7e6a3ffc",
+      "entryHash": "0x05dd538c13a37b152998a38c54c7fdb37e84da9a165e1b96b701df65b0e4252a",
+      "sig": "0x54e162e88b7977899db0df188f7ccd488fb8c1549f52fd9c2fdca3fd34d5b9076b41c2068397eb5854a3adbde2f95345c5a232ef5cdc9a1edfcf1f08930cd22f1c",
+      "signerAddr": "0x0bBE6e5361a2601737b8Ac9Dc2DCfAA8e85aC92c",
+      "createdAt": "2026-09-14T21:22:53.186Z"
+    },
+    {
+      "id": "cmu1r1nlg0005sqvbko7cv73p",
+      "seq": 6,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":1,\"agentId\":\"cmu16xzwl001csqwzd8bsp80i\",\"agentAddress\":\"0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668\",\"side\":\"NO\",\"points\":150,\"nonce\":1}",
+      "payloadHash": "0x2a373fd9f66e98b6f4cc5a72e80104b8ae68e9b50de2fc0339de831d4f668176",
+      "prevHash": "0x05dd538c13a37b152998a38c54c7fdb37e84da9a165e1b96b701df65b0e4252a",
+      "entryHash": "0x9527328bbd686ccf85445d11a5343dbb0914546a9fdd10eeadace76bf5cde3cb",
+      "sig": "0x1e38937b80e77d938d370da0ea380eb4d93a25659da5b0277aa000b04d41fba173ade1cbdd9661721f0e8db538f9e0d3cd68e55ffb522fc0b0af71715941e40c1c",
+      "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
+      "createdAt": "2026-09-14T21:22:53.228Z"
+    },
+    {
+      "id": "cmu1r1nmo0006sqvbz42f7gcb",
+      "seq": 7,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":2,\"agentId\":\"cmu18b4h4002hsqwzhd6azjek\",\"agentAddress\":\"0x2Ba272B5fa370Fe58577CA4f5B6D3e89Ddcb9446\",\"side\":\"YES\",\"points\":250,\"nonce\":1}",
+      "payloadHash": "0xaef0530a66819945e6131cd6f943cf07f07d13860a074ff46d6df556449bdaf7",
+      "prevHash": "0x9527328bbd686ccf85445d11a5343dbb0914546a9fdd10eeadace76bf5cde3cb",
+      "entryHash": "0x9078b4c649cf5111644dd3e6add0dea284fc76125bdd2d2c44e8037b832d27bc",
+      "sig": "0xabef6de8827f9237bb1164b751213bbc64caf5cb480b66f3a327ff4c9b9ab68900495c9d47c0133fc5bd58019924a924ad38baeaee7a9a789eeec6eebe7f656e1c",
+      "signerAddr": "0x2Ba272B5fa370Fe58577CA4f5B6D3e89Ddcb9446",
+      "createdAt": "2026-09-14T21:22:53.276Z"
+    },
+    {
+      "id": "cmu1r1nog0007sqvbo5a0dq23",
+      "seq": 8,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":2,\"agentId\":\"cmu16xzwl001csqwzd8bsp80i\",\"agentAddress\":\"0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668\",\"side\":\"NO\",\"points\":250,\"nonce\":2}",
+      "payloadHash": "0x6c5ec6a50a0380176827d5f7eb54525ec64a8c28403e99bf480b2da758b2298e",
+      "prevHash": "0x9078b4c649cf5111644dd3e6add0dea284fc76125bdd2d2c44e8037b832d27bc",
+      "entryHash": "0xf869bb2d716e8cc4297da4b1c32f470eee9a337dd9c44c51e7bb758dd55a8976",
+      "sig": "0x173bbc5111ffdaec9b44b7f0fde28f7a5333f5dd118ebd4d5aa12499de3e6fea0b4f67ae54f5ae8cf13e98011531f45d48103e3b3ec319b9ae85bad717adc6a91c",
+      "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
+      "createdAt": "2026-09-14T21:22:53.331Z"
+    },
+    {
+      "id": "cmu1r1nra0008sqvbdgjg14i7",
+      "seq": 9,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":2,\"agentId\":\"cmu16xzwa001bsqwz1ryi8041\",\"agentAddress\":\"0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a\",\"side\":\"NO\",\"points\":100,\"nonce\":2}",
+      "payloadHash": "0x06a788d3d6f9042cebf085a1aa4d6f3b6b8feda74d25dfea315d2f9307bcef4e",
+      "prevHash": "0xf869bb2d716e8cc4297da4b1c32f470eee9a337dd9c44c51e7bb758dd55a8976",
+      "entryHash": "0xc69b65fba0a11a7d0640677d8eaf856c8906727f1e7b36b47990da0c69d67fa7",
+      "sig": "0x46ca279f47b44e9e2af5036f2c9fb9b61b14fffa2df2f4011e24b39fe190660b60369f4a71960b34c474ed32f3b7f49f3f56f769b42d12487f21bf3c9ac2c2801b",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T21:22:53.442Z"
+    },
+    {
+      "id": "cmu1r1nsk0009sqvbq4286jzk",
+      "seq": 10,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":3,\"agentId\":\"cmu16xzwt001dsqwzmchyssue\",\"agentAddress\":\"0x0bBE6e5361a2601737b8Ac9Dc2DCfAA8e85aC92c\",\"side\":\"YES\",\"points\":400,\"nonce\":2}",
+      "payloadHash": "0x3e51cf5a3211b19c1864d0fbb160d530061ce287e577a814d9b3109478448a82",
+      "prevHash": "0xc69b65fba0a11a7d0640677d8eaf856c8906727f1e7b36b47990da0c69d67fa7",
+      "entryHash": "0xd44fbc9bd5bc59b6521d5ec92079b491766aa161bb4ee11bf6c2e3c2510dab2e",
+      "sig": "0x5316cbaf6ac7d4687f787a7b67bca2473f1d9beb383d768f1219f37c6f37509e7c83e2eebf41b7663ad591f4387702a4cf641c274977cde73f4a513d7afd9d7a1b",
+      "signerAddr": "0x0bBE6e5361a2601737b8Ac9Dc2DCfAA8e85aC92c",
+      "createdAt": "2026-09-14T21:22:53.488Z"
+    },
+    {
+      "id": "cmu1r1ntt000asqvbfzt83smd",
+      "seq": 11,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":3,\"agentId\":\"cmu18b4h4002hsqwzhd6azjek\",\"agentAddress\":\"0x2Ba272B5fa370Fe58577CA4f5B6D3e89Ddcb9446\",\"side\":\"NO\",\"points\":120,\"nonce\":2}",
+      "payloadHash": "0x346827bb2047b9157df613933ee863ff0aed80904cb88ac038306568edc7d35b",
+      "prevHash": "0xd44fbc9bd5bc59b6521d5ec92079b491766aa161bb4ee11bf6c2e3c2510dab2e",
+      "entryHash": "0x36a2659b5f4fc16cb8ef287d587350b20d0b042228d37ba716dacbf984e416bc",
+      "sig": "0xac3a88369061357486632b332e82a84578f2b79cc35b5af12c1afd547f6fa28332f9a5a48476cca0fcfd2426fdb5b079ab216b804952bf35c2695b2eb072e77b1b",
+      "signerAddr": "0x2Ba272B5fa370Fe58577CA4f5B6D3e89Ddcb9446",
+      "createdAt": "2026-09-14T21:22:53.532Z"
+    },
+    {
+      "id": "cmu1r3dzs000bsqvbsuk4k84a",
+      "seq": 12,
+      "kind": "OPEN",
+      "payload": "{\"kind\":\"OPEN\",\"title\":\"בדיקת מנגנון (נתיב ההחזר): checkpoint #999 — בלתי-ניתן להשגה בתוקף של 40 שניות\",\"target\":{\"type\":\"checkpoint-index\",\"index\":999},\"byDate\":\"2026-09-14T21:24:54.000Z\",\"createdBy\":\"cmu16xzwa001bsqwz1ryi8041\"}",
+      "payloadHash": "0xcb6e020aea2daf0e19d920ddb498cce6a07700f397970413b495513792996b2e",
+      "prevHash": "0x36a2659b5f4fc16cb8ef287d587350b20d0b042228d37ba716dacbf984e416bc",
+      "entryHash": "0x1c0bac694a6bf411ec288c4e4c0faa4562d5ddcf706b0d57667c886453c501b8",
+      "sig": "0x42f34b92a46d58c63a9f6f2ed4f62b52952c2993d1da2cd75817f041f56e790b5ccbde50ec8e15cb6c2465485549a8a2871dfcd96d3cf06c2bffe2cb8cdb7d521c",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T21:24:14.067Z"
+    },
+    {
+      "id": "cmu1r3meh000csqvbieeguzv7",
+      "seq": 13,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":12,\"agentId\":\"cmu16xzwa001bsqwz1ryi8041\",\"agentAddress\":\"0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a\",\"side\":\"YES\",\"points\":10,\"nonce\":3}",
+      "payloadHash": "0xcbb7ec423bb3d422f5d139d0b61288b252e7d6d1d0aa9cca49b35e23d90c49bb",
+      "prevHash": "0x1c0bac694a6bf411ec288c4e4c0faa4562d5ddcf706b0d57667c886453c501b8",
+      "entryHash": "0xc0b2573cf35097ba000e355cb3ad89be77c135f4cfb48178c751f17cd0025de8",
+      "sig": "0x472321ea9ceaa2578016de7545350d602a14456b1e9b3ff1350ba276c209a35170ae549d6511159a818e2ef188e8d85701622824abec5b9f9155d9fb2895711b1b",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T21:24:24.992Z"
+    },
+    {
+      "id": "cmu1r3mg9000dsqvbdcq5j3qd",
+      "seq": 14,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":12,\"agentId\":\"cmu16xzwl001csqwzd8bsp80i\",\"agentAddress\":\"0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668\",\"side\":\"NO\",\"points\":10,\"nonce\":3}",
+      "payloadHash": "0x901c7f5aeb93d801736eda44c7da46b55ff2f77cdfa4d09e1a323a360a80c337",
+      "prevHash": "0xc0b2573cf35097ba000e355cb3ad89be77c135f4cfb48178c751f17cd0025de8",
+      "entryHash": "0x8fa5f7ee209f98b73047f8b6dfdfef882003f125d1bfc619f3ea30d113975be1",
+      "sig": "0x51b8cd01b666c13272e2a0fd0b544085a3e20452181bc3ecedc17db40bd0a13a78f1f703dfe0983b6eb47c35beeb32906c5bb670ea9c53774f8afab5c7170a521b",
+      "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
+      "createdAt": "2026-09-14T21:24:25.061Z"
+    },
+    {
+      "id": "cmu1r4lfc000esqvbcxvzn3lt",
+      "seq": 15,
+      "kind": "REFUND",
+      "payload": "{\"kind\":\"REFUND\",\"marketSeq\":12,\"reason\":\"expired-unresolved\",\"refunds\":[{\"agentId\":\"cmu16xzwa001bsqwz1ryi8041\",\"points\":10},{\"agentId\":\"cmu16xzwl001csqwzd8bsp80i\",\"points\":10}]}",
+      "payloadHash": "0x60ae2552978a259d6751818812d0922358d30dcd7718749c17aafba95021333c",
+      "prevHash": "0x8fa5f7ee209f98b73047f8b6dfdfef882003f125d1bfc619f3ea30d113975be1",
+      "entryHash": "0xbaec06ffcc721e6e3acd3c54f5fa700f02fcd36a812065cb9a6a078bb72076e2",
+      "sig": "0xc2b2723551f70123ef939669561d0dd27f1a7018d424cfd67aceb15ee7e4f5f80c19a8eef490d6e98910713b68cf92ecddfd2f79b2d6982922391bde056063ea1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "createdAt": "2026-09-14T21:25:10.388Z"
+    },
+    {
+      "id": "cmu1r4yn2000jsqvb3hpxrrs4",
+      "seq": 16,
+      "kind": "OPEN",
+      "payload": "{\"kind\":\"OPEN\",\"title\":\"בדיקת מנגנון (נתיב הסליקה): checkpoint #18 ייווצר בפעימת הלב הבאה\",\"target\":{\"type\":\"checkpoint-index\",\"index\":18},\"byDate\":\"2026-09-15T12:00:00.000Z\",\"createdBy\":\"cmu16xzwl001csqwzd8bsp80i\"}",
+      "payloadHash": "0x2efd6ceb0b6aba620bac60d37c7caef5c4ac80a63e10bf2fcc79673b65dfb487",
+      "prevHash": "0xbaec06ffcc721e6e3acd3c54f5fa700f02fcd36a812065cb9a6a078bb72076e2",
+      "entryHash": "0xa8e882b8b05fe023dac5d865f499bce21297025985c9949e39625902cb7e8b00",
+      "sig": "0x0d32c8d32f2074eb86f3c4a5ab5414b14e6928e0e3dad4cf7108d2e804774cc94e6bd04eb4ad28b52b97dc44a840cc24c7e46c922d09439d05e81014ebd950fe1b",
+      "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
+      "createdAt": "2026-09-14T21:25:27.512Z"
+    },
+    {
+      "id": "cmu1r55e5000ksqvbk6x1i6qz",
+      "seq": 17,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":16,\"agentId\":\"cmu16xzwa001bsqwz1ryi8041\",\"agentAddress\":\"0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a\",\"side\":\"YES\",\"points\":100,\"nonce\":4}",
+      "payloadHash": "0x220d65906a5652b38f2610e77167c1ce92a1aacb9633a51203f63fe4ef7662fc",
+      "prevHash": "0xa8e882b8b05fe023dac5d865f499bce21297025985c9949e39625902cb7e8b00",
+      "entryHash": "0xc3d46d7c507aad1f1bcab2b3661d8a221c315246e8bfe474eabf100f37087a1e",
+      "sig": "0xdaa67ae7d8524f2a4f168ad9eb1e58e77ee81114d0416bc4e0ef4cf827793fd11e95c77f023318f4eb2a7296772ac1744727a69854bfe85ffbc5ed73cc64dea01b",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T21:25:36.265Z"
+    },
+    {
+      "id": "cmu1r55g0000lsqvbxuhbi440",
+      "seq": 18,
+      "kind": "STAKE",
+      "payload": "{\"kind\":\"STAKE\",\"marketSeq\":16,\"agentId\":\"cmu16xzwl001csqwzd8bsp80i\",\"agentAddress\":\"0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668\",\"side\":\"NO\",\"points\":100,\"nonce\":4}",
+      "payloadHash": "0x060632e98cac33262e86ccca548cc83b8f0abc33cc171d9dc40d43dacf227ae0",
+      "prevHash": "0xc3d46d7c507aad1f1bcab2b3661d8a221c315246e8bfe474eabf100f37087a1e",
+      "entryHash": "0x0e837d7646da3931d72ba639be14336b4ff6ff0b9fa589ff2294e29bdb41e18c",
+      "sig": "0xb781c2464b2a23bdbe41a206b31bbe5717febdeac5e03b722d907292c7067cdf4dcaffc5780906442d1ffb3f7e386581cf3c56aef0261ee5b64111336b31e5b21c",
+      "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
+      "createdAt": "2026-09-14T21:25:36.331Z"
     }
   ]
 }
