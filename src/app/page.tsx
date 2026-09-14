@@ -6,6 +6,7 @@ import {
   Globe2,
   LayoutDashboard,
   Map,
+  Scale,
   ScrollText,
   Users,
 } from "lucide-react";
@@ -19,12 +20,14 @@ import { AnchorTab } from "@/components/weave/tabs/anchor-tab";
 import { DashboardTab } from "@/components/weave/tabs/dashboard-tab";
 import { EcosystemTab } from "@/components/weave/tabs/ecosystem-tab";
 import { LedgerTab } from "@/components/weave/tabs/ledger-tab";
+import { MarketTab } from "@/components/weave/tabs/market-tab";
 import { PlanTab } from "@/components/weave/tabs/plan-tab";
 import { SovereigntyTab } from "@/components/weave/tabs/sovereignty-tab";
 
 const TABS = [
   { value: "dashboard", label: "לוח בקרה", icon: LayoutDashboard },
   { value: "ledger", label: "ספר אימותים", icon: ScrollText },
+  { value: "market", label: "שוק האמת", icon: Scale },
   { value: "agents", label: "סוכנים", icon: Users },
   { value: "anchor", label: "עוגן EVM", icon: Anchor },
   { value: "ecosystem", label: "אקוסיסטם", icon: Boxes },
@@ -60,6 +63,9 @@ export default function Page() {
                 </TabsContent>
                 <TabsContent value="ledger">
                   <LedgerTab />
+                </TabsContent>
+                <TabsContent value="market">
+                  <MarketTab />
                 </TabsContent>
                 <TabsContent value="agents">
                   <AgentsTab />

@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T21:25:42.287Z",
-  "chainCount": 25,
-  "headHash": "0xa8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
+  "exportedAt": "2026-09-14T21:26:35.482Z",
+  "chainCount": 26,
+  "headHash": "0xa4821c7df197f333b16a17871164d65efd06b85082ef7c59254c60b83c3f896d",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -446,6 +446,21 @@
       "sig": "0x327442c66d430dc97075eddc85ee1befa4be9801b6d73562232041ce41941be153c4720e940bdaeb0d280110e21acd888b97edc54178672281f8e750a4bda8361c",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-14T21:25:42.261Z"
+    },
+    {
+      "id": "cmu1r6f2g000osqvb3jc4lx6d",
+      "seq": 26,
+      "agentId": "cmu1r4lfs000fsqvb9d0nyqmm",
+      "claim": "שוק האמת #16 \"בדיקת מנגנון (נתיב הסליקה): checkpoint #18 ייווצר בפעימת הלב הבאה\" — הוכרע לחיוב (הטענה נמדאה): 1 מנצחים חילקו 200 נקודות אמת; 1 מפסידים איבדו 100. השופט: המדידה של הרשת עצמה, לא הצבעה.",
+      "claimType": "MARKET",
+      "evidence": "marketSeq=16 · disposition=SETTLED · outcome=YES · resolution=checkpoint #18 exists root=0xa8dd3a4c30fc1874… createdAt=2026-09-14T21:25:42.281Z (נמדד מה-DB) · winners=cmu16xzw:200 · losers=1 · potYes=100 potNo=100 · totalPaid=200",
+      "evidenceHash": "0x4dc84e1258480ed5f4cc504d7abcd6a7c1ea53cddd94c4158d400694af389c24",
+      "status": "VERIFIED",
+      "prevHash": "0xa8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
+      "entryHash": "0xa4821c7df197f333b16a17871164d65efd06b85082ef7c59254c60b83c3f896d",
+      "sig": "0x3111bf63fba16e0b8422619395ff9d2bb8cfb32e01838cabb74234d63d2ba45b5fd28f0cc9e17cc57026901755024bc1dd9731b21a548431923568dfddeb80c61c",
+      "signerAddr": "0x3D0ab9984887DfEc431434017808E0B802e96184",
+      "createdAt": "2026-09-14T21:26:35.459Z"
     }
   ],
   "checkpoints": [
@@ -754,6 +769,23 @@
       "anchorTx": null,
       "calldata": "0xeecdf927a8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
       "createdAt": "2026-09-14T21:25:42.281Z"
+    },
+    {
+      "id": "cmu1r6f2t000psqvbijvmo6aa",
+      "index": 19,
+      "attFrom": 26,
+      "attTo": 26,
+      "leafCount": 1,
+      "root": "0xa4821c7df197f333b16a17871164d65efd06b85082ef7c59254c60b83c3f896d",
+      "prevRoot": "0xa8dd3a4c30fc1874fcaa1899b974018388cfa296491cdcbb39d7ec56e12148d3",
+      "entryHash": "0x59f497c3b70675d719dabd03986aee682423bcfeebb50cb93329a844f926e255",
+      "sig": "0x5813a7724007bfd09fb0ce1a756f0e8c7e0ac376acc1196c52c0a9b82c4193af593cf0f14716fe1881ec9e3e557cd8dd9968de5d5173298e867da09b38b8757f1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927a4821c7df197f333b16a17871164d65efd06b85082ef7c59254c60b83c3f896d",
+      "createdAt": "2026-09-14T21:26:35.477Z"
     }
   ],
   "networkKey": {
@@ -1316,6 +1348,18 @@
       "sig": "0xb781c2464b2a23bdbe41a206b31bbe5717febdeac5e03b722d907292c7067cdf4dcaffc5780906442d1ffb3f7e386581cf3c56aef0261ee5b64111336b31e5b21c",
       "signerAddr": "0xd731366E2e6E6AF6e7821EEf88872eE51D3a3668",
       "createdAt": "2026-09-14T21:25:36.331Z"
+    },
+    {
+      "id": "cmu1r6f27000msqvb0oxks8tu",
+      "seq": 19,
+      "kind": "SETTLE",
+      "payload": "{\"kind\":\"SETTLE\",\"marketSeq\":16,\"outcome\":\"YES\",\"resolution\":\"checkpoint #18 exists root=0xa8dd3a4c30fc1874… createdAt=2026-09-14T21:25:42.281Z (נמדד מה-DB)\",\"winners\":[{\"agentId\":\"cmu16xzwa001bsqwz1ryi8041\",\"points\":100,\"payout\":200}],\"losers\":[{\"agentId\":\"cmu16xzwl001csqwzd8bsp80i\",\"points\":100,\"lost\":100}],\"potYes\":100,\"potNo\":100}",
+      "payloadHash": "0x6fbf232e3875f8813ce8c052f7a6097bbd12462b6ac0bbf1349231b454ca1963",
+      "prevHash": "0x0e837d7646da3931d72ba639be14336b4ff6ff0b9fa589ff2294e29bdb41e18c",
+      "entryHash": "0x1867db8632430058e5593b518637b2897da181bff667c037d06866b59a30a792",
+      "sig": "0x2d5db226f04b147d0c609295fa06fc13774907c2b7f9edf1d4ab93fd3e6c381b7b3bcd5a7e8234f26f6a348332a46198a13b799ba1c39a246d9355082168acd61c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "createdAt": "2026-09-14T21:26:35.451Z"
     }
   ]
 }
