@@ -72,6 +72,7 @@
 weave-heart     (Zip)      — כל 6 שעות ב-:00: ספר טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER (פעימה+checkpoint+דחיפה)
 weave-anchor    (Zip)      — כל 6 שעות ב-:20: שורש ה-checkpoint ⇒ custom_json ב-Steem+Hive מ-@cashmachine; בסוף הריצה — בדיקת G5 (אימות CONSOLE אוטומטי כשה-Pages חי)
 weave-anchor-zero (Zip)    — כל 6 שעות ב-:30: שורש ה-checkpoint ⇒ טרנזקציית EVM אמיתית על Z Chain 9369 (Zero Network — רשת EVM ראשית בגז-אפס מדוד 0x0; סלקטור 0xa9059cbb + מטען קנוני, ממוען-עצמית ל-EOA; החותם: מפתח הרשת מה-seal — אפס סודות חדשים, עלות 0.000000)
+שוק האמת       (Zip/API)  — ספר אירועים hash-chained חתום: שווקים על טענות מדידות (PlanStage/Checkpoint/ANCHOR-count/סטטוס אימות); השופט = המדידה של הרשת עצמה; ההון = נקודות אמת (אפס כסף); הסליקה ⇒ אימות MARKET ⇒ checkpoint ⇒ עיגון ב-$0. המכריע רץ ידנית (כפתור ב-UI) או מכל API; מחזורי הלילה מסלקים את שווקי ה-anchor-count/checkpoint
 console-publish (Console)  — כל 6 שעות ב-:40: render.mjs קורא את קו העוגנים מ-Steem RPC ציבורי (חסר-מפתח) ⇒ status.json ⇒ commit (המשואה הציבורית) ⇒ Pages
 cloud-heart     (steem)    — לב הצי: TAKEOVER פעיל מאז מות הסנדבוקס שלו (2026-09-12) — רץ בכוחות עצמו
 ה-runner הזה (סנדבוקס)    — פעימה מלאה בעת עבודה; מוות שלו לא מפיל דבר (הוכח ב-att 13, SOV-3)
