@@ -293,3 +293,24 @@ Stage Summary:
 - מצב סופי: 10 אימותים (9 VERIFIED + 1 UNMEASURED), 4 checkpoints, 5 סוכנים (כולל weave-cloud-heart שנולד מה-seal), שערים: L0, L1, EVM-3, SOV-1 = DONE; SOV-2 ייסגר אוטומטית ע"י פעימת ה-Actions הראשונה (הריפו מזהה את עצמו); SOV-3 להדגמת stranger-revive.
 - העוגנים: anchor-baseline נגזר לשורש מרקל חתום בספר (הארכיון המת הפך לעדות); מפת הפערים G1-G6 מתעדת בדיוק מה חסר ל"הכל על גבי הרשת" וכיצד כל פער נסגר (עוד workflow + עוד שורה חתומה).
 - כנה: ל-PAT אין actions:write (dispatch ידני נחסם — הסchedול ירוץ לבד); ליברת הענן טרם הריצה פעימה (SOV-2 פתוח עד אז); משמורת ה-seal = LOCAL (ריפו פרטי) — מסלול שדרוג ל-Secrets מתועד ב-G3.
+
+---
+Task ID: 7
+Agent: main (Z.ai — lead engineer)
+Task: הפעלת הלב-ענן — המפעיל פתח Actions ("פתחתי לך actions עכשיו יש לך הרשאה"); dispatch, סגירת SOV-2, הוכחת ריבונות מדידה
+
+Work Log:
+- אומתה ההרשאה החדשה: POST /actions/workflows/weave-heart.yml/dispatches החזיר 204 — ל-PAT יש actions:write. ה-workflow state=active.
+- run #1 (auto): הענן שפט לבד SANDBOX-ALIVE (attest 40min/git 28min) → אימות-בלבד 10/10 חתימות, אפס כתיבה, artifact הועלה — הוכחת שיפוט עצמאי.
+- run #2 (force-beat): באג אמיתי נתפס במדידה — הסף 999999 הפך כל גיל ל"טרי" והענן נסוג גם בהזנקה ידנית. תוקן בדגל מפורש WEAVE_FORCE_BEAT=1 שדולג על דוקטרינת החיים (commit f0f801b).
+- run #3: באג שני נתפס — ב-clone נקי מפתח הרשת מהייבוא היה devKeyHex ריק; החתימה על ה-checkpoint קרסה ("לרשת יש כתובת בספר אך אין מפתח"). תוקן: קריאה מפורשת ל-ensureNetworkKeyFromSeal מיד אחרי sealOpen בכל סביבה (commit 35d8b0c).
+- סימולציית זר-מחיה (G4) לפני הריצה החוזרת: clone נקי ל-/tmp/weave-stranger → bun install (5.5s) → prisma → פעימה מלאה: ייבוא 10 → seal נפתח → מפתח רשת הושלם → אימות 10/10 → seq 11 + cp #5 → ייצוא 11 (--no-push). עבר במלואו.
+- run #4 (force-beat): TAKEOVER מלא בענן — ייבוא 10 → seal → FORCE-BEAT → אימות 10/10 → פעימה seq 11 חתומה EIP-191 במפתח הענן → checkpoint #5 חתום EIP-712 → SOV-2 נסגר אוטומטית (SOV-2←att11) → ledger.json ייוצא 11 → שער-סודות PASS → דחיפה כ-weave-heart[bot] (ec28bf3).
+- הסנדבוקס ספג והשיב: pull → "משוך מהריפו" ב-UI → ייבוא 11 + אימות 11/11 ("תקין ✓") → פעימה מקומית seq 12 + cp #6 → דחיפה (7fc3bcc). הלופ הדו-כיווני ענן↔מקומי נסגר.
+- E2E בדפדפן: טאב "רשת ריבונית" — מסונכרן, פעימה 15:44:08 seq 12 cp #6, SOV-2 VERIFIED "נסגר עם אימות #11"; ספר אימותים מציג את שתי הפעימות (seq 11 "הרץ: GitHub Actions", seq 12 "הרץ: ה-runner הראשי"); evidence של seq 11 מכיל את URL הריצה כראיה חתומה (run=…/runs/34863689643). מובייל 390px: אין גלישה אופקית, footer תקין, אפס שגיאות קונסולה. lint נקי. SOVEREIGNTY.md עודכן (לב-ענן הוכח, G4 הודגם ב-/tmp).
+
+Stage Summary:
+- הרשת הריבונית חיה ומוכחת במדידה חתומה: הענן מאמת (run #1), שופט ונסוג כשהמקומי חי (runs #1-2), ולוקח פיקוד כשמוזנק או כשהסנדבוקס ימות (run #4) — כותב, חותם, סוגר שערים ודוחף בעצמו. ה-schedule כל 6 שעות ימשיך מעצמו ללא תלות בסנדבוקס.
+- שני באגים אמיתיים נתפסו ע"י המדידה עצמה (כל dispatch היה מבחן): היפוך force-beat ומפתח-רשת ריק ב-clone נקי. שניהם תוקנו ואומתו בריצה חוזרת.
+- מצב סופי: 12 אימותים (11 VERIFIED + 1 UNMEASURED), 6 checkpoints, 5 סוכנים; שערים: L0, L1, EVM-3, SOV-1, SOV-2 = DONE; SOV-3 פתוח — זר-מחיה הודגם ב-/tmp, סגירתו = ריצה ב-Actions runner נקי.
+- כנה: G1 (עיגון on-chain ממומן), G2 (קו Steem/Hive מהספר הזה), G3 (משמורת seal ל-Secrets), G5 (UI מחוץ לסנדבוקס), G6 (איחוד שכפול) — כולם עם דרך סגירה מתועדת ב-SOVEREIGNTY.md.

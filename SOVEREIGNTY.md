@@ -27,7 +27,7 @@
 | הבית הריבוני | ריפו `Zip` הריק הוסב ל-**weave-core** לפי הוראת המפעיל ("הפוך, אל תמחק"); הפלטפורמה כולה חיה בו | REAL (הספר בגיט; שער SOV-1) |
 | הספר כטקסט | `sovereign/ledger.json` — snapshot קנוני **חסר-סודות**; SQLite = מטמון מקומי שנבנה ממנו | REAL |
 | ה-seal | `sovereign/weave-seal.enc` — AES-256-GCM+scrypt: מפתח הענן + מפתח הרשת; הסיסמה ב-meta (ריפו פרטי — דוקטרינת הצי Task 82) | REAL-קריפטו / LOCAL-משמורת |
-| הלב הענן | `weave-heart.yml` — כל 6 שעות: ספר טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER (פעימה+checkpoint+דחיפה); השרשרת עצמה השופטת | REAL (armed) · הפעימה הראשונה תסגור SOV-2 |
+| הלב הענן | `weave-heart.yml` — כל 6 שעות: ספר טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER (פעימה+checkpoint+דחיפה); השרשרת עצמה השופטת | REAL — **הוכח בשני הכיוונים**: run #1 שפט SANDBOX-ALIVE ונסוג; run #4 (15:40Z) ביצע TAKEOVER — כתב seq 11, סגר SOV-2, דחף כ-weave-heart[bot] (ec28bf3) |
 | שער-הסודות | סריקת staged-diff לפני כל דחיפה: WIF/PEM/PAT/מפתח-64hex ⇒ חסימה מוחלטת | REAL |
 | גזירת העוגנים | `anchor-baseline.leaves.json` — 90 קבצי הארכיון ⇒ sha256 לכל קובץ ⇒ שורש מרקל בספר | REAL |
 | ערכת הכלים | 5 zips מ-Project-files נפרקו ל-sovereign-net/toolkit (ה-zips לא נמחקו): SRS ריבוני, TITAI v18 (installer חתום), qodo, polyglot, workspace | LOCAL (בסנדבוקס; רשום במלאי) |
@@ -41,7 +41,7 @@
 | G1 | **עיגון on-chain בפועל** (EVM-1/EVM-2) | חותם ממומן + RPC; עד עכשיו LOCAL בלבד | deploy של WeaveAnchorRegistry ב-testnet דרך workflow_dispatch עם מפתח ב-Secrets; העלאת txid חזרה לספר (הכל דרך Actions — zero sandbox) |
 | G2 | **קו ה-Steem/Hive לא מחובר לספר הזה** | הצי (steem repo) מעיד on-chain; weave-core עדיין לא כותב לשם | workflow נוסף שמשגר את root ה-checkpoint האחרון כ-custom_json דרך fleet-keys של הצי (seal) — אותו דפוס שהוכח ב-Task 79 |
 | G3 | **משמורת מפתחות בייצור** | המפתחות ב-seal בריפו (מקובל בפרטי; לא בייצור) | העברת ה-seal ל-GitHub Secrets + סיבוב מפתחות מסומן בספר (ROTATION) — שער מתועד |
-| G4 | **SOV-3 איחול-עצמי** | טרם הודגם הרמה מ-clone נקי מחוץ לסנדבוקס זה | stranger-revive: הרצת ה-clone ב-Actions runner נקי + אימות BUILD |
+| G4 | **SOV-3 איחול-עצמי** | טרם הודגם הרמה מ-clone נקי מחוץ לסנדבוקס זה | stranger-revive הודגם ב-clone נקי (/tmp/weave-stranger — ייבוא 10 → seal → פעימה מלאה); סגירת השער = ריצה ב-Actions runner נקי + אימות BUILD |
 | G5 | **הסנדבוקס עדיין ה-runner הראשי של ה-UI** | הקונסולה רצה על dev-server מקומי | Pages/ Actions-static לקריאה בלבד + ה-API ל-Actions service; או self-host ברשות המפעיל |
 | G6 | **שכפול האקוסיסטם (R1)** | ~20 קבצי סטטוס משוכפלים ב-9 ריפוים | איחוד לפי התוכנית — רק אחרי מדידת שכפול חוזרת (dup<0.2) |
 
