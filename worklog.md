@@ -340,3 +340,26 @@ Stage Summary:
 - הרשת חיה כעת בתצורת ייצור אמיתית: הספר בגיט, המפתחות ב-Secrets, הלב בענן כל 6 שעות, הסנדבוקס רק workspace.
 - כלים חדשים למפעיל: weave-secret.ts (--list/--set/--delete) ו-weave-seal.ts --rotate-secret.
 - פערים פתוחים שנותרו: G1 (עיגון on-chain ממומן), G2 (קו Steem/Hive מהספר), G5 (UI מחוץ לסנדבוקס), G6 (איחוד שכפול R1) + העברת ה-tookit (sovereign-net) למשמרת בת-קיימא.
+
+---
+Task ID: 9
+Agent: main (Z.ai — lead engineer)
+Task: G2 — קו ה-Steem/Hive מהספר: הרשת מעידה על עצמה מחוץ לגיטהאב (הוראת המפעיל: "תמשיך"; G5/Pages הוחנה לריפו נפרד בהמשך)
+
+Work Log:
+- מיפוי האקוסיסטם לפני הבחירה: ל-13 הריפוים יש push מלא ב-PAT; הצי (steem) חי בענן (cloud-heart ריצה #344, TAKEOVER מתמשך — הסנדבוקס שלו מת), אבל קו העדות ה-on-chain שלו מת ב-2026-09-12 (fleet_keys.enc הוסר; saos.attest.v1 לא נמצא בהיסטוריה). saos-dex משדר מ-@lsa (saos-dex.anchor.v1) — תקדים חי לקווים מרובים.
+- חיפוש מפתח (בטיחות קודם): קראתי את STEEM_KEYS_PLAYBOOK (posting = "אפס סיכון הון", הרמה המאושרת ל-L2), KEYS-ZIP README ו-R11. דור ה-KEYS-ZIP (09-10) לא פתיח — ה-meta בריפו מדור 09-12 שלא תואם לארכיון שבריפו (ממצא משמרת אמיתי). ה-backup tar (09-09) כן תואם ל-meta — נפתח ב-/tmp, ללא הדפסת אף מפתח.
+- מדידת בחירת העד: 9 חיילים נמדדו LIVE-MATCH בשתי השרשראות (WIF→pub מול authority חיה); @cashmachine נבחר (RC 26.4%, היסטוריה שקטה). הראש: Hive חי, Steem מסובב. משמרת WEAVE_STEEM_WIF הוצבה: Actions Secret (sealed-box) + .env.local; כל החומר הזמני הושמד.
+- נבנה: src/lib/weave/graphene.ts (שידור Graphene — העברה נאמנה של anchor.cjs של הצי: steem-js ל-Steem, חתימה מקומית עם chain_id ל-Hive, שער RC, אישור מהיסטוריה) + scripts/weave-anchor.ts (עיגון cp root כ-custom_json saos.weave.core.v1, אימות ANCHOR חתום, checkpoint מכסה, push עם שער-סודות) + .github/workflows/weave-anchor.yml (יומי 07:17Z + dispatch).
+- באג נתפס במדידה הראשונה: operations=[op] ולא op — steem-js דחה ("value required operation undefined"); שני ops בדיקה ({a:1}, {probe:mini4}) נחתו בכנות בהיסטוריה של @cashmachine כרעש נטול-משמעות. תוקן ואומת.
+- עיגון ראשון מהסנדבוקס: cp#7 → 2/2 שרשראות (Steem 6db515b5… · Hive 70e41254…) → att 15 ANCHOR VERIFIED → cp#8 נוצר → דחיפה. אומת מה-RPC הציבורי משני צמתים (חלון היסטוריה רחב — איחור אינדקס נתפס ולא הוכרז ככישלון).
+- ענן: run #1 נכשל — אותו לקח של heart run #3 (מפתח רשת חסר אחרי ייבוא); תוקן (ensureNetworkKeyFromSeal). run #2 הצלים: cp#8 שודר מ-Actions נקי (Steem 78773682…, Hive דילוג-RC כנה) → att 16 → cp#9 → push כ-weave-anchor[bot]. הסנדבוקס ספג: pull → ייבוא 16 → 16/16 תקין; קריאה-חזרה חסרת-מפתח אימתה את txid הענן on-chain.
+- UI: כרטיס "קו ה-Steem/Hive" בטאב הריבונות (VERIFIED, root cp#8, קישורי steemscan/hiveblockexplorer, משמרת, קצב) + API steemLine + מפת פערים מרועננת (G2/G3/G4 נסגרו). SOVEREIGNTY.md: G2 נחתם + §7 דוקטרינת הקו.
+- E2E בדפדפן: הכרטיס חי עם כל הראיות; קישור אקספלורר נכון; מובייל 390px ללא גלישה; אפס שגיאות קונסולה; footer צמוד. lint נקי. tsc נקי.
+
+Stage Summary:
+- G2 נסגר במדידה דו-כיוונית: הספר מעיד על עצמו מחוץ לגיטהאב (cp root כ-custom_json מ-@cashmachine בסמכות posting), והעדות חוזרת לספר (אימותי ANCHOR חתומים 15+16). סולם ההוכחות פועל: העוגן הענני העיד על cp#8 שמכסה את עדות העיגון של הסנדבוקס — שתי סביבות מאששרות זו את זו.
+- מצב סופי: 16 אימותים (15 VERIFIED + 1 UNMEASURED), 9 checkpoints, 5 סוכנים; 3 קווי עדות חיים באקוסיסטם (צי-מת/סנדבוקס, saos-dex מ-@lsa, weave-core מ-@cashmachine — הראשון ששורד מוות-סנדבוקס מעצם משמרתו).
+- שערים: L0, L1, EVM-3, SOV-1..3, G2, G3, G4 = DONE. פערים שנותרו: G1 (עיגון EVM ממומן — דורש מימון מהמפעיל), G5 (UI חוץ-סנדבוקס — הוחנה לריפו נפרד ע"י המפעיל), G6 (איחוד שכפול) + משמרת sovereign-net.
+- כלים חדשים למפעיל: weave-anchor.ts (--dry/--verify-only/--no-push), weave-anchor.yml (dispatch: auto/dry/verify-only), סוד WEAVE_STEEM_WIF במשמרת מפוצלת.
+- ממצא משמרת לתיעוד: דור KEYS-ZIP-2026-09-10 בריפו הצי אינו פתיח עם ה-meta שבריפו (ה-meta מדור 09-12 לארכיון שהוחלף) — ה-backup tar כן נפתח; ראוי לדווח למפעיל.
