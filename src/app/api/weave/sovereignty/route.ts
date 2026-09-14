@@ -17,6 +17,7 @@ import { NextResponse } from "next/server";
 import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { jsonError } from "@/lib/weave/api";
+import { zeroReadiness, verifyZeroAnchorOnChain, zeroExplorerLink, ZERO_RAIL_ID } from "@/lib/weave/zero";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +30,7 @@ const SEAL_META_PATH = path.join(ROOT, "sovereign", "weave-seal.meta.json");
 const LEAVES_PATH = path.join(ROOT, "sovereign", "anchor-baseline.leaves.json");
 const TOOLKIT_LEAVES_PATH = path.join(ROOT, "sovereign", "toolkit-baseline.leaves.json");
 const STEEM_LINE_PATH = path.join(ROOT, "sovereign", "steem-line.json");
+const ZERO_LINE_PATH = path.join(ROOT, "sovereign", "zero-line.json");
 const ANCHOR_REPORT_PATH = path.join(ROOT, "sovereign", "anchor-report.json");
 const SOVEREIGNTY_PATH = path.join(ROOT, "SOVEREIGNTY.md");
 const CONSOLE_SITE_PATH = path.join(ROOT, "console", "index.html");
@@ -85,6 +87,7 @@ export async function GET() {
     const leaves = readJson(LEAVES_PATH);
     const toolkitLeaves = readJson(TOOLKIT_LEAVES_PATH);
     const steemLine = readJson(STEEM_LINE_PATH);
+    const zeroLine = readJson(ZERO_LINE_PATH);
     const anchorReport = readJson(ANCHOR_REPORT_PATH);
 
     // ── 2. ה-DB המקומי מול הספר בקובץ ──
@@ -211,6 +214,23 @@ export async function GET() {
     const consoleWitness = (consoleRaw.status?.witness ?? null) as Record<string, unknown> | null;
     const consoleFreshness = (consoleRaw.status?.freshness ?? null) as Record<string, unknown> | null;
 
+    // ── 5.6 קו ה-ZERO — מדידה חיה חסרת-מפתחות מה-RPC הציבורי (כל צד שלישי) ──
+    const zeroLast = zeroLine ? ((zeroLine as Record<string, unknown>).last as Record<string, unknown> | undefined) : undefined;
+    const zeroAccount = (zeroLine ? ((zeroLine as Record<string, unknown>).account as string | undefined) : undefined) ?? null;
+    const zeroLastTxid = zeroLast ? ((zeroLast.txid as string | null) ?? null) : null;
+    const zeroLiveProbe = await Promise.race([
+      (async () => {
+        const [readiness, readback] = await Promise.all([
+          zeroReadiness(zeroAccount ?? undefined).catch(() => null),
+          zeroLastTxid ? verifyZeroAnchorOnChain(zeroLastTxid).catch(() => null) : Promise.resolve(null),
+        ]);
+        return { readiness, readback };
+      })(),
+      new Promise<{ readiness: null; readback: null }>((resolve) =>
+        setTimeout(() => resolve({ readiness: null, readback: null }), 9000)
+      ),
+    ]);
+
     return NextResponse.json({
       ok: true,
       sovereignty: {
@@ -285,6 +305,63 @@ export async function GET() {
               lastReportMode: (anchorReport as Record<string, unknown>)?.mode ?? null,
             }
           : { exists: false, workflowArmed: anchorArmed },
+        zeroLine: zeroLine
+          ? {
+              exists: true,
+              rail: ZERO_RAIL_ID,
+              chainId: 9369,
+              account: zeroAccount,
+              zeroGasProtocol:
+                "data = 0xa9059cbb (סלקטור ברשימת-ההיתר של שער ה-RPC) + מטען קנוני · ממוען-עצמית ל-EOA אינרטי · gasPrice 0",
+              anchorsTotal: Array.isArray(zeroLine.anchors) ? (zeroLine.anchors as unknown[]).length : 0,
+              last: zeroLast
+                ? {
+                    checkpoint: (zeroLast.checkpoint as number) ?? null,
+                    root: (zeroLast.root as string) ?? null,
+                    at: (zeroLast.at as string) ?? null,
+                    txid: zeroLastTxid,
+                    block: (zeroLast.block as number) ?? null,
+                    gasUsed: (zeroLast.gasUsed as number) ?? null,
+                    effectiveGasPrice: (zeroLast.effectiveGasPrice as string) ?? null,
+                    costEth: (zeroLast.costEth as string) ?? null,
+                    confirmed: (zeroLast.confirmed as boolean) ?? false,
+                    attSeq: (zeroLast.attSeq as number) ?? null,
+                    runner: (zeroLast.runner as string) ?? null,
+                    explorer: zeroLastTxid ? zeroExplorerLink(zeroLastTxid) : null,
+                  }
+                : null,
+              live: {
+                readiness: zeroLiveProbe.readiness
+                  ? {
+                      chainId: zeroLiveProbe.readiness.chainId,
+                      blockNumber: zeroLiveProbe.readiness.blockNumber,
+                      gasPriceGwei: zeroLiveProbe.readiness.gasPriceGwei,
+                      zeroGasConfirmed: zeroLiveProbe.readiness.zeroGasConfirmed,
+                      balanceEth: zeroLiveProbe.readiness.balanceEth,
+                      nonce: zeroLiveProbe.readiness.nonce,
+                      verdict: zeroLiveProbe.readiness.verdict,
+                    }
+                  : null,
+                readback: zeroLiveProbe.readback
+                  ? {
+                      found: zeroLiveProbe.readback.found,
+                      status: zeroLiveProbe.readback.status,
+                      block: zeroLiveProbe.readback.block,
+                      from: zeroLiveProbe.readback.from,
+                      to: zeroLiveProbe.readback.to,
+                      gasUsed: zeroLiveProbe.readback.gasUsed,
+                      effectiveGasPrice: zeroLiveProbe.readback.effectiveGasPrice,
+                      verdict: zeroLiveProbe.readback.verdict,
+                    }
+                  : null,
+              },
+              workflowArmed: fs.existsSync(path.join(ROOT, ".github", "workflows", "weave-anchor-zero.yml")),
+              schedule: "כל 6 שעות :30 + workflow_dispatch (מיושר ללב :00 ולעוגן :20)",
+              custody:
+                "מפתח הרשת מה-seal (WEAVE_SEAL_PASSPHRASE — סוד קיים, אפס משמרת חדשה) · המאזן 0 בכוונה — הגז מדוד 0x0",
+              anchorAttestationsTotal: anchorAtts,
+            }
+          : { exists: false },
         anchors: leaves
           ? {
               derived: true,

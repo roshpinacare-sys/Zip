@@ -331,6 +331,10 @@ export async function anchorOnZero(params: {
 }
 
 // ─── קריאה-חזרה חסרת-מפתחות — כל צד שלישי מאמת מה-RPC הציבורי ──
+// לקח הצי (Task 9): איחור אינדקס של הצומת נתפס בניסיון-חוזר, לא מוכרז
+// ככישלון — החיבורים המקבילים מאחורי ה-RPC עשויים להיות בלתי-עקביים
+// בחלון של שניות אחרי ההכללה. נמדד: הקבלה קיימת אצל צומת א'
+// ועדיין null אצל צום ב' — הוכחה, לא כישלון.
 
 export interface ZeroReadback {
   ok: boolean;
@@ -343,11 +347,39 @@ export interface ZeroReadback {
   dataMatches: boolean; // ה-data על השרשרת === הסלקטור+המטען שנשלח
   effectiveGasPrice: string | null;
   gasUsed: number | null;
+  inputHex: string | null; // ה-calldata המלא כפי שנקרא מהשרשרת
+  payload: Record<string, unknown> | null; // המטען הקנוני מפוענח מהשרשרת
   verdict: string;
   at: string;
 }
 
-export async function verifyZeroAnchorOnChain(txid: string, expectedDataHex?: string): Promise<ZeroReadback> {
+export async function verifyZeroAnchorOnChain(
+  txid: string,
+  expectedDataHex?: string,
+  attempts: number = 4
+): Promise<ZeroReadback> {
+  let last: ZeroReadback | null = null;
+  for (let i = 0; i < attempts; i++) {
+    last = await verifyZeroAnchorOnce(txid, expectedDataHex);
+    if (last.found) return last;
+    // חלון פיגור-האינדקס — עוד ניסיון אחרי המתנה, לפני הכרזת NOT-FOUND
+    if (i < attempts - 1) await sleep(3000);
+  }
+  return last;
+}
+
+/** פענוח המטען הקנוני מה-calldata שעל השרשרת — סלקטור + JSON */
+export function decodeZeroInput(inputHex: string): Record<string, unknown> | null {
+  try {
+    if (!inputHex.toLowerCase().startsWith(ZERO_SELECTOR_PREFIX)) return null;
+    const payload = Buffer.from(inputHex.slice(10), "hex").toString("utf8");
+    return JSON.parse(payload) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+async function verifyZeroAnchorOnce(txid: string, expectedDataHex?: string): Promise<ZeroReadback> {
   const at = new Date().toISOString();
   const provider = new ethers.JsonRpcProvider(ZERO_ENDPOINTS[0], ZERO_CHAIN_ID, { batchMaxCount: 1 });
   try {
@@ -356,9 +388,11 @@ export async function verifyZeroAnchorOnChain(txid: string, expectedDataHex?: st
       provider.getTransaction(txid).catch(() => null),
     ]);
     if (!receipt || !tx) {
-      return { ok: false, txid, found: false, status: null, block: null, from: null, to: null, dataMatches: false, effectiveGasPrice: null, gasUsed: null, verdict: "NOT-FOUND (node blind or wrong txid)", at };
+      return { ok: false, txid, found: false, status: null, block: null, from: null, to: null, dataMatches: false, effectiveGasPrice: null, gasUsed: null, inputHex: null, payload: null, verdict: "NOT-FOUND (node blind or wrong txid)", at };
     }
-    const dataMatches = expectedDataHex ? tx.data.toLowerCase() === expectedDataHex.toLowerCase() : true;
+    const inputHex = tx.data ?? "0x";
+    const dataMatches = expectedDataHex ? inputHex.toLowerCase() === expectedDataHex.toLowerCase() : true;
+    const payload = decodeZeroInput(inputHex);
     const effGas = receipt.gasPrice?.toString() ?? null;
     const verdict =
       receipt.status === 1 && dataMatches
@@ -379,6 +413,8 @@ export async function verifyZeroAnchorOnChain(txid: string, expectedDataHex?: st
       dataMatches,
       effectiveGasPrice: effGas,
       gasUsed: Number(receipt.gasUsed),
+      inputHex,
+      payload,
       verdict,
       at,
     };

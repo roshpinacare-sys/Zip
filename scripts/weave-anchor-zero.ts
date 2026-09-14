@@ -52,6 +52,12 @@ const VERIFY_ONLY = process.argv.includes("--verify-only");
 // התאוששות: העוגן כבר נחת והעדות נכתבה, אבל הדחיפה נכשלה (רשת/שער) —
 // משלימים את הדחיפה בלבד, בלי שידור חדש ובלי עדות כפולה.
 const PUSH_ONLY = process.argv.includes("--push-only");
+// התאוששות-עוגן: טרנזקציה נחתה אך הריצה אדמה לפני האימות (למשל מרוץ
+// אינדקס) — מאמתים אותה מהשרשרת וכותבים את העדות שהיא הוכיחה.
+const RECOVER_TXID = (() => {
+  const a = process.argv.find((x) => x.startsWith("--recover="));
+  return a ? a.slice("--recover=".length).trim() : null;
+})();
 
 const ANCHORS_RING = 32; // טבעת-64 קטנה — הספר הוא האמת, הקובץ רק מראה
 
@@ -113,8 +119,8 @@ const SECRET_PATTERNS: Array<{ name: string; re: RegExp }> = [
   { name: "x-access-token url", re: new RegExp("x-access-token:[A-Za-z0-9_\\-]+@") },
 ];
 const KNOWN_HASH_FIELDS =
-  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|dataHex|payload|txid|zeroTxid|anchorTx|sig|calldata|explorer)"\s*:/i;
-const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash|dataHex|zeroTxid|anchorTx|txid|explorer)=/i;
+  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|dataHex|payload|txid|zeroTxid|recoveredTxid|anchorTx|sig|calldata|explorer|inputHex)"\s*:/i;
+const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash|dataHex|zeroTxid|recoveredTxid|anchorTx|txid|explorer)=/i;
 const KNOWN_EXPLORER_URL = /zscan\.live\/tx\/0x[0-9a-fA-F]{64}/i;
 function filterKnownHashes(diff: string): string {
   return diff
@@ -221,6 +227,143 @@ async function main(): Promise<void> {
     throw new Error(`הספר שבור (firstBreak=${verify.firstBreak ?? "?"}) — אין עדות על ספר שקרי`);
   }
   console.log(`[weave-anchor-zero] ledger תקין: ${verify.checked} אימותים · ${verify.sigOk}/${verify.checked} חתימות`);
+
+  // 4.5 התאוששות-עוגן — הטרנזקציה נחתה, הריצה המקורית אדמה לפני האימות
+  if (RECOVER_TXID) {
+    if (!/^0x[0-9a-fA-F]{64}$/.test(RECOVER_TXID)) {
+      throw new Error(`--recover: txid פגום — ${RECOVER_TXID.slice(0, 20)}…`);
+    }
+    const cpR = await db.checkpoint.findFirst({ orderBy: { index: "desc" } });
+    if (!cpR) throw new Error("אין checkpoint — אין מה לשחזר");
+    console.log(`[weave-anchor-zero] recovery: מאמת ${RECOVER_TXID.slice(0, 16)}… מול cp#${cpR.index}`);
+    const readback = await verifyZeroAnchorOnChain(RECOVER_TXID);
+    if (!readback.found || !readback.ok) {
+      throw new Error(`recovery: הטרנזקציה לא אומתה מהשרשרת — ${readback.verdict}`);
+    }
+    const p = readback.payload ?? {};
+    const pCheckpoint = Number(p.checkpoint ?? -1);
+    const pRoot = String(p.root ?? "");
+    if (pCheckpoint !== cpR.index || pRoot !== cpR.root) {
+      throw new Error(
+        `recovery: חוסר-התאמה מטען↔ספר — on-chain cp#${pCheckpoint}/${pRoot.slice(0, 14)}… מול ledger cp#${cpR.index}/${cpR.root.slice(0, 14)}…`
+      );
+    }
+    const originalAt = String(p.at ?? new Date().toISOString());
+    const originalCommit = String(p.commit ?? gitHead);
+    console.log(
+      `[weave-anchor-zero] recovery: מטען מאומת מהשרשרת (cp#${pCheckpoint}, root ${pRoot.slice(0, 16)}…) · block=${readback.block} · effGas=${readback.effectiveGasPrice}`
+    );
+
+    // ה-checkpoint מסומן ANCHORED (אם עוד לא)
+    if (cpR.anchorStatus !== "ANCHORED") {
+      await db.checkpoint.update({
+        where: { index: cpR.index },
+        data: { anchorStatus: "ANCHORED", anchorNet: ZERO_RAIL_ID, anchorTx: RECOVER_TXID },
+      });
+    }
+
+    const explorer = zeroExplorerLink(RECOVER_TXID);
+    const claim =
+      `קו ה-ZERO (Z Chain 9369, גז-אפס): checkpoint #${cpR.index} root ${cpR.root.slice(0, 18)}… עוגן כטרנזקציית EVM ` +
+      `אמיתית (recovery — העוגן נחת בריצה שאדמה במרוץ אינדקס לפני האימות; המטען אומת כעת מהשרשרת) — ` +
+      `עד EVM ציבורי בלתי-תלוי בגיטהאב, בעלות מדודה 0.000000.`;
+    const evidence = [
+      `zeroTxid=${RECOVER_TXID}`,
+      `recovery=true (original run reddened pre-verification; payload re-verified from chain)`,
+      `chainId=${ZERO_RAIL_ID} (Z Chain, Zero Network)`,
+      `block=${readback.block}`,
+      `gasUsed=${readback.gasUsed}`,
+      `effectiveGasPrice=${readback.effectiveGasPrice} (0 = הוכחת האפס בקבלה)`,
+      `costEth=0.000000`,
+      `account=${readback.from} (מפתח הרשת מה-seal)`,
+      `operation=self-addressed EOA · value=0 · data=0xa9059cbb+canonical`,
+      `checkpoint=${cpR.index} root=${cpR.root} attFrom=${cpR.attFrom} attTo=${cpR.attTo}`,
+      `originalAt=${originalAt}`,
+      `originalCommit=${originalCommit}`,
+      `readback=${readback.verdict}`,
+      `explorer=${explorer}`,
+      `runner=${runner} (recovery)`,
+      runUrl ? `run=${runUrl}` : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+
+    const att = await appendAttestation({
+      agentId: cloudAgent.id,
+      claim,
+      claimType: "ANCHOR",
+      evidence,
+    });
+    console.log(`[weave-anchor-zero] recovery: אימות ANCHOR נכתב: seq=${att.seq}`);
+
+    const newCp = await createCheckpointNow();
+    if (newCp) {
+      console.log(`[weave-anchor-zero] recovery: checkpoint #${newCp.index} נוצר (מכסה att ${newCp.attFrom}..${newCp.attTo})`);
+    }
+
+    const lineR = readLine(seal.networkAddress);
+    if (!lineR.anchors.some((a) => a.txid === RECOVER_TXID)) {
+      lineR.anchors.push({
+        checkpoint: cpR.index,
+        root: cpR.root,
+        attFrom: cpR.attFrom,
+        attTo: cpR.attTo,
+        attestations: await db.attestation.count(),
+        at: originalAt,
+        commit: originalCommit,
+        account: readback.from ?? seal.networkAddress,
+        txid: RECOVER_TXID,
+        block: readback.block,
+        gasUsed: readback.gasUsed,
+        effectiveGasPrice: readback.effectiveGasPrice,
+        costEth: "0.000000",
+        confirmed: true,
+        attSeq: att.seq,
+        runner: runner,
+      });
+      writeLine(lineR);
+    }
+
+    const snapR = await exportLedger();
+    fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
+    fs.writeFileSync(LEDGER_PATH, JSON.stringify(snapR, null, 2) + "\n");
+    fs.writeFileSync(
+      REPORT_PATH,
+      JSON.stringify(
+        {
+          at: new Date().toISOString(),
+          runner,
+          mode: "RECOVERED (anchor landed in a reddened run; attested after chain re-verification)",
+          recoveredTxid: RECOVER_TXID,
+          readback,
+          attSeq: att.seq,
+          nextCheckpoint: newCp ? { index: newCp.index, root: newCp.root } : null,
+          attestations: snapR.chainCount,
+          context: { runner, gitHead, repoSlug, runUrl },
+        },
+        null,
+        2
+      ) + "\n"
+    );
+
+    if (NO_PUSH) {
+      console.log("[weave-anchor-zero] recovery: --no-push — לא נדחף");
+      return;
+    }
+    if (!gitOrNull("git remote get-url origin")) throw new Error("אין remote origin — בלי ריפו אין עדות");
+    execSync(`git add -A`, { cwd: ROOT, stdio: "ignore" });
+    const staged = gitOrNull("git diff --cached") ?? "";
+    const leak = secretGate(filterKnownHashes(staged));
+    if (leak) {
+      execSync("git reset", { cwd: ROOT, stdio: "ignore" });
+      throw new Error(`שער הסודות חסם את הדחיפה: ${leak} ב-diff — כלום לא נדחף`);
+    }
+    const msg = `weave-anchor-zero recovery: ${RECOVER_TXID.slice(0, 18)}… · cp#${cpR.index} · att ${att.seq}`;
+    execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
+    const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
+    console.log(`[weave-anchor-zero] recovery: ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
+    return;
+  }
 
   // 5. ה-checkpoint האחרון — מה שעולה לשרשרת
   const cp = await db.checkpoint.findFirst({ orderBy: { index: "desc" } });
