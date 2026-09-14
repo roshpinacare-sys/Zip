@@ -129,6 +129,15 @@ interface SovereigntyDTO {
     source?: Record<string, string> | null;
     derivedAt?: string | null;
   };
+  toolkit: {
+    derived: boolean;
+    fileCount?: number | null;
+    totalBytes?: number | null;
+    root?: string | null;
+    derivedAt?: string | null;
+    custody?: string | null;
+    attestation?: { seq: number; claim: string; createdAt: string } | null;
+  };
   sovGates: Array<{
     code: string;
     title: string;
@@ -622,6 +631,61 @@ export function SovereigntyTab() {
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 הכלל שנגזר מהעוגנים: עוגן שרק "יושב" = ארכיון; עוגן שנכנס לשרשרת-חתומה = כוח.
                 מרגע זה, שינוי של בית אחד בארכיון ניתן לאיתור ע״י חישוב-מחדש מכל clone.
+              </p>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
+
+      {/* ── ערכת הכלים — משמרת בת-קיימא ── */}
+      {data.toolkit?.derived && (
+        <Section
+          title="ערכת הכלים — ה-toolkit הפך לנכס מאומת"
+          icon={<FileCheck2 />}
+          description="5 zips + פריצה מלאה ⇒ שורש מרקל בספר · הבתים במשמרת Project-files"
+        >
+          <Card>
+            <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <HashChip value={data.toolkit.root ?? "—"} label="merkleRoot" />
+                <CopyButton value={data.toolkit.root ?? ""} label="העתק שורש" />
+                {data.toolkit.attestation ? (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    VERIFIED · att {data.toolkit.attestation.seq}
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    שורש נגזר · ממתין לאימות
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">קבצים</div>
+                  <div className="font-mono">{data.toolkit.fileCount ?? "—"}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">נפח</div>
+                  <div className="font-mono">
+                    {(((data.toolkit.totalBytes ?? 0) / 1024 / 1024) || 0).toFixed(1)}MB
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">משמרת הבתים</div>
+                  <div className="font-mono text-xs">Project-files</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">נגזר</div>
+                  <div className="font-mono text-xs">
+                    {data.toolkit.derivedAt
+                      ? new Date(data.toolkit.derivedAt).toLocaleString("he-IL")
+                      : "—"}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                ה-zips המקוריים הוצלבו מול ה-blob-sha של Project-files (5/5 זהים לבית) · הורדה עתידית
+                מאומתת מול השורש בספר — מות הסנדבוקס לא מאבד מה-toolkit דבר.
               </p>
             </CardContent>
           </Card>

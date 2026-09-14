@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T17:07:50.873Z",
-  "chainCount": 16,
-  "headHash": "0x41c42b5e2d3edf43875b8f7c46db12763c36898effe20ab8a9cf7d4adf7f4316",
+  "exportedAt": "2026-09-14T18:19:41.669Z",
+  "chainCount": 19,
+  "headHash": "0x7c3ee42c30eaa524cc716cbf3abd9530465fcdf7a3ba9872de87469ed8f3cd11",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -300,6 +300,51 @@
       "sig": "0xd2e33f9688cb1e308aa96650c29423d81baf2942d9a6b148c803bd2b431baeb55181e431ba6e43a3ed382bf825f751181db38e298f33b89de444eb243e4f39301c",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-14T17:07:50.831Z"
+    },
+    {
+      "id": "cmu1kh9yi0001sqsyb3k6a7ha",
+      "seq": 17,
+      "agentId": "cmu16xzwa001bsqwz1ryi8041",
+      "claim": "איחוד האקוסיסטם (G6) נמדד ונסגר: dup 0.5959→0.0537 (יעד <0.2) — 828 עותקי-שידור הוסבו למצביעים",
+      "claimType": "AUDIT",
+      "evidence": "before: measured=1527 groups=90 redundant=910 dup=0.5959 · after: measured=1527 groups=75 redundant=82 dup=0.0537 · method: מצביעים (tombstones) — התוכן לא נמחק: הקנוני ב-anchor-baseline/steem + ההיסטוריה בגיט של כל ריפו · canonical: anchor-baseline(ארכיון) > steem(צי חי) > ASCII; נתיב: docs/reports > docs > broadcasts > root · skipped: steem (ריפו חי עם לב-ענן פעיל — מעבר נפרד), Zip (הבית) · functional excluded: components.json/tsconfig.json/download/README.md (בוילרפלייט) · commits: anchor-baseline@f97ac018a8(11) Adsmarket@2f6fde7460(42) Project-files@8671e43c36(84) Saosmartwallet@2bf8e812ee(107) Sdk@6d8a09b0f0(83) roshpina@5c1a97f5c3(88) saos-control-center@b669b0a005(82) saos-dex@424577b44c(86) saos-jummper@142d4bef4d(88) saos-sovereign-foundry@c2942cadab(81) saos-sovereign-platform@9e7ee429a9(76) · reports: tool-results/ecosystem-dup-before.json · ecosystem-dup-after.json · ecosystem-dup-fix.json · drifted (אותו נתיב, תוכן שונה): לא נוגע — אמת מפוצלת דורשת שיפוט אנושי, לא מכני",
+      "evidenceHash": "0xf87bbc2dcecce2d20bb3f2fcb83fc229605f63457f88cd042475651fd9d69821",
+      "status": "VERIFIED",
+      "prevHash": "0x41c42b5e2d3edf43875b8f7c46db12763c36898effe20ab8a9cf7d4adf7f4316",
+      "entryHash": "0xfe61cb2eb23ac2d80fa3b6d751b494c3cd86a6c840446b8b45962da3f8ce24d5",
+      "sig": "0x8f399271b59d1f103950c744775b233979449bed3cb843bb11b6f701a0bf42aa152ad9f49f98c8f361789ab9dfa0f26a94af37c7375ef14a635ff61567828e021c",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T18:19:04.707Z"
+    },
+    {
+      "id": "cmu1khdp30001sqtndm22d4pi",
+      "seq": 18,
+      "agentId": "cmu16xzwa001bsqwz1ryi8041",
+      "claim": "ערכת הכלים (sovereign-net/toolkit) נגררה לשורש מרקל והוצלבה מול משמרת הגיט: 4250 קבצים, 44.1MB — ה-toolkit הפך לנכס מאומת",
+      "claimType": "AUDIT",
+      "evidence": "merkleRoot=0x993e7b1e9df63a2e16800a8479ec1fbb6e0be376284e9a4d61c1823895f23099 · files=4250 (zips=5 + extracted=4245) · bytes=46289128 · hashPlan: sha256(file) → keccak256(\"path:sha256\") → merkle-keccak256 · bytes custody: Project-files repo — הוכח בהצלבת blob-sha: 5/5 zips זהים לבית · leaves=sovereign/toolkit-baseline.leaves.json (חומר הוכחה מלא בגיט) · verification: הורדת zip מ-Project-files ⇒ sha256 ⇒ הצלבה מול העלה ב-leaves ⇒ חישוב-מחדש של השורש · meaning: מות הסנדבוקס לא מאבד מה-toolkit דבר — המקור בגיט, השלמות ניתנת לאימות מכל clone",
+      "evidenceHash": "0x2781abd917d693db2aa2b4cf94ce6af1bb940841563cad5e65550e8ec3d242fd",
+      "status": "VERIFIED",
+      "prevHash": "0xfe61cb2eb23ac2d80fa3b6d751b494c3cd86a6c840446b8b45962da3f8ce24d5",
+      "entryHash": "0xf0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245",
+      "sig": "0x718fc38580380d47892342dac91324f1a45f1cc7e8eefb2f0233cabe2afb94ce62fa97d0c72647da6f5cc8d4fa0713be639747cd08a19601bcc7cf2b268d76021b",
+      "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
+      "createdAt": "2026-09-14T18:19:09.560Z"
+    },
+    {
+      "id": "cmu1ki2fh0001squni7md968w",
+      "seq": 19,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 18 רשומות, חתימות 18/18, head תואם. הרץ: ה-runner הראשי (סנדבוקס/מקומי).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=local-primary · gitHead=16255b6 · repo=roshpinacare-sys/weave-core · verify: valid=true checked=18 sigOk=18 sigFail=0 firstBreak=null · recomputedHead=0xf0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245 · headHash=0xf0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245 · at=2026-09-14T18:19:41.633Z",
+      "evidenceHash": "0x51ae145ff884fcb6a7fba55303577ce20cb3aacd2345b762ff4c1ac35ddcc88e",
+      "status": "VERIFIED",
+      "prevHash": "0xf0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245",
+      "entryHash": "0x7c3ee42c30eaa524cc716cbf3abd9530465fcdf7a3ba9872de87469ed8f3cd11",
+      "sig": "0x9af47887f479e8d7f30eb74f48b31bb62da4b4137d41890a2c65002e48e1c7007175c6aeb9082a13e1727ecb87f6a11771dd001e99b8c09f7fd4f1cd4182cf951c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-14T18:19:41.638Z"
     }
   ],
   "checkpoints": [
@@ -455,6 +500,57 @@
       "anchorTx": null,
       "calldata": "0xeecdf92741c42b5e2d3edf43875b8f7c46db12763c36898effe20ab8a9cf7d4adf7f4316",
       "createdAt": "2026-09-14T17:07:50.864Z"
+    },
+    {
+      "id": "cmu1kh9yz0002sqsyz9wz2ocs",
+      "index": 10,
+      "attFrom": 17,
+      "attTo": 17,
+      "leafCount": 1,
+      "root": "0xfe61cb2eb23ac2d80fa3b6d751b494c3cd86a6c840446b8b45962da3f8ce24d5",
+      "prevRoot": "0x41c42b5e2d3edf43875b8f7c46db12763c36898effe20ab8a9cf7d4adf7f4316",
+      "entryHash": "0x8f633970f0ad38fed00d8f9567db548fe4e3b7317ed23437a1c85ca29b6f3ed7",
+      "sig": "0x7c59ddcad9b781a2557be5e632923e590feebb6e77c8e5e966c9f173f0a7195102ce913021abb7891c90d9b012d215098a1858fdddffe77d239126fa4d6f54721c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927fe61cb2eb23ac2d80fa3b6d751b494c3cd86a6c840446b8b45962da3f8ce24d5",
+      "createdAt": "2026-09-14T18:19:04.763Z"
+    },
+    {
+      "id": "cmu1khdpn0002sqtnzriuqj57",
+      "index": 11,
+      "attFrom": 18,
+      "attTo": 18,
+      "leafCount": 1,
+      "root": "0xf0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245",
+      "prevRoot": "0xfe61cb2eb23ac2d80fa3b6d751b494c3cd86a6c840446b8b45962da3f8ce24d5",
+      "entryHash": "0x7fec53ebc7c51f9cee28b87602ff818e5938b8c1ba072f853e95e0eef9613c64",
+      "sig": "0x2390062ee2e9d37b7086e2c30c41a7aafebf14bb9108be0583ded812d06daf2601fe0664e757508be1664c0338bdebdf36e7b93c57830b47cad9b4317514bc3f1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927f0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245",
+      "createdAt": "2026-09-14T18:19:09.611Z"
+    },
+    {
+      "id": "cmu1ki2fz0002squnfj8ik2y9",
+      "index": 12,
+      "attFrom": 19,
+      "attTo": 19,
+      "leafCount": 1,
+      "root": "0x7c3ee42c30eaa524cc716cbf3abd9530465fcdf7a3ba9872de87469ed8f3cd11",
+      "prevRoot": "0xf0c8a80e2fd6a063dc89c49cbff0bac057f596cbd57dc9a9889cea0c29359245",
+      "entryHash": "0xf91483080e02610e8efb12f492d79b5f81f7ab88eb38ecb06c080ec4d04e6016",
+      "sig": "0x1a44c4ce0166a08217c69a40d2d945ef37af8bf396903a7c314632e8e006eb4b274ee7e03e41afd890b591cc46b38c80f0c64f88b23a48e1a82e86b9741f0bcf1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9277c3ee42c30eaa524cc716cbf3abd9530465fcdf7a3ba9872de87469ed8f3cd11",
+      "createdAt": "2026-09-14T18:19:41.663Z"
     }
   ],
   "networkKey": {

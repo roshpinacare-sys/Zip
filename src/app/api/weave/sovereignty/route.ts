@@ -27,6 +27,7 @@ const LEDGER_PATH = path.join(ROOT, "sovereign", "ledger.json");
 const REPORT_PATH = path.join(ROOT, "sovereign", "beat-report.json");
 const SEAL_META_PATH = path.join(ROOT, "sovereign", "weave-seal.meta.json");
 const LEAVES_PATH = path.join(ROOT, "sovereign", "anchor-baseline.leaves.json");
+const TOOLKIT_LEAVES_PATH = path.join(ROOT, "sovereign", "toolkit-baseline.leaves.json");
 const STEEM_LINE_PATH = path.join(ROOT, "sovereign", "steem-line.json");
 const ANCHOR_REPORT_PATH = path.join(ROOT, "sovereign", "anchor-report.json");
 const SOVEREIGNTY_PATH = path.join(ROOT, "SOVEREIGNTY.md");
@@ -78,6 +79,7 @@ export async function GET() {
     const beatReport = readJson(REPORT_PATH) as BeatReportShape | null;
     const ledgerFile = readJson(LEDGER_PATH) as LedgerShape | null;
     const leaves = readJson(LEAVES_PATH);
+    const toolkitLeaves = readJson(TOOLKIT_LEAVES_PATH);
     const steemLine = readJson(STEEM_LINE_PATH);
     const anchorReport = readJson(ANCHOR_REPORT_PATH);
 
@@ -96,6 +98,11 @@ export async function GET() {
       where: { claimType: "ANCHOR" },
       orderBy: { seq: "desc" },
       take: 5,
+      select: { seq: true, claim: true, evidence: true, createdAt: true },
+    });
+    const toolkitAtt = await db.attestation.findFirst({
+      where: { claimType: "AUDIT", evidence: { contains: "toolkit-baseline" } },
+      orderBy: { seq: "desc" },
       select: { seq: true, claim: true, evidence: true, createdAt: true },
     });
     const localHead = lastAtt?.entryHash ?? null;
@@ -175,9 +182,9 @@ export async function GET() {
       },
       {
         id: "G6",
-        title: "איחוד האקוסיסטם (R1)",
-        missing: "~20 קבצי סטטוס משוכפלים ב-9 ריפוים",
-        path: "מדידת שכפול חוזרת (dup<0.2) ואז איחוד",
+        title: "איחוד האקוסיסטם (R1) — נסגר 2026-09-14",
+        missing: "—",
+        path: "נסגר: מדידה מלאה לפני/אחרי (dup 0.5959→0.0537, יעד <0.2) · 828 מצבתות-מצביע ב-11 ריפואים · הקנון: anchor-baseline/steem · התוכן לא נמחק — ההיסטוריה בגיט · steem (73) במעבר נפרד",
       },
     ];
 
@@ -263,6 +270,19 @@ export async function GET() {
               root: (leaves.root as string) ?? null,
               source: (leaves.source as Record<string, string>) ?? null,
               derivedAt: (leaves.derivedAt as string) ?? null,
+            }
+          : { derived: false },
+        toolkit: toolkitLeaves
+          ? {
+              derived: true,
+              fileCount: (toolkitLeaves.fileCount as number) ?? null,
+              totalBytes: (toolkitLeaves.totalBytes as number) ?? null,
+              root: (toolkitLeaves.root as string) ?? null,
+              derivedAt: (toolkitLeaves.derivedAt as string) ?? null,
+              custody: "Project-files (ה-zips המקוריים) + השלמות ניתנת לאימות מול השורש בספר",
+              attestation: toolkitAtt
+                ? { seq: toolkitAtt.seq, claim: toolkitAtt.claim, createdAt: toolkitAtt.createdAt }
+                : null,
             }
           : { derived: false },
         sovGates: sovStages.map((s) => ({
