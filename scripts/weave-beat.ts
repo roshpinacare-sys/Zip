@@ -74,20 +74,20 @@ function secretGate(stagedDiff: string): string | null {
   return null;
 }
 
-// חריגה מבוקרת: שדות hash ציבוריים ב-ledger.json/דוחות (0x + 64hex) אינם סוד —
-// הם entryHash/root/prevHash וכדומה, נבדקים ע"י כל אחד. מפתח אמיתי (devKeyHex
-// או ערך חשוד בטקסט) לא ברשימה ⇒ נחסם. הרשימה מכוונת לשמות שדות קנוניים בלבד.
+// חריגה מבוקרת: שדות hash ציבוריים (0x + 64hex בשם שדה קנוני) מוסרים מה-diff
+// לפני השער — הם אינם סוד וכל אחד מאמת אותם מחדש. כל שורה אחרת שמכילה
+// 64hex — כולל devKeyHex אמיתי או ערך חשוד בטקסט — נשארת ונתפסת ע"י השער.
 function filterKnownHashes(diff: string): string {
   const KNOWN_HASH_FIELDS =
     /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id)"\s*:/i;
+  const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash)=/i;
   return diff
     .split("\n")
     .filter((line) => {
-      if (!/0x[0-9a-fA-F]{64}/.test(line)) return true;
-      // שורת שדה hash ציבורי מוכר — עוברת
-      if (KNOWN_HASH_FIELDS.test(line)) return true;
-      if (/(headHash|recomputedHead|root|entryHash|digest|prevHash)=/i.test(line)) return true;
-      return false;
+      if (!/0x[0-9a-fA-F]{64}/.test(line)) return true; // אין 64hex — נשארת
+      // שורת hash ציבורי מוכרת — מוסרת (השער לא צריך לראות אותה)
+      if (KNOWN_HASH_FIELDS.test(line) || KNOWN_HASH_KV.test(line)) return false;
+      return true; // 64hex לא מוכר — נשארת ותיבדק בשער
     })
     .join("\n");
 }

@@ -241,7 +241,7 @@ export function SovereigntyTab() {
               )}
             >
               {data.cloud.armed ? "חמוש ✓" : "לא חמוש"}
-            </div>
+            </span>
             <TruthLabel kind="REAL" />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
@@ -626,7 +626,7 @@ export function SovereigntyTab() {
 
       {/* ── מפת הפערים ── */}
       <Section
-        title="מה חסר עוד ל"הכל על גבי הרשת""
+        title="מה חסר עוד ל׳הכל על גבי הרשת׳"
         icon={Siren}
         hint="שישה פערים בלבד — כולם נסגרים באותה שיטה: עוד workflow + עוד שורה חתומה בספר"
       >
@@ -674,7 +674,7 @@ export function SovereigntyTab() {
         <Section
           title="הפעימה האחרונה — פירוט מלא"
           icon={HeartPulse}
-          hint="הדוח כפי שנכתב ע"י ה-runner שהריץ (מקומי או ענן)"
+          hint="הדוח כפי שנכתב ע״י ה-runner שהריץ (מקומי או ענן)"
         >
           <Card>
             <CardContent className="flex flex-col gap-2 p-4 text-sm sm:p-6">
