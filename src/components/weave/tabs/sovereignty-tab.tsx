@@ -946,9 +946,9 @@ export function SovereigntyTab() {
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">מקור העדות</div>
                   <div dir="ltr" className="font-mono text-xs">
                     {data.archiveLine?.witness?.commit
-                      ? `@${truncateMiddle(data.archiveLine.witness.commit, 8, 0)}`
+                      ? `@${truncateMiddle(data.archiveLine.witness.commit, 10, 8)}`
                       : data.anchors.source?.commit
-                        ? `@${truncateMiddle(data.anchors.source.commit, 8, 0)}`
+                        ? `@${truncateMiddle(data.anchors.source.commit, 10, 8)}`
                         : "—"}
                   </div>
                 </div>
@@ -991,7 +991,7 @@ export function SovereigntyTab() {
                         dir="ltr"
                         className="font-mono text-xs text-zinc-500 dark:text-zinc-400"
                       >
-                        live @{truncateMiddle(data.archiveLine.live.commit, 8, 0)}
+                        live @{truncateMiddle(data.archiveLine.live.commit, 10, 8)}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">

@@ -235,7 +235,10 @@ export async function GET() {
     // ── 5.7 עד הארכיון — גזירה חיה מהמקור + העדות האחרונה בספר (Task 19) ──
     const archiveWitnessIdx = await lastArchiveWitness().catch(() => null);
     const baselineAudit = await db.attestation.findFirst({
-      where: { claimType: "AUDIT", evidence: { contains: "anchor-baseline" } },
+      where: {
+        claimType: "AUDIT",
+        AND: [{ evidence: { contains: "anchor-baseline" } }, { evidence: { contains: "merkleRoot=" } }],
+      },
       orderBy: { seq: "desc" },
       select: { seq: true, evidence: true, createdAt: true },
     });
