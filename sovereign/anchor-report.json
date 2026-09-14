@@ -1,35 +1,31 @@
 {
-  "at": "2026-09-14T17:09:15.626Z",
-  "runner": "local-primary",
-  "mode": "ALREADY-ANCHORED (verify-only)",
+  "at": "2026-09-14T19:16:12.474Z",
+  "runner": "github-actions",
+  "mode": "ANCHORED",
   "checkpoint": {
-    "index": 9,
-    "root": "0x41c42b5e2d3edf43875b8f7c46db12763c36898effe20ab8a9cf7d4adf7f4316"
+    "index": 12,
+    "root": "0x7c3ee42c30eaa524cc716cbf3abd9530465fcdf7a3ba9872de87469ed8f3cd11",
+    "attFrom": 19,
+    "attTo": 19
   },
-  "lastAnchor": {
-    "checkpoint": 8,
-    "root": "0xf90177d03e783bd4d6f83214274d2deb69a607b4b7e6be3d62b912132937a6f7",
-    "attFrom": 15,
-    "attTo": 15,
-    "attestations": 15,
-    "at": "2026-09-14T17:07:48.174Z",
-    "commit": "402e3e6",
-    "account": "cashmachine",
-    "txids": {
-      "steem": "78773682f5c6995ec60936ebbdb5ce53bdf1918b",
-      "hive": null
-    },
-    "hiveNote": "rc-gated (mana=2.36e+7 < floor=5.00e+7 — regen budget, honest skip)",
-    "attSeq": 16,
-    "runner": "github-actions"
+  "txids": {
+    "steem": "2c6da9779cfdaef9b40e68bc94ba8fa1402a91eb",
+    "hive": null
   },
-  "historyReadback": {
-    "verdict": "ON-CHAIN",
-    "txid": "78773682f5c6995ec60936ebbdb5ce53bdf1918b"
+  "hiveSkipped": null,
+  "notes": [
+    "hive: payer has not enough RC mana for transaction:has_mana: Account: cashmachine has 61101766 RC, needs 269364300 RC. Please wait to transact or "
+  ],
+  "attSeq": 20,
+  "nextCheckpoint": {
+    "index": 13,
+    "root": "0x11daa72c78110f4b84c33b8af8ce74b9d797b2f4fe6177acbbb696c105ce9fe8"
   },
+  "attestations": 20,
   "context": {
-    "runner": "local-primary",
-    "gitHead": "0f3d248",
-    "repoSlug": "roshpinacare-sys/Zip"
+    "runner": "github-actions",
+    "gitHead": "7bf8bd8",
+    "repoSlug": "roshpinacare-sys/Zip",
+    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/34885823407"
   }
 }
