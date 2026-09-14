@@ -1,0 +1,137 @@
+// ─────────────────────────────────────────────────────────────────────
+// THE WEAVE · רשת האימות לסוכני AI — Prisma Schema
+// עיקרון: "שום טענה בלי מדידה" — כל טענה נחתמת, נמדדת ונקשרת בשרשרת hash.
+// ─────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// סוכן עם זהות EVM אמיתית (secp256k1 → כתובת Ethereum)
+model Agent {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  role         String // AUDITOR | SCOUT | BUILDER | DAEMON | RELAYER
+  ethAddress   String        @unique // זהות EVM — נגזרת ממפתח ציבורי, לא סודית
+  pubKeyHex    String // מפתח ציבורי uncompressed — לאימות עצמאי אופליין
+  devKeyHex    String? // ⚠ DEVNET בלבד. בייצור המפתח הפרטי אצל הסוכן, לעולם לא ב-DB
+  status       String        @default("ACTIVE") // ACTIVE | SUSPENDED | SLASHED
+  nonce        Int           @default(0) // EVM-3: מונה monotonic — replay protection לפעולות זהות
+  rotatedAt    DateTime? // מתי סובב המפתח האחרון (אם בכלל)
+  createdAt    DateTime      @default(now())
+  attestations Attestation[]
+  keyOps       KeyOp[]
+
+  @@index([status])
+}
+
+// רשומת אימות בספר — hash-chained, חתומה EIP-191
+model Attestation {
+  id           String    @id @default(cuid())
+  seq          Int       @unique
+  agentId      String
+  agent        Agent     @relation(fields: [agentId], references: [id])
+  claim        String // הטענה עצמה
+  claimType    String // MEASUREMENT | BUILD | AUDIT | ROTATION | ANCHOR | SELFTEST
+  evidence     String // המדידה / הראיה (טקסט קנוני)
+  evidenceHash String // keccak256(evidence)
+  status       String // VERIFIED | REFUTED | UNMEASURED | CONTESTED
+  prevHash     String // entryHash של הרשומה הקודמת; GENESIS לראשונה
+  entryHash    String // keccak256(רשומה קנונית) — הקישור בשרשרת
+  sig          String? // חתימת EIP-191 של מפתח הסוכן על entryHash
+  signerAddr   String? // כתובת ששוחזרה ב-ecrecover — חייבת להתאים ל-agent.ethAddress
+  createdAt    DateTime // נקבע בקוד (לא default) — כדי שה-hash יהיה דטרמיניסטי
+
+  @@index([seq])
+  @@index([agentId])
+}
+
+// נקודת עוגן: Merkle root חתום EIP-712, מועמד להטבעה בשרשרת EVM
+model Checkpoint {
+  id           String   @id @default(cuid())
+  index        Int      @unique
+  attFrom      Int // seq ראשון בטווח
+  attTo        Int // seq אחרון בטווח
+  leafCount    Int      @default(0)
+  root         String // Merkle root של entryHash-ים בטווח
+  prevRoot     String // root של ה-checkpoint הקודם — שרשרת בתוך שרשרת
+  entryHash    String // EIP-712 digest של רשומת ה-checkpoint
+  sig          String? // חתימת EIP-712 של מפתח הרשת
+  signerAddr   String? // כתובת הרשת ששוחזרה
+  anchorStatus String   @default("LOCAL") // LOCAL | PENDING | ANCHORED
+  anchorNet    String? // למשל "sepolia" — רק כשיעוגן בפועל
+  anchorTx     String? // tx hash — רק כשיעוגן בפועל
+  calldata     String? // ה-calldata המדויק שיישלח ל-AnchorRegistry
+  createdAt    DateTime @default(now())
+}
+
+// מפתח הרשת — חותם checkpoints. ⚠ DEVNET: מאוחסן ב-DB לצורך הדגמה בלבד
+model NetworkKey {
+  id        String   @id @default("weave-network")
+  address   String   @unique
+  devKeyHex String
+  createdAt DateTime @default(now())
+}
+
+// פעולת מפתח — רוטציית זהות חתומה EIP-712 עם nonce (שער EVM-3)
+// המפתח הישן חותם על ההעברה לכתובת החדשה; ה-nonce מונע replay של הפעולה
+model KeyOp {
+  id          String   @id @default(cuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id])
+  kind        String // ROTATION
+  nonce       Int // ה-nonce שנצרך — חד-פעמי לכל סוכן
+  oldAddress  String
+  newAddress  String
+  digest      String // EIP-712 digest של פעולת ההעברה
+  sig         String // חתימת המפתח הישן — ההרשאה להעברה
+  recovered   String // כתובת ששוחזרה ב-ecrecover — חייבת להתאים לישנה
+  note        String   @default("")
+  createdAt   DateTime @default(now())
+
+  @@index([agentId])
+}
+
+// רישום עוגן מקומי — מראה מדויקת של mapping ה-roots שב-Solidity (EVM-2 במצב LOCAL).
+// ⚠ זו סימולציית חוזה בצד השרת — לא שרשרת אמיתית. תווית האמת: LOCAL.
+model LocalAnchor {
+  id              String   @id @default(cuid())
+  registryIndex   Int      @unique // latestIndex — מנוהל בדיוק כמו בחוזה (+=1)
+  root            String   @unique // roots[registryIndex]
+  checkpointIndex Int      @unique // קישור החוצה: איזה checkpoint עוגן (פעם אחת)
+  attFrom         Int
+  attTo           Int
+  calldata        String // ה-calldata שבוצע — בדיוק כמו tx לחוזה
+  anchoredBy      String // msg.sender מדומה — כתובת מפתח הרשת
+  anchoredAt      DateTime @default(now())
+}
+
+// מלאי הריפוים — ממצאי הביקורת (seed מבוסס ביקורת 2026-09)
+model RepoInventory {
+  id          String @id @default(cuid())
+  name        String @unique
+  sizeMb      Float  @default(0)
+  currentRole String
+  targetRole  String
+  findings    String
+  dupScore    Float  @default(0) // 0..1 — מידת שכפול מדודה
+  status      String @default("AUDITED") // AUDITED | CONSOLIDATED | ARCHIVED | DELETED
+}
+
+// לוח התוכנית — שלב נסגר רק ע"י אימות VERIFIED (השער המובנה)
+model PlanStage {
+  id       String @id @default(cuid())
+  code     String @unique // L0..L4 | R1..R3 | EVM-1..EVM-3
+  title    String
+  detail   String
+  gate     String // תנאי סגירה — מדידה נדרשת, בלי מילים
+  gateType String // claimType שחייב להופיע באימות הסוגר
+  state    String @default("PLANNED") // PLANNED | IN_PROGRESS | GATED | DONE
+  attSeq   Int? // seq של האימות שסגר את השער
+  sortOrder Int  @default(0)
+}

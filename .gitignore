@@ -1,0 +1,57 @@
+# THE WEAVE · weave-core — .gitignore ריבוני
+# חוק הברזל: סודות, מטמונים וסביבת-עבודה מקומית לעולם לא עולים לריפו.
+
+# ── סודות (בשום פורמט) ──
+upload/
+*.env
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ── מסד הנתונים: ה-DB הוא מטמון מקומי; האמת היא sovereign/ledger.json ──
+db/*.db
+db/*.db-journal
+db/*.sqlite*
+
+# ── סביבת עבודה מקומית (סנדבוקס/ניתוח — לא חלק מהמוצר) ──
+sovereign-net/
+saos-verify/
+agent-ctx/
+tool-results/
+.zscripts/
+.z-ai-config/
+.claude/
+local-*
+prompt
+download/
+
+# ── פיגומי סנדבוקס שאינם חלק מהרשת ──
+skills/
+examples/
+mini-services/
+tests/
+
+# ── build ותלויות ──
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+bun.lockb
+
+# ── לוגים ──
+*.log
+dev.log
+server.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── מערכת ──
+.DS_Store
+.vercel
+.pnpm-debug.log*

@@ -1,0 +1,76 @@
+# WEAVE-HEART — הלב הענן של THE WEAVE (שכבת ALWAYS-UP)
+#
+# הסנדבוקס הוא רק ה-runner הראשי. הריפו (הבית הריבוני) חי כאן —
+# וגיטהאב עצמו מפעיל את הרשת: כל 6 שעות הענן קורא את הספר מה-clone
+# הטרי ופוסק:
+#   · אימות/דחיפה טריים (< 26h/20h) ⇒ SANDBOX-ALIVE ⇒ אימות-בלבד,
+#     אפס כתיבה. השרשרת עצמה השופטת — כמו cloud-heart של הצי.
+#   · ישן/חסר ⇒ TAKEOVER: פתיחת seal (zero-touch) ⇒ פעימה חתומה ⇒
+#     checkpoint ⇒ ledger.json ⇒ שער-סודות ⇒ commit+push.
+#     שער SOV-2 נסגר אוטומטית ע"י פעימת הענן הראשונה.
+#
+# אימות: GITHUB_TOKEN של הריפו עצמו (contents:write) — ה-PAT של
+# המפעיל לא נחוץ כאן כלל ולעולם לא מגיע לענן.
+#
+# תקציב: ~120 ריצות/חודש × ~1.5 דק' ≈ 180 דק' לצד ~750 של cloud-heart.
+
+name: weave-heart
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'heartbeat mode — auto: judge from the ledger/git freshness; force-beat: always take over and beat'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - force-beat
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weave-heart
+  cancel-in-progress: false
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout origin/main (the sovereign home)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile --no-save 2>/dev/null || bun install --no-save
+
+      - name: Prisma client + DB skeleton
+        run: bunx prisma generate && bunx prisma db push
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+
+      - name: Sovereign beat (verify, or take over if the ledger is stale)
+        run: bun scripts/weave-beat.ts
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+          WEAVE_STALE_MIN: ${{ inputs.mode == 'force-beat' && '999999' || '1560' }}
+          WEAVE_GIT_STALE_MIN: ${{ inputs.mode == 'force-beat' && '999999' || '1200' }}
+
+      - name: Upload beat report (evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weave-beat-report
+          path: sovereign/beat-report.json
+          retention-days: 30
