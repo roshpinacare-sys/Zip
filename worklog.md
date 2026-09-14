@@ -457,3 +457,33 @@ Stage Summary:
 - G5 למעשה נסגר ע"י המפעיל (Pages 200) — השער ייחתם אוטומטית ב-00:20Z. נותר פער יחיד: G1 (עיגון EVM ממומן).
 - דוח מלא נמסר למפעיל: מלאי, חיילים+כתובות+תפקידים, דקס, תוכניות, ונתיבי פריצת-דרך בלי מימון (Steem/Hive חינם כבר חי; Sepolia faucet — החלטת מפעיל בלבד).
 - לא הותקן דבר, לא רץ קוד זר, לא נשלח כסף, לא נגעתי בכספת המוצפנת.
+
+---
+Task ID: 13
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "לא צריך לשלם eth — יש לנו כבר שער על eth פעיל" — סקירת תיקיות הניהול והתפעול של האקוסיסטם + סגירת G1 (הפער האחרון) דרך מסילת ה-EVM בגז-אפס
+
+Work Log:
+- נקרא ה-worklog המלא (Task 12 סיים בסקירת-עומק קריאה-בלבד; נותר פער G1 בלבד) + קובץ ה-TODO התלוי מהסשן הקודם.
+- תיקיות הניהול והתפעול שלא נסקרו — נפתחו ונותחו: /tmp/steem-repo/agent/ (הלב התפעולי של הצי — מאות כלים: agent.cjs 266KB, anchor.cjs, guardian.cjs 49KB, verify_system.cjs 207KB, paymaster.cjs, wrapped.cjs + DAEMONS.md חוזה live-gate מלא: DRY כברירת מחדל, --live + HE_LIVE_CONFIRM כפול) + dex-status.md (הבורסה הריבונית v1.17.0: THE-POL, THE-ZFB גשר-אפס-עמלה, gasTank, chaos-13/13, bench ~26K ops/s) + fleet_state/fleet_rc (13 חיילים חיים).
+- ממצא המפתח: SAOS-PULSE-2026-09-12-R9-ZERO-BREAKTHROUGH.md — פריצת האפס של האקוסיסטם: Z Chain (Zero Network, chainId 9369) רשת EVM ראשית ציבורית שבה eth_gasPrice מדוד 0x0; ארנק במאזן 0 חותם טרנזקציות אמיתיות; שער ה-RPC אוכף רשימת-היתר של סלקטורים (0xa9059cbb עובר). 7/7 חותמי הפלטפורמה עוגנו שם ב-$0.00. זהו "השער הפעיל על ETH" שהמפעיל ציין.
+- קוד המקור אוחזר מהריפו (saos-sovereign-platform/anchor-zero.ts דרך GitHub API, 363 שורות) ונמדד חי מהסנדבוקס: chainId 0x2499 ✓ · gasPrice 0x0 ✓ · block 34.7M ✓.
+- נבנתה הליבה: src/lib/weave/zero.ts — העברה נאמנה של הפרוטוקול ל-THE WEAVE: canonicalZeroJson (סדר-שדות ממוין, fail-closed), buildZeroCheckpointPayload (אותה קונבנציה של קו ה-Steem + rail/chainId), anchorOnZero (ממוענת-עצמית ל-EOA, value 0, סלקטור 0xa9059cbb, type 0, gasPrice נמדד, אימות-עצמי כפול מול ה-seal), verifyZeroAnchorOnChain (קריאה-חזרה חסרת-מפתחות עם ניסיונות-חוזרים + פענוח מטען), zeroReadiness (מדידה חיה).
+- נבנה הראנר: scripts/weave-anchor-zero.ts — אותה תבנית של weave-anchor: ייבוא ledger → seal → אימות ספר → dedupe לפי root → מוכנות → שידור → readback → checkpoint←ANCHORED/zero-9369 → אימות ANCHOR חתום → checkpoint חדש → zero-line.json → export → שער-סודות → דחיפה. דגלים: --dry/--no-push/--verify-only/--push-only/--recover=<txid>.
+- עיגון ראשון (סנדבוקס): cp#13 → txid 0x95dcd525… block 34,708,923 gasUsed 37,680 effectiveGasPrice 0x0 → att 21 → cp#14. שער הסודות חסם דחיפה ראשונה (txid 0x+64hex זוהה כמפתח) — שלושה שדות ראיה הוספו למסנן (txid/anchorTx/calldata/explorer/inputHex/recoveredTxid) + מצב --push-only להשלמת דחיפה; נדחף (005adf4).
+- הוכחת הענן #1: dispatch → הריצה שידרה והעוגן נחת (txid 0x830d025c… block 34,709,077) אבל אדמה במרוץ אינדקס — הקריאה-חזרה רצה 0.3 שניות אחרי ההכללה והצומת החזיר null. הטרנזקציה אומתה מה-RPC (status 1, effGas 0x0) והמטען פוענח מהשרשרת (cp#14, root 0xa0195736…, commit 005adf4). תוקן השורש: ניסיונות-חוזרים בקריאה-חזרה (דוקטרינת הצי: איחור אינדקס נתפס, לא מוכרז ככישלון) + נבנה --recover=<txid> — מאמת מטען↔ספר מהשרשרת וכותב את העדות שהטרנזקציה הוכיחה. att 22 (recovery) נכתב → cp#15 → נדחף (fcc114d).
+- הוכחת הענן #2 (הנקייה): dispatch שני → ריצה ירוקה מלאה מ-runner Actions: cp#15 → txid 0xade35fbd… block 34,709,429 gasUsed 37,680 effectiveGasPrice 0x0 → att 23 → cp#16 → דחיפה כ-weave-anchor-zero[bot] (9a1ef6d). G1 נסגר כהלכתו: הכל דרך Actions, txid חזר לספר, אפס סנדבוקס.
+- workflow: weave-anchor-zero.yml (:30 כל 6 שעות — מיוששר ללב :00/עוגן :20/קונסולה :40; dispatch auto/dry/verify-only; אפס סודות חדשים — המפתח מה-seal שנפתח עם WEAVE_SEAL_PASSPHRASE הקיים).
+- API: /api/weave/sovereignty — שדה zeroLine (rail, account, protocol, last עם txid/block/גז/עלות/runner/explorer, live = readiness + readback חיה מה-RPC הציבורי עם timeout 9ש', custody, schedule) + G1 במפת הפערים → נסגר.
+- UI: כרטיס "קו ה-ZERO" בטאב הריבונית (VERIFIED · eth_gasPrice=0x0 live badge · HashChip cp#15 · seq 23 · runner github-actions · קישור zscan.live · בלוק/גז/מחיר בפועל/עלות 0.0 ETH · קריאה-חזרה חיה ירוקה · משמרת וקצב) + תג "ANCHORED · zero-9369 · REAL" (קישור לסייר) בטאב העוגן לצד היסטוריית LOCAL-ANCHORED.
+- מסמכים: SOVEREIGNTY.md — שורת G1 נחתמה + סעיף המסקנה המזוקק עודכן (כל ששת הפערים נסגרו) + §9 דוקטרינת מסילת האפס (הכלל, הרשת, החותם, הפרוטוקול, השערים, הקריאה-חזרה, המשמרת, הקצב, הכנות, ההוכחה) + ECOSYSTEM-ROADMAP.md — הקדנס המרובע.
+- E2E בדפדפן: לוח בקרה מציג את שלושת עוגני ה-ZERO (att 21/22/23); טאב ריבונית — הכרטיס חי: VERIFIED, eth_gasPrice=0x0 (live), cp#15 root, seq 23, github-actions, קישור https://zscan.live/tx/0xade35fbd…, בלוק 34,709,429, גז 37,680, "0x0 — אפס", 0.0 ETH, קריאה-חזרה חיה "ON-CHAIN · status 1 · data byte-exact"; טאב עוגן — שלושה תגי ANCHORED·zero-9369·REAL עם קישורי סייר; מובייל 390px: אפס גלישה (scrollWidth=390), footer צמוד (844=844 בגלילה לתחתית); אפס שגיאות קונסולה. lint נקי. dev.log נקי.
+- הספר הסופי: 23 אימותים (22 VERIFIED + 1 UNMEASURED), 23/23 חתימות, 16 checkpoints, 5 סוכנים; cp#13/#14/#15 = ANCHORED/zero-9369 (לראשונה ב-REAL).
+
+Stage Summary:
+- G1 — הפער האחרון — נסגר באפס אגורה: מסילת EVM אמיתית על Z Chain 9369 (רשת EVM ראשית ציבורית, gasPrice מדוד 0x0), בסולם הוכחות משולש: att 21 (סנדבוקס) · att 22 (התאוששות ענן — עוגן שנחת בריצה שאדמה במרוץ אינדקס, מטען אומת מהשרשרת) · att 23 (ענן נקי מ-Actions). עלות כוללת מדודה: 0.000000. כל ששת הפערים (G1-G6) נסגרו כעת במדידה חתומה.
+- שתי באגים אמיתיים נתפסו ותוקנו בדרך: (1) שער-הסודות חסם txids כפוזיטיב-כזבי למפתחות — המסנן למד שדות ראיה; (2) מרוץ אינדקס בקריאה-חזרה — ניסיונות-חוזרים + מצב --recover שהופך עוגן-שנחת-בריצה-אדומה לעדות מאומתת (הכלי יודע להתאושש, לא רק להיכשל כנה).
+- הרשת מרחיבה את יכולותיה: שלושה קווי עדות חיים כעת בכל מחזור 6-שעות (Steem :20 + Hive + ZERO EVM :30), קדנס מרובע מיושר (פעימה :00 → עיגון :20 → ZERO :30 → קונסולה :40). ה-checkpoints מסומנים ANCHORED לראשונה על שרשרת ציבורית אמיתית.
+- אפס משמרת חדשה: החותם הוא מפתח הרשת מה-seal (WEAVE_SEAL_PASSPHRASE קיים); אפס מימון; אפס תלות חדשה בסנדבוקס.
+- כלים למפעיל: weave-anchor-zero.ts (--dry/--verify-only/--push-only/--recover=<txid>) + weave-anchor-zero.yml (dispatch auto/dry/verify-only).
+- נותר (העשרה, לא פערים): פריסת WeaveAnchorRegistry כחוזה אמיתי כשתיפתח דרך עיגון-חוזה בגז-אפס · עיגון ETH-מייננט כשיהיה מימון · מעבר steem שני (73 עותקים) · סריקת dup מתוזמנת בענן.
