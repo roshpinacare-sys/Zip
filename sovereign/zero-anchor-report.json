@@ -1,49 +1,77 @@
 {
-  "at": "2026-09-14T20:59:38.610Z",
-  "runner": "local-primary",
-  "mode": "RECOVERED (anchor landed in a reddened run; attested after chain re-verification)",
-  "recoveredTxid": "0x830d025c3a325c47dd72e4acacc0d6f457b9862f684ee9a1ce21b85f247f4e9d",
-  "readback": {
+  "at": "2026-09-14T21:00:37.894Z",
+  "runner": "github-actions",
+  "mode": "ANCHORED",
+  "rail": "zero-9369",
+  "readiness": {
     "ok": true,
-    "txid": "0x830d025c3a325c47dd72e4acacc0d6f457b9862f684ee9a1ce21b85f247f4e9d",
+    "chainId": 9369,
+    "blockNumber": 34709413,
+    "gasPriceGwei": 0,
+    "zeroGasConfirmed": true,
+    "balanceEth": "0.0",
+    "nonce": 2,
+    "endpoint": "https://rpc.zero.tech",
+    "verdict": "שער-האפס פתוח: gasPrice מדוד 0 — ה-checkpoint יעוגן בטרנזקציה אמיתית בעלות 0.000000",
+    "at": "2026-09-14T21:00:36.768Z"
+  },
+  "checkpoint": {
+    "index": 15,
+    "root": "0x06ee485bcef64130642b9f8cb6f409061c93f7860c686ec4eff046e43efabbf4",
+    "attFrom": 22,
+    "attTo": 22
+  },
+  "outcome": {
+    "txid": "0xade35fbd10819c8333b30bdb80efee0a2374b7c344fc8146af9998eb7e63f4d8",
+    "block": 34709429,
+    "gasUsed": 37680,
+    "effectiveGasPrice": "0",
+    "costEth": "0.0",
+    "confirmed": true,
+    "explorer": "https://zscan.live/tx/0xade35fbd10819c8333b30bdb80efee0a2374b7c344fc8146af9998eb7e63f4d8"
+  },
+  "chainReadback": {
+    "ok": true,
+    "txid": "0xade35fbd10819c8333b30bdb80efee0a2374b7c344fc8146af9998eb7e63f4d8",
     "found": true,
     "status": 1,
-    "block": 34709077,
+    "block": 34709429,
     "from": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
     "to": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
     "dataMatches": true,
     "effectiveGasPrice": "0",
     "gasUsed": 37680,
-    "inputHex": "0xa9059cbb7b22616374696f6e223a22636865636b706f696e74222c226174223a22323032362d30392d31345432303a35343a32302e3636335a222c2261747446726f6d223a32312c22617474546f223a32312c226174746573746174696f6e73223a32312c22636861696e4964223a393336392c22636865636b706f696e74223a31342c22636f6d6d6974223a2230303561646634222c226865616448617368223a22307861303139353733363537346338356462323939613063656139626361323166346131323631653532663830356166626135633538656566303662383037623035222c226c6561766573223a312c226e6574223a2277656176652d636f7265222c2270726f746f636f6c223a2273616f732d77656176652d636f72652f7631222c227261696c223a227a65726f2d65766d222c227265706f223a22726f736870696e61636172652d7379732f5a6970222c22726f6f74223a22307861303139353733363537346338356462323939613063656139626361323166346131323631653532663830356166626135633538656566303662383037623035227d",
+    "inputHex": "0xa9059cbb7b22616374696f6e223a22636865636b706f696e74222c226174223a22323032362d30392d31345432313a30303a33372e3839345a222c2261747446726f6d223a32322c22617474546f223a32322c226174746573746174696f6e73223a32322c22636861696e4964223a393336392c22636865636b706f696e74223a31352c22636f6d6d6974223a2266636331313464222c226865616448617368223a22307830366565343835626365663634313330363432623966386362366634303930363163393366373836306336383665633465666630343665343365666162626634222c226c6561766573223a312c226e6574223a2277656176652d636f7265222c2270726f746f636f6c223a2273616f732d77656176652d636f72652f7631222c227261696c223a227a65726f2d65766d222c227265706f223a22726f736870696e61636172652d7379732f5a6970222c22726f6f74223a22307830366565343835626365663634313330363432623966386362366634303930363163393366373836306336383665633465666630343665343365666162626634227d",
     "payload": {
       "action": "checkpoint",
-      "at": "2026-09-14T20:54:20.663Z",
-      "attFrom": 21,
-      "attTo": 21,
-      "attestations": 21,
+      "at": "2026-09-14T21:00:37.894Z",
+      "attFrom": 22,
+      "attTo": 22,
+      "attestations": 22,
       "chainId": 9369,
-      "checkpoint": 14,
-      "commit": "005adf4",
-      "headHash": "0xa0195736574c85db299a0cea9bca21f4a1261e52f805afba5c58eef06b807b05",
+      "checkpoint": 15,
+      "commit": "fcc114d",
+      "headHash": "0x06ee485bcef64130642b9f8cb6f409061c93f7860c686ec4eff046e43efabbf4",
       "leaves": 1,
       "net": "weave-core",
       "protocol": "saos-weave-core/v1",
       "rail": "zero-evm",
       "repo": "roshpinacare-sys/Zip",
-      "root": "0xa0195736574c85db299a0cea9bca21f4a1261e52f805afba5c58eef06b807b05"
+      "root": "0x06ee485bcef64130642b9f8cb6f409061c93f7860c686ec4eff046e43efabbf4"
     },
     "verdict": "ON-CHAIN · status 1 · data byte-exact · effectiveGasPrice 0x0 — the zero anchor is proven",
-    "at": "2026-09-14T20:59:37.707Z"
+    "at": "2026-09-14T21:00:52.372Z"
   },
-  "attSeq": 22,
+  "attSeq": 23,
   "nextCheckpoint": {
-    "index": 15,
-    "root": "0x06ee485bcef64130642b9f8cb6f409061c93f7860c686ec4eff046e43efabbf4"
+    "index": 16,
+    "root": "0xd2dc6ff24fa75efc8692048881d86d0a6eadb1d95e2bc1151c408d47aaedbcd3"
   },
-  "attestations": 22,
+  "attestations": 23,
   "context": {
-    "runner": "local-primary",
-    "gitHead": "005adf4",
-    "repoSlug": "roshpinacare-sys/Zip"
+    "runner": "github-actions",
+    "gitHead": "fcc114d",
+    "repoSlug": "roshpinacare-sys/Zip",
+    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/34896256067"
   }
 }
