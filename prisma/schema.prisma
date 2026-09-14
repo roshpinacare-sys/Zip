@@ -135,3 +135,24 @@ model PlanStage {
   attSeq   Int? // seq של האימות שסגר את השער
   sortOrder Int  @default(0)
 }
+
+// שוק האמת — ספר אירועים hash-chained. הסחורה: הכרעה עתידית של טענות
+// מדידות; השופט: המדידה של הרשת עצמה (PlanStage/Checkpoint/Attestation)
+// — לא הצבעה ולא כסף. ההון: "נקודות אמת" (מוניטין מוצהר, אפס כסף אמיתי —
+// דוקטרינת האפס נשמרת). כל אירוע חתום EIP-191: STAKE בחתימת הסוכן
+// שמהמר; OPEN/SETTLE/REFUND בחתימת מפתח הרשת (אותו מפתח של checkpoints).
+// הסליקה נכתבת כאימות MARKET בספר הראשי ⇒ checkpoint ⇒ עיגון ב-$0.
+model MarketEvent {
+  id          String   @id @default(cuid())
+  seq         Int      @unique
+  kind        String   // OPEN | STAKE | SETTLE | REFUND
+  payload     String   // JSON קנוני (סדר-שדות קבוע) — תוכן האירוע
+  payloadHash String   // keccak256(payload)
+  prevHash    String   // entryHash של האירוע הקודם; GENESIS לראשון
+  entryHash   String   // keccak256(רשומה קנונית) — הקישור בשרשרת
+  sig         String?  // EIP-191 של digest ה-payload — חתימת הפועל
+  signerAddr  String?  // כתובת ששוחזרה ב-ecrecover — חייבת להתאים לצפוי
+  createdAt   DateTime // נקבע בקוד (לא default) — דטרמיניסטי ל-hash
+
+  @@index([kind])
+}

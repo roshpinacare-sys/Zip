@@ -110,11 +110,26 @@ export interface LedgerSnapshot {
     attSeq: number | null;
     sortOrder: number;
   }>;
+  // שוק האמת — ספר האירועים ה-hash-chained (הוסף אדיטיבית; ותיק ללא-
+  // שדה = ספר ללא שוק, תואם לאחור). החתימות נכללות — אימות ecrecover
+  // מתאפשר בכל צומת שיבוא את הספר.
+  marketEvents: Array<{
+    id: string;
+    seq: number;
+    kind: string;
+    payload: string;
+    payloadHash: string;
+    prevHash: string;
+    entryHash: string;
+    sig: string | null;
+    signerAddr: string | null;
+    createdAt: string;
+  }>;
 }
 
 /** ייצוא הספר כולו ל-snapshot חסר-סודות (סדר דטרמיניסטי) */
 export async function exportLedger(): Promise<LedgerSnapshot> {
-  const [agents, attestations, checkpoints, networkKey, keyOps, localAnchors, repoInventory, planStages] =
+  const [agents, attestations, checkpoints, networkKey, keyOps, localAnchors, repoInventory, planStages, marketEvents] =
     await Promise.all([
       db.agent.findMany({ orderBy: { createdAt: "asc" } }),
       db.attestation.findMany({ orderBy: { seq: "asc" } }),
@@ -124,6 +139,7 @@ export async function exportLedger(): Promise<LedgerSnapshot> {
       db.localAnchor.findMany({ orderBy: { registryIndex: "asc" } }),
       db.repoInventory.findMany({ orderBy: { name: "asc" } }),
       db.planStage.findMany({ orderBy: { sortOrder: "asc" } }),
+      db.marketEvent.findMany({ orderBy: { seq: "asc" } }),
     ]);
 
   const head = attestations.length > 0 ? attestations[attestations.length - 1].entryHash : GENESIS_HASH;
@@ -224,6 +240,18 @@ export async function exportLedger(): Promise<LedgerSnapshot> {
       attSeq: s.attSeq,
       sortOrder: s.sortOrder,
     })),
+    marketEvents: marketEvents.map((e) => ({
+      id: e.id,
+      seq: e.seq,
+      kind: e.kind,
+      payload: e.payload,
+      payloadHash: e.payloadHash,
+      prevHash: e.prevHash,
+      entryHash: e.entryHash,
+      sig: e.sig,
+      signerAddr: e.signerAddr,
+      createdAt: e.createdAt.toISOString(),
+    })),
   };
 }
 
@@ -236,6 +264,7 @@ export interface ImportResult {
     localAnchors: number;
     repoInventory: number;
     planStages: number;
+    marketEvents: number;
   };
   keysPreserved: { agents: number; network: boolean };
   headHash: string;
@@ -272,6 +301,7 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
   await db.networkKey.deleteMany();
   await db.repoInventory.deleteMany();
   await db.planStage.deleteMany();
+  await db.marketEvent.deleteMany();
 
   // בנייה מחדש — סדר הורים קודם
   await db.agent.createMany({
@@ -405,6 +435,25 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
     });
   }
 
+  // שוק האמת — אירועי הספר (וותיק ללא השדה = ספר ללא שוק; תואם לאחור)
+  const marketEvents = snap.marketEvents ?? [];
+  if (marketEvents.length > 0) {
+    await db.marketEvent.createMany({
+      data: marketEvents.map((e) => ({
+        id: e.id,
+        seq: e.seq,
+        kind: e.kind,
+        payload: e.payload,
+        payloadHash: e.payloadHash,
+        prevHash: e.prevHash,
+        entryHash: e.entryHash,
+        sig: e.sig,
+        signerAddr: e.signerAddr,
+        createdAt: new Date(e.createdAt),
+      })),
+    });
+  }
+
   return {
     imported: {
       agents: snap.agents.length,
@@ -414,6 +463,7 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
       localAnchors: snap.localAnchors.length,
       repoInventory: snap.repoInventory.length,
       planStages: snap.planStages.length,
+      marketEvents: marketEvents.length,
     },
     keysPreserved: {
       agents: snap.agents.filter((a) => localKeyByAddress.has(a.ethAddress)).length,
@@ -431,6 +481,10 @@ export function parseLedgerSnapshot(raw: string): LedgerSnapshot {
   }
   if (!Array.isArray(snap.attestations) || !Array.isArray(snap.agents)) {
     throw new Error("קובץ ספר חסר טבלאות חובה");
+  }
+  // שוק האמת — השדה אדיטיבי; ספר ותיק ללא שוק = מערך ריק (תואם לאחור)
+  if (snap.marketEvents !== undefined && !Array.isArray(snap.marketEvents)) {
+    throw new Error("קובץ ספר: marketEvents פגום");
   }
   return snap;
 }

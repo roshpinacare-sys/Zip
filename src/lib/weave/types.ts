@@ -8,7 +8,8 @@ export type ClaimType =
   | "AUDIT"
   | "ROTATION"
   | "ANCHOR"
-  | "SELFTEST";
+  | "SELFTEST"
+  | "MARKET";
 
 export const CLAIM_TYPES: ClaimType[] = [
   "MEASUREMENT",
@@ -17,6 +18,7 @@ export const CLAIM_TYPES: ClaimType[] = [
   "ROTATION",
   "ANCHOR",
   "SELFTEST",
+  "MARKET",
 ];
 
 export type AttestationStatus =
