@@ -35,6 +35,7 @@ import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
 import { verifyLedger, ensureCloudAgent, ensureNetworkKeyFromSeal, createCheckpointNow } from "@/lib/weave/beat";
+import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { sealOpen } from "./weave-seal";
 import { anchorOnZero, verifyZeroAnchorOnChain, zeroReadiness, zeroExplorerLink, ZERO_RAIL_ID } from "@/lib/weave/zero";
@@ -539,6 +540,27 @@ async function main(): Promise<void> {
     );
   }
 
+  // 12.5 שוק האמת — המכריע רוכב על קו העיגון (Task 19, תיקון באג חבוי):
+  //      כל ריצת עיגון מזינה checkpoint חדש שהריצה הבאה מעגנת — הספר
+  //      "טרי" לנצח מעצם קיום הקווים, והלב מפיק פעימה מלאה רק ב-TAKEOVER
+  //      שלעולם לא מגיע. בלי התיקון הזה resolveOpenMarkets לעולם לא רץ
+  //      בענן ושווקים פתוחים נתלים (נתפס בקריאה לפני הכתיבה). כאן:
+  //      המכריע רץ על הספר שזה עתה אומת — fail-closed, כמו בפעימה §5.5.
+  let marketSettlement: SettlementResult | null = null;
+  let marketCheckpoint: { index: number; root: string } | null = null;
+  if (verify.valid) {
+    marketSettlement = await resolveOpenMarkets();
+    if (marketSettlement.attSeqs.length > 0) {
+      const mcp = await createCheckpointNow();
+      if (mcp) marketCheckpoint = { index: mcp.index, root: mcp.root };
+    }
+    if (marketSettlement.settled.length > 0 || marketSettlement.refunded.length > 0) {
+      console.log(
+        `[weave-anchor-zero] שוק האמת נסלק: ${marketSettlement.settled.length} הוכרעו · ${marketSettlement.refunded.length} הוחזרו · אימותים att${marketSettlement.attSeqs.join(",att")}${marketCheckpoint ? ` · cp#${marketCheckpoint.index}` : ""}`
+      );
+    }
+  }
+
   // 13. רישום הקו + ייצוא הספר
   const record: ZeroAnchorRecord = {
     checkpoint: cp.index,
@@ -585,6 +607,16 @@ async function main(): Promise<void> {
     chainReadback: readback,
     attSeq: att.seq,
     nextCheckpoint: newCp ? { index: newCp.index, root: newCp.root } : null,
+    ...(marketSettlement
+      ? {
+          market: {
+            settled: marketSettlement.settled,
+            refunded: marketSettlement.refunded,
+            attSeqs: marketSettlement.attSeqs,
+            checkpoint: marketCheckpoint,
+          },
+        }
+      : {}),
     attestations: snap.chainCount,
     context: { runner, gitHead, repoSlug, runUrl },
   };
@@ -610,7 +642,10 @@ async function main(): Promise<void> {
     throw new Error(`שער הסודות חסם את הדחיפה: ${leak} ב-diff — כלום לא נדחף`);
   }
   const nFiles = (gitOrNull("git diff --cached --name-only") ?? "").split("\n").filter(Boolean).length;
-  const msg = `weave-anchor-zero: ${at} · cp#${cp.index} · Z Chain 9369 gasPrice 0x0 · att ${att.seq}`;
+  const marketNote = marketSettlement
+    ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
+    : "";
+  const msg = `weave-anchor-zero: ${at} · cp#${cp.index} · Z Chain 9369 gasPrice 0x0 · att ${att.seq}${marketNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
   const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
   console.log(`[weave-anchor-zero] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);

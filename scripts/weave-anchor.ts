@@ -26,6 +26,7 @@ import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
 import { verifyLedger, ensureCloudAgent, ensureNetworkKeyFromSeal, createCheckpointNow } from "@/lib/weave/beat";
+import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { sealOpen } from "./weave-seal";
 import {
@@ -380,6 +381,29 @@ async function main(): Promise<void> {
     console.log(`[weave-anchor] checkpoint #${newCp.index} נוצר (מכסה att ${newCp.attFrom}..${newCp.attTo}) · root=${newCp.root.slice(0, 16)}…`);
   }
 
+  // 10.5 שוק האמת — המכריע רוכב על קו העיגון (Task 19, תיקון באג חבוי):
+  //      העוגנים חיים תמיד — כל ריצה יוצרת checkpoint חדש שהריצה הבאה
+  //      מעגנת — ולכן הספר "טרי" לנצח מעצם קיומם. אבל הלב הענן מפיק
+  //      פעימה מלאה רק ב-TAKEOVER — שלעולם לא מגיע כשהעוגנים מזינים
+  //      את איתות הטריות. התוצאה שנתפסה בקריאה: resolveOpenMarkets
+  //      לעולם לא רץ בענן — שווקים פתוחים נתלים לנצח. התיקון: קו
+  //      העיגון עצמו נושא את המכריע — 4 פעמים ביום, על ספר שזה עתה
+  //      אומת (fail-closed: ספר שבור לא מסלק, כמו בפעימה §5.5).
+  let marketSettlement: SettlementResult | null = null;
+  let marketCheckpoint: { index: number; root: string } | null = null;
+  if (verify.valid) {
+    marketSettlement = await resolveOpenMarkets();
+    if (marketSettlement.attSeqs.length > 0) {
+      const mcp = await createCheckpointNow();
+      if (mcp) marketCheckpoint = { index: mcp.index, root: mcp.root };
+    }
+    if (marketSettlement.settled.length > 0 || marketSettlement.refunded.length > 0) {
+      console.log(
+        `[weave-anchor] שוק האמת נסלק: ${marketSettlement.settled.length} הוכרעו · ${marketSettlement.refunded.length} הוחזרו · אימותים att${marketSettlement.attSeqs.join(",att")}${marketCheckpoint ? ` · cp#${marketCheckpoint.index}` : ""}`
+      );
+    }
+  }
+
   // 11. רישום הקו + ייצוא הספר
   const record: AnchorRecord = {
     checkpoint: cp.index,
@@ -413,6 +437,16 @@ async function main(): Promise<void> {
     notes,
     attSeq: att.seq,
     nextCheckpoint: newCp ? { index: newCp.index, root: newCp.root } : null,
+    ...(marketSettlement
+      ? {
+          market: {
+            settled: marketSettlement.settled,
+            refunded: marketSettlement.refunded,
+            attSeqs: marketSettlement.attSeqs,
+            checkpoint: marketCheckpoint,
+          },
+        }
+      : {}),
     attestations: snap.chainCount,
     context: { runner, gitHead, repoSlug, runUrl },
   };
@@ -438,7 +472,10 @@ async function main(): Promise<void> {
     throw new Error(`שער הסודות חסם את הדחיפה: ${leak} ב-diff — כלום לא נדחף`);
   }
   const nFiles = (gitOrNull("git diff --cached --name-only") ?? "").split("\n").filter(Boolean).length;
-  const msg = `weave-anchor: ${at} · cp#${cp.index} · ${landed}/2 chains · att ${att.seq}`;
+  const marketNote = marketSettlement
+    ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
+    : "";
+  const msg = `weave-anchor: ${at} · cp#${cp.index} · ${landed}/2 chains · att ${att.seq}${marketNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
   const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
   console.log(`[weave-anchor] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);

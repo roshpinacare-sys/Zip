@@ -3,8 +3,10 @@
 # הסנדבוקס הוא רק ה-runner הראשי. הריפו (הבית הריבוני) חי כאן —
 # וגיטהאב עצמו מפעיל את הרשת: כל 6 שעות הענן קורא את הספר מה-clone
 # הטרי ופוסק:
-#   · אימות/דחיפה טריים (< 26h/20h) ⇒ SANDBOX-ALIVE ⇒ אימות-בלבד,
-#     אפס כתיבה. השרשרת עצמה השופטת — כמו cloud-heart של הצי.
+#   · עבודת runner-ראשי טרייה (אימות לא-ANCHOR < 26h) ⇒ SANDBOX-ALIVE ⇒
+#     אימות-בלבד, אפס כתיבה. השרשרת עצמה השופטת — כמו cloud-heart של הצי.
+#     (Task 19: אימותי ANCHOR ודחיפות העוגנים אינם נספרים — הם חיים
+#     תמיד מעצם קיום הקווים ואינם מוכיחים שה-runner הראשי חי.)
 #   · ישן/חסר ⇒ TAKEOVER: פתיחת seal (zero-touch) ⇒ פעימה חתומה ⇒
 #     checkpoint ⇒ ledger.json ⇒ שער-סודות ⇒ commit+push.
 #     שער SOV-2 נסגר אוטומטית ע"י פעימת הענן הראשונה.
@@ -70,7 +72,6 @@ jobs:
           # force-beat ⇒ דגל מפורש; הספים הם ברירת המחדל של הדוקטרינה
           WEAVE_FORCE_BEAT: ${{ inputs.mode == 'force-beat' && '1' || '0' }}
           WEAVE_STALE_MIN: '1560'
-          WEAVE_GIT_STALE_MIN: '1200'
 
       - name: Upload beat report (evidence)
         if: always()

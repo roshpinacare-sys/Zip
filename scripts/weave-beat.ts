@@ -36,12 +36,19 @@ const IS_ACTIONS = !!process.env.GITHUB_ACTIONS;
 const FORCE_LOCAL = process.argv.includes("--local");
 const NO_PUSH = process.argv.includes("--no-push");
 
-// טריקות רעננות שהספר עצמו קובע: אימות אחרון או דחיפת גיט אחרונה
+// טריקות רעננות שהספר עצמו קובע: אימות אחרון של ה-runner הראשי
+// (Task 19 — תיקון מדידה חמור: אימותי ANCHOR נכתבים בידי קווי העיגון
+// הענניים עצמם, וכל ריצת עיגון יוצרת checkpoint חדש שהריצה הבאה מעגנת —
+// תנועת-נצח שמזינה את איתות "האימות האחרון" לנצח. מדידה על כל סוג
+// האימותים גרמה ל-TAKEOVER שלעולם לא מופעל ולמכריע השוק שלעולם לא
+// רץ בענן. התיקון: איתות החיים = האימות האחרון שאינו ANCHOR — פעימה,
+// שוק, הצלבה, ביקורת — כולם נכתבים בידי ה-runner הראשי או בהפעלתו.)
 const STALE_ATTMin = Number(process.env.WEAVE_STALE_MIN || 26 * 60); // 26 שעות
-const STALE_GIT_MIN = Number(process.env.WEAVE_GIT_STALE_MIN || 20 * 60); // 20 שעות
 // דגל השתלטות ידנית: דולג על דוקטרינת החיים — הענן לוקח פיקוד גם אם
 // הספר טרי (dispatch של force-beat). למד היטב: סף "999999" הפך הכול
 // ל"טרי" והענן נסוג — נתפס במדידה (run #2, 2026-09-14) ותוקן בדגל מפורש.
+// (אות הגיט הוסר — נלמד במדידה: דחיפות העוגנים מזינות אותו לנצח,
+// והוא לעולם לא הבחין runner ראשי מקו עיגון ענן.)
 const FORCE_BEAT = process.env.WEAVE_FORCE_BEAT === "1";
 
 function sh(cmd: string): string {
@@ -155,13 +162,17 @@ async function main(): Promise<void> {
   if (runner === "github-actions" && FORCE_BEAT) {
     console.log("[weave-beat] FORCE-BEAT: dispatch ידני — הענן לוקח פיקוד ללא קשר לטריות");
   } else if (runner === "github-actions") {
-    const lastAtt = await db.attestation.findFirst({ orderBy: { createdAt: "desc" } });
-    const attAgeMin = lastAtt
-      ? (Date.now() - lastAtt.createdAt.getTime()) / 60000
+    // איתות החיים (Task 19): האימות האחרון שאינו ANCHOR — רק עבודה
+    // אמיתית של ה-runner הראשי (פעימה/שוק/הצלבה/ביקורת) מוכיחה שהוא
+    // חי. אימותי ANCHOR מוכיחים שהעוגנים חיים — והם חיים תמיד.
+    const lastPrimaryAtt = await db.attestation.findFirst({
+      where: { claimType: { not: "ANCHOR" } },
+      orderBy: { createdAt: "desc" },
+    });
+    const attAgeMin = lastPrimaryAtt
+      ? (Date.now() - lastPrimaryAtt.createdAt.getTime()) / 60000
       : Infinity;
-    const gitLast = gitOrNull("git log -1 --format=%cI");
-    const gitAgeMin = gitLast ? (Date.now() - new Date(gitLast).getTime()) / 60000 : Infinity;
-    const fresh = attAgeMin < STALE_ATTMin || gitAgeMin < STALE_GIT_MIN;
+    const fresh = attAgeMin < STALE_ATTMin;
 
     if (fresh) {
       const verify = await verifyLedger();
@@ -174,22 +185,22 @@ async function main(): Promise<void> {
         beat: null,
         gatesClosed: [],
         freshness: {
-          attestAgeMin: Number.isFinite(attAgeMin) ? Math.round(attAgeMin) : null,
-          gitAgeMin: Number.isFinite(gitAgeMin) ? Math.round(gitAgeMin) : null,
+          primaryAttestAgeMin: Number.isFinite(attAgeMin) ? Math.round(attAgeMin) : null,
+          signal: "last non-ANCHOR attestation (primary-runner work)",
         },
         context: { runner, gitHead, repoSlug, runUrl },
       };
       fs.mkdirSync(path.dirname(REPORT_PATH), { recursive: true });
       fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
       console.log(
-        `[weave-beat] SANDBOX-ALIVE (attest ${Math.round(attAgeMin)}min / git ${Math.round(gitAgeMin)}min) — הענן נסוג, אימות בלבד`
+        `[weave-beat] SANDBOX-ALIVE (primary att ${Math.round(attAgeMin)}min) — הענן נסוג, אימות בלבד`
       );
       console.log(`[weave-beat] verdict=${report.verdict} · checked=${verify.checked} · sigOk=${verify.sigOk}`);
       // אימות בלבד — לא דוחפים כלום (אפס כתיבה לשרשרת)
       return;
     }
     console.log(
-      `[weave-beat] TAKEOVER: attest ${Math.round(attAgeMin)}min / git ${Math.round(gitAgeMin)}min — הענץ לוקח פיקוד`
+      `[weave-beat] TAKEOVER: primary att ${Math.round(attAgeMin)}min — הענן לוקח פיקוד`
     );
   }
 
