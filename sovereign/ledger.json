@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T14:51:20.678Z",
-  "chainCount": 10,
-  "headHash": "0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
+  "exportedAt": "2026-09-14T15:40:52.522Z",
+  "chainCount": 11,
+  "headHash": "0x6e977923b879ae130e6b8bf5620b20f05238878dd772220dee12ab5de0bce50c",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -210,6 +210,21 @@
       "sig": "0xc126d246e2141f2f98619754cbfd0bb773f0995be6f178bba24e1679c0bed15b48125ad4ccf56beee69f41695ae1ddf0ae4d537ab9c98a9184a7c56e12265f791c",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-14T14:51:20.641Z"
+    },
+    {
+      "id": "cmu1ett5w000142kkke6dsggr",
+      "seq": 11,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 10 רשומות, חתימות 10/10, head תואם. הרץ: GitHub Actions (הענן שלנו).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=github-actions · gitHead=35d8b0c · repo=roshpinacare-sys/Zip · run=https://github.com/roshpinacare-sys/Zip/actions/runs/34863689643 · verify: valid=true checked=10 sigOk=10 sigFail=0 firstBreak=null · recomputedHead=0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56 · headHash=0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56 · at=2026-09-14T15:40:51.563Z",
+      "evidenceHash": "0x0c1e4f6f888c80d87e5ae07fb51ce517f6f6929021525b2894cf5e025487779e",
+      "status": "VERIFIED",
+      "prevHash": "0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
+      "entryHash": "0x6e977923b879ae130e6b8bf5620b20f05238878dd772220dee12ab5de0bce50c",
+      "sig": "0x0cfdaf8353f24a3ad305cd767b0406a409db317c1f8dae0f5a3db0d8ca9ae631661e4296fe3c9e5314c8361d47c0998f0d03dc4e35db08dd15217b1448fed1811b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-14T15:40:51.805Z"
     }
   ],
   "checkpoints": [
@@ -280,6 +295,23 @@
       "anchorTx": null,
       "calldata": "0xeecdf927e729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
       "createdAt": "2026-09-14T14:51:20.670Z"
+    },
+    {
+      "id": "cmu1ette3000242kkzyjvkkyq",
+      "index": 5,
+      "attFrom": 11,
+      "attTo": 11,
+      "leafCount": 1,
+      "root": "0x6e977923b879ae130e6b8bf5620b20f05238878dd772220dee12ab5de0bce50c",
+      "prevRoot": "0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
+      "entryHash": "0xea0538b530ba3a78094757f85b5ef49d859d31fd8d8dbca8188981d3472fc432",
+      "sig": "0xc5e190dc01283b22db56e36035568c0e109e1da129a3decb1cffcabad278ac471a6e6016ffcd4caabd666e527edbfb954543851b59efc4152a5905bb59ef722a1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9276e977923b879ae130e6b8bf5620b20f05238878dd772220dee12ab5de0bce50c",
+      "createdAt": "2026-09-14T15:40:52.107Z"
     }
   ],
   "networkKey": {
@@ -610,8 +642,8 @@
       "detail": "weave-heart.yml ב-GitHub Actions: כל 6 שעות הענן קורא את הספר מהריפו; טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER — הרחבה+checkpoint+דחיפה. הרשת לא נעצרת כשהסנדבוקס מת.",
       "gate": "פעימה שנכתבה ע״י runner=github-actions מופיעה בספר (הרשת סוגרת לעצמה את השער)",
       "gateType": "MEASUREMENT",
-      "state": "PLANNED",
-      "attSeq": null,
+      "state": "DONE",
+      "attSeq": 11,
       "sortOrder": 31
     },
     {
