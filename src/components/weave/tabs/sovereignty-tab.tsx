@@ -325,8 +325,8 @@ export function SovereigntyTab() {
       {/* ── שרשרת הריבונות — דיאגרמה ── */}
       <Section
         title="שרשרת הריבונות — מי מפעיל את מי"
-        icon={Globe2}
-        hint="הסנדבוקס הוא workspace; הריפו הוא האמת; הענן הוא המנוע שלא מת"
+        icon={<Globe2 />}
+        description="הסנדבוקס הוא workspace; הריפו הוא האמת; הענן הוא המנוע שלא מת"
       >
         <Card>
           <CardContent className="p-4 sm:p-6">
@@ -406,8 +406,8 @@ export function SovereigntyTab() {
       {/* ── הספר בריפו + סנכרון ── */}
       <Section
         title="הספר בריפו מול העותק המקומי"
-        icon={Database}
-        hint="ledger.json = אמת קנונית חסרת-סודות; SQLite = מטמון שנבנה ממנה"
+        icon={<Database />}
+        description="ledger.json = אמת קנונית חסרת-סודות; SQLite = מטמון שנבנה ממנה"
       >
         <Card>
           <CardContent className="flex flex-col gap-4 p-4 sm:p-6">
@@ -470,8 +470,8 @@ export function SovereigntyTab() {
       {/* ── ה-seal + סוכן הענן ── */}
       <Section
         title="משמורת הזהויות — ה-seal"
-        icon={Lock}
-        hint="מפתחות נוסעים רק בתוך מעטפת מוצפנת; ריפו פרטי (דוקטרינת הצי)"
+        icon={<Lock />}
+        description="מפתחות נוסעים רק בתוך מעטפת מוצפנת; ריפו פרטי (דוקטרינת הצי)"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card>
@@ -550,8 +550,8 @@ export function SovereigntyTab() {
       {data.anchors.derived && (
         <Section
           title="גזירת העוגנים — הארכיון המת הפך לעדות נצחית"
-          icon={FileCheck2}
-          hint="כל קובץ ⇒ sha256 · עלה=keccak256(path:sha256) · שורש מרקל נרשם בספר"
+          icon={<FileCheck2 />}
+          description="כל קובץ ⇒ sha256 · עלה=keccak256(path:sha256) · שורש מרקל נרשם בספר"
         >
           <Card>
             <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
@@ -600,8 +600,8 @@ export function SovereigntyTab() {
       {/* ── שערי SOV ── */}
       <Section
         title="שערי הריבונות — SOV"
-        icon={ShieldCheck}
-        hint="כל שער נסגר רק ע״י אימות VERIFIED — הרשת סוגרת לעצמה"
+        icon={<ShieldCheck />}
+        description="כל שער נסגר רק ע״י אימות VERIFIED — הרשת סוגרת לעצמה"
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {data.sovGates.map((g) => (
@@ -627,8 +627,8 @@ export function SovereigntyTab() {
       {/* ── מפת הפערים ── */}
       <Section
         title="מה חסר עוד ל׳הכל על גבי הרשת׳"
-        icon={Siren}
-        hint="שישה פערים בלבד — כולם נסגרים באותה שיטה: עוד workflow + עוד שורה חתומה בספר"
+        icon={<Siren />}
+        description="שישה פערים בלבד — כולם נסגרים באותה שיטה: עוד workflow + עוד שורה חתומה בספר"
       >
         <Card>
           <CardContent className="p-0">
@@ -673,8 +673,8 @@ export function SovereigntyTab() {
       {data.lastBeat && (
         <Section
           title="הפעימה האחרונה — פירוט מלא"
-          icon={HeartPulse}
-          hint="הדוח כפי שנכתב ע״י ה-runner שהריץ (מקומי או ענן)"
+          icon={<HeartPulse />}
+          description="הדוח כפי שנכתב ע״י ה-runner שהריץ (מקומי או ענן)"
         >
           <Card>
             <CardContent className="flex flex-col gap-2 p-4 text-sm sm:p-6">
