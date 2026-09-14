@@ -22,7 +22,7 @@ import * as path from "path";
 import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
-import { runBeat, verifyLedger, type BeatContext } from "@/lib/weave/beat";
+import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, type BeatContext } from "@/lib/weave/beat";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -143,6 +143,10 @@ async function main(): Promise<void> {
   // 3. פתיחת seal — מפתחות הענן והרשת
   const seal = sealOpen();
   console.log(`[weave-beat] seal פתוח · cloud=${seal.cloudAddress} · network=${seal.networkAddress}`);
+  // השלמת מפתח הרשת מה-seal — בכל סביבה, גם ב-clone נקי שבו הייבוא
+  // השאיר devKeyHex ריק (נלמד מ-run #3: בלי זה ה-checkpoint נכשל בענן)
+  const netKey = await ensureNetworkKeyFromSeal(seal.networkKeyHex);
+  console.log(`[weave-beat] מפתח רשת הושלם מה-seal · ${netKey.address}`);
 
   // 4. דוקטרינת חיים (ענן בלבד): ספר טרי ⇒ אימות-בלבד, אין הרחבה
   //    force-beat דולג עליה — השתלטות ידנית מדגימה (SOV-2, אימון)
