@@ -31,6 +31,10 @@ const TOOLKIT_LEAVES_PATH = path.join(ROOT, "sovereign", "toolkit-baseline.leave
 const STEEM_LINE_PATH = path.join(ROOT, "sovereign", "steem-line.json");
 const ANCHOR_REPORT_PATH = path.join(ROOT, "sovereign", "anchor-report.json");
 const SOVEREIGNTY_PATH = path.join(ROOT, "SOVEREIGNTY.md");
+const CONSOLE_SITE_PATH = path.join(ROOT, "console", "index.html");
+const CONSOLE_REPO_URL = "https://github.com/roshpinacare-sys/Console";
+const CONSOLE_PAGES_URL = "https://roshpinacare-sys.github.io/Console/";
+const CONSOLE_RAW_STATUS_URL = "https://raw.githubusercontent.com/roshpinacare-sys/Console/main/status.json";
 
 interface BeatReportShape {
   at?: string;
@@ -105,6 +109,11 @@ export async function GET() {
       orderBy: { seq: "desc" },
       select: { seq: true, claim: true, evidence: true, createdAt: true },
     });
+    const consoleAtt = await db.attestation.findFirst({
+      where: { claimType: "CONSOLE" },
+      orderBy: { seq: "desc" },
+      select: { seq: true, claim: true, evidence: true, createdAt: true },
+    });
     const localHead = lastAtt?.entryHash ?? null;
     const localCount = count;
     const ledgerCount = ledgerFile?.chainCount ?? null;
@@ -176,9 +185,9 @@ export async function GET() {
       },
       {
         id: "G5",
-        title: "קונסולה בלי סנדבוקס",
-        missing: "ה-UI רץ על dev-server מקומי",
-        path: "ריפו נפרד ל-Pages (הוחנה בהוראת המפעיל — ייפתח בהמשך) + Actions service ל-API",
+        title: "קונסולה בלי סנדבוקס — נפרסה 2026-09-14",
+        missing: "הפעלת Pages חד-פעמית (הרשאת Administration — רק המפעיל)",
+        path: "פרוס: ריפו ציבורי Console מפרסם את עצמו חסר-מפתחות (render.mjs קורא את קו העוגנים מ-Steem ציבורי, מבצע commit ומגיש Pages ב-GITHUB_TOKEN שלו); השער נסגר אוטומטית באימות CONSOLE חתום במחזור הראשון שאחרי הפעלת Pages",
       },
       {
         id: "G6",
@@ -187,6 +196,20 @@ export async function GET() {
         path: "נסגר: מדידה מלאה לפני/אחרי (dup 0.5959→0.0537, יעד <0.2) · 828 מצבתות-מצביע ב-11 ריפואים · הקנון: anchor-baseline/steem · התוכן לא נמחק — ההיסטוריה בגיט · steem (73) במעבר נפרד",
       },
     ];
+
+    // ── 5.5 הקונסולה הציבורית — מדידה חיה מהחוץ (raw תמיד זמין; Pages אחרי ההפעלה) ──
+    const consoleProbe = await Promise.all([
+      fetch(CONSOLE_RAW_STATUS_URL, { cache: "no-store", signal: AbortSignal.timeout(6000) })
+        .then(async (r) => ({ http: r.status, status: r.ok ? ((await r.json()) as Record<string, unknown>) : null }))
+        .catch(() => ({ http: 0, status: null })),
+      fetch(CONSOLE_PAGES_URL, { method: "HEAD", signal: AbortSignal.timeout(6000) })
+        .then((r) => ({ http: r.status, live: r.ok }))
+        .catch(() => ({ http: 0, live: false })),
+    ]);
+    const consoleRaw = consoleProbe[0] as { http: number; status: Record<string, unknown> | null };
+    const consolePages = consoleProbe[1] as { http: number; live: boolean };
+    const consoleWitness = (consoleRaw.status?.witness ?? null) as Record<string, unknown> | null;
+    const consoleFreshness = (consoleRaw.status?.freshness ?? null) as Record<string, unknown> | null;
 
     return NextResponse.json({
       ok: true,
@@ -285,6 +308,42 @@ export async function GET() {
                 : null,
             }
           : { derived: false },
+        console: {
+          repoUrl: CONSOLE_REPO_URL,
+          pagesUrl: CONSOLE_PAGES_URL,
+          pagesHttp: consolePages.http,
+          pagesLive: consolePages.live,
+          rawHttp: consoleRaw.http,
+          siteSourceInRepo: fs.existsSync(CONSOLE_SITE_PATH),
+          publicStatus: consoleRaw.status
+            ? {
+                generatedAt: (consoleRaw.status.generatedAt as string) ?? null,
+                source: (consoleRaw.status.source as Record<string, string>) ?? null,
+                freshness: consoleFreshness
+                  ? {
+                      verdict: (consoleFreshness.verdict as string) ?? null,
+                      ageHours: (consoleFreshness.ageHours as number) ?? null,
+                      thresholdHours: (consoleFreshness.thresholdHours as number) ?? null,
+                    }
+                  : null,
+                witness: consoleWitness
+                  ? {
+                      checkpoint: (consoleWitness.checkpoint as number) ?? null,
+                      root: (consoleWitness.root as string) ?? null,
+                      txid: (consoleWitness.txid as string) ?? null,
+                      at: (consoleWitness.at as string) ?? null,
+                      attestations: (consoleWitness.attestations as number) ?? null,
+                      explorer: (consoleWitness.explorer as string) ?? null,
+                    }
+                  : null,
+              }
+            : null,
+          architecture:
+            "חסרת-מפתחות: render.mjs בריפו הציבורי קורא את קו העוגנים מ-Steem RPC ציבורי → status.json → commit+Pages ב-GITHUB_TOKEN של Console בלבד; מקור האתר בריפו הריבוני (console/)",
+          attestation: consoleAtt
+            ? { seq: consoleAtt.seq, claim: consoleAtt.claim, createdAt: consoleAtt.createdAt }
+            : null,
+        },
         sovGates: sovStages.map((s) => ({
           code: s.code,
           title: s.title,

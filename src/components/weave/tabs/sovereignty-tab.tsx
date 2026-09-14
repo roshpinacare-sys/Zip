@@ -138,6 +138,29 @@ interface SovereigntyDTO {
     custody?: string | null;
     attestation?: { seq: number; claim: string; createdAt: string } | null;
   };
+  console: {
+    repoUrl: string;
+    pagesUrl: string;
+    pagesHttp: number;
+    pagesLive: boolean;
+    rawHttp: number;
+    siteSourceInRepo: boolean;
+    publicStatus: {
+      generatedAt: string | null;
+      source?: Record<string, string> | null;
+      freshness?: { verdict: string | null; ageHours: number | null; thresholdHours: number | null } | null;
+      witness?: {
+        checkpoint: number | null;
+        root: string | null;
+        txid: string | null;
+        at: string | null;
+        attestations: number | null;
+        explorer: string | null;
+      } | null;
+    } | null;
+    architecture?: string;
+    attestation?: { seq: number; claim: string; createdAt: string } | null;
+  };
   sovGates: Array<{
     code: string;
     title: string;
@@ -631,6 +654,115 @@ export function SovereigntyTab() {
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 הכלל שנגזר מהעוגנים: עוגן שרק "יושב" = ארכיון; עוגן שנכנס לשרשרת-חתומה = כוח.
                 מרגע זה, שינוי של בית אחד בארכיון ניתן לאיתור ע״י חישוב-מחדש מכל clone.
+              </p>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
+
+      {/* ── הקונסולה הציבורית — החלון חסר-המפתחות (G5) ── */}
+      {data.console && (
+        <Section
+          title="הקונסולה הציבורית — הרשת מפרסמת את עצמה בחוץ"
+          icon={<Globe2 />}
+          description="ריפו ציבורי שמפרסם את קו העוגנים חזרה מהשרשרת · אפס סודות · אפס תלות בסנדבוקס"
+        >
+          <Card>
+            <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+              <div className="flex flex-wrap items-center gap-3">
+                {data.console.attestation ? (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    G5 SEALED · att {data.console.attestation.seq}
+                  </span>
+                ) : data.console.pagesLive ? (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    PAGES LIVE · ממתין לאימות החתום של המחזור הבא
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    SELF-PUBLISHING · ממתין להפעלת Pages (המפעיל)
+                  </span>
+                )}
+                <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                  raw {data.console.rawHttp} · pages {data.console.pagesHttp}
+                </span>
+                <a
+                  href={data.console.repoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
+                >
+                  הריפו הציבורי <ExternalLink className="size-3" />
+                </a>
+                {data.console.pagesLive && (
+                  <a
+                    href={data.console.pagesUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
+                  >
+                    האתר בחוץ <ExternalLink className="size-3" />
+                  </a>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">עד חיצוני</div>
+                  <div className="font-mono">
+                    {data.console.publicStatus?.witness?.checkpoint != null
+                      ? `cp#${data.console.publicStatus.witness.checkpoint}`
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">טריות בחוץ</div>
+                  <div className="font-mono">
+                    {data.console.publicStatus?.freshness?.verdict
+                      ? `${data.console.publicStatus.freshness.verdict} · ${
+                          data.console.publicStatus.freshness.ageHours ?? "?"
+                        }h`
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">פורסם</div>
+                  <div className="font-mono text-xs">
+                    {data.console.publicStatus?.generatedAt
+                      ? new Date(data.console.publicStatus.generatedAt).toLocaleString("he-IL")
+                      : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">מקור האתר</div>
+                  <div className="font-mono text-xs">
+                    {data.console.siteSourceInRepo ? "בריפו הריבוני (console/)" : "חסר"}
+                  </div>
+                </div>
+              </div>
+              {data.console.publicStatus?.witness?.txid && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <HashChip
+                    value={data.console.publicStatus.witness.txid}
+                    label="witness txid (on-chain)"
+                  />
+                  {data.console.publicStatus.witness.explorer && (
+                    <a
+                      href={data.console.publicStatus.witness.explorer}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-zinc-500 underline-offset-2 hover:text-zinc-900 hover:underline dark:text-zinc-400 dark:hover:text-zinc-100"
+                    >
+                      steemscan <ExternalLink className="size-3" />
+                    </a>
+                  )}
+                </div>
+              )}
+              <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                ארכיטקטורה חסרת-מפתחות: workflow בריפו הציבורי קורא את קו העוגנים מ-Steem
+                RPC ציבורי (custom_json מהעד בסמכות posting), מרנדר status.json ומבצע
+                commit ב-GITHUB_TOKEN שלו בלבד — כל 6 שעות (פעימה :00 → עיגון :20 →
+                קריאה-חזרה :40). מוות של הסנדבוקס או של הריפו הפרטי לא מפיל את החלון.
+                מה שלא עולה לחוץ לעולם: מפתחות, טוקנים, יתרות, מסמכים פנימיים (CONSOLE-POLICY.md).
               </p>
             </CardContent>
           </Card>
