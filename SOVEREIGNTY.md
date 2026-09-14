@@ -26,7 +26,7 @@
 |---|---|---|
 | הבית הריבוני | ריפו `Zip` הריק הוסב ל-**weave-core** לפי הוראת המפעיל ("הפוך, אל תמחק"); הפלטפורמה כולה חיה בו | REAL (הספר בגיט; שער SOV-1) |
 | הספר כטקסט | `sovereign/ledger.json` — snapshot קנוני **חסר-סודות**; SQLite = מטמון מקומי שנבנה ממנו | REAL |
-| ה-seal | `sovereign/weave-seal.enc` — AES-256-GCM+scrypt: מפתח הענן + מפתח הרשת; הסיסמה ב-meta (ריפו פרטי — דוקטרינת הצי Task 82) | REAL-קריפטו / LOCAL-משמורת |
+| ה-seal | `sovereign/weave-seal.enc` — AES-256-GCM+scrypt: מפתח הענן + מפתח הרשת; הסיסמה במשמרת מפוצלת — GitHub Secret + .env.local + כספת המפעיל; לא בגיט | REAL — הוכח בענן (sealCustody=github-secret, att 13) |
 | הלב הענן | `weave-heart.yml` — כל 6 שעות: ספר טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER (פעימה+checkpoint+דחיפה); השרשרת עצמה השופטת | REAL — **הוכח בשני הכיוונים**: run #1 שפט SANDBOX-ALIVE ונסוג; run #4 (15:40Z) ביצע TAKEOVER — כתב seq 11, סגר SOV-2, דחף כ-weave-heart[bot] (ec28bf3) |
 | שער-הסודות | סריקת staged-diff לפני כל דחיפה: WIF/PEM/PAT/מפתח-64hex ⇒ חסימה מוחלטת | REAL |
 | גזירת העוגנים | `anchor-baseline.leaves.json` — 90 קבצי הארכיון ⇒ sha256 לכל קובץ ⇒ שורש מרקל בספר | REAL |
@@ -40,8 +40,8 @@
 |---|---|---|---|
 | G1 | **עיגון on-chain בפועל** (EVM-1/EVM-2) | חותם ממומן + RPC; עד עכשיו LOCAL בלבד | deploy של WeaveAnchorRegistry ב-testnet דרך workflow_dispatch עם מפתח ב-Secrets; העלאת txid חזרה לספר (הכל דרך Actions — zero sandbox) |
 | G2 | **קו ה-Steem/Hive לא מחובר לספר הזה** | הצי (steem repo) מעיד on-chain; weave-core עדיין לא כותב לשם | workflow נוסף שמשגר את root ה-checkpoint האחרון כ-custom_json דרך fleet-keys של הצי (seal) — אותו דפוס שהוכח ב-Task 79 |
-| G3 | **משמורת מפתחות בייצור** | המפתחות ב-seal בריפו (מקובל בפרטי; לא בייצור) | העברת ה-seal ל-GitHub Secrets + סיבוב מפתחות מסומן בספר (ROTATION) — שער מתועד |
-| G4 | **SOV-3 איחול-עצמי** | טרם הודגם הרמה מ-clone נקי מחוץ לסנדבוקס זה | stranger-revive הודגם ב-clone נקי (/tmp/weave-stranger — ייבוא 10 → seal → פעימה מלאה); סגירת השער = ריצה ב-Actions runner נקי + אימות BUILD |
+| G3 | ~~משמורת מפתחות בייצור~~ **נסגר 2026-09-14 16:10Z** | — | נסגר: סבב משמרת (`--rotate-secret`) — הסיסמה יצאה מהגיט; הסוד `WEAVE_SEAL_PASSPHRASE` הוצפן sealed-box והועלה ל-Actions Secrets; .env.local ל-runner המקומי. ההוכחה: פעימת ענן פתחה את ה-seal כשהמקור היחיד האפשרי הוא הסוד (att 13: sealCustody=github-secret) |
+| G4 | ~~SOV-3 איחול-עצמי~~ **נסגר 2026-09-14 16:10Z** | — | נסגר: אימות BUILD (att 13) נכתב ב-runner ענן נקי מחוץ לסנדבוקס — checkout→install→prisma→ייבוא 12→פתיחת seal מהסוד→פעימה→דחיפה; השער נסגר עליו (SOV-3←att13) |
 | G5 | **הסנדבוקס עדיין ה-runner הראשי של ה-UI** | הקונסולה רצה על dev-server מקומי | Pages/ Actions-static לקריאה בלבד + ה-API ל-Actions service; או self-host ברשות המפעיל |
 | G6 | **שכפול האקוסיסטם (R1)** | ~20 קבצי סטטוס משוכפלים ב-9 ריפוים | איחוד לפי התוכנית — רק אחרי מדידת שכפול חוזרת (dup<0.2) |
 
@@ -92,6 +92,30 @@
 שיפוט: השרשרת עצמה — טריות האימות האחרון + הדחיפה האחרונה בגיט.
 אין תיאום, אין שרת-בחירות, אין אמון בין runners — יש רק ספר וחתימות.
 ```
+
+---
+
+## 6. דוקטרינת משמרת הסיסמה (G3 — הוכח 2026-09-14 16:10Z)
+
+```
+GitHub Actions Secret: WEAVE_SEAL_PASSPHRASE   ← משמרת הייצור (הענן)
+.env.local (לא בגיט; bun טוען אוטומטית)        ← ה-runner הראשי (הסנדבוקס)
+הכספת האישית של המפעיל (cat .env.local)        ← שחזור אנושי
+גיט: המעטפת בלבד (sovereign/weave-seal.enc) — חסרת-ערך בלי הסיסמה.
+```
+
+- **סבב משמרת** (אותם מפתחות, מעטפת+סיסמה חדשות): `bun scripts/weave-seal.ts --rotate-secret`
+  — מצפין מחדש, מעלה את הסוד sealed-box, כותב .env.local; הסיסמה לעולם לא נדפסת ולא נכנסת לגיט.
+- **ניהול סודות ידני**: `bun scripts/weave-secret.ts --list | --set NAME | --delete NAME`
+  (ה-PAT נלקח מה-remote; ההצפנה libsodium sealed-box בצד הלקוח).
+- **זרים** (clone ללא סוד): יכול לאמת את כל הספר (מפתחות ציבוריים ב-ledger) אך לא לחתום —
+  הפעימות של הרשת בידי הענן וה-runner הראשי בלבד. זו היציבות הרצויה בייצור.
+- **איפוס סנדבוקס**: הספר שורד בגיט; הענן ממשיך לפעור (TAKEOVER מהסוד). לשחזור
+  ה-runner המקומי יש לשחזר את `.env.local` מהכספת האישית.
+- **איבוד מוחלט** (סיסמה אבדה וסנדבוקס מת): פרוטוקול re-key — המפעיל מציב סוד חדש
+  `WEAVE_SEAL_NEW_PASSPHRASE` (weave-secret.ts), מריץ workflow re-key בענן שפותח
+  את ה-seal בסוד הישן ומצפן מחדש בחדש, ואז מקדם את החדש ב-Actions Secrets.
+  (ה-workflow עצמו — פריט במפת הדרכים, סדר עדיפויות נמוך: דורש איבוד בפועל.)
 
 ---
 

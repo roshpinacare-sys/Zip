@@ -314,3 +314,29 @@ Stage Summary:
 - שני באגים אמיתיים נתפסו ע"י המדידה עצמה (כל dispatch היה מבחן): היפוך force-beat ומפתח-רשת ריק ב-clone נקי. שניהם תוקנו ואומתו בריצה חוזרת.
 - מצב סופי: 12 אימותים (11 VERIFIED + 1 UNMEASURED), 6 checkpoints, 5 סוכנים; שערים: L0, L1, EVM-3, SOV-1, SOV-2 = DONE; SOV-3 פתוח — זר-מחיה הודגם ב-/tmp, סגירתו = ריצה ב-Actions runner נקי.
 - כנה: G1 (עיגון on-chain ממומן), G2 (קו Steem/Hive מהספר הזה), G3 (משמורת seal ל-Secrets), G5 (UI מחוץ לסנדבוקס), G6 (איחוד שכפול) — כולם עם דרך סגירה מתועדת ב-SOVEREIGNTY.md.
+
+---
+Task ID: 8
+Agent: main (Z.ai — lead engineer)
+Task: המפעיל פתח Secrets ("פתחתי לך secrest תבדוק ותמשיך") — סגירת G3 (משמרת seal בייצור) + סגירת SOV-3 (איחול-עצמי) בהוכחה מדודה, ומפת דרכים לשאר הפרויקט
+
+Work Log:
+- הרשאה אומתה במדידה: GET secrets החזיר 200 (רשימה ריקה); PUT סוד-בדיקה החזיר 201; DELETE החזיר 204 — ל-PAT יש secrets:write.
+- נכתב scripts/weave-secret.ts — מנהל סודות הריפו דרך ה-API: PAT מה-remote (לעולם לא מודפס), הצפנת libsodium sealed-box בצד הלקוח (tweetnacl נוסה והוחלף — box.seal לא קיים ב-1.0.3).
+- scripts/weave-seal.ts שודרג: sealOpen קורא WEAVE_SEAL_PASSPHRASE מהסביבה קודם (Secrets בענן / .env.local מקומי — bun טוען .env.local אוטומטית, אומת), meta ישן כ-fallback, ושגיאה ברורה בלי שניהם. מצב חדש --rotate-secret: אותם מפתחות, מעטפת+סיסמה חדשות, הסוד עולה ל-GitHub, .env.local נכתב, meta ללא סיסמה, הוכחת סבב-ידנית בזיכרון. הסיסמה לעולם לא נדפסת ולא נכנסת לגיט.
+- weave-heart.yml: WEAVE_SEAL_PASSPHRASE מחובר מ-secrets לצעד הפעימה.
+- src/lib/weave/beat.ts: בפעימת ענן, כש-SOV-3 פתוח — אימות BUILD ("איחול-עצמי") נכתב לפני אימות הפעימה וסוגר את השער; רק בנתיב שדוחף (ההוכחה מגיעה ל-origin).
+- בוצע הסבב: bun scripts/weave-seal.ts --rotate-secret — הסוד WEAVE_SEAL_PASSPHRASE נוצר בגיטהאב (16:09:37Z), meta נוקה מסיסמה (משמרת מפוצלת מתועדת), .env.local מקומי.
+- מבחנים מקומיים לפני הדחיפה: פתיחה מ-.env.local בלבד — עברה; מבחן שלילי (env ריק + meta נקי) — נחסם כמצופה: הריפו לבדו כבר לא יכול לפתוח את ה-seal (תצורת ייצור).
+- דחיפה (cecd7f4) ואז dispatch force-beat — run 34866934231 הושלם בהצלחה: ייבוא 12 → seal נפתח מהסוד (המקור היחיד האפשרי) → FORCE-BEAT → 12/12 חתימות → att 13 BUILD (sealCustody=github-secret) + att 14 MEASUREMENT → cp #7 → SOV-3←att13 נסגר → דחיפה כ-weave-heart[bot].
+- הסנדבוקס ספג והשיב: pull → sync API → ייבוא 14 → אימות 14/14 תקין.
+- UI: plan-tab למד קבוצה רביעית "ריבונות SOV" (לא הוצגה קודם — סונן רק L/R/EVM); כרטיס ה-seal מציג משמרת אמיתית מה-API (REAL + סובב + rotatedAt); ה-API קובע custody לפי המצב בפועל (legacy vs Secrets). נדחף (a5c549f).
+- E2E בדפדפן: רשת ריבונית מסונכרן (מקומי 14 · ריפו 14 · 16:10:48), פעימה אחרונה ענן VERIFIED seq 14 cp #7, seal REAL + משמרת מפוצלת + סובב 16:09:37; תוכנית: SOV-1/2/3 כולם DONE; מובייל 390px ללא גלישה, footer flush לתחתית (844=844), אפס שגיאות קונסולה. lint נקי. dev.log נקי.
+- SOVEREIGNTY.md: G3 ו-G4 נחתמו כנסגרים במפה; נוסף §6 — דוקטרינת משמרת הסיסמה + פרוטוקול re-key לאיבוד מוחלט.
+
+Stage Summary:
+- שני פערים נסגרו במכה אחת מדודה: G3 (משמרת ייצור — הסיסמה מחוץ לגיט, הענן פותח מ-Secrets בלבד, הוכח ב-att 13) ו-G4/SOV-3 (איחול-עצמי — אימות BUILD מ-runner ענן נקי נסגר על השער).
+- מצב סופי: 14 אימותים (13 VERIFIED + 1 UNMEASURED), 7 checkpoints, 5 סוכנים; שערים: L0, L1, EVM-3, SOV-1, SOV-2, SOV-3 = DONE (כל סולם הריבונות סגור).
+- הרשת חיה כעת בתצורת ייצור אמיתית: הספר בגיט, המפתחות ב-Secrets, הלב בענן כל 6 שעות, הסנדבוקס רק workspace.
+- כלים חדשים למפעיל: weave-secret.ts (--list/--set/--delete) ו-weave-seal.ts --rotate-secret.
+- פערים פתוחים שנותרו: G1 (עיגון on-chain ממומן), G2 (קו Steem/Hive מהספר), G5 (UI מחוץ לסנדבוקס), G6 (איחוד שכפול R1) + העברת ה-tookit (sovereign-net) למשמרת בת-קיימא.
