@@ -74,19 +74,19 @@ function secretGate(stagedDiff: string): string | null {
   return null;
 }
 
-// חריגה מבוקרת: ה-evidence של אימותים מכיל headHash/roots חוקיים (0x + 64hex)
-// אלו hash-ים ציבוריים, לא מפתחות. מסננים אותם לפני השער.
+// חריגה מבוקרת: שדות hash ציבוריים ב-ledger.json/דוחות (0x + 64hex) אינם סוד —
+// הם entryHash/root/prevHash וכדומה, נבדקים ע"י כל אחד. מפתח אמיתי (devKeyHex
+// או ערך חשוד בטקסט) לא ברשימה ⇒ נחסם. הרשימה מכוונת לשמות שדות קנוניים בלבד.
 function filterKnownHashes(diff: string): string {
-  // שורות ה-evidence ב-ledger.json מכילות "headHash=0x…" / "recomputedHead=0x…" / roots חוקיים —
-  // כל 0x+64hex שמופיע בתור ערך hash מוכר (בשדות entryHash/root/prevHash/headHash/digest/recomputedHead)
-  // אינו סוד. בפועל: השער סורק את ה-diff; hash-ים ציבוריים לגיטימיים מופיעים רק בהקשר שדות אלה.
+  const KNOWN_HASH_FIELDS =
+    /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id)"\s*:/i;
   return diff
     .split("\n")
     .filter((line) => {
       if (!/0x[0-9a-fA-F]{64}/.test(line)) return true;
-      // שורות שדות hash ציבוריים מוכרים — עוברות
-      if (/"(entryHash|root|prevRoot|headHash|digest|recomputedHead|evidenceHash|id)"\s*:/i.test(line)) return true;
-      if (/(headHash|recomputedHead|root|entryHash|digest)=/i.test(line)) return true;
+      // שורת שדה hash ציבורי מוכר — עוברת
+      if (KNOWN_HASH_FIELDS.test(line)) return true;
+      if (/(headHash|recomputedHead|root|entryHash|digest|prevHash)=/i.test(line)) return true;
       return false;
     })
     .join("\n");

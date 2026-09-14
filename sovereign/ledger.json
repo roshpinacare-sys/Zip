@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T14:49:34.879Z",
-  "chainCount": 9,
-  "headHash": "0x329e066d79e9b03c18ec74f9a1b9f1897b7eff86e3bc446bad4ee045967492b8",
+  "exportedAt": "2026-09-14T14:51:20.678Z",
+  "chainCount": 10,
+  "headHash": "0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -195,6 +195,21 @@
       "sig": "0xfc43009c9f74f2e8a07463cb050c997360af4da78d81ae7fa1d4c74bc233a9ed01aba6d6bdb0e3367b3e5accd68677e0e64b3d8fee47a01106f10805a50acadd1c",
       "signerAddr": "0xca7612bF3AE6f06A1857eA2B4F5a80F33c38E48a",
       "createdAt": "2026-09-14T14:46:38.016Z"
+    },
+    {
+      "id": "cmu1d24lk0001sq2gym7oct7y",
+      "seq": 10,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 9 רשומות, חתימות 9/9, head תואם. הרץ: ה-runner הראשי (סנדבוקס/מקומי).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=local-primary · gitHead=b52a944 · repo=roshpinacare-sys/weave-core · verify: valid=true checked=9 sigOk=9 sigFail=0 firstBreak=null · recomputedHead=0x329e066d79e9b03c18ec74f9a1b9f1897b7eff86e3bc446bad4ee045967492b8 · headHash=0x329e066d79e9b03c18ec74f9a1b9f1897b7eff86e3bc446bad4ee045967492b8 · at=2026-09-14T14:51:20.628Z",
+      "evidenceHash": "0x6fc36271939574b1e244ef44b75580dc81b02f4d7ce0d9fe0e6369cb787ac11d",
+      "status": "VERIFIED",
+      "prevHash": "0x329e066d79e9b03c18ec74f9a1b9f1897b7eff86e3bc446bad4ee045967492b8",
+      "entryHash": "0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
+      "sig": "0xc126d246e2141f2f98619754cbfd0bb773f0995be6f178bba24e1679c0bed15b48125ad4ccf56beee69f41695ae1ddf0ae4d537ab9c98a9184a7c56e12265f791c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-14T14:51:20.641Z"
     }
   ],
   "checkpoints": [
@@ -248,6 +263,23 @@
       "anchorTx": null,
       "calldata": "0xeecdf927acfbfb7814c09a8123bf1a2444eccc77fc671269de7ef99136f779de85514f5f",
       "createdAt": "2026-09-14T14:46:38.070Z"
+    },
+    {
+      "id": "cmu1d24m60002sq2gao31rsgk",
+      "index": 4,
+      "attFrom": 10,
+      "attTo": 10,
+      "leafCount": 1,
+      "root": "0xe729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
+      "prevRoot": "0xacfbfb7814c09a8123bf1a2444eccc77fc671269de7ef99136f779de85514f5f",
+      "entryHash": "0xe110aa0cff39edcb930a456a28f2b53ae94fb8b2c9ea757e1ffd44af162d390d",
+      "sig": "0xa9c625b85c5bcfa7a3ca39e2433ec33f4376c69602839f3af42f007fcc1627a8074a4a5290c5516e5d117405d3f25475a5954d042ff036b2db10cb0c4657b17e1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927e729bfd6e0d35473666d2f761702b74e6c672b044eb7f270c8f9ef70a4023a56",
+      "createdAt": "2026-09-14T14:51:20.670Z"
     }
   ],
   "networkKey": {
@@ -567,8 +599,8 @@
       "detail": "הריפו Zip הוסב ל-weave-core: הספר (sovereign/ledger.json) חי בגיט, הסודות ב-seal בלבד, הדחיפות עוברות שער-סודות. הסנדבוקס הוא סתם workspace — הריפו הוא האמת.",
       "gate": "פעימה מקומית מה-clone החי נדחפה ל-origin/main (ההוכחה: אימות הפעימה בספר + commit בגיט)",
       "gateType": "MEASUREMENT",
-      "state": "PLANNED",
-      "attSeq": null,
+      "state": "DONE",
+      "attSeq": 10,
       "sortOrder": 30
     },
     {
