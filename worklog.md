@@ -516,3 +516,25 @@ Stage Summary:
 - כלים: /api/weave/market + open/stake/settle · src/lib/weave/market.ts · טאב "שוק האמת". המכריע: כפתור ב-UI או POST — המדידה קובעת, לעולם לא הלקוח.
 - מצב סופי: 26 אימותים (24 VERIFIED + att 24/26 MARKET), 19 checkpoints, ספר שוק 20 אירועים 20/20 חתימות, 6 סוכנים (כולל weave-market-regulator).
 - נותר (העשרה): סוגי מטרות נוספים (גובה בלוק ZERO, עוגנים בקו) · הימורי-רצף · סליקה אוטומטית בסוף כל פעימה (כרגע ידנית/אירועית) · פיצול עמלות לקופת הרשת.
+
+---
+Task ID: 15
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "תמשיך" — בחינת תיקיות הניהול והתפעול שטרם נראו + ליטוש מה שניתן (zero funds). נמצאו שני שיפורים ושניהם מומשו והוכחו חיים.
+
+Work Log:
+- מלאי מלא (קריאה בלבד): sovereign/ (הספר+הקווים) · scripts/ · .github/workflows/ (3 קווי אוטומציה) · sovereign-net/ (staging+steem-ref+toolkit) · saos-verify/ — **הקרנל של SAOS-NET** ("המערכת שתחליף": DEX, נכסים עטופים, THE-DOOR 108, THE-HARVEST 111, THE-WALLETS 113).
+- אומת עצמאית שרשרת הצי: verify.cjs — snapshot self PASS · replay 38/38 hash+linkage · root 29778d14… תואם להצהרת הצומת · h=223,838. תשובה לשאלת המפעיל על כתובות החיילים: 11 חשבונות צי (headcorner, cashmachine, ynet, wic, wog, woq, lsa, macrame, siq, tov, haran) + **12 ארנקים רב-רשתיים** (evm/tron/sol/btc לכל סוכן) רשומים ע"י headcorner ומעוגנים ב-txid 9f593bdc… — אלה כתובות החיילים.
+- אומתה טענת המפעיל על שער ה-ETH: קו ה-ZERO (Z Chain 9369, גז 0x0) — פעיל ומוכח (att 21/22/23, עלות 0.000000); THE-DOOR (108) בקרנל הוא הדוקטרינה — "החינם הוא היתרון המוחלט".
+- **Task 15-a — סליקת שוק אוטומטית בכל פעימה**: weave-beat.ts §5.5 — resolveOpenMarkets בסוף כל פעימה (רק על ספר תקין — ספר שבוש לא מסלק); סליקות ⇒ אימותי MARKET ⇒ checkpoint מיידי; הדוח נושא market מעתה; הודעת ה-commit כוללת s/r. הוכח חי בפעימה אמיתית (--no-push): הפעימה יצרה cp#20 ⇒ המכריע מדד "checkpoint #20 exists" ⇒ m#2 הוכרע YES ⇒ att 28 ⇒ cp#21 (byDate 2026-09-15T12:00Z — cp#20 נוצר לפני המועד, כנות מלאה).
+- **Task 15-b — SAOS-NET שולב חי בקונסולה**: scripts/saosnet-status.cjs (runner ב-node נקי — הקרנל לא עובר transpile; פלט JSON: אימות replay + כלכלה + weave + דלתות + קציר + ארנקים) ⇒ /api/weave/saosnet (execFile + מטמון זיכרון 60 ש') ⇒ כרטיס "SAOS-NET — שרשרת הכלכלה של הצי" בטאב הריבונות (אחרי קו ה-ZERO): פסק-דין VERIFIED, stateRoot, h=223,838, סטטיסטיקה (חיילים/LP/נכסים/ארנקים/קציר 0.008 SAOS/דלתות), טבלת כלכלת החיילים וטבלת כתובות החיילים עם קישורי עוגן ל-steemscan. גילוי במדידה: הקציר חי (2 זרמים: pools+grid), הדלתות מוכנות בקרנל וטרם הופעלו ב-pack, lockedSaos=escrow חי אצל cashmachine.
+- lint: scripts/*.cjs נוסף ל-ignores (ה-runner קנוני CommonJS); bun run lint נקי.
+- E2E בדפדפן: הדף חי; לוח הבקרה מציג את סליקת m#2; טאב ריבונית — כרטיס SAOS-NET חי (VERIFIED · h=223,838 · טבלאות חיילים וארנקים מלאות); מובייל 390px: אפס גלישה (390=390), footer צמוד לתחתית; אפס שגיאות קונסולה. צילומים: sovereign-net/saosnet-card-{desktop,mobile}.png. בדיקה חזותית VLM: תקין, אין חפיפות/חיתוכים.
+- תיעוד: SOVEREIGNTY.md §10 עודכן (המכריע האוטומטי) + §11 חדש (דוקטרינת SAOS-NET); ECOSYSTEM-ROADMAP — צעד 6 נסגר (מיפוי+שילוב), שורת saos-verify בסיווג התיקיות עודכנה, מפת האוטומציה עודכנה.
+
+Stage Summary:
+- שתי הנחות המפעיל אומתו במדידה: (1) שער ETH פעיל — קו ה-ZERO, אין צורך לשלם ETH; (2) תיקיות הניהול והתפעול הכילו את הזהב: קרנל SAOS-NET המאומת + כתובות החיילים הרב-רשתיות.
+- השוק הפך אוטונומי לחלוטין: המכריע רץ בכל פעימה (הוכחה: m#2 ⇒ YES ⇒ att 28 ⇒ cp#21) — אין תלות בלחיצת כפתור.
+- SAOS-NET הפך מארכיון קפוא לרכיב מאומת-חי: replay מתמטי בכל טעינה; כל שינוי של בית ב-pack ייתפס (root mismatch ⇒ REFUTED).
+- מצב סופי: 28 אימותים (att 27 MEASUREMENT + att 28 MARKET), 21 checkpoints, cp#21 מכסה את הסליקה; m#1 (ANCHOR≥9) ו-m#3 (L2 בשבוע) פתוחים וייסגרו ע"י המכריע האוטומטי במועדם.
+- נותר (העשרה): הצלבת stateRoot של SAOS-NET כעלה בספר weave-core · חיבור THE-DOOR לקו ה-ZERO כשיפתח relayer · סוגי מטרות נוספים לשוק (גובה בלוק ZERO) · סריקת dup מתוזמנת מפוצלת בענן.

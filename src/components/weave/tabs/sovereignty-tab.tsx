@@ -10,7 +10,9 @@ import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeftRight,
   Cloud,
+  Coins,
   Database,
+  DoorOpen,
   FileCheck2,
   GitBranch,
   ExternalLink,
@@ -22,6 +24,8 @@ import {
   Server,
   ShieldCheck,
   Siren,
+  Sprout,
+  Wallet,
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -232,6 +236,68 @@ interface SyncReport {
   error?: string;
 }
 
+// ── SAOS-NET — השרשרת הכלכלית של הצי (משוקף מה-runner) ──
+
+interface SaosnetAccount {
+  name: string;
+  saos: number;
+  steem: number;
+  lp: number;
+  lockedSaos: number;
+  wrapped: string[];
+}
+
+interface SaosnetWalletRec {
+  agent: string;
+  digest: string;
+  evm: string | null;
+  tron: string | null;
+  sol: string | null;
+  btc: string | null;
+  hostTxid: string | null;
+  by: string;
+  at: string | null;
+}
+
+interface SaosnetDTO {
+  ok: boolean;
+  net: {
+    netVersion: string;
+    genesisHash: string | null;
+    height: number;
+    stateRoot: string;
+    lastTime: string | null;
+    issuer: string | null;
+    supply: number | null;
+    lastHeartbeat: string | null;
+    snapshotHeight: number;
+    blocksInPack: number;
+  };
+  verify: {
+    snapshotSelf: boolean;
+    replayed: number;
+    hashMatch: string;
+    linkage: string;
+    finalRoot: string;
+    nodeClaimRoot: string;
+    rootMatch: boolean;
+    heightMatch: boolean;
+    verdict: string;
+  };
+  economy: {
+    soldiers: number;
+    lpHolders: number;
+    lpSupply: number;
+    wrappedSymbols: string[];
+    accounts: SaosnetAccount[];
+  };
+  weave: { total: number; seals: number; witnesses: number };
+  doors: { issued: number; sent: number; open: number; note: string };
+  harvest: { pot: number; streams: Record<string, number>; count: number; released: number };
+  wallets: { total: number; agents: number; last: SaosnetWalletRec[] };
+  truthLabel: string;
+}
+
 const RELATION_META: Record<
   SovereigntyDTO["ledger"]["relation"],
   { label: string; tone: string; hint: string }
@@ -269,6 +335,8 @@ export function SovereigntyTab() {
   const [error, setError] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncReport, setSyncReport] = useState<SyncReport | null>(null);
+  const [saosnet, setSaosnet] = useState<SaosnetDTO | null>(null);
+  const [saosnetState, setSaosnetState] = useState<"loading" | "ready" | "error">("loading");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -288,6 +356,28 @@ export function SovereigntyTab() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // SAOS-NET — replay דטרמיניסטי בצד השרת (כבד יחסית; מטומנן 60 שניות)
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/weave/saosnet", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((json: { ok: boolean; saosnet?: SaosnetDTO }) => {
+        if (!alive) return;
+        if (json.ok && json.saosnet) {
+          setSaosnet(json.saosnet);
+          setSaosnetState("ready");
+        } else {
+          setSaosnetState("error");
+        }
+      })
+      .catch(() => {
+        if (alive) setSaosnetState("error");
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const runSync = useCallback(async () => {
     setSyncing(true);
@@ -1118,6 +1208,201 @@ export function SovereigntyTab() {
           </Card>
         </Section>
       )}
+
+      {/* ── SAOS-NET — שרשרת הכלכלה של הצי ("המערכת שתחליף") ── */}
+      <Section
+        title="SAOS-NET — שרשרת הכלכלה של הצי (המערכת שתחליף)"
+        icon={<Coins />}
+        description="קרנל דטרמיניסטי (saos-net/0): אותו ג׳נזיס + אותן טרנזקציות = אותו state-root בכל מכונה · DEX + נכסים עטופים + דלתות רשת (108) + קציר (111) + ארנקי-הצבא (113) · האימות כאן: replay מלא מה-snapshot"
+      >
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+        {saosnetState === "loading" && (
+          <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <RefreshCw className="h-4 w-4 animate-spin" />
+            מריץ replay דטרמיניסטי על ה-pack (snapshot ⇒ בלוקים ⇒ שורש)…
+          </div>
+        )}
+        {saosnetState === "error" && (
+          <p className="text-sm text-rose-600 dark:text-rose-400">
+            אימות SAOS-NET לא עלה כרגע — ה-runner ינסה שוב בטעינה הבאה. כנות: לא מוצג סטטוס בלי מדידה.
+          </p>
+        )}
+        {saosnetState === "ready" && saosnet && (
+          <>
+            <div className="flex flex-wrap items-center gap-3">
+              <StatusBadge
+                status={
+                  saosnet.verify.rootMatch && saosnet.verify.heightMatch && saosnet.verify.snapshotSelf
+                    ? "VERIFIED"
+                    : "REFUTED"
+                }
+              />
+              <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                {saosnet.net.netVersion} · h={saosnet.net.height.toLocaleString("en-US")}
+              </span>
+              <TruthLabel kind="REAL" />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <HashChip value={saosnet.net.stateRoot} label="stateRoot" />
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {saosnet.net.blocksInPack} בלוקים ב-pack · snapshot h={saosnet.net.snapshotHeight.toLocaleString("en-US")}
+              </span>
+            </div>
+
+            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-3">
+              <div className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                אימות replay עצמאי (מתמטי — רץ כרגע בשרת)
+              </div>
+              <p dir="auto" className="mt-1 font-mono text-[11px] leading-relaxed text-emerald-700/90 dark:text-emerald-400/90">
+                {saosnet.verify.verdict}
+              </p>
+              <p dir="ltr" className="mt-1 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+                snapshot self: {saosnet.verify.snapshotSelf ? "PASS" : "FAIL"} · replayed {saosnet.verify.replayed} blocks ·
+                hash {saosnet.verify.hashMatch} · linkage {saosnet.verify.linkage} · root {saosnet.verify.rootMatch ? "MATCH" : "MISMATCH"}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">
+              <div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">חיילי הצי</div>
+                <div className="font-mono">{saosnet.economy.soldiers}</div>
+              </div>
+              <div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">אחזקות LP</div>
+                <div className="font-mono" dir="ltr">{saosnet.economy.lpHolders} · {saosnet.economy.lpSupply}</div>
+              </div>
+              <div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">נכסים עטופים</div>
+                <div className="font-mono text-xs" dir="ltr">{saosnet.economy.wrappedSymbols.join(" · ") || "—"}</div>
+              </div>
+              <div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">ארנקי-הצבא (113)</div>
+                <div className="font-mono" dir="ltr">{saosnet.wallets.agents}/4-rails</div>
+              </div>
+              <div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">קציר (111)</div>
+                <div className="font-mono text-emerald-600 dark:text-emerald-400" dir="ltr">
+                  {saosnet.harvest.pot} SAOS
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">דלתות (108)</div>
+                <div className="font-mono" dir="ltr">{saosnet.doors.issued}↑ / {saosnet.doors.sent}✓</div>
+              </div>
+            </div>
+
+            {/* חיילי הצי — החשבונות והכלכלה החיה */}
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <Server className="h-4 w-4 text-zinc-400" />
+                כלכלת החיילים (מהמצב המשוחזר)
+              </div>
+              <div className={cn("max-h-64 overflow-y-auto", scrollBoxClass)}>
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-background">
+                    <TableRow>
+                      <TableHead>חייל</TableHead>
+                      <TableHead dir="ltr">SAOS</TableHead>
+                      <TableHead dir="ltr">STEEM</TableHead>
+                      <TableHead dir="ltr">LP</TableHead>
+                      <TableHead className="hidden sm:table-cell" dir="ltr">locked</TableHead>
+                      <TableHead className="hidden md:table-cell">נכסים עטופים</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {saosnet.economy.accounts.map((a) => (
+                      <TableRow key={a.name}>
+                        <TableCell className="font-mono text-xs">{a.name}</TableCell>
+                        <TableCell className="font-mono text-xs" dir="ltr">{a.saos}</TableCell>
+                        <TableCell className="font-mono text-xs" dir="ltr">{a.steem}</TableCell>
+                        <TableCell className="font-mono text-xs" dir="ltr">{a.lp}</TableCell>
+                        <TableCell className="hidden font-mono text-xs sm:table-cell" dir="ltr">
+                          {a.lockedSaos > 0 ? a.lockedSaos : "—"}
+                        </TableCell>
+                        <TableCell className="hidden font-mono text-[11px] md:table-cell" dir="ltr">
+                          {a.wrapped.join(" · ") || "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            {/* ארנקי-הצבא — כתובות החיילים בארבע רשתות */}
+            <div>
+              <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+                <Wallet className="h-4 w-4 text-zinc-400" />
+                כתובות החיילים — ארנקים רב-רשתיים מעוגנים (evm · tron · sol · btc)
+              </div>
+              <div className={cn("max-h-64 overflow-y-auto", scrollBoxClass)}>
+                <Table>
+                  <TableHeader className="sticky top-0 z-10 bg-background">
+                    <TableRow>
+                      <TableHead>סוכן</TableHead>
+                      <TableHead dir="ltr">EVM</TableHead>
+                      <TableHead dir="ltr">TRON</TableHead>
+                      <TableHead className="hidden lg:table-cell" dir="ltr">SOL</TableHead>
+                      <TableHead className="hidden xl:table-cell">עוגן המארח</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {saosnet.wallets.last.map((w) => (
+                      <TableRow key={w.agent + w.digest}>
+                        <TableCell className="font-mono text-xs">{w.agent}</TableCell>
+                        <TableCell className="font-mono text-[11px]" dir="ltr">
+                          {w.evm ? truncateMiddle(w.evm, 10, 6) : "—"}
+                        </TableCell>
+                        <TableCell className="font-mono text-[11px]" dir="ltr">
+                          {w.tron ? truncateMiddle(w.tron, 10, 6) : "—"}
+                        </TableCell>
+                        <TableCell className="hidden font-mono text-[11px] lg:table-cell" dir="ltr">
+                          {w.sol ? truncateMiddle(w.sol, 8, 4) : "—"}
+                        </TableCell>
+                        <TableCell className="hidden text-xs xl:table-cell">
+                          {w.hostTxid ? (
+                            <a
+                              href={`https://steemscan.com/transaction/${w.hostTxid}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              dir="ltr"
+                              className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-600 hover:underline dark:text-emerald-400"
+                            >
+                              {truncateMiddle(w.hostTxid, 10, 6)}
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+              <span className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-0.5 dark:border-zinc-700">
+                <DoorOpen className="h-3 w-3" /> THE-DOOR (108): {saosnet.doors.note}
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-0.5 dark:border-zinc-700">
+                <Sprout className="h-3 w-3" /> הקציר: {saosnet.harvest.count} ערכים מוכרים ·
+                שוחרר {saosnet.harvest.released}
+              </span>
+            </div>
+
+            <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+              {saosnet.truthLabel} · הראש: <span dir="ltr" className="font-mono">{saosnet.net.issuer ?? "—"}</span> ·
+              פעימה אחרונה: <span dir="auto" className="font-mono text-[11px]">{saosnet.net.lastHeartbeat ?? "—"}</span>
+            </p>
+          </>
+        )}
+          </CardContent>
+        </Card>
+      </Section>
 
       {/* ── שערי SOV ── */}
       <Section

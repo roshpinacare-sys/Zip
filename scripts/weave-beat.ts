@@ -22,7 +22,8 @@ import * as path from "path";
 import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
-import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, type BeatContext } from "@/lib/weave/beat";
+import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, type BeatContext } from "@/lib/weave/beat";
+import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -209,11 +210,43 @@ async function main(): Promise<void> {
     console.log(`[weave-beat] שערים שנסגרו: ${result.gatesClosed.map((g) => `${g.code}←att${g.attSeq}`).join(", ")}`);
   }
 
-  // 6. ייצוא הספר + דוח
+  // 5.5 שוק האמת — סליקה אוטומטית בסוף כל פעימה (Task 15-a):
+  //     השופט הוא המדידה של הרשת עצמה, ולכן המכריע רץ בכל פעימה —
+  //     הוכרע ⇒ SETTLE פרו-רטה · פג תוקף ⇒ REFUND כנה. כל סליקה
+  //     נכתבת כאימות MARKET חתום ומכוסה מיידי ב-checkpoint —
+  //     אותו checkpoint שהעוגנים (:20/:30) מעידים עליו ב-$0.
+  //     ספר שבור לא מורחב — לעולם לא מסלקים על ספר שקרי.
+  let marketSettlement: SettlementResult | null = null;
+  let marketCheckpoint: { index: number; root: string } | null = null;
+  if (result.verdict === "LEDGER-VALID") {
+    marketSettlement = await resolveOpenMarkets();
+    if (marketSettlement.attSeqs.length > 0) {
+      const cp = await createCheckpointNow();
+      if (cp) marketCheckpoint = { index: cp.index, root: cp.root };
+    }
+    if (marketSettlement.settled.length > 0 || marketSettlement.refunded.length > 0) {
+      console.log(
+        `[weave-beat] שוק האמת נסלק: ${marketSettlement.settled.length} הוכרעו · ${marketSettlement.refunded.length} הוחזרו · אימותים att${marketSettlement.attSeqs.join(",att")}${marketCheckpoint ? ` · cp#${marketCheckpoint.index}` : ""}`
+      );
+    }
+  }
+
+  // 6. ייצוא הספר + דוח (הסליקות של 5.5 כלולות — הספר כולל את השוק)
   const snap = await exportLedger();
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(snap, null, 2) + "\n");
-  fs.writeFileSync(REPORT_PATH, JSON.stringify(result, null, 2) + "\n");
+  const report = marketSettlement
+    ? {
+        ...result,
+        market: {
+          settled: marketSettlement.settled,
+          refunded: marketSettlement.refunded,
+          attSeqs: marketSettlement.attSeqs,
+          checkpoint: marketCheckpoint,
+        },
+      }
+    : result;
+  fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
   console.log(
     `[weave-beat] ledger.json ייוצא: ${snap.chainCount} אימותים · head=${snap.headHash.slice(0, 18)}…`
   );
@@ -247,7 +280,10 @@ async function main(): Promise<void> {
   }
 
   const nFiles = (gitOrNull("git diff --cached --name-only") ?? "").split("\n").filter(Boolean).length;
-  const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig`;
+  const marketNote = marketSettlement
+    ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
+    : "";
+  const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig${marketNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
   const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
   console.log(`[weave-beat] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);

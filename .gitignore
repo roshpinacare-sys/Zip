@@ -17,7 +17,6 @@ db/*.sqlite*
 
 # ── סביבת עבודה מקומית (סנדבוקס/ניתוח — לא חלק מהמוצר) ──
 sovereign-net/
-saos-verify/
 agent-ctx/
 tool-results/
 .zscripts/
@@ -26,6 +25,11 @@ tool-results/
 local-*
 prompt
 download/
+
+# ── SAOS-NET verify-pack — במשמרת גיט מ-2026-09-14 (Task 15-b) ──
+# הקרנל "המערכת שתחליף" + ה-node state: נסרק נקי מסודות (WIF/PAT/PEM/0x-64hex —
+# אפס), ההיישים ציבוריים וללא קידומת 0x. הקונסולה תלויה בו (כרטיס SAOS-NET
+# מריץ replay מתמטי בכל טעינה) — רכיב שה-UI תלוי בו חייב לשרוד איפוסים.
 
 # ── פיגומי סנדבוקס שאינם חלק מהרשת ──
 skills/

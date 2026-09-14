@@ -44,7 +44,7 @@
 | `sovereign-net/toolkit/` | 5 zips + פריצה (4245 קבצים) | ה-zips ב-Project-files; **השלמות ניתנת לאימות מול שורש המרקל בספר** | ANCHORED (היום) |
 | `sovereign-net/staging/` | ייצוא הבימה לדחיפה | הריפו Zip עצמו | DERIVED |
 | `sovereign-net/steem-ref/` | דפוסי הצי (cloud-heart, gitkeeper, vault) | הריפו steem | DERIVED |
-| `saos-verify/` | שירות אימות חלוץ (core/genesis/node) | נגזר מריפו פלטפורמה — מיפוי מדויק בבדיקה | DERIVED (לאימות) |
+| `saos-verify/` | שירות אימות חלוץ (core/genesis/node) — **משולב חי בקונסולה מ-2026-09-14**: replay דטרמיניסטי בכל טעינה (scripts/saosnet-status.cjs ⇒ /api/weave/saosnet ⇒ כרטיס SAOS-NET) | נגזר מריפו פלטפורמה; האימות מתמטי וחי | DERIVED + REAL (replay) |
 | `download/` `upload/` `tool-results/` `agent-ctx/` | מעבר: הורדות, PAT (אף פעם לא בגיט!), דוחות כלים | — | TRANSIENT |
 | `examples/` `skills/` `tests/` | דמו websocket, ספריית skills, סקריפטי סביבה | — | REFERENCE |
 | `mini-services/` | ריק — שמור לשירותים עתידיים | — | RESERVED |
@@ -60,7 +60,7 @@
 | 3 | **G1 — עיגון EVM ממומן**: מימון כתובת החותם (testnet) → הצבת מפתח ב-Secrets → פריסת WeaveAnchorRegistry דרך workflow_dispatch → txid חוזר לספר | **מפעיל מממן** → אני מפרש | 0.05 testnet-ETH ב-`0xaB07…7B92` | ממתין למימון |
 | 4 | **G5 — קונסולה מחוץ לסנדבוקס**: הריפו הציבורי `Console` נפתח ע"י המפעיל; אני פרסתי אתר + משואה חיה חסרת-מפתחות (render.mjs מ-Steem RPC ציבורי, GITHUB_TOKEN של Console בלבד) | מפעיל: **הפעלת Pages חד-פעמית** (Settings→Pages→main) | הוכח בחיים: עוגן 19:16Z נקרא-חזרה ופורסם ב-19:17Z | **פרוס** — נותר לחיצה אחת; אחריה השער נסגר אוטומטית באימות CONSOLE |
 | 5 | מעבר איחוד שני ב-steem (~80 עותקים) — בחלון שקט של הלב | אני | תיאום עם קצב 6ש' של הצי | מתוכנן — עדיפות נמוכה |
-| 6 | מיפוי מקור saos-verify + תיוג DERIVED/ייחודי | אני | — | קטן |
+| 6 | ~~מיפוי מקור saos-verify + תיוג DERIVED/ייחודי~~ **נסגר 2026-09-14 (Task 15-b)** — לא רק מופה: ה-pack שולב חי בקונסולה — `scripts/saosnet-status.cjs` מריץ replay דטרמיניסטי מלא (snapshot ⇒ 38 בלוקים ⇒ שורש 29778d14… תואם) ומזין `/api/weave/saosnet`; כרטיס "SAOS-NET" בטאב הריבונות מציג את הכלכלה (11 חיילים, LP, נכסים עטופים), את כתובות החיילים (12 ארנקים רב-רשתיים evm/tron/sol/btc מעוגנים), את הקציר (0.008 SAOS מ-2 זרמים) ואת הדלתות (108) | אני | — | **נסגר** |
 | 7 | ביקורת תוכן Saosmartwallet (54MB) | אני | — | עדיפות נמוכה |
 | 8 | סריקת אקוסיסטם מתוזמנת בענן (dup<0.2 לתמיד) | אני | מגבלה: GITHUB_TOKEN = 1000 req/שעה — הסריקה דורשת ~1550; פתרון: סריקה מחולקת לשני ריצות | הצעה להמשך |
 
@@ -72,7 +72,7 @@
 weave-heart     (Zip)      — כל 6 שעות ב-:00: ספר טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER (פעימה+checkpoint+דחיפה)
 weave-anchor    (Zip)      — כל 6 שעות ב-:20: שורש ה-checkpoint ⇒ custom_json ב-Steem+Hive מ-@cashmachine; בסוף הריצה — בדיקת G5 (אימות CONSOLE אוטומטי כשה-Pages חי)
 weave-anchor-zero (Zip)    — כל 6 שעות ב-:30: שורש ה-checkpoint ⇒ טרנזקציית EVM אמיתית על Z Chain 9369 (Zero Network — רשת EVM ראשית בגז-אפס מדוד 0x0; סלקטור 0xa9059cbb + מטען קנוני, ממוען-עצמית ל-EOA; החותם: מפתח הרשת מה-seal — אפס סודות חדשים, עלות 0.000000)
-שוק האמת       (Zip/API)  — ספר אירועים hash-chained חתום: שווקים על טענות מדידות (PlanStage/Checkpoint/ANCHOR-count/סטטוס אימות); השופט = המדידה של הרשת עצמה; ההון = נקודות אמת (אפס כסף); הסליקה ⇒ אימות MARKET ⇒ checkpoint ⇒ עיגון ב-$0. המכריע רץ ידנית (כפתור ב-UI) או מכל API; מחזורי הלילה מסלקים את שווקי ה-anchor-count/checkpoint
+שוק האמת       (Zip/API)  — ספר אירועים hash-chained חתום: שווקים על טענות מדידות (PlanStage/Checkpoint/ANCHOR-count/סטטוס אימות); השופט = המדידה של הרשת עצמה; ההון = נקודות אמת (אפס כסף); הסליקה ⇒ אימות MARKET ⇒ checkpoint ⇒ עיגון ב-$0. **המכריע רץ אוטומטית בסוף כל פעימה** (Task 15-a, 2026-09-14 — הוכח חי: m#2 הוכרע YES בפעימה, att 28, cp#21) וגם ידנית (כפתור ב-UI) או מכל API
 console-publish (Console)  — כל 6 שעות ב-:40: render.mjs קורא את קו העוגנים מ-Steem RPC ציבורי (חסר-מפתח) ⇒ status.json ⇒ commit (המשואה הציבורית) ⇒ Pages
 cloud-heart     (steem)    — לב הצי: TAKEOVER פעיל מאז מות הסנדבוקס שלו (2026-09-12) — רץ בכוחות עצמו
 ה-runner הזה (סנדבוקס)    — פעימה מלאה בעת עבודה; מוות שלו לא מפיל דבר (הוכח ב-att 13, SOV-3)
