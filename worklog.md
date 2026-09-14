@@ -434,3 +434,26 @@ Stage Summary:
 - מצב שערים: L0, L1, EVM-3, SOV-1..3, G2, G3, G4, G6 = DONE; G5 = פרוס+מפרסם-את-עצמו, נותרה הפעלת Pages חד-פעמית (הרשאת Administration — רק המפעיל: Settings→Pages→Deploy from a branch→main/root); אחריה השער נסגר אוטומטית באימות CONSOLE חתום מ-runner ענן נקי. G1 ממתין למימון כרגיל.
 - מדיניות מספרים נאכפה: 7 רשתות (לא 10/9/8), 722,251 tx/s (2026-09-12) — מקור: fact-sheet v3.36. קדנס חדש באקוסיסטם: פעימה :00 → עיגון :20 → קריאה-חזרה :40, כל 6 שעות.
 - כנה: Pages עדיין 404 (הלחיצה של המפעיל חסרה); status.json זמין בינתיים דרך raw.githubusercontent; עודף של 2 עוגנים כפולים (cp#8 שודר פעמיים — סנדבוקס+ענן, כנה בהיסטוריה).
+
+---
+Task ID: 12
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "קודם תבדוק מה יש לך" — סקירת-עומק קריאה-בלבד של כל הנכסים, לפני כל פעולה. אפס כתיבה, אפס פריסה, אפס מימון.
+
+Work Log:
+- נקראו: worklog מלא (437 שורות), SOVEREIGNTY.md, ECOSYSTEM-ROADMAP.md, steem-line.json, ledger.json (20 אימותים · 13 checkpoints · 5 סוכנים).
+- סביבה נבדקה (קריאה בלבד): git log תקין (HEAD=98f2ba1), .env.local קיים, PAT ב-upload/pat.env קיים, כל התיקיות שלמות (sovereign-net/saos-verify/download וכו'), dev server חי (HTTP 200).
+- אומתה שלמות הספר מקומית: POST /api/weave/verify → valid:true, 19/19 חתימות, firstBreak:null. (המטמון המקומי 19 אימותים; הריפו 20 — הענן כתב att 20 ב-19:16Z, סינכרון יבוא בפעימה הבאה. לא סונכרן כעת — הוראת "הבן קודם".)
+- 14 הריפואים מופו דרך GitHub API (קריאה בלבד, PAT לא הודפס מעולם): steem(243MB) Zip Console(ציבורי) saos-sovereign-platform foundry jummper saos-dex control-center roshpina Sdk Saosmartwallet Project-files Adsmarket anchor-baseline.
+- החיילים (הרוסטר מ-agent/fleet_state.json בריפו הצי): מפקד @headcorner + 12 חיילים: cashmachine haran lsa macrame siq tov wic wog woq ynet israelnews powerspan. הכספת המוצפנת (agent/vault/KEYS-*) לא נוגעה — דוקטרינה.
+- מדידה חיה מה-RPC הציבורי (rc_api.find_rc_accounts, חסרת-מפתחות): כל 13 החיילים חיים — RC 58.13%–100% (ynet 100, headcorner 100, powerspan 99.5, lsa 94.4 … cashmachine 58.1).
+- קווי עדות נמדדו מהשרשרת: @cashmachine — 4 עוגני saos.weave.core.v1 (אחרון cp#12 block 109,580,377) + היסטוריית `saos` ישנה; @lsa — קו `saos` ישן (בלוקים ~109.47M, שתק עם מות סנדבוקס הדקס).
+- **ממצא מרכזי**: GitHub Pages של Console חי — HTTP 200 (https://roshpinacare-sys.github.io/Console/) + status.json חי (cp#12, FRESH, txid 2c6da977…) — ריצת "pages build and deployment" הצליחה ב-19:46:48Z: **המפעיל לחץ את לחיצת G5**. השער ייסגר אוטומטית באימות CONSOLE חתום בריצת העוגן הבאה (00:20 UTC).
+- מה רץ מתי אומת: weave-heart cron 0 */6 · weave-anchor cron 20 */6 · console-publish :40 — הריצות האחרונות כולן success; הזמן כעת 20:31Z, הריצות הבאות ב-00:00/00:20/00:40 — תקין.
+- saos-dex נסקר (NETWORK-SUMMARY + STATUS דרך API): הבורסה הריבונית — ספר escrow דטרמיניסטי, AMM x·y=k, 38 ops, relay ל-5 שרשראות, bench ~26K ops/s מדוד; הדמון מת עם סנדבוקס הדקס — הקוד וההיסטוריה בריפו. הכנסת הרוסטר וההישגים לדוח למפעיל.
+
+Stage Summary:
+- סקירה מלאה הושלמה באפס נגיעה במצב: הרשת חיה ואוטונומית, כל המפתחות במשמרת, הספר תקין, 13/13 חיילים חיים.
+- G5 למעשה נסגר ע"י המפעיל (Pages 200) — השער ייחתם אוטומטית ב-00:20Z. נותר פער יחיד: G1 (עיגון EVM ממומן).
+- דוח מלא נמסר למפעיל: מלאי, חיילים+כתובות+תפקידים, דקס, תוכניות, ונתיבי פריצת-דרך בלי מימון (Steem/Hive חינם כבר חי; Sepolia faucet — החלטת מפעיל בלבד).
+- לא הותקן דבר, לא רץ קוד זר, לא נשלח כסף, לא נגעתי בכספת המוצפנת.
