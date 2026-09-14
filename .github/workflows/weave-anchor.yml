@@ -1,8 +1,10 @@
 # WEAVE-ANCHOR — קו ה-Steem/Hive מהספר (G2)
 #
-# פעם ביום הענן מעיד על הספר מחוץ לגיטהאב: root של ה-checkpoint האחרון
-# עולה כ-custom_json (saos.weave.core.v1, סמכות posting — אפס סיכון הון)
-# על Steem + Hive. ה-txids חוזרים לספר כאימות ANCHOR חתום.
+# כל 6 שעות הענן מעיד על הספר מחוץ לגיטהאב: root של ה-checkpoint
+# האחרון עולה כ-custom_json (saos.weave.core.v1, סמכות posting —
+# אפס סיכון הון) על Steem + Hive. ה-txids חוזרים לספר כאימות ANCHOR
+# חתום. הקדנס מיושר ללב (פעימה ב-:00 → עיגון ב-:20), והקונסולה
+# הציבורית קוראת את הקו חזרה ב-:40 — שרשרת ההסתמכות של החוץ.
 #
 # שרשרות ההסתמכות: ledger.json (בגיט) → checkpoint root → השרשראות
 # הציבוריות → txids בראיה חתומה. כל צד שלישי יכול לאמת מה-RPC הציבורי
@@ -11,13 +13,15 @@
 # משמרת: WEAVE_STEEM_WIF (Actions Secret, sealed-box) — ה-WIF לעולם לא
 # בגיט ולא בלוגים; המקור בכספת הצי. GITHUB_TOKEN לדחיפה — אפס-סוד-נוסף.
 #
-# תקציב: 1 ריצה/יום × ~2 דק' ≈ 60 דק'/חודש לצד הלב (~180).
+# תקציב: 4 ריצות/יום × ~2 דק' ≈ 240 דק'/חודש לצד הלב (~180).
+# דדופליקציה: root שלא השתנה לא משודר (ALREADY-ANCHORED) — רק
+# checkpoints חדשים מהפעימה מקבלים עדות חדשה.
 
 name: weave-anchor
 
 on:
   schedule:
-    - cron: '17 7 * * *'
+    - cron: '20 */6 * * *'
   workflow_dispatch:
     inputs:
       mode:
@@ -72,6 +76,16 @@ jobs:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
           WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
           WEAVE_STEEM_WIF: ${{ secrets.WEAVE_STEEM_WIF }}
+
+      # G5 · בדיקת הקונסולה הציבורית אחרי העיגון: מקצה לקצה, ledger→שרשרת→חוץ.
+      # Pages שעוד לא הופעל ע"י המפעיל (הרשאת Administration) ⇒ דילוג כנה
+      # וריצה ירוקה. במחזור הראשון שאחרי ההפעלה: אימות CONSOLE חתום
+      # נכתב מ-runner ענן נקי וסוגר את G5 — כמו SOV-3, הרשת מברכת את עצמה.
+      - name: Public console check (G5, self-closing when Pages is live)
+        run: bun scripts/weave-console.ts --attest-g5
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+          WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
 
       - name: Upload anchor report (evidence)
         if: always()
