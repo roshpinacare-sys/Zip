@@ -75,6 +75,7 @@ interface SovereigntyDTO {
   seal: {
     exists: boolean;
     at?: string | null;
+    rotatedAt?: string | null;
     kdf?: string | null;
     enc?: string | null;
     cloudAddress?: string | null;
@@ -471,7 +472,7 @@ export function SovereigntyTab() {
       <Section
         title="משמורת הזהויות — ה-seal"
         icon={<Lock />}
-        description="מפתחות נוסעים רק בתוך מעטפת מוצפנת; ריפו פרטי (דוקטרינת הצי)"
+        description="מפתחות במעטפת מוצפנת; הסיסמה במשמרת מפוצלת — Secrets (ענן) + .env.local (מקומי) + כספת המפעיל"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card>
@@ -479,7 +480,7 @@ export function SovereigntyTab() {
               <CardTitle className="flex items-center gap-2 text-base">
                 <Lock className="h-4 w-4" />
                 sovereign/weave-seal.enc
-                <TruthLabel kind="LOCAL" />
+                <TruthLabel kind="REAL" />
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2 text-sm">
@@ -502,6 +503,9 @@ export function SovereigntyTab() {
                   <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                     {data.seal.custody}
                     {data.seal.at ? ` · נחתם ${new Date(data.seal.at).toLocaleString("he-IL")}` : ""}
+                    {data.seal.rotatedAt
+                      ? ` · סובב ${new Date(data.seal.rotatedAt).toLocaleString("he-IL")}`
+                      : ""}
                   </p>
                 </>
               ) : (

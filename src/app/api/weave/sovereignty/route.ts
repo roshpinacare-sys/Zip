@@ -191,11 +191,14 @@ export async function GET() {
           ? {
               exists: true,
               at: (sealMeta.at as string) ?? null,
+              rotatedAt: (sealMeta.rotatedAt as string) ?? null,
               kdf: (sealMeta.kdf as string) ?? null,
               enc: (sealMeta.enc as string) ?? null,
               cloudAddress: (sealMeta.cloudAddress as string) ?? null,
               networkAddress: (sealMeta.networkAddress as string) ?? null,
-              custody: "LOCAL — ריפו פרטי (דוקטרינת הצי); בייצור: Secrets",
+              custody: sealMeta.passphrase
+                ? "LOCAL-LEGACY — הסיסמה עדיין ב-meta בגיט; סבב משמרת: bun scripts/weave-seal.ts --rotate-secret"
+                : "REAL — GitHub Actions Secret (הענן) + .env.local (ה-runner הראשי) + כספת המפעיל; הסיסמה לא בגיט",
             }
           : { exists: false },
         cloudAgent: cloudAgent

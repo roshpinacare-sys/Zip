@@ -115,6 +115,13 @@ export function PlanTab() {
         description: "עיגון בשרשרת אמיתית והגנות replay",
         stages: all.filter((s) => s.code.startsWith("EVM")),
       },
+      {
+        key: "SOV",
+        title: "ריבונות SOV",
+        description:
+          "סולם הריבונות — בית בגיט, לב-ענן, איחול-עצמי; נסגרים בפעימות חתומות",
+        stages: all.filter((s) => s.code.startsWith("SOV")),
+      },
     ];
   }, [stages.data]);
 
