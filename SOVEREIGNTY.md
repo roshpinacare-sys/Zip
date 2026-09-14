@@ -39,13 +39,13 @@
 | # | הפער | למה חסר | איך נסגר (הדרך על גבי הרשת שלנו) |
 |---|---|---|---|
 | G1 | **עיגון on-chain בפועל** (EVM-1/EVM-2) | חותם ממומן + RPC; עד עכשיו LOCAL בלבד | deploy של WeaveAnchorRegistry ב-testnet דרך workflow_dispatch עם מפתח ב-Secrets; העלאת txid חזרה לספר (הכל דרך Actions — zero sandbox) |
-| G2 | **קו ה-Steem/Hive לא מחובר לספר הזה** | הצי (steem repo) מעיד on-chain; weave-core עדיין לא כותב לשם | workflow נוסף שמשגר את root ה-checkpoint האחרון כ-custom_json דרך fleet-keys של הצי (seal) — אותו דפוס שהוכח ב-Task 79 |
+| G2 | ~~קו ה-Steem/Hive לא מחובר לספר הזה~~ **נסגר 2026-09-14 16:57Z** | — | נסגר: `weave-anchor` — root של ה-checkpoint האחרון עולה כ-custom_json (`saos.weave.core.v1`, סמכות posting — "אפס סיכון הון") מ-@cashmachine (מפתח-צי חי, נמדד LIVE-MATCH בשתי השרשראות) על Steem+Hive; ה-txids חוזרים לספר כאימות ANCHOR חתום (att 15), וה-checkpoint הבא מכסה אותו — סולם הוכחות מתחזק בכל עיגון. ההוכחה: 2/2 שרשראות (Steem txid 6db515b5… · Hive txid 70e41254…), אומת מה-RPC הציבורי משני צמתים |
 | G3 | ~~משמורת מפתחות בייצור~~ **נסגר 2026-09-14 16:10Z** | — | נסגר: סבב משמרת (`--rotate-secret`) — הסיסמה יצאה מהגיט; הסוד `WEAVE_SEAL_PASSPHRASE` הוצפן sealed-box והועלה ל-Actions Secrets; .env.local ל-runner המקומי. ההוכחה: פעימת ענן פתחה את ה-seal כשהמקור היחיד האפשרי הוא הסוד (att 13: sealCustody=github-secret) |
 | G4 | ~~SOV-3 איחול-עצמי~~ **נסגר 2026-09-14 16:10Z** | — | נסגר: אימות BUILD (att 13) נכתב ב-runner ענן נקי מחוץ לסנדבוקס — checkout→install→prisma→ייבוא 12→פתיחת seal מהסוד→פעימה→דחיפה; השער נסגר עליו (SOV-3←att13) |
 | G5 | **הסנדבוקס עדיין ה-runner הראשי של ה-UI** | הקונסולה רצה על dev-server מקומי | Pages/ Actions-static לקריאה בלבד + ה-API ל-Actions service; או self-host ברשות המפעיל |
 | G6 | **שכפול האקוסיסטם (R1)** | ~20 קבצי סטטוס משוכפלים ב-9 ריפוים | איחוד לפי התוכנית — רק אחרי מדידת שכפול חוזרת (dup<0.2) |
 
-**התשובה המזוקקת ל"מה חסר":** שישה פערים בלבד, וכולם נסגרים באותה שיטה —
+**התשובה המזוקקת ל"מה חסר":** נותרו שלושה פערים פתוחים (G1 עיגון ממומן · G5 UI חוץ-סנדבוקס — ריפו נפרד בהוראת המפעיל · G6 איחוד שכפול), וכולם נסגרים באותה שיטה שכבר הוכחה שלוש פעמים —
 **עוד workflow + עוד שורה חתומה בספר.** שום פער לא דורש תשתית חוץ-רשת.
 
 ---
@@ -119,4 +119,39 @@ GitHub Actions Secret: WEAVE_SEAL_PASSPHRASE   ← משמרת הייצור (הע
 
 ---
 
-*נכתב ע"י המהנדס הראשי של THE WEAVE · 2026-09-14 · כל טענה ניתנת לבדיקה חוזרת מה-clone הזה.*
+## 7. דוקטרינת קו ה-Steem/Hive (G2 — הוכח 2026-09-14 16:57Z)
+
+```
+זהות החותם:    @cashmachine (חשבון-צי) · סמכות POSTING בלבד — "אפס סיכון הון"
+               (STEEM_KEYS_PLAYBOOK §2.1: custom_json בסמכות posting = כל ה-L2;
+                הרמה שמעולם לא זזה כסף — דליפה = ספאם, לא גניבה)
+משמרת המפתח:   WEAVE_STEEM_WIF — Actions Secret (הענן) + .env.local (ה-runner
+               הראשי); המקור — כספת הצי (KEYS-BACKUP, סיסמה ב-recovery-meta);
+               ה-WIF לעולם לא בגיט ולא בלוגים; שער-הסודות חוסם דחיפה אם נדלף.
+הפרוטוקול:     custom_json · id=saos.weave.core.v1 · action=checkpoint
+               payload: {protocol, at, net, repo, checkpoint, root, attFrom..attTo,
+                         attestations, headHash, commit} — הכל ציבורי וניתן לחישוב-מחדש.
+הקצב:          יומי (weave-anchor.yml, 07:17Z) + workflow_dispatch.
+               Steem ראשי (חינם) · Hive מאחורי שער RC (דילוג-כנה, לא כשל) ·
+               אישור txids מההיסטוריה — "ההיסטוריה השופטת היחידה".
+סולם-ההוכחות:  כל עיגון כותב אימות ANCHOR חתום (EIP-191, מפתח הענן) עם ה-txids
+               בראיה → checkpoint חדש מכסה את האימות → העוגן הבא מעיד על
+               checkpoint שכולל את ראיית קודמו — השרשרת מתחזקת את עצמה.
+זרים:          כל אחד מאמת מה-RPC הציבורי (בלי גיטהאב ובלי לסמוך עלינו):
+               get_account_history של החשבון → סנן id=saos.weave.core.v1 →
+               הצלבת root מול ה-checkpoint ב-ledger.json. שקיפות מלאה.
+```
+
+- **מדידת הבחירה** (2026-09-14): 9 חיילי-צי נמדדו חיים בשתי השרשראות (LIVE-MATCH
+  למפתח posting) — @cashmachine נבחר: ה-RC הזמין הגבוה ביותר (26.4%) והיסטוריה שקטה.
+  הראש (@headcorner): Hive חי, Steem מסובב — חייל מלא-שתי-שרשראות עדיף.
+- **הקשר לאקוסיסטם**: קווים נפרדים לנכסים נפרדים — הצי (steem) העיד מ-@headcorner
+  עד 2026-09-12; saos-dex מעיד מ-@lsa (saos-dex.anchor.v1); weave-core מעיד מ-@cashmachine
+  (saos.weave.core.v1). שלושה קולות, שלושה חשבונות, שלושה מרחבי-שם — אפס התנגשות.
+- **מדוע זה חשוב עכשיו**: מות הסנדבוקס של הצי (2026-09-12) השתיק את קו העדות שלו —
+  המפתחות לא בריפו שלו. מום זה לא ישוחזר כאן: משמרת ה-WIF שלנו מפוצלת כמו ה-seal
+  (ענן + .env.local + כספת הצי כמקור) — הענן יכול לשדר לנצח גם אם הסנדבוקס ימות.
+
+---
+
+*נכתב ע"י המהנדס הראשי של THE WEAVE · 2026-09-14 (עודכן — G2 נסגר) · כל טענה ניתנת לבדיקה חוזרת מה-clone הזה ומה-RPC הציבורי.*

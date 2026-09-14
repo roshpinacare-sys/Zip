@@ -25,7 +25,7 @@ import * as path from "path";
 import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
-import { verifyLedger, ensureCloudAgent, createCheckpointNow } from "@/lib/weave/beat";
+import { verifyLedger, ensureCloudAgent, ensureNetworkKeyFromSeal, createCheckpointNow } from "@/lib/weave/beat";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { sealOpen } from "./weave-seal";
 import {
@@ -187,6 +187,10 @@ async function main(): Promise<void> {
   const seal = sealOpen();
   const cloudAgent = await ensureCloudAgent(seal.cloudKeyHex);
   console.log(`[weave-anchor] seal פתוח · cloud=${seal.cloudAddress} (חותם העדות)`);
+  // השלמת מפתח הרשת מה-seal — אותו לקח של run #3 של הלב: ייבוא הספר משאיר
+  // את השורה ללא devKey, וה-checkpoint שהעוגן יוצר ייכשל בלי זה
+  await ensureNetworkKeyFromSeal(seal.networkKeyHex);
+  console.log(`[weave-anchor] מפתח רשת הושלם מה-seal · ${seal.networkAddress}`);
 
   // 4. הספר חייב להיות תקין לפני כל עדות
   const verify = await verifyLedger();
