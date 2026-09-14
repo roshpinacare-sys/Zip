@@ -22,6 +22,7 @@ import {
   Server,
   ShieldCheck,
   Siren,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -120,6 +121,53 @@ interface SovereigntyDTO {
       evidence: string;
       createdAt: string;
     }>;
+  };
+  zeroLine: {
+    exists: boolean;
+    rail?: string;
+    chainId?: number;
+    account?: string | null;
+    zeroGasProtocol?: string;
+    anchorsTotal?: number;
+    workflowArmed?: boolean;
+    schedule?: string | null;
+    custody?: string;
+    anchorAttestationsTotal?: number;
+    last?: {
+      checkpoint: number | null;
+      root: string | null;
+      at: string | null;
+      txid: string | null;
+      block: number | null;
+      gasUsed: number | null;
+      effectiveGasPrice: string | null;
+      costEth: string | null;
+      confirmed: boolean;
+      attSeq: number | null;
+      runner: string | null;
+      explorer: string | null;
+    } | null;
+    live?: {
+      readiness: {
+        chainId: number | null;
+        blockNumber: number | null;
+        gasPriceGwei: number | null;
+        zeroGasConfirmed: boolean;
+        balanceEth: string | null;
+        nonce: number | null;
+        verdict: string;
+      } | null;
+      readback: {
+        found: boolean;
+        status: number | null;
+        block: number | null;
+        from: string | null;
+        to: string | null;
+        gasUsed: number | null;
+        effectiveGasPrice: string | null;
+        verdict: string;
+      } | null;
+    } | null;
   };
   anchors: {
     derived: boolean;
@@ -916,6 +964,155 @@ export function SovereigntyTab() {
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 {data.steemLine?.custody}
                 {" · העדות חיה לנצח מול ה-RPC הציבורי — בלי לסמוך עלינו ועל גיטהאב כלל."}
+              </p>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
+
+      {/* ── קו ה-ZERO — מסילת ה-EVM בגז-אפס (G1) ── */}
+      {data.zeroLine?.exists && (
+        <Section
+          title="קו ה-ZERO — מסילת EVM בגז-אפס (G1 · Z Chain 9369)"
+          icon={<Zap />}
+          description="root של ה-checkpoint עולה כטרנזקציית EVM אמיתית על רשת EVM ראשית ציבורית שבה הגז מדוד 0x0 · העלות הכוללת: 0.000000"
+        >
+          <Card>
+            <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <StatusBadge
+                  status={
+                    data.zeroLine?.last?.confirmed && data.zeroLine?.live?.readback?.found
+                      ? "VERIFIED"
+                      : data.zeroLine?.last
+                        ? "UNMEASURED"
+                        : "PENDING"
+                  }
+                />
+                <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                  {data.zeroLine?.rail ?? "zero-9369"} · chainId {data.zeroLine?.chainId ?? 9369}
+                </span>
+                {data.zeroLine?.live?.readiness?.zeroGasConfirmed && (
+                  <span
+                    dir="ltr"
+                    className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-700 dark:text-emerald-400"
+                  >
+                    eth_gasPrice = 0x0 (live)
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                  {data.zeroLine?.account ?? "—"}
+                </span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  מפתח הרשת מה-seal · מאזן 0 בכוונה
+                </span>
+              </div>
+              {data.zeroLine?.last ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <HashChip value={data.zeroLine.last.root ?? "—"} label={`cp#${data.zeroLine.last.checkpoint ?? "?"}`} />
+                    {data.zeroLine.last.attSeq != null && (
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        אימות ANCHOR seq {data.zeroLine.last.attSeq}
+                      </span>
+                    )}
+                    {data.zeroLine.last.runner && (
+                      <span
+                        dir="ltr"
+                        className="rounded-md border border-zinc-200 px-2 py-0.5 font-mono text-[10px] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
+                      >
+                        {data.zeroLine.last.runner}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {data.zeroLine.last.txid && (
+                      <a
+                        href={data.zeroLine.last.explorer ?? "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        dir="ltr"
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 font-mono text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                      >
+                        ZERO · {truncateMiddle(data.zeroLine.last.txid, 10, 6)}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      עוגן {data.zeroLine.last.at ? new Date(data.zeroLine.last.at).toLocaleString("he-IL") : "—"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">בלוק</div>
+                      <div className="font-mono" dir="ltr">{data.zeroLine.last.block ?? "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">גז שנוצל</div>
+                      <div className="font-mono" dir="ltr">{data.zeroLine.last.gasUsed ?? "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">מחיר בפועל</div>
+                      <div className="font-mono" dir="ltr">
+                        {data.zeroLine.last.effectiveGasPrice === "0" ? "0x0 — אפס" : (data.zeroLine.last.effectiveGasPrice ?? "—")}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">עלות כוללת</div>
+                      <div className="font-mono text-emerald-600 dark:text-emerald-400" dir="ltr">
+                        {data.zeroLine.last.costEth ?? "0.000000"} ETH
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  הקו חמוש אך טרם עוגן — הריצה המתוזמנת (:30) או dispatch ידני יעגנו את ה-checkpoint האחרון.
+                </p>
+              )}
+              {data.zeroLine?.live?.readback && (
+                <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-3">
+                  <div className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                    קריאה-חזרה חיה מה-RPC הציבורי (חסרת-מפתחות)
+                  </div>
+                  <p dir="auto" className="mt-1 font-mono text-[11px] leading-relaxed text-emerald-700/90 dark:text-emerald-400/90">
+                    {data.zeroLine.live.readback.verdict}
+                  </p>
+                  {data.zeroLine.live.readiness && (
+                    <p dir="ltr" className="mt-1 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
+                      chain {data.zeroLine.live.readiness.chainId} · block {data.zeroLine.live.readiness.blockNumber} ·
+                      gasPrice {data.zeroLine.live.readiness.gasPriceGwei} · nonce {data.zeroLine.live.readiness.nonce}
+                    </p>
+                  )}
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">עוגנים בקו</div>
+                  <div className="font-mono">{data.zeroLine?.anchorsTotal ?? 0}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">אימותי ANCHOR בספר</div>
+                  <div className="font-mono">{data.zeroLine?.anchorAttestationsTotal ?? 0}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">workload ענן</div>
+                  <div className="font-mono text-xs" dir="ltr">
+                    {data.zeroLine?.workflowArmed ? "weave-anchor-zero.yml" : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">קצב</div>
+                  <div className="font-mono text-xs" dir="ltr">{data.zeroLine?.schedule ?? "—"}</div>
+                </div>
+              </div>
+              <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                {data.zeroLine?.zeroGasProtocol}
+                {" · "}
+                {data.zeroLine?.custody}
+                {" · כל צד שלישי מאמת מ-zscan.live או rpc.zero.tech — בלי לסמוך עלינו ועל גיטהאב כלל."}
               </p>
             </CardContent>
           </Card>

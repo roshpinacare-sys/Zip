@@ -164,9 +164,9 @@ export async function GET() {
     const gaps = [
       {
         id: "G1",
-        title: "עיגון on-chain בפועל (EVM-1/EVM-2)",
-        missing: "חותם ממומן + RPC — עד עכשיו LOCAL",
-        path: "workflow_dispatch + מפתח ב-Secrets; txid חוזר לספר",
+        title: "עיגון on-chain בפועל — נסגר 2026-09-14 (קו ה-ZERO, גז-אפס)",
+        missing: "—",
+        path: "נסגר: weave-anchor-zero — root של ה-checkpoint עולה כטרנזקציית EVM אמיתית על Z Chain (Zero Network, chainId 9369, רשת EVM ראשית ציבורית שבה eth_gasPrice מדוד 0x0) ממפתח הרשת מה-seal, בעלות מדודה 0.000000; ה-txid חוזר לספר כאימות ANCHOR חתום וה-checkpoint מסומן ANCHORED לראשונה ב-REAL; ענן וסנדבוקס — אותה מכניקה, אפס משמרת חדשה",
       },
       {
         id: "G2",

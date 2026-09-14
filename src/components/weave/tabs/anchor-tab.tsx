@@ -320,6 +320,7 @@ function CheckpointCard({
   anchorBusy: boolean;
 }) {
   const anchored = cp.anchorStatus === "LOCAL-ANCHORED";
+  const realAnchored = cp.anchorStatus === "ANCHORED" && !!cp.anchorTx;
   const registryIndex = anchor?.registryIndex;
 
   return (
@@ -340,7 +341,32 @@ function CheckpointCard({
         <Badge variant="secondary" dir="ltr" className="font-mono text-[10px]">
           {cp.leafCount} leaves
         </Badge>
-        {anchored ? (
+        {realAnchored ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <a
+                href={
+                  cp.anchorNet === "zero-9369" && cp.anchorTx
+                    ? `https://zscan.live/tx/${cp.anchorTx}`
+                    : "#"
+                }
+                target="_blank"
+                rel="noreferrer"
+                dir="ltr"
+                className="cursor-help rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400"
+              >
+                ANCHORED · {cp.anchorNet ?? "chain"} · REAL
+              </a>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="max-w-xs text-xs leading-relaxed">
+                {cp.anchorNet === "zero-9369"
+                  ? "ה-root עוגן כטרנזקציית EVM אמיתית על Z Chain (Zero Network, chainId 9369) — רשת EVM ראשית ציבורית בגז-אפס מדוד; הטרנזקציה ממוענת-עצמית ל-EOA אינרטי עם המטען הקנוני. קישור לסייר הציבורי."
+                  : "ה-root עוגן בשרשרת ציבורית — קישור לסייר."}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        ) : anchored ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <Badge
