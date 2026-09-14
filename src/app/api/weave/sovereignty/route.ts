@@ -18,6 +18,7 @@ import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { jsonError } from "@/lib/weave/api";
 import { zeroReadiness, verifyZeroAnchorOnChain, zeroExplorerLink, ZERO_RAIL_ID } from "@/lib/weave/zero";
+import { deriveArchiveSnapshot, lastArchiveWitness, ARCHIVE_HASH_PLAN, ARCHIVE_REPO } from "@/lib/weave/archive";
 
 export const dynamic = "force-dynamic";
 
@@ -231,6 +232,34 @@ export async function GET() {
       ),
     ]);
 
+    // ── 5.7 עד הארכיון — גזירה חיה מהמקור + העדות האחרונה בספר (Task 19) ──
+    const archiveWitnessIdx = await lastArchiveWitness().catch(() => null);
+    const baselineAudit = await db.attestation.findFirst({
+      where: { claimType: "AUDIT", evidence: { contains: "anchor-baseline" } },
+      orderBy: { seq: "desc" },
+      select: { seq: true, evidence: true, createdAt: true },
+    });
+    const baselineAuditRoot = baselineAudit?.evidence.match(/merkleRoot=(0x[0-9a-fA-F]{64})/)?.[1] ?? null;
+    const archiveLive = await Promise.race([
+      deriveArchiveSnapshot()
+        .then((d) => ({
+          root: d.snapshot.root,
+          commit: d.snapshot.commit,
+          pushedAt: d.snapshot.pushedAt,
+          fileCount: d.snapshot.fileCount,
+          totalBytes: d.snapshot.totalBytes,
+          derivedAt: d.snapshot.derivedAt,
+        }))
+        .catch(() => null),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 14_000)),
+    ]);
+    const archiveLastRoot = archiveWitnessIdx?.root ?? baselineAuditRoot;
+    const archiveComparison = archiveLive
+      ? archiveLive.root === archiveLastRoot
+        ? "MATCHES-LAST-TESTIMONY"
+        : "ADVANCED-BEYOND-LAST-TESTIMONY"
+      : null;
+
     return NextResponse.json({
       ok: true,
       sovereignty: {
@@ -372,6 +401,30 @@ export async function GET() {
               derivedAt: (leaves.derivedAt as string) ?? null,
             }
           : { derived: false },
+        archiveLine: {
+          exists: true,
+          repo: ARCHIVE_REPO,
+          hashPlan: ARCHIVE_HASH_PLAN,
+          witness: archiveWitnessIdx
+            ? {
+                attSeq: archiveWitnessIdx.attSeq,
+                root: archiveWitnessIdx.root,
+                commit: archiveWitnessIdx.commit,
+                fileCount: archiveWitnessIdx.fileCount,
+                totalBytes: archiveWitnessIdx.totalBytes,
+                at: archiveWitnessIdx.at,
+                witnessAgent: "weave-archive-witness (DAEMON נגזר-seal)",
+              }
+            : null,
+          baselineAudit: baselineAudit
+            ? { seq: baselineAudit.seq, root: baselineAuditRoot, at: baselineAudit.createdAt }
+            : null,
+          live: archiveLive,
+          comparison: archiveComparison,
+          custody:
+            "המדידה: upload/pat.env (runner ראשי) · בענן — WEAVE_ARCHIVE_TOKEN (Actions Secret, החלטת מפעיל, קריאה-בלבד); בלי גישה ⇒ REFUSED כנה — לא נכתבת עדות",
+          schedule: "§5.7 בכל פעימה + נתיב ידני (POST /api/weave/archive/witness)",
+        },
         toolkit: toolkitLeaves
           ? {
               derived: true,

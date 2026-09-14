@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T23:05:33.089Z",
-  "chainCount": 32,
-  "headHash": "0x1edff2aab2c14893a26a99d89a00df9e92db532e3f09d7480808dad780dec42e",
+  "exportedAt": "2026-09-14T23:41:53.561Z",
+  "chainCount": 33,
+  "headHash": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -91,6 +91,17 @@
       "nonce": 0,
       "rotatedAt": null,
       "createdAt": "2026-09-14T22:37:17.795Z"
+    },
+    {
+      "id": "cmu1w0ezn0012sqvbq9jjowsy",
+      "name": "weave-archive-witness",
+      "role": "DAEMON",
+      "ethAddress": "0x3f2c2a991EA6f7605561fabe85E5CB283a3986b2",
+      "pubKeyHex": "0x0437b6569890a0c20e46a9048f53409025d75319feabd2e292cf50532df2e9cee47a9dcac13f6dcdbae774a8e5417f8dcd8ec6966673172c73723187aeec8593de",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-14T23:41:53.507Z"
     }
   ],
   "attestations": [
@@ -573,6 +584,21 @@
       "sig": "0x771cbbaa2e83e321a471713d2ab111888e15166eacc28388491a2c1d10f4d2c760ecc2925f6d84740cc63ad296c9ad19ffa4c4317aec103a11c310f5e820481a1c",
       "signerAddr": "0x3EE9c78D8bb3cBd9116147E2f99bB28dCa5D1D4d",
       "createdAt": "2026-09-14T23:05:33.061Z"
+    },
+    {
+      "id": "cmu1w0f020014sqvblh3pacei",
+      "seq": 33,
+      "agentId": "cmu1w0ezn0012sqvbq9jjowsy",
+      "claim": "עד הארכיון: ההיסטוריה הכתובה של הרשת (roshpinacare-sys/anchor-baseline) נמדדה חיה מהמקור — 86 קבצים, 464KB — והספר מעיד על שורש …1736c10b.",
+      "claimType": "CROSSCHAIN",
+      "evidence": "archive=roshpinacare-sys/anchor-baseline · commit=f97ac018a8829a7c384469281b3a0c64b4846d8a · branch=main · pushed=2026-09-14T17:36:13Z · files=86 · bytes=474747 · archiveRoot=0x4fd5063694faf29e41aa5ff8e82266b04dc3bf85b36c115c0b1d82891736c10b · hashPlan: sha256(file) → keccak256(\"path:sha256\") → merkle-keccak256 · leaves=sovereign/anchor-baseline.leaves.json (חומר הוכחה מלא, נכתב עם העדות) · measuredBy=weave-archive-witness (live tarball derivation, token source: upload/pat.env) · at=2026-09-14T23:41:53.433Z",
+      "evidenceHash": "0x79c08dc07c4480e8583d4729995d16380e85c1c8c917bf695e01aeadd501da5e",
+      "status": "VERIFIED",
+      "prevHash": "0x1edff2aab2c14893a26a99d89a00df9e92db532e3f09d7480808dad780dec42e",
+      "entryHash": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+      "sig": "0xde6ab876c88e3ad5c276453f99b2ac72016a1b2292f5ad1a0cf9e50cfa5ed8e10ab87838f86651437d83d814c61d1ebf030666f086b992a03e62e9239e10072f1c",
+      "signerAddr": "0x3f2c2a991EA6f7605561fabe85E5CB283a3986b2",
+      "createdAt": "2026-09-14T23:41:53.512Z"
     }
   ],
   "checkpoints": [
@@ -1000,6 +1026,23 @@
       "anchorTx": null,
       "calldata": "0xeecdf9271edff2aab2c14893a26a99d89a00df9e92db532e3f09d7480808dad780dec42e",
       "createdAt": "2026-09-14T23:05:33.083Z"
+    },
+    {
+      "id": "cmu1w0f0s0015sqvbdbrl839p",
+      "index": 26,
+      "attFrom": 33,
+      "attTo": 33,
+      "leafCount": 1,
+      "root": "0xfa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+      "prevRoot": "0x1edff2aab2c14893a26a99d89a00df9e92db532e3f09d7480808dad780dec42e",
+      "entryHash": "0xd13f3a35ce998b89da5e2a3ebedccdd129c68f12aa21af9cbf77638b03e64e29",
+      "sig": "0xbca7be2b628bae10691f0b823b8890ec5524cf9e3c6061d9690aa4c62833a7ba5474311a923bceedfff50e29a3ed2c94b904d4c5a413e50f7215ad88f2a04fa31c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927fa867c538d10d84a63c97a3b5df5effa3cae178366015beb3907b1b7c8eac308",
+      "createdAt": "2026-09-14T23:41:53.549Z"
     }
   ],
   "networkKey": {

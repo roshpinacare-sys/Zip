@@ -8,6 +8,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  Archive,
   ArrowLeftRight,
   Cloud,
   Coins,
@@ -181,6 +182,32 @@ interface SovereigntyDTO {
     root?: string | null;
     source?: Record<string, string> | null;
     derivedAt?: string | null;
+  };
+  archiveLine?: {
+    exists: boolean;
+    repo: string;
+    hashPlan: string;
+    witness: {
+      attSeq: number;
+      root: string | null;
+      commit: string | null;
+      fileCount: number | null;
+      totalBytes: number | null;
+      at: string;
+      witnessAgent: string;
+    } | null;
+    baselineAudit: { seq: number; root: string | null; at: string } | null;
+    live: {
+      root: string;
+      commit: string;
+      pushedAt: string | null;
+      fileCount: number;
+      totalBytes: number;
+      derivedAt: string;
+    } | null;
+    comparison: "MATCHES-LAST-TESTIMONY" | "ADVANCED-BEYOND-LAST-TESTIMONY" | null;
+    custody?: string;
+    schedule?: string;
   };
   toolkit: {
     derived: boolean;
@@ -467,6 +494,46 @@ export function SovereigntyTab() {
       setCrossAnchoring(false);
     }
   }, []);
+
+  // עד הארכיון — המסלול הידני (אותה מכניקה של הפעימה §5.7): המדידה
+  // קובעת, לעולם לא הלקוח — גזירה חיה מהמקור בשרת ⇒ אימות CROSSCHAIN
+  // חתום ⇒ checkpoint ⇒ ledger.json
+  const [archiving, setArchiving] = useState(false);
+  const runArchiveWitness = useCallback(async () => {
+    setArchiving(true);
+    try {
+      const res = await fetch("/api/weave/archive/witness", { method: "POST" });
+      const json = (await res.json()) as {
+        ok: boolean;
+        archiveWitness?: {
+          status: "ATTESTED" | "SKIPPED" | "REFUSED";
+          reason: string;
+          attSeq: number | null;
+          snapshot?: { root?: string; fileCount?: number; commit?: string } | null;
+          checkpoint?: { index: number; root: string } | null;
+        };
+        error?: string;
+      };
+      if (!json.ok || !json.archiveWitness) {
+        throw new Error(json.error ?? "עדות הארכיון נכשלה");
+      }
+      const aw = json.archiveWitness;
+      if (aw.status === "ATTESTED") {
+        toast.success(
+          `הארכיון הועיד בספר — att ${aw.attSeq} · cp#${aw.checkpoint?.index ?? "?"} · העוגנים יעידו ב-$0`
+        );
+        await load();
+      } else if (aw.status === "SKIPPED") {
+        toast.info(aw.reason);
+      } else {
+        toast.error(aw.reason);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "עדות הארכיון נכשלה");
+    } finally {
+      setArchiving(false);
+    }
+  }, [load]);
 
   if (loading && !data) {
     return (
@@ -810,51 +877,173 @@ export function SovereigntyTab() {
         </div>
       </Section>
 
-      {/* ── גזירת העוגנים ── */}
-      {data.anchors.derived && (
+      {/* ── עד הארכיון — ההיסטוריה הכתובה מעידה חיה (Task 19) ── */}
+      {(data.archiveLine?.exists || data.anchors.derived) && (
         <Section
-          title="גזירת העוגנים — הארכיון המת הפך לעדות נצחית"
-          icon={<FileCheck2 />}
-          description="כל קובץ ⇒ sha256 · עלה=keccak256(path:sha256) · שורש מרקל נרשם בספר"
+          title="עד הארכיון — ההיסטוריה הכתובה של הרשת מעידה חיה"
+          icon={<Archive />}
+          description="גזירה חיה מהמקור בכל פעימה · שורש חדש ⇒ CROSSCHAIN חתום ⇒ העוגנים מעידים ב-$0 · אותו שורש ⇒ דילוג כנה"
         >
           <Card>
             <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
               <div className="flex flex-wrap items-center gap-3">
-                <HashChip value={data.anchors.root ?? "—"} label="merkleRoot" />
-                <CopyButton value={data.anchors.root ?? ""} label="העתק שורש" />
+                {data.archiveLine?.witness ? (
+                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                    VERIFIED · att {data.archiveLine.witness.attSeq}
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                    גזירה ראשונה בספר · ממתין לעדות החיה
+                  </span>
+                )}
+                {data.archiveLine?.baselineAudit && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        תקדים חד-פעמי · att {data.archiveLine.baselineAudit.seq} (AUDIT)
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      הגזירה המקורית שאטמה את הארכיון פעם אחת; העד המחזר יורש את אותה
+                      תוכנית-האש — נאמנות ההעברה הוכחה בשחזור מושלם של אותו שורש.
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">
+                  {data.archiveLine?.repo ?? data.anchors.source?.repo ?? "—"}
+                </span>
               </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <HashChip
+                  value={data.archiveLine?.witness?.root ?? data.anchors.root ?? "—"}
+                  label={data.archiveLine?.witness ? "archiveRoot" : "merkleRoot"}
+                />
+                <CopyButton
+                  value={data.archiveLine?.witness?.root ?? data.anchors.root ?? ""}
+                  label="העתק שורש"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">קבצים</div>
-                  <div className="font-mono">{data.anchors.fileCount ?? "—"}</div>
+                  <div className="font-mono">
+                    {data.archiveLine?.witness?.fileCount ?? data.anchors.fileCount ?? "—"}
+                  </div>
                 </div>
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">נפח</div>
                   <div className="font-mono">
-                    {(((data.anchors.totalBytes ?? 0) / 1024) || 0).toFixed(0)}KB
+                    {(
+                      ((data.archiveLine?.witness?.totalBytes ?? data.anchors.totalBytes ?? 0) || 0) /
+                      1024
+                    ).toFixed(0)}
+                    KB
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">מקור</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">מקור העדות</div>
                   <div dir="ltr" className="font-mono text-xs">
-                    {data.anchors.source?.repo ?? "—"}
-                    {data.anchors.source?.commit
-                      ? `@${truncateMiddle(data.anchors.source.commit, 8, 0)}`
-                      : ""}
+                    {data.archiveLine?.witness?.commit
+                      ? `@${truncateMiddle(data.archiveLine.witness.commit, 8, 0)}`
+                      : data.anchors.source?.commit
+                        ? `@${truncateMiddle(data.anchors.source.commit, 8, 0)}`
+                        : "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400">נגזר</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                    {data.archiveLine?.witness ? "הועיד" : "נגזר"}
+                  </div>
                   <div className="font-mono text-xs">
-                    {data.anchors.derivedAt
-                      ? new Date(data.anchors.derivedAt).toLocaleString("he-IL")
+                    {(data.archiveLine?.witness?.at ?? data.anchors.derivedAt)
+                      ? new Date(
+                          data.archiveLine?.witness?.at ?? data.anchors.derivedAt ?? ""
+                        ).toLocaleString("he-IL")
                       : "—"}
                   </div>
                 </div>
               </div>
+
+              {/* המדידה החיה מול העדות — תיבת ההשוואה */}
+              <div
+                className={cn(
+                  "rounded-lg border p-3 text-sm",
+                  data.archiveLine?.comparison === "MATCHES-LAST-TESTIMONY"
+                    ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/40"
+                    : data.archiveLine?.comparison === "ADVANCED-BEYOND-LAST-TESTIMONY"
+                      ? "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/40"
+                      : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/40"
+                )}
+              >
+                {data.archiveLine?.live ? (
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-medium">
+                        {data.archiveLine.comparison === "MATCHES-LAST-TESTIMONY"
+                          ? "המדידה החיה תואמת את העדות האחרונה — הארכיון לא השתנה ✓"
+                          : data.archiveLine.comparison === "ADVANCED-BEYOND-LAST-TESTIMONY"
+                            ? "הארכיון התקדם מעבר לעדות — הפעימה הבאה תעיד ⤴"
+                            : "מדידה חיה — אין עדות קודמת להשוות"}
+                      </span>
+                      <span
+                        dir="ltr"
+                        className="font-mono text-xs text-zinc-500 dark:text-zinc-400"
+                      >
+                        live @{truncateMiddle(data.archiveLine.live.commit, 8, 0)}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      <span className="font-mono">
+                        {data.archiveLine.live.fileCount} files ·{" "}
+                        {(data.archiveLine.live.totalBytes / 1024).toFixed(0)}KB
+                      </span>
+                      {data.archiveLine.live.pushedAt && (
+                        <span className="font-mono">
+                          pushed {new Date(data.archiveLine.live.pushedAt).toLocaleString("he-IL")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    מדידה חיה לא זמינה כרגע (הריפו פרטי — הגישה ב-runner הראשי; בענן נדרש
+                    WEAVE_ARCHIVE_TOKEN)
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void runArchiveWitness()}
+                  disabled={archiving}
+                >
+                  {archiving ? (
+                    <>
+                      <RefreshCw className="ml-2 size-3.5 animate-spin" />
+                      מודד ומעיד…
+                    </>
+                  ) : (
+                    <>
+                      <Archive className="ml-2 size-3.5" />
+                      הצלב את הארכיון בספר (חתום)
+                    </>
+                  )}
+                </Button>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {data.archiveLine?.schedule ?? "§5.7 בכל פעימה"}
+                </span>
+              </div>
+
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                הכלל שנגזר מהעוגנים: עוגן שרק "יושב" = ארכיון; עוגן שנכנס לשרשרת-חתומה = כוח.
-                מרגע זה, שינוי של בית אחד בארכיון ניתן לאיתור ע״י חישוב-מחדש מכל clone.
+                תוכנית-ההאש הקנונית: {data.archiveLine?.hashPlan ?? 'sha256(file) → keccak256("path:sha256") → merkle-keccak256'}.
+                הכלל שנגזר מהעוגנים: עוגן שרק "יושב" = ארכיון; שורש שנכנס לשרשרת-חתומה = כוח.
+                מרגע זה כל דחיפה של הצי לארכיון נקלטת אוטומטית בפעימה הבאה — שינוי של בית
+                אחד ניתן לאיתור ע"י חישוב-מחדש מכל clone. משמרת:{" "}
+                {data.archiveLine?.custody ?? "upload/pat.env (runner ראשי)"}
               </p>
             </CardContent>
           </Card>

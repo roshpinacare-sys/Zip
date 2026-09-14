@@ -25,6 +25,7 @@ import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/led
 import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, type BeatContext } from "@/lib/weave/beat";
 import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosschain";
+import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -271,7 +272,38 @@ async function main(): Promise<void> {
     }
   }
 
-  // 6. ייצוא הספר + דוח (הסליקות של 5.5 וההצלבה של 5.6 כלולות)
+  // 5.7 עד הארכיון — ההיסטוריה הכתובה נמדדת חיה בכל פעימה (Task 19):
+  //      ריפו anchor-baseline (הדוחות/broadcasts של הצי) נגזר מהמקור —
+  //      tarball ⇒ sha256 ⇒ עלה ⇒ שורש מרקל (אותה תוכנית-האש של הגזירה
+  //      החד-פעמית, att 9 — נאמנות ההעברה הוכחה בשחזור מושלם). שורש
+  //      שטרם העיד בספר ⇒ אימות CROSSCHAIN חתום ⇒ checkpoint מכסה ⇒
+  //      העוגנים מעידים עליו ב-$0. אותו שורש ⇒ דילוג כנה; אין גישה
+  //      לריפו הפרטי (ענן בלי WEAVE_ARCHIVE_TOKEN) ⇒ REFUSED בכנות —
+  //      ההעשרה לעולם לא מפילה את הלב.
+  let archiveWitness: ArchiveWitnessResult | null = null;
+  let archiveCheckpoint: { index: number; root: string } | null = null;
+  if (result.verdict === "LEDGER-VALID") {
+    try {
+      archiveWitness = await witnessArchive();
+      if (archiveWitness.status === "ATTESTED" && archiveWitness.attSeq !== null) {
+        const cp = await createCheckpointNow();
+        if (cp) archiveCheckpoint = { index: cp.index, root: cp.root };
+        console.log(
+          `[weave-beat] עד הארכיון: att${archiveWitness.attSeq} · root=…${(archiveWitness.snapshot?.root ?? "").slice(-8)}${archiveCheckpoint ? ` · cp#${archiveCheckpoint.index}` : ""}`
+        );
+      } else {
+        console.log(
+          `[weave-beat] עד הארכיון: ${archiveWitness.status} — ${archiveWitness.reason.slice(0, 140)}`
+        );
+      }
+    } catch (archiveErr) {
+      console.log(
+        `[weave-beat] עד הארכיון: נדחה תפעולית — ${archiveErr instanceof Error ? archiveErr.message : String(archiveErr)}`
+      );
+    }
+  }
+
+  // 6. ייצוא הספר + דוח (הסליקות של 5.5, ההצלבה של 5.6 ועד הארכיון של 5.7 כלולים)
   const snap = await exportLedger();
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(snap, null, 2) + "\n");
@@ -295,6 +327,17 @@ async function main(): Promise<void> {
             attSeq: crossAnchor.attSeq,
             net: crossAnchor.net,
             checkpoint: crossCheckpoint,
+          },
+        }
+      : {}),
+    ...(archiveWitness
+      ? {
+          archive: {
+            status: archiveWitness.status,
+            reason: archiveWitness.reason,
+            attSeq: archiveWitness.attSeq,
+            snapshot: archiveWitness.snapshot,
+            checkpoint: archiveCheckpoint,
           },
         }
       : {}),
@@ -340,7 +383,11 @@ async function main(): Promise<void> {
     crossAnchor && crossAnchor.status === "ATTESTED" && crossAnchor.attSeq !== null
       ? ` · crosschain att${crossAnchor.attSeq}`
       : "";
-  const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig${marketNote}${crossNote}`;
+  const archiveNote =
+    archiveWitness && archiveWitness.status === "ATTESTED" && archiveWitness.attSeq !== null
+      ? ` · archive att${archiveWitness.attSeq}`
+      : "";
+  const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig${marketNote}${crossNote}${archiveNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
   const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
   console.log(`[weave-beat] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
