@@ -266,3 +266,30 @@ Stage Summary:
 - מחזור EVM-3 הוכח במלואו ב-UI: אתגר→חתימה→צריכה→replay נדחה→רוטציה חתומה EIP-712→מפתח ישן נדחה→תיעוד VERIFIED→שער נסגר.
 - נותר NOT-YET (כנה): EVM-1 פריסה בפועל (חותם ממומן + RPC — חבילה מוכנה כולה), EVM-2 עיגון בשרשרת אמיתית (המנגנון כולו אומת ב-LOCAL), R1-R3 פעולות מרחוק על ה-org, L2-L4 זמן/כסף אמיתיים.
 - ⚠ הערת סביבה: הסנדבוקס מפיל תהליכי רקע בין פקודות; שרת ה-dev עשוי להיות מופל בפתיחת ה-preview — יש להרימו מחדש (restart מהפאנל). כל הבדיקות בוצעו מול שרת חי.
+---
+Task ID: 6
+Agent: main (Z.ai — lead engineer)
+Task: ריבונות הריפו — הפעלת הרשת מעצמה, בלי תלות בסנדבוקס (הוראת המפעיל: "הפוך את Zip לתיקיה שלך, אל תמחק")
+
+Work Log:
+- סקר מלא של הרשת הקיימת: החשבון roshpinacare-sys הוא User (לא org); 13 ריפוים פרטיים; cloud-heart.yml ב-steem מריץ TAKEOVER חי (cloud_takeover.json: SANDBOX-DOWN מ-2026-09-14); נלמדו דפוסי הצי: fleet_vault (AES-256-GCM+scrypt, סיסמה ב-meta — ריפו פרטי), gitkeeper (שער-סודות על staged-diff, noise filter, נעילות), chain-as-judge.
+- המרת ה-zips לכלים (הוראת המפעיל): 5 zips מ-Project-files הורדו ונפרקו ל-sovereign-net/toolkit/extracted (ה-zips נשמרו בפועל ב-Project-files — אפס מחיקה): SRS ריבוני v8.2.0 (substrate מלא), TITAI v18 (installer חתום — PACKAGE_MANIFEST.signed.json לכל קובץ), qodo, zip-to-pdf-polyglot, workspace.
+- הריפו Zip (0KB, מועמד למחיקה בביקורת) הוסב לבית הריבוני weave-core: staging export נקי (1.5MB, 155→כל הפלטפורמה) נדחף כ-commit ראשון. אומת: היסטוריית הסנדבוקס הרעילה (שהכילה upload/pat.env!) הושמדה — .git הוחלף בזה של הריפו (origin מוגדר, היסטוריה נקייה).
+- ארכיטקטורת הספר-כטקסט: src/lib/weave/ledger-sync.ts (חדש) — exportLedger/importLedger: snapshot קנוני חסר-סודות (אף devKeyHex) חי ב-sovereign/ledger.json; SQLite הפך למטמון מקומי; ייבוא משמר מפתחות מקומיים לפי כתובת.
+- מנוע הפעימה: src/lib/weave/beat.ts (חדש) — verifyLedger (שרשרת+חתימות+evidenceHash), ensureCloudAgent, ensureNetworkKeyFromSeal, createCheckpointNow, runBeat (verify→attest MEASUREMENT→checkpoint→סגירת שערים); שרשרת שבורה ⇒ פעימה אדומה, אין הרחבה.
+- scripts/weave-beal.ts→weave-beat.ts: pull → ייבוא אם ה-remote חדש → פתיחת seal → ALIVE/TAKEOVER (ענן בלבד: attest/git טריים ⇒ אימות-בלבד) → runBeat → ייצוא → שער-סודות → commit+push. זהות weave-heart[bot] בענן בלבד.
+- scripts/weave-seal.ts: seal AES-256-GCM+scrypt עם מפתח ענן (weave-cloud-heart) + מפתח רשת; הסיסמה ב-meta (דוקטרינת הצי, ריפו פרטי). אומת round-trip.
+- scripts/anchor-baseline.ts (גזירת העוגנים): 86 קבצים מ-anchor-baseline@99322d6d ⇒ sha256 לכל קובץ ⇒ עלה=keccak256("path:sha256") ⇒ שורש מרקל 0x9043dd23… נרשם בספר כ-AUDIT חתום (seq 9) + checkpoint #3; העלים ב-sovereign/anchor-baseline.leaves.json.
+- .github/workflows/weave-heart.yml: Actions כל 6 שעות + dispatch; bun + prisma + beat; GITHUB_TOKEN של הריפו (contents:write) — ה-PAT לעולם לא בענן. (dispatch דרך ה-API נחסם — ל-PAT אין actions:write; הסchedול הראשון ירוץ ב-18:00 UTC.)
+- API חדש: GET /api/weave/sovereignty (סטטוס מלא: ענן חמוש, יחס ledger, seal, פעימה, עוגנים, שערי SOV, מפת פערים G1-G6, git מסונך) + POST /api/weave/sovereignty/sync (fetch → show origin/main:ledger.json → importLedger → אימות מלא).
+- UI: טאב 7 "רשת ריבונית" (sovereignty-tab.tsx): KPI, דיאגרמת שרשרת 5 שלבים, סנכרון מהריפו, seal, סוכן ענן, גזירת עוגנים, שערי SOV, מפת פערים. SOVEREIGNTY.md (ההסקה I1-I5 + פערים G1-G6 + תורת העוגנים) + README.md בשורש הריפו.
+- sovereign-milestones.ts: Zip ⇒ "הבית הריבוני" במלאי; שלבי SOV-1/2/3 נוספו לתוכנית.
+- הפעימה הריבונית הראשונה בוצעה מה-clone החי: pull ✓ → verify 9/9 ✓ → attest seq 10 (MEASUREMENT: 9 רשומות, 9/9 חתימות, gitHead=b52a944, runner=local-primary) → checkpoint #4 → SOV-1 נסגר עם att 10 → ledger.json ייוצא → שער-סודות PASS → דחיפה 029bc39. (באג אמיתי שנמצא ותוקן בדרך: פילטר ה-hash-ים הציבוריים בשער היה הפוך — הוסרו השורות הלא-מוכרות במקום המוכרות; כעת שדות קנוניים מוסרים pre-gate וכל 64hex אלמוני נחסם.)
+- באגים שנמצאו ותוקנו: attFrom shorthand, seal meta חסר passphrase, import.main guard, span/div, גרשיים ישרים בתכני JSX/מחרוזות, icon-as-node ב-Section. lint נקי (הרחבת ignores ל-sovereign-net).
+- E2E בדפדפן: העמוד נטען עם 7 טאבים; טאב "רשת ריבונית" מלא (חמוש ✓, מסונכרן 10=10, מקומית VERIFIED seq 10 cp #4, נארג ✓ 86 קבצים root 0x9043dd23…, SOV-1 VERIFIED נסגר עם #10, 6 פערים); "משוך מהריפו" → "העותק המקומי כבר מסונכרן עם הריפו"; מובייל 390px: אפס גלישה, footer תחתון, 7 טאבים; אפס שגיאות קונסולה לאחר רענון.
+
+Stage Summary:
+- הרשת חיה מהריפו: weave-core (לשעבר Zip) מחזיק את הפלטפורמה, הספר (ledger.json חסר-סודות), ה-seal והלב-ענן. הסנדבוקס הוא workspace זניח — מחיקתו לא מפילה דבר.
+- מצב סופי: 10 אימותים (9 VERIFIED + 1 UNMEASURED), 4 checkpoints, 5 סוכנים (כולל weave-cloud-heart שנולד מה-seal), שערים: L0, L1, EVM-3, SOV-1 = DONE; SOV-2 ייסגר אוטומטית ע"י פעימת ה-Actions הראשונה (הריפו מזהה את עצמו); SOV-3 להדגמת stranger-revive.
+- העוגנים: anchor-baseline נגזר לשורש מרקל חתום בספר (הארכיון המת הפך לעדות); מפת הפערים G1-G6 מתעדת בדיוק מה חסר ל"הכל על גבי הרשת" וכיצד כל פער נסגר (עוד workflow + עוד שורה חתומה).
+- כנה: ל-PAT אין actions:write (dispatch ידני נחסם — הסchedול ירוץ לבד); ליברת הענן טרם הריצה פעימה (SOV-2 פתוח עד אז); משמורת ה-seal = LOCAL (ריפו פרטי) — מסלול שדרוג ל-Secrets מתועד ב-G3.
