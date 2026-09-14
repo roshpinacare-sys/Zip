@@ -271,10 +271,11 @@ async function main(): Promise<void> {
   }
 
   // 8. שידור — Steem ראשי (חינם), Hive מאחורי שער RC (דילוג-כנה)
+  //    (הלקח מהמדידה הראשונה: operations הוא מערך-פעולות — [op] ולא op)
   const txids: { steem: string | null; hive: string | null } = { steem: null, hive: null };
   const notes: string[] = [];
 
-  const st = await steemBroadcast(op, WIF);
+  const st = await steemBroadcast([op], WIF);
   txids.steem = st.txid;
   if (st.note) notes.push(`steem: ${st.note}`);
   console.log(`[weave-anchor] steem: ${st.txid ? `שודר ✓ ${st.txid.slice(0, 12)}…` : `לא אושר — ${st.note ?? ""}`}`);
@@ -286,9 +287,15 @@ async function main(): Promise<void> {
     notes.push(`hive: ${hiveSkipped}`);
     console.log(`[weave-anchor] hive: דילוג-כנה — ${hiveSkipped}`);
   } else {
-    const hv = await hiveBroadcast(op, WIF);
+    const hv = await hiveBroadcast([op], WIF);
     if (hv.note) notes.push(`hive: ${hv.note}`);
-    console.log(`[weave-anchor] hive: ${hv.txid ? `שודר ✓` : `נשלח (${hv.note ?? "?"}) — ממתין לאישור היסטוריה`}`);
+    console.log(
+      `[weave-anchor] hive: ${
+        hv.accepted
+          ? `השידור התקבל — ממתין לאישור היסטוריה`
+          : `נכשל — ${hv.note ?? "?"}`
+      }`
+    );
   }
 
   // 9. אישור מההיסטוריה — השופטת היחידה (שני הכיוונים)

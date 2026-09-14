@@ -172,14 +172,14 @@ export async function steemBroadcast(
 export async function hiveBroadcast(
   ops: GrapheneOperation[],
   wif: string
-): Promise<{ txid: string | null; note?: string }> {
+): Promise<{ txid: string | null; accepted: boolean; note?: string }> {
   try {
     const signed = await signGrapheneTx(HIVE_RPC, HIVE_CHAIN_ID, ops, wif);
     await rpcV4(HIVE_RPC, "condenser_api.broadcast_transaction", [signed]);
-    // השידור התקבל — אך ל-steem-js אין id מוחזר כאן; ההיסטוריה תאשר
-    return { txid: null, note: "broadcast-accepted (await history confirm)" };
+    // השידור התקבל — ל-steem-js אין id מוחזר כאן; ההיסטוריה תאשר
+    return { txid: null, accepted: true, note: "broadcast-accepted (await history confirm)" };
   } catch (e) {
-    return { txid: null, note: String((e as Error).message || e).slice(0, 140) };
+    return { txid: null, accepted: false, note: String((e as Error).message || e).slice(0, 140) };
   }
 }
 

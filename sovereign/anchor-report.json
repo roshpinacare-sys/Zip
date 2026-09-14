@@ -1,25 +1,30 @@
 {
-  "at": "2026-09-14T16:45:33.090Z",
+  "at": "2026-09-14T16:57:09.920Z",
   "runner": "local-primary",
-  "mode": "DRY",
-  "payload": {
-    "protocol": "saos-weave-core/v1",
-    "action": "checkpoint",
-    "at": "2026-09-14T16:45:33.090Z",
-    "net": "weave-core",
-    "repo": "roshpinacare-sys/Zip",
-    "checkpoint": 7,
+  "mode": "ANCHORED",
+  "checkpoint": {
+    "index": 7,
     "root": "0x1f1b7bfbb431b19460ee59c6a70da94de5861b0d877e0279e5d7a1fae174f818",
     "attFrom": 13,
-    "attTo": 14,
-    "attestations": 14,
-    "headHash": "0x5bfb54b804bfab5682c7b03903f77ee2e71834fe278f7ed75080040f6ddb15fb",
-    "commit": "4763612"
+    "attTo": 14
   },
-  "note": "לא שודר דבר; לא נכתבה עדות. הוכחה או לא קרה.",
+  "txids": {
+    "steem": "6db515b57493a8a83a9c6499727d12c69a7f61de",
+    "hive": "70e4125442ba86f6c3ccb26d485806079f648fe0"
+  },
+  "hiveSkipped": null,
+  "notes": [
+    "hive: broadcast-accepted (await history confirm)"
+  ],
+  "attSeq": 15,
+  "nextCheckpoint": {
+    "index": 8,
+    "root": "0xf90177d03e783bd4d6f83214274d2deb69a607b4b7e6be3d62b912132937a6f7"
+  },
+  "attestations": 15,
   "context": {
     "runner": "local-primary",
-    "gitHead": "4763612",
+    "gitHead": "423fc38",
     "repoSlug": "roshpinacare-sys/Zip"
   }
 }
