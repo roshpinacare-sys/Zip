@@ -22,10 +22,13 @@ export const dynamic = "force-dynamic";
 
 const ROOT = path.resolve(process.cwd());
 const WORKFLOW_PATH = path.join(ROOT, ".github", "workflows", "weave-heart.yml");
+const ANCHOR_WORKFLOW_PATH = path.join(ROOT, ".github", "workflows", "weave-anchor.yml");
 const LEDGER_PATH = path.join(ROOT, "sovereign", "ledger.json");
 const REPORT_PATH = path.join(ROOT, "sovereign", "beat-report.json");
 const SEAL_META_PATH = path.join(ROOT, "sovereign", "weave-seal.meta.json");
 const LEAVES_PATH = path.join(ROOT, "sovereign", "anchor-baseline.leaves.json");
+const STEEM_LINE_PATH = path.join(ROOT, "sovereign", "steem-line.json");
+const ANCHOR_REPORT_PATH = path.join(ROOT, "sovereign", "anchor-report.json");
 const SOVEREIGNTY_PATH = path.join(ROOT, "SOVEREIGNTY.md");
 
 interface BeatReportShape {
@@ -70,13 +73,16 @@ export async function GET() {
   try {
     // ── 1. רכיבי הריבונות בקובץ (העתק מקומי של הריפו — LOCAL) ──
     const cloudArmed = fs.existsSync(WORKFLOW_PATH);
+    const anchorArmed = fs.existsSync(ANCHOR_WORKFLOW_PATH);
     const sealMeta = readJson(SEAL_META_PATH);
     const beatReport = readJson(REPORT_PATH) as BeatReportShape | null;
     const ledgerFile = readJson(LEDGER_PATH) as LedgerShape | null;
     const leaves = readJson(LEAVES_PATH);
+    const steemLine = readJson(STEEM_LINE_PATH);
+    const anchorReport = readJson(ANCHOR_REPORT_PATH);
 
     // ── 2. ה-DB המקומי מול הספר בקובץ ──
-    const [lastAtt, count, cloudAgent, sovStages] = await Promise.all([
+    const [lastAtt, count, cloudAgent, sovStages, anchorAtts] = await Promise.all([
       db.attestation.findFirst({ orderBy: { seq: "desc" } }),
       db.attestation.count(),
       db.agent.findUnique({ where: { name: "weave-cloud-heart" } }),
@@ -84,7 +90,14 @@ export async function GET() {
         where: { code: { startsWith: "SOV-" } },
         orderBy: { sortOrder: "asc" },
       }),
+      db.attestation.count({ where: { claimType: "ANCHOR" } }),
     ]);
+    const anchorAttsRows = await db.attestation.findMany({
+      where: { claimType: "ANCHOR" },
+      orderBy: { seq: "desc" },
+      take: 5,
+      select: { seq: true, claim: true, evidence: true, createdAt: true },
+    });
     const localHead = lastAtt?.entryHash ?? null;
     const localCount = count;
     const ledgerCount = ledgerFile?.chainCount ?? null;
@@ -128,7 +141,7 @@ export async function GET() {
         }
       : null;
 
-    // ── 5. מפת הפערים — סטטית, משוקפת מ-SOVEREIGNTY.md ──
+    // ── 5. מפת הפערים — משוקפת מ-SOVEREIGNTY.md (2026-09-14: G2/G3/G4 נסגרו במדידה) ──
     const gaps = [
       {
         id: "G1",
@@ -138,27 +151,27 @@ export async function GET() {
       },
       {
         id: "G2",
-        title: "קו Steem/Hive מהספר הזה",
-        missing: "הצי מעיד on-chain; weave-core עדיין לא כותב לשם",
-        path: "custom_json מ-root ה-checkpoint דרך seal הצי (Task 79 pattern)",
+        title: "קו Steem/Hive מהספר — נסגר 2026-09-14 16:57Z",
+        missing: "—",
+        path: "נסגר: weave-anchor — root ה-checkpoint כ-custom_json (saos.weave.core.v1, posting) על Steem+Hive; ה-txids חוזרים לספר כאימות ANCHOR חתום",
       },
       {
         id: "G3",
-        title: "משמורת מפתחות בייצור",
-        missing: "ה-seal בריפו פרטי — מקובל, לא ייצור",
-        path: "GitHub Secrets + סיבוב ROTATION מתועד בספר",
+        title: "משמרת מפתחות בייצור — נסגר 2026-09-14 16:10Z",
+        missing: "—",
+        path: "נסגר: WEAVE_SEAL_PASSPHRASE ב-Actions Secrets (.env.local ל-runner; הסיסמה לא בגיט) — הוכח בענן (att 13)",
       },
       {
         id: "G4",
-        title: "איחול-עצמי (SOV-3)",
-        missing: "טרם הודגם מ-clone נקי מחוץ לסנדבוקס",
-        path: "stranger-revive ב-Actions runner נקי + אימות BUILD",
+        title: "איחול-עצמי (SOV-3) — נסגר 2026-09-14 16:10Z",
+        missing: "—",
+        path: "נסגר: אימות BUILD מ-runner ענן נקי (att 13) — השער נסגר עליו",
       },
       {
         id: "G5",
         title: "קונסולה בלי סנדבוקס",
         missing: "ה-UI רץ על dev-server מקומי",
-        path: "Pages/static לקריאה + Actions service ל-API",
+        path: "ריפו נפרד ל-Pages (הוחנה בהוראת המפעיל — ייפתח בהמשך) + Actions service ל-API",
       },
       {
         id: "G6",
@@ -205,6 +218,43 @@ export async function GET() {
           ? { name: cloudAgent.name, address: cloudAgent.ethAddress, status: cloudAgent.status }
           : null,
         lastBeat,
+        steemLine: steemLine
+          ? {
+              exists: true,
+              account: (steemLine.account as string) ?? null,
+              opId: (steemLine.opId as string) ?? null,
+              authority: "posting (אפס סיכון הון — הרמה המאושרת ל-L2)",
+              anchorsTotal: Array.isArray(steemLine.anchors) ? (steemLine.anchors as unknown[]).length : 0,
+              last: steemLine.last
+                ? {
+                    checkpoint: ((steemLine.last as Record<string, unknown>).checkpoint as number) ?? null,
+                    root: ((steemLine.last as Record<string, unknown>).root as string) ?? null,
+                    at: ((steemLine.last as Record<string, unknown>).at as string) ?? null,
+                    txids: ((steemLine.last as Record<string, unknown>).txids as Record<string, string | null>) ?? null,
+                    attSeq: ((steemLine.last as Record<string, unknown>).attSeq as number) ?? null,
+                    explorer: {
+                      steem: ((steemLine.last as Record<string, unknown>).txids as Record<string, string | null>)?.steem
+                        ? `https://steemscan.com/transaction/${((steemLine.last as Record<string, unknown>).txids as Record<string, string | null>).steem}`
+                        : null,
+                      hive: ((steemLine.last as Record<string, unknown>).txids as Record<string, string | null>)?.hive
+                        ? `https://hiveblockexplorer.com/tx/${((steemLine.last as Record<string, unknown>).txids as Record<string, string | null>).hive}`
+                        : null,
+                    },
+                  }
+                : null,
+              workflowArmed: anchorArmed,
+              schedule: anchorArmed ? "יומי 07:17Z + workflow_dispatch" : null,
+              custody: "WEAVE_STEEM_WIF — Actions Secret (הענן) + .env.local (ה-runner); המקור בכספת הצי; לעולם לא בגיט",
+              anchorAttestationsTotal: anchorAtts,
+              lastAnchorAttestations: anchorAttsRows.map((a) => ({
+                seq: a.seq,
+                claim: a.claim,
+                evidence: a.evidence,
+                createdAt: a.createdAt,
+              })),
+              lastReportMode: (anchorReport as Record<string, unknown>)?.mode ?? null,
+            }
+          : { exists: false, workflowArmed: anchorArmed },
         anchors: leaves
           ? {
               derived: true,

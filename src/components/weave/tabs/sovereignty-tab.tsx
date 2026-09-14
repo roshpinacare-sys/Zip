@@ -13,6 +13,7 @@ import {
   Database,
   FileCheck2,
   GitBranch,
+  ExternalLink,
   Globe2,
   HeartPulse,
   Landmark,
@@ -94,6 +95,32 @@ interface SovereigntyDTO {
     checkpoint: { index: number | null; root: string | null } | null;
     gatesClosed: Array<{ code: string; attSeq: number }>;
   } | null;
+  steemLine: {
+    exists: boolean;
+    account?: string | null;
+    opId?: string | null;
+    authority?: string;
+    anchorsTotal?: number;
+    workflowArmed?: boolean;
+    schedule?: string | null;
+    custody?: string;
+    anchorAttestationsTotal?: number;
+    lastReportMode?: string | null;
+    last?: {
+      checkpoint: number | null;
+      root: string | null;
+      at: string | null;
+      txids: Record<string, string | null> | null;
+      attSeq: number | null;
+      explorer: { steem: string | null; hive: string | null };
+    } | null;
+    lastAnchorAttestations?: Array<{
+      seq: number;
+      claim: string;
+      evidence: string;
+      createdAt: string;
+    }>;
+  };
   anchors: {
     derived: boolean;
     fileCount?: number | null;
@@ -595,6 +622,104 @@ export function SovereigntyTab() {
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 הכלל שנגזר מהעוגנים: עוגן שרק "יושב" = ארכיון; עוגן שנכנס לשרשרת-חתומה = כוח.
                 מרגע זה, שינוי של בית אחד בארכיון ניתן לאיתור ע״י חישוב-מחדש מכל clone.
+              </p>
+            </CardContent>
+          </Card>
+        </Section>
+      )}
+
+      {/* ── קו ה-Steem/Hive ── */}
+      {data.steemLine?.exists && (
+        <Section
+          title="קו ה-Steem/Hive — הספר מעיד על עצמו מחוץ לגיטהאב"
+          icon={<Globe2 />}
+          description="root של ה-checkpoint עולה כ-custom_json על שתי שרשראות ציבוריות · ה-txids חוזרים לספר כאימות ANCHOR חתום"
+        >
+          <Card>
+            <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <StatusBadge
+                  status={
+                    data.steemLine?.last && (data.steemLine.last.txids?.steem || data.steemLine.last.txids?.hive)
+                      ? "VERIFIED"
+                      : "UNMEASURED"
+                  }
+                />
+                <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                  @{data.steemLine?.account ?? "—"} · {data.steemLine?.opId ?? "—"}
+                </span>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  {data.steemLine?.authority ?? ""}
+                </span>
+              </div>
+              {data.steemLine?.last ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <HashChip value={data.steemLine.last.root ?? "—"} label={`cp#${data.steemLine.last.checkpoint ?? "?"}`} />
+                    {data.steemLine.last.attSeq != null && (
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        אימות ANCHOR seq {data.steemLine.last.attSeq}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {data.steemLine.last.txids?.steem && (
+                      <a
+                        href={data.steemLine.last.explorer.steem ?? "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        dir="ltr"
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 font-mono text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                      >
+                        Steem · {truncateMiddle(data.steemLine.last.txids.steem, 10, 6)}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    {data.steemLine.last.txids?.hive && (
+                      <a
+                        href={data.steemLine.last.explorer.hive ?? "#"}
+                        target="_blank"
+                        rel="noreferrer"
+                        dir="ltr"
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-200 px-2 py-1 font-mono text-xs hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                      >
+                        Hive · {truncateMiddle(data.steemLine.last.txids.hive, 10, 6)}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      עוגן {data.steemLine.last.at ? new Date(data.steemLine.last.at).toLocaleString("he-IL") : "—"}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  הקו חמוש אך טרם עוגן — הריצה היומית (07:17Z) או dispatch ידני יעגנו את ה-checkpoint האחרון.
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">עוגנים בקו</div>
+                  <div className="font-mono">{data.steemLine?.anchorsTotal ?? 0}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">אימותי ANCHOR בספר</div>
+                  <div className="font-mono">{data.steemLine?.anchorAttestationsTotal ?? 0}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">workload ענן</div>
+                  <div className="font-mono text-xs" dir="ltr">
+                    {data.steemLine?.workflowArmed ? "weave-anchor.yml" : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">קצב</div>
+                  <div className="font-mono text-xs" dir="ltr">{data.steemLine?.schedule ?? "—"}</div>
+                </div>
+              </div>
+              <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                {data.steemLine?.custody}
+                {" · העדות חיה לנצח מול ה-RPC הציבורי — בלי לסמוך עלינו ועל גיטהאב כלל."}
               </p>
             </CardContent>
           </Card>
