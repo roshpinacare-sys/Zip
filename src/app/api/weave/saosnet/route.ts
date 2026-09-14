@@ -18,6 +18,7 @@ import * as path from "path";
 import { execFile } from "child_process";
 import { NextResponse } from "next/server";
 import { jsonError } from "@/lib/weave/api";
+import { lastSaosnetCrossAnchor } from "@/lib/weave/crosschain";
 
 export const dynamic = "force-dynamic";
 
@@ -63,12 +64,14 @@ function runStatusScript(): Promise<SaosnetStatus> {
 
 export async function GET() {
   try {
+    // אינדקס ההצלבה — אימות ה-CROSSCHAIN האחרון בספר (עוגן-עוגנים)
+    const crosschain = await lastSaosnetCrossAnchor();
     if (cache && Date.now() - cache.at < CACHE_TTL_MS) {
-      return NextResponse.json({ ok: true, saosnet: cache.data, cached: true });
+      return NextResponse.json({ ok: true, saosnet: cache.data, crosschain, cached: true });
     }
     const data = await runStatusScript();
     cache = { at: Date.now(), data };
-    return NextResponse.json({ ok: true, saosnet: data, cached: false });
+    return NextResponse.json({ ok: true, saosnet: data, crosschain, cached: false });
   } catch (error) {
     return jsonError(error);
   }

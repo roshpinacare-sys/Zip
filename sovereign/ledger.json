@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-14T21:49:41.017Z",
-  "chainCount": 28,
-  "headHash": "0xccf34beef9f5b209afc6ceaedbaa65fcec044ef9c08b9591662a9c5c0d1596bf",
+  "exportedAt": "2026-09-14T22:41:42.492Z",
+  "chainCount": 31,
+  "headHash": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -61,7 +61,7 @@
     },
     {
       "id": "cmu1r4lfs000fsqvb9d0nyqmm",
-      "name": "weave-market-regulator",
+      "name": "weave-market-regulator-v1-retired",
       "role": "DAEMON",
       "ethAddress": "0x3D0ab9984887DfEc431434017808E0B802e96184",
       "pubKeyHex": "0x043c200e6c4834ee55c92a3778408ff0a897cf137558a64cc53d3ea264eab5d7c19bcee452f1cf16aa2a3807dfcd85e72947b1250428e1f7b2c3475169929cd6cc",
@@ -69,6 +69,28 @@
       "nonce": 0,
       "rotatedAt": null,
       "createdAt": "2026-09-14T21:25:10.408Z"
+    },
+    {
+      "id": "cmu1tp2vg0000sqame6y2tom6",
+      "name": "weave-market-regulator",
+      "role": "DAEMON",
+      "ethAddress": "0x3EE9c78D8bb3cBd9116147E2f99bB28dCa5D1D4d",
+      "pubKeyHex": "0x04ea6a2f0cf5d964a8c8196c4bfba5eac94d925b2d222975e9af1c3a62ceb5a3432df023bd383ba2c948121f45dd0c226a7fd8d723ecce6b110f1d8ba35a9593cb",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-14T22:37:05.357Z"
+    },
+    {
+      "id": "cmu1tpcgz000rsqvbsefufeq9",
+      "name": "weave-saosnet-witness",
+      "role": "DAEMON",
+      "ethAddress": "0x92678d1Fef5724265BCd263A7394D1C226b5f4e3",
+      "pubKeyHex": "0x044ad5f09e78798fb62af0fa9db8e24d1c0b93c6eed5b5cbc92ff81383c962e36507a47332b30f544008cdb59a738ee5e0b1e566b214e971341adc9adbe8b52a0e",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-14T22:37:17.795Z"
     }
   ],
   "attestations": [
@@ -491,6 +513,51 @@
       "sig": "0x9a692d7c762526ee0b57d134cb4339c52ce068c840b7eaa1eb6190c8ca5df2f00e836876f762a36b76b85b43e983367372e46fa413bf6af65853fecbd7dc120d1c",
       "signerAddr": "0x3D0ab9984887DfEc431434017808E0B802e96184",
       "createdAt": "2026-09-14T21:49:40.989Z"
+    },
+    {
+      "id": "cmu1tp2vs0002sqam6uap5388",
+      "seq": 29,
+      "agentId": "cmu1tp2vg0000sqame6y2tom6",
+      "claim": "מיגרציית רגולטור השוק לזהות נגזרת-seal: הזהות הישנה (מפתח אקראי, מקומי בלבד) פורשה עם 3 אימותים חתומים שנשארים עליה לצמיתות; מעתה הרגולטור נגזר דטרמיניסטית ממפתח הרשת שב-seal — אותה כתובת בכל סביבה, השלמה-עצמית אחרי כל ייבוא.",
+      "claimType": "AUDIT",
+      "evidence": "kind=daemon-migration · daemon=weave-market-regulator · retiredName=weave-market-regulator-v1-retired · retiredAddress=0x3D0ab9984887DfEc431434017808E0B802e96184 · attestationsUnderRetired=3 · newAddress=0x3EE9c78D8bb3cBd9116147E2f99bB28dCa5D1D4d · derivation=weave-daemon/v1 · keccak256(version:name:networkKey) · reason=ledger.json חסר-סודות — זהות אקראית לא שורדת ייבוא בענן; נגזרת-seal משלימה את עצמה בכל מקום · at=2026-09-14T22:37:05.357Z",
+      "evidenceHash": "0x614ce8544d9bc2ce4358b799de25b96a0db3736c5890adbfe7c844a13d0dfb3b",
+      "status": "VERIFIED",
+      "prevHash": "0xccf34beef9f5b209afc6ceaedbaa65fcec044ef9c08b9591662a9c5c0d1596bf",
+      "entryHash": "0x3772a69287fa0bf913d5448d59763cc2c75a24ff178a5b1dc4410ef2dd7bf07e",
+      "sig": "0x248df6fc4a2c6d0d8d41832341d97cc080949d706826bf96ddfd3c74c1146a9b2b9971913cb15b694aa3b65aadd0fc4e1b191a428181967b51eb530e930d6e431c",
+      "signerAddr": "0x3EE9c78D8bb3cBd9116147E2f99bB28dCa5D1D4d",
+      "createdAt": "2026-09-14T22:37:05.359Z"
+    },
+    {
+      "id": "cmu1tpch7000tsqvbzw3rq5vx",
+      "seq": 30,
+      "agentId": "cmu1tpcgz000rsqvbsefufeq9",
+      "claim": "עוגן-עוגנים: שרשרת הכלכלה של הצי (saos-net/0) נמדדה ב-replay דטרמיניסטי — stateRoot=…e6601494 בגובה 223,838 — ו שתי שרשראות האמת מעידות זו על זו.",
+      "claimType": "CROSSCHAIN",
+      "evidence": "net=saos-net/0 · stateRoot=29778d14850f7eb8a9f8415201dd0d8c109a5fc2342972399dfad56be6601494 · genesisHash=5a8b98311c8333efd361fc88972d3f0936216d6ff0e6d39ea7d8e30a35a12ad8 · height=223838 · lastBlockHash=55bb6f54dbce66b369f3848a2eda46d9cc759cd57a858133efdd37e4f9895fc1 · snapshotHeight=223800 · blocksInPack=512 · replay: hash=38/38 linkage=38/38 snapshotSelf=true · rootMatch=true heightMatch=true · soldiers=11 lpHolders=10 walletAgents=12 · issuer=headcorner · measuredBy=saosnet-status.cjs (deterministic replay) · at=2026-09-14T22:37:17.791Z",
+      "evidenceHash": "0xd15efa09a5deb981a13b54e92c511685cbfe31ffbbcaf790b1f85b309fcd1fd3",
+      "status": "VERIFIED",
+      "prevHash": "0x3772a69287fa0bf913d5448d59763cc2c75a24ff178a5b1dc4410ef2dd7bf07e",
+      "entryHash": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
+      "sig": "0xed49d852675103e1873e858ede6341d93fe23b2489d351abf887192065460cd2159d745a6bbb41d307ce2f912bdf7ea58d654232de529103ef5e5c1c36c2fbb61c",
+      "signerAddr": "0x92678d1Fef5724265BCd263A7394D1C226b5f4e3",
+      "createdAt": "2026-09-14T22:37:17.797Z"
+    },
+    {
+      "id": "cmu1tv0la0001sq2pw9fzry8e",
+      "seq": 31,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 30 רשומות, חתימות 30/30, head תואם. הרץ: ה-runner הראשי (סנדבוקס/מקומי).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=local-primary · gitHead=f965f36 · repo=roshpinacare-sys/weave-core · verify: valid=true checked=30 sigOk=30 sigFail=0 firstBreak=null · recomputedHead=0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7 · headHash=0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7 · at=2026-09-14T22:41:42.322Z",
+      "evidenceHash": "0x6219dc92fdea3f981fb2b1b391c39b02e313525dbb0293cefcb6efc0e744f4d3",
+      "status": "VERIFIED",
+      "prevHash": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
+      "entryHash": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
+      "sig": "0x981ff4d2b614489862b90f31db5138ba725c0bb116a08a35637fdad637607e10580f9b92db639bfde0554373c518a80ffc20fa29da4f7ac3292632d73085ed3b1c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-14T22:41:42.328Z"
     }
   ],
   "checkpoints": [
@@ -850,6 +917,57 @@
       "anchorTx": null,
       "calldata": "0xeecdf927ccf34beef9f5b209afc6ceaedbaa65fcec044ef9c08b9591662a9c5c0d1596bf",
       "createdAt": "2026-09-14T21:49:41.009Z"
+    },
+    {
+      "id": "cmu1tp2wc0003sqampoefxyne",
+      "index": 22,
+      "attFrom": 29,
+      "attTo": 29,
+      "leafCount": 1,
+      "root": "0x3772a69287fa0bf913d5448d59763cc2c75a24ff178a5b1dc4410ef2dd7bf07e",
+      "prevRoot": "0xccf34beef9f5b209afc6ceaedbaa65fcec044ef9c08b9591662a9c5c0d1596bf",
+      "entryHash": "0x4064dbf0758955942bd801a5ace1618738bad3cb39b468b3f0c3b513b203bc57",
+      "sig": "0x56412a149b0abece7b30a3e3ec0e4dc3d69496bf26b0ef1d31f09f3b126083cd49deeabdfc7972ab621bc032c23f46898ee5c8323e228ecbfc85012202939ca21b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9273772a69287fa0bf913d5448d59763cc2c75a24ff178a5b1dc4410ef2dd7bf07e",
+      "createdAt": "2026-09-14T22:37:05.388Z"
+    },
+    {
+      "id": "cmu1tpchv000usqvba68cip90",
+      "index": 23,
+      "attFrom": 30,
+      "attTo": 30,
+      "leafCount": 1,
+      "root": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
+      "prevRoot": "0x3772a69287fa0bf913d5448d59763cc2c75a24ff178a5b1dc4410ef2dd7bf07e",
+      "entryHash": "0x84854a3f1bb66e0a0add2ff9260112ed97d60d16b7353f825caabffba2820f2d",
+      "sig": "0xc74c9200c73b3ae7258d7da330c815c5ca5dce5097cf5b44718f6227ce82bf727c38138a1ccfdca1b5d89bf3d1e815bf59bea5220ae36d5c5a59dd831b4b16361c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
+      "createdAt": "2026-09-14T22:37:17.827Z"
+    },
+    {
+      "id": "cmu1tv0lq0002sq2puozc7zvu",
+      "index": 24,
+      "attFrom": 31,
+      "attTo": 31,
+      "leafCount": 1,
+      "root": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
+      "prevRoot": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
+      "entryHash": "0x5b0c7d186324400c34e2418f2e753b6c28a482fff4e30085b2bb7889c0713aa7",
+      "sig": "0xbe331ba96ecd8d4abf1353590ccca6da1234c7c74bc53e31f03090f55253308a1b7ee63efee70860f376f7614e0d65786339c6cbe2b1af75f45bdb2e9af12c5a1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf92711596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
+      "createdAt": "2026-09-14T22:41:42.350Z"
     }
   ],
   "networkKey": {

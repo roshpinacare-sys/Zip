@@ -1,51 +1,49 @@
 {
-  "at": "2026-09-14T21:49:40.925Z",
+  "at": "2026-09-14T22:41:42.322Z",
   "runner": "local-primary",
   "verdict": "LEDGER-VALID",
   "verify": {
     "valid": true,
-    "checked": 26,
-    "sigOk": 26,
+    "checked": 30,
+    "sigOk": 30,
     "sigFail": 0,
     "firstBreak": null,
     "errors": [],
-    "recomputedHead": "0xa4821c7df197f333b16a17871164d65efd06b85082ef7c59254c60b83c3f896d",
-    "headHash": "0xa4821c7df197f333b16a17871164d65efd06b85082ef7c59254c60b83c3f896d"
+    "recomputedHead": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7",
+    "headHash": "0x723b30a711f14343cd40885ca6ade756421cfea79d9e200c1429acea3f547bb7"
   },
   "beat": {
-    "seq": 27,
-    "entryHash": "0xacbf88fbf7aa2e093777e9db7303ad64700ff43ffb1bd6bd8462cf2ef8bae098",
+    "seq": 31,
+    "entryHash": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
     "status": "VERIFIED",
     "checkpoint": {
-      "index": 20,
-      "root": "0xacbf88fbf7aa2e093777e9db7303ad64700ff43ffb1bd6bd8462cf2ef8bae098",
-      "attFrom": 27,
-      "attTo": 27
+      "index": 24,
+      "root": "0x11596bb0e7b012ed9e6ed0e467765d55f56113f8c745777b02889b5589e2317d",
+      "attFrom": 31,
+      "attTo": 31
     }
   },
   "gatesClosed": [],
   "context": {
     "runner": "local-primary",
-    "gitHead": "6eb6576",
+    "gitHead": "f965f36",
     "repoSlug": "roshpinacare-sys/weave-core"
   },
   "market": {
-    "settled": [
-      {
-        "marketSeq": 2,
-        "outcome": "YES",
-        "attSeq": 28,
-        "winners": 1,
-        "pot": 600
-      }
-    ],
+    "settled": [],
     "refunded": [],
-    "attSeqs": [
-      28
-    ],
-    "checkpoint": {
-      "index": 21,
-      "root": "0xccf34beef9f5b209afc6ceaedbaa65fcec044ef9c08b9591662a9c5c0d1596bf"
-    }
+    "attSeqs": [],
+    "checkpoint": null
+  },
+  "crosschain": {
+    "status": "SKIPPED",
+    "reason": "stateRoot זה כבר מעיד בספר (att 30) — המצב לא השתנה מאז; דילוג כנה",
+    "attSeq": 30,
+    "net": {
+      "netVersion": "saos-net/0",
+      "height": 223838,
+      "stateRoot": "29778d14850f7eb8a9f8415201dd0d8c109a5fc2342972399dfad56be6601494"
+    },
+    "checkpoint": null
   }
 }

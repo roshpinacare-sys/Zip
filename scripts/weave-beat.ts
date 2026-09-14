@@ -24,6 +24,7 @@ import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
 import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, type BeatContext } from "@/lib/weave/beat";
 import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
+import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosschain";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -84,8 +85,8 @@ function secretGate(stagedDiff: string): string | null {
 // 64hex — כולל devKeyHex אמיתי או ערך חשוד בטקסט — נשארת ונתפסת ע"י השער.
 function filterKnownHashes(diff: string): string {
   const KNOWN_HASH_FIELDS =
-    /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx)"\s*:/i;
-  const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx)=/i;
+    /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash)"\s*:/i;
+  const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash)=/i;
   return diff
     .split("\n")
     .filter((line) => {
@@ -231,21 +232,62 @@ async function main(): Promise<void> {
     }
   }
 
-  // 6. ייצוא הספר + דוח (הסליקות של 5.5 כלולות — הספר כולל את השוק)
+  // 5.6 עוגן-עוגנים — הצלבת SAOS-NET בספר בכל פעימה (Task 17):
+  //     שרשרת הכלכלה של הצי נמדדת ב-replay דטרמיניסטי; stateRoot שטרם
+  //     העיד בספר ⇒ אימות CROSSCHAIN חתום ⇒ checkpoint מכסה ⇒ העוגנים
+  //     מעידים עליו החוצה ב-$0 (Steem/Hive ב-:20 · ZERO ב-:30). אותו
+  //     שורש ⇒ דילוג כנה; replay שבור ⇒ REFUSED — לא נכתבת עדות על
+  //     מצב בלתי-מאומת (fail-closed). ההצלבה היא העשרה — כשל תפעולי
+  //     בה (runner/סביבה) נרשם בכנות ולא מפיל את הלב.
+  let crossAnchor: CrossAnchorResult | null = null;
+  let crossCheckpoint: { index: number; root: string } | null = null;
+  if (result.verdict === "LEDGER-VALID") {
+    try {
+      crossAnchor = await crossAnchorSaosnet();
+      if (crossAnchor.status === "ATTESTED" && crossAnchor.attSeq !== null) {
+        const cp = await createCheckpointNow();
+        if (cp) crossCheckpoint = { index: cp.index, root: cp.root };
+        console.log(
+          `[weave-beat] עוגן-עוגנים: SAOS-NET הוצלב — att${crossAnchor.attSeq} · h=${crossAnchor.net.height} · stateRoot=…${crossAnchor.net.stateRoot.slice(-8)}${crossCheckpoint ? ` · cp#${crossCheckpoint.index}` : ""}`
+        );
+      } else if (crossAnchor.status === "REFUSED") {
+        console.log(`[weave-beat] עוגן-עוגנים: REFUSED — ${crossAnchor.reason}`);
+      }
+    } catch (crossErr) {
+      console.log(
+        `[weave-beat] עוגן-עוגנים: נדחה תפעולית — ${crossErr instanceof Error ? crossErr.message : String(crossErr)}`
+      );
+    }
+  }
+
+  // 6. ייצוא הספר + דוח (הסליקות של 5.5 וההצלבה של 5.6 כלולות)
   const snap = await exportLedger();
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(snap, null, 2) + "\n");
-  const report = marketSettlement
-    ? {
-        ...result,
-        market: {
-          settled: marketSettlement.settled,
-          refunded: marketSettlement.refunded,
-          attSeqs: marketSettlement.attSeqs,
-          checkpoint: marketCheckpoint,
-        },
-      }
-    : result;
+  const report = {
+    ...result,
+    ...(marketSettlement
+      ? {
+          market: {
+            settled: marketSettlement.settled,
+            refunded: marketSettlement.refunded,
+            attSeqs: marketSettlement.attSeqs,
+            checkpoint: marketCheckpoint,
+          },
+        }
+      : {}),
+    ...(crossAnchor
+      ? {
+          crosschain: {
+            status: crossAnchor.status,
+            reason: crossAnchor.reason,
+            attSeq: crossAnchor.attSeq,
+            net: crossAnchor.net,
+            checkpoint: crossCheckpoint,
+          },
+        }
+      : {}),
+  };
   fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
   console.log(
     `[weave-beat] ledger.json ייוצא: ${snap.chainCount} אימותים · head=${snap.headHash.slice(0, 18)}…`
@@ -283,7 +325,11 @@ async function main(): Promise<void> {
   const marketNote = marketSettlement
     ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
     : "";
-  const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig${marketNote}`;
+  const crossNote =
+    crossAnchor && crossAnchor.status === "ATTESTED" && crossAnchor.attSeq !== null
+      ? ` · crosschain att${crossAnchor.attSeq}`
+      : "";
+  const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig${marketNote}${crossNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
   const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
   console.log(`[weave-beat] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);

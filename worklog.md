@@ -538,3 +538,40 @@ Stage Summary:
 - SAOS-NET הפך מארכיון קפוא לרכיב מאומת-חי: replay מתמטי בכל טעינה; כל שינוי של בית ב-pack ייתפס (root mismatch ⇒ REFUTED).
 - מצב סופי: 28 אימותים (att 27 MEASUREMENT + att 28 MARKET), 21 checkpoints, cp#21 מכסה את הסליקה; m#1 (ANCHOR≥9) ו-m#3 (L2 בשבוע) פתוחים וייסגרו ע"י המכריע האוטומטי במועדם.
 - נותר (העשרה): הצלבת stateRoot של SAOS-NET כעלה בספר weave-core · חיבור THE-DOOR לקו ה-ZERO כשיפתח relayer · סוגי מטרות נוספים לשוק (גובה בלוק ZERO) · סריקת dup מתוזמנת מפוצלת בענן.
+
+---
+Task ID: 16
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "תמשיך" — תיעוד + משמרת גיט לקרנל (saos-verify בגיט) + lint + דחיפה (6eb6576..f965f36) + אימות E2E סופי
+
+Work Log:
+- [רשומה שוחזרה רטרואקטיבית — המקור אבד בניתוק הקשר של הסשן הקודם; העבודה עצמה קיימת בגיט]
+- סאגת SAOS-NET (runner + API + כרטיס UI) + המכריע האוטומטי (weave-beat §5.5) תועדו, נלחמו ב-lint, ונדחפו: 6eb6576 (דוקטרינות) ← f965f36 (Task 15 מלא).
+- אימות E2E סופי מהדפדפן: הדף חי, כרטיס SAOS-NET VERIFIED, מובייל 390px נקי, footer תקין. origin/main = f965f36 = HEAD — מסונכרן.
+
+Stage Summary:
+- כל 16 המשימות עד כה נדחפו ומאומתות; הספר: 28 אימותים · 21 checkpoints · 6 סוכנים.
+
+---
+Task ID: 17
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "תמשיך" — פריט ההעשרה הראשון מהתוכנית: עוגן-עוגנים — הצלבת stateRoot של SAOS-NET כעלה חתום בספר THE WEAVE (שתי שרשראות האמת מעידות זו על זו ⇒ עיגון חיצוני ב-$0)
+
+Work Log:
+- סקירת המשך (קריאה בלבד): worklog (540 שורות, עד Task 15) · SOVEREIGNTY.md §1-§11 · ECOSYSTEM-ROADMAP.md · מצב גיט (f965f36 נקי, origin מסונכרן) · dev.log חי · ledger.json (28 att · 21 cp · 21 marketEvents; m#1 ו-m#3 פתוחים).
+- **באג חבוי נתפס בקריאה לפני הכתיבה (שורש, לא תסמין)**: זהויות DAEMON שנוצרו עם generateIdentity() (אקראי) חיות רק ב-DB של המכונה שיצרה אותן — ledger.json חסר-סודות משחזר בענן בלי מפתח, ו-ensureMarketRegulator fail-closed היה זורק חריגה ⇒ הפעימה העננית שתסלק שוק (m#1 פג תוקף 2026-09-15T12:00Z — סליקה ראשונה צפויה בפעימת 06:00Z) היתה קורסת ואדומה.
+- **התיקון המבני — src/lib/weave/daemons.ts**: זהויות DAEMON נגזרות דטרמיניסטית ממפתח הרשת שב-seal — devKey = keccak256("weave-daemon/v1:<name>:<networkKey>") — אותה כתובת בכל סביבה; ensureDaemonAgent עושה create-or-self-heal (ייבוא ענן משאיר בלי מפתח ⇒ השלמה מהגזירה, בדיוק כמו ensureCloudAgent/ensureNetworkKeyFromSeal); mismatch בכתובת ⇒ fail-closed.
+- **מיגרציית הרגולטור (scripts/weave-daemon-migrate.ts, אידמפוטנטי)**: הישנה (אקראית, 3 אימותים חתומים — אין רוטציה לבעלי היסטוריה, הכתובת קפואה ב-entryHash) פרשה לשם "weave-market-regulator-v1-retired" — כתובת ואימותים נשארים עליה; החדשה נוצרה מהגזירה (0x3EE9c78D…); ההעברה מתועדת כאימות AUDIT חתום (att 29) ⇒ cp#22 ⇒ ledger.json יוּצא. הוכחת self-heal במדידה: מפתח נמחק (סימולציית ייבוא ענן) ⇒ הושלם מהגזירה ⇒ אותה כתובת — PASS.
+- **המנוע — src/lib/weave/crosschain.ts**: runSaosnetReplay (execFile node + מטמון 60ש') · ensureSaosnetWitness (DAEMON נגזר-seal, אותה מכניקה) · crossAnchorSaosnet — fail-closed (replay שאינו FULLY-VERIFIED ⇒ REFUSED, לא נכתבת עדות) · דה-דופליקציה לפי stateRoot (אותו שורש = אותה עדות, דילוג כנה) · אימות CROSSCHAIN חתום עם ראיה מלאה לחישוב-מחדש (stateRoot/genesisHash/height/lastBlockHash/hash+linkage/חיילים/LP/ארנקים — hex חשוף בלי 0x, השער בטוח) · lastSaosnetCrossAnchor (אינדקס תצוגה).
+- **API**: POST /api/weave/saosnet/anchor — סולם ההוכחות המלא (עדות ⇒ createCheckpointNow ⇒ exportLedger); GET /api/weave/saosnet הורחב בשדה crosschain (האימות האחרון + ניתוח שדות הראיה). types.ts — CROSSCHAIN נוסף ל-ClaimType.
+- **פעימה**: weave-beat §5.6 — הצלבה אוטומטית בכל פעימה אחרי המכריע; checkpoint אם נכתבה עדות; try/catch תפעולי (העשרה לא מפילה את הלב — נרשם בכנות בדוח); הדוח נושא crosschain מעתה; הודעת ה-commit כוללת crosschain att. שער-הסודות למד שדות (stateRoot|genesisHash|lastBlockHash) — אותו שיעור שנלמד בקו ה-ZERO.
+- **הוכחות חיות במדידה**: (1) API: ATTESTED — att 30, stateRoot 29778d14…, h=223,838, cp#23, ledgerExported ✓; (2) הרצה-חוזרת: SKIPPED כנה ("stateRoot זה כבר מעיד — att 30"); (3) אימות ספר: 31/31 חתימות תקינות; (4) פעימה מלאה (--no-push): verdict=LEDGER-VALID 30/30 ⇒ att 31 ⇒ cp#24 ⇒ ייצוא 31 — §5.6 שותק בכנות (אותו stateRoot).
+- **UI**: תיבת "עוגן-עוגנים" בכרטיס SAOS-NET (טאב ריבונות, אחרי תיבת ה-replay): תג VERIFIED · att 30 · h=223,838 · מועד העדות · HashChip stateRoot מוצלב · השוואה חיה מול ה-replay הנוכחי (תואם ✓ / התקדם — הפעימה הבאה תצלב) · כפתור "הצלב בספר (חתום)" עם טוסט תוצאה · הסבר דוקטרינה.
+- **E2E בדפדפן**: הטאב חי; הכרטיס מציג את תיבת ההצלבה המלאה; לחיצה על הכפתור ⇒ טוסט "דילוג" כנה (דה-דופליקציה מה-UI); מובייל 390px: אפס גלישה (390=390), footer צמוד (9252=גלילה מלאה); אפס שגיאות קונסולה/עמוד. בדיקה חזותית VLM: תיבה נקייה, כפתור מעוצב, hash-chip תקין, אפס פגמים. צילומים: sovereign-net/cross-anchor-{desktop,mobile,clicked}.png. lint נקי.
+- מסמכים: SOVEREIGNTY.md — §12 דוקטרינת עוגן-העוגנים (הכלל/העד/המדידה/המשמעת/הקצב/החיים/ההוכחה/תווית אמת) + §10 זהות הרגולטור + §11 סגירת "ההמשך הטבעי"; ECOSYSTEM-ROADMAP.md — שורת עוגן-עוגנים במפת האוטומציה + עדכון שורת saos-verify.
+
+Stage Summary:
+- עוגן-עוגנים חי: SAOS-NET מוצלב בספר — att 30 חתום (stateRoot 29778d14… · h=223,838 · replay 38/38) ⇒ cp#23 מכסה ⇒ העוגנים הבאים (:20/:30) מעידים עליו החוצה ב-$0. שתי שרשראות האמת מעידות זו על זו — וכשהצי יקדם את ה-pack, הפעימה הבאה תצלב את השורש החדש מעצמה: הגשר נבנה בכל תנועה.
+- באג ענן חבוי נסגר בשורש לפני שהתפוצץ: זהויות DAEMON נגזרות-seal מעתה (self-heal מוכח במדידה); הרגולטור מוּגרר במיגרציה מתועדת (att 29) — היסטוריית החתימות שלמה, הענן יכול לסלק שווקים בלי לקרוס.
+- מצב סופי: 31 אימותים (29 VERIFIED + att 29 AUDIT + att 30 CROSSCHAIN), 24 checkpoints, 8 סוכנים (+עד ההצלבה, +הרגולטור הנגזר; הפורשת מתועדת), 21 אירועי שוק; m#1 (ANCHOR≥9 עד מחר 12:00Z) ו-m#3 פתוחים — המכריע האוטומטי יסגור במועדם, כעת גם בענן.
+- נותר (העשרה): הצלבת שורשי anchor-baseline באותה מכניקה · עדות הפוכה (SAOS-NET מעיד על checkpoint שלנו) כשיפתח relayer · סוגי מטרות נוספים לשוק (גובה בלוק ZERO) · סריקת dup מתוזמנת מפוצלת בענן.

@@ -44,7 +44,7 @@
 | `sovereign-net/toolkit/` | 5 zips + פריצה (4245 קבצים) | ה-zips ב-Project-files; **השלמות ניתנת לאימות מול שורש המרקל בספר** | ANCHORED (היום) |
 | `sovereign-net/staging/` | ייצוא הבימה לדחיפה | הריפו Zip עצמו | DERIVED |
 | `sovereign-net/steem-ref/` | דפוסי הצי (cloud-heart, gitkeeper, vault) | הריפו steem | DERIVED |
-| `saos-verify/` | שירות אימות חלוץ (core/genesis/node) — **משולב חי בקונסולה מ-2026-09-14**: replay דטרמיניסטי בכל טעינה (scripts/saosnet-status.cjs ⇒ /api/weave/saosnet ⇒ כרטיס SAOS-NET) | נגזר מריפו פלטפורמה; האימות מתמטי וחי | DERIVED + REAL (replay) |
+| `saos-verify/` | שירות אימות חלוץ (core/genesis/node) — **משולב חי בקונסולה מ-2026-09-14**: replay דטרמיניסטי בכל טעינה (scripts/saosnet-status.cjs ⇒ /api/weave/saosnet ⇒ כרטיס SAOS-NET) · **מוצלב בספר מ-2026-09-14 (Task 17)**: ה-stateRoot של הרשת מעיד כאימות CROSSCHAIN חתום בכל פעימה ⇒ checkpoint ⇒ עיגון ב-$0 | נגזר מריפו פלטפורמה; האימות מתמטי וחי | DERIVED + REAL (replay + crosschain) |
 | `download/` `upload/` `tool-results/` `agent-ctx/` | מעבר: הורדות, PAT (אף פעם לא בגיט!), דוחות כלים | — | TRANSIENT |
 | `examples/` `skills/` `tests/` | דמו websocket, ספריית skills, סקריפטי סביבה | — | REFERENCE |
 | `mini-services/` | ריק — שמור לשירותים עתידיים | — | RESERVED |
@@ -76,6 +76,7 @@ weave-anchor-zero (Zip)    — כל 6 שעות ב-:30: שורש ה-checkpoint �
 console-publish (Console)  — כל 6 שעות ב-:40: render.mjs קורא את קו העוגנים מ-Steem RPC ציבורי (חסר-מפתח) ⇒ status.json ⇒ commit (המשואה הציבורית) ⇒ Pages
 cloud-heart     (steem)    — לב הצי: TAKEOVER פעיל מאז מות הסנדבוקס שלו (2026-09-12) — רץ בכוחות עצמו
 ה-runner הזה (סנדבוקס)    — פעימה מלאה בעת עבודה; מוות שלו לא מפיל דבר (הוכח ב-att 13, SOV-3)
+עוגן-עוגנים   (Zip/פעימה) — §5.6 בכל פעימה: SAOS-NET נמדד ב-replay ⇒ stateRoot חדש ⇒ אימות CROSSCHAIN חתום ⇒ checkpoint ⇒ העוגנים מעידים ב-$0 (הוכח: att 30, cp#23; אותו שורש ⇒ דילוג כנה)
 ```
 
 ---

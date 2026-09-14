@@ -19,6 +19,7 @@ import {
   Globe2,
   HeartPulse,
   Landmark,
+  Link2,
   Lock,
   RefreshCw,
   Server,
@@ -298,6 +299,30 @@ interface SaosnetDTO {
   truthLabel: string;
 }
 
+// ── עוגן-עוגנים — ההצלבה של SAOS-NET בספר (מה-API) ──
+
+interface CrosschainInfo {
+  attSeq: number;
+  stateRoot: string | null;
+  height: number | null;
+  netVersion: string | null;
+  at: string;
+}
+
+interface CrossAnchorResponse {
+  ok: boolean;
+  crossAnchor?: {
+    status: "ATTESTED" | "SKIPPED" | "REFUSED";
+    reason: string;
+    attSeq: number | null;
+    net: { netVersion: string; height: number; stateRoot: string };
+    checkpoint: { index: number; root: string } | null;
+    ledgerExported: boolean;
+    note: string;
+  };
+  error?: string;
+}
+
 const RELATION_META: Record<
   SovereigntyDTO["ledger"]["relation"],
   { label: string; tone: string; hint: string }
@@ -337,6 +362,8 @@ export function SovereigntyTab() {
   const [syncReport, setSyncReport] = useState<SyncReport | null>(null);
   const [saosnet, setSaosnet] = useState<SaosnetDTO | null>(null);
   const [saosnetState, setSaosnetState] = useState<"loading" | "ready" | "error">("loading");
+  const [crosschain, setCrosschain] = useState<CrosschainInfo | null>(null);
+  const [crossAnchoring, setCrossAnchoring] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -358,15 +385,17 @@ export function SovereigntyTab() {
   }, [load]);
 
   // SAOS-NET — replay דטרמיניסטי בצד השרת (כבד יחסית; מטומנן 60 שניות)
+  // + אינדקס ההצלבה — אימות ה-CROSSCHAIN האחרון בספר (עוגן-עוגנים)
   useEffect(() => {
     let alive = true;
     fetch("/api/weave/saosnet", { cache: "no-store" })
       .then((r) => r.json())
-      .then((json: { ok: boolean; saosnet?: SaosnetDTO }) => {
+      .then((json: { ok: boolean; saosnet?: SaosnetDTO; crosschain?: CrosschainInfo | null }) => {
         if (!alive) return;
         if (json.ok && json.saosnet) {
           setSaosnet(json.saosnet);
           setSaosnetState("ready");
+          setCrosschain(json.crosschain ?? null);
         } else {
           setSaosnetState("error");
         }
@@ -404,6 +433,40 @@ export function SovereigntyTab() {
       setSyncing(false);
     }
   }, [load]);
+
+  // עוגן-עוגנים — המסלול הידני (אותה מכניקה של הפעימה §5.6): המדידה
+  // קובעת, לעולם לא הלקוח — replay מלא בשרת ⇒ אימות CROSSCHAIN חתום
+  const runCrossAnchor = useCallback(async () => {
+    setCrossAnchoring(true);
+    try {
+      const res = await fetch("/api/weave/saosnet/anchor", { method: "POST" });
+      const json = (await res.json()) as CrossAnchorResponse;
+      if (!json.ok || !json.crossAnchor) {
+        throw new Error(json.error ?? "ההצלבה נכשלה");
+      }
+      const ca = json.crossAnchor;
+      if (ca.status === "ATTESTED") {
+        toast.success(
+          `SAOS-NET הוצלב בספר — att ${ca.attSeq} · cp#${ca.checkpoint?.index ?? "?"} · העוגנים יעידו ב-$0`
+        );
+        setCrosschain({
+          attSeq: ca.attSeq ?? 0,
+          stateRoot: ca.net.stateRoot,
+          height: ca.net.height,
+          netVersion: ca.net.netVersion,
+          at: new Date().toISOString(),
+        });
+      } else if (ca.status === "SKIPPED") {
+        toast.info(ca.reason);
+      } else {
+        toast.error(ca.reason);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ההצלבה נכשלה");
+    } finally {
+      setCrossAnchoring(false);
+    }
+  }, []);
 
   if (loading && !data) {
     return (
@@ -1262,6 +1325,71 @@ export function SovereigntyTab() {
                 snapshot self: {saosnet.verify.snapshotSelf ? "PASS" : "FAIL"} · replayed {saosnet.verify.replayed} blocks ·
                 hash {saosnet.verify.hashMatch} · linkage {saosnet.verify.linkage} · root {saosnet.verify.rootMatch ? "MATCH" : "MISMATCH"}
               </p>
+            </div>
+
+            {/* עוגן-עוגנים — ההצלבה של שרשרת הצי בספר של THE WEAVE */}
+            <div className="rounded-md border border-violet-500/20 bg-violet-500/5 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-400">
+                  <Link2 className="h-3.5 w-3.5" />
+                  עוגן-עוגנים — ההצלבה בספר של THE WEAVE
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void runCrossAnchor()}
+                  disabled={crossAnchoring}
+                  className="h-7 gap-1.5 px-2.5 text-[11px]"
+                >
+                  {crossAnchoring ? (
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Link2 className="h-3 w-3" />
+                  )}
+                  הצלב בספר (חתום)
+                </Button>
+              </div>
+              {crosschain ? (
+                <>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <StatusBadge status="VERIFIED" />
+                    <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
+                      att {crosschain.attSeq} · {crosschain.netVersion ?? "—"} ·
+                      h={crosschain.height?.toLocaleString("en-US") ?? "?"}
+                    </span>
+                    <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                      מועד העדות:{" "}
+                      <span dir="ltr" className="font-mono">
+                        {new Date(crosschain.at).toLocaleTimeString("he-IL")}
+                      </span>
+                    </span>
+                  </div>
+                  {crosschain.stateRoot && (
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <HashChip value={crosschain.stateRoot} label="stateRoot מוצלב" />
+                      {crosschain.height === saosnet.net.height ? (
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                          תואם ל-replay החי ✓ — הספר מעיד על המצב הנוכחי
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-amber-600 dark:text-amber-400">
+                          ה-pack התקדם מאז העדות (עדות h={crosschain.height?.toLocaleString("en-US")} · נוכחי h={saosnet.net.height.toLocaleString("en-US")}) — הפעימה הבאה תצלב את החדש
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    העדות נכתבה כאימות CROSSCHAIN חתום (עד נגזר-seal) ⇒ checkpoint מכסה ⇒ העוגנים
+                    (Steem/Hive ב-:20 · ZERO-EVM ב-:30) מעידים עליה החוצה ב-$0. אותו stateRoot ⇒ דילוג
+                    כנה; replay שבור ⇒ REFUSED — לא נכתבת עדות על מצב בלתי-מאומת.
+                  </p>
+                </>
+              ) : (
+                <p className="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                  שרשרת הכלכלה של הצי טרם הוצלבה בספר — הפעימה (§5.6) או הכפתור יכתבו את העדות
+                  החתומה הראשונה: replay מלא ⇒ אימות CROSSCHAIN ⇒ checkpoint ⇒ עיגון ב-$0.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6">

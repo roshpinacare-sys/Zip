@@ -35,6 +35,7 @@ import { db } from "@/lib/db";
 import { GENESIS_HASH, hashText } from "./chain";
 import { recoverFromDigestEip191, signDigestEip191 } from "./evm";
 import { appendAttestation } from "./ledger";
+import { ensureDaemonAgent } from "./daemons";
 
 export const MARKET_GENESIS = GENESIS_HASH;
 export const STARTING_POINTS = 1000; // הון פתיחה מוצהר — נקודות אמת, לא כסף
@@ -737,24 +738,11 @@ async function writeMarketAttestation(claim: string, evidence: string): Promise<
   return { seq: att.seq };
 }
 
-/** זהות רגולטור השוק — DAEMON ייעודי; נוצר בפעם הראשונה שהשוק סולק */
+/** זהות רגולטור השוק — DAEMON נגזר ממפתח הרשת שב-seal (Task 17):
+ *  הגזירה הדטרמיניסטית מבטיחה שהענן (שמייבא את הספר בלי מפתחות) משלים
+ *  את אותו מפתח בדיוק מה-seal ויכול לחתום — self-heal כמו מפתח הרשת.
+ *  הזהות הישנה (אקראית, מקומית בלבד) פרשה במיגרציה מתועדת —
+ *  scripts/weave-daemon-migrate.ts — ואימותיה נשארים חתומים עליה. */
 export async function ensureMarketRegulator(): Promise<{ id: string; name: string; ethAddress: string }> {
-  const existing = await db.agent.findUnique({ where: { name: "weave-market-regulator" } });
-  if (existing && existing.devKeyHex) return existing;
-  if (existing && !existing.devKeyHex) {
-    throw new MarketError("רגולטור השוק קיים ללא מפתח — fail-closed", 500);
-  }
-  const { generateIdentity } = await import("./evm");
-  const identity = generateIdentity();
-  const created = await db.agent.create({
-    data: {
-      name: "weave-market-regulator",
-      role: "DAEMON",
-      ethAddress: identity.address,
-      pubKeyHex: identity.pubKeyHex,
-      devKeyHex: identity.devKeyHex, // ⚠ DEVNET — כמו שאר הסוכנים בדמו
-      status: "ACTIVE",
-    },
-  });
-  return created;
+  return ensureDaemonAgent("weave-market-regulator", "DAEMON");
 }
