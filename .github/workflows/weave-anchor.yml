@@ -1,0 +1,82 @@
+# WEAVE-ANCHOR — קו ה-Steem/Hive מהספר (G2)
+#
+# פעם ביום הענן מעיד על הספר מחוץ לגיטהאב: root של ה-checkpoint האחרון
+# עולה כ-custom_json (saos.weave.core.v1, סמכות posting — אפס סיכון הון)
+# על Steem + Hive. ה-txids חוזרים לספר כאימות ANCHOR חתום.
+#
+# שרשרות ההסתמכות: ledger.json (בגיט) → checkpoint root → השרשראות
+# הציבוריות → txids בראיה חתומה. כל צד שלישי יכול לאמת מה-RPC הציבורי
+# בלי לסמוך עלינו כלל — העד החיצוני של הרשת.
+#
+# משמרת: WEAVE_STEEM_WIF (Actions Secret, sealed-box) — ה-WIF לעולם לא
+# בגיט ולא בלוגים; המקור בכספת הצי. GITHUB_TOKEN לדחיפה — אפס-סוד-נוסף.
+#
+# תקציב: 1 ריצה/יום × ~2 דק' ≈ 60 דק'/חודש לצד הלב (~180).
+
+name: weave-anchor
+
+on:
+  schedule:
+    - cron: '17 7 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'anchor mode — auto: anchor the latest checkpoint root if not yet anchored; dry: build payload, broadcast nothing; verify-only: keyless readback, never broadcast'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - dry
+          - verify-only
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weave-anchor
+  cancel-in-progress: false
+
+jobs:
+  anchor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout origin/main (the sovereign home)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile --no-save 2>/dev/null || bun install --no-save
+
+      - name: Prisma client + DB skeleton
+        run: bunx prisma generate && bunx prisma db push
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+
+      - name: Steem/Hive anchor (witness the ledger on public chains)
+        run: |
+          MODE_FLAG=""
+          case "${{ inputs.mode }}" in
+            dry) MODE_FLAG="--dry" ;;
+            verify-only) MODE_FLAG="--verify-only" ;;
+          esac
+          bun scripts/weave-anchor.ts $MODE_FLAG
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+          WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
+          WEAVE_STEEM_WIF: ${{ secrets.WEAVE_STEEM_WIF }}
+
+      - name: Upload anchor report (evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weave-anchor-report
+          path: sovereign/anchor-report.json
+          retention-days: 30
