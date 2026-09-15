@@ -34,13 +34,26 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { db } from "@/lib/db";
-import { GENESIS_HASH, hashText } from "./chain";
+import { hashText } from "./chain";
 import { recoverFromDigestEip191, signDigestEip191 } from "./evm";
 import { appendAttestation } from "./ledger";
 import { ensureDaemonAgent } from "./daemons";
 import { ZERO_MIN_TARGET_GAP, ZERO_RAIL_ID, zeroBlockHeight } from "./zero";
+import {
+  MARKET_GENESIS as MARKET_GENESIS_CANON,
+  canonicalMarketEvent as canonicalMarketEventCanon,
+  canonicalMarketJson as canonicalMarketJsonCanon,
+  marketEntryHash as marketEntryHashCanon,
+  type MarketEventRecord as MarketEventRecordCanon,
+} from "./market-canon";
 
-export const MARKET_GENESIS = GENESIS_HASH;
+// חוק נאמנות-קוד: הקנון חי ב-market-canon (חסר-DB, זמין ל-replay ציבורי) —
+// כאן רק re-export. אותו קוד חותם בכתיבה ומאמת בחישוב-מחדש.
+export const MARKET_GENESIS = MARKET_GENESIS_CANON;
+export const canonicalMarketEvent = canonicalMarketEventCanon;
+export const canonicalMarketJson = canonicalMarketJsonCanon;
+export const marketEntryHash = marketEntryHashCanon;
+export type MarketEventRecord = MarketEventRecordCanon;
 export const STARTING_POINTS = 1000; // הון פתיחה מוצהר — נקודות אמת, לא כסף
 export const SEQUENCE_MAX_DEPTH = 30; // הימורי-רצף: תקרת דורות (~חודש סבבים יומיים) — רצף לא נצחי, fail-closed
 
@@ -247,44 +260,7 @@ export async function validateTarget(target: unknown): Promise<MarketTarget> {
   }
 }
 
-// ─── ספר האירועים — קנון ושרשרת ──
-
-/** הרשומה בצורתה הקנונית — סדר מפתחות קבוע */
-export interface MarketEventRecord {
-  seq: number;
-  kind: string;
-  payloadHash: string;
-  prevHash: string;
-  createdAtIso: string;
-}
-
-export function canonicalMarketEvent(input: {
-  seq: number;
-  kind: string;
-  payloadHash: string;
-  prevHash: string;
-  createdAt: Date;
-}): MarketEventRecord {
-  return {
-    seq: input.seq,
-    kind: input.kind,
-    payloadHash: input.payloadHash,
-    prevHash: input.prevHash,
-    createdAtIso: input.createdAt.toISOString(),
-  };
-}
-
-/** ה-JSON הקנוני של הרשומה — literal קבוע, כמו בספר האימותים */
-export function canonicalMarketJson(rec: MarketEventRecord): string {
-  return (
-    `{"seq":${rec.seq},"kind":"${rec.kind}","payloadHash":"${rec.payloadHash}",` +
-    `"prevHash":"${rec.prevHash}","createdAtIso":"${rec.createdAtIso}"}`
-  );
-}
-
-export function marketEntryHash(rec: MarketEventRecord): string {
-  return hashText(canonicalMarketJson(rec));
-}
+// ─── ספר האירועים — קנון ושרשרת (ההגדרות ב-market-canon.ts; כאן re-export בלבד) ──
 
 /** הפעלות על ה-payload — סדר שדות קבוע לכל סוג אירוע */
 export interface OpenPayload {

@@ -2,6 +2,10 @@
 // THE WEAVE · Types — חוזה הנתונים המשותף Backend ↔ Frontend
 // ─────────────────────────────────────────────────────────────────────
 
+import type { VitalityDTO } from "./vitality";
+
+export type { VitalityDTO };
+
 export type ClaimType =
   | "MEASUREMENT"
   | "BUILD"
@@ -127,4 +131,6 @@ export interface WeaveStateDTO {
   lastAnchorStatus: string | null;
   stats: Record<string, number>;
   networkAddress: string | null;
+  /** מדד החיים הרשמי (חוק 8) — עבודה מאומתת ליחידת זמן, נספר מהספר */
+  vitality: VitalityDTO;
 }

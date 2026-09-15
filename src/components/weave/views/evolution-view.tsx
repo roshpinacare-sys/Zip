@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CopyButton } from "../shared";
 import { useWeave } from "../store";
 
 const fade = (delay = 0) => ({
@@ -131,12 +132,12 @@ const LAWS: Array<{ n: number; t: string; d: string; map: string; status: LawSta
   { n: 5, t: "הערך חייב להיכנס מבחוץ", d: "לולאה סגורה של אינפלציה→תוכן→מכירה היא rug איטי.", map: "שירותי אימות/עיגון/חישוב-מחדש כמקור ערך חיצוני — בבנייה.", status: "next" },
   { n: 6, t: "רשת שעובדת רק כשהטוקן יקר לא עובדת", d: "שבירת שוויון ב-‎$0: עלות קבועה ~0, קריאות חסרות-מפתח.", map: "עוגן ‎$0 מדוד (ZERO gasPrice 0x0, Graphene חינם) — הוכח בחיים, יום-יום.", status: "enforced" },
   { n: 7, t: "אינפלציה היא חוב", d: "אפס אמיסיה; אם טוקן — נפלט מול עבודה ונשרף בצריכה.", map: "ההון בשוק הוא נקודות מוניטין — אפס כסף, אפס אמיסיה.", status: "enforced" },
-  { n: 8, t: "מדוד משתמשים אמיתיים", d: "חשבון רשום ≠ משתמש פעיל.", map: "אימותים חתומים מאומתים ליחידת זמן — נספרים מה-ledger המיוצא ע״י כל צומת.", status: "enforced" },
+  { n: 8, t: "מדוד משתמשים אמיתיים", d: "חשבון רשום ≠ משתמש פעיל.", map: "מדד החיים הרשמי חי ב-API ובאתר: אימותים/חותמים ב-24ש׳ + רצף ימים — וגם ה-verifier הציבורי מדפיס אותם מהספר.", status: "enforced" },
   { n: 9, t: "קרן בלי deliverable = ברז", d: "מענק נפתח אחרי שהתוצר קיים וניתן להצלבה.", map: "שווקים נפתחים על מטרות נמדדות; pay-on-verification, לא pay-on-promise.", status: "enforced" },
   { n: 10, t: "פיצול אינו תרופה", d: "חוקה רקובה מעתיקה את הריקבון לשרשרת החדשה.", map: "משדרגים במקום: אבולוציה אדיטיבית של אותו ספר — היסטוריה אחת רציפה.", status: "enforced" },
   { n: 11, t: "סיביליות במהירות מכונה", d: "10,000 סוכנים עולה ~‎$0 — שלא יקנו 10,000 קולות.", map: "עלות-כניסה + עירבון שנשרף בהפרה לסוכנים זרים — לפני פתיחת הרשת.", status: "next" },
   { n: 12, t: "ספאם במהירות מכונה", d: "כל entry בספר חייב cost — hash-work, עירבון או מכסה.", map: "מכסות כתיבה + הוכחת-עבודה לכל אימות — בתכנון (Harmony 2026 נסגרה בגין איומי סוכנים).", status: "next" },
-  { n: 13, t: "אמת = חישוב-מחדש", d: "חתימה מוכיחה זהות, לא אמת. Replay של צד שלישי הוא האנטי-הזיה.", map: "verify מריץ replay מלא בכל טעינה — 38/38 חתימות, שחזור מהספר בלבד.", status: "enforced" },
+  { n: 13, t: "אמת = חישוב-מחדש", d: "חתימה מוכיחה זהות, לא אמת. Replay של צד שלישי הוא האנטי-הזיה.", map: "נתיב replay ציבורי חי: bun run verify:book מאמת את כל הספר מ-ledger.json בלי DB ובלי מפתחות — VERIFY.md בריפו.", status: "enforced" },
   { n: 14, t: "תשתית לסוכנים, לא מדיה לאנושים", d: "סוכנים דורשים API יציב, חתימות דטרמיניסטיות, ראיות machine-readable.", map: "ה-API הוא החוזה: כל פעולה דטרמיניסטית, חתומה ומתועדת — retention של סוכן = uptime.", status: "enforced" },
   { n: 15, t: "כשכולם בוטים — קולוזיה ברירת מחדל", d: "הפרדת תפקידים (מציע ≠ מכריע ≠ מרוויח) + מגוון מבנה חובה.", map: "עדי-מערכת נגזרים-דטרמיניסטית (לא נבחרים); הפרדה מלאה — בדור הבא.", status: "next" },
 ];
@@ -158,7 +159,7 @@ const ROADMAP = [
   { icon: ShieldCheck, t: "עלות-כניסה לסוכנים זרים", d: "עירבון שנשרף בהפרה + מכסות כתיבה — סיביליות במהירות מכונה נתקלת במחיר אמיתי (חוק 11–12).", phase: "הדור הבא" },
   { icon: Users, t: "הפרדת תפקידים מלאה", d: "מציע ≠ מכריע ≠ מרוויח בכל מנגנון תגמול; מגוון מודלים לתפקידים קריטיים — קונצנזוס אף פעם לא תחליף לחישוב (חוק 15).", phase: "הדור הבא" },
   { icon: LineChart, t: "מדד החיים הרשמי", d: "אימותים מאומתים ליחידת זמן כמדד היחיד בדוחות — DAU אמיתי מהיסוד, נספר-חוזר מהספר (חוק 8).", phase: "עכשיו" },
-  { icon: GitBranch, t: "חישוב-מחדש כשירות", d: "נתיב replay ציבורי לצד שלישי: הורדת ledger.json והרצת verify — האמת שלנו נבדקת בלי לסמוך עלינו (חוק 13).", phase: "הדור הבא" },
+  { icon: GitBranch, t: "חישוב-מחדש כשירות", d: "נתיב replay ציבורי חי: bun run verify:book משערוך את כל הספר מ-ledger.json בלי DB ובלי מפתחות — שלוש פקודות לכל בודק (חוק 13). הוכח בחיים: טמפר של בית אחד ⇒ verdict ✗ מיידי.", phase: "עכשיו" },
   { icon: BrainCircuit, t: "מגוון מוחות", d: "המאגר כבר מסובב 3 מפתחות; הדור הבא — מודלים שונים לתפקידים שונים, שגיאות לא-מתואמות (חוק 15).", phase: "הדור הבא" },
 ] as const;
 
@@ -169,12 +170,20 @@ export function EvolutionView() {
   const live = state.data;
   const attCount = live?.chainCount ?? attestations.data?.length ?? null;
   const verified = live?.stats?.VERIFIED ?? null;
+  const vit = live?.vitality ?? null;
 
   const stats: Array<{ label: string; value: string | null; hint: string }> = [
     { label: "אימותים בספר", value: attCount != null ? String(attCount) : null, hint: "נספר מה-ledger — לא חשבון רשום" },
     { label: "מתוכם VERIFIED", value: verified != null ? String(verified) : null, hint: "רק מול ראיה — שאר התוויות כנות" },
     { label: "checkpoints", value: live?.checkpoints != null ? String(live.checkpoints) : null, hint: "שורשי מרקל שעוגנו בשרשרות ציבוריות" },
     { label: "סוכנים חתומים", value: live?.agents != null ? String(live.agents) : null, hint: "כל זהות נגזרת-seal, דטרמיניסטית" },
+  ];
+
+  const vitality: Array<{ label: string; value: string | null; hint: string }> = [
+    { label: "אימותים ב-24ש׳", value: vit ? String(vit.atts24h) : null, hint: "עבודה שנכתבה בחלון — ה-DAU הרשמי" },
+    { label: "חותמים ייחודיים ב-24ש׳", value: vit ? String(vit.signers24h) : null, hint: "סוכנים שחתמו בפועל — לא רשומים" },
+    { label: "רצף ימים חיים", value: vit ? String(vit.aliveDays) : null, hint: "ימי-UTC רצופים עם ≥1 אימות חתום" },
+    { label: "טריות הספר", value: vit ? (vit.lastAttAgeMin >= 0 ? `${vit.lastAttAgeMin} דק׳` : "—") : null, hint: "דקות מהאימות האחרון שנכתב" },
   ];
 
   return (
@@ -222,9 +231,64 @@ export function EvolutionView() {
                 </div>
               ))}
             </div>
+            {/* מדד החיים — חוק 8: עבודה מאומתת ליחידת-זמן, לא חשבונות רשומים */}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <LineChart className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              <p className="text-sm font-semibold">מדד החיים הרשמי — נספר מהספר</p>
+              {vit && (
+                <span className="ms-auto font-mono text-[10px] text-muted-foreground" dir="ltr">
+                  atts7d {vit.atts7d} · cps24h {vit.checkpoints24h} · mkt24h {vit.marketEvents24h}
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+              {vitality.map((s) => (
+                <div key={s.label} className="flex flex-col gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3.5">
+                  <span className="font-mono text-2xl font-bold tabular-nums" dir="ltr">
+                    {s.value ?? "—"}
+                  </span>
+                  <span className="text-xs font-semibold">{s.label}</span>
+                  <span className="text-[11px] leading-snug text-muted-foreground">{s.hint}</span>
+                </div>
+              ))}
+            </div>
             <p className="text-xs text-muted-foreground">
               Hive דיווחה על ~מיליון חשבונות רשומים; הפעילות האמיתית הייתה שולית. המדד היחיד שאנחנו מכירים:
               אימותים חתומים ליחידת זמן, שכל צומת יכול לספור מחדש מהספר המיוצא.
+            </p>
+          </CardContent>
+        </Card>
+      </motion.section>
+
+      {/* נתיב ה-replay הציבורי — חוק 13 מוחש: שלוש פקודות לכל בודק */}
+      <motion.section {...f(0.08)} aria-labelledby="replay">
+        <Card className="border-emerald-500/25 bg-gradient-to-br from-emerald-500/5 to-transparent">
+          <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <GitBranch className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              <p id="replay" className="text-sm font-semibold">
+                חישוב-מחדש כשירות — הרץ את האמת שלנו בעצמך
+              </p>
+              <Badge variant="outline" className="ms-auto border-emerald-500/40 bg-emerald-500/10 font-mono text-[10px] text-emerald-700 dark:text-emerald-300">
+                LIVE · חוק 13
+              </Badge>
+            </div>
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              ה-verifier הציבורי מאמת את כל הספר מ-<span className="font-mono text-xs" dir="ltr">ledger.json</span> —
+              שרשרת, חתימות EIP-191, ראיות ואירועי שוק — בלי DB, בלי מפתחות ובלי לסמוך עלינו.
+              אותו קוד קנוני שחותם בכתיבה מאמת ב-replay (<span className="font-mono text-xs" dir="ltr">market-canon.ts</span>).
+              מבחן הטמפר החי: שינוי בית אחד בראיה ⇒ <span dir="ltr" className="font-mono text-xs">verdict ✗</span> מיידי עם מיקום השבר.
+            </p>
+            <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3" dir="ltr">
+              <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-xs text-foreground">
+                {"git clone https://github.com/roshpinacare-sys/weave-core.git\ncd weave-core\nbun install && bun run verify:book"}
+              </code>
+              <CopyButton value={"git clone https://github.com/roshpinacare-sys/weave-core.git\ncd weave-core\nbun install && bun run verify:book"} label="פקודות ה-replay" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              הדוקטרינה המלאה — מה ה-replay מוכיח ומה לא, ולמה הוא עובד בלי אמון — ב-{" "}
+              <span className="font-mono text-[11px]" dir="ltr">VERIFY.md</span> בריפו.
+              ה-verifier גם מדפיס בעצמו את מדד החיים מהספר: ה-DAU שלנו נספר על ידי מי שבודק.
             </p>
           </CardContent>
         </Card>

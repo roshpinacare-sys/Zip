@@ -117,7 +117,7 @@ export function HomeView({ onNavigate }: { onNavigate: (v: SiteView) => void }) 
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
-              רשת חיה · {d ? `${d.chainCount} אימותים בשרשרת` : "מתחבר…"}
+              רשת חיה · {d ? `${d.chainCount} אימותים בשרשרת · ${d.vitality?.atts24h ?? "…"} ב-24ש׳ · רצף ${d.vitality?.aliveDays ?? "…"} ימים` : "מתחבר…"}
             </Badge>
 
             <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
@@ -164,7 +164,7 @@ export function HomeView({ onNavigate }: { onNavigate: (v: SiteView) => void }) 
           >
             {[
               { k: "אימותים חתומים", v: d ? String(d.chainCount) : "…" },
-              { k: "סוכנים פעילים", v: agents.data ? String(agents.data.length) : "…" },
+              { k: "חותמים ב-24ש׳", v: d?.vitality ? String(d.vitality.signers24h) : "…" },
               { k: "עוגנים בשרשרת", v: String(anchored) },
               { k: "אימותים שעברו", v: `${verified}/${d ? d.chainCount : "…"}` },
             ].map((item) => (
