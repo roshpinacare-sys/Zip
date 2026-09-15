@@ -11,10 +11,21 @@
 #     checkpoint ⇒ ledger.json ⇒ שער-סודות ⇒ commit+push.
 #     שער SOV-2 נסגר אוטומטית ע"י פעימת הענן הראשונה.
 #
-# אימות: GITHUB_TOKEN של הריפו עצמו (contents:write) — ה-PAT של
-# המפעיל לא נחוץ כאן כלל ולעולם לא מגיע לענן.
+# אימות: GITHUB_TOKEN של הריפו עצמו (contents:write + actions:write)
+# — ה-PAT של המפעיל לא נחוץ כאן כלל ולעולם לא מגיע לענן.
 #
-# תקציב: ~120 ריצות/חודש × ~1.5 דק' ≈ 180 דק' לצד ~750 של cloud-heart.
+# משעול-הבטחה לקווי העיגון (Task 19): רישום ה-cron של גיטהאב
+# ל-workflows חדשים אמין-למחצה — נמדד 0/3 חלונות לקווים שנוספו
+# היום (:20/:30) בזמן שהלב הוותיק ירה 2/2. לכן הלב עצמו משגר את
+# שני הקווים בעקבותיו (workflow_dispatch — פטור ממגבלת ה-GITHUB_TOKEN);
+# הדה-דופליקציה בקווים עצמם מבטיחה שאין שידור כפול (root שכבר
+# עוגן ⇒ ALREADY-ANCHORED בכנות), וה-concurrency בקווים מסדר ריצות
+# כפולות לתור. הקדנס: פעימה ⇒ עוגן Steem ⇒ עוגן ZERO — אותו מחזור
+# 6-שעות, אותו סדר.
+#
+# תקציב: ~120 ריצות/חודש × ~1.5 דק' ≈ 180 דק' לצד ~750 של cloud-heart
+# + ~8 ריצות עיגון/יום שמשגר הלב (~2-2.5 דק' כ"א) ≈ 700 דק' — בגבולות
+# המכסה החודשי.
 
 name: weave-heart
 
@@ -34,6 +45,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: weave-heart
@@ -80,3 +92,18 @@ jobs:
           name: weave-beat-report
           path: sovereign/beat-report.json
           retention-days: 30
+
+      - name: Dispatch anchor lines (schedule backstop)
+        # הקווים תמיד רצים בעקבות הלב — גם ב-SANDBOX-ALIVE (הקווים
+        # עצמאיים במדינת הלב: הם מייבאים, מאמתים ומעגנים בעצמם,
+        # fail-closed על ספר שבור) וגם אם הפעימה האדימה.
+        if: always()
+        run: |
+          set -e
+          echo "[heart] משגר את קווי העיגון בעקבות הפעימה (backstop)…"
+          gh workflow run weave-anchor.yml --ref "${{ github.ref_name }}"
+          sleep 5
+          gh workflow run weave-anchor-zero.yml --ref "${{ github.ref_name }}"
+          echo "[heart] הקווים שוגרו — הקדנס: פעימה ⇒ עיגון Steem ⇒ עיגון ZERO"
+        env:
+          GH_TOKEN: ${{ github.token }}
