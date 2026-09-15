@@ -102,35 +102,8 @@ function gitOrNull(cmd: string): string | null {
   }
 }
 
-// ── שער הסודות (חוק הברזל) — לא דוחפים לעולם מפתח/WIF/PAT ──
-const SECRET_PATTERNS: Array<{ name: string; re: RegExp }> = [
-  { name: "steem/hive WIF", re: /\b5[1-9A-HJ-NP-Za-km-z]{50}\b/ },
-  { name: "blurt WIF", re: /\bB[1-9A-HJ-NP-Za-km-z]{50}\b/ },
-  { name: "EVM private key (64hex)", re: /\b0x[0-9a-fA-F]{64}\b/ },
-  { name: "github token", re: /\bgh[pousr]_[A-Za-z0-9]{20,}\b/ },
-  { name: "github_pat token", re: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/ },
-  { name: "PEM private key", re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
-  { name: "x-access-token url", re: new RegExp("x-access-token:[A-Za-z0-9_\\-]+@") },
-];
-const KNOWN_HASH_FIELDS =
-  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id)"\s*:/i;
-const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash)=/i;
-function filterKnownHashes(diff: string): string {
-  return diff
-    .split("\n")
-    .filter((line) => {
-      if (!/0x[0-9a-fA-F]{64}/.test(line)) return true;
-      if (KNOWN_HASH_FIELDS.test(line) || KNOWN_HASH_KV.test(line)) return false;
-      return true;
-    })
-    .join("\n");
-}
-function secretGate(stagedDiff: string): string | null {
-  for (const p of SECRET_PATTERNS) {
-    if (p.re.test(stagedDiff)) return p.name;
-  }
-  return null;
-}
+// ── שער הסודות (חוק הברזל) — מקור קנוני אחד: weave-gate ──
+import { secretGate, filterKnownHashes } from "./weave-gate";
 
 function readLine(): SteemLine {
   try {

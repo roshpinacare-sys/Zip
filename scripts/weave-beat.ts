@@ -70,41 +70,8 @@ function gitOrNull(cmd: string): string | null {
   }
 }
 
-// ── שער הסודות (חוק הברזל של gitkeeper) — לא דוחפים לעולם מפתח/PAT ──
-const SECRET_PATTERNS: Array<{ name: string; re: RegExp }> = [
-  { name: "steem/hive WIF", re: /\b5[1-9A-HJ-NP-Za-km-z]{50}\b/ },
-  { name: "blurt WIF", re: /\bB[1-9A-HJ-NP-Za-km-z]{50}\b/ },
-  { name: "EVM private key (64hex)", re: /\b0x[0-9a-fA-F]{64}\b/ },
-  { name: "github token", re: /\bgh[pousr]_[A-Za-z0-9]{20,}\b/ },
-  { name: "github_pat token", re: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/ },
-  { name: "PEM private key", re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
-  { name: "x-access-token url", re: new RegExp("x-access-token:[A-Za-z0-9_\\-]+@") },
-];
-
-function secretGate(stagedDiff: string): string | null {
-  for (const p of SECRET_PATTERNS) {
-    if (p.re.test(stagedDiff)) return p.name;
-  }
-  return null;
-}
-
-// חריגה מבוקרת: שדות hash ציבוריים (0x + 64hex בשם שדה קנוני) מוסרים מה-diff
-// לפני השער — הם אינם סוד וכל אחד מאמת אותם מחדש. כל שורה אחרת שמכילה
-// 64hex — כולל devKeyHex אמיתי או ערך חשוד בטקסט — נשארת ונתפסת ע"י השער.
-function filterKnownHashes(diff: string): string {
-  const KNOWN_HASH_FIELDS =
-    /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash)"\s*:/i;
-  const KNOWN_HASH_KV = /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash)=/i;
-  return diff
-    .split("\n")
-    .filter((line) => {
-      if (!/0x[0-9a-fA-F]{64}/.test(line)) return true; // אין 64hex — נשארת
-      // שורת hash ציבורי מוכרת — מוסרת (השער לא צריך לראות אותה)
-      if (KNOWN_HASH_FIELDS.test(line) || KNOWN_HASH_KV.test(line)) return false;
-      return true; // 64hex לא מוכר — נשארת ותיבדק בשער
-    })
-    .join("\n");
-}
+// ── שער הסודות (חוק הברזל של gitkeeper) — מקור קנוני אחד: weave-gate ──
+import { secretGate, filterKnownHashes } from "./weave-gate";
 
 async function localLedgerState(): Promise<{ count: number; head: string }> {
   const [last, count] = await Promise.all([

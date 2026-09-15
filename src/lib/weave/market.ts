@@ -139,7 +139,7 @@ export async function measureTarget(target: MarketTarget): Promise<TargetMeasure
       }
       return {
         resolved: false,
-        evidence: `ZERO anchors (anchorNet=${ZERO_RAIL_ID})=${count} < ${target.count} — עוד ${target.count - count} ריצות עוגן (הקו מעיד כל 6 שעות)`,
+        evidence: `ZERO anchors (anchorNet=${ZERO_RAIL_ID})=${count} < ${target.count} — עוד ${target.count - count} ריצות עוגן (הקו מעיד כל שעה)`,
       };
     }
     case "attestation-status": {
@@ -642,7 +642,7 @@ export async function openMarket(input: {
   let sequence: { depth: number } | undefined;
   if (input.sequence) {
     if (target.type !== "zero-anchor-count") {
-      throw new MarketError("הימור-רצף (v1) תומך רק במטרות zero-anchor-count — קו העדות האוטונומי שמעיד כל 6 שעות");
+      throw new MarketError("הימור-רצף (v1) תומך רק במטרות zero-anchor-count — קו העדות האוטונומי שמעיד כל שעה");
     }
     if (input.successorOf == null) {
       sequence = { depth: 1 }; // דור הייסוד — נפתח ע"י יד מפורשת (אדם/API)
@@ -832,7 +832,7 @@ export async function resolveOpenMarkets(): Promise<SettlementResult> {
           } else if (book.listings.some((l) => l.successorOf === listing.marketSeq)) {
             result.successors.push({ marketSeq: listing.marketSeq, reason: "הדור הבא כבר קיים בספר — אין כפילויות" });
           } else {
-            // המציאות כרגע + 2 חלונות עוגן (הקו מעיד כל 6 שעות) — אותה נקודת
+            // המציאות כרגע + 2 חלונות עוגן (הקו מעיד כל שעה) — אותה נקודת
             // מבט של m#26: עתיד ניתן למדידה, לא נבואה. תוקף: 24 שעות (4 חלונות).
             const zeroAnchors = await db.checkpoint.count({ where: { anchorNet: ZERO_RAIL_ID } });
             const nextCount = zeroAnchors + 2;

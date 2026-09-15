@@ -10,8 +10,8 @@
 # ב-etherscan שלה zscan.live) → העדות החתומה חוזרת לספר. כל צד שלישי
 # מאמת מה-RPC הציבורי (rpc.zero.tech) בלי לסמוך עלינו כלל.
 #
-# הקדנס מיושר ללב: פעימה :00 → עוגן Steem/Hive :20 → עוגן ZERO :30 →
-# הקונסולה קוראת :40. שלושה קווי עדות חיים בכל מחזור 6-שעות.
+# הקדנס מיושר ללב: פעימה :00 → עוגן Steem/Hive :15 → עוגן ZERO :25 →
+# הקונסולה קוראת :40. שלושה קווי עדות חיים בכל שעה.
 #
 # משמרת: אפס סודות חדשים — המפתח בא מה-seal שנפתח עם
 # WEAVE_SEAL_PASSPHRASE (Actions Secret קיים). GITHUB_TOKEN לדחיפה.
@@ -24,7 +24,7 @@ name: weave-anchor-zero
 
 on:
   schedule:
-    - cron: '30 */6 * * *'
+    - cron: '25 * * * *'  # מחזור שעתי (Task 24) — :25 אחרי הפעימה
   workflow_dispatch:
     inputs:
       mode:
@@ -36,6 +36,10 @@ on:
           - auto
           - dry
           - verify-only
+      recover:
+        description: 'recovery — txid (0x…64hex) of an on-chain ZERO anchor whose push reddened pre-verification (e.g. secret-gate block): re-verify payload from chain and write the attestation'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -74,6 +78,7 @@ jobs:
             dry) MODE_FLAG="--dry" ;;
             verify-only) MODE_FLAG="--verify-only" ;;
           esac
+          if [ -n "${{ inputs.recover }}" ]; then MODE_FLAG="--recover=${{ inputs.recover }}"; fi
           bun scripts/weave-anchor-zero.ts $MODE_FLAG
         env:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
