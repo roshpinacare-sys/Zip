@@ -27,17 +27,28 @@ export const SECRET_PATTERNS: Array<{ name: string; re: RegExp }> = [
 
 // שדות hash ציבוריים קנוניים — שרשרת/Merkle/שוק/קווי-עוגן. איחוד של
 // כל הרשימות שחיו עד כה + payloadHash שחסר לקווי העיגון (שורש הכשל).
+// + שדות כספת-המוח (Task 25): encKey/keyIv/keyTag הם צופן GCM תחת
+// גזירת מפתח-הרשת — חסרי-ערך בלי ה-seal, בדיוק כמו calldata/sig.
+// בלי הרשימה הזו hex ארוך של encKey עלול להיתפס חיובי-שקר כ-WIF
+// (5 + 50 תווים ללא אפס — הסתברות נמוכה אך מדידה).
 const KNOWN_HASH_FIELDS =
-  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|payload|zeroTxid|recoveredTxid|sig|calldata|explorer|inputHex)"\s*:/i;
+  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|payload|zeroTxid|recoveredTxid|sig|calldata|explorer|inputHex|encKey|keyIv|keyTag)"\s*:/i;
 const KNOWN_HASH_KV =
-  /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|zeroTxid|recoveredTxid|explorer)=/i;
+  /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|zeroTxid|recoveredTxid|explorer|encKey|keyIv|keyTag)=/i;
 // קישור סייר ציבורי — ה-txid בתוכו היא בדיוק הראיה הפומבית
 const KNOWN_EXPLORER_URL = /zscan\.live\/tx\/0x[0-9a-fA-F]{64}/i;
+
+// שדות כספת-המוח (Task 25) — מוסרים מה-diff לפני השער גם בלי 0x64hex
+// בשורה: encKey הוא hex טהור (בלי 0x), ומחרוזת hex ארוכה עלולה
+// להיתפס חיובי-שקר כ-WIF (5 + 50 תווים ללא אפס). הצופן חסר-ערך
+// בלי מפתח-הרשת שב-seal — אותה מחלקה של calldata/sig, בלי הקידומת.
+const KNOWN_VAULT_FIELDS = /"(encKey|keyIv|keyTag|fingerprint)"\s*:/;
 
 export function filterKnownHashes(diff: string): string {
   return diff
     .split("\n")
     .filter((line) => {
+      if (KNOWN_VAULT_FIELDS.test(line)) return false;
       if (!/0x[0-9a-fA-F]{64}/.test(line)) return true; // אין 64hex — נשארת
       if (KNOWN_EXPLORER_URL.test(line)) return false;
       if (KNOWN_HASH_FIELDS.test(line) || KNOWN_HASH_KV.test(line)) return false;

@@ -12,8 +12,12 @@
 
 import { db } from "@/lib/db";
 import { GENESIS_HASH } from "./chain";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 export const LEDGER_FORMAT = "weave-ledger-v1";
+
+const LEDGER_ON_DISK_PATH = path.resolve(process.cwd(), "sovereign", "ledger.json");
 
 export interface LedgerSnapshot {
   format: typeof LEDGER_FORMAT;
@@ -125,11 +129,27 @@ export interface LedgerSnapshot {
     signerAddr: string | null;
     createdAt: string;
   }>;
+  // המוח — גושים אטומים של הכספת (Task 25). חסר-סודות בדיוק כמו השאר:
+  // encKey הוא צופן AES-256-GCM תחת גזירת מפתח-הרשת (מה-seal), ולכן
+  // הספר יכול וחייב לשאת אותם — זו הדרך שהמוח שורד איפוס סנדבוקס.
+  // אדיטיבי; ספר ותיק ללא השדה = ספר ללא מוח (תואם לאחור).
+  brain: Array<{
+    id: string;
+    fingerprint: string; // nv-fp:… — בלתי-הפיך, ציבורי
+    encKey: string; // צופן GCM (hex) — לא סוד בלי מפתח-הרשת
+    keyIv: string; // 12B IV (hex)
+    keyTag: string; // 16B GCM tag (hex)
+    status: string;
+    lastCode: string | null;
+    cooldownUntil: string | null;
+    verifiedAt: string | null;
+    createdAt: string;
+  }>;
 }
 
 /** ייצוא הספר כולו ל-snapshot חסר-סודות (סדר דטרמיניסטי) */
 export async function exportLedger(): Promise<LedgerSnapshot> {
-  const [agents, attestations, checkpoints, networkKey, keyOps, localAnchors, repoInventory, planStages, marketEvents] =
+  const [agents, attestations, checkpoints, networkKey, keyOps, localAnchors, repoInventory, planStages, marketEvents, brain] =
     await Promise.all([
       db.agent.findMany({ orderBy: { createdAt: "asc" } }),
       db.attestation.findMany({ orderBy: { seq: "asc" } }),
@@ -140,9 +160,36 @@ export async function exportLedger(): Promise<LedgerSnapshot> {
       db.repoInventory.findMany({ orderBy: { name: "asc" } }),
       db.planStage.findMany({ orderBy: { sortOrder: "asc" } }),
       db.marketEvent.findMany({ orderBy: { seq: "asc" } }),
+      db.brainKey.findMany({ orderBy: { fingerprint: "asc" } }),
     ]);
 
   const head = attestations.length > 0 ? attestations[attestations.length - 1].entryHash : GENESIS_HASH;
+
+  // המוח — כספת אדיטיבית: ייצוא מ-DB שמושך מאחור לעולם לא מוחק מפתח
+  // מהספר שעל הדיסק (מקור הלקח של Task 17: מצב שחי רק בסביבה אחת
+  // יאבד בהחלפתה). ה-DB מנצח לפי טביעת-אצבע; ספר-בלבד נשמר.
+  // הסרת מפתח היא תהליך פרישה מפורש — לא תופעת לוואי של ייצוא.
+  const brainByFp = new Map(brain.map((b) => [b.fingerprint, b]));
+  try {
+    const onDisk = JSON.parse(fs.readFileSync(LEDGER_ON_DISK_PATH, "utf8")) as LedgerSnapshot;
+    for (const b of onDisk.brain ?? []) {
+      if (!brainByFp.has(b.fingerprint)) brainByFp.set(b.fingerprint, {
+        id: b.id,
+        fingerprint: b.fingerprint,
+        encKey: b.encKey,
+        keyIv: b.keyIv,
+        keyTag: b.keyTag,
+        status: b.status,
+        lastCode: b.lastCode,
+        cooldownUntil: b.cooldownUntil,
+        verifiedAt: b.verifiedAt,
+        createdAt: b.createdAt,
+      });
+    }
+  } catch {
+    /* אין ספר על הדיסק / ספר שבור — ה-DB הוא כל האמת בייצוא הראשון */
+  }
+  const brainRows = [...brainByFp.values()];
 
   return {
     format: LEDGER_FORMAT,
@@ -252,6 +299,20 @@ export async function exportLedger(): Promise<LedgerSnapshot> {
       signerAddr: e.signerAddr,
       createdAt: e.createdAt.toISOString(),
     })),
+    brain: brainRows
+      .map((b) => ({
+        id: b.id,
+        fingerprint: b.fingerprint,
+        encKey: b.encKey,
+        keyIv: b.keyIv,
+        keyTag: b.keyTag,
+        status: b.status,
+        lastCode: b.lastCode,
+        cooldownUntil: b.cooldownUntil ? new Date(b.cooldownUntil).toISOString() : null,
+        verifiedAt: b.verifiedAt ? new Date(b.verifiedAt).toISOString() : null,
+        createdAt: new Date(b.createdAt).toISOString(),
+      }))
+      .sort((a, b) => a.fingerprint.localeCompare(b.fingerprint)),
   };
 }
 
@@ -265,8 +326,9 @@ export interface ImportResult {
     repoInventory: number;
     planStages: number;
     marketEvents: number;
+    brain: number;
   };
-  keysPreserved: { agents: number; network: boolean };
+  keysPreserved: { agents: number; network: boolean; brainLocalOnly: number };
   headHash: string;
 }
 
@@ -292,6 +354,10 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
   const localNetwork = await db.networkKey.findUnique({ where: { id: "weave-network" } });
   const localNetworkKey = localNetwork?.devKeyHex ?? null;
 
+  // המוח המקומי — נשמר באיחוד לפי טביעת-אצבע (הגנת Task 17/25:
+  // ייבוא ספר ותיק ללא מוח לא מוחק מוח מקומי שטרם יוצא לספר)
+  const localBrain = await db.brainKey.findMany();
+
   // הריסה — סדר זרים-מפתחות זרים קודם
   await db.keyOp.deleteMany();
   await db.attestation.deleteMany();
@@ -302,6 +368,7 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
   await db.repoInventory.deleteMany();
   await db.planStage.deleteMany();
   await db.marketEvent.deleteMany();
+  await db.brainKey.deleteMany(); // המוח נבנה מחדש מהאיחוד שהורכב למעלה
 
   // בנייה מחדש — סדר הורים קודם
   await db.agent.createMany({
@@ -454,6 +521,41 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
     });
   }
 
+  // המוח — איחוד: הספר מנצח בסתירה (סטטוס טרי מהענן), מקומי-בלבד
+  // נשמר (ייצוא הפעימה הבאה יעלה אותו לספר). הסרה = פרישה מפורשת בלבד.
+  const snapBrain = snap.brain ?? [];
+  const brainUnion = [
+    ...snapBrain.map((b) => ({
+      id: b.id,
+      fingerprint: b.fingerprint,
+      encKey: b.encKey,
+      keyIv: b.keyIv,
+      keyTag: b.keyTag,
+      status: b.status,
+      lastCode: b.lastCode,
+      cooldownUntil: b.cooldownUntil ? new Date(b.cooldownUntil) : null,
+      verifiedAt: b.verifiedAt ? new Date(b.verifiedAt) : null,
+      createdAt: new Date(b.createdAt),
+    })),
+    ...localBrain
+      .filter((r) => !snapBrain.some((b) => b.fingerprint === r.fingerprint))
+      .map((r) => ({
+        id: r.id,
+        fingerprint: r.fingerprint,
+        encKey: r.encKey,
+        keyIv: r.keyIv,
+        keyTag: r.keyTag,
+        status: r.status,
+        lastCode: r.lastCode,
+        cooldownUntil: r.cooldownUntil,
+        verifiedAt: r.verifiedAt,
+        createdAt: r.createdAt,
+      })),
+  ];
+  if (brainUnion.length > 0) {
+    await db.brainKey.createMany({ data: brainUnion });
+  }
+
   return {
     imported: {
       agents: snap.agents.length,
@@ -464,10 +566,12 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
       repoInventory: snap.repoInventory.length,
       planStages: snap.planStages.length,
       marketEvents: marketEvents.length,
+      brain: snapBrain.length,
     },
     keysPreserved: {
       agents: snap.agents.filter((a) => localKeyByAddress.has(a.ethAddress)).length,
       network: !!localNetworkKey,
+      brainLocalOnly: brainUnion.length - snapBrain.length,
     },
     headHash: snap.headHash,
   };
@@ -485,6 +589,10 @@ export function parseLedgerSnapshot(raw: string): LedgerSnapshot {
   // שוק האמת — השדה אדיטיבי; ספר ותיק ללא שוק = מערך ריק (תואם לאחור)
   if (snap.marketEvents !== undefined && !Array.isArray(snap.marketEvents)) {
     throw new Error("קובץ ספר: marketEvents פגום");
+  }
+  // המוח — אדיטיבי; ספר ותיק ללא מוח = מערך ריק (תואם לאחור)
+  if (snap.brain !== undefined && !Array.isArray(snap.brain)) {
+    throw new Error("קובץ ספר: brain פגום");
   }
   return snap;
 }

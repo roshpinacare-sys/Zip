@@ -67,6 +67,19 @@ interface LedgerSnapshot {
   attestations: LedgerAttestation[];
   marketEvents: LedgerMarketEvent[];
   networkKey?: { address: string } | null;
+  brain?: LedgerBrainKey[];
+}
+
+interface LedgerBrainKey {
+  id: string;
+  fingerprint: string;
+  encKey: string;
+  keyIv: string;
+  keyTag: string;
+  status: string;
+  lastCode?: string | null;
+  verifiedAt?: string | null;
+  createdAt: string;
 }
 
 const argv = process.argv.slice(2);
@@ -237,6 +250,27 @@ console.log("── ספר השוק ──────────────�
 console.log(`אירועים:     ${marketEvents.length}`);
 console.log(`שרשרת:       ${marketChainValid ? "תקינה ✓" : "נפרדת ✗"}`);
 console.log(`חתימות:      ${marketSigOk}/${marketEvents.length} תקינות${marketSigFail ? ` · ${marketSigFail} כשלים` : ""}`);
+// ── 5. כספת המוח (טופס מבני בלבד — הגושים אטומים; המפתח חי רק בזכות מפתח-הרשת שב-seal) ──
+const brain = [...(ledger.brain ?? [])].sort((a, b) => a.fingerprint.localeCompare(b.fingerprint));
+const brainFps = new Set<string>();
+let brainOk = 0;
+for (const b of brain) {
+  const fpOk = /^nv-fp:[0-9a-f]{16}$/.test(b.fingerprint);
+  const encOk = /^[0-9a-f]{96,}$/.test(b.encKey); // צופן GCM של מפתח nvapi (≈52תווים) + פדינג
+  const ivOk = /^[0-9a-f]{24}$/.test(b.keyIv); // 12B
+  const tagOk = /^[0-9a-f]{32}$/.test(b.keyTag); // 16B
+  const dup = brainFps.has(b.fingerprint);
+  if (fpOk && encOk && ivOk && tagOk && !dup) {
+    brainOk += 1;
+  } else {
+    note(`מוח ${b.fingerprint || "?"}: גוש פגום (${!fpOk ? "טביעה " : ""}${!encOk ? "צופן " : ""}${!ivOk ? "IV " : ""}${!tagOk ? "tag " : ""}${dup ? "כפול" : ""})`);
+  }
+  brainFps.add(b.fingerprint);
+}
+console.log("── כספת המוח (מבנית) ────────────────────");
+console.log(`מפתחות אטומים: ${brainOk}/${brain.length} מבנם תקינים · אין-כפולות מוודדות`);
+console.log("");
+
 console.log("");
 console.log("── מדד החיים (חוק 8 — נספר מהספר) ────────────");
 const daySet = new Set(atts.map((a) => Math.floor(new Date(a.createdAt).getTime() / 86_400_000)));

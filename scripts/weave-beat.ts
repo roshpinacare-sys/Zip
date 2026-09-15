@@ -26,6 +26,7 @@ import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, t
 import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosschain";
 import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
+import { brainProbeAll } from "@/lib/weave/brain";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -278,7 +279,26 @@ async function main(): Promise<void> {
     }
   }
 
-  // 6. ייצוא הספר + דוח (הסליקות של 5.5, ההצלבה של 5.6 ועד הארכיון של 5.7 כלולים)
+  // 5.8 המוח — אימות-אמת שעתי של המאגר (Task 25): המוח חי בספר (כספת
+  //     אדיטיבית), והלב בודק שהוא עדיין חי מול NVIDIA בכל פעימה —
+  //     1-token chat לכל מפתח, סטטוס נשמר ב-DB וזורם לספר בייצוא של
+  //     שש. בסביבה בלי מפתח רשת (סנדבוקס fail-closed) — נרשם בכנות
+  //     ולא מפיל את הפעימה; העשרה לעולם לא חוסמת את הלב.
+  let brainProbe: Array<{ fingerprint: string; live: boolean; code: number | string }> | null = null;
+  try {
+    const poolCount = await db.brainKey.count();
+    if (poolCount > 0) {
+      brainProbe = await brainProbeAll();
+      const live = brainProbe.filter((p) => p.live).length;
+      console.log(`[weave-beat] המוח: ${live}/${poolCount} מפתחות LIVE (אימות-אמת 1-token)`);
+    }
+  } catch (brainErr) {
+    console.log(
+      `[weave-beat] המוח: נעול או לא-זמין — ${brainErr instanceof Error ? brainErr.message : String(brainErr)}`
+    );
+  }
+
+  // 6. ייצוא הספר + דוח (הסליקות של 5.5, ההצלבה של 5.6, עד הארכיון של 5.7 והמוח של 5.8 כלולים)
   const snap = await exportLedger();
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(snap, null, 2) + "\n");
@@ -317,6 +337,7 @@ async function main(): Promise<void> {
           },
         }
       : {}),
+    ...(brainProbe ? { brain: { probed: brainProbe } } : {}),
   };
   fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
   console.log(
