@@ -84,6 +84,11 @@ jobs:
           # force-beat ⇒ דגל מפורש; הספים הם ברירת המחדל של הדוקטרינה
           WEAVE_FORCE_BEAT: ${{ inputs.mode == 'force-beat' && '1' || '0' }}
           WEAVE_STALE_MIN: '1560'
+          # שער הכניסה (Task 26): הלב קורא פקודות מפעיל מהשרשרת הציבורית
+          # (@headcorner, saos.weave.ops.v1) ומבצע — beat/anchor ב-GITHUB_TOKEN
+          # של הריפו, console בפרסום המשואה דרך WEAVE_OPS_PAT (Actions Secret).
+          GITHUB_TOKEN: ${{ github.token }}
+          WEAVE_OPS_PAT: ${{ secrets.WEAVE_OPS_PAT }}
 
       - name: Upload beat report (evidence)
         if: always()

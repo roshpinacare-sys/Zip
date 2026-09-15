@@ -35,8 +35,9 @@ const KNOWN_HASH_FIELDS =
   /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|payload|zeroTxid|recoveredTxid|sig|calldata|explorer|inputHex|encKey|keyIv|keyTag)"\s*:/i;
 const KNOWN_HASH_KV =
   /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|zeroTxid|recoveredTxid|explorer|encKey|keyIv|keyTag)=/i;
-// קישור סייר ציבורי — ה-txid בתוכו היא בדיוק הראיה הפומבית
-const KNOWN_EXPLORER_URL = /zscan\.live\/tx\/0x[0-9a-fA-F]{64}/i;
+// קישור סייר ציבורי — ה-txid בתוכו היא בדיוק הראיה הפומבית (zscan לקו
+// ה-ZERO, etherscan לעוגן ה-Ethereum ההיסטורי של הצי — אותה דוקטרינה)
+const KNOWN_EXPLORER_URL = /(zscan\.live\/tx\/|etherscan\.io\/tx\/)0x[0-9a-fA-F]{64}/i;
 
 // שדות כספת-המוח (Task 25) — מוסרים מה-diff לפני השער גם בלי 0x64hex
 // בשורה: encKey הוא hex טהור (בלי 0x), ומחרוזת hex ארוכה עלולה

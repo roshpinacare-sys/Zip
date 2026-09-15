@@ -22,11 +22,12 @@ import * as path from "path";
 import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
-import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, type BeatContext } from "@/lib/weave/beat";
+import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, ensureCloudAgent, type BeatContext } from "@/lib/weave/beat";
 import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosschain";
 import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
 import { brainProbeAll } from "@/lib/weave/brain";
+import { processOperatorCommands, type OperatorOpsResult } from "@/lib/weave/ops";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -126,8 +127,29 @@ async function main(): Promise<void> {
   const netKey = await ensureNetworkKeyFromSeal(seal.networkKeyHex);
   console.log(`[weave-beat] מפתח רשת הושלם מה-seal · ${netKey.address}`);
 
+  // 3.5 פקודות המפעיל (שער הכניסה — Task 26): השער הציבורי משדר
+  //     custom_json חתום מ-@headcorner (רשות posting — השרשרת אימתה
+  //     את החתימה בהכללה לבלוק). הלב קורא מהשרשרת הציבורית ומבצע.
+  //     פקודה שבוצעה מעירה את הרשת — גם ב-SANDBOX-ALIVE: המפעיל
+  //     דיבר, הרשת מגיבה בפעימה מלאה ודחיפה (ריבונות הבעלים).
+  let opsResult: OperatorOpsResult | null = null;
+  try {
+    const opsCloudAgent = await ensureCloudAgent(seal.cloudKeyHex);
+    opsResult = await processOperatorCommands({ runner, cloudAgentId: opsCloudAgent.id, gitHead, repoSlug, runUrl });
+    if (opsResult.executed.length > 0) {
+      console.log(
+        `[weave-beat] פקודות מפעיל בוצעו: ${opsResult.executed.length} · ${opsResult.executed.map((e) => `${e.cmd}${e.ok ? "✓" : "✗"}`).join(", ")}${opsResult.checkpoint ? ` · cp#${opsResult.checkpoint.index}` : ""}`
+      );
+    }
+  } catch (opsErr) {
+    console.log(
+      `[weave-beat] פקודות מפעיל: לא נקראו — ${opsErr instanceof Error ? opsErr.message : String(opsErr)} (ההעשרה לעולם לא מפילה את הלב)`
+    );
+  }
+
   // 4. דוקטרינת חיים (ענן בלבד): ספר טרי ⇒ אימות-בלבד, אין הרחבה
   //    force-beat דולג עליה — השתלטות ידנית מדגימה (SOV-2, אימון)
+  //    פקודת מפעיל שבוצעה דולגת עליה — המפעיל העיר את הרשת
   if (runner === "github-actions" && FORCE_BEAT) {
     console.log("[weave-beat] FORCE-BEAT: dispatch ידני — הענן לוקח פיקוד ללא קשר לטריות");
   } else if (runner === "github-actions") {
@@ -143,7 +165,7 @@ async function main(): Promise<void> {
       : Infinity;
     const fresh = attAgeMin < STALE_ATTMin;
 
-    if (fresh) {
+    if (fresh && (opsResult === null || opsResult.executed.length === 0)) {
       const verify = await verifyLedger();
       const report = {
         at: new Date().toISOString(),
@@ -168,9 +190,15 @@ async function main(): Promise<void> {
       // אימות בלבד — לא דוחפים כלום (אפס כתיבה לשרשרת)
       return;
     }
-    console.log(
-      `[weave-beat] TAKEOVER: primary att ${Math.round(attAgeMin)}min — הענן לוקח פיקוד`
-    );
+    if (opsResult && opsResult.executed.length > 0) {
+      console.log(
+        `[weave-beat] SANDBOX-ALIVE אך פקודת מפעיל בוצעה (${opsResult.executed.map((e) => e.cmd).join(", ")}) — הרשת מתעוררת לפעימה מלאה`
+      );
+    } else {
+      console.log(
+        `[weave-beat] TAKEOVER: primary att ${Math.round(attAgeMin)}min — הענן לוקח פיקוד`
+      );
+    }
   }
 
   // 5. הפעימה עצמה
@@ -338,6 +366,16 @@ async function main(): Promise<void> {
         }
       : {}),
     ...(brainProbe ? { brain: { probed: brainProbe } } : {}),
+    ...(opsResult && opsResult.executed.length > 0
+      ? {
+          operatorCommands: {
+            executed: opsResult.executed,
+            attSeqs: opsResult.attSeqs,
+            checkpoint: opsResult.checkpoint,
+            readFrom: opsResult.readFrom,
+          },
+        }
+      : {}),
   };
   fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
   console.log(
