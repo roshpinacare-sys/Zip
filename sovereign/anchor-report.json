@@ -1,37 +1,29 @@
 {
-  "at": "2026-09-15T13:09:41.450Z",
+  "at": "2026-09-15T14:09:23.494Z",
   "runner": "github-actions",
-  "mode": "ANCHORED",
-  "checkpoint": {
-    "index": 48,
-    "root": "0x78b4fcf644b6722ff1879d8c92c75cda625a68721971e73d94cd1f33f27268d2",
-    "attFrom": 55,
-    "attTo": 55
+  "mode": "BROADCAST-FAILED (no chain landed — honest red, nothing attested)",
+  "payload": {
+    "protocol": "saos-weave-core/v1",
+    "action": "checkpoint",
+    "at": "2026-09-15T14:09:23.494Z",
+    "net": "weave-core",
+    "repo": "roshpinacare-sys/Zip",
+    "checkpoint": 51,
+    "root": "0x2641377efdab6782d6591c3d7b6161764305a9cdb042e6da42e7f064c3a52d49",
+    "attFrom": 58,
+    "attTo": 58,
+    "attestations": 58,
+    "headHash": "0x2641377efdab6782d6591c3d7b6161764305a9cdb042e6da42e7f064c3a52d49",
+    "commit": "193aad2"
   },
-  "txids": {
-    "steem": "0ce20233933fc24c77d936d62496cd095c739cd6",
-    "hive": null
-  },
-  "hiveSkipped": null,
   "notes": [
-    "hive: payer has not enough RC mana for transaction:has_mana: Account: cashmachine has 103492568 RC, needs 272807902 RC. Please wait to transact or"
+    "steem: plugin exception:Account: cashmachine has 41824627 RC, needs 169243483 RC. Please wait to transact, or power up STEEM.rethrow",
+    "hive: payer has not enough RC mana for transaction:has_mana: Account: cashmachine has 120929303 RC, needs 273140934 RC. Please wait to transact or"
   ],
-  "attSeq": 56,
-  "nextCheckpoint": {
-    "index": 49,
-    "root": "0xd830488c5226de7099bc66a08f8c795311b6fe8d92bce6ac92574808796ab596"
-  },
-  "market": {
-    "settled": [],
-    "refunded": [],
-    "attSeqs": [],
-    "checkpoint": null
-  },
-  "attestations": 56,
   "context": {
     "runner": "github-actions",
-    "gitHead": "1788d06",
+    "gitHead": "193aad2",
     "repoSlug": "roshpinacare-sys/Zip",
-    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/34973198842"
+    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/34979674359"
   }
 }
