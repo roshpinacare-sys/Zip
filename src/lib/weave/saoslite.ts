@@ -245,7 +245,32 @@ function opSummary(env: Record<string, unknown>): string {
   if (k === "token.mint") return `הטבעת ${n(env.amount)} ${env.symbol} → ${String(env.to || "").slice(0, 12)}…`;
   if (k === "token.transfer") return `${n(env.amount)} ${env.symbol} → ${String(env.to || "").slice(0, 12)}…`;
   if (k === "token.burn") return `שריפת ${n(env.amount)} ${env.symbol}`;
+  if (k === "deposit.claim") return `תביעת הפקדה ${env.amt} ${env.cur}`;
+  if (k === "deposit.credit") return `זיכוי הפקדה ${n(env.saos)} SAOS עבור ${env.amt} ${env.cur}`;
+  if (k === "dex.offer") return `הצעת מכירה ${n(env.units)} SAOS במחיר ${env.price} ${env.cur}`;
+  if (k === "dex.cancel") return `ביטול הצעה`;
+  if (k === "dex.fill") return `מילוי הצעה: ${n(env.units)} SAOS → ${String(env.to || "").slice(0, 12)}…`;
+  if (k === "reward.pay") return `תגמול ${n(env.amount)} SAOS → ${String(env.to || "").slice(0, 12)}…`;
+  if (k === "cfg.addr") return `כתובת הפקדה פורסמה ל${env.cur}`;
+  if (k === "cfg.rate") return `שער ${env.pair} = ${env.price}`;
   return k;
+}
+
+/** שדות נתונים לתצוגת הציבור לפי סוג — הספר הפתוח */
+function opData(env: Record<string, unknown>): Record<string, unknown> | null {
+  const k = String(env.k || "");
+  const pick = (keys: string[]) => Object.fromEntries(keys.filter((x) => env[x] !== undefined).map((x) => [x, env[x]]));
+  if (k === "deposit.claim") return pick(["cur", "amt", "ref"]);
+  if (k === "deposit.credit") return pick(["cur", "amt", "saos", "to", "ref", "claimId", "note"]);
+  if (k === "dex.offer") return pick(["cur", "units", "price"]);
+  if (k === "dex.fill") return pick(["offerId", "to", "units", "paid", "ref"]);
+  if (k === "dex.cancel") return pick(["offerId"]);
+  if (k === "reward.pay") return pick(["to", "amount", "note"]);
+  if (k === "cfg.addr") return pick(["cur", "addr", "memo"]);
+  if (k === "cfg.rate") return pick(["pair", "price"]);
+  if (k === "token.transfer") return pick(["symbol", "to", "amount"]);
+  if (k === "token.mint") return pick(["symbol", "to", "amount"]);
+  return null;
 }
 
 export interface SaosLiveResult {
@@ -312,6 +337,7 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
     txid: e.txid,
     block: e.block,
     summary: opSummary(e.env),
+    d: opData(e.env),
   }));
 
   const payload = {
@@ -333,6 +359,11 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
       tokens: state.tokens,
       balances: res.balCanon,
       supply: res.supplyCanon,
+      claims: res.claimsCanon ?? {},
+      offers: res.offersCanon ?? {},
+      cfg: res.cfgCanon ?? { addrs: {}, rates: {} },
+      rewardsPaid: res.state?.rewardsPaid != null ? String(res.state.rewardsPaid) : "0",
+      treasury: res.state?.treasury ?? null,
     },
     ops: opsList,
     invalid: res.invalid,

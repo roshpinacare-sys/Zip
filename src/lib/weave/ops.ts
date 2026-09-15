@@ -20,14 +20,17 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { rpcV4, STEEM_RPC_NODES } from "@/lib/weave/graphene";
+import { rpcV4, STEEM_RPC_NODES, steemBroadcast, steemRcGate } from "@/lib/weave/graphene";
 import { db } from "@/lib/db";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { createCheckpointNow } from "@/lib/weave/beat";
 
 export const OPS_OP_ID = "saos.weave.ops.v1";
 export const OPERATOR_ACCOUNT = (process.env.WEAVE_OPERATOR_ACCOUNT || "headcorner").toLowerCase();
+const WITNESS_ACCOUNT = (process.env.WEAVE_STEEM_ACCOUNT || "cashmachine").toLowerCase();
+const SAOS_LIVE_OP_ID = "saos.weave.live.v1";
 const OPS_LOG_PATH = path.join(process.cwd(), "sovereign", "ops-log.json");
+const SAOS_STATE_PATH = path.join(process.cwd(), "sovereign", "saos-live.json");
 const WINDOW_MS = 48 * 3600 * 1000; // חלון הפקודות
 const MAX_PER_BEAT = 5; // תקרה לפעימה
 const PAGE = 100; // עומק קריאה לעמוד
@@ -44,6 +47,8 @@ export interface OperatorCommand {
   block: number | null;
   /** הוכחת גילוי (פקודת acid) — המתכון שהרשת משחזרת לפני שהיא מעידה */
   proof?: AcidProof;
+  /** מטען SAOS חתום-להיות (פקודות saos.*) — הענן חותם במפתח האוצר */
+  saos?: Record<string, unknown>;
 }
 
 /** חבילת ההוכחה שנחתמת לשרשרת — הגילוי כולו נגזר מחדש ממנה */
@@ -155,12 +160,57 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
               proof = { ev: pr.ev, t: pr.t, s: pr.s as number, g: pr.g as number, p: pr.p as number, h: pr.h };
             }
           }
+          // מטען SAOS (פקודות saos.*) — ולידציה קפדנית לפני שהענן חותם במפתח האוצר.
+          // הפקודה מפרטת מה לעשות; החתימה על הפעולה עצמה נעשית בענן בלבד.
+          let saos: Record<string, unknown> | undefined;
+          if (typeof pl.cmd === "string" && pl.cmd.startsWith("saos.") && pl.saos && typeof pl.saos === "object") {
+            const s = pl.saos as Record<string, unknown>;
+            const ADDR = /^saos1[1-9A-HJ-NP-Za-km-z]{33,35}$/;
+            const UNITS = /^\d{1,18}$/;
+            const CUR = /^[A-Z]{2,10}$/;
+            const PAIR = /^[A-Z]{2,10}\/[A-Z]{2,10}$/;
+            const DEC = /^(0|[1-9]\d{0,11})(\.\d{1,8})?$/;
+            const REF = /^[\w :.\-/+=]{6,90}$/;
+            const IDREF = /^[0-9a-zA-Z._-]{6,40}$/;
+            const optRef = (v: unknown) => v === undefined || (typeof v === "string" && REF.test(v));
+            const optNote = (v: unknown) => v === undefined || (typeof v === "string" && v.length >= 1 && v.length <= 120);
+            const dec = (v: unknown) => typeof v === "string" && DEC.test(v) && !/^0+(\.0+)?$/.test(v);
+            let ok = false;
+            if (pl.cmd === "saos.credit") {
+              ok = typeof s.to === "string" && ADDR.test(s.to) &&
+                typeof s.saos === "string" && UNITS.test(s.saos) && !/^0+$/.test(s.saos) &&
+                typeof s.cur === "string" && CUR.test(s.cur) &&
+                dec(s.amt) && optRef(s.ref) && optNote(s.note) &&
+                (s.claimId === undefined || (typeof s.claimId === "string" && IDREF.test(s.claimId)));
+            } else if (pl.cmd === "saos.addr") {
+              ok = typeof s.cur === "string" && CUR.test(s.cur) &&
+                typeof s.addr === "string" && s.addr.length >= 8 && s.addr.length <= 120 &&
+                (s.memo === undefined || (typeof s.memo === "string" && s.memo.length <= 80));
+            } else if (pl.cmd === "saos.rate") {
+              ok = typeof s.pair === "string" && PAIR.test(s.pair) && dec(s.price);
+            } else if (pl.cmd === "saos.fill") {
+              ok = typeof s.offerId === "string" && IDREF.test(s.offerId) &&
+                typeof s.to === "string" && ADDR.test(s.to) &&
+                typeof s.units === "string" && UNITS.test(s.units) && !/^0+$/.test(s.units) &&
+                optRef(s.ref) && (s.paid === undefined || dec(s.paid));
+            } else if (pl.cmd === "saos.reward") {
+              ok = typeof s.to === "string" && ADDR.test(s.to) &&
+                typeof s.amount === "string" && UNITS.test(s.amount) && !/^0+$/.test(s.amount) &&
+                optNote(s.note);
+            }
+            if (ok) {
+              const clean: Record<string, unknown> = {};
+              for (const [k, v] of Object.entries(s)) if (v !== undefined) clean[k] = v;
+              saos = clean;
+            }
+          }
           found.push({
             id: String(pl.id).slice(0, 40),
             cmd: String(pl.cmd).slice(0, 24),
             at: String(pl.at),
             note: typeof pl.note === "string" ? pl.note.slice(0, 180) : undefined,
             proof,
+            saos,
             txid: String(entry.trx_id || ""),
             block: typeof entry.block === "number" ? entry.block : null,
           });
@@ -380,10 +430,93 @@ export async function processOperatorCommands(ctx: {
           executed.detail = "runner without WEAVE_OPS_PAT";
           console.log(`[weave-ops] console → דילוג-כנה (אין WEAVE_OPS_PAT בסביבה)`);
         }
+      } else if (cmd.cmd.startsWith("saos.")) {
+        // SAOS currency commands: the operator orders, the treasury signs.
+        // The command (posting-signed by the operator) says what to do. The
+        // cloud builds the SAOS op, signs it with the treasury key
+        // (WEAVE_STEEM_WIF, the identity derived from the witness line
+        // posting key) and broadcasts to saos.weave.live.v1. Every node
+        // folds and verifies: the signature is the authority.
+        const saos = cmd.saos;
+        if (!saos) {
+          executed.action = "saos-without-payload";
+          executed.ok = true;
+          executed.detail = "saos command without a valid payload, ignored honestly";
+          console.log(`[weave-ops] ${cmd.cmd} without valid payload, honest ignore`);
+        } else {
+          // Genesis guard: without a registered treasury on chain the fold
+          // would reject the op. The command stays pending and will run on
+          // the beat after the treasury is born.
+          let genesisDone = false;
+          try {
+            const st = JSON.parse(fs.readFileSync(SAOS_STATE_PATH, "utf8")) as { genesis?: { done?: boolean } };
+            genesisDone = Boolean(st?.genesis?.done);
+          } catch {
+            /* no file means genesis is certainly not done */
+          }
+          const wif = (process.env.WEAVE_STEEM_WIF || "").trim();
+          if (!genesisDone) {
+            executed.action = "saos-waiting-genesis";
+            executed.ok = true;
+            executed.detail = "live ledger genesis not complete yet, command waits for the treasury";
+            console.log(`[weave-ops] ${cmd.cmd} waits for genesis, will run again next beat`);
+            continue; // not recorded: the command stays pending for the next beat
+          }
+          if (!wif) {
+            executed.action = "saos-no-treasury-key";
+            executed.ok = true;
+            executed.detail = "no WEAVE_STEEM_WIF in this environment, only the cloud can sign as treasury";
+            console.log(`[weave-ops] ${cmd.cmd} honest skip, no treasury key`);
+          } else {
+            const GateCrypto = await import("../../../console/gate-crypto.js");
+            const SaosLive = await import("../../../console/saos-live.js");
+            const priv = await GateCrypto.wifToPriv(wif);
+            const pubSTM = await GateCrypto.pubToSTM(GateCrypto.privToPubBytes(priv));
+            const treasury = await SaosLive.addressFromPubSTM(pubSTM);
+            const kindByCmd: Record<string, string> = {
+              "saos.credit": "deposit.credit",
+              "saos.addr": "cfg.addr",
+              "saos.rate": "cfg.rate",
+              "saos.fill": "dex.fill",
+              "saos.reward": "reward.pay",
+            };
+            const k = kindByCmd[cmd.cmd];
+            const env = await SaosLive.buildOp(priv, pubSTM, { k, ...saos });
+            const gate = await steemRcGate(WITNESS_ACCOUNT);
+            if (!gate.ok) {
+              executed.action = "saos-rc-gated";
+              executed.ok = true;
+              executed.detail = `RC low (${gate.reason ?? "gated"}), command will run again next beat`;
+              console.log(`[weave-ops] ${cmd.cmd} honestly gated on RC, will run again`);
+              continue; // not recorded: the command stays pending for the next beat
+            }
+            const txOps = [[
+              "custom_json",
+              {
+                required_auths: [],
+                required_posting_auths: [WITNESS_ACCOUNT],
+                id: SAOS_LIVE_OP_ID,
+                json: JSON.stringify(env),
+              },
+            ]] as unknown as import("steem").GrapheneOperation[];
+            const res = await steemBroadcast(txOps, wif);
+            executed.action = `saos ${k} treasury-signed`;
+            executed.ok = Boolean(res.txid);
+            executed.detail = res.txid
+              ? `tx ${res.txid.slice(0, 14)}... treasury ${treasury.slice(0, 12)}... fold picks it up this or next beat`
+              : `broadcast failed: ${res.note ?? "?"}`;
+            console.log(`[weave-ops] ${cmd.cmd} -> ${k} treasury-signed and broadcast ${res.txid ? "ok (tx " + res.txid.slice(0, 12) + "...)" : "failed"}`);
+            if (res.txid) {
+              // short wait for block inclusion so the SAOS fold step in
+              // this same beat can pick the op up
+              await new Promise((r) => setTimeout(r, 8000));
+            }
+          }
+        }
       } else {
         executed.action = "ignored-unknown-cmd";
         executed.ok = true;
-        executed.detail = `cmd="${cmd.cmd}" אינה בסט הפקודות (ping/beat/anchor/console/acid)`;
+        executed.detail = `cmd="${cmd.cmd}" אינה בסט הפקודות (ping/beat/anchor/console/acid/saos.*)`;
         console.log(`[weave-ops] פקודה לא מוכרת "${cmd.cmd}" — נרשמה כמתעלמת בכנות`);
       }
     } catch (e) {
