@@ -62,7 +62,8 @@ export function gitPushRetry(root: string, branch: string): string {
   let lastErr = "";
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const out = execSync(`git push origin ${branch}`, {
+      // git push כותב הכל ל-stderr — מיזוג 2>&1 כדי שהפלט יהיה כנה ונראה
+      const out = execSync(`git push origin ${branch} 2>&1`, {
         cwd: root,
         encoding: "utf8",
         timeout: 60_000,
