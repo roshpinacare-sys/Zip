@@ -237,6 +237,10 @@ async function dupScanMode(jsonOut: string): Promise<void> {
 
 const FUNCTIONAL_EXCLUDE = new Set(["components.json", "tsconfig.json", "download/README.md"]);
 const SKIP_REPOS = new Set(["steem", "Zip"]);
+// מעבר שני (Task 26): דגל --include-steem פותח את ריפו הצי לאיחוד — הפעם
+// המצבתות בכיוון ההפוך (anchor-baseline נשאר הקנון, steem מצביע אליו).
+// הצי חי עם לב-ענן משלו — הכלי כבר עמיד לתחרויות (3 ניסיונות + ref טרי).
+if (process.argv.includes("--include-steem")) SKIP_REPOS.delete("steem");
 
 function repoPref(repo: string): number {
   if (repo === "anchor-baseline") return 0;
