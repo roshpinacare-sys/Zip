@@ -13,6 +13,8 @@
 // devKeyHex אמיתי או ערך חשוד בטקסט — נשארת ונתפסת ע"י השער.
 // ─────────────────────────────────────────────────────────────────────
 
+import { execSync } from "child_process";
+
 export const SECRET_PATTERNS: Array<{ name: string; re: RegExp }> = [
   { name: "steem/hive WIF", re: /\b5[1-9A-HJ-NP-Za-km-z]{50}\b/ },
   { name: "blurt WIF", re: /\bB[1-9A-HJ-NP-Za-km-z]{50}\b/ },
@@ -49,4 +51,41 @@ export function secretGate(stagedDiff: string): string | null {
     if (p.re.test(stagedDiff)) return p.name;
   }
   return null;
+}
+
+// ── דחיפה עמידה למרוצים — הלקח ממחזור השעה (Task 24) ─────────────────
+// במחזור שעתי שני קווים עשויים לדחוף באותו רגע; דחיפה שנדחית
+// (fetch first) אינה כישלון — היא מירוץ. מיישרים rebase ומנסים שוב.
+// ליבול כלום בשקט: אחרי 3 ניסיונות הריצה מאדימה בכנות (העוגן
+// עצמו כבר on-chain; המחזור הבא או --recover יתבעו אותו).
+export function gitPushRetry(root: string, branch: string): string {
+  let lastErr = "";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const out = execSync(`git push origin ${branch}`, {
+        cwd: root,
+        encoding: "utf8",
+        timeout: 60_000,
+        stdio: ["ignore", "pipe", "pipe"],
+      }).toString();
+      return out.trim() || "up-to-date";
+    } catch (e) {
+      lastErr = String((e as { stderr?: Buffer })?.stderr ?? e).slice(0, 300);
+      // מרוץ דחיפות — מיישר מול ה-remote ומנסה שוב; שגיאת rebase תיתפס
+      // בניסיון הבא ותיזרק בכנות בסוף
+      try {
+        execSync(`git pull --rebase origin ${branch} --no-edit`, {
+          cwd: root,
+          encoding: "utf8",
+          timeout: 60_000,
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+      } catch {
+        /* הניסיון הבא יחשוף */
+      }
+    }
+  }
+  throw new Error(
+    `הדחיפה נכשלה לאחר 3 ניסיונות (מרוץ דחיפות במחזור השעתי — שום דבר לא אבד: העוגן on-chain, המחזור הבא/--recover יתבע): ${lastErr}`
+  );
 }

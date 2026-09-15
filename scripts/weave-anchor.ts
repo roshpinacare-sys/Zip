@@ -103,7 +103,7 @@ function gitOrNull(cmd: string): string | null {
 }
 
 // ── שער הסודות (חוק הברזל) — מקור קנוני אחד: weave-gate ──
-import { secretGate, filterKnownHashes } from "./weave-gate";
+import { secretGate, filterKnownHashes, gitPushRetry } from "./weave-gate";
 
 function readLine(): SteemLine {
   try {
@@ -450,7 +450,7 @@ async function main(): Promise<void> {
     : "";
   const msg = `weave-anchor: ${at} · cp#${cp.index} · ${landed}/2 chains · att ${att.seq}${marketNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
-  const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
+  const pushOut = gitPushRetry(ROOT, BRANCH);
   console.log(`[weave-anchor] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
 }
 

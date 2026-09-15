@@ -71,7 +71,7 @@ function gitOrNull(cmd: string): string | null {
 }
 
 // ── שער הסודות (חוק הברזל של gitkeeper) — מקור קנוני אחד: weave-gate ──
-import { secretGate, filterKnownHashes } from "./weave-gate";
+import { secretGate, filterKnownHashes, gitPushRetry } from "./weave-gate";
 
 async function localLedgerState(): Promise<{ count: number; head: string }> {
   const [last, count] = await Promise.all([
@@ -369,7 +369,7 @@ async function main(): Promise<void> {
       : "";
   const msg = `weave-heart: beat ${result.at} · seq ${result.beat?.seq ?? "?"} · ${result.verify.checked} att · ${result.verify.sigOk}/${result.verify.checked} sig${marketNote}${crossNote}${archiveNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
-  const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
+  const pushOut = gitPushRetry(ROOT, BRANCH);
   console.log(`[weave-beat] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
 }
 

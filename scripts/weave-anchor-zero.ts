@@ -110,7 +110,7 @@ function gitOrNull(cmd: string): string | null {
 }
 
 // ── שער הסודות (חוק הברזל) — מקור קנוני אחד: weave-gate ──
-import { secretGate, filterKnownHashes } from "./weave-gate";
+import { secretGate, filterKnownHashes, gitPushRetry } from "./weave-gate";
 
 function readLine(account: string): ZeroLine {
   try {
@@ -158,9 +158,9 @@ async function main(): Promise<void> {
     }
     const nFiles = (gitOrNull("git diff --cached --name-only") ?? "").split("\n").filter(Boolean).length;
     const msg = `weave-anchor-zero: push-only recovery · ${new Date().toISOString()}`;
-    execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
+    execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
     gitOrNull(`git pull --rebase origin ${BRANCH} --no-edit`);
-    const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
+    const pushOut = gitPushRetry(ROOT, BRANCH);
     console.log(`[weave-anchor-zero] push-only: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
     return;
   }
@@ -330,8 +330,8 @@ async function main(): Promise<void> {
       throw new Error(`שער הסודות חסם את הדחיפה: ${leak} ב-diff — כלום לא נדחף`);
     }
     const msg = `weave-anchor-zero recovery: ${RECOVER_TXID.slice(0, 18)}… · cp#${cpR.index} · att ${att.seq}`;
-    execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
-    const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
+    execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
+    const pushOut = gitPushRetry(ROOT, BRANCH);
     console.log(`[weave-anchor-zero] recovery: ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
     return;
   }
@@ -616,8 +616,8 @@ async function main(): Promise<void> {
     ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
     : "";
   const msg = `weave-anchor-zero: ${at} · cp#${cp.index} · Z Chain 9369 gasPrice 0x0 · att ${att.seq}${marketNote}`;
-  execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
-  const pushOut = gitOrNull(`git push origin ${BRANCH}`) ?? "push ok";
+  execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: ["ignore", "pipe", "pipe"] });
+  const pushOut = gitPushRetry(ROOT, BRANCH);
   console.log(`[weave-anchor-zero] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
 }
 
