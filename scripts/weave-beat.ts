@@ -290,9 +290,11 @@ async function main(): Promise<void> {
   try {
     const assets = await publishConsoleAssets();
     if (assets.published.length > 0) {
-      console.log(`[weave-beat] נכסי קונסולה סונכרנו ✓ (${assets.published.join(", ")})`);
+      console.log(`[weave-beat] נכסי קונסולה סונכרנו ✓ (${assets.published.join(", ")})${assets.failed.length ? ` · כשלים כנים: ${assets.failed.join(" | ")}` : ""}`);
     } else if (assets.reason) {
       console.log(`[weave-beat] נכסי קונסולה: ${assets.reason}`);
+    } else if (assets.failed.length > 0) {
+      console.log(`[weave-beat] נכסי קונסולה: כשל-פרסום כנה — ${assets.failed.join(" | ")} (המחזור הבא ינסה)`);
     } else {
       console.log(`[weave-beat] נכסי קונסולה עדכניים (${assets.unchanged.length} קבצים ללא שינוי)`);
     }

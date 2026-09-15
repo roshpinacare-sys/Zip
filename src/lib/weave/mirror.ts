@@ -24,7 +24,10 @@ import { secretGate, filterKnownHashes } from "../../../scripts/weave-gate";
 
 const OWNER = process.env.WEAVE_OWNER || "roshpinacare-sys";
 const CONSOLE_REPO = `${OWNER}/Console`;
-const ROOT = path.resolve(__dirname, "..", "..");
+/* src/lib/weave ⇒ שלוש רמות למעלה הוא שורש הריפו. תיקון אמת (Task 28):
+ * "..", ".." הביא ל-src/ — המראה פורסמה מ-Task 27 בלי קווי עוגן וקבצי
+ * הקונסולה לא נמצאו בכלל. נבדק במקום (probe: existsSync). */
+const ROOT = path.resolve(__dirname, "..", "..", "..");
 
 export interface MirrorPublishResult {
   published: boolean;
@@ -272,13 +275,14 @@ const CONSOLE_ASSETS = [
 export interface ConsoleAssetsResult {
   published: string[];
   unchanged: string[];
+  failed: string[];
   reason?: string;
 }
 
 export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
   const pat = process.env.WEAVE_OPS_PAT || "";
   if (!pat) {
-    return { published: [], unchanged: [], reason: "אין WEAVE_OPS_PAT בסביבה — דילוג-כנה (הסנכרון רץ מהענן)" };
+    return { published: [], unchanged: [], failed: [], reason: "אין WEAVE_OPS_PAT בסביבה — דילוג-כנה (הסנכרון רץ מהענן)" };
   }
 
   const api = async (method: string, url: string, body?: unknown) => {
@@ -297,11 +301,12 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
 
   const published: string[] = [];
   const unchanged: string[] = [];
+  const failed: string[] = [];
   for (const file of CONSOLE_ASSETS) {
     try {
       const localPath = path.join(ROOT, "console", file);
       if (!fs.existsSync(localPath)) {
-        unchanged.push(file); // אין מקור — לא מוחקים כלום בחוץ
+        failed.push(`${file}:missing-in-sovereign-repo`); // מקור חסר — נרשם, לא מוסתר
         continue;
       }
       const text = fs.readFileSync(localPath, "utf8");
@@ -323,12 +328,16 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
         sha: cur.status === 200 && cur.json ? String(cur.json.sha || "") : undefined,
         branch: "main",
       });
-      if (put.status === 200 || put.status === 201) published.push(file);
-      else unchanged.push(file); // כשל-פרסום לא מפיל את הפעימה — המחזור הבא ינסה
+      if (put.status === 200 || put.status === 201) {
+        published.push(file);
+      } else {
+        // כשל-פרסום נרשם בכנות — לעולם לא "ללא שינוי" (תווית שקר נתפסה בביקורת)
+        failed.push(`${file}:HTTP${put.status}:${String(put.json?.message || "").slice(0, 80)}`);
+      }
     } catch (e) {
-      unchanged.push(file); // כשל בקובץ אחד לא עוצר את השאר
+      failed.push(`${file}:${e instanceof Error ? e.message.slice(0, 80) : String(e)}`); // כשל בקובץ אחד לא עוצר את השאר
       console.log(`[console-assets] ${file}: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`);
     }
   }
-  return { published, unchanged };
+  return { published, unchanged, failed };
 }
