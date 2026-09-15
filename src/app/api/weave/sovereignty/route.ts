@@ -189,9 +189,9 @@ export async function GET() {
       },
       {
         id: "G5",
-        title: "קונסולה בלי סנדבוקס — נפרסה 2026-09-14",
-        missing: "הפעלת Pages חד-פעמית (הרשאת Administration — רק המפעיל)",
-        path: "פרוס: ריפו ציבורי Console מפרסם את עצמו חסר-מפתחות (render.mjs קורא את קו העוגנים מ-Steem ציבורי, מבצע commit ומגיש Pages ב-GITHUB_TOKEN שלו); השער נסגר אוטומטית באימות CONSOLE חתום במחזור הראשון שאחרי הפעלת Pages",
+        title: "קונסולה בלי סנדבוקס — נסגר 2026-09-15 00:40Z",
+        missing: "—",
+        path: "נסגר: Pages הופעל (המפעיל) ⇒ ריצת העוגן אטמה אוטומטית — att 37 CONSOLE חתום: pages LIVE · עד הקונסולה (cp#12 root) תואם לקו העוגן מ-Steem הציבורי · ריפו Console מפרסם את עצמו חסר-מפתחות ב-:40",
       },
       {
         id: "G6",
