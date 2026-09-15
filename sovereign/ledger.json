@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-15T13:10:12.764Z",
-  "chainCount": 57,
-  "headHash": "0x7fb7361a2cd2b15bf0730987d646a53c1fa2563ee7b919c97eca811ee5c124b0",
+  "exportedAt": "2026-09-15T13:13:34.930Z",
+  "chainCount": 58,
+  "headHash": "0x2641377efdab6782d6591c3d7b6161764305a9cdb042e6da42e7f064c3a52d49",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -959,6 +959,21 @@
       "sig": "0x9586db9b786c1978ee06c8d742af375c3850611bba93a0e40058d6bd172db63f1edbbe867bcbde807d8ff0d89ab42e3fd3b4790d64e7ec03e207f5c465f654c41c",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-15T13:10:12.676Z"
+    },
+    {
+      "id": "cmu2p097u000142n5i95vgls9",
+      "seq": 58,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "המוח הושב הביתה מכספת הצי: 3 מפתחות NVIDIA NIM אומתו-אמת (1-token chat) ונאטמו תחת גזירת מפתח-הרשת; הגושים האטומים עולים לספר — המוח עוגן בגיט ואינו תלוי עוד בסנדבוקס.",
+      "claimType": "RESTORE",
+      "evidence": "runner=github-actions · gitHead=a9880b2 · sources=steem:agent/vault/KEYS-BACKUP-2026-09-09.tar.enc + Saosmartwallet:db/custom.db (פרטיים, קריאה בלבד) · archiveSha256=5753a90cdad893b2008e6a6abb4407d2a354ec89ac6be39adf6ea1d526fa8ac4 (מתועד ב-recovery-meta — תואם) · vaultOpen=headcorner key-seal → master → VaultEntry(nvidia) · טביעות נאמתו מול שדה pub · live=3/3: nv-fp:531b3f28a4c50a9a, nv-fp:1e332f98b5ef7b9b, nv-fp:596ae055a9069b87 · sealed=3 · poolAfter=3 keys / 3 verified · kek=keccak256(weave-daemon/v1:weave-brain:<netkey>) — אותה גזירה בכל סביבה · ledgerBrain=additive vault — union-merge בייבוא ובייצוא, הסרה רק בפרישה מפורשת · at=2026-09-15T13:13:32.821Z",
+      "evidenceHash": "0x9066983032a21d849d565e2b44d947b3b2750cd4b6cb0d0804283e227457861d",
+      "status": "VERIFIED",
+      "prevHash": "0x7fb7361a2cd2b15bf0730987d646a53c1fa2563ee7b919c97eca811ee5c124b0",
+      "entryHash": "0x2641377efdab6782d6591c3d7b6161764305a9cdb042e6da42e7f064c3a52d49",
+      "sig": "0x6931a1f282dc4285cd2978f6ba323aecda0392e80535b799c8ae77de5e2cb5964b3530caa2a8c65b22dc505fac84c1b11ccf5e3be2f40f2ec930d3272821af641b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-15T13:13:34.880Z"
     }
   ],
   "checkpoints": [
@@ -1811,6 +1826,23 @@
       "anchorTx": null,
       "calldata": "0xeecdf9277fb7361a2cd2b15bf0730987d646a53c1fa2563ee7b919c97eca811ee5c124b0",
       "createdAt": "2026-09-15T13:10:12.705Z"
+    },
+    {
+      "id": "cmu2p098h000242n5g7k2pv1t",
+      "index": 51,
+      "attFrom": 58,
+      "attTo": 58,
+      "leafCount": 1,
+      "root": "0x2641377efdab6782d6591c3d7b6161764305a9cdb042e6da42e7f064c3a52d49",
+      "prevRoot": "0x7fb7361a2cd2b15bf0730987d646a53c1fa2563ee7b919c97eca811ee5c124b0",
+      "entryHash": "0x3d523cee106a3693ceb215b0d7971e15021c6fbbfc5fd78557b2e735a35d4d4e",
+      "sig": "0x952ad129faa8f27b95820c697a19680553b4962c0d312735bfcbade1a25552e629102b5a1dd34d3c43931026592e058f518073a8ee162b7181a25935039dc0d11c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9272641377efdab6782d6591c3d7b6161764305a9cdb042e6da42e7f064c3a52d49",
+      "createdAt": "2026-09-15T13:13:34.914Z"
     }
   ],
   "networkKey": {
@@ -2589,6 +2621,44 @@
       "sig": "0x6a9fe40a395c83b626321caf7e53e68482fc5fe11f7e28f3b81a904ef64f92a17d8ffa6f35fd8546b692c08c353bd8238a23c3dca32b1e0907c5f08a0b5a7dcd1b",
       "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
       "createdAt": "2026-09-15T11:15:30.121Z"
+    }
+  ],
+  "brain": [
+    {
+      "id": "brain-e332f98b5ef7b9b",
+      "fingerprint": "nv-fp:1e332f98b5ef7b9b",
+      "encKey": "a07632d712c7c1df7b6b7c6aac3487dde62c6b3917a89bd1f6ed767c9853f3868c93be403dc4c1868a633273994e3a0ea9687ce8f6b1b88f91b122b8476676176926d3426e73",
+      "keyIv": "01c2824d3ca591a973b74e77",
+      "keyTag": "c805bd6a83448993856db457ab111a25",
+      "status": "verified",
+      "lastCode": "200",
+      "cooldownUntil": null,
+      "verifiedAt": "2026-09-15T13:13:34.865Z",
+      "createdAt": "2026-09-15T13:13:34.866Z"
+    },
+    {
+      "id": "brain-31b3f28a4c50a9a",
+      "fingerprint": "nv-fp:531b3f28a4c50a9a",
+      "encKey": "a4ed10baef7c141411885249f309e1eb0c4dd1d9a5dd2aaf97a8f8a26a3df9c6fc62c94654c0694bdcc048722f619ff555101ce1a4802a87e55b67f783efcd608f700f2c64bb",
+      "keyIv": "ebdf6bd251a330bc4ed9b78a",
+      "keyTag": "54a96cf24202e7202619a3cadaba0082",
+      "status": "verified",
+      "lastCode": "200",
+      "cooldownUntil": null,
+      "verifiedAt": "2026-09-15T13:13:34.863Z",
+      "createdAt": "2026-09-15T13:13:34.864Z"
+    },
+    {
+      "id": "brain-96ae055a9069b87",
+      "fingerprint": "nv-fp:596ae055a9069b87",
+      "encKey": "29a6ecce5c3948806c01867abd6b19d9d2c8aa97ba1a46ef13018060e744b5c7ef352de0f3448c6b76602c587bc99c600df29d9476dadc6c0cf2d467b25acf5aead13bda4e7a",
+      "keyIv": "a6122d04bb03234ac606c1ec",
+      "keyTag": "ea6a8fc41ab70b68390887abc4a6ccd4",
+      "status": "verified",
+      "lastCode": "200",
+      "cooldownUntil": null,
+      "verifiedAt": "2026-09-15T13:13:34.867Z",
+      "createdAt": "2026-09-15T13:13:34.868Z"
     }
   ]
 }
