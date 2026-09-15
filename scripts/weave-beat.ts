@@ -29,6 +29,7 @@ import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosscha
 import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
 import { brainProbeAll } from "@/lib/weave/brain";
 import { processOperatorCommands, type OperatorOpsResult } from "@/lib/weave/ops";
+import { publishConsoleMirror } from "@/lib/weave/mirror";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -164,9 +165,20 @@ async function main(): Promise<void> {
       const measuredAt = String(eco.measuredAt || "");
       const t = eco.totals || {};
       if (measuredAt && typeof t.dupRatio === "number") {
+        const heldRatio = t.dupRatio! < 0.2;
         const already = await db.attestation.findFirst({
           where: { claimType: "AUDIT", evidence: { contains: `ecoMeasuredAt=${measuredAt}` } },
         });
+        // סגירת R1 (Task 27 — יישור אמת): השלב נסגר מול כל עדות G6 כשרה —
+        // גם עדות שנכתבה בעבר (att68) סוגרת את הרישום בפעימה הבאה שרואה אותה.
+        if (heldRatio) {
+          const r1 = await db.planStage.findUnique({ where: { code: "R1" } });
+          const r1EvidenceSeq = already?.seq ?? null;
+          if (r1 && r1.state !== "DONE" && r1EvidenceSeq !== null) {
+            await db.planStage.update({ where: { code: "R1" }, data: { state: "DONE", attSeq: r1EvidenceSeq } });
+            console.log(`[weave-beat] R1 (איחוד) נסגר בספר — עדות att${r1EvidenceSeq} (dup=${t.dupRatio} < 0.2)`);
+          }
+        }
         if (!already) {
           const ecoAgent = await ensureCloudAgent(seal.cloudKeyHex);
           const held = t.dupRatio! < 0.2;
@@ -204,6 +216,70 @@ async function main(): Promise<void> {
   } catch (ecoErr) {
     console.log(
       `[weave-beat] G6: עדות המדידה נדחתה תפעולית — ${ecoErr instanceof Error ? ecoErr.message : String(ecoErr)} (ההעשרה לעולם לא מפילה את הלב)`
+    );
+  }
+
+  // 3.55 ביקורת יכולת-חתימה יומית (Task 27 — תיקון אמת): הרשת מציגה
+  //     "9 סוכנים ACTIVE" אבל האמת המדודה: רק הלב-ענן חותם (מפתח
+  //     sealed); מפתחות שאר התפקידים חיו ב-DB הסנדבוקסי ומתים עם הסביבה.
+  //     רשת אימות לא מסתירה את זה — פעם ביום נכתב דוח יכולת כנה וחתום.
+  //     (עתיד: החוק 15 — הפרדת תפקידים תחיה מפתחות נפרדים ב-seal.)
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const alreadyCap = await db.attestation.findFirst({
+      where: { claimType: "AUDIT", evidence: { contains: `capAuditDate=${today}` } },
+    });
+    if (!alreadyCap) {
+      const allAgents = await db.agent.findMany({ orderBy: { name: "asc" } });
+      const rows: string[] = [];
+      let sealedSigners = 0;
+      for (const a of allAgents) {
+        const canSign = !!a.devKeyHex;
+        if (canSign) sealedSigners++;
+        rows.push(`${a.name}(${a.role}:${canSign ? "sealed-key ✓" : "memory-only — key lost with its environment"})`);
+      }
+      const capAgent = await ensureCloudAgent(seal.cloudKeyHex);
+      const att = await appendAttestation({
+        agentId: capAgent.id,
+        claim:
+          `ביקורת יכולת-חתימה יומית: ${allAgents.length} זהויות תפקיד בספר, ${sealedSigners} חותמים בפועל ` +
+          `(sealed) · השאר memory-only — מפתחותיהם חיו ב-DB סביבתי ומתים עם הסביבה · ` +
+          `הפונקציות שלהם נבלעו בלב (gitkeeper→דחיפות, scout→סריקת האקוסיסטם) או ממתינות (relayer→עדות הפוכה)`,
+        claimType: "AUDIT",
+        evidence: [
+          `capAuditDate=${today}`,
+          `identities=${allAgents.length}`,
+          `sealedSigners=${sealedSigners}`,
+          `roster=${rows.join(" · ")}`,
+          `law15-next=separate sealed keys per role`,
+          `runner=${runner}`,
+          `commit=${gitHead}`,
+        ].join(" · "),
+      });
+      const capCp = await createCheckpointNow();
+      console.log(
+        `[weave-beat] יכולת: att${att.seq} — ${sealedSigners}/${allAgents.length} חותמים sealed · שאר memory-only (אמת נמדדת)${capCp ? ` · cp#${capCp.index}` : ""}`
+      );
+    }
+  } catch (capErr) {
+    console.log(
+      `[weave-beat] ביקורת יכולת: נדחתה תפעולית — ${capErr instanceof Error ? capErr.message : String(capErr)} (לא מפילה את הלב)`
+    );
+  }
+
+  // 3.7 המראה הציבורית (Task 27): מצב הרשת הנגזר מתפרסם לקונסולה הציבורית
+  //     (mirror.json) — החזות החיה של הרשת חיה מעתה ברשת עצמה, לא בסנדבוקס.
+  //     רץ בכל פעימה — גם ב-SANDBOX-ALIVE: הצגת האמת לעולם לא תלויה בסביבה.
+  try {
+    const mirror = await publishConsoleMirror();
+    if (mirror.published) {
+      console.log(`[weave-beat] מראה ציבורית פורסמה לקונסולה ✓ (${Math.round((mirror.bytes || 0) / 1024)}KB)`);
+    } else {
+      console.log(`[weave-beat] מראה: ${mirror.reason}`);
+    }
+  } catch (mirrorErr) {
+    console.log(
+      `[weave-beat] מראה: נדחתה תפעולית — ${mirrorErr instanceof Error ? mirrorErr.message : String(mirrorErr)} (לא מפילה את הלב)`
     );
   }
 

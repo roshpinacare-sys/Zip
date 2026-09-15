@@ -41,9 +41,9 @@
 ### ב. סביבת עבודה מקומית (אינן בגיט — ולא צריכות להיות)
 | תיקייה | מה יש בה | מקור שחזור | תווית |
 |---|---|---|---|
-| `sovereign-net/toolkit/` | 5 zips + פריצה (4245 קבצים) | ה-zips ב-Project-files; **השלמות ניתנת לאימות מול שורש המרקל בספר** | ANCHORED (היום) |
-| `sovereign-net/staging/` | ייצוא הבימה לדחיפה | הריפו Zip עצמו | DERIVED |
-| `sovereign-net/steem-ref/` | דפוסי הצי (cloud-heart, gitkeeper, vault) | הריפו steem | DERIVED |
+| `sovereign-net/` | צילומי עדות בלבד (task25/26) — **הועתקו ל-sovereign/evidence/ שבגיט** (Task 27). ה-toolkit/staging/steem-ref שהיו כאן מתו בקריסות — כולם DERIVED/ANCHORED ממילא | ריפוים + שורש מרקל בספר | RECOVERABLE |
+| `sovereign/evidence/` | צילומי הוכחה של אבני הדרך — במשמרת גיט מעתה | — | REAL |
+| `skills/` (54MB) | ספריית הסביבה (z.ai) — **לא חלק מהרשת**, מנוטרל ב-.gitignore | — | ENVIRONMENT |
 | `saos-verify/` | שירות אימות חלוץ (core/genesis/node) — **משולב חי בקונסולה מ-2026-09-14**: replay דטרמיניסטי בכל טעינה (scripts/saosnet-status.cjs ⇒ /api/weave/saosnet ⇒ כרטיס SAOS-NET) · **מוצלב בספר מ-2026-09-14 (Task 17)**: ה-stateRoot של הרשת מעיד כאימות CROSSCHAIN חתום בכל פעימה ⇒ checkpoint ⇒ עיגון ב-$0 | נגזר מריפו פלטפורמה; האימות מתמטי וחי | DERIVED + REAL (replay + crosschain) |
 | `download/` `upload/` `tool-results/` `agent-ctx/` | מעבר: הורדות, PAT (אף פעם לא בגיט!), דוחות כלים | — | TRANSIENT |
 | `examples/` `skills/` `tests/` | דמו websocket, ספריית skills, סקריפטי סביבה | — | REFERENCE |
