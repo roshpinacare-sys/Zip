@@ -125,15 +125,18 @@ export async function readLiveEnvelopes(): Promise<{ envelopes: LiveEnvelope[]; 
   throw new Error(`קריאת ספר SAOS-LIVE נכשלה בכל הצמתים: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
 }
 
-/* ── הנחת הג'נזיס (ענן בלבד): אטומית, חד-פעמית, חתומה ── */
-async function ensureGenesis(alreadyFoldedHasSaos: boolean, st: SaosLiveStateFile): Promise<{ broadcast: boolean; note: string; txid?: string; treasury?: string }> {
-  if (alreadyFoldedHasSaos) {
-    if (!st.genesis.done) {
-      st.genesis.done = true;
-      st.genesis.note = "genesis found on chain (verified by fold)";
-    }
-    return { broadcast: false, note: "הג'נזיס כבר על השרשרת" };
-  }
+/* ── הנחת הג'נזיס (ענן בלבד) — מדורגת: פעולה אחת לפעימה ──
+ * נלמד במדידה חיה (22:15Z): השרשרת דחתה טרנזאקציית 3-פעולות במחיר
+ * RC שוק של 444M — בעוד המנה החיה 200M. התיקון הריבוני: לא לחכות
+ * ל-20 שעות למנה שלמה, אלא להניח את הג'נזיס בשלבים — פעולה אחת
+ * לכל פעימה, כל עוד ה-RC מאפשר: רישום האוצר → פריסת החוזה → ההטבעה.
+ * כל שלב נבדק מול הקיפול של מה שכבר על השרשרת — אידמפוטנטי מטבעו. */
+interface GenesisFoldState {
+  wallets: Record<string, unknown>;
+  tokens: Record<string, unknown>;
+  supply: Record<string, bigint>;
+}
+async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Promise<{ broadcast: boolean; note: string; txid?: string; treasury?: string }> {
   const wif = (process.env.WEAVE_STEEM_WIF || "").trim();
   if (!wif) return { broadcast: false, note: "אין WEAVE_STEEM_WIF בסביבה — דילוג-כנה (הג'נזיס מונח רק מהענן)" };
   if (st.genesis.attempted && st.genesis.broadcastAt && Date.now() - Date.parse(st.genesis.broadcastAt) < 10 * 60 * 1000) {
@@ -144,34 +147,47 @@ async function ensureGenesis(alreadyFoldedHasSaos: boolean, st: SaosLiveStateFil
     const GateCrypto = await import("../../../console/gate-crypto.js");
     const SaosLive = await import("../../../console/saos-live.js");
 
-    // שער ה-RC לפני שידור — אותה משמעת כמו קווי העוגן
-    const gate = await steemRcGate(WITNESS_ACCOUNT);
-    if (!gate.ok) {
-      return { broadcast: false, note: `דילוג-כנה — RC נמוך (${gate.reason ?? "gated"})` };
-    }
-
     // האוצר = הזהות שנגזרת ממפתח ה-posting של קו העדות — ניתן לאימות ציבורי מהשרשרת
     const priv = await GateCrypto.wifToPriv(wif);
     const pubSTM = await GateCrypto.pubToSTM(GateCrypto.privToPubBytes(priv));
     const { treasury, ops } = await SaosLive.buildGenesisOps(priv, pubSTM);
 
-    const txOps: GrapheneOperation[] = ops.map((op: Record<string, unknown>) => [
+    // מה כבר על השרשרת? (מהקיפול — השרשרת היא השופט)
+    const registered = Boolean(fold.wallets[treasury]);
+    const deployed = Boolean(fold.tokens[SaosLive.SAOS_GENESIS.symbol]);
+    const minted = (fold.supply[SaosLive.SAOS_GENESIS.symbol] ?? 0n) >= BigInt(SaosLive.SAOS_GENESIS.initialMint);
+    if (registered && deployed && minted) {
+      st.genesis.done = true;
+      st.genesis.treasury = treasury;
+      if (!st.genesis.note || !st.genesis.note.includes("נמצא")) st.genesis.note = "הג'נזיס נמצא על השרשרת (אומת בקיפול)";
+      return { broadcast: false, note: "הג'נזיס כבר על השרשרת", treasury };
+    }
+    const step = !registered ? "רישום האוצר" : !deployed ? "פריסת החוזה" : "ההטבעה הראשונה";
+    const nextOp = !registered ? ops[0] : !deployed ? ops[1] : ops[2];
+
+    // שער ה-RC לפני שידור — אותה משמעת כמו קווי העוגן
+    const gate = await steemRcGate(WITNESS_ACCOUNT);
+    if (!gate.ok) {
+      return { broadcast: false, note: `דילוג-כנה — RC נמוך (${gate.reason ?? "gated"}) · הבא: ${step}` };
+    }
+
+    const txOps: GrapheneOperation[] = [[
       "custom_json",
       {
         required_auths: [],
         required_posting_auths: [WITNESS_ACCOUNT],
         id: SAOS_LIVE_OP_ID,
-        json: JSON.stringify(op),
+        json: JSON.stringify(nextOp),
       },
-    ]) as GrapheneOperation[];
+    ]] as GrapheneOperation[];
 
     const res = await steemBroadcast(txOps, wif);
     st.genesis.attempted = true;
     st.genesis.broadcastAt = new Date().toISOString();
     st.genesis.treasury = treasury;
-    st.genesis.note = res.txid ? "broadcast ok — ממתין להיכללות בבלוק" : `broadcast נכשל: ${res.note ?? "?"}`;
+    st.genesis.note = res.txid ? `${step} שודרה ✓ (tx ${res.txid.slice(0, 14)}…) — ממתין להיכללות` : `שידור נכשל: ${res.note ?? "?"} · הבא: ${step}`;
     if (res.txid) st.genesis.txid = res.txid;
-    return { broadcast: true, txid: res.txid ?? undefined, treasury, note: res.txid ? `הג'נזיס שודר ✓ (tx ${res.txid.slice(0, 14)}…)` : `שידור נכשל — ${res.note ?? "?"}` };
+    return { broadcast: true, txid: res.txid ?? undefined, treasury, note: st.genesis.note };
   } catch (e) {
     st.genesis.attempted = true;
     st.genesis.broadcastAt = new Date().toISOString();
@@ -257,20 +273,21 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
 
   const SaosLive = await import("../../../console/saos-live.js");
   let res = await SaosLive.fold(envelopes.map((e) => e.env));
-  const hasSaos = Boolean(res.state.tokens?.SAOS);
 
-  // הנחת הג'נזיס — רק אם SAOS טרם נפרש (השרשרת היא השופט)
-  const gen = await ensureGenesis(hasSaos, st);
+  // הנחת הג'נזיס — מדורג: רק הפעולה החסרה (השרשרת היא השופט)
+  const gen = await ensureGenesis(res.state, st);
   if (gen.broadcast && gen.txid) {
     // המתנה קצרה להיכללות ואז קריאה חוזרת — הפעימה הבאה תאסוף אם פספסנו
     await new Promise((r) => setTimeout(r, 9000));
     const again = await readLiveEnvelopes().catch(() => null);
     if (again) {
       res = await SaosLive.fold(again.envelopes.map((e) => e.env));
-      if (res.state.tokens?.SAOS) st.genesis.done = true;
     }
   }
-  if (res.state.tokens?.SAOS) st.genesis.done = true;
+  // השלמת הג'נזיס — רק מהקיפול: אוצר רשום + חוזה פרוס + אספקה מלאה
+  if (res.state.tokens?.SAOS && (res.state.supply?.SAOS ?? 0n) >= BigInt(SaosLive.SAOS_GENESIS.initialMint)) {
+    st.genesis.done = true;
+  }
 
   // זמני צפייה ראשונה (תווית אמת: "נצפה בענן", לא זמן השרשרת)
   const seen = st.seen || {};
