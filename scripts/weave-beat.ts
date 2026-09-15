@@ -23,6 +23,7 @@ import { execSync } from "child_process";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
 import { runBeat, verifyLedger, ensureNetworkKeyFromSeal, createCheckpointNow, ensureCloudAgent, type BeatContext } from "@/lib/weave/beat";
+import { appendAttestation } from "@/lib/weave/ledger";
 import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosschain";
 import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
