@@ -140,6 +140,7 @@ export async function steemRcGate(
     rc_manabar: { current_mana: string | number; last_update_time: number };
   };
   let a: RcAccount | null = null;
+  let dgp: DynamicGlobalProperties | null = null;
   let lastErr = "";
   for (const node of STEEM_RPC_NODES) {
     try {
@@ -149,22 +150,36 @@ export async function steemRcGate(
         { accounts: [account] }
       );
       a = res?.rc_accounts?.[0] ?? null;
-      if (a) break;
+      if (a) {
+        dgp = await getDgp(node); // זמן-השרשרת — לא שעון מקומי
+        break;
+      }
     } catch (e) {
       lastErr = e instanceof Error ? e.message.slice(0, 60) : String(e);
     }
   }
-  if (!a) {
+  if (!a || !dgp) {
     return { ok: false, mana: 0, max: 0, reason: `rc-api-unreachable (${lastErr}) — honest skip` };
   }
   const max = Number(a.max_rc);
-  const mana = Math.min(max, Number(a.rc_manabar.current_mana)); // רגנרציה לא מחושבת — שמרנות לטובת הרצפה
+  /* תיקון אמת (Task 29, נמדד בשרשרת): ה-manabar השמור מתעדכן רק
+   * בטרנזאקציה של החשבון — קריאת הערך הקפוא בלי חישוב-רגנרציה יוצרת
+   * קיפאון-עדן: השער חוסם ⇒ אין טרנזאקציה ⇒ הערך לעולם לא מתעדכן ⇒
+   * השער חוסם לנצח (נמדד: קו Steem תקוע מ-13:09Z עם מנה קפואה 22.3M).
+   * התיקון — אותה נוסחה בדיוק שכבר רצה בשער ה-Hive: מנה חיבה =
+   * שמורה + זמן-שרשרת שחלף × קצב. הרצפה נשארת — השמרנות חיה בסף. */
+  const now = Math.floor(new Date(dgp.time + "Z").getTime() / 1000);
+  const lut = Number(a.rc_manabar.last_update_time);
+  const mana = Math.min(
+    max,
+    Number(a.rc_manabar.current_mana) + Math.max(0, now - lut) * (max / RC_REGEN_SEC)
+  );
   if (mana < floor) {
     return {
       ok: false,
       mana: Math.round(mana),
       max,
-      reason: `rc-gated (mana=${Math.round(mana).toExponential(2)} < floor=${floor.toExponential(2)} — regen budget, honest skip)`,
+      reason: `rc-gated (live-mana=${Math.round(mana).toExponential(2)} < floor=${floor.toExponential(2)} — regen budget, honest skip)`,
     };
   }
   return { ok: true, mana: Math.round(mana), max };
