@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { jsonError } from "@/lib/weave/api";
 import { computeBook, measureTarget, STARTING_POINTS, type MarketTarget } from "@/lib/weave/market";
-import { ZERO_BLOCK_SECONDS_MEASURED, zeroBlockHeight } from "@/lib/weave/zero";
+import { ZERO_BLOCK_SECONDS_MEASURED, ZERO_RAIL_ID, zeroBlockHeight } from "@/lib/weave/zero";
 
 export const dynamic = "force-dynamic";
 
@@ -38,10 +38,11 @@ export async function GET() {
 
     // הקשר לפתיחת שווקים חדשים — מה שהרשת יכולה למדוד כרגע,
     // ומה שהשרשרת החיצונית מודדת עבורה (חי, חסר-מפתחות)
-    const [planStages, lastCp, anchorCount, attestationCount, zeroJudge] = await Promise.all([
+    const [planStages, lastCp, anchorCount, zeroAnchorCount, attestationCount, zeroJudge] = await Promise.all([
       db.planStage.findMany({ where: { state: { not: "DONE" } }, orderBy: { sortOrder: "asc" } }),
       db.checkpoint.findFirst({ orderBy: { index: "desc" } }),
       db.attestation.count({ where: { claimType: "ANCHOR" } }),
+      db.checkpoint.count({ where: { anchorNet: ZERO_RAIL_ID } }),
       db.attestation.count(),
       zeroBlockHeight()
         .then((j) => ({
@@ -81,6 +82,7 @@ export async function GET() {
           planStages: planStages.map((s) => ({ code: s.code, title: s.title, state: s.state })),
           checkpointMax: lastCp?.index ?? 0,
           anchorCount,
+          zeroAnchorCount,
           attestationCount,
           zeroJudge,
         },

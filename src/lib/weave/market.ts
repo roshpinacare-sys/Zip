@@ -38,7 +38,7 @@ import { GENESIS_HASH, hashText } from "./chain";
 import { recoverFromDigestEip191, signDigestEip191 } from "./evm";
 import { appendAttestation } from "./ledger";
 import { ensureDaemonAgent } from "./daemons";
-import { ZERO_MIN_TARGET_GAP, zeroBlockHeight } from "./zero";
+import { ZERO_MIN_TARGET_GAP, ZERO_RAIL_ID, zeroBlockHeight } from "./zero";
 
 export const MARKET_GENESIS = GENESIS_HASH;
 export const STARTING_POINTS = 1000; // הון פתיחה מוצהר — נקודות אמת, לא כסף
@@ -49,6 +49,7 @@ export type MarketTarget =
   | { type: "stage-done"; code: string }
   | { type: "checkpoint-index"; index: number }
   | { type: "anchor-count"; count: number }
+  | { type: "zero-anchor-count"; count: number }
   | { type: "attestation-status"; seq: number }
   | { type: "zero-block-height"; height: number };
 
@@ -69,6 +70,8 @@ export function targetLabel(target: MarketTarget): string {
       return `checkpoint #${target.index} ייווצר בספר`;
     case "anchor-count":
       return `מספר אימותי ה-ANCHOR בספר יגיע ל-${target.count}`;
+    case "zero-anchor-count":
+      return `קו ה-ZERO יתעבה: עוגני ZERO בספר (anchorNet=${ZERO_RAIL_ID} — קו EVM ציבורי ב-$0) יגיעו ל-${target.count}`;
     case "attestation-status":
       return `אימות #${target.seq} יסומן VERIFIED (NO אם יופרך)`;
     case "zero-block-height":
@@ -107,6 +110,23 @@ export async function measureTarget(target: MarketTarget): Promise<TargetMeasure
         return { resolved: true, outcome: "YES", evidence: `ANCHOR attestations=${count} ≥ ${target.count} (נמדד מה-DB)` };
       }
       return { resolved: false, evidence: `ANCHOR attestations=${count} < ${target.count}` };
+    }
+    case "zero-anchor-count": {
+      // עוגן ZERO = checkpoint שסומן ANCHORED על קו ה-ZERO (anchorNet נכתב
+      // רק ע"י ריצת העוגן של ZERO, לאחר קבלה מהשרשרת עצמה). מדידה מבנית
+      // מה-DB — ניתנת לספירה-חוזרת ע"י כל צומת מהספר המיוצא (ledger.json).
+      const count = await db.checkpoint.count({ where: { anchorNet: ZERO_RAIL_ID } });
+      if (count >= target.count) {
+        return {
+          resolved: true,
+          outcome: "YES",
+          evidence: `ZERO anchors (anchorNet=${ZERO_RAIL_ID})=${count} ≥ ${target.count} (נמדד מה-DB)`,
+        };
+      }
+      return {
+        resolved: false,
+        evidence: `ZERO anchors (anchorNet=${ZERO_RAIL_ID})=${count} < ${target.count} — עוד ${target.count - count} ריצות עוגן (הקו מעיד כל 6 שעות)`,
+      };
     }
     case "attestation-status": {
       const att = await db.attestation.findUnique({ where: { seq: target.seq } });
@@ -175,6 +195,15 @@ export async function validateTarget(target: unknown): Promise<MarketTarget> {
       const current = await db.attestation.count({ where: { claimType: "ANCHOR" } });
       if (count <= current) throw new MarketError(`כבר יש ${current} אימותי ANCHOR — שוק על עבר אינו שוק`);
       return { type: "anchor-count", count };
+    }
+    case "zero-anchor-count": {
+      const count = Number(t.count);
+      if (!Number.isInteger(count) || count <= 0) throw new MarketError("כמות עוגני ZERO חייבת להיות מספר טבעי");
+      const current = await db.checkpoint.count({ where: { anchorNet: ZERO_RAIL_ID } });
+      if (count <= current) {
+        throw new MarketError(`כבר יש ${current} עוגני ZERO בספר — שוק על עבר אינו שוק`);
+      }
+      return { type: "zero-anchor-count", count };
     }
     case "attestation-status": {
       const seq = Number(t.seq);

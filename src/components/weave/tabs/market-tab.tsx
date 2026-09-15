@@ -5,8 +5,9 @@
 //
 // הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה — של
 // הרשת עצמה (PlanStage שנסגר · Checkpoint שנוצר · מספר אימותי
-// ANCHOR · סטטוס אימות) או של שרשרת ציבורית חיצונית חיה (גובה
-// בלוק ZERO 9369 — השופט החיצוני, בקריאה חסרת-מפתחות ב-$0).
+// ANCHOR · עוגני ZERO בספר · סטטוס אימות) או של שרשרת ציבורית
+// חיצונית חיה (גובה בלוק ZERO 9369 — השופט החיצוני, בקריאה
+// חסרת-מפתחות ב-$0).
 // לא הצבעה, לא דעה, לא כסף — נקודות אמת (מוניטין מוצהר).
 // הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0.
 //
@@ -20,6 +21,7 @@ import {
   ExternalLink,
   Gavel,
   Globe,
+  Link2,
   Plus,
   RefreshCw,
   Scale,
@@ -157,6 +159,7 @@ interface MarketDTO {
     planStages: Array<{ code: string; title: string; state: string }>;
     checkpointMax: number;
     anchorCount: number;
+    zeroAnchorCount: number;
     attestationCount: number;
     zeroJudge: ZeroJudgeView | null;
   };
@@ -427,6 +430,7 @@ export function MarketTab() {
                     listing={l}
                     agents={data.agents}
                     zeroJudge={data.openContext.zeroJudge}
+                    zeroAnchorCount={data.openContext.zeroAnchorCount ?? null}
                     onStaked={load}
                   />
                 ))}
@@ -471,11 +475,13 @@ function OpenMarketCard({
   listing,
   agents,
   zeroJudge,
+  zeroAnchorCount,
   onStaked,
 }: {
   listing: ListingView;
   agents: AgentCapitalView[];
   zeroJudge: ZeroJudgeView | null;
+  zeroAnchorCount: number | null;
   onStaked: () => void;
 }) {
   const [agentId, setAgentId] = useState("");
@@ -499,6 +505,18 @@ function OpenMarketCard({
       : null;
   const zeroRemaining =
     zeroTarget != null && zeroLive != null ? Math.max(0, zeroTarget - zeroLive) : null;
+
+  // מטרת קו ה-ZERO — התקדמות עוגנים חיה מהספר (ספירת anchorNet)
+  const zeroAnchorTarget =
+    listing.target?.type === "zero-anchor-count" ? Number(listing.target.count) : null;
+  const zeroAnchorProgress =
+    zeroAnchorTarget != null && zeroAnchorCount != null && zeroAnchorTarget > 0
+      ? Math.max(0, Math.min(100, Math.round((zeroAnchorCount / zeroAnchorTarget) * 100)))
+      : null;
+  const zeroAnchorRemaining =
+    zeroAnchorTarget != null && zeroAnchorCount != null
+      ? Math.max(0, zeroAnchorTarget - zeroAnchorCount)
+      : null;
 
   const submit = async () => {
     if (!agentId) {
@@ -542,6 +560,49 @@ function OpenMarketCard({
       <p className="mt-2 text-xs text-muted-foreground">
         <span className="font-medium">המטרה הנמדדת:</span> {listing.targetLabel}
       </p>
+
+      {zeroAnchorTarget != null && (
+        <div className="mt-2 rounded-lg border bg-muted/40 px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Link2 className="size-3.5 text-muted-foreground" />
+            <span className="text-xs font-medium">קו ה-ZERO — עוגנים בספר</span>
+            {zeroAnchorCount != null ? (
+              <span className="ms-auto font-mono text-xs text-muted-foreground" dir="ltr">
+                live {zeroAnchorCount} / target {zeroAnchorTarget}
+              </span>
+            ) : (
+              <span className="ms-auto text-[10px] text-red-600 dark:text-red-400">
+                הספירה לא זמינה — המכריע יחכה למדידה (fail-closed)
+              </span>
+            )}
+          </div>
+          {zeroAnchorProgress != null && (
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                <div
+                  className={cn(
+                    "h-full rounded-full transition-all",
+                    zeroAnchorProgress >= 100 ? "bg-emerald-500" : "bg-primary/70"
+                  )}
+                  style={{ width: `${zeroAnchorProgress}%` }}
+                />
+              </div>
+              <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">
+                {zeroAnchorProgress}%
+              </span>
+              {zeroAnchorRemaining != null && zeroAnchorRemaining > 0 && (
+                <span className="text-[10px] text-muted-foreground" dir="auto">
+                  · עוד {zeroAnchorRemaining} ריצות עוגן (הקו מעיד כל 6 שעות)
+                </span>
+              )}
+            </div>
+          )}
+          <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
+            המדידה: ספירת anchorNet=zero-9369 בספר — כל checkpoint שנחת בפועל על
+            Z Chain 9369 בגז-אפס. ניתנת לספירה-חוזרת ע"י כל צומת מה-ledger המיוצא.
+          </p>
+        </div>
+      )}
 
       {zeroTarget != null && (
         <div className="mt-2 rounded-lg border bg-muted/40 px-3 py-2">
@@ -790,7 +851,13 @@ function ClosedMarketCard({ listing }: { listing: ListingView }) {
 
 // ── דיאלוג פתיחת שוק ───────────────────────────────────────────────
 
-type TargetType = "stage-done" | "checkpoint-index" | "anchor-count" | "attestation-status" | "zero-block-height";
+type TargetType =
+  | "stage-done"
+  | "checkpoint-index"
+  | "anchor-count"
+  | "zero-anchor-count"
+  | "attestation-status"
+  | "zero-block-height";
 
 function NewMarketDialog({
   open,
@@ -810,6 +877,7 @@ function NewMarketDialog({
   const [code, setCode] = useState("");
   const [index, setIndex] = useState("");
   const [count, setCount] = useState("");
+  const [zeroCount, setZeroCount] = useState("");
   const [seq, setSeq] = useState("");
   const [height, setHeight] = useState("");
   const [byDate, setByDate] = useState("");
@@ -820,6 +888,10 @@ function NewMarketDialog({
     if (open && context) {
       setIndex(String(context.checkpointMax + 2));
       setCount(String(context.anchorCount + 3));
+      // ברירת מחדל חכמה לקו ה-ZERO: שתי ריצות עוגן נוספות (הקו מעיד
+      // כל 6 שעות — 00:30 · 06:30 · 12:30 · 18:30 UTC) ⇒ אופק ~12 שעות
+      // לטענה עתידית-ממשית בקצב הקו האמיתי
+      setZeroCount(String((context.zeroAnchorCount ?? 0) + 2));
       // ברירת מחדל חכמה לשופט החיצוני: הגובה החי + 4,320 בלוקים (≈3 שעות
       // בקצב הנמדד) — טענה עתידית-ממשית באופק סביר להימור
       const liveHeight = context.zeroJudge?.reachable ? context.zeroJudge.height : null;
@@ -847,6 +919,8 @@ function NewMarketDialog({
             return { type, index: Number(index) };
           case "anchor-count":
             return { type, count: Number(count) };
+          case "zero-anchor-count":
+            return { type, count: Number(zeroCount) };
           case "attestation-status":
             return { type, seq: Number(seq) };
           case "zero-block-height":
@@ -914,6 +988,7 @@ function NewMarketDialog({
                 <SelectItem value="stage-done">שלב בתוכנית ייסגר (DONE)</SelectItem>
                 <SelectItem value="checkpoint-index">checkpoint ייווצר</SelectItem>
                 <SelectItem value="anchor-count">כמות אימותי ANCHOR</SelectItem>
+                <SelectItem value="zero-anchor-count">כמות עוגני ZERO (קו EVM ציבורי ב-$0)</SelectItem>
                 <SelectItem value="attestation-status">אימות יסומן VERIFIED</SelectItem>
                 <SelectItem value="zero-block-height">גובה בלוק ZERO (שופט חיצוני חי)</SelectItem>
               </SelectContent>
@@ -963,6 +1038,27 @@ function NewMarketDialog({
                 value={count}
                 onChange={(e) => setCount(e.target.value)}
               />
+            </div>
+          )}
+
+          {type === "zero-anchor-count" && (
+            <div>
+              <Label className="text-xs">
+                כמות עוגני ZERO (נוכחית: {context?.zeroAnchorCount ?? "?"})
+              </Label>
+              <Input
+                className="mt-1 font-mono text-sm"
+                type="number"
+                value={zeroCount}
+                onChange={(e) => setZeroCount(e.target.value)}
+              />
+              <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+                הקו מעיד כל 6 שעות (00:30 · 06:30 · 12:30 · 18:30 UTC) — עוגן ZERO
+                = checkpoint שנחת בפועל על Z Chain 9369 בגז-אפס. המדידה:
+                ספירת anchorNet=zero-9369 ב-DB, ניתנת לספירה-חוזרת מהספר
+                המיוצא. ההכרעה האפשרית היחידה: YES כשהמספר הושג; פג תוקף
+                ללא השגה ⇒ החזר מלא.
+              </p>
             </div>
           )}
 
