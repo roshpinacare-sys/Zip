@@ -155,7 +155,7 @@ async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Pro
     // מה כבר על השרשרת? (מהקיפול — השרשרת היא השופט)
     const registered = Boolean(fold.wallets[treasury]);
     const deployed = Boolean(fold.tokens[SaosLive.SAOS_GENESIS.symbol]);
-    const minted = (fold.supply[SaosLive.SAOS_GENESIS.symbol] ?? 0n) >= BigInt(SaosLive.SAOS_GENESIS.initialMint);
+    const minted = (fold.supply[SaosLive.SAOS_GENESIS.symbol] ?? BigInt(0)) >= BigInt(SaosLive.SAOS_GENESIS.initialMint);
     if (registered && deployed && minted) {
       st.genesis.done = true;
       st.genesis.treasury = treasury;
@@ -285,7 +285,7 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
     }
   }
   // השלמת הג'נזיס — רק מהקיפול: אוצר רשום + חוזה פרוס + אספקה מלאה
-  if (res.state.tokens?.SAOS && (res.state.supply?.SAOS ?? 0n) >= BigInt(SaosLive.SAOS_GENESIS.initialMint)) {
+  if (res.state.tokens?.SAOS && (res.state.supply?.SAOS ?? BigInt(0)) >= BigInt(SaosLive.SAOS_GENESIS.initialMint)) {
     st.genesis.done = true;
   }
 
