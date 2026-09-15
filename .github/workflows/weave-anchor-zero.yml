@@ -23,8 +23,8 @@
 name: weave-anchor-zero
 
 on:
-  schedule:
-    - cron: '25 * * * *'  # מחזור שעתי (Task 24) — :25 אחרי הפעימה
+  # dispatch-only (Task 24): ההנעה השעתית עברה ל-weave-anchor-lines.
+  # הקובץ הזה נשאר להפעלה ידנית של קו ZERO בלבד (dry/verify-only/recover).
   workflow_dispatch:
     inputs:
       mode:

@@ -101,9 +101,7 @@ jobs:
         run: |
           set -e
           echo "[heart] משגר את קווי העיגון בעקבות הפעימה (backstop)…"
-          gh workflow run weave-anchor.yml --ref "${{ github.ref_name }}"
-          sleep 5
-          gh workflow run weave-anchor-zero.yml --ref "${{ github.ref_name }}"
-          echo "[heart] הקווים שוגרו — הקדנס: פעימה ⇒ עיגון Steem ⇒ עיגון ZERO"
+          gh workflow run weave-anchor-lines.yml --ref "${{ github.ref_name }}"
+          echo "[heart] הקווים שוגרו כרצף אחד — הקדנס: פעימה ⇒ Steem/Hive ⇒ ZERO ⇒ דחיפה"
         env:
           GH_TOKEN: ${{ github.token }}

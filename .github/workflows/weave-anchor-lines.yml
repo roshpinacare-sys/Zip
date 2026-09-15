@@ -1,0 +1,115 @@
+# WEAVE-ANCHOR-LINES — שני קווי העדות כרצף אחד (Task 24)
+#
+# לקח 11:09: שני קווים במקביל מאותו בסיס כתבו שני "אימות 46" שונים —
+# הדחיפות התנגשו מבנית (קונפליקט תוכן, לא מרוץ-רגע). מעתה: עבודה
+# אחת, ייבוא אחד, עיגון Steem/Hive ⇒ עיגון ZERO ⇒ ייצוא ודחיפה אחת.
+# הסדר זהה לדוקטרינה: פעימה ⇒ עוגן Steem ⇒ עוגן ZERO — והקווים
+# עצמאיים בכשל: אם Steem אדום, ZERO עדיין מעיד (if: always) —
+# והריצה אדומה בכנות אם אחד מהם נכשל.
+#
+# משגר הלב את הקווים בעקבות כל פעימה (workflow_dispatch); ה-cron
+# הדו-שעתי הוא רשת-ביטחון למקרה שמנגנון השיגור עצמו ייפול.
+#
+# תקציב (נמדד): ~70ש' למחזור מלא — חיסכון ממקביל (הכנה אחת) ⇒
+# ~24 מחזורים/יום ≈ 28 דק'/יום ≈ 850 דק'/חודש לצד הלב.
+
+name: weave-anchor-lines
+
+on:
+  schedule:
+    - cron: '20 */2 * * *'  # רשת-ביטחון דו-שעתית; ההנעה העיקרית — הלב
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'anchor mode — auto: anchor the latest checkpoint root on both lines if not yet anchored; dry: build payloads, broadcast nothing; verify-only: keyless readback, never broadcast'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - dry
+          - verify-only
+      recover:
+        description: 'recovery — txid (0x…64hex) of an on-chain ZERO anchor whose push reddened pre-verification: re-verify payload from chain and write the attestation'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weave-anchor-lines
+  cancel-in-progress: false
+
+jobs:
+  anchor-lines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout origin/main (the sovereign home)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile --no-save 2>/dev/null || bun install --no-save
+
+      - name: Prisma client + DB skeleton
+        run: bunx prisma generate && bunx prisma db push
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+
+      - name: Line 1 — Steem/Hive anchor (external witness, posting authority)
+        id: steem
+        continue-on-error: true
+        run: |
+          MODE_FLAG=""
+          case "${{ inputs.mode }}" in
+            dry) MODE_FLAG="--dry" ;;
+            verify-only) MODE_FLAG="--verify-only" ;;
+          esac
+          bun scripts/weave-anchor.ts $MODE_FLAG
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+          WEAVE_STEEM_WIF: ${{ secrets.WEAVE_STEEM_WIF }}
+
+      - name: Line 2 — Zero-gas EVM anchor on Z Chain 9369
+        id: zero
+        if: always()
+        continue-on-error: true
+        run: |
+          MODE_FLAG=""
+          case "${{ inputs.mode }}" in
+            dry) MODE_FLAG="--dry" ;;
+            verify-only) MODE_FLAG="--verify-only" ;;
+          esac
+          if [ -n "${{ inputs.recover }}" ]; then MODE_FLAG="--recover=${{ inputs.recover }}"; fi
+          bun scripts/weave-anchor-zero.ts $MODE_FLAG
+        env:
+          DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
+          WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
+
+      - name: Honesty verdict — red if any line failed
+        if: always()
+        run: |
+          echo "steem: ${{ steps.steem.outcome }} · zero: ${{ steps.zero.outcome }}"
+          if [ "${{ steps.steem.outcome }}" = "failure" ] || [ "${{ steps.zero.outcome }}" = "failure" ]; then
+            echo "לפחות קו עדות אחד אדום — הריצה אדומה בכנות"; exit 1
+          fi
+          echo "שני קווי העדות הושלמו"
+
+      - name: Upload anchor reports (evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weave-anchor-reports
+          path: |
+            sovereign/anchor-report.json
+            sovereign/zero-anchor-report.json
+          retention-days: 30
+          if-no-files-found: ignore
