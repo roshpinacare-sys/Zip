@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
-import { BrainCircuit, Globe2, Home, LayoutDashboard, Menu, ScrollText } from "lucide-react";
+import { BrainCircuit, Globe2, History, Home, LayoutDashboard, Menu, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -22,12 +22,13 @@ import { useWeave } from "./store";
 import { HashChip } from "./shared";
 import { ThemeToggle } from "./theme-toggle";
 
-export type SiteView = "home" | "console" | "brain" | "doctrine";
+export type SiteView = "home" | "console" | "brain" | "doctrine" | "evolution";
 
 const NAV: Array<{ view: SiteView; label: string; icon: typeof Home }> = [
   { view: "home", label: "בית", icon: Home },
   { view: "console", label: "קונסולה", icon: LayoutDashboard },
   { view: "brain", label: "המוח הריבוני", icon: BrainCircuit },
+  { view: "evolution", label: "אבולוציה", icon: History },
   { view: "doctrine", label: "דוקטרינה", icon: ScrollText },
 ];
 

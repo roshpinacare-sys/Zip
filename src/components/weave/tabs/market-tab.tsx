@@ -40,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -99,6 +100,8 @@ interface ListingView {
   createdBy: string;
   createdAt: string;
   status: "OPEN" | "SETTLED" | "REFUNDED";
+  sequence?: { depth: number };
+  successorOf?: number;
   stakes: StakeView[];
   potYes: number;
   potNo: number;
@@ -551,6 +554,16 @@ function OpenMarketCard({
           m#{listing.marketSeq}
         </span>
         <span className="text-sm font-semibold">{listing.title}</span>
+        {listing.sequence && (
+          <span
+            dir="ltr"
+            className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-mono text-[10px] text-amber-700 dark:text-amber-300"
+            title={listing.successorOf ? `רצף — הדור שנולד מ-m#${listing.successorOf}` : "רצף — דור הייסוד"}
+          >
+            SEQUENCE·D{listing.sequence.depth}
+            {listing.successorOf ? `·M${listing.successorOf}` : "·GEN"}
+          </span>
+        )}
         <StatusBadge status={expired ? "UNMEASURED" : "VERIFIED"} />
         <span className="ms-auto text-xs text-muted-foreground">
           תוקף עד {fmtDateTime(listing.byDate)}
@@ -882,6 +895,7 @@ function NewMarketDialog({
   const [height, setHeight] = useState("");
   const [byDate, setByDate] = useState("");
   const [createdBy, setCreatedBy] = useState("");
+  const [sequence, setSequence] = useState(false);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -935,11 +949,14 @@ function NewMarketDialog({
           target,
           byDate: byDate ? new Date(byDate).toISOString() : "",
           createdBy,
+          ...(type === "zero-anchor-count" && sequence ? { sequence: true } : {}),
         }),
       });
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "פתיחת השוק נכשלה");
-      toast.success(`השוק נפתח ונחתם — אירוע m#${json.market.marketSeq} בספר השוק`);
+      toast.success(
+        `השוק נפתח ונחתם — אירוע m#${json.market.marketSeq} בספר השוק${type === "zero-anchor-count" && sequence ? " · הימור-רצף: בסליקה מדודה הרשת תפתח את הדור הבא בעצמה" : ""}`
+      );
       setTitle("");
       onOpenChange(false);
       onCreated();
@@ -1059,6 +1076,23 @@ function NewMarketDialog({
                 המיוצא. ההכרעה האפשרית היחידה: YES כשהמספר הושג; פג תוקף
                 ללא השגה ⇒ החזר מלא.
               </p>
+              <label
+                className="mt-2 flex cursor-pointer items-start gap-2 rounded-lg border border-dashed p-2.5"
+                htmlFor="seq-market-checkbox"
+              >
+                <Checkbox
+                  id="seq-market-checkbox"
+                  checked={sequence}
+                  onCheckedChange={(v) => setSequence(v === true)}
+                  className="mt-0.5"
+                />
+                <span className="text-[11px] leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground">הימור-רצף</span> — בסליקה
+                  מדודה הרגולטור יפתח אוטומטית את הדור הבא (המציאות + 2 חלונות
+                  עוגן). הרשת ממשיכה לשאול בעצמה — הסוכנים בוחרים צדדים כל דור
+                  מחדש. תקרה: 30 דורות (fail-closed).
+                </span>
+              </label>
             </div>
           )}
 

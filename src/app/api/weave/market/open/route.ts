@@ -16,6 +16,8 @@ export async function POST(request: Request) {
     const title = typeof body.title === "string" ? body.title : "";
     const byDate = typeof body.byDate === "string" ? body.byDate : "";
     const createdBy = typeof body.createdBy === "string" ? body.createdBy.trim() : "";
+    const sequence = body.sequence === true;
+    const successorOf = typeof body.successorOf === "number" ? body.successorOf : undefined;
 
     if (!createdBy) {
       return NextResponse.json({ ok: false, error: "נדרש createdBy — agentId של סוכן פעיל" }, { status: 400 });
@@ -26,6 +28,8 @@ export async function POST(request: Request) {
       target: body.target,
       byDate,
       createdBy,
+      ...(sequence ? { sequence } : {}),
+      ...(successorOf != null ? { successorOf } : {}),
     });
     return NextResponse.json(
       { ok: true, market: { marketSeq, entryHash } },

@@ -46,6 +46,7 @@ export async function POST() {
       resolution: {
         settled: result.settled,
         refunded: result.refunded,
+        successors: result.successors,
         attSeqs: result.attSeqs,
         checkpoint,
         ledgerExported,

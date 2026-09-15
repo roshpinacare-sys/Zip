@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────
 // THE WEAVE · האתר — ארכיטקטורת עמודים ב-SPA יחיד (route /).
 //
-// ארבעה עמודים: בית (נחיתה חיה) · קונסולה (8 טאבים) · המוח · דוקטרינה.
+// חמישה עמודים: בית (נחיתה חיה) · קונסולה (8 טאבים) · המוח · אבולוציה · דוקטרינה.
 // מעברי-עמוד עדינים (AnimatePresence), פוטר דביק לתחתית תמיד.
 // ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +23,7 @@ import { PlanTab } from "@/components/weave/tabs/plan-tab";
 import { SovereigntyTab } from "@/components/weave/tabs/sovereignty-tab";
 import { BrainView } from "@/components/weave/views/brain-view";
 import { DoctrineView } from "@/components/weave/views/doctrine-view";
+import { EvolutionView } from "@/components/weave/views/evolution-view";
 import { HomeView } from "@/components/weave/views/home-view";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -115,6 +116,7 @@ export default function Page() {
                 {view === "console" ? <ConsoleView /> : null}
                 {view === "brain" ? <BrainView /> : null}
                 {view === "doctrine" ? <DoctrineView /> : null}
+                {view === "evolution" ? <EvolutionView /> : null}
               </motion.div>
             </AnimatePresence>
           </main>

@@ -42,6 +42,7 @@ import { ZERO_MIN_TARGET_GAP, ZERO_RAIL_ID, zeroBlockHeight } from "./zero";
 
 export const MARKET_GENESIS = GENESIS_HASH;
 export const STARTING_POINTS = 1000; // הון פתיחה מוצהר — נקודות אמת, לא כסף
+export const SEQUENCE_MAX_DEPTH = 30; // הימורי-רצף: תקרת דורות (~חודש סבבים יומיים) — רצף לא נצחי, fail-closed
 
 // ─── מטרות — מה שהרשת יכולה למדוד בעצמה, ומה ששרשרת חיצונית מודדת עבורה ──
 
@@ -292,6 +293,10 @@ export interface OpenPayload {
   target: MarketTarget;
   byDate: string; // ISO — פג תוקף; לאחריו REFUND אם לא הוכרע
   createdBy: string; // agentId של פותח השוק
+  /** הימור-רצף: בסליקה מדודה הרגולטור פותח אוטומטית את הדור הבא — הרשת ממשיכה לשאול */
+  sequence?: { depth: number };
+  /** השוק שילד אותי — מניעת כפילויות ושרשרת אבות ניתנת לשחזור */
+  successorOf?: number;
 }
 
 export interface StakePayload {
@@ -422,6 +427,8 @@ export interface ListingView {
   createdBy: string;
   createdAt: string;
   status: "OPEN" | "SETTLED" | "REFUNDED";
+  sequence?: { depth: number };
+  successorOf?: number;
   stakes: StakeView[];
   potYes: number;
   potNo: number;
@@ -527,6 +534,8 @@ export async function computeBook(): Promise<BookView> {
         createdBy: payload.createdBy,
         createdAt: ev.createdAt.toISOString(),
         status: "OPEN",
+        sequence: payload.sequence,
+        successorOf: payload.successorOf,
         stakes: [],
         potYes: 0,
         potNo: 0,
@@ -633,6 +642,8 @@ export async function openMarket(input: {
   target: unknown;
   byDate: string;
   createdBy: string;
+  sequence?: boolean;
+  successorOf?: number;
 }): Promise<{ marketSeq: number; entryHash: string }> {
   const title = input.title.trim();
   if (title.length < 8 || title.length > 160) {
@@ -649,8 +660,42 @@ export async function openMarket(input: {
   if (!agent || agent.status !== "ACTIVE") throw new MarketError("פותח השוק חייב סוכן פעיל");
 
   const target = await validateTarget(input.target);
+
+  // הימור-רצף — opt-in מפורש: הרשת מתחייבת להמשיך לשאול אחרי סליקה מדודה.
+  // תקרת עומק fail-closed — רצף הוא מנגנון, לא נצח; וסדר האבות נבדק כנגד הספר.
+  let sequence: { depth: number } | undefined;
+  if (input.sequence) {
+    if (target.type !== "zero-anchor-count") {
+      throw new MarketError("הימור-רצף (v1) תומך רק במטרות zero-anchor-count — קו העדות האוטונומי שמעיד כל 6 שעות");
+    }
+    if (input.successorOf == null) {
+      sequence = { depth: 1 }; // דור הייסוד — נפתח ע"י יד מפורשת (אדם/API)
+    } else {
+      const parent = await db.marketEvent.findUnique({ where: { seq: input.successorOf } });
+      if (!parent || parent.kind !== "OPEN") {
+        throw new MarketError(`אב הרצף #${input.successorOf} לא נמצא בספר — אין יחוס מזויף`);
+      }
+      const parentPayload = JSON.parse(parent.payload) as OpenPayload;
+      if (!parentPayload.sequence) {
+        throw new MarketError(`אב #${input.successorOf} אינו שוק-רצף — הרצף לא נצמד אחרי העובדה`);
+      }
+      if (parentPayload.sequence.depth >= SEQUENCE_MAX_DEPTH) {
+        throw new MarketError(`תקרת רצף (${SEQUENCE_MAX_DEPTH} דורות) הושגה — הרשת יודעת להפסיק`);
+      }
+      sequence = { depth: parentPayload.sequence.depth + 1 };
+    }
+  }
+
   return appendEvent(
-    { kind: "OPEN", title, target, byDate, createdBy: input.createdBy },
+    {
+      kind: "OPEN",
+      title,
+      target,
+      byDate,
+      createdBy: input.createdBy,
+      ...(sequence ? { sequence } : {}),
+      ...(input.successorOf != null ? { successorOf: input.successorOf } : {}),
+    },
     { agentId: input.createdBy } // הפותח חותם על פתיחת השוק שלו
   );
 }
@@ -709,6 +754,8 @@ export async function placeStake(input: {
 export interface SettlementResult {
   settled: Array<{ marketSeq: number; outcome: MarketOutcome; attSeq: number; winners: number; pot: number }>;
   refunded: Array<{ marketSeq: number; reason: string; refunds: number }>;
+  /** הימורי-רצף: הדור הבא שנפתח אוטומטית בסליקה מדודה — או הסיבה הכנה שלא נפתח */
+  successors: Array<{ marketSeq: number; successorSeq?: number; depth?: number; reason?: string }>;
   attSeqs: number[];
 }
 
@@ -721,7 +768,7 @@ export interface SettlementResult {
 export async function resolveOpenMarkets(): Promise<SettlementResult> {
   const book = await computeBook();
   const open = book.listings.filter((l) => l.status === "OPEN");
-  const result: SettlementResult = { settled: [], refunded: [], attSeqs: [] };
+  const result: SettlementResult = { settled: [], refunded: [], successors: [], attSeqs: [] };
 
   for (const listing of open) {
     const m = await measureTarget(listing.target);
@@ -795,6 +842,48 @@ export async function resolveOpenMarkets(): Promise<SettlementResult> {
         pot: totalPaid,
       });
       result.attSeqs.push(att.seq);
+
+      // ── הימור-רצף: סליקה מדודה התרחשה — הרשת ממשיכה לשאול את השאלה הבאה ──
+      // הרגולטור פותח את הדור הבא (חותם OPEN משלו); הסוכנים בוחרים צדדים
+      // בעצמם — הפרדת תפקידים: הפותח/המכריע (הרגולטור) לא מהמר ולא נהנה.
+      if (listing.sequence) {
+        try {
+          if (listing.sequence.depth >= SEQUENCE_MAX_DEPTH) {
+            result.successors.push({
+              marketSeq: listing.marketSeq,
+              reason: `תקרת רצף (${SEQUENCE_MAX_DEPTH}) הושגה — הרשת יודעת להפסיק (fail-closed)`,
+            });
+          } else if (book.listings.some((l) => l.successorOf === listing.marketSeq)) {
+            result.successors.push({ marketSeq: listing.marketSeq, reason: "הדור הבא כבר קיים בספר — אין כפילויות" });
+          } else {
+            // המציאות כרגע + 2 חלונות עוגן (הקו מעיד כל 6 שעות) — אותה נקודת
+            // מבט של m#26: עתיד ניתן למדידה, לא נבואה. תוקף: 24 שעות (4 חלונות).
+            const zeroAnchors = await db.checkpoint.count({ where: { anchorNet: ZERO_RAIL_ID } });
+            const nextCount = zeroAnchors + 2;
+            const byDate = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();
+            const regulator = await ensureMarketRegulator();
+            const { marketSeq: successorSeq } = await openMarket({
+              title: `קו ה-ZERO יתעבה: עוגני ZERO בספר יגיעו ל-${nextCount} · רצף דור ${listing.sequence.depth + 1}`,
+              target: { type: "zero-anchor-count", count: nextCount },
+              byDate,
+              createdBy: regulator.id,
+              sequence: true,
+              successorOf: listing.marketSeq,
+            });
+            result.successors.push({
+              marketSeq: listing.marketSeq,
+              successorSeq,
+              depth: listing.sequence.depth + 1,
+            });
+          }
+        } catch (e) {
+          // כישלון יצירת הדור הבא לעולם לא מפיל את הסליקה — נרשם בכנות
+          result.successors.push({
+            marketSeq: listing.marketSeq,
+            reason: `פתיחת הדור הבא נכשלה בכנות: ${e instanceof Error ? e.message : "שגיאה לא ידועה"}`,
+          });
+        }
+      }
     } else if (expired) {
       // פג תוקף ללא הכרעה — החזר מלא (כנות: לא "ניצחון" של אף צד)
       const refunds = listing.stakes.map((s) => ({ agentId: s.agentId, points: s.points }));

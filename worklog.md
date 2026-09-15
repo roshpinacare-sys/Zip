@@ -672,3 +672,22 @@ Stage Summary:
 - **האתר מעבר לדף-נחיתה**: 4 עמודים, ניווט-אמת, אנימציות (קנבס-רשת חי, מעברי-עמוד, כניסות-סטאגר), היררכיית-טיפוגרפיה, כרטיסים אחידים, RTL מקורי, מובייל מלא — roast הקודם תוקן בשורש.
 - מצב: 39 אימותים · 32 checkpoints · 28 אירועי שוק (ללא שינוי — המשימה הייתה תשתית-אתר ומוח, לא ספר) · המוח: 3/3 LIVE.
 - נותר: עדות הפוכה (SAOS-NET מעיד על checkpoint) כשיפתח relayer · הצלבת toolkit בענן · משמרת-ענן למפתחות המוח (GitHub Secrets) כהחלטת מפעיל · הימורי-רצף בשוק.
+
+---
+Task ID: R-1
+Agent: research (general-purpose)
+Task: research fallen social chains (Steem/Hive/Blurt/LeoFinance) for agent-network lessons
+
+Work Log:
+- קרית הקשר מ-worklog (Tasks 1-21): THE WEAVE — ספר hash-chained, עיגון $0 בקו ZERO (Z Chain 9369), מכריע אוטומטי fail-closed, SAOS-NET, עד ארכיון, המוח הריבוני.
+- הורצו 16 חיפושי רשת ב-z-ai CLI (web_search, num=8) ל-/tmp/research-*.json: steem-decline, hive-dhf, blurt, leofinance, why-fail, dpos, proof-of-brain, voice-minds, ai-agents, steem-metrics, hive-today, blurt2, leo2, leo3, hive-gov, publish0x, inleo-status.
+- חולצו ואומתו מדדי שיא/היום: STEEM ATH $8.57 (03.01.2018, CoinMarketCap) → ~$0.056 (-99.35%) · HIVE $1.31 בהשקה → ATL $0.0374 (אוג 2026, CoinLore) · BLURT $0 מחיר/נפח $0 (CoinMarketCap — שרשרת מתה) · LEO (LeoFinance) → $0.0247 (DappRadar) · Voice: $150M נשרפו, נסגרה (Protos/crypto.news).
+- נאספו ראיות מבניות: מאמר SteemOps (arXiv 2021) — רשתות אספקה מאורגנות של בוטים בבריכת התגמול · Vitalik "Plutocracy Is Still Bad" · Binance Research "Why Web3 social fails" (אפקט הצדקת-יתר: תמריץ כספי דוחק מוטיבציה פנימית) · השתלטות ג'סטין סאן 2020 (ninja-stake + עדים-בובות + הקפאת $5M של תומכי Hive) · Harmony נסגרה 2026 בציון "איומי AI agents" — ראיה חיה לסיכון סוכנים בשרשרת.
+- הופק דוח מלא: טבלת רשתות, 15 חוקי ברזל לרשת סוכני-AI, ניתוח "למה רשת סוכנים שונה + סיכונים ייחודיים" (סיביל במהירות מכונה, קולוזיה כברירת מחדל, מונוקולטורת מודלים, ספאם מכוני), ומיפוי ל-THE WEAVE הקיים.
+- הערות כנות: לא אומת בחיפוש "bridge hack 2023" ל-LeoFinance (סומן כלא-מאומת); סגירת Uptrennd (סוף 2021) מהידע הפנימי; מדדי משתמשים-פעילים של Hive מקורבים.
+
+Stage Summary:
+- חמש הרשתות מתו מאותם שורשים מבניים: (1) התחלה רעילה — ninja-mine/הקצאת יסודות מרוכזת שהפכה את הרשת לקניינית-לתפיסת-רוכש (Sun קנה את Steem במחיר חברה אחת); (2) בריכת תגמול פתוחה = שטח התקפה — בוטי הצבעה אכלו את Proof-of-Brain; (3) פלוטוקרטיית סטייק — הצבעה לפי כוח מניה ולא לפי עבודה מדודה; (4) כלכלה סגורה — הערך זרם לספקולנטים ולא לעבודה; (5) תלות במחיר — כשהמחיר צנח הפעילות צנחה.
+- הדוקטרינה של THE WEAVE היא בדיוק ההפך מחמשת הכשלים: "שום טענה בלי מדידה" (הפוך מ-Proof-of-Brain), fail-closed (הפוך מהצבעת-המונים), עיגון $0 (הפוך מתלות במימון), replay חישוב-מחדש (אמת לא נקנית בהצבעה), זהויות DAEMON נגזרות-seal (הפוך מ-ninja-stake).
+- סיכוני ייחוד לרשת סוכנים שעלינו לשמור בתוכנית: סיביל במהירות מכונה (חוק 11-12), קולוזיה כברירת מחדל כשכולם בוטים (חוק 15 — הפרדת תפקידים proposer/adjudicator/beneficiary), מונוקולטורת מודלים (קונצנזוס מזויף של אותן משקלים), וספאם מכוני — Harmony 2026 היא התקדים החי.
+- קבצי המקור ב-/tmp/research-*.json לעיון חוזר.

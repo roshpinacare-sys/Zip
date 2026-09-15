@@ -242,6 +242,14 @@ async function main(): Promise<void> {
         `[weave-beat] שוק האמת נסלק: ${marketSettlement.settled.length} הוכרעו · ${marketSettlement.refunded.length} הוחזרו · אימותים att${marketSettlement.attSeqs.join(",att")}${marketCheckpoint ? ` · cp#${marketCheckpoint.index}` : ""}`
       );
     }
+    // הימורי-רצף — הדור הבא שהרשת פתחה בעצמה (או הסיבה הכנה שלא):
+    if (marketSettlement.successors.length > 0) {
+      for (const s of marketSettlement.successors) {
+        console.log(
+          `[weave-beat] הימור-רצף: שוק #${s.marketSeq} ${s.successorSeq != null ? `הוליד את #${s.successorSeq} (דור ${s.depth}) — הרשת ממשיכה לשאול` : `לא הוליד דור הבא: ${s.reason ?? "?"}`}`
+        );
+      }
+    }
   }
 
   // 5.6 עוגן-עוגנים — הצלבת SAOS-NET בספר בכל פעימה (Task 17):
@@ -314,6 +322,7 @@ async function main(): Promise<void> {
           market: {
             settled: marketSettlement.settled,
             refunded: marketSettlement.refunded,
+            successors: marketSettlement.successors,
             attSeqs: marketSettlement.attSeqs,
             checkpoint: marketCheckpoint,
           },
@@ -377,7 +386,11 @@ async function main(): Promise<void> {
 
   const nFiles = (gitOrNull("git diff --cached --name-only") ?? "").split("\n").filter(Boolean).length;
   const marketNote = marketSettlement
-    ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
+    ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r${
+        marketSettlement.successors.filter((s) => s.successorSeq != null).length > 0
+          ? ` · seq-chain +${marketSettlement.successors.filter((s) => s.successorSeq != null).length}`
+          : ""
+      }`
     : "";
   const crossNote =
     crossAnchor && crossAnchor.status === "ATTESTED" && crossAnchor.attSeq !== null
