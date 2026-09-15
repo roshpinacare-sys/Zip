@@ -89,6 +89,10 @@ jobs:
           # של הריפו, console בפרסום המשואה דרך WEAVE_OPS_PAT (Actions Secret).
           GITHUB_TOKEN: ${{ github.token }}
           WEAVE_OPS_PAT: ${{ secrets.WEAVE_OPS_PAT }}
+          # SAOS-LIVE v1 (Task 29): הנחת הג'נזיס של המטבע החי — אותו
+          # מפתח posting של קו העדות (cashmachine) שמעגן checkpoints.
+          WEAVE_STEEM_WIF: ${{ secrets.WEAVE_STEEM_WIF }}
+          WEAVE_STEEM_ACCOUNT: cashmachine
 
       - name: Upload beat report (evidence)
         if: always()

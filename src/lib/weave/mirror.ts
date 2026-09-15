@@ -265,8 +265,10 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
  * (index.html/status.json נולדים בריפו הציבורי עצמו ע"י render.mjs —
  * לא נוגעים בהם.) */
 const CONSOLE_ASSETS = [
+  "index.html",
   "gate.html",
   "gate-crypto.js",
+  "saos-live.js",
   "net.html",
   "acid.html",
   "acid-engine.js",

@@ -29,6 +29,7 @@ import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosscha
 import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
 import { brainProbeAll } from "@/lib/weave/brain";
 import { processOperatorCommands, type OperatorOpsResult } from "@/lib/weave/ops";
+import { processSaosLive, type SaosLiveResult } from "@/lib/weave/saoslite";
 import { publishConsoleMirror, publishConsoleAssets } from "@/lib/weave/mirror";
 import { sealOpen } from "./weave-seal";
 
@@ -283,6 +284,31 @@ async function main(): Promise<void> {
     );
   }
 
+  // 3.72 SAOS-LIVE v1 (Task 29) — המטבע החי של הרשת: הלב קורא את ספר
+  //      הטוקנים מהשרשרת הציבורית (חסר-מפתח), מניח את הג'נזיס אם SAOS
+  //      טרם נפרש (ענן, WEAVE_STEEM_WIF — אטומי וחד-פעמי), מקפל באותו
+  //      מנוע שרץ בכל דפדפן (console/saos-live.js), מפרסם את saos-live.json
+  //      לקונסולה, ומעיד SAOSLIVE על כל שינוי stateRoot — שינוי במטבע
+  //      מעיר את הרשת (עוקף SANDBOX-ALIVE), בדיוק כמו פקודת מפעיל.
+  let saosLiveResult: SaosLiveResult | null = null;
+  try {
+    const liveCloudAgent = await ensureCloudAgent(seal.cloudKeyHex);
+    saosLiveResult = await processSaosLive({ runner, cloudAgentId: liveCloudAgent.id, gitHead, repoSlug, runUrl });
+    if (saosLiveResult.attested) {
+      console.log(
+        `[weave-beat] SAOS-LIVE: הספר התקדם — att${saosLiveResult.attSeq} · ${saosLiveResult.valid} פעולות · ${saosLiveResult.wallets} ארנקים · ${saosLiveResult.tokens} חוזים · stateRoot ${saosLiveResult.stateRoot.slice(0, 16)}…`
+      );
+    } else {
+      console.log(
+        `[weave-beat] SAOS-LIVE: ${saosLiveResult.valid}/${saosLiveResult.ops} פעולות · ${saosLiveResult.wallets} ארנקים · ${saosLiveResult.tokens} חוזים · ג'נזיס: ${saosLiveResult.genesisNote} · פרסום: ${saosLiveResult.publishNote}`
+      );
+    }
+  } catch (liveErr) {
+    console.log(
+      `[weave-beat] SAOS-LIVE: נדחה תפעולית — ${liveErr instanceof Error ? liveErr.message : String(liveErr)} (לא מפילה את הלב)`
+    );
+  }
+
   // 3.75 נכסי הקונסולה (Task 28): הקבצים הכתובים-יד (gate.html, acid.html,
   //      acid-engine.js…) מסונכרנים מהריפו הריבוני אל הריפו הציבורי —
   //      הגיט הוא המקור, הענן הוא המפרסם, הסנדבוקט אינו נדרש לרגע.
@@ -322,7 +348,7 @@ async function main(): Promise<void> {
       : Infinity;
     const fresh = attAgeMin < STALE_ATTMin;
 
-    if (fresh && (opsResult === null || opsResult.executed.length === 0) && ecoWitness === null) {
+    if (fresh && (opsResult === null || opsResult.executed.length === 0) && ecoWitness === null && (saosLiveResult === null || !saosLiveResult.attested)) {
       const verify = await verifyLedger();
       const report = {
         at: new Date().toISOString(),
