@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-15T11:09:38.340Z",
-  "chainCount": 47,
-  "headHash": "0x3726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928",
+  "exportedAt": "2026-09-15T11:15:30.159Z",
+  "chainCount": 49,
+  "headHash": "0x96f46d6345852acfdc4baae5ebf9a7d52e88edfa0b2475ea543c556f683c89fd",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -809,6 +809,36 @@
       "sig": "0x1cc518669915f6be465cd0c94ac70ade7729f08d5f3e4e99b8c357fdddb899c509530d7fed3fc1382afeb81d0cc15180b68dc85a4bda8b3123cad5909c2d98081c",
       "signerAddr": "0x3EE9c78D8bb3cBd9116147E2f99bB28dCa5D1D4d",
       "createdAt": "2026-09-15T11:09:38.319Z"
+    },
+    {
+      "id": "cmu2kseiq000142npujsuz4u0",
+      "seq": 48,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "קו ה-ZERO (Z Chain 9369, גז-אפס): checkpoint #40 root 0x3726833548b243bf… עוגן כטרנזקציית EVM אמיתית ממפתח הרשת (סלקטור 0xa9059cbb + מטען קנוני, ממוען-עצמית ל-EOA אינרטי) — עד EVM ציבורי בלתי-תלוי בגיטהאב, בעלות מדודה 0.000000.",
+      "claimType": "ANCHOR",
+      "evidence": "zeroTxid=0x75646a0bf6c1b899867d33415211fa4e71e178311229ee5b337afe261428e478 · chainId=zero-9369 (Z Chain, Zero Network) · block=34757421 · gasUsed=37680 · effectiveGasPrice=0 (0 = הוכחת האפס בקבלה) · costEth=0.0 · account=0xe376d8431089A0275A0CF125655B6Bc7d693F1b2 (מפתח הרשת מה-seal; מאזן 0 — הגז מדוד 0x0) · operation=self-addressed EOA · value=0 · data=0xa9059cbb+canonical (רשימת-ההיתר של שער ה-RPC) · checkpoint=40 root=0x3726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928 attFrom=47 attTo=47 · attestations=47 · headHash=0x3726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928 · readback=ON-CHAIN · status 1 · data byte-exact · effectiveGasPrice 0x0 — the zero anchor is proven · explorer=https://zscan.live/tx/0x75646a0bf6c1b899867d33415211fa4e71e178311229ee5b337afe261428e478 · commit=4f63718 · payloadAt=2026-09-15T11:15:21.645Z · runner=github-actions · run=https://github.com/roshpinacare-sys/Zip/actions/runs/34962258488",
+      "evidenceHash": "0x8ac949e67e4ddc94c29f1a7ab8225b5cc11ecd72fe3c749bbc69f67518d9ed6d",
+      "status": "VERIFIED",
+      "prevHash": "0x3726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928",
+      "entryHash": "0x644428a8ce00dff2face5fe185cd06e2e118bc0eafd5fe62c905194d7dc8fe61",
+      "sig": "0x650a991a7c092c6d30d0e67a0737e23ea45ab80abc12f01b8c9579d878ac16391cd5e635468fb72cdf7601d664c9465c2579a3143f616739c342c10bec49d49c1c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-15T11:15:30.040Z"
+    },
+    {
+      "id": "cmu2ksel5000542nphphlbpyb",
+      "seq": 49,
+      "agentId": "cmu1tp2vg0000sqame6y2tom6",
+      "claim": "שוק האמת #34 \"קו ה-ZERO יתעבה: עוגני ZERO בספר יגיעו ל-7 · רצף דור 2\" — הוכרע לחיוב אך אף סוכן לא הימר על הצד המנצח: ההימורים הוחזרו במלואם (פתיחת-חזרה כנה, לא ניצחון).",
+      "claimType": "MARKET",
+      "evidence": "marketSeq=34 · disposition=REFUND/no-winners · outcome=YES · resolution=ZERO anchors (anchorNet=zero-9369)=7 ≥ 7 (נמדד מה-DB) · stakesRefunded=0 · points=0",
+      "evidenceHash": "0xdc4ef442a02cc2a8e1dce0f82318621a7f58b1940ec03de2d03f870b526183a4",
+      "status": "VERIFIED",
+      "prevHash": "0x644428a8ce00dff2face5fe185cd06e2e118bc0eafd5fe62c905194d7dc8fe61",
+      "entryHash": "0x96f46d6345852acfdc4baae5ebf9a7d52e88edfa0b2475ea543c556f683c89fd",
+      "sig": "0xc35376bd03d13c50eb7a17c9073f506a19074f1dfae02b4f9e8e441f1dcde30d0e547ea43c87e8d9403d3f61e953252ccbd9158eb1fa68b5ed8352777e45ba4e1c",
+      "signerAddr": "0x3EE9c78D8bb3cBd9116147E2f99bB28dCa5D1D4d",
+      "createdAt": "2026-09-15T11:15:30.133Z"
     }
   ],
   "checkpoints": [
@@ -1486,11 +1516,45 @@
       "entryHash": "0x951c5160e92f25a7c8193d62230a3061a30898e9c0a42b8d59bdcd29e3973343",
       "sig": "0x0fd0e60308f1e8e0dfdae84e7886d4a33ca808059ee75d19986aee4f054bb7d44d36be53a3681c522ca84284f7180154a3a4c82bbf1266653576b46d81b897941c",
       "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "ANCHORED",
+      "anchorNet": "zero-9369",
+      "anchorTx": "0x75646a0bf6c1b899867d33415211fa4e71e178311229ee5b337afe261428e478",
+      "calldata": "0xeecdf9273726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928",
+      "createdAt": "2026-09-15T11:09:38.333Z"
+    },
+    {
+      "id": "cmu2ksej7000242nplfgb78cm",
+      "index": 41,
+      "attFrom": 48,
+      "attTo": 48,
+      "leafCount": 1,
+      "root": "0x644428a8ce00dff2face5fe185cd06e2e118bc0eafd5fe62c905194d7dc8fe61",
+      "prevRoot": "0x3726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928",
+      "entryHash": "0x0932a6e07a072cd7c3fe514cdfca4224807aaa0f25b7b6755d68561ebd63e0bc",
+      "sig": "0xdf833abe7c0ad5eebbec4b74fe4c6edeff712c56a82ba92ade0cc0845d7e620516d43c1a23db707eaa43de7597354896bc91d398ae0807ecce7a3c69fc8264c31b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
       "anchorStatus": "LOCAL",
       "anchorNet": null,
       "anchorTx": null,
-      "calldata": "0xeecdf9273726833548b243bff9db475b66de18b0fdeeaa543020a5b1634c2dba743e0928",
-      "createdAt": "2026-09-15T11:09:38.333Z"
+      "calldata": "0xeecdf927644428a8ce00dff2face5fe185cd06e2e118bc0eafd5fe62c905194d7dc8fe61",
+      "createdAt": "2026-09-15T11:15:30.067Z"
+    },
+    {
+      "id": "cmu2kselh000642npt8w5gep2",
+      "index": 42,
+      "attFrom": 49,
+      "attTo": 49,
+      "leafCount": 1,
+      "root": "0x96f46d6345852acfdc4baae5ebf9a7d52e88edfa0b2475ea543c556f683c89fd",
+      "prevRoot": "0x644428a8ce00dff2face5fe185cd06e2e118bc0eafd5fe62c905194d7dc8fe61",
+      "entryHash": "0xcba727b2f1ede24b2620333449f21b19283fe2b1e4831cde1d171e31d5945f5b",
+      "sig": "0x5be0b379a5a930402064744ff9003cf54aab1b7986fc222cee7a05616776682a3b10d43f77f11b2e890ec6b86800c01fe2e2b19981ec97027165eff15b56fef31c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf92796f46d6345852acfdc4baae5ebf9a7d52e88edfa0b2475ea543c556f683c89fd",
+      "createdAt": "2026-09-15T11:15:30.149Z"
     }
   ],
   "networkKey": {
@@ -2257,6 +2321,18 @@
       "sig": "0x67781ca73e21ce6bb77b8ec0a7c67fe79c7245f9057d604d60076142ddeb5bfa16e783155ffc8fd2b7ab416cdcbb10e4872ec96ac2acb09eeb7e6b95c936d9df1b",
       "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
       "createdAt": "2026-09-15T11:09:38.301Z"
+    },
+    {
+      "id": "cmu2ksekt000342npgjq28nut",
+      "seq": 36,
+      "kind": "REFUND",
+      "payload": "{\"kind\":\"REFUND\",\"marketSeq\":34,\"reason\":\"no-winners (outcome=YES, winning side empty)\",\"refunds\":[]}",
+      "payloadHash": "0xbe74024dfb47380c4a0fc85b4aa0884d5b2bd6870d3302b8d4978fe330b6be59",
+      "prevHash": "0x71976f7572f9f488b001591a9f863a24888acba219c98ae8bce05c7aeed863f4",
+      "entryHash": "0x0459a023e1b9b396af607d22427f0616eb77396b8ad64f8629d2d8ee59ed390e",
+      "sig": "0x6a9fe40a395c83b626321caf7e53e68482fc5fe11f7e28f3b81a904ef64f92a17d8ffa6f35fd8546b692c08c353bd8238a23c3dca32b1e0907c5f08a0b5a7dcd1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "createdAt": "2026-09-15T11:15:30.121Z"
     }
   ]
 }
