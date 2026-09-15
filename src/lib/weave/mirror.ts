@@ -42,7 +42,7 @@ interface LineAnchor {
 
 /** בניית המראה — אמת נגזרת מה-DB ומקווי העוגן, אפס סודות */
 export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
-  const [agents, attestations, checkpoints, marketEvents, brainKeys, attTotal, cpTotal] = await Promise.all([
+  const [agents, attestations, checkpoints, marketEvents, brainKeys, attTotal, cpTotal, discoveryAtts] = await Promise.all([
     db.agent.findMany({ orderBy: { name: "asc" } }),
     db.attestation.findMany({ orderBy: { seq: "desc" }, take: 120 }),
     db.checkpoint.findMany({ orderBy: { index: "desc" }, take: 30 }),
@@ -50,6 +50,7 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
     db.brainKey.findMany(),
     db.attestation.count(),
     db.checkpoint.count(),
+    db.attestation.findMany({ where: { claimType: "DISCOVERY" }, orderBy: { seq: "desc" }, take: 20, select: { seq: true, createdAt: true, claim: true, evidence: true } }),
   ]);
 
   // קווי העוגן — אילו checkpoints כבר העידו, ובאילו שרשרות
@@ -152,6 +153,34 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
       lastCode: b.lastCode,
       verifiedAt: b.verifiedAt?.toISOString() ?? null,
     })),
+    /* גילויים ריבוניים — מתכונים ציבוריים שכל אחד משחזר בדפדפן שלו
+     * (acid.html). ההוכחה נחלצת משורת ה-evidence של אימות DISCOVERY —
+     * הרשת מעידה רק על גילויים שהיא עצמה שחזרה בענן. */
+    discoveries: discoveryAtts
+      .map((a) => {
+        const m = /proof=(\{[^}]*\})/.exec(a.evidence || "");
+        if (!m) return null;
+        try {
+          const p = JSON.parse(m[1]) as Record<string, unknown>;
+          if (typeof p.t !== "string" || typeof p.s !== "number" || typeof p.h !== "string") return null;
+          const tx = /txid=([0-9a-f]{20,64})/.exec(a.evidence || "");
+          return {
+            seq: a.seq,
+            at: a.createdAt.toISOString(),
+            taskId: p.t,
+            seed: p.s,
+            gens: typeof p.g === "number" ? p.g : null,
+            pop: typeof p.p === "number" ? p.p : null,
+            hash: p.h,
+            ev: typeof p.ev === "string" ? p.ev : null,
+            txid: tx ? tx[1] : null,
+            claim: a.claim.length > 160 ? a.claim.slice(0, 157) + "…" : a.claim,
+          };
+        } catch {
+          return null;
+        }
+      })
+      .filter((d): d is NonNullable<typeof d> => d !== null),
   };
 }
 
@@ -212,4 +241,94 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
     return { published: false, reason: `פרסום נכשל (HTTP ${put.status}) — ${(put.json?.message as string || "").slice(0, 80)}` };
   }
   return { published: true, reason: "פורסם ✓", bytes: text.length };
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+ * נכסי הקונסולה — סנכרון ריבוני (Task 28)
+ *
+ * הבעיה: הקבצים הכתובים-יד (gate.html, acid.html…) חיים בריפו הריבוני
+ * (console/) אך פורסמו ידנית לריפו הציבורי Console. הידניות היא תלות
+ * בסנדבוקס — מי שמחזיק את הסוד לוחץ את הכפתור. ה-PAT של הסנדבוקס
+ * אף נמחק (מדידה: upload/pat.env מוחלף ב-placeholder) — הענן הוא
+ * המחזיק היחיד בסוד מעתה.
+ *
+ * הפתרון: הלב עצמו מסנכרן את הקבצים — בכל פעימה, מה-clone של הריפו
+ * הריבוני אל הריפו הציבורי, דרך WEAVE_OPS_PAT (Actions Secret). מקור
+ * האמת: הגיט. שער-הסודות רץ על כל קובץ לפני פרסום. פרסום רק בשינוי
+ * אמיתי (השוואת תוכן מול הקיים) — תקציב ה-API נשמר.
+ * ═════════════════════════════════════════════════════════════════════ */
+
+/** הקבצים הכתובים-יד שמקורם בריפו הריבוני — הלב מסנכרן אותם החוצה.
+ * (index.html/status.json נולדים בריפו הציבורי עצמו ע"י render.mjs —
+ * לא נוגעים בהם.) */
+const CONSOLE_ASSETS = [
+  "gate.html",
+  "gate-crypto.js",
+  "net.html",
+  "acid.html",
+  "acid-engine.js",
+];
+
+export interface ConsoleAssetsResult {
+  published: string[];
+  unchanged: string[];
+  reason?: string;
+}
+
+export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
+  const pat = process.env.WEAVE_OPS_PAT || "";
+  if (!pat) {
+    return { published: [], unchanged: [], reason: "אין WEAVE_OPS_PAT בסביבה — דילוג-כנה (הסנכרון רץ מהענן)" };
+  }
+
+  const api = async (method: string, url: string, body?: unknown) => {
+    const res = await fetch(`https://api.github.com${url}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${pat}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return { status: res.status, json: (await res.json().catch(() => null)) as Record<string, unknown> | null };
+  };
+
+  const published: string[] = [];
+  const unchanged: string[] = [];
+  for (const file of CONSOLE_ASSETS) {
+    try {
+      const localPath = path.join(ROOT, "console", file);
+      if (!fs.existsSync(localPath)) {
+        unchanged.push(file); // אין מקור — לא מוחקים כלום בחוץ
+        continue;
+      }
+      const text = fs.readFileSync(localPath, "utf8");
+      // שער-הסודות על כל קובץ לפני שהוא יוצא החוצה — ברזל
+      const leak = secretGate(filterKnownHashes(text));
+      if (leak) throw new Error(`${file}: ${leak}`);
+
+      const cur = await api("GET", `/repos/${CONSOLE_REPO}/contents/${encodeURIComponent(file)}?ref=main`);
+      if (cur.status === 200 && cur.json && typeof cur.json.content === "string") {
+        const curText = Buffer.from(String(cur.json.content), "base64").toString("utf8");
+        if (curText.trim() === text.trim()) {
+          unchanged.push(file);
+          continue;
+        }
+      }
+      const put = await api("PUT", `/repos/${CONSOLE_REPO}/contents/${encodeURIComponent(file)}`, {
+        message: `weave-console-assets: ${file} — synced from the sovereign repo (console/)`,
+        content: Buffer.from(text, "utf8").toString("base64"),
+        sha: cur.status === 200 && cur.json ? String(cur.json.sha || "") : undefined,
+        branch: "main",
+      });
+      if (put.status === 200 || put.status === 201) published.push(file);
+      else unchanged.push(file); // כשל-פרסום לא מפיל את הפעימה — המחזור הבא ינסה
+    } catch (e) {
+      unchanged.push(file); // כשל בקובץ אחד לא עוצר את השאר
+      console.log(`[console-assets] ${file}: ${e instanceof Error ? e.message.slice(0, 120) : String(e)}`);
+    }
+  }
+  return { published, unchanged };
 }

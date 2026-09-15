@@ -29,7 +29,7 @@ import { crossAnchorSaosnet, type CrossAnchorResult } from "@/lib/weave/crosscha
 import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
 import { brainProbeAll } from "@/lib/weave/brain";
 import { processOperatorCommands, type OperatorOpsResult } from "@/lib/weave/ops";
-import { publishConsoleMirror } from "@/lib/weave/mirror";
+import { publishConsoleMirror, publishConsoleAssets } from "@/lib/weave/mirror";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -280,6 +280,25 @@ async function main(): Promise<void> {
   } catch (mirrorErr) {
     console.log(
       `[weave-beat] מראה: נדחתה תפעולית — ${mirrorErr instanceof Error ? mirrorErr.message : String(mirrorErr)} (לא מפילה את הלב)`
+    );
+  }
+
+  // 3.75 נכסי הקונסולה (Task 28): הקבצים הכתובים-יד (gate.html, acid.html,
+  //      acid-engine.js…) מסונכרנים מהריפו הריבוני אל הריפו הציבורי —
+  //      הגיט הוא המקור, הענן הוא המפרסם, הסנדבוקט אינו נדרש לרגע.
+  //      מסונכרן בכל פעימה — פרסום רק בשינוי אמיתי (תקציב ה-API נשמר).
+  try {
+    const assets = await publishConsoleAssets();
+    if (assets.published.length > 0) {
+      console.log(`[weave-beat] נכסי קונסולה סונכרנו ✓ (${assets.published.join(", ")})`);
+    } else if (assets.reason) {
+      console.log(`[weave-beat] נכסי קונסולה: ${assets.reason}`);
+    } else {
+      console.log(`[weave-beat] נכסי קונסולה עדכניים (${assets.unchanged.length} קבצים ללא שינוי)`);
+    }
+  } catch (assetsErr) {
+    console.log(
+      `[weave-beat] נכסי קונסולה: נדחו תפעולית — ${assetsErr instanceof Error ? assetsErr.message : String(assetsErr)} (לא מפילה את הלב)`
     );
   }
 

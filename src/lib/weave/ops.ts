@@ -42,6 +42,18 @@ export interface OperatorCommand {
   note?: string;
   txid: string;
   block: number | null;
+  /** הוכחת גילוי (פקודת acid) — המתכון שהרשת משחזרת לפני שהיא מעידה */
+  proof?: AcidProof;
+}
+
+/** חבילת ההוכחה שנחתמת לשרשרת — הגילוי כולו נגזר מחדש ממנה */
+export interface AcidProof {
+  ev: string; // גרסת המנוע — שחזור חוצה-גרסאות אסור
+  t: string; // מזהה משימה
+  s: number; // זרע
+  g: number; // דורות
+  p: number; // אוכלוסייה
+  h: string; // hash התוכנית שנמצאה (16 hex)
 }
 
 export interface ExecutedCommand {
@@ -128,11 +140,27 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
             skippedOld++;
             continue;
           }
+          // הוכחת גילוי (acid) — ולידציה קפדנית לפני שהיא נכנסת לתור
+          let proof: AcidProof | undefined;
+          if (pl.cmd === "acid" && pl.proof && typeof pl.proof === "object") {
+            const pr = pl.proof as Record<string, unknown>;
+            if (
+              typeof pr.ev === "string" && pr.ev.length <= 32 &&
+              typeof pr.t === "string" && pr.t.length <= 16 &&
+              Number.isInteger(pr.s) && (pr.s as number) >= 0 && (pr.s as number) <= 2147483647 &&
+              Number.isInteger(pr.g) && (pr.g as number) >= 1 && (pr.g as number) <= 5000 &&
+              Number.isInteger(pr.p) && (pr.p as number) >= 8 && (pr.p as number) <= 500 &&
+              typeof pr.h === "string" && /^[0-9a-f]{16}$/.test(pr.h)
+            ) {
+              proof = { ev: pr.ev, t: pr.t, s: pr.s as number, g: pr.g as number, p: pr.p as number, h: pr.h };
+            }
+          }
           found.push({
             id: String(pl.id).slice(0, 40),
             cmd: String(pl.cmd).slice(0, 24),
             at: String(pl.at),
             note: typeof pl.note === "string" ? pl.note.slice(0, 180) : undefined,
+            proof,
             txid: String(entry.trx_id || ""),
             block: typeof entry.block === "number" ? entry.block : null,
           });
@@ -257,6 +285,88 @@ export async function processOperatorCommands(ctx: {
           executed.detail = "local runner has no dispatch token";
           console.log(`[weave-ops] ${cmd.cmd} → דילוג-כנה (רץ מקומית, אין טוקן dispatch)`);
         }
+      } else if (cmd.cmd === "acid") {
+        // ── גילוי ריבוני — הרשת משחזרת לפני שהיא מעידה ──
+        // המפעיל חתם מתכון (משימה, זרע, דורות, אוכלוסייה, hash).
+        // הלב מריץ את אותו חיפוש דטרמיניסטי בענן ומשווה:
+        //   · גרסת מנוע שונה ⇒ דילוג-כנה (לא מעידים על מה שלא נבדק)
+        //   · לא נמצא / hash שונה ⇒ רישום כשל-שחזור בכנות — בלי אימות
+        //   · נמצא וזהה ⇒ אימות 5-מבחנים בענן ⇒ אימות DISCOVERY + checkpoint
+        const proof = cmd.proof;
+        if (!proof) {
+          executed.action = "acid-without-proof";
+          executed.ok = true;
+          executed.detail = "פקודת acid ללא הוכחה תקינה — נרשמה כמתעלמת בכנות";
+          console.log(`[weave-ops] acid בלי הוכחה תקינה — התעלמות כנה`);
+        } else {
+          const acid = await import("../../../console/acid-engine.js");
+          if (acid.ENGINE_VERSION !== proof.ev) {
+            executed.action = "acid-engine-version-drift";
+            executed.ok = true;
+            executed.detail = `הוכחה מגרסה ${proof.ev}, הענן מריץ ${acid.ENGINE_VERSION} — שחזור חוצה-גרסאות אסור`;
+            console.log(`[weave-ops] acid: אי-התאמת גרסאות מנוע (${proof.ev} ≠ ${acid.ENGINE_VERSION}) — דילוג-כנה`);
+          } else {
+            const t0 = Date.now();
+            const rerun = acid.discoverSync({ taskId: proof.t, seed: proof.s, generations: proof.g, population: proof.p });
+            const ms = Date.now() - t0;
+            if (!rerun.found || !rerun.program || !rerun.hash) {
+              executed.action = "acid-reproduction-failed";
+              executed.ok = true;
+              executed.detail = `הריצה מחדש לא מצאה את הגילוי (${proof.g} דורות, ${ms}ms) — לא הועד`;
+              console.log(`[weave-ops] acid: השחזור לא מצא — לא הועד (אמת נשמרת)`);
+            } else if (rerun.hash !== proof.h) {
+              executed.action = "acid-hash-mismatch";
+              executed.ok = true;
+              executed.detail = `hash שונה בשחזור: ${rerun.hash} ≠ ${proof.h} — לא הועד`;
+              console.log(`[weave-ops] acid: אי-התאמת hash — לא הועד`);
+            } else {
+              const verify = acid.verifyFull(rerun.program, proof.t, proof.s);
+              if (!verify.verified) {
+                executed.action = "acid-verification-failed";
+                executed.ok = true;
+                executed.detail = `השחזור עבר אך האימות נכשל (${verify.passedCount}/5) — לא הועד`;
+                console.log(`[weave-ops] acid: אימות 5-מבחנים נכשל — לא הועד`);
+              } else {
+                const task = acid.TASKS[proof.t];
+                const claim =
+                  `גילוי ריבוני "${proof.t}" (${task ? task.en : "?"}) — תוכנית שנמצאה בחיפוש אבולוציוני ` +
+                  `בדפדפן המפעיל, שוחזרה בענן מהמתכון החתום (hash זהה ${proof.h}) ואומתה ${verify.passedCount}/5 מבחנים` +
+                  (cmd.note ? ` · דבר המגלה: "${cmd.note}"` : "");
+                const testSummary = verify.tests.map((t) => `${t.id}:${t.pass ? "✓" : "✗"}`).join(" ");
+                const evidence = [
+                  `proof=${JSON.stringify(proof)}`,
+                  `reproduced=cloud (deterministic, ${ms}ms)`,
+                  `hash=${rerun.hash}`,
+                  `verification=${testSummary} (${verify.passedCount}/5)`,
+                  `programLen=${rerun.program.instructions.length}`,
+                  `evals=${rerun.evals}`,
+                  `authority=posting (custom_json)`,
+                  `opId=${OPS_OP_ID}`,
+                  `txid=${cmd.txid}`,
+                  cmd.block ? `block=${cmd.block}` : null,
+                  `cmdId=${cmd.id}`,
+                  `explorer=https://steemscan.com/transaction/${cmd.txid}`,
+                  `runner=${ctx.runner}`,
+                  `commit=${ctx.gitHead}`,
+                  ctx.runUrl ? `run=${ctx.runUrl}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ");
+                const att = await appendAttestation({
+                  agentId: ctx.cloudAgentId,
+                  claim,
+                  claimType: "DISCOVERY",
+                  evidence,
+                });
+                result.attSeqs.push(att.seq);
+                executed.action = `DISCOVERY attestation att${att.seq}`;
+                executed.ok = true;
+                executed.detail = `${proof.t} · ${proof.h} · ${verify.passedCount}/5`;
+                console.log(`[weave-ops] acid → DISCOVERY att${att.seq} · ${proof.t} · hash ${proof.h} · שוחזר בענן ✓`);
+              }
+            }
+          }
+        }
       } else if (cmd.cmd === "console") {
         if (ctx.runner === "github-actions" && opsPat) {
           const d = await dispatchWorkflow(`${OWNER}/Console`, "console-publish.yml", opsPat);
@@ -273,7 +383,7 @@ export async function processOperatorCommands(ctx: {
       } else {
         executed.action = "ignored-unknown-cmd";
         executed.ok = true;
-        executed.detail = `cmd="${cmd.cmd}" אינה בסט הפקודות (ping/beat/anchor/console)`;
+        executed.detail = `cmd="${cmd.cmd}" אינה בסט הפקודות (ping/beat/anchor/console/acid)`;
         console.log(`[weave-ops] פקודה לא מוכרת "${cmd.cmd}" — נרשמה כמתעלמת בכנות`);
       }
     } catch (e) {
