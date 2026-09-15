@@ -156,3 +156,21 @@ model MarketEvent {
 
   @@index([kind])
 }
+
+// המוח הריבוני — מאגר מפתחות NVIDIA NIM אטומים (AES-256-GCM תחת
+// גזירת מפתח-הרשת, אותה נוסחה של ה-DAEMONs). רוטציה אוטומטית:
+// 429→קירור 90ש' למפתח-בודד; 401/403→30 דק'; הבא משרת מיד. הסוד
+// עצמו לעולם לא עוזב את ה-DB המקומי (gitignored) — ב-API רק
+// טביעת-אצבע בלתי-הפיכה וסטטוס. תווית אמת: המודל נקרא חי מ-NVIDIA.
+model BrainKey {
+  id            String   @id // brain-<fingerprint>
+  fingerprint   String   @unique // nv-fp:sha256[0:16] — בלתי-הפיך
+  encKey        String // AES-256-GCM ciphertext (hex)
+  keyIv         String // 12B IV (hex)
+  keyTag        String // 16B GCM tag (hex)
+  status        String   @default("unverified") // verified | unverified
+  lastCode      String? // קוד HTTP אחרון מ-NVIDIA
+  cooldownUntil DateTime? // עד מתי המפתח בקירור (429/401/403)
+  verifiedAt    DateTime? // מתי אומת חי לאחרונה (1-token chat)
+  createdAt     DateTime @default(now())
+}
