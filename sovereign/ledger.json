@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-15T19:08:24.167Z",
-  "chainCount": 83,
-  "headHash": "0x129517b7c85932fcd9e15fb580cb6e578b6329b54e8edb9b922c4cb4e6984d2b",
+  "exportedAt": "2026-09-15T20:04:03.892Z",
+  "chainCount": 86,
+  "headHash": "0x270ac81c3afa4b2eaa3fea3aee549fd0c7192a88dd19e4d427cfdf9aa630af65",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -1349,6 +1349,51 @@
       "sig": "0xd21fe31ca1acd60251efd4ff0fc184050642c1c6a5daac450eeafc89e812be0d43813d984fb3596bc068646faedf060a312de245aa5ea54b287f7dc009cec5971b",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-15T19:08:24.084Z"
+    },
+    {
+      "id": "cmu33nwuj000142mxmj5he7gp",
+      "seq": 84,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "ביקורת יכולת-חתימה יומית: 9 זהויות תפקיד בספר, 1 חותמים בפועל (sealed) · השאר memory-only — מפתחותיהם חיו ב-DB סביבתי ומתים עם הסביבה · הפונקציות שלהם נבלעו בלב (gitkeeper→דחיפות, scout→סריקת האקוסיסטם) או ממתינות (relayer→עדות הפוכה)",
+      "claimType": "AUDIT",
+      "evidence": "capAuditDate=2026-09-15 · identities=9 · sealedSigners=1 · roster=gitkeeper(DAEMON:memory-only — key lost with its environment) · scout-r19(SCOUT:memory-only — key lost with its environment) · weave-archive-witness(DAEMON:memory-only — key lost with its environment) · weave-auditor(AUDITOR:memory-only — key lost with its environment) · weave-cloud-heart(RELAYER:sealed-key ✓) · weave-market-regulator(DAEMON:memory-only — key lost with its environment) · weave-market-regulator-v1-retired(DAEMON:memory-only — key lost with its environment) · weave-relayer(RELAYER:memory-only — key lost with its environment) · weave-saosnet-witness(DAEMON:memory-only — key lost with its environment) · law15-next=separate sealed keys per role · runner=github-actions · commit=1a0b362",
+      "evidenceHash": "0xcff186afd35690579a0b3a9d90a2a400e9c0550d4914831af84f86a5fd10521a",
+      "status": "VERIFIED",
+      "prevHash": "0x129517b7c85932fcd9e15fb580cb6e578b6329b54e8edb9b922c4cb4e6984d2b",
+      "entryHash": "0xc7b6190e8bd18b9a315c6fec93262454c01d1590ed20fcf1a980e22b93df9644",
+      "sig": "0xf12aed7fb022ab7963be0c3de03f761a18a70eaa7dd27c154c7c539c36f4c5ec756bacaf31c7bbb57a2a8006ad5b9aa1a4ff3d1a39967906e2225a21bc7f26b01c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-15T20:03:53.218Z"
+    },
+    {
+      "id": "cmu33nygo000442mx3tknbv5a",
+      "seq": 85,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "SAOS-LIVE v1 נולד: ספר הטוקנים החי על השרשרת הציבורית — 0 פעולות תקפות, 0 ארנקים, 0 חוזים, אספקת SAOS 0 (משקף את SAOS-NET v0 בדיוק 1:1)",
+      "claimType": "SAOSLIVE",
+      "evidence": "protocol=saos.live.v1 · opId=saos.weave.live.v1 · stateRoot=ff4a3511df9bf48149579a1a105140925922e9dacbab2772032df1a3ae1bb316 · ops=0/0 · wallets=0 · tokens=0 · saosSupply=0 · fold=console/saos-live.js (deterministic, same code in every browser) · relayers=@cashmachine+@headcorner (posting, transport only) · readFrom=api.steemit.com · runner=github-actions · commit=1a0b362 · run=https://github.com/roshpinacare-sys/Zip/actions/runs/35017303172",
+      "evidenceHash": "0xdb1b5ab70d5ff19500aecfd481226792bfc2ed2a3215804ab02820f6e93118ff",
+      "status": "VERIFIED",
+      "prevHash": "0xc7b6190e8bd18b9a315c6fec93262454c01d1590ed20fcf1a980e22b93df9644",
+      "entryHash": "0x70812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee",
+      "sig": "0x9ed153f01bbbef0e6f12c2e0425b021551b446ad5ad735e1530a92de4c3f0cb22d2ad2c268b34a927e702efd67fb23abca4fd830fb725c2a63a98e1969bdaa611c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-15T20:03:55.310Z"
+    },
+    {
+      "id": "cmu33o0qo000742mx0eg1rcev",
+      "seq": 86,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 85 רשומות, חתימות 85/85, head תואם. הרץ: GitHub Actions (הענן שלנו).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=github-actions · gitHead=1a0b362 · repo=roshpinacare-sys/Zip · run=https://github.com/roshpinacare-sys/Zip/actions/runs/35017303172 · verify: valid=true checked=85 sigOk=85 sigFail=0 firstBreak=null · recomputedHead=0x70812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee · headHash=0x70812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee · at=2026-09-15T20:03:58.264Z",
+      "evidenceHash": "0x45861b01a321562ba75a3e38cff287f57651f75daab322c4a7189924533cd344",
+      "status": "VERIFIED",
+      "prevHash": "0x70812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee",
+      "entryHash": "0x270ac81c3afa4b2eaa3fea3aee549fd0c7192a88dd19e4d427cfdf9aa630af65",
+      "sig": "0xb80988de1fd1d8bc2cd06093a53b20575dc306a93a92e3b08b103a22c940eda910e08243f2dd4c4b3c7937a3b2125e21670eb6f4c77c01554a383de017b527991c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-15T20:03:58.267Z"
     }
   ],
   "checkpoints": [
@@ -2643,6 +2688,57 @@
       "anchorTx": null,
       "calldata": "0xeecdf927129517b7c85932fcd9e15fb580cb6e578b6329b54e8edb9b922c4cb4e6984d2b",
       "createdAt": "2026-09-15T19:08:24.105Z"
+    },
+    {
+      "id": "cmu33nwv4000242mxqhc87bz3",
+      "index": 77,
+      "attFrom": 84,
+      "attTo": 84,
+      "leafCount": 1,
+      "root": "0xc7b6190e8bd18b9a315c6fec93262454c01d1590ed20fcf1a980e22b93df9644",
+      "prevRoot": "0x129517b7c85932fcd9e15fb580cb6e578b6329b54e8edb9b922c4cb4e6984d2b",
+      "entryHash": "0xd8b3eea7560cc9f2563c1cab8a4005bc343df74c4e23345e7a8952329fe7b7b6",
+      "sig": "0x0b3b34fa9943897aa282739bd8d09b5c6d9954f72f332f20a0cef67d47d233024e2a64a120a7a9555b28b03ba87bf1ac736e6ad4d0dfa7f70d2ea1ea09580fc21b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927c7b6190e8bd18b9a315c6fec93262454c01d1590ed20fcf1a980e22b93df9644",
+      "createdAt": "2026-09-15T20:03:53.248Z"
+    },
+    {
+      "id": "cmu33nyh2000542mxj5o2ksgq",
+      "index": 78,
+      "attFrom": 85,
+      "attTo": 85,
+      "leafCount": 1,
+      "root": "0x70812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee",
+      "prevRoot": "0xc7b6190e8bd18b9a315c6fec93262454c01d1590ed20fcf1a980e22b93df9644",
+      "entryHash": "0x48b3fedd02f01bd050e3454fd8af32f9ce439cb30e46b77b8be0f9474eae44b3",
+      "sig": "0x4ec3652024ce2fbe5934e928c3b92d6e84cd9efa6045a60b98296e68c0d01bbf7c4a9f08617e454d5b1468d431f4fff110ecdf147d4a951eb06060da487196fa1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf92770812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee",
+      "createdAt": "2026-09-15T20:03:55.334Z"
+    },
+    {
+      "id": "cmu33o0qz000842mxez5tg6m9",
+      "index": 79,
+      "attFrom": 86,
+      "attTo": 86,
+      "leafCount": 1,
+      "root": "0x270ac81c3afa4b2eaa3fea3aee549fd0c7192a88dd19e4d427cfdf9aa630af65",
+      "prevRoot": "0x70812f40ab21d4ef70b480bae924f975471b6dda4542a6dcabf15f6d6d1a8bee",
+      "entryHash": "0xdfb160b5434660614967c558624249cfaef2bc0fd711f8831d1797036634648a",
+      "sig": "0x9712d0ede99a65a45160052bf23b81257d71d3720ec0116f52ef8b36398d82191c6a689b62621c4c973082fd3c971a9feb8d347e98e58e8699a0c12a1031a8c81c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927270ac81c3afa4b2eaa3fea3aee549fd0c7192a88dd19e4d427cfdf9aa630af65",
+      "createdAt": "2026-09-15T20:03:58.284Z"
     }
   ],
   "networkKey": {
@@ -2896,8 +2992,8 @@
       "detail": "מיזוג הריפוים ל-weave-core / saos-ops וצמצום השכפול המדוד.",
       "gate": "מלאי חוזר: שכפול ממוצע < 0.2",
       "gateType": "MEASUREMENT",
-      "state": "PLANNED",
-      "attSeq": null,
+      "state": "DONE",
+      "attSeq": 74,
       "sortOrder": 5
     },
     {
@@ -3433,7 +3529,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-15T19:08:08.409Z",
+      "verifiedAt": "2026-09-15T20:04:03.630Z",
       "createdAt": "2026-09-15T13:13:34.866Z"
     },
     {
@@ -3445,7 +3541,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-15T19:08:08.159Z",
+      "verifiedAt": "2026-09-15T20:04:03.339Z",
       "createdAt": "2026-09-15T13:13:34.864Z"
     },
     {
@@ -3457,7 +3553,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-15T19:08:08.680Z",
+      "verifiedAt": "2026-09-15T20:04:03.878Z",
       "createdAt": "2026-09-15T13:13:34.868Z"
     }
   ]
