@@ -147,6 +147,65 @@ async function main(): Promise<void> {
     );
   }
 
+  // 3.6 אכיפת G6 — עדות על מדידת האקוסיסטם (Task 26): הסריקה היומית
+  //     (weave-ecosystem) מודדת שכפול על כל הריפואים ומחייבת את הדוח
+  //     ל-sovereign/reports/ecosystem-dup-latest.json. הלב מעיד על כל
+  //     מדידה חדשה פעם אחת — אימות AUDIT חתום שמכוסה checkpoint
+  //     והעוגנים מעידים עליו ב-$0. dup ≥ 0.2 במדידה ⇒ העדות עצמה
+  //     נושאת את ההפרה בקול (ההתראה האדומה חיה בריצת הסריקה).
+  let ecoWitness: { attSeq: number; checkpoint: { index: number; root: string } } | null = null;
+  try {
+    const ecoPath = path.join(ROOT, "sovereign", "reports", "ecosystem-dup-latest.json");
+    if (fs.existsSync(ecoPath)) {
+      const eco = JSON.parse(fs.readFileSync(ecoPath, "utf8")) as {
+        measuredAt?: string; totals?: { measured?: number; dupGroups?: number; redundantCopies?: number; dupRatio?: number };
+      };
+      const measuredAt = String(eco.measuredAt || "");
+      const t = eco.totals || {};
+      if (measuredAt && typeof t.dupRatio === "number") {
+        const already = await db.attestation.findFirst({
+          where: { claimType: "AUDIT", evidence: { contains: `ecoMeasuredAt=${measuredAt}` } },
+        });
+        if (!already) {
+          const ecoAgent = await ensureCloudAgent(seal.cloudKeyHex);
+          const held = t.dupRatio! < 0.2;
+          const att = await appendAttestation({
+            agentId: ecoAgent.id,
+            claim:
+              `מדידת אקוסיסטם (G6) הונחה בספר: dup=${t.dupRatio} — ${t.redundantCopies} עותקים יתרים מתוך ${t.measured} ` +
+              `קבצי-סטטוס שנמדדו (${t.dupGroups} קבוצות שכפול) · יעד <0.2 ` +
+              (held ? "מוחזק" : "מופר — התראה אדומה חיה בריצת הסריקה"),
+            claimType: "AUDIT",
+            evidence: [
+              `ecoMeasuredAt=${measuredAt}`,
+              `measured=${t.measured}`,
+              `dupGroups=${t.dupGroups}`,
+              `redundantCopies=${t.redundantCopies}`,
+              `dupRatio=${t.dupRatio}`,
+              `target=<0.2`,
+              `verdict=${held ? "HELD" : "VIOLATED"}`,
+              `scanner=weave-ecosystem (daily, cloud)`,
+              `runner=${runner}`,
+              `commit=${gitHead}`,
+              runUrl ? `run=${runUrl}` : null,
+            ]
+              .filter(Boolean)
+              .join(" · "),
+          });
+          const cp = await createCheckpointNow();
+          if (cp) ecoWitness = { attSeq: att.seq, checkpoint: { index: cp.index, root: cp.root } };
+          console.log(
+            `[weave-beat] G6: מדידת ${measuredAt} הועידה — att${att.seq} · dup=${t.dupRatio}${ecoWitness ? ` · cp#${ecoWitness.checkpoint.index}` : ""}`
+          );
+        }
+      }
+    }
+  } catch (ecoErr) {
+    console.log(
+      `[weave-beat] G6: עדות המדידה נדחתה תפעולית — ${ecoErr instanceof Error ? ecoErr.message : String(ecoErr)} (ההעשרה לעולם לא מפילה את הלב)`
+    );
+  }
+
   // 4. דוקטרינת חיים (ענן בלבד): ספר טרי ⇒ אימות-בלבד, אין הרחבה
   //    force-beat דולג עליה — השתלטות ידנית מדגימה (SOV-2, אימון)
   //    פקודת מפעיל שבוצעה דולגת עליה — המפעיל העיר את הרשת
@@ -165,7 +224,7 @@ async function main(): Promise<void> {
       : Infinity;
     const fresh = attAgeMin < STALE_ATTMin;
 
-    if (fresh && (opsResult === null || opsResult.executed.length === 0)) {
+    if (fresh && (opsResult === null || opsResult.executed.length === 0) && ecoWitness === null) {
       const verify = await verifyLedger();
       const report = {
         at: new Date().toISOString(),
@@ -190,9 +249,12 @@ async function main(): Promise<void> {
       // אימות בלבד — לא דוחפים כלום (אפס כתיבה לשרשרת)
       return;
     }
-    if (opsResult && opsResult.executed.length > 0) {
+    if ((opsResult && opsResult.executed.length > 0) || ecoWitness !== null) {
       console.log(
-        `[weave-beat] SANDBOX-ALIVE אך פקודת מפעיל בוצעה (${opsResult.executed.map((e) => e.cmd).join(", ")}) — הרשת מתעוררת לפעימה מלאה`
+        `[weave-beat] SANDBOX-ALIVE אך עבודה ריבונית ממתינה (${[
+          ...(opsResult?.executed ?? []).map((e) => "cmd:" + e.cmd),
+          ...(ecoWitness ? ["G6:" + ecoWitness.attSeq] : []),
+        ].join(", ")}) — הרשת מתעוררת לפעימה מלאה`
       );
     } else {
       console.log(
@@ -323,65 +385,6 @@ async function main(): Promise<void> {
   } catch (brainErr) {
     console.log(
       `[weave-beat] המוח: נעול או לא-זמין — ${brainErr instanceof Error ? brainErr.message : String(brainErr)}`
-    );
-  }
-
-  // 5.9 אכיפת G6 — עדות על מדידת האקוסיסטם (Task 26): הסריקה היומית
-  //     (weave-ecosystem) מודדת שכפול על כל הריפואים ומחייבת את הדוח
-  //     ל-sovereign/reports/ecosystem-dup-latest.json. הלב מעיד על כל
-  //     מדידה חדשה פעם אחת — אימות AUDIT חתום שמכוסה checkpoint
-  //     והעוגנים מעידים עליו ב-$0. dup ≥ 0.2 במדידה ⇒ העדות עצמה
-  //     נושאת את ההפרה בקול (ההתראה האדומה חיה בריצת הסריקה).
-  let ecoWitness: { attSeq: number; checkpoint: { index: number; root: string } } | null = null;
-  try {
-    const ecoPath = path.join(ROOT, "sovereign", "reports", "ecosystem-dup-latest.json");
-    if (fs.existsSync(ecoPath)) {
-      const eco = JSON.parse(fs.readFileSync(ecoPath, "utf8")) as {
-        measuredAt?: string; totals?: { measured?: number; dupGroups?: number; redundantCopies?: number; dupRatio?: number };
-      };
-      const measuredAt = String(eco.measuredAt || "");
-      const t = eco.totals || {};
-      if (measuredAt && typeof t.dupRatio === "number") {
-        const already = await db.attestation.findFirst({
-          where: { claimType: "AUDIT", evidence: { contains: `ecoMeasuredAt=${measuredAt}` } },
-        });
-        if (!already) {
-          const ecoAgent = await ensureCloudAgent(seal.cloudKeyHex);
-          const held = t.dupRatio! < 0.2;
-          const att = await appendAttestation({
-            agentId: ecoAgent.id,
-            claim:
-              `מדידת אקוסיסטם (G6) הונחה בספר: dup=${t.dupRatio} — ${t.redundantCopies} עותקים יתרים מתוך ${t.measured} ` +
-              `קבצי-סטטוס שנמדדו (${t.dupGroups} קבוצות שכפול) · יעד <0.2 ` +
-              (held ? "מוחזק" : "מופר — התראה אדומה חיה בריצת הסריקה"),
-            claimType: "AUDIT",
-            evidence: [
-              `ecoMeasuredAt=${measuredAt}`,
-              `measured=${t.measured}`,
-              `dupGroups=${t.dupGroups}`,
-              `redundantCopies=${t.redundantCopies}`,
-              `dupRatio=${t.dupRatio}`,
-              `target=<0.2`,
-              `verdict=${held ? "HELD" : "VIOLATED"}`,
-              `scanner=weave-ecosystem (daily, cloud)`,
-              `runner=${runner}`,
-              `commit=${gitHead}`,
-              runUrl ? `run=${runUrl}` : null,
-            ]
-              .filter(Boolean)
-              .join(" · "),
-          });
-          const cp = await createCheckpointNow();
-          if (cp) ecoWitness = { attSeq: att.seq, checkpoint: { index: cp.index, root: cp.root } };
-          console.log(
-            `[weave-beat] G6: מדידת ${measuredAt} הועידה — att${att.seq} · dup=${t.dupRatio}${ecoWitness ? ` · cp#${ecoWitness.checkpoint.index}` : ""}`
-          );
-        }
-      }
-    }
-  } catch (ecoErr) {
-    console.log(
-      `[weave-beat] G6: עדות המדידה נדחתה תפעולית — ${ecoErr instanceof Error ? ecoErr.message : String(ecoErr)} (ההעשרה לעולם לא מפילה את הלב)`
     );
   }
 
