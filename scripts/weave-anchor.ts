@@ -36,6 +36,7 @@ import {
   steemBroadcast,
   hiveBroadcast,
   hiveRcGate,
+  steemRcGate,
   findInHistory,
   sleep,
   type GrapheneOperation,
@@ -253,10 +254,19 @@ async function main(): Promise<void> {
   const txids: { steem: string | null; hive: string | null } = { steem: null, hive: null };
   const notes: string[] = [];
 
-  const st = await steemBroadcast([op], WIF);
-  txids.steem = st.txid;
-  if (st.note) notes.push(`steem: ${st.note}`);
-  console.log(`[weave-anchor] steem: ${st.txid ? `שודר ✓ ${st.txid.slice(0, 12)}…` : `לא אושר — ${st.note ?? ""}`}`);
+  // שעת RC ל-Steem (Task 25, נולד ממדידת 14:08Z): דילוג-כנה כשהמנה מתחת לרצפה — המחירות האמיתית של חשבון-חינם במחזור שעתי
+  let steemSkipped: string | null = null;
+  const sGate = await steemRcGate(ACCOUNT).catch(() => null);
+  if (sGate && !sGate.ok) {
+    steemSkipped = sGate.reason ?? "rc-gated";
+    notes.push(`steem: ${steemSkipped}`);
+    console.log(`[weave-anchor] steem: דילוג-כנה — ${steemSkipped}`);
+  } else {
+    const st = await steemBroadcast([op], WIF);
+    txids.steem = st.txid;
+    if (st.note) notes.push(`steem: ${st.note}`);
+    console.log(`[weave-anchor] steem: ${st.txid ? `שודר ✓ ${st.txid.slice(0, 12)}…` : `לא אושר — ${st.note ?? ""}`}`);
+  }
 
   let hiveSkipped: string | null = null;
   const gate = await hiveRcGate(ACCOUNT).catch(() => null);
@@ -277,7 +287,7 @@ async function main(): Promise<void> {
   }
 
   // 9. אישור מההיסטוריה — השופטת היחידה (שני הכיוונים)
-  for (let i = 0; i < 5 && !txids.steem; i++) {
+  for (let i = 0; i < 5 && !txids.steem && !steemSkipped; i++) {
     await sleep(3000);
     for (const node of STEEM_RPC_NODES) {
       txids.steem = await findInHistory(node, ACCOUNT, OP_ID, at, 1, 100).catch(() => null);
@@ -299,17 +309,46 @@ async function main(): Promise<void> {
   );
 
   if (landed === 0) {
-    // אף שרשרת לא קלטה — כישלון כנה, אין עדות, הריצה אדומה; הניסיון הבא יעגן
+    // שני הקווים הוגדו ב-RC (דילוג או שידור שחזר ב-RC) — זו מדידת
+    // תקציב, לא כשל מערכת: הריצה ירוקה עם דילוג-כנה, הדוח נדחף,
+    // וקו ה-ZERO ממשיך לעגן שעתית ב-$0. כשה-RC יתאושש
+    // (מדוד: Steem ~9ש' · Hive ~14ש') — השער יעבור והעיגון יחדש.
+    const rcOnly = [steemSkipped, hiveSkipped].filter(Boolean).length === 2
+      || (notes.length > 0 && notes.every((n) => /rc|mana|resource/i.test(n)));
+    const mode = rcOnly
+      ? "RC-SKIPPED (both chains regenerating \u2014 honest skip; ZERO line anchors in $0)"
+      : "BROADCAST-FAILED (no chain landed \u2014 honest red, nothing attested)";
     const report = {
       at,
       runner,
-      mode: "BROADCAST-FAILED (no chain landed — honest red, nothing attested)",
+      mode,
       payload,
       notes,
+      rcGates: { steem: steemSkipped, hive: hiveSkipped },
       context: { runner, gitHead, repoSlug, runUrl },
     };
     fs.mkdirSync(path.dirname(REPORT_PATH), { recursive: true });
     fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
+    if (rcOnly) {
+      console.log(`[weave-anchor] שני הקווים ברגנרציית RC — דילוג-כנה, הריצה ירוקה; קו ה-ZERO מעגן`);
+      // דחיקת הדוח בלבד — הספר לא שושנה (אין עדות לרשום)
+      if (!NO_PUSH && gitOrNull("git remote get-url origin")) {
+        if (IS_ACTIONS) {
+          sh('git config user.name "weave-anchor[bot]" && git config user.email "weave-anchor[bot]@users.noreply.github.com"');
+        }
+        execSync(`git add -A`, { cwd: ROOT, stdio: "ignore" });
+        const stagedRc = gitOrNull("git diff --cached") ?? "";
+        const leakRc = secretGate(filterKnownHashes(stagedRc));
+        if (leakRc) {
+          execSync("git reset", { cwd: ROOT, stdio: "ignore" });
+          throw new Error(`שער הסודות חסם את הדחיקה: ${leakRc} ב-diff — כלום לא נדחף`);
+        }
+        execSync(`git commit -m ${JSON.stringify(`weave-anchor: ${at} · RC-SKIPPED · שני הקווים ברגנרציית — דילוג-כנה`)}`, { cwd: ROOT, stdio: "ignore" });
+        const pushRc = gitPushRetry(ROOT, BRANCH);
+        console.log(`[weave-anchor] דוח הדילוג נדחף: ${pushRc.split("\n").slice(-1)[0] || "pushed"}`);
+      }
+      return; // ירוק כנה — כלום לא נוסף, המחזור הבא ינסה שוב
+    }
     throw new Error(`העיגון נכשל בשתי השרשראות — ${notes.join(" | ")}`);
   }
 

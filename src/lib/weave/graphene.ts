@@ -26,10 +26,14 @@ export const HIVE_RPC = process.env.HIVE_RPC || "https://api.hive.blog";
 export const HIVE_CHAIN_ID =
   "beeab0de00000000000000000000000000000000000000000000000000000000";
 
-/** סף RC לרגל ה-Hive — פעולה עולה ~5M; הסף במרווח גדול (הדפוס: שער-תקציב) */
-export const HIVE_RC_FLOOR = 50e6;
-/** רגנרציית ה-RC של Hive — 5 ימים (432,000 שניות) */
-const HIVE_RC_REGEN_SEC = 432000;
+/** סף RC לרגל ה-Hive — נמדד 2026-09-15 14:08Z: עיגון custom_json עולה
+ *  ~273M RC כשמאגר הרשת עמוס; הרצפה במרווח מעל המדידה (הדפוס: שער-תקציב).
+ *  סביבה יכולה להדוף: HIVE_RC_FLOOR=… (אינטים בליד׳) */
+export const HIVE_RC_FLOOR = Number(process.env.HIVE_RC_FLOOR || 300e6);
+/** סף RC לרגל ה-Steem — נמדד: עיגון עולה ~169M RC בעת עומס */
+export const STEEM_RC_FLOOR = Number(process.env.STEEM_RC_FLOOR || 200e6);
+/** רגנרציית ה-RC — 5 ימים (432,000 שניות) בשתי השרשראות */
+const RC_REGEN_SEC = 432000;
 
 export class GrapheneError extends Error {}
 
@@ -111,8 +115,50 @@ export async function hiveRcGate(
   const lut = Number(a.rc_manabar.last_update_time);
   const mana = Math.min(
     max,
-    Number(a.rc_manabar.current_mana) + Math.max(0, now - lut) * (max / HIVE_RC_REGEN_SEC)
+    Number(a.rc_manabar.current_mana) + Math.max(0, now - lut) * (max / RC_REGEN_SEC)
   );
+  if (mana < floor) {
+    return {
+      ok: false,
+      mana: Math.round(mana),
+      max,
+      reason: `rc-gated (mana=${Math.round(mana).toExponential(2)} < floor=${floor.toExponential(2)} — regen budget, honest skip)`,
+    };
+  }
+  return { ok: true, mana: Math.round(mana), max };
+}
+
+/** שער ה-RC של Steem (Task 25): אותה מנה מחושבת, API אחר — rc_api
+ *  עם מבנה {accounts}. נולד מהמדידה הקשה: שידור שמוחזר ב-RC עלה בכישלון
+ *  אדום של כל הקו — בעוד דילוג-כנה שומר על הקדנס ומדווח באמת. */
+export async function steemRcGate(
+  account: string,
+  floor: number = STEEM_RC_FLOOR
+): Promise<{ ok: boolean; mana: number; max: number; reason?: string }> {
+  type RcAccount = {
+    max_rc: string | number;
+    rc_manabar: { current_mana: string | number; last_update_time: number };
+  };
+  let a: RcAccount | null = null;
+  let lastErr = "";
+  for (const node of STEEM_RPC_NODES) {
+    try {
+      const res = await rpcV4<{ rc_accounts: RcAccount[] }>(
+        node,
+        "rc_api.find_rc_accounts",
+        { accounts: [account] }
+      );
+      a = res?.rc_accounts?.[0] ?? null;
+      if (a) break;
+    } catch (e) {
+      lastErr = e instanceof Error ? e.message.slice(0, 60) : String(e);
+    }
+  }
+  if (!a) {
+    return { ok: false, mana: 0, max: 0, reason: `rc-api-unreachable (${lastErr}) — honest skip` };
+  }
+  const max = Number(a.max_rc);
+  const mana = Math.min(max, Number(a.rc_manabar.current_mana)); // רגנרציה לא מחושבת — שמרנות לטובת הרצפה
   if (mana < floor) {
     return {
       ok: false,

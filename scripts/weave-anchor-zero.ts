@@ -36,6 +36,7 @@ import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
 import { verifyLedger, ensureCloudAgent, ensureNetworkKeyFromSeal, createCheckpointNow } from "@/lib/weave/beat";
 import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
+import { brainProbeAll } from "@/lib/weave/brain";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { sealOpen } from "./weave-seal";
 import { anchorOnZero, verifyZeroAnchorOnChain, zeroReadiness, zeroExplorerLink, ZERO_RAIL_ID } from "@/lib/weave/zero";
@@ -191,6 +192,27 @@ async function main(): Promise<void> {
   console.log(
     `[weave-anchor-zero] seal פתוח · network=${seal.networkAddress} (חותם העוגן) · cloud=${seal.cloudAddress} (חותם העדות)`
   );
+
+  // 3.5 המוח — אימות-אמת בקו שתמיד רץ (Task 25): הלב
+  //      נסוג כשהסנדבוקס חי (SANDBOX-ALIVE) — אבל הקווים
+  //      רצים אחרי כל פעימה בכל מצב. המאגר חי בספר
+  //      (כספת אדיטיבית) — ומדוד כאן, שעתית, ב-1-token chat
+  //      לכל מפתח. הסטטוס זורם לספר בייצוא שלהלן. כשל-רשת
+  //      או סביבה נטולת-מפתח — נרשם בכנות ולא מפיל: העשרה
+  //      לעולם לא חוסמת את הקו.
+  let brainProbe: Array<{ fingerprint: string; live: boolean; code: number | string }> | null = null;
+  try {
+    const poolCount = await db.brainKey.count();
+    if (poolCount > 0) {
+      brainProbe = await brainProbeAll();
+      const live = brainProbe.filter((p) => p.live).length;
+      console.log(`[weave-anchor-zero] המוח: ${live}/${poolCount} מפתחות LIVE (אימות-אמת 1-token שעתי)`);
+    }
+  } catch (brainErr) {
+    console.log(
+      `[weave-anchor-zero] המוח: נעול או לא-זמין — ${brainErr instanceof Error ? brainErr.message : String(brainErr)}`
+    );
+  }
 
   // 4. הספר חייב להיות תקין לפני כל עדות
   const verify = await verifyLedger();
@@ -588,6 +610,7 @@ async function main(): Promise<void> {
         }
       : {}),
     attestations: snap.chainCount,
+    ...(brainProbe ? { brain: { probed: brainProbe } } : {}),
     context: { runner, gitHead, repoSlug, runUrl },
   };
   fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
