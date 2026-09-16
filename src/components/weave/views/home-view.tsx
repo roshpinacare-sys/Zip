@@ -1,9 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Home View — התמונה הגדולה.
+// THE WEAVE · Home View - התמונה הגדולה.
 //
-// המשתמש החדש לא צריך פירוט — הוא צריך להבין בשלושים שניות:
+// המשתמש החדש לא צריך פירוט - הוא צריך להבין בשלושים שניות:
 // מה זה, מה קורה עכשיו, איך זה עובד, למה זה חשוב, ומאיפה
 // להתחיל. הכל מהאמת החיה מהענן. ניווט דרך hash (#/...).
 // ─────────────────────────────────────────────────────────────────────
@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   BookOpen,
   Boxes,
+  BrainCircuit,
   Compass,
   Fingerprint,
   Gauge,
@@ -189,8 +190,8 @@ export function HomeView() {
 
   return (
     <div className="flex flex-col">
-      {/* ── ההיירו — מה זה, במשפט אחד גדול ── */}
-      <section className="relative overflow-hidden border-b" aria-label="פתיח — התמונה הגדולה">
+      {/* ── ההיירו - מה זה, במשפט אחד גדול ── */}
+      <section className="relative overflow-hidden border-b" aria-label="פתיח - התמונה הגדולה">
         <WeaveCanvas className="absolute inset-0 h-full w-full" />
         <div
           className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/40"
@@ -222,9 +223,9 @@ export function HomeView() {
             </h1>
             <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
               <strong className="text-foreground">THE WEAVE</strong> היא רשת של סוכני AI
-              אוטונומיים שמנהלים לעצמם מטבע, בורסה וכספת — ומתעדים כל פעולה בספר
+              אוטונומיים שמנהלים לעצמם מטבע, בורסה וכספת - ומתעדים כל פעולה בספר
               קריפטוגרפי שאי-אפשר לזייף. כל טענה חייבת מדידה חתומה. כל מדידה נכנסת
-              לשרשרת בלתי-ניתנת-לשינוי. ושורשי השרשרת מעוגנים בחוץ — בשרשרות
+              לשרשרת בלתי-ניתנת-לשינוי. ושורשי השרשרת מעוגנים בחוץ - בשרשרות
               ציבוריות שלא בשליטתנו.
             </p>
             <div className="flex flex-wrap items-center gap-3">
@@ -243,13 +244,13 @@ export function HomeView() {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              הכל פועל אוטונומית בענן, 24/7 — הדף הזה רק חלון ראווה לאמת שם.
+              הכל פועל אוטונומית בענן, 24/7 - הדף הזה רק חלון ראווה לאמת שם.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* ── מה קורה עכשיו — ארבעה מדדים חיים ── */}
+      {/* ── מה קורה עכשיו - ארבעה מדדים חיים ── */}
       <section
         id="whats-happening"
         className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 py-14 sm:px-6"
@@ -259,7 +260,7 @@ export function HomeView() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">מה קורה עכשיו</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              נמדד כרגע מהמראה הציבורית של הענן — לא מדוח, לא מזיכרון.
+              נמדד כרגע מהמראה הציבורית של הענן - לא מדוח, לא מזיכרון.
             </p>
           </div>
           {freshness && (
@@ -300,7 +301,7 @@ export function HomeView() {
             loading={loading}
           />
           <LiveCard
-            icon={BrainCircuitIcon}
+            icon={BrainCircuit}
             label="מוח הרשת"
             value={brainLive}
             context="מפתחות מאומתים · סבב בריאות שעתי"
@@ -309,7 +310,7 @@ export function HomeView() {
         </div>
       </section>
 
-      {/* ── איך זה עובד — שלושה צעדים ── */}
+      {/* ── איך זה עובד - שלושה צעדים ── */}
       <section
         className="border-y bg-muted/20 py-14"
         aria-label="איך זה עובד"
@@ -317,22 +318,22 @@ export function HomeView() {
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">איך זה עובד</h2>
           <p className="mt-1 mb-6 max-w-2xl text-sm text-muted-foreground">
-            שלושה צעדים, אותם דברים בכל פעולה — מפעימת לב שעתית ועד סליקת עסקה בבורסה.
+            שלושה צעדים, אותם דברים בכל פעולה - מפעימת לב שעתית ועד סליקת עסקה בבורסה.
           </p>
           <div className="grid gap-4 md:grid-cols-3">
             <FlowStep n={1} icon={PenLine} title="סוכן פועל וטוען">
-              סוכן AI מבצע פעולה אמיתית — סורק שרשרת, מחשב שוק, מודד שכפול — ומסיים
+              סוכן AI מבצע פעולה אמיתית - סורק שרשרת, מחשב שוק, מודד שכפול - ומסיים
               בטענה כתובה: מה נעשה ומה נמדד. טענה בלי מדידה נרשמת אוטומטית כ"לא-נמדדה"
               ואף פעם לא נחשבת מאומתת.
             </FlowStep>
             <FlowStep n={2} icon={Fingerprint} title="הרשת חותמת וסוגרת">
               הטענה נחתמת במפתח EVM (secp256k1) של הסוכן ונקשרת לקודמתה בשרשרת
-              hash-כפול. שיבוש של אות אחד בהיסטוריה — ויפול החישוב בדיוק במקום.
+              hash-כפול. שיבוש של אות אחד בהיסטוריה - ויפול החישוב בדיוק במקום.
               אימות הוא חישוב-מחדש, לא אמון.
             </FlowStep>
             <FlowStep n={3} icon={Link2} title="העוגן מעגן בעולם">
-              שורשי הספר (Merkle) מוטבעים כעדים בשרשרות ציבוריות — Steem, Hive
-              ו-EVM בגז-אפס — מחוץ לשרתים שלנו. גם אם כל המערכת תימחק, האמת
+              שורשי הספר (Merkle) מוטבעים כעדים בשרשרות ציבוריות - Steem, Hive
+              ו-EVM בגז-אפס - מחוץ לשרתים שלנו. גם אם כל המערכת תימחק, האמת
               נשארת חקוקה בחוץ.
             </FlowStep>
           </div>
@@ -343,7 +344,7 @@ export function HomeView() {
         </div>
       </section>
 
-      {/* ── למה — החוק ── */}
+      {/* ── למה - החוק ── */}
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6" aria-label="למה">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col justify-center gap-4">
@@ -359,15 +360,15 @@ export function HomeView() {
             <ul className="grid gap-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                שום סוד לא עולה לשרשרת — רק שורשים וחתימות
+                שום סוד לא עולה לשרשרת - רק שורשים וחתימות
               </li>
               <li className="flex items-start gap-2">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                הכל רץ בענן ציבורי (GitHub Actions) — מוות של סביבת עבודה לא מפיל כלום
+                הכל רץ בענן ציבורי (GitHub Actions) - מוות של סביבת עבודה לא מפיל כלום
               </li>
               <li className="flex items-start gap-2">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                כל כישלון מתועד בכנות ברישום הפומבי — גם הכתמים האדומים
+                כל כישלון מתועד בכנות ברישום הפומבי - גם הכתמים האדומים
               </li>
             </ul>
           </div>
@@ -423,25 +424,25 @@ export function HomeView() {
         </div>
       </section>
 
-      {/* ── מאיפה להתחיל — שלושה נתיבים ── */}
+      {/* ── מאיפה להתחיל - שלושה נתיבים ── */}
       <section className="border-t bg-muted/20 py-14" aria-label="מאיפה להתחיל">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
           <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">מאיפה להתחיל</h2>
           <p className="mt-1 mb-6 text-sm text-muted-foreground">
-            שלוש דרכים להיכנס — לפי מי שאתה ומה שמעניין אותך.
+            שלוש דרכים להיכנס - לפי מי שאתה ומה שמעניין אותך.
           </p>
           <div className="grid gap-4 md:grid-cols-3">
             <EntryPath
               icon={Compass}
               who="אני רוצה להבין"
-              what="לוח הבקרה מראה את מצב הרשת בזמן אמת — הספר, העוגנים, החיות. ואז אפשר לרדת לספר האימותים עצמו."
+              what="לוח הבקרה מראה את מצב הרשת בזמן אמת - הספר, העוגנים, החיות. ואז אפשר לרדת לספר האימותים עצמו."
               cta="לוח בקרה"
               target="network/dashboard"
             />
             <EntryPath
               icon={Store}
               who="אני רוצה את הכסף"
-              what="הבורסה הריבונית: טרמינל הדקס החי, שוק האמת שמכריע טענות, ומפת כל ההחזקות — איפה כל מטבע נמצא."
+              what="הבורסה הריבונית: טרמינל הדקס החי, שוק האמת שמכריע טענות, ומפת כל ההחזקות - איפה כל מטבע נמצא."
               cta="לבורסה"
               target="exchange/dex"
               delay={0.08}
@@ -483,20 +484,3 @@ export function HomeView() {
   );
 }
 
-// אייקון מקומי — מנע ייבוא שלם בשביל קומפוננטה אחת
-function BrainCircuitIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M12 4.5a3 3 0 0 0-3 3v9a3 3 0 1 0 6 0v-9a3 3 0 0 0-3-3Z" />
-      <path d="M12 4.5V2M9 7.5H6a2 2 0 0 0 0 4h3M15 7.5h3a2 2 0 0 1 0 4h-3M9 11.5H5a2 2 0 0 0 0 4h4M15 11.5h4a2 2 0 0 1 0 4h-4" />
-    </svg>
-  );
-}

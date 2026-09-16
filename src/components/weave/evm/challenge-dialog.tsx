@@ -1,10 +1,10 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · אתגר חתימה חד-פעני (EVM-3) — זרימת 3 צעדים:
+// THE WEAVE · אתגר חתימה חד-פעני (EVM-3) - זרימת 3 צעדים:
 // 1) השרת מנפיק אתגר (nonce + digest) 2) הסוכן חותם (סימולציית DEVNET;
-// בייצור — המפתח אצל הסוכן) 3) אימות ecrecover + צריכת ה-nonce.
-// שליחת אותה חתימה שוב נדחית תמיד (409) — replay protection חי.
+// בייצור - המפתח אצל הסוכן) 3) אימות ecrecover + צריכת ה-nonce.
+// שליחת אותה חתימה שוב נדחית תמיד (409) - replay protection חי.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -79,7 +79,7 @@ export function ChallengeDialog({
         body: JSON.stringify({ agentId: agent.id }),
       });
       setChallenge(res.challenge);
-      toast.success(`אתגר נוצר — nonce ${res.challenge.nonce}`, {
+      toast.success(`אתגר נוצר - nonce ${res.challenge.nonce}`, {
         description: "הסוכן נדרש לחתום על ה-digest החד-פעני",
       });
     } catch (err) {
@@ -112,7 +112,7 @@ export function ChallengeDialog({
         { method: "POST", body: JSON.stringify({ agentId: agent.id, nonce: challenge.nonce }) }
       );
       setSignature(res.signature);
-      toast.success("החתימה נוצרה — סימולציית סוכן (DEVNET)", {
+      toast.success("החתימה נוצרה - סימולציית סוכן (DEVNET)", {
         description: "ecrecover ישחזר את הכתובת בשרת",
       });
     } catch (err) {
@@ -136,8 +136,8 @@ export function ChallengeDialog({
       setVerified(res.verified);
       onVerified(res.verified.consumedNonce);
       onActivity();
-      toast.success(`nonce ${res.verified.consumedNonce} נצרך — הזהות אומתה`, {
-        description: "ecrecover ✓ — מעכשיו אותה חתימה תידחה",
+      toast.success(`nonce ${res.verified.consumedNonce} נצרך - הזהות אומתה`, {
+        description: "ecrecover תקין - מעכשיו אותה חתימה תידחה",
       });
     } catch (err) {
       toast.error(errorMessage(err));
@@ -150,13 +150,13 @@ export function ChallengeDialog({
     if (!challenge || !signature) return;
     setReplaying(true);
     try {
-      // replay חייב להיכשל (409) — זו ההדגמה
+      // replay חייב להיכשל (409) - זו ההדגמה
       await apiFetch("/api/agents/challenge/verify", {
         method: "POST",
         body: JSON.stringify({ agentId: agent.id, nonce: challenge.nonce, signature }),
       });
-      // לא אמור להגיע לכאן לעולם — אם כן, זו בעיה אמיתית
-      toast.error("ה-replay עבר?! זו תקלה — ה-nonce נצרך כבר");
+      // לא אמור להגיע לכאן לעולם - אם כן, זו בעיה אמיתית
+      toast.error("ה-replay עבר?! זו תקלה - ה-nonce נצרך כבר");
     } catch (err) {
       const msg = errorMessage(err);
       setReplay({ rejected: true, message: msg });
@@ -190,7 +190,7 @@ export function ChallengeDialog({
         <Stepper steps={STEPS} current={step} />
 
         <div className="flex flex-col gap-3">
-          {/* צעד 1 — האתגר */}
+          {/* צעד 1 - האתגר */}
           {challengeLoading ? (
             <div className="rounded-lg border p-4">
               <Skeleton className="h-4 w-24" />
@@ -236,7 +236,7 @@ export function ChallengeDialog({
             </div>
           ) : null}
 
-          {/* צעד 2 — חתימה */}
+          {/* צעד 2 - חתימה */}
           {challenge && !challengeError ? (
             <div className="rounded-lg border p-3 sm:p-4">
               <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -259,14 +259,14 @@ export function ChallengeDialog({
                     <HashChip value={signature} head={10} tail={8} />
                   </div>
                   <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                    הערת יושר: בייצור הסוכן חותם במפתחו שלו — לשרת מגיעה רק החתימה.
+                    הערת יושר: בייצור הסוכן חותם במפתחו שלו - לשרת מגיעה רק החתימה.
                   </p>
                 </>
               )}
             </div>
           ) : null}
 
-          {/* צעד 3 — אימות + צריכה */}
+          {/* צעד 3 - אימות + צריכה */}
           {signature ? (
             <div className="rounded-lg border p-3 sm:p-4">
               <p className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -291,10 +291,10 @@ export function ChallengeDialog({
                   >
                     <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
                       <ShieldCheck className="size-4 shrink-0" />
-                      nonce {verified.consumedNonce} נצרך — הזהות אומתה
+                      nonce {verified.consumedNonce} נצרך - הזהות אומתה
                     </p>
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-xs text-muted-foreground">ecrecover →</p>
+                      <p className="text-xs text-muted-foreground">{"ecrecover ->"}</p>
                       <HashChip value={verified.recovered} head={8} tail={6} />
                     </div>
                   </div>
@@ -314,7 +314,7 @@ export function ChallengeDialog({
                     <div className="mt-3 rounded-lg border border-rose-500/40 bg-rose-500/[0.07] p-3">
                       <p className="flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
                         <Lock className="size-4 shrink-0" />
-                        replay נדחה — החתימה חד-פעמית
+                        replay נדחה - החתימה חד-פעמית
                       </p>
                       <p className="mt-1 text-xs leading-relaxed text-rose-700/90 dark:text-rose-300/90">
                         השרת: {replay.message}

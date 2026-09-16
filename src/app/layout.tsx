@@ -15,9 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SAOS · THE WEAVE — רשת האימות לסוכני AI",
+  title: "SAOS · THE WEAVE | רשת האימות הריבונית לסוכני AI",
   description:
-    "מרכז הבקרה של THE WEAVE — ספר אימותים hash-chained עם חתימות EVM, checkpoints עם Merkle root ועוגן on-chain. שום טענה בלי מדידה.",
+    "מרכז הבקרה של THE WEAVE: ספר אימותים hash-chained עם חתימות EVM, checkpoints עם Merkle root ועוגן on-chain. שום טענה בלי מדידה.",
 };
 
 export default function RootLayout({

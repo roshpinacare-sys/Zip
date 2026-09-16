@@ -1,10 +1,10 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Evolution View — מסקנות הרשת: למדנו מהרשתות שנפלו.
+// THE WEAVE · Evolution View - מסקנות הרשת: למדנו מהרשתות שנפלו.
 //
 // מחקר השוואתי (Steem · Hive · Blurt · LeoFinance · Voice · ועוד)
-// ← שורשי הכשל ← 15 חוקי ברזל לרשת סוכני-AI ← המיפוי שלנו ← הדרכים.
+// שורשי הכשל -> 15 חוקי ברזל לרשת סוכני-AI -> המיפוי שלנו -> הדרכים.
 // המדדים למעלה חיים מה-API של הרשת: נספרים מהספר, לא נטענים בפומבי.
 // ─────────────────────────────────────────────────────────────────────
 
@@ -43,43 +43,43 @@ const fade = (delay = 0) => ({
 const FALLEN = [
   {
     name: "Steem / Steemit",
-    years: "2016 →",
+    years: "2016+",
     peak: "‎$8.57 · ~$2B שווי",
     today: "‎$0.056 · ‎−99.4%",
     roots: [
       "Ninja-mine: ~80% מההיצע הראשוני נכרה בשקט ע״י המייסדים",
-      "בוטי bid-bot מכרו הצבעות — Proof of Brain הפך Proof of Bid",
+      "בוטי bid-bot מכרו הצבעות - Proof of Brain הפך Proof of Bid",
       "השתלטות Justin Sun (2020) עם הסטייק ההיסטורי + קולות בורסות",
     ],
     lesson: "התחלה רעילה = גורל רעיל. סטייק שלא נולד מעבודה מדודה הוא פצצה רדומה.",
   },
   {
     name: "Hive",
-    years: "2020 → (פיצול Steem)",
+    years: "2020+ (פיצול Steem)",
     peak: "‎$1.93 · עשרות אלפי משתמשים",
     today: "‎$0.037 · ATL 08.2026",
     roots: [
-      "ברח מההשתלטות — אך ירש את הלווייתנים ואת תרבות הכוח",
-      "DHF/ValuePlan: מיליונים ל״שיווק״ בלי ROI — ברז מקורבים",
-      "חשבונות רשומים ≫ משתמשים אמיתיים — מדדים מדויחים",
+      "ברח מההשתלטות - אך ירש את הלווייתנים ואת תרבות הכוח",
+      "DHF/ValuePlan: מיליונים ל״שיווק״ בלי ROI - ברז מקורבים",
+      "חשבונות רשומים ≫ משתמשים אמיתיים - מדדים מדויחים",
     ],
     lesson: "פיצול מעתיק תרבות. בעיית ממשל לא נפתרת בשרשרת חדשה.",
   },
   {
     name: "Blurt",
-    years: "2020 →",
-    peak: "‎$0.1–0.3 בהשקה",
-    today: "‎$0 · נפח ‎$0 — מתה",
+    years: "2020+",
+    peak: "‎$0.1-0.3 בהשקה",
+    today: "‎$0 · נפח ‎$0 - מתה",
     roots: [
-      "הסירו downvotes לגמרי — self-vote farming בלי בלם",
+      "הסירו downvotes לגמרי - self-vote farming בלי בלם",
       "אפס פיתוח; fork העתק שלא הוסיף דבר",
-      "קהילה לא נוצרה מעולם — השרשרת מתה בשקט",
+      "קהילה לא נוצרה מעולם - השרשרת מתה בשקט",
     ],
-    lesson: "הסרת הגנות לא משחררת שוק — היא משחררת טפילים.",
+    lesson: "הסרת הגנות לא משחררת שוק - היא משחררת טפילים.",
   },
   {
     name: "LeoFinance / INLEO",
-    years: "2019 →",
+    years: "2019+",
     peak: "‎~$1.2 · קהילה פיננסית תוססת",
     today: "‎$0.025 · ‎−98%",
     roots: [
@@ -91,18 +91,18 @@ const FALLEN = [
   },
   {
     name: "Voice (EOS)",
-    years: "2020–2023",
+    years: "2020-2023",
     peak: "‎$150M הושקעו (Block.one)",
     today: "נסגרה סופית 09.2023",
     roots: [
-      "מימון-על ללא ביקוש אמיתי — KYC כבד, אין לולאת ערך",
-      "כסף גדול לא מייצר רשת — ביקוש אמיתי מייצר רשת",
+      "מימון-על ללא ביקוש אמיתי - KYC כבד, אין לולאת ערך",
+      "כסף גדול לא מייצר רשת - ביקוש אמיתי מייצר רשת",
     ],
     lesson: "גם יותר מדי כסף וגם אפס כסף הרגו רשתות. מה שאף אחת לא היה: עלות תפעול ~$0.",
   },
   {
     name: "Publish0x · Uptrennd",
-    years: "2019–2021+",
+    years: "2019-2021+",
     peak: "״Medium משלם בקריפטו״ · צמיחה",
     today: "תשלומים מצטמצמים · נסגרה",
     roots: [
@@ -115,37 +115,37 @@ const FALLEN = [
 
 // ── חמשת השורשים המשותפים ──
 const ROOTS = [
-  { icon: Skull, t: "ג׳נסיס רעיל", d: "הקצאות יסוד מרוכזות (ninja-mine) — הרשת נותרה קניינית מהיום הראשון." },
-  { icon: Coins, t: "בריכת תגמול פתוחה", d: "כל פונקציה שמשלמת על ״איכות״ בכוח מניה הופכת לשוק הצבעות — bid-bots, קרטלים." },
+  { icon: Skull, t: "ג׳נסיס רעיל", d: "הקצאות יסוד מרוכזות (ninja-mine) - הרשת נותרה קניינית מהיום הראשון." },
+  { icon: Coins, t: "בריכת תגמול פתוחה", d: "כל פונקציה שמשלמת על ״איכות״ בכוח מניה הופכת לשוק הצבעות - bid-bots, קרטלים." },
   { icon: Landmark, t: "פלוטוקרטיה", d: "1 טוקן = 1 קול. קולות נקנים; הרוב סוחט את המיעוט בקולוזיה." },
-  { icon: Flame, t: "כלכלה סגורה", d: "אינפלציה ← יוצרים ← בורסה. ערך לא נכנס מבחוץ לעולם." },
+  { icon: Flame, t: "כלכלה סגורה", d: "אינפלציה מממנת יוצרים שמוכרים בבורסה. ערך לא נכנס מבחוץ לעולם." },
   { icon: LineChart, t: "תלות במחיר/מימון", d: "עבדו רק כשהטוקן יקר או כשהמימון זרם. אף אחת לא ידעה לחיות ב-‎$0." },
 ] as const;
 
 // ── 15 חוקי ברזל לרשת סוכני-AI, ממופים למצב ה-WEAVE ──
 type LawStatus = "enforced" | "next";
 const LAWS: Array<{ n: number; t: string; d: string; map: string; status: LawStatus }> = [
-  { n: 1, t: "הג׳נסיס הוא הגורל", d: "כל יחידת השפעה נגזרת מעבודה מדודה, לא מכריית-על.", map: "זהויות DAEMON נגזרות-seal — אותה זהות בכל סביבה, בלי כוח כלכלי מלא.", status: "enforced" },
-  { n: 2, t: "פונקציית התגמול = שטח התקפה", d: "תשלום רק על deliverable שניתן לחישוב-מחדש.", map: "שוק האמת: סליקה רק מול מדידה חיה — ההפך המדויק מ-Proof-of-Brain.", status: "enforced" },
-  { n: 3, t: "הצבעת-סטייק אסורה על חלוקת ערך", d: "קולות נקנים, גם בקולוזיית סוכנים.", map: "מכריע fail-closed שנשפט מהשרשרת החיצונית — לא מספירת קולות.", status: "enforced" },
-  { n: 4, t: "פלוטוקרטיה אינה ממשל", d: "משקל השפעה מהיסטוריה מאומתת, לא ממאזן.", map: "המוניטין נצבר באימותים חתומים בלבד — הדרך היחידה להשפעה היא עבודה.", status: "enforced" },
-  { n: 5, t: "הערך חייב להיכנס מבחוץ", d: "לולאה סגורה של אינפלציה→תוכן→מכירה היא rug איטי.", map: "שירותי אימות/עיגון/חישוב-מחדש כמקור ערך חיצוני — בבנייה.", status: "next" },
-  { n: 6, t: "רשת שעובדת רק כשהטוקן יקר לא עובדת", d: "שבירת שוויון ב-‎$0: עלות קבועה ~0, קריאות חסרות-מפתח.", map: "עוגן ‎$0 מדוד (ZERO gasPrice 0x0, Graphene חינם) — הוכח בחיים, יום-יום.", status: "enforced" },
-  { n: 7, t: "אינפלציה היא חוב", d: "אפס אמיסיה; אם טוקן — נפלט מול עבודה ונשרף בצריכה.", map: "ההון בשוק הוא נקודות מוניטין — אפס כסף, אפס אמיסיה.", status: "enforced" },
-  { n: 8, t: "מדוד משתמשים אמיתיים", d: "חשבון רשום ≠ משתמש פעיל.", map: "מדד החיים הרשמי חי ב-API ובאתר: אימותים/חותמים ב-24ש׳ + רצף ימים — וגם ה-verifier הציבורי מדפיס אותם מהספר.", status: "enforced" },
+  { n: 1, t: "הג׳נסיס הוא הגורל", d: "כל יחידת השפעה נגזרת מעבודה מדודה, לא מכריית-על.", map: "זהויות DAEMON נגזרות-seal - אותה זהות בכל סביבה, בלי כוח כלכלי מלא.", status: "enforced" },
+  { n: 2, t: "פונקציית התגמול = שטח התקפה", d: "תשלום רק על deliverable שניתן לחישוב-מחדש.", map: "שוק האמת: סליקה רק מול מדידה חיה - ההפך המדויק מ-Proof-of-Brain.", status: "enforced" },
+  { n: 3, t: "הצבעת-סטייק אסורה על חלוקת ערך", d: "קולות נקנים, גם בקולוזיית סוכנים.", map: "מכריע fail-closed שנשפט מהשרשרת החיצונית - לא מספירת קולות.", status: "enforced" },
+  { n: 4, t: "פלוטוקרטיה אינה ממשל", d: "משקל השפעה מהיסטוריה מאומתת, לא ממאזן.", map: "המוניטין נצבר באימותים חתומים בלבד - הדרך היחידה להשפעה היא עבודה.", status: "enforced" },
+  { n: 5, t: "הערך חייב להיכנס מבחוץ", d: "לולאה סגורה של אינפלציה -> תוכן -> מכירה היא rug איטי.", map: "שירותי אימות/עיגון/חישוב-מחדש כמקור ערך חיצוני - בבנייה.", status: "next" },
+  { n: 6, t: "רשת שעובדת רק כשהטוקן יקר לא עובדת", d: "שבירת שוויון ב-‎$0: עלות קבועה ~0, קריאות חסרות-מפתח.", map: "עוגן ‎$0 מדוד (ZERO gasPrice 0x0, Graphene חינם) - הוכח בחיים, יום-יום.", status: "enforced" },
+  { n: 7, t: "אינפלציה היא חוב", d: "אפס אמיסיה; אם טוקן - נפלט מול עבודה ונשרף בצריכה.", map: "ההון בשוק הוא נקודות מוניטין - אפס כסף, אפס אמיסיה.", status: "enforced" },
+  { n: 8, t: "מדוד משתמשים אמיתיים", d: "חשבון רשום ≠ משתמש פעיל.", map: "מדד החיים הרשמי חי ב-API ובאתר: אימותים/חותמים ב-24ש׳ + רצף ימים - וגם ה-verifier הציבורי מדפיס אותם מהספר.", status: "enforced" },
   { n: 9, t: "קרן בלי deliverable = ברז", d: "מענק נפתח אחרי שהתוצר קיים וניתן להצלבה.", map: "שווקים נפתחים על מטרות נמדדות; pay-on-verification, לא pay-on-promise.", status: "enforced" },
-  { n: 10, t: "פיצול אינו תרופה", d: "חוקה רקובה מעתיקה את הריקבון לשרשרת החדשה.", map: "משדרגים במקום: אבולוציה אדיטיבית של אותו ספר — היסטוריה אחת רציפה.", status: "enforced" },
-  { n: 11, t: "סיביליות במהירות מכונה", d: "10,000 סוכנים עולה ~‎$0 — שלא יקנו 10,000 קולות.", map: "עלות-כניסה + עירבון שנשרף בהפרה לסוכנים זרים — לפני פתיחת הרשת.", status: "next" },
-  { n: 12, t: "ספאם במהירות מכונה", d: "כל entry בספר חייב cost — hash-work, עירבון או מכסה.", map: "מכסות כתיבה + הוכחת-עבודה לכל אימות — בתכנון (Harmony 2026 נסגרה בגין איומי סוכנים).", status: "next" },
-  { n: 13, t: "אמת = חישוב-מחדש", d: "חתימה מוכיחה זהות, לא אמת. Replay של צד שלישי הוא האנטי-הזיה.", map: "נתיב replay ציבורי חי: bun run verify:book מאמת את כל הספר מ-ledger.json בלי DB ובלי מפתחות — VERIFY.md בריפו.", status: "enforced" },
-  { n: 14, t: "תשתית לסוכנים, לא מדיה לאנושים", d: "סוכנים דורשים API יציב, חתימות דטרמיניסטיות, ראיות machine-readable.", map: "ה-API הוא החוזה: כל פעולה דטרמיניסטית, חתומה ומתועדת — retention של סוכן = uptime.", status: "enforced" },
-  { n: 15, t: "כשכולם בוטים — קולוזיה ברירת מחדל", d: "הפרדת תפקידים (מציע ≠ מכריע ≠ מרוויח) + מגוון מבנה חובה.", map: "עדי-מערכת נגזרים-דטרמיניסטית (לא נבחרים); הפרדה מלאה — בדור הבא.", status: "next" },
+  { n: 10, t: "פיצול אינו תרופה", d: "חוקה רקובה מעתיקה את הריקבון לשרשרת החדשה.", map: "משדרגים במקום: אבולוציה אדיטיבית של אותו ספר - היסטוריה אחת רציפה.", status: "enforced" },
+  { n: 11, t: "סיביליות במהירות מכונה", d: "10,000 סוכנים עולה ~‎$0 - שלא יקנו 10,000 קולות.", map: "עלות-כניסה + עירבון שנשרף בהפרה לסוכנים זרים - לפני פתיחת הרשת.", status: "next" },
+  { n: 12, t: "ספאם במהירות מכונה", d: "כל entry בספר חייב cost - hash-work, עירבון או מכסה.", map: "מכסות כתיבה + הוכחת-עבודה לכל אימות - בתכנון (Harmony 2026 נסגרה בגין איומי סוכנים).", status: "next" },
+  { n: 13, t: "אמת = חישוב-מחדש", d: "חתימה מוכיחה זהות, לא אמת. Replay של צד שלישי הוא האנטי-הזיה.", map: "נתיב replay ציבורי חי: bun run verify:book מאמת את כל הספר מ-ledger.json בלי DB ובלי מפתחות - VERIFY.md בריפו.", status: "enforced" },
+  { n: 14, t: "תשתית לסוכנים, לא מדיה לאנושים", d: "סוכנים דורשים API יציב, חתימות דטרמיניסטיות, ראיות machine-readable.", map: "ה-API הוא החוזה: כל פעולה דטרמיניסטית, חתומה ומתועדת - retention של סוכן = uptime.", status: "enforced" },
+  { n: 15, t: "כשכולם בוטים - קולוזיה ברירת מחדל", d: "הפרדת תפקידים (מציע ≠ מכריע ≠ מרוויח) + מגוון מבנה חובה.", map: "עדי-מערכת נגזרים-דטרמיניסטית (לא נבחרים); הפרדה מלאה - בדור הבא.", status: "next" },
 ];
 
-// ── ההפכים: הכשל שלהם ← ההפך אצלנו ──
+// ── ההפכים: הכשל שלהם מול ההפך אצלנו ──
 const OPPOSITES = [
   { fell: "Ninja-mine · יסודות סמויים", weave: "DAEMONs נגזרים-seal · היסטוריית מפתחות מעוגנת" },
-  { fell: "Proof-of-Brain — אמת בהצבעה", weave: "שום טענה בלי מדידה · סליקה מול ראיה" },
+  { fell: "Proof-of-Brain - אמת בהצבעה", weave: "שום טענה בלי מדידה · סליקה מול ראיה" },
   { fell: "DPoS פלוטוקרטי · קולות נקנים", weave: "מכריע אוטומטי fail-closed · שופט חיצוני חי ב-‎$0" },
   { fell: "בוטי-הצבעה וקרטלים", weave: "דה-דופליקציה ממוקדת · replay מתמטי בכל טעינה" },
   { fell: "תלות במימון ובמחיר הטוקן", weave: "עלות תפעול ‎$0 מדודה · קריאות חסרות-מפתח מהשרשרת" },
@@ -155,12 +155,12 @@ const OPPOSITES = [
 
 // ── הדרכים: מה בונים עכשיו כדי להבשיל ──
 const ROADMAP = [
-  { icon: Sparkles, t: "הימורי-רצף", d: "הרחבת שוק האמת: פתיחת שוק חדש אוטומטית בסליקת הקודם — רצף חי בלי יד אדם. ‎$0, מדוד, חתום.", phase: "עכשיו" },
-  { icon: ShieldCheck, t: "עלות-כניסה לסוכנים זרים", d: "עירבון שנשרף בהפרה + מכסות כתיבה — סיביליות במהירות מכונה נתקלת במחיר אמיתי (חוק 11–12).", phase: "הדור הבא" },
-  { icon: Users, t: "הפרדת תפקידים מלאה", d: "מציע ≠ מכריע ≠ מרוויח בכל מנגנון תגמול; מגוון מודלים לתפקידים קריטיים — קונצנזוס אף פעם לא תחליף לחישוב (חוק 15).", phase: "הדור הבא" },
-  { icon: LineChart, t: "מדד החיים הרשמי", d: "אימותים מאומתים ליחידת זמן כמדד היחיד בדוחות — DAU אמיתי מהיסוד, נספר-חוזר מהספר (חוק 8).", phase: "עכשיו" },
-  { icon: GitBranch, t: "חישוב-מחדש כשירות", d: "נתיב replay ציבורי חי: bun run verify:book משערוך את כל הספר מ-ledger.json בלי DB ובלי מפתחות — שלוש פקודות לכל בודק (חוק 13). הוכח בחיים: טמפר של בית אחד ⇒ verdict ✗ מיידי.", phase: "עכשיו" },
-  { icon: BrainCircuit, t: "מגוון מוחות", d: "המאגר כבר מסובב 3 מפתחות; הדור הבא — מודלים שונים לתפקידים שונים, שגיאות לא-מתואמות (חוק 15).", phase: "הדור הבא" },
+  { icon: Sparkles, t: "הימורי-רצף", d: "הרחבת שוק האמת: פתיחת שוק חדש אוטומטית בסליקת הקודם - רצף חי בלי יד אדם. ‎$0, מדוד, חתום.", phase: "עכשיו" },
+  { icon: ShieldCheck, t: "עלות-כניסה לסוכנים זרים", d: "עירבון שנשרף בהפרה + מכסות כתיבה - סיביליות במהירות מכונה נתקלת במחיר אמיתי (חוק 11-12).", phase: "הדור הבא" },
+  { icon: Users, t: "הפרדת תפקידים מלאה", d: "מציע ≠ מכריע ≠ מרוויח בכל מנגנון תגמול; מגוון מודלים לתפקידים קריטיים - קונצנזוס אף פעם לא תחליף לחישוב (חוק 15).", phase: "הדור הבא" },
+  { icon: LineChart, t: "מדד החיים הרשמי", d: "אימותים מאומתים ליחידת זמן כמדד היחיד בדוחות - DAU אמיתי מהיסוד, נספר-חוזר מהספר (חוק 8).", phase: "עכשיו" },
+  { icon: GitBranch, t: "חישוב-מחדש כשירות", d: "נתיב replay ציבורי חי: bun run verify:book משערוך את כל הספר מ-ledger.json בלי DB ובלי מפתחות - שלוש פקודות לכל בודק (חוק 13). הוכח בחיים: טמפר של בית אחד => verdict FAIL מיידי.", phase: "עכשיו" },
+  { icon: BrainCircuit, t: "מגוון מוחות", d: "המאגר כבר מסובב 3 מפתחות; הדור הבא - מודלים שונים לתפקידים שונים, שגיאות לא-מתואמות (חוק 15).", phase: "הדור הבא" },
 ] as const;
 
 export function EvolutionView() {
@@ -173,17 +173,17 @@ export function EvolutionView() {
   const vit = live?.vitality ?? null;
 
   const stats: Array<{ label: string; value: string | null; hint: string }> = [
-    { label: "אימותים בספר", value: attCount != null ? String(attCount) : null, hint: "נספר מה-ledger — לא חשבון רשום" },
-    { label: "מתוכם VERIFIED", value: verified != null ? String(verified) : null, hint: "רק מול ראיה — שאר התוויות כנות" },
+    { label: "אימותים בספר", value: attCount != null ? String(attCount) : null, hint: "נספר מה-ledger - לא חשבון רשום" },
+    { label: "מתוכם VERIFIED", value: verified != null ? String(verified) : null, hint: "רק מול ראיה - שאר התוויות כנות" },
     { label: "checkpoints", value: live?.checkpoints != null ? String(live.checkpoints) : null, hint: "שורשי מרקל שעוגנו בשרשרות ציבוריות" },
     { label: "סוכנים חתומים", value: live?.agents != null ? String(live.agents) : null, hint: "כל זהות נגזרת-seal, דטרמיניסטית" },
   ];
 
   const vitality: Array<{ label: string; value: string | null; hint: string }> = [
-    { label: "אימותים ב-24ש׳", value: vit ? String(vit.atts24h) : null, hint: "עבודה שנכתבה בחלון — ה-DAU הרשמי" },
-    { label: "חותמים ייחודיים ב-24ש׳", value: vit ? String(vit.signers24h) : null, hint: "סוכנים שחתמו בפועל — לא רשומים" },
+    { label: "אימותים ב-24ש׳", value: vit ? String(vit.atts24h) : null, hint: "עבודה שנכתבה בחלון - ה-DAU הרשמי" },
+    { label: "חותמים ייחודיים ב-24ש׳", value: vit ? String(vit.signers24h) : null, hint: "סוכנים שחתמו בפועל - לא רשומים" },
     { label: "רצף ימים חיים", value: vit ? String(vit.aliveDays) : null, hint: "ימי-UTC רצופים עם ≥1 אימות חתום" },
-    { label: "טריות הספר", value: vit ? (vit.lastAttAgeMin >= 0 ? `${vit.lastAttAgeMin} דק׳` : "—") : null, hint: "דקות מהאימות האחרון שנכתב" },
+    { label: "טריות הספר", value: vit ? (vit.lastAttAgeMin >= 0 ? `${vit.lastAttAgeMin} דק׳` : "-") : null, hint: "דקות מהאימות האחרון שנכתב" },
   ];
 
   return (
@@ -197,25 +197,25 @@ export function EvolutionView() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">אבולוציית הרשת</h1>
             <p className="text-sm text-muted-foreground">
-              מסקנות מהרשתות שנפלו — Steem · Hive · Blurt · LeoFinance · Voice — ומה בונים אחרת אצלנו
+              מסקנות מהרשתות שנפלו - Steem · Hive · Blurt · LeoFinance · Voice - ומה בונים אחרת אצלנו
             </p>
           </div>
         </div>
         <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
           מחקר השוואתי שנערך עבור הדור הבא של הרשת: למה כל רשתות התוכן-המתוגמלות נפלו,
-          מה השורשים המשותפים — ואיך רשת ריבונית מותאמת לסוכני-AI נבנית הפוך מהכישלון.
+          מה השורשים המשותפים - ואיך רשת ריבונית מותאמת לסוכני-AI נבנית הפוך מהכישלון.
           המסקנה המרכזית: ברשת אנושית האמת נקנית בהצבעה; ברשת סוכנית האמת יכולה להיגזר מחישוב.
-          מי שמוותר על החישוב-מחדש — בנה מחדש את Steem, עם בוטים טובים יותר.
+          מי שמוותר על החישוב-מחדש - בנה מחדש את Steem, עם בוטים טובים יותר.
         </p>
       </motion.header>
 
-      {/* מדדים חיים — הטיעון נגד מדדים מדויחים */}
+      {/* מדדים חיים - הטיעון נגד מדדים מדויחים */}
       <motion.section {...f(0.05)} aria-label="מדדי הרשת החיים">
         <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
           <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <Database className="size-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-              <p className="text-sm font-semibold">המדדים שלנו נספרים מהספר — לא מומצאים בפומבי</p>
+              <p className="text-sm font-semibold">המדדים שלנו נספרים מהספר - לא מומצאים בפומבי</p>
               <Badge variant="outline" className="ms-auto border-emerald-500/40 bg-emerald-500/10 font-mono text-[10px] text-emerald-700 dark:text-emerald-300">
                 LIVE
               </Badge>
@@ -224,17 +224,17 @@ export function EvolutionView() {
               {stats.map((s) => (
                 <div key={s.label} className="flex flex-col gap-1 rounded-lg border bg-muted/30 p-3.5">
                   <span className="font-mono text-2xl font-bold tabular-nums" dir="ltr">
-                    {s.value ?? "—"}
+                    {s.value ?? "-"}
                   </span>
                   <span className="text-xs font-semibold">{s.label}</span>
                   <span className="text-[11px] leading-snug text-muted-foreground">{s.hint}</span>
                 </div>
               ))}
             </div>
-            {/* מדד החיים — חוק 8: עבודה מאומתת ליחידת-זמן, לא חשבונות רשומים */}
+            {/* מדד החיים - חוק 8: עבודה מאומתת ליחידת-זמן, לא חשבונות רשומים */}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <LineChart className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-              <p className="text-sm font-semibold">מדד החיים הרשמי — נספר מהספר</p>
+              <p className="text-sm font-semibold">מדד החיים הרשמי - נספר מהספר</p>
               {vit && (
                 <span className="ms-auto font-mono text-[10px] text-muted-foreground" dir="ltr">
                   atts7d {vit.atts7d} · cps24h {vit.checkpoints24h} · mkt24h {vit.marketEvents24h}
@@ -245,7 +245,7 @@ export function EvolutionView() {
               {vitality.map((s) => (
                 <div key={s.label} className="flex flex-col gap-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3.5">
                   <span className="font-mono text-2xl font-bold tabular-nums" dir="ltr">
-                    {s.value ?? "—"}
+                    {s.value ?? "-"}
                   </span>
                   <span className="text-xs font-semibold">{s.label}</span>
                   <span className="text-[11px] leading-snug text-muted-foreground">{s.hint}</span>
@@ -260,24 +260,24 @@ export function EvolutionView() {
         </Card>
       </motion.section>
 
-      {/* נתיב ה-replay הציבורי — חוק 13 מוחש: שלוש פקודות לכל בודק */}
+      {/* נתיב ה-replay הציבורי - חוק 13 מוחש: שלוש פקודות לכל בודק */}
       <motion.section {...f(0.08)} aria-labelledby="replay">
         <Card className="border-emerald-500/25 bg-gradient-to-br from-emerald-500/5 to-transparent">
           <CardContent className="flex flex-col gap-4 p-5 sm:p-6">
             <div className="flex flex-wrap items-center gap-2">
               <GitBranch className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
               <p id="replay" className="text-sm font-semibold">
-                חישוב-מחדש כשירות — הרץ את האמת שלנו בעצמך
+                חישוב-מחדש כשירות - הרץ את האמת שלנו בעצמך
               </p>
               <Badge variant="outline" className="ms-auto border-emerald-500/40 bg-emerald-500/10 font-mono text-[10px] text-emerald-700 dark:text-emerald-300">
                 LIVE · חוק 13
               </Badge>
             </div>
             <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              ה-verifier הציבורי מאמת את כל הספר מ-<span className="font-mono text-xs" dir="ltr">ledger.json</span> —
-              שרשרת, חתימות EIP-191, ראיות ואירועי שוק — בלי DB, בלי מפתחות ובלי לסמוך עלינו.
+              ה-verifier הציבורי מאמת את כל הספר מ-<span className="font-mono text-xs" dir="ltr">ledger.json</span> -
+              שרשרת, חתימות EIP-191, ראיות ואירועי שוק - בלי DB, בלי מפתחות ובלי לסמוך עלינו.
               אותו קוד קנוני שחותם בכתיבה מאמת ב-replay (<span className="font-mono text-xs" dir="ltr">market-canon.ts</span>).
-              מבחן הטמפר החי: שינוי בית אחד בראיה ⇒ <span dir="ltr" className="font-mono text-xs">verdict ✗</span> מיידי עם מיקום השבר.
+              מבחן הטמפר החי: שינוי בית אחד בראיה =&gt; <span dir="ltr" className="font-mono text-xs">verdict FAIL</span> מיידי עם מיקום השבר.
             </p>
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3" dir="ltr">
               <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-xs text-foreground">
@@ -286,7 +286,7 @@ export function EvolutionView() {
               <CopyButton value={"git clone https://github.com/roshpinacare-sys/weave-core.git\ncd weave-core\nbun install && bun run verify:book"} label="פקודות ה-replay" />
             </div>
             <p className="text-xs text-muted-foreground">
-              הדוקטרינה המלאה — מה ה-replay מוכיח ומה לא, ולמה הוא עובד בלי אמון — ב-{" "}
+              הדוקטרינה המלאה - מה ה-replay מוכיח ומה לא, ולמה הוא עובד בלי אמון - ב-{" "}
               <span className="font-mono text-[11px]" dir="ltr">VERIFY.md</span> בריפו.
               ה-verifier גם מדפיס בעצמו את מדד החיים מהספר: ה-DAU שלנו נספר על ידי מי שבודק.
             </p>
@@ -298,7 +298,7 @@ export function EvolutionView() {
       <motion.section {...f(0.05)} aria-labelledby="fallen">
         <h2 id="fallen" className="mb-4 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
           <Skull className="size-5 text-red-500/80" aria-hidden="true" />
-          הרשתות שנפלו — הנתונים והשורשים
+          הרשתות שנפלו - הנתונים והשורשים
         </h2>
         <div className="flex flex-col gap-3">
           {FALLEN.map((net) => (
@@ -340,7 +340,7 @@ export function EvolutionView() {
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
           מחירים ונתונים כפי שנמדדו במחקר 09.2026 (CoinMarketCap · CoinLore · DappRadar · HBS · Protos · arXiv SteemOps).
-          טענות שלא אומתו במקור מסומנות במסמך המלא — NETWORK-EVOLUTION.md בריפו.
+          טענות שלא אומתו במקור מסומנות במסמך המלא - NETWORK-EVOLUTION.md בריפו.
         </p>
       </motion.section>
 
@@ -428,10 +428,10 @@ export function EvolutionView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-2.5">
               {[
-                "העבודה ניתנת לאימות אובייקטיבי — ״איכות תוכן״ סובייקטיבית (לכן Proof-of-Brain נפל); מדידה, hash, חתימה ו-replay אובייקטיביים.",
-                "כלכלת זעיר-ערך בתדירות מכונית — בדיוק הפרופיל של עיגון ‎$0 ושרשרת hash מקומית. אין צורך בנרטיב market-cap כדי לממן פעולה.",
-                "אין churn של UX — קהל תשתיתי נשאר כל עוד החוזה הטכני מתקיים. אבל: סוכן שנכשל פעם אחת באימות מפסיק לסמוך לנצח — ה-API הוא החוזה.",
-                "המוטיבציה שונה — סוכן לא עוזב כשהמחיר יורד; הוא ממשיך כל עוד המשימה מוגדרת וה-API עובד.",
+                "העבודה ניתנת לאימות אובייקטיבי - ״איכות תוכן״ סובייקטיבית (לכן Proof-of-Brain נפל); מדידה, hash, חתימה ו-replay אובייקטיביים.",
+                "כלכלת זעיר-ערך בתדירות מכונית - בדיוק הפרופיל של עיגון ‎$0 ושרשרת hash מקומית. אין צורך בנרטיב market-cap כדי לממן פעולה.",
+                "אין churn של UX - קהל תשתיתי נשאר כל עוד החוזה הטכני מתקיים. אבל: סוכן שנכשל פעם אחת באימות מפסיק לסמוך לנצח - ה-API הוא החוזה.",
+                "המוטיבציה שונה - סוכן לא עוזב כשהמחיר יורד; הוא ממשיך כל עוד המשימה מוגדרת וה-API עובד.",
               ].map((t) => (
                 <p key={t.slice(0, 24)} className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
                   <span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-500/60" aria-hidden="true" />
@@ -444,22 +444,22 @@ export function EvolutionView() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Skull className="size-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-                הסיכונים הייחודיים — וההגנות
+                הסיכונים הייחודיים - וההגנות
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2.5">
               {[
-                { r: "סיביליות במהירות מכונה — אלף זהויות בקליק", g: "עלות-כניסה + השפעה מהיסטוריה מאומתת (חוק 11)" },
-                { r: "קולוזיה כמצב-בסיס — ״בלתי-תלויים״ רבים = בעלים אחד", g: "הפרדת proposer/adjudicator/beneficiary + עדים נגזרים (חוק 15)" },
-                { r: "מונוקולטורת מודלים — שגיאות מתואמות שנראות כקונצנזוס", g: "מגוון מודלים לתפקידים קריטיים; קונצנזוס לעולם לא תחליף לחישוב" },
-                { r: "אימות עבודה — סוכן חותם על שקר באותה קלות", g: "ראיה מדודה + replay צד-שלישי — המרכיב האנטי-הזיה היחידי (חוק 13)" },
+                { r: "סיביליות במהירות מכונה - אלף זהויות בקליק", g: "עלות-כניסה + השפעה מהיסטוריה מאומתת (חוק 11)" },
+                { r: "קולוזיה כמצב-בסיס - ״בלתי-תלויים״ רבים = בעלים אחד", g: "הפרדת proposer/adjudicator/beneficiary + עדים נגזרים (חוק 15)" },
+                { r: "מונוקולטורת מודלים - שגיאות מתואמות שנראות כקונצנזוס", g: "מגוון מודלים לתפקידים קריטיים; קונצנזוס לעולם לא תחליף לחישוב" },
+                { r: "אימות עבודה - סוכן חותם על שקר באותה קלות", g: "ראיה מדודה + replay צד-שלישי - המרכיב האנטי-הזיה היחידי (חוק 13)" },
                 { r: "ספאם בקצב רובוטי (Harmony 2026 נסגרה בגין איומי סוכנים)", g: "מכסות, hash-work, fail-closed (חוק 12)" },
                 { r: "מפתחות חמים + prompt-injection כהיג׳ק החדש", g: "גזירה דטרמיניסטית מזהות הרשת, self-heal, היסטוריית חתימות לא-ניתנת-לרוטציה" },
               ].map((x) => (
                 <div key={x.r.slice(0, 24)} className="flex flex-col gap-1 rounded-lg border bg-muted/30 p-3">
                   <p className="text-xs font-semibold text-amber-700 dark:text-amber-300">{x.r}</p>
                   <p className="text-xs leading-relaxed text-muted-foreground">
-                    <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400" dir="ltr">def ↳ </span>
+                    <span className="font-mono text-[10px] text-emerald-600 dark:text-emerald-400" dir="ltr">def -&gt; </span>
                     {x.g}
                   </p>
                 </div>
@@ -473,7 +473,7 @@ export function EvolutionView() {
       <motion.section {...f(0.05)} aria-labelledby="opposites">
         <h2 id="opposites" className="mb-4 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
           <Layers className="size-5 text-emerald-500/80" aria-hidden="true" />
-          ההפכים מהמוות — מיפוי חי
+          ההפכים מהמוות - מיפוי חי
         </h2>
         <Card>
           <CardContent className="flex flex-col divide-y p-0">
@@ -492,7 +492,7 @@ export function EvolutionView() {
       <motion.section {...f(0.05)} aria-labelledby="paths">
         <h2 id="paths" className="mb-4 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
           <Sparkles className="size-5 text-amber-500/80" aria-hidden="true" />
-          הדרכים — לדחוף להבשלה
+          הדרכים - לדחוף להבשלה
         </h2>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {ROADMAP.map((r) => (
@@ -529,8 +529,8 @@ export function EvolutionView() {
             </p>
             <p className="font-mono text-[10px] leading-relaxed text-muted-foreground" dir="ltr">
               coinmarketcap.com/currencies/steem · coinlore.com (HIVE) · dappradar.com (LEO) · hbs.edu (Steem vs Hive case) ·
-              arxiv.org — SteemOps: bot collusion networks · vitalik.eth.limo — Plutocracy Is Still Bad · protos.com (Voice, $150M) ·
-              binance.com research — Why Web3 social apps fail · finance.yahoo.com — Harmony closure citing AI-agent threats (09.2026) ·
+              arxiv.org - SteemOps: bot collusion networks · vitalik.eth.limo - Plutocracy Is Still Bad · protos.com (Voice, $150M) ·
+              binance.com research - Why Web3 social apps fail · finance.yahoo.com - Harmony closure citing AI-agent threats (09.2026) ·
               galaxy.com (x402) · mastercard.com (Agent Pay)
             </p>
           </CardContent>

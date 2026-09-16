@@ -1,9 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · פס סטטיסטיקות EVM-3 (replay protection) —
+// THE WEAVE · פס סטטיסטיקות EVM-3 (replay protection):
 // רוטציות (מה-DB), אתגרים שאומתו ודחיות replay (מוני זיכרון מאז
-// הפעלת השרת — מתויגים בכנות ב-counterScope). נטען עם הטאב ומתרענן
+// הפעלת השרת - מתויגים בכנות ב-counterScope). נטען עם הטאב ומתרענן
 // אחרי כל פעילות אתגר/רוטציה (refreshKey).
 // ─────────────────────────────────────────────────────────────────────
 
@@ -57,7 +57,7 @@ export function Evm3Section({ refreshKey = 0 }: { refreshKey?: number }) {
     );
   }
 
-  // שגיאה/היעדר נתונים — פס שקט ללא חסימת הטאב
+  // שגיאה/היעדר נתונים - פס שקט ללא חסימת הטאב
   if (!stats.data) {
     return stats.error ? (
       <p className="rounded-lg border border-rose-500/30 bg-rose-500/[0.05] p-3 text-xs text-rose-700 dark:text-rose-300">
@@ -75,14 +75,14 @@ export function Evm3Section({ refreshKey = 0 }: { refreshKey?: number }) {
           icon={<RotateCw className="size-4" />}
           tone="zinc"
           label="רוטציות מפתח"
-          hint="מה-DB — פעולות מתועדות (KeyOp)"
+          hint="מה-DB - פעולות מתועדות (KeyOp)"
           value={s.rotations}
         />
         <MiniStat
           icon={<ShieldCheck className="size-4" />}
           tone="emerald"
           label="אתגרים שאומתו"
-          hint="nonce נצרך + ecrecover ✓"
+          hint="nonce נצרך + ecrecover תקין"
           value={s.challengesVerified}
         />
         <MiniStat

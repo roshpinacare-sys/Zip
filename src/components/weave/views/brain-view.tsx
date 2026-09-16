@@ -1,11 +1,11 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Brain View — המוח הריבוני של הרשת (Task 21).
+// THE WEAVE · Brain View - המוח הריבוני של הרשת (Task 21).
 //
-// מאגר המפתחות במסכה מלאה (טביעות-אצבע בלבד — אפס סוד), מצב-חי,
+// מאגר המפתחות במסכה מלאה (טביעות-אצבע בלבד - אפס סוד), מצב-חי,
 // בדיקת-אמת (probe), ומגרש-שיחה חי מול openai/gpt-oss-20b דרך
-// הרוטציה שלנו — לא דרך מפתח של צד-שלישי.
+// הרוטציה שלנו - לא דרך מפתח של צד-שלישי.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -168,7 +168,7 @@ export function BrainView() {
             <>
               <Badge variant="outline" className="gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="size-3.5" aria-hidden="true" />
-                {status ? `${status.live}/${status.total} מפתחות חיים` : "—"}
+                {status ? `${status.live}/${status.total} מפתחות חיים` : "-"}
               </Badge>
               {status?.cooling ? (
                 <Badge variant="outline" className="gap-1.5 border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300">
@@ -178,7 +178,7 @@ export function BrainView() {
               ) : null}
               <Badge variant="outline" className="gap-1.5 font-mono" dir="ltr">
                 <Activity className="size-3.5" aria-hidden="true" />
-                {status?.model ?? "—"}
+                {status?.model ?? "-"}
               </Badge>
             </>
           )}
@@ -230,9 +230,9 @@ export function BrainView() {
                       </span>
                       <span className="text-[11px] text-muted-foreground">
                         {k.status === "cooling"
-                          ? `קירור — עוד ${k.cooldownRemainingSec} שנ' (קוד ${k.lastCode ?? "—"})`
+                          ? `קירור - עוד ${k.cooldownRemainingSec} שנ' (קוד ${k.lastCode ?? "-"})`
                           : k.verified
-                            ? `חי · קוד אחרון ${k.lastCode ?? "—"}`
+                            ? `חי · קוד אחרון ${k.lastCode ?? "-"}`
                             : "טרם אומת"}
                       </span>
                     </div>
@@ -249,11 +249,11 @@ export function BrainView() {
                 ))
               )}
               <p className="rounded-lg border border-dashed p-3 text-[11px] leading-relaxed text-muted-foreground">
-                הסודות עצמם אטומים AES-256-GCM תחת גזירת מפתח-הרשת — והגושים
+                הסודות עצמם אטומים AES-256-GCM תחת גזירת מפתח-הרשת - והגושים
                 האטומים מעוגנים בספר (ledger.json, כספת אדיטיבית): כל איפוס
                 סביבה משחזר את המוח מהגיט. ב-API וב-UI רק טביעות-אצבע
-                בלתי-הפיכות; פתיחה — רק בידי מחזיק ה-seal. רוטציה:
-                429→קירור 90ש' למפתח-בודד · 401/403→30 דק' · הבא משרת מיד.
+                בלתי-הפיכות; פתיחה - רק בידי מחזיק ה-seal. רוטציה:
+                429 -&gt; קירור 90ש' למפתח-בודד · 401/403 -&gt; 30 דק' · הבא משרת מיד.
               </p>
             </CardContent>
           </Card>
@@ -280,7 +280,7 @@ export function BrainView() {
                 {chat.length === 0 ? (
                   <div className="flex h-full min-h-40 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                     <BrainCircuit className="size-8 opacity-30" aria-hidden="true" />
-                    <p className="text-sm">שאלו את המוח משהו — התשובה תגיע דרך המאגר שלנו, ברוטציה, ב-$0.</p>
+                    <p className="text-sm">שאלו את המוח משהו - התשובה תגיע דרך המאגר שלנו, ברוטציה, ב-$0.</p>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-3">
@@ -342,7 +342,7 @@ export function BrainView() {
                 </Button>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                תווית אמת: המודל נקרא חי מ-NVIDIA NIM (openai/gpt-oss-20b) —
+                תווית אמת: המודל נקרא חי מ-NVIDIA NIM (openai/gpt-oss-20b) -
                 הריבונות היא על המפתחות, הזיהוי והרוטציה. השיחה לא נכנסת
                 לספר האימותים.
               </p>

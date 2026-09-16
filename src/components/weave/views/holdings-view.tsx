@@ -1,12 +1,12 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Holdings View — איפה כל המטבעים.
+// THE WEAVE · Holdings View - איפה כל המטבעים.
 //
 // התשובה המלאה ל"איפה נמצאים כל מטבעות ה-SAOS הקיימים, אצל מי, איך":
-//  · v0 (SAOS-NET) — 126,682 SAOS אצל המנפיק + 11 חיילים + LP + עטופים
-//  · v1 (SAOS-LIVE) — הספר החי על Steem (ג'נזיס בהנחה אוטונומית)
-//  · DEX — האוצר והארנה של הבורסה הריבונית
+//  · v0 (SAOS-NET) - 126,682 SAOS אצל המנפיק + 11 חיילים + LP + עטופים
+//  · v1 (SAOS-LIVE) - הספר החי על Steem (ג'נזיס בהנחה אוטונומית)
+//  · DEX - האוצר והארנה של הבורסה הריבונית
 // כל מספר עם מקור מדידה. כלום לא מומצא.
 // ─────────────────────────────────────────────────────────────────────
 
@@ -86,7 +86,7 @@ interface SaosnetResponse {
 
 // ── עזרי תצוגה ───────────────────────────────────────────────────────
 
-function SourceNote({ children }: { children: string }) {
+function SourceNote({ children }: { children: React.ReactNode }) {
   return (
     <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
       <Search className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
@@ -169,7 +169,7 @@ export function HoldingsView() {
           </span>
           <div>
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-              איפה המטבעים — המפה המלאה
+              איפה המטבעים - המפה המלאה
             </h1>
             <p className="text-xs text-muted-foreground sm:text-sm">
               כל SAOS שקיים, אצל מי הוא נמצא, ומאיפה זה נמדד
@@ -240,12 +240,12 @@ export function HoldingsView() {
                 </dl>
                 <SourceNote>
                   נמדד ב-replay מתמטי מלא (38/38 בלוקים, שורש זהה להצהרת
-                  הצומת) — {v0?.measuredBy ?? "scripts/saosnet-status.cjs"}
+                  הצומת) - {v0?.measuredBy ?? "scripts/saosnet-status.cjs"}
                 </SourceNote>
               </>
             ) : (
               <p className="text-sm text-muted-foreground">
-                תמונת המצב לא נמצאה — יש להריץ את ה-replay.
+                תמונת המצב לא נמצאה - יש להריץ את ה-replay.
               </p>
             )}
           </CardContent>
@@ -306,7 +306,7 @@ export function HoldingsView() {
                   </div>
                 </dl>
                 <SourceNote>
-                  הספר החי על שרשרת Steem הציבורית (saos.weave.live.v1) —
+                  הספר החי על שרשרת Steem הציבורית (saos.weave.live.v1) -
                   הלב מניח את הג'נזיס בשלבים כשתקציב ה-RC מתאושש,
                   אוטונומית ללא יד אדם. כל פעולה חתומה ומאומתת על ידי כל
                   דפדפן.
@@ -343,13 +343,13 @@ export function HoldingsView() {
                   <div>
                     <dt className="text-muted-foreground">גובה שרשרת</dt>
                     <dd className="font-mono text-base font-bold">
-                      {dex?.ok ? dex.height : "—"}
+                      {dex?.ok ? dex.height : "-"}
                     </dd>
                   </div>
                   <div>
                     <dt className="text-muted-foreground">גרסת מצב</dt>
                     <dd className="font-mono text-base font-bold">
-                      {dex?.ok ? dex.version : "—"}
+                      {dex?.ok ? dex.version : "-"}
                     </dd>
                   </div>
                 </dl>
@@ -371,7 +371,7 @@ export function HoldingsView() {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-base font-bold">
               <Users className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-              מחזיקי SAOS — {eco?.soldiers ?? 0} חיילי רשת
+              מחזיקי SAOS - {eco?.soldiers ?? 0} חיילי רשת
             </h2>
             <div className="flex gap-2 text-xs">
               <Badge variant="outline" className="gap-1">
@@ -445,7 +445,7 @@ export function HoldingsView() {
                           <td className="px-3 py-2 text-xs text-muted-foreground">
                             {(a.wrapped ?? [])
                               .map((w) => `${w.symbol}`)
-                              .join(" · ") || "—"}
+                              .join(" · ") || "-"}
                           </td>
                         </tr>
                       );
@@ -473,7 +473,7 @@ export function HoldingsView() {
                           .toFixed(3)}
                       </td>
                       <td className="px-3 py-2 text-xs">
-                        {(eco?.wrappedSymbols ?? []).join(" · ") || "—"}
+                        {(eco?.wrappedSymbols ?? []).join(" · ") || "-"}
                       </td>
                     </tr>
                   </tfoot>
@@ -496,7 +496,7 @@ export function HoldingsView() {
           <CardContent className="p-4 sm:p-6">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-bold">
               <Compass className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-              ארנקי הצבא — {v0?.wallets?.total ?? 0} זהויות רב-שרשרתיות
+              ארנקי הצבא - {v0?.wallets?.total ?? 0} זהויות רב-שרשרתיות
             </h2>
             <div className={cn("overflow-x-auto", scrollBoxClass)}>
               <table className="w-full min-w-[520px] text-xs">
@@ -539,7 +539,7 @@ export function HoldingsView() {
               </table>
             </div>
             <SourceNote>
-              זהויות נגזרות-מפתח שנולדו בכליה של הרשת (kernel v0) — לכל סוכן
+              זהויות נגזרות-מפתח שנולדו בכליה של הרשת (kernel v0) - לכל סוכן
               כתובות על 4 משפחות שרשראות, נמדד מתוך ה-replay.
             </SourceNote>
           </CardContent>
@@ -572,12 +572,12 @@ export function HoldingsView() {
               <ul className="space-y-2 text-xs leading-relaxed text-muted-foreground">
                 <li className="flex gap-2">
                   <span className="mt-1 size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
-                  ההיצע מוקבע בג&apos;נזיס (126,682 SAOS) — אין הנפקה
+                  ההיצע מוקבע בג&apos;נזיס (126,682 SAOS) - אין הנפקה
                   נוספת ב-v0; v1 מגביל בחוזה ל-21 מיליון.
                 </li>
                 <li className="flex gap-2">
                   <span className="mt-1 size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
-                  ההפצה היא בפעולות חתומות של הרשת — כל העברה נמדדת
+                  ההפצה היא בפעולות חתומות של הרשת - כל העברה נמדדת
                   ב-replay הציבורי.
                 </li>
                 <li className="flex gap-2">

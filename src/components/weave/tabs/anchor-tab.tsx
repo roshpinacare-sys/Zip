@@ -1,16 +1,16 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 4 — עוגן EVM
+// THE WEAVE · טאב 4 - עוגן EVM
 // Checkpoints עם Merkle root + עיגון ברישום המקומי (EVM-2 · LOCAL) +
 // חבילת הפריסה האמיתית (EVM-1) + מפת אמת + החוזה WeaveAnchorRegistry.sol
 //
 // שני מצבי אמת (Task 38):
-//  · cloud — checkpoints מהמראה הציבורית: root, טווח seq ו-anchorStatus
+//  · cloud - checkpoints מהמראה הציבורית: root, טווח seq ו-anchorStatus
 //    אמיתיים (כולל "ANCHORED (steem/zero)" שמוצג כתג emerald מפוצל);
 //    calldata/חתימות/prevRoot לא נחשפים במראה ומוצגים כ-placeholder
 //    מושתק וכנה. פעולות הכתיבה מסומנות כמקומיות.
-//  · local — כמו תמיד: checkpoint חי, calldata אמיתי, עיגון ברישום המקומי.
+//  · local - כמו תמיד: checkpoint חי, calldata אמיתי, עיגון ברישום המקומי.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -82,8 +82,8 @@ function SourceBadge() {
       <TooltipContent side="top" className="max-w-[280px]">
         <p className="text-xs leading-relaxed">
           {cloud
-            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
-            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+            ? "מראה ציבורית קריאה-בלבד של הספר החי - נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס - כאן פועלות כל פעולות הכתיבה והתרגילים"}
         </p>
       </TooltipContent>
     </Tooltip>
@@ -132,7 +132,7 @@ export function AnchorTab() {
     }
   };
 
-  // עיגון checkpoint ברישום המקומי — "ביצוע" ה-calldata בסימולציית השרת
+  // עיגון checkpoint ברישום המקומי - "ביצוע" ה-calldata בסימולציית השרת
   const onSimulateAnchor = async (index: number) => {
     setAnchorBusy(true);
     try {
@@ -176,8 +176,8 @@ export function AnchorTab() {
           </div>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {cloud
-              ? "שורשי Merkle מהספר החי — חלקם עוגנו בשרשרות ציבוריות (steem, zero)"
-              : "שורש Merkle לכל טווח אימותים — מוכן לרדת לשרשרת כשייפתח השער"}
+              ? "שורשי Merkle מהספר החי - חלקם עוגנו בשרשרות ציבוריות (steem, zero)"
+              : "שורש Merkle לכל טווח אימותים - מוכן לרדת לשרשרת כשייפתח השער"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +203,7 @@ export function AnchorTab() {
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-[280px]">
                 <p className="text-xs leading-relaxed">
-                  ה-checkpoint ייווצר בעותק הסנדבוקס המקומי — הענן כותב דרך סוכניו
+                  ה-checkpoint ייווצר בעותק הסנדבוקס המקומי - הענן כותב דרך סוכניו
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -255,10 +255,10 @@ export function AnchorTab() {
         </div>
       )}
 
-      {/* רישום מקומי — סימולציית החוזה (EVM-2 · LOCAL) */}
+      {/* רישום מקומי - סימולציית החוזה (EVM-2 · LOCAL) */}
       <LocalRegistrySection anchors={anchors} onReload={reloadAnchors} />
 
-      {/* חבילת פריסה — שער EVM-1 */}
+      {/* חבילת פריסה - שער EVM-1 */}
       <DeployKitCard />
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -271,7 +271,7 @@ export function AnchorTab() {
             <div>
               <h3 className="font-semibold">מפת אמת</h3>
               <p className="text-xs text-muted-foreground">
-                מה רץ כאן בפועל — ומה מחכה מאחורי שער
+                מה רץ כאן בפועל - ומה מחכה מאחורי שער
               </p>
             </div>
           </div>
@@ -289,7 +289,7 @@ export function AnchorTab() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">קומפילציית solc</p>
                 <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                  bytecode אמיתי, keccak מתועד — קומפילציה דטרמיניסטית שנבדקה
+                  bytecode אמיתי, keccak מתועד - קומפילציה דטרמיניסטית שנבדקה
                 </p>
               </div>
               <TruthLabel kind="REAL" className="shrink-0" />
@@ -307,7 +307,7 @@ export function AnchorTab() {
               <div className="min-w-0">
                 <p className="text-sm font-medium">רישום עוגן מקומי</p>
                 <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                  סימולציית חוזה בשרת —{" "}
+                  סימולציית חוזה בשרת -{" "}
                   <span dir="ltr" className="font-mono">
                     roots[++latestIndex]
                   </span>{" "}
@@ -321,7 +321,7 @@ export function AnchorTab() {
                 <p className="text-sm font-medium">עיגון on-chain</p>
                 <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
                   נפתח ע&quot;י: חותם EVM ממומן + פריסת WeaveAnchorRegistry
-                  (שער EVM-1). סודות לעולם לא עולים לשרשרת — רק שורשים.
+                  (שער EVM-1). סודות לעולם לא עולים לשרשרת - רק שורשים.
                 </p>
               </div>
               <TruthLabel kind="NOT-YET" className="shrink-0" />
@@ -391,12 +391,12 @@ function CheckpointCard({
   anchor: LocalAnchorDTO | null;
   onAnchor: (index: number) => void;
   anchorBusy: boolean;
-  /** מצב ענן — הרשומה מהמראה הציבורית, שדות פנימיים לא נחשפים */
+  /** מצב ענן - הרשומה מהמראה הציבורית, שדות פנימיים לא נחשפים */
   mirror: boolean;
 }) {
   const anchored = cp.anchorStatus === "LOCAL-ANCHORED";
   const realAnchored = cp.anchorStatus === "ANCHORED" && !!cp.anchorTx;
-  // צורת הענן: "ANCHORED (steem)" / "ANCHORED (zero+steem)" — עיגון אמיתי
+  // צורת הענן: "ANCHORED (steem)" / "ANCHORED (zero+steem)" - עיגון אמיתי
   // בשרשרת ציבורית, ללא txid נחשף במראה
   const cloudAnchored = /^ANCHORED \((.+)\)$/.exec(cp.anchorStatus);
   const nets = cloudAnchored ? cloudAnchored[1].split("+") : [];
@@ -414,7 +414,7 @@ function CheckpointCard({
         <span className="text-sm font-semibold">
           טווח seq{" "}
           <span dir="ltr" className="font-mono">
-            {cp.attFrom} → {cp.attTo}
+            {cp.attFrom} -&gt; {cp.attTo}
           </span>
         </span>
         <Badge variant="secondary" dir="ltr" className="font-mono text-[10px]">
@@ -433,7 +433,7 @@ function CheckpointCard({
             </TooltipTrigger>
             <TooltipContent side="top">
               <p className="max-w-xs text-xs leading-relaxed">
-                ה-root עוגן בשרשרת ציבורית ({nets.join(", ")}) — פרטי הטרנזקציה
+                ה-root עוגן בשרשרת ציבורית ({nets.join(", ")}) - פרטי הטרנזקציה
                 נשמרים בספר הריבוני ואינם נחשפים במראה הציבורית
               </p>
             </TooltipContent>
@@ -458,8 +458,8 @@ function CheckpointCard({
             <TooltipContent side="top">
               <p className="max-w-xs text-xs leading-relaxed">
                 {cp.anchorNet === "zero-9369"
-                  ? "ה-root עוגן כטרנזקציית EVM אמיתית על Z Chain (Zero Network, chainId 9369) — רשת EVM ראשית ציבורית בגז-אפס מדוד; הטרנזקציה ממוענת-עצמית ל-EOA אינרטי עם המטען הקנוני. קישור לסייר הציבורי."
-                  : "ה-root עוגן בשרשרת ציבורית — קישור לסייר."}
+                  ? "ה-root עוגן כטרנזקציית EVM אמיתית על Z Chain (Zero Network, chainId 9369) - רשת EVM ראשית ציבורית בגז-אפס מדוד; הטרנזקציה ממוענת-עצמית ל-EOA אינרטי עם המטען הקנוני. קישור לסייר הציבורי."
+                  : "ה-root עוגן בשרשרת ציבורית - קישור לסייר."}
               </p>
             </TooltipContent>
           </Tooltip>
@@ -476,7 +476,7 @@ function CheckpointCard({
             <TooltipContent side="top">
               <p className="text-xs leading-relaxed">
                 {registryIndex !== undefined
-                  ? "ה-root רשום בסימולציית החוזה בשרת (roots[++latestIndex]) — אותה הוכחה תאומת מול השרשרת כש-EVM-1 ייסגר"
+                  ? "ה-root רשום בסימולציית החוזה בשרת (roots[++latestIndex]) - אותה הוכחה תאומת מול השרשרת כש-EVM-1 ייסגר"
                   : "ה-root רשום בסימולציית החוזה בשרת"}
               </p>
             </TooltipContent>
@@ -512,7 +512,7 @@ function CheckpointCard({
           <dt className="text-xs text-muted-foreground">prevRoot</dt>
           <dd>
             {mirror && !cp.prevRoot ? (
-              <span className="font-mono text-xs text-muted-foreground">— במראה</span>
+              <span className="font-mono text-xs text-muted-foreground">(במראה)</span>
             ) : (
               <HashChip value={cp.prevRoot} head={8} tail={6} />
             )}
@@ -524,11 +524,11 @@ function CheckpointCard({
             {mirror && !cp.signerAddr ? (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="cursor-help font-mono text-xs text-muted-foreground">—</span>
+                  <span className="cursor-help font-mono text-xs text-muted-foreground">-</span>
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p className="text-xs">
-                    חותם הרשת נשמר בספר הריבוני — לא נחשף במראה
+                    חותם הרשת נשמר בספר הריבוני - לא נחשף במראה
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -541,7 +541,7 @@ function CheckpointCard({
           <dt className="text-xs text-muted-foreground">entryHash (EIP-712)</dt>
           <dd>
             {mirror && !cp.entryHash ? (
-              <span className="font-mono text-xs text-muted-foreground">— במראה</span>
+              <span className="font-mono text-xs text-muted-foreground">(במראה)</span>
             ) : (
               <HashChip value={cp.entryHash} head={8} tail={6} />
             )}
@@ -571,12 +571,12 @@ function CheckpointCard({
       ) : mirror ? (
         <div className="mt-4 rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-center">
           <span className="text-[11px] text-muted-foreground">
-            calldata · נשמר בספר הריבוני — לא נחשף במראה
+            calldata · נשמר בספר הריבוני - לא נחשף במראה
           </span>
         </div>
       ) : null}
 
-      {/* עיגון ברישום המקומי — ל-checkpoints שטרם עוגנו (מנגנון סנדבוקס בלבד) */}
+      {/* עיגון ברישום המקומי - ל-checkpoints שטרם עוגנו (מנגנון סנדבוקס בלבד) */}
       {!anchored && !mirror ? (
         <div className="mt-4 flex justify-end">
           <Button

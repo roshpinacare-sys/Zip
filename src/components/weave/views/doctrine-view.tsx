@@ -1,10 +1,10 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Doctrine View — האמנה של הרשת, בעמוד אחד קריא.
+// THE WEAVE · Doctrine View - האמנה של הרשת, בעמוד אחד קריא.
 //
 // חוקי-הברזל, סולם האמת (REAL/LOCAL/NOT-YET), שכבות הארכיטקטורה,
-// ומפת הריבונות — מה בבית, מה בחוץ, ומה נמדד.
+// ומפת הריבונות - מה בבית, מה בחוץ, ומה נמדד.
 // ─────────────────────────────────────────────────────────────────────
 
 import { motion, useReducedMotion } from "framer-motion";
@@ -47,7 +47,7 @@ export function DoctrineView() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">הדוקטרינה</h1>
             <p className="text-sm text-muted-foreground">
-              האמנה של THE WEAVE — נאכפת בקוד, נמדדת בפומבי
+              האמנה של THE WEAVE - נאכפת בקוד, נמדדת בפומבי
             </p>
           </div>
         </div>
@@ -60,11 +60,11 @@ export function DoctrineView() {
         </h2>
         <ol className="grid gap-3 md:grid-cols-2">
           {[
-            { n: 1, t: "שום טענה בלי מדידה", d: "ראיה ריקה ⇒ UNMEASURED, לעולם לא VERIFIED. טענות AI אינן ראיה — רק חתימה + hash + חישוב-מחדש." },
+            { n: 1, t: "שום טענה בלי מדידה", d: "ראיה ריקה => UNMEASURED, לעולם לא VERIFIED. טענות AI אינן ראיה - רק חתימה + hash + חישוב-מחדש." },
             { n: 2, t: "הספר הוא הספר", d: "ledger.json בגיט הוא האמת; SQLite הוא מטמון. כל צומת יכול לשחזר את השרשרת מהספר בלבד." },
             { n: 3, t: "מפתחות לא בגיט", d: "סודות חיים רק בתוך seal מוצפן או על מכונת הסוכן. שער-סודות חוסם כל דחיפה של דפוס-מפתח." },
-            { n: 4, t: "תווית אמת מוצהרת תמיד", d: "REAL · LOCAL · NOT-YET — כל רכיב ברשת נושא תווית, והמראה בין שכבות מתועד." },
-            { n: 5, t: "כשל-סגור (fail-closed)", d: "מדידה לא זמינה ⇒ לא מוכרע, לא VERIFIED, לא נכתבת עדות. הרשת לא ממציאה תוצאות." },
+            { n: 4, t: "תווית אמת מוצהרת תמיד", d: "REAL · LOCAL · NOT-YET - כל רכיב ברשת נושא תווית, והמראה בין שכבות מתועד." },
+            { n: 5, t: "כשל-סגור (fail-closed)", d: "מדידה לא זמינה => לא מוכרע, לא VERIFIED, לא נכתבת עדות. הרשת לא ממציאה תוצאות." },
             { n: 6, t: "אפס עלות", d: "כל קווי העדות פועלים בגז-אפס מדוד (Steem/Hive חינם, ZERO EVM gasPrice 0x0). עלות מדודה: 0.000000." },
           ].map((law) => (
             <li key={law.n}>
@@ -99,8 +99,8 @@ export function DoctrineView() {
             <div className="grid gap-3 md:grid-cols-3">
               {[
                 { icon: ShieldCheck, k: "REAL", t: "קריפטו תקני, חי, ניתן לחישוב-חוזר", d: "חתימות EVM אמיתיות (secp256k1/EIP-191/EIP-712), עוגנים על שרשראות ציבוריות, ecrecover בכל כתיבה." },
-                { icon: Database, k: "LOCAL", t: "אמיתי בסנדבוקס — טרם על השרשרת", d: "ה-DB, הרשת המקומית, השוק בנקודות. המנגנון דטרמיניסטי וחתום — ההצפנה מדודה, השרשרת עוד לא." },
-                { icon: Eye, k: "NOT-YET", t: "מוכרז, נעול מאחורי שער", d: "פריסת חוזה-Registry אמיתי, עיגון מיינט. נפתח רק כשהמדידה מוכיחה — לא כשהכותרת מבטיחה." },
+                { icon: Database, k: "LOCAL", t: "אמיתי בסנדבוקס - טרם על השרשרת", d: "ה-DB, הרשת המקומית, השוק בנקודות. המנגנון דטרמיניסטי וחתום - ההצפנה מדודה, השרשרת עוד לא." },
+                { icon: Eye, k: "NOT-YET", t: "מוכרז, נעול מאחורי שער", d: "פריסת חוזה-Registry אמיתי, עיגון מיינט. נפתח רק כשהמדידה מוכיחה - לא כשהכותרת מבטיחה." },
               ].map((s) => (
                 <div key={s.k} className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-4">
                   <div className="flex items-center gap-2">
@@ -116,10 +116,10 @@ export function DoctrineView() {
         </Card>
       </motion.section>
 
-      {/* מפת הריבונות — מה בבית, מה בחוץ */}
+      {/* מפת הריבונות - מה בבית, מה בחוץ */}
       <motion.section {...f(0.15)} aria-labelledby="sov-map">
         <h2 id="sov-map" className="mb-4 text-xl font-bold tracking-tight sm:text-2xl">
-          מפת הריבונות — מה בבית, מה בחוץ
+          מפת הריבונות - מה בבית, מה בחוץ
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
           {/* בבית */}
@@ -127,7 +127,7 @@ export function DoctrineView() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Server className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                בבית — ריבוני
+                בבית - ריבוני
                 <Badge variant="outline" className="ms-auto border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                   מופעל על ידינו
                 </Badge>
@@ -135,11 +135,11 @@ export function DoctrineView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {[
-                { icon: BookOpen, t: "הספר (ledger.json)", d: "האמת הקנונית — בגיט שלנו, ניתן לשחזור מכל עותק" },
-                { icon: KeyRound, t: "מפתח הרשת + זהויות הסוכנים", d: "נגזרים מה-seal; DAEMONs נגזרים דטרמיניסטית — self-heal מוכח" },
+                { icon: BookOpen, t: "הספר (ledger.json)", d: "האמת הקנונית - בגיט שלנו, ניתן לשחזור מכל עותק" },
+                { icon: KeyRound, t: "מפתח הרשת + זהויות הסוכנים", d: "נגזרים מה-seal; DAEMONs נגזרים דטרמיניסטית - self-heal מוכח" },
                 { icon: BrainCircuitIcon, t: "המוח הריבוני", d: "3 מפתחות NVIDIA אטומים תחת גזירת מפתח-הרשת + רוטציה אוטומטית" },
-                { icon: Coins, t: "שוק האמת", d: "ספר אירועים חתום במפתח הרשת; ההון נקודות מוניטין — אפס כסף" },
-                { icon: Database, t: "פעימת הרשת (weave-beat)", d: "ה-runner הראשי: verify → attest → checkpoint → push, בסנדבוקס ובענן כאחד" },
+                { icon: Coins, t: "שוק האמת", d: "ספר אירועים חתום במפתח הרשת; ההון נקודות מוניטין - אפס כסף" },
+                { icon: Database, t: "פעימת הרשת (weave-beat)", d: "ה-runner הראשי: verify -> attest -> checkpoint -> push, בסנדבוקס ובענן כאחד" },
               ].map((r) => (
                 <div key={r.t} className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3.5">
                   <r.icon className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
@@ -157,7 +157,7 @@ export function DoctrineView() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Globe2 className="size-4 text-muted-foreground" aria-hidden="true" />
-                בחוץ — עדים ציבוריים
+                בחוץ - עדים ציבוריים
                 <Badge variant="outline" className="ms-auto">
                   נקרא/נכתב ב-$0
                 </Badge>
@@ -165,10 +165,10 @@ export function DoctrineView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {[
-                { icon: Link2, t: "Steem / Hive", d: "קווי עדות ציבוריים — הפעימה כותבת פוסט-עוגן כל 6 שעות" },
+                { icon: Link2, t: "Steem / Hive", d: "קווי עדות ציבוריים - הפעימה כותבת פוסט-עוגן כל 6 שעות" },
                 { icon: Layers, t: "ZERO EVM (Z Chain 9369)", d: "עוגן-EVM בגז 0x0 מדוד + השופט-החיצוני של שוק האמת (גובה בלוק חי)" },
-                { icon: GitBranch, t: "GitHub (הלב הענן)", d: "Actions מריץ את הרשת כל 6 שעות — TAKEOVER כשהסנדבוקס ישן" },
-                { icon: BrainCircuitIcon, t: "NVIDIA NIM — המודל", d: "המשקולות בחוץ; המפתחות, הרוטציה והזיהוי בבית. תווית אמת מוצהרת" },
+                { icon: GitBranch, t: "GitHub (הלב הענן)", d: "Actions מריץ את הרשת כל 6 שעות - TAKEOVER כשהסנדבוקס ישן" },
+                { icon: BrainCircuitIcon, t: "NVIDIA NIM - המודל", d: "המשקולות בחוץ; המפתחות, הרוטציה והזיהוי בבית. תווית אמת מוצהרת" },
               ].map((r) => (
                 <div key={r.t} className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3.5">
                   <r.icon className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -185,11 +185,11 @@ export function DoctrineView() {
 
       <motion.p {...f(0.2)} className="rounded-xl border border-dashed p-4 text-center text-xs leading-relaxed text-muted-foreground">
         הדוקטרינה המלאה חיה בקוד: SOVEREIGNTY.md בריפו הריבוני ·
-        כל טענה בעמוד זה נמדדת מה-APIs החיים של הרשת — כולל זו.
+        כל טענה בעמוד זה נמדדת מה-APIs החיים של הרשת - כולל זו.
       </motion.p>
     </div>
   );
 }
 
-// אייקון מקומי (BrainCircuit כבר בשימוש בעמודים אחרים — כאן כרכיב עצמאי)
+// אייקון מקומי (BrainCircuit כבר בשימוש בעמודים אחרים - כאן כרכיב עצמאי)
 import { BrainCircuit as BrainCircuitIcon } from "lucide-react";

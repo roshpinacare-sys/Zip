@@ -1,15 +1,15 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 2 — ספר אימותים
+// THE WEAVE · טאב 2 - ספר אימותים
 // פעולות: אימות חדש · אמת שרשרת · ערעור מדומה (red-team)
 // טבלה מלאה עם הדגשת שורה שבורה לפי firstBreak
 //
 // שני מצבי אמת (Task 38):
-//  · cloud — הספר מהמראה הציבורית. entryHash/חתימות לא נחשפים במראה
+//  · cloud - הספר מהמראה הציבורית. entryHash/חתימות לא נחשפים במראה
 //    ומוצגים כ-placeholder מושתק וכנה; דוח האימות המקומי מוסתר
 //    ובמקומו שורת טריות + עד משקיף מהשכבה החיה.
-//  · local — כמו תמיד: חישוב-מחדש מלא, חתימות, entryHash לכל רשומה.
+//  · local - כמו תמיד: חישוב-מחדש מלא, חתימות, entryHash לכל רשומה.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -123,8 +123,8 @@ function SourceBadge() {
       <TooltipContent side="top" className="max-w-[280px]">
         <p className="text-xs leading-relaxed">
           {cloud
-            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
-            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+            ? "מראה ציבורית קריאה-בלבד של הספר החי - נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס - כאן פועלות כל פעולות הכתיבה והתרגילים"}
         </p>
       </TooltipContent>
     </Tooltip>
@@ -211,11 +211,11 @@ export function LedgerTab() {
     try {
       const r = await runVerify();
       if (r.valid) {
-        toast.success(`שרשרת תקינה ✓ ${r.checked} רשומות`, {
+        toast.success(`שרשרת תקינה (${r.checked} רשומות)`, {
           description: `חתימות EIP-191 תקינות: ${r.sigOk}/${r.checked} · head תואם`,
         });
       } else {
-        toast.error(`שבר בשרשרת — seq ${r.firstBreak ?? "?"}`, {
+        toast.error(`שבר בשרשרת - seq ${r.firstBreak ?? "?"}`, {
           description: r.errors[0] ?? "חישוב מחדש גילה סטייה מהשרשרת הקנונית",
         });
       }
@@ -231,8 +231,8 @@ export function LedgerTab() {
       toast.error(`שובש seq ${res.seq} · שדה ${res.field}`, {
         description:
           mode === "cloud"
-            ? `לפני: ${truncateEnd(res.before, 48)} ← אחרי: ${truncateEnd(res.after, 48)} · בעותק המקומי בלבד — הספר החי בענן לא נפגע`
-            : `לפני: ${truncateEnd(res.before, 48)} ← אחרי: ${truncateEnd(res.after, 48)}`,
+            ? `לפני: ${truncateEnd(res.before, 48)} · אחרי: ${truncateEnd(res.after, 48)} · בעותק המקומי בלבד - הספר החי בענן לא נפגע`
+            : `לפני: ${truncateEnd(res.before, 48)} · אחרי: ${truncateEnd(res.after, 48)}`,
       });
       try {
         const r = await runVerify();
@@ -240,16 +240,16 @@ export function LedgerTab() {
           if (mode === "cloud") {
             toast.error(`העותק המקומי תפס את השיבוש: שבר ב-seq ${r.firstBreak}`, {
               description:
-                "חישוב מחדש על עותק הסנדבוקס — הספר החי בענן לא נפגע",
+                "חישוב מחדש על עותק הסנדבוקס - הספר החי בענן לא נפגע",
             });
           } else {
             toast.error(`השרשרת תפסה את השיבוש: שבר ב-seq ${r.firstBreak}`, {
-              description: "חישוב מחדש, לא סמיכות — ה-entryHash כבר לא תואם",
+              description: "חישוב מחדש, לא סמיכות - ה-entryHash כבר לא תואם",
             });
           }
         }
       } catch {
-        // האימון האוטומטי נכשל — הדוח יציג את המצב בכרטיס
+        // האימון האוטומטי נכשל - הדוח יציג את המצב בכרטיס
       }
       setTamperOpen(false);
     } catch (err) {
@@ -261,7 +261,7 @@ export function LedgerTab() {
 
   const entries = attestations.data ?? [];
   const sorted = [...entries].sort((a, b) => b.seq - a.seq);
-  // הדגשת שבר רלוונטית רק לדוח המקומי — בענן הדוח מוסתר
+  // הדגשת שבר רלוונטית רק לדוח המקומי - בענן הדוח מוסתר
   const firstBreak = cloud ? null : (report.data?.firstBreak ?? null);
 
   return (
@@ -288,7 +288,7 @@ export function LedgerTab() {
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[300px]">
               <p className="text-xs leading-relaxed">
-                אימות חישוב-מחדש רץ על עותק מקומי — עבור למצב סנדבוקס
+                אימות חישוב-מחדש רץ על עותק מקומי - עבור למצב סנדבוקס
               </p>
             </TooltipContent>
           </Tooltip>
@@ -324,7 +324,7 @@ export function LedgerTab() {
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[300px]">
               <p className="text-xs leading-relaxed">
-                פעולות כתיבה פועלות על עותק הסנדבוקס — הספר החי בענן מתעדכן
+                פעולות כתיבה פועלות על עותק הסנדבוקס - הספר החי בענן מתעדכן
                 על-ידי הסוכנים
               </p>
             </TooltipContent>
@@ -335,7 +335,7 @@ export function LedgerTab() {
         </span>
       </div>
 
-      {/* דוח אימות — בענן: שורת טריות + עד משקיף במקום הדוח המקומי */}
+      {/* דוח אימות - בענן: שורת טריות + עד משקיף במקום הדוח המקומי */}
       {cloud ? (
         live.data?.freshness ? (
           <WitnessFreshnessLine
@@ -371,8 +371,8 @@ export function LedgerTab() {
             </div>
             <p className="text-xs text-muted-foreground">
               {cloud
-                ? "שרשרת hash-chained מהמראה הציבורית — seq, טענה וסטטוס אמיתיים; חתימות וההאשים הפנימיים נשמרים בספר הריבוני"
-                : "שרשרת hash-chained — seq, חתימת EIP-191, entryHash לכל רשומה"}
+                ? "שרשרת hash-chained מהמראה הציבורית - seq, טענה וסטטוס אמיתיים; חתימות וההאשים הפנימיים נשמרים בספר הריבוני"
+                : "שרשרת hash-chained - seq, חתימת EIP-191, entryHash לכל רשומה"}
             </p>
           </div>
         </div>
@@ -455,7 +455,7 @@ export function LedgerTab() {
                       <TableCell>
                         {cloud && !entry.entryHash ? (
                           <span className="whitespace-nowrap text-[11px] text-muted-foreground">
-                            — במראה —
+                            (במראה)
                           </span>
                         ) : (
                           <HashChip value={entry.entryHash} head={8} tail={6} />
@@ -474,7 +474,7 @@ export function LedgerTab() {
                             </TooltipTrigger>
                             <TooltipContent side="top">
                               <p className="text-xs">
-                                חתימות נשמרות בספר הריבוני — לא נחשפות במראה
+                                חתימות נשמרות בספר הריבוני - לא נחשפות במראה
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -505,7 +505,7 @@ export function LedgerTab() {
                 {sorted.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="p-6 text-center text-sm text-muted-foreground">
-                      הספר עוד ריק — צור אימות ראשון
+                      הספר עוד ריק - צור אימות ראשון
                     </TableCell>
                   </TableRow>
                 ) : null}
@@ -530,13 +530,13 @@ export function LedgerTab() {
           <AlertDialogHeader className="text-right sm:text-right">
             <AlertDialogTitle className="flex items-center gap-2 text-rose-600 dark:text-rose-400">
               <FlaskConical className="size-5" />
-              ערעור מדומה — תרגיל red-team
+              ערעור מדומה - תרגיל red-team
             </AlertDialogTitle>
             <AlertDialogDescription className="text-right leading-relaxed">
               זה ישבש רשומה אחת ב-DB כדי להוכיח שהשרשרת תופסת שיבוש post-hoc.
               השרשרת אמורה לזהות את זה בדיוק.
               {cloud
-                ? " במצב ענן הערעור רץ על עותק הסנדבוקס בלבד — הספר החי בענן לא ייפגע."
+                ? " במצב ענן הערעור רץ על עותק הסנדבוקס בלבד - הספר החי בענן לא ייפגע."
                 : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -544,7 +544,7 @@ export function LedgerTab() {
             <Ban />
             <AlertTitle>פעולה הרסנית (מקומית בלבד)</AlertTitle>
             <AlertDescription>
-              השדה ישתנה ישירות ב-SQLite בלי חישוב entryHash מחדש — השורה תישאר
+              השדה ישתנה ישירות ב-SQLite בלי חישוב entryHash מחדש - השורה תישאר
               מסומנת כשבורה עד שחזור ידני.
             </AlertDescription>
           </Alert>
@@ -589,7 +589,7 @@ function VerifyReportCard({ report }: { report: VerifyReportDTO }) {
         ) : (
           <Badge className="gap-1.5 border-rose-500/40 bg-rose-500/10 py-1 text-sm text-rose-700 dark:text-rose-400">
             <ShieldAlert className="size-4" />
-            שרשרת שבורה — seq {report.firstBreak ?? "?"}
+            שרשרת שבורה - seq {report.firstBreak ?? "?"}
           </Badge>
         )}
         <span className="text-xs text-muted-foreground">
@@ -603,7 +603,7 @@ function VerifyReportCard({ report }: { report: VerifyReportDTO }) {
         <StatChip label="חתימות שנכשלו" value={String(report.sigFail)} tone="rose" />
         <StatChip
           label="שבר ראשון"
-          value={report.firstBreak === null ? "—" : `seq ${report.firstBreak}`}
+          value={report.firstBreak === null ? "-" : `seq ${report.firstBreak}`}
           tone={report.firstBreak === null ? "zinc" : "rose"}
         />
       </div>
@@ -706,7 +706,7 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
       return;
     }
     if (!claim.trim()) {
-      setError("הטענה ריקה — שום טענה בלי תוכן");
+      setError("הטענה ריקה - שום טענה בלי תוכן");
       return;
     }
     setBusy(true);
@@ -722,15 +722,15 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
         toast.success(`אימות #${entry.seq} נרשם בספר · VERIFIED`, {
           description:
             mode === "cloud"
-              ? `${entry.agentName} · ${entry.claimType} · נכתב לעותק המקומי — הספר החי בענן מתעדכן על-ידי הסוכנים`
+              ? `${entry.agentName} · ${entry.claimType} · נכתב לעותק המקומי - הספר החי בענן מתעדכן על-ידי הסוכנים`
               : `${entry.agentName} · ${entry.claimType} · נחתם ב-EIP-191`,
         });
       } else {
         toast.warning(`אימות #${entry.seq} נרשם · ${entry.status}`, {
           description:
             mode === "cloud"
-              ? "טענה ללא מדידה — השרת קבע שהיא לא תסומן VERIFIED · נכתב לעותק המקומי"
-              : "טענה ללא מדידה — השרת קבע שהיא לא תסומן VERIFIED",
+              ? "טענה ללא מדידה - השרת קבע שהיא לא תסומן VERIFIED · נכתב לעותק המקומי"
+              : "טענה ללא מדידה - השרת קבע שהיא לא תסומן VERIFIED",
         });
       }
       onOpenChange(false);
@@ -786,7 +786,7 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
               className="h-11"
               value={claim}
               onChange={(e) => setClaim(e.target.value)}
-              placeholder="למשל: שכפול נמדד — קבצי X משוכפלים ב-N ריפוים"
+              placeholder="למשל: שכפול נמדד - קבצי X משוכפלים ב-N ריפוים"
             />
           </div>
 
@@ -815,11 +815,11 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
               rows={4}
               value={evidence}
               onChange={(e) => setEvidence(e.target.value)}
-              placeholder="פלט מדידה, פקודה, hash, ספירות — כל מה שניתן לחשב מחדש"
+              placeholder="פלט מדידה, פקודה, hash, ספירות - כל מה שניתן לחשב מחדש"
               className="text-start"
             />
             <p className="text-[11px] leading-relaxed text-amber-600 dark:text-amber-400">
-              בלי מדידה הטענה תסומן UNMEASURED — השרת קובע, לא הלקוח.
+              בלי מדידה הטענה תסומן UNMEASURED - השרת קובע, לא הלקוח.
             </p>
           </div>
 

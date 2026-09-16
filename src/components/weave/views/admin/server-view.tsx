@@ -1,10 +1,10 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Admin — שרת וסנכרון.
+// THE WEAVE · Admin - שרת וסנכרון.
 //
 // מצב השרת המקומי מול הענן במדידה כנה: מרווח הסנכרון בין ה-DB
-// המקומי לספר החי, מצב הגיט, וזמן ריצה. מה שמת — נראה מת.
+// המקומי לספר החי, מצב הגיט, וזמן ריצה. מה שמת - נראה מת.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
@@ -89,7 +89,7 @@ export function AdminServerView() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             האמת על הסביבה הזאת: מה חי כאן, מה חי בענן, ומה הפער ביניהם. השרת
-            המקומי הוא חלון תצוגה ומרחב טסט — הספר האמיתי חי בענן ובגיט.
+            המקומי הוא חלון תצוגה ומרחב טסט - הספר האמיתי חי בענן ובגיט.
           </p>
         </div>
         <Button variant="outline" size="sm" className="gap-2" onClick={() => void load()} disabled={loading}>
@@ -181,8 +181,8 @@ export function AdminServerView() {
                 )}
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
-                הענן ממשיך לפעום גם כשהסביבה נופלת — הפער מצטבר מקומיטי הפעימות
-                של הסוכנים. אין למשוך אוטומטית בזמן עבודה מקומית; בסיום — מזג
+                הענן ממשיך לפעום גם כשהסביבה נופלת - הפער מצטבר מקומיטי הפעימות
+                של הסוכנים. אין למשוך אוטומטית בזמן עבודה מקומית; בסיום - מזג
                 מעל origin/main.
               </p>
             </CardContent>
@@ -254,7 +254,7 @@ export function AdminServerView() {
                     </div>
                     <div>
                       <div className="text-2xl font-bold tabular-nums leading-none">
-                        {data.syncGap ?? "—"}
+                        {data.syncGap ?? "-"}
                       </div>
                       <div className="mt-1 text-[11px] text-muted-foreground">פער סנכרון</div>
                     </div>
@@ -274,7 +274,7 @@ export function AdminServerView() {
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  הענן לא נענה במדידה זו — הרשת עדיין חיה שם; נסה שוב.
+                  הענן לא נענה במדידה זו - הרשת עדיין חיה שם; נסה שוב.
                 </p>
               )}
             </CardContent>

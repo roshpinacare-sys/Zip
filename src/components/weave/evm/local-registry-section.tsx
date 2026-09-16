@@ -1,11 +1,11 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · רישום העוגן המקומי · שער EVM-2 (LOCAL) —
+// THE WEAVE · רישום העוגן המקומי · שער EVM-2 (LOCAL):
 // מראה של החוזה WeaveAnchorRegistry כפי שהוא "רץ" בשרת:
 // roots[++latestIndex] ב-SQLite, לכל root הקללות שלו.
 // ואימות מלא של הכללה מול root ברישום: חישוב-מחדש של העלה,
-// הוכחת Merkle והתאמת root — אותה הוכחה בדיוק תאומת מול
+// הוכחת Merkle והתאמת root - אותה הוכחה בדיוק תאומת מול
 // שרשרת אמיתית כש-EVM-2 ייסגר. תווית אמת: LOCAL.
 // ─────────────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ export function LocalRegistrySection({
   onReload: () => void;
 }) {
   const list = anchors.data ?? [];
-  // הרשימה מסודרת יורד לפי registryIndex — הראשון הוא latestIndex
+  // הרשימה מסודרת יורד לפי registryIndex - הראשון הוא latestIndex
   const latestIndex = list.length > 0 ? list[0].registryIndex : 0;
 
   return (
@@ -59,7 +59,7 @@ export function LocalRegistrySection({
             <span dir="ltr" className="font-mono">
               WeaveAnchorRegistry
             </span>{" "}
-            בשרת —{" "}
+            בשרת -{" "}
             <span dir="ltr" className="font-mono">
               roots[++latestIndex]
             </span>{" "}
@@ -99,12 +99,12 @@ export function LocalRegistrySection({
           <Boxes className="size-8 text-muted-foreground" />
           <p className="text-sm font-medium">הרישום עוד ריק</p>
           <p className="text-xs leading-relaxed text-muted-foreground">
-            עגן checkpoint למעלה — ה-root שלו יירשם כאן כאילו נשלחה tx לחוזה
+            עגן checkpoint למעלה - ה-root שלו יירשם כאן כאילו נשלחה tx לחוזה
           </p>
         </div>
       ) : (
         <>
-          {/* סיכום — כמו קריאת latestIndex() / roots.length */}
+          {/* סיכום - כמו קריאת latestIndex() / roots.length */}
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Badge
               dir="ltr"
@@ -132,7 +132,7 @@ export function LocalRegistrySection({
   );
 }
 
-// ── שורת רישום אחת — root שירד + הוכחת הכללה של אימות מולו ──────────
+// ── שורת רישום אחת - root שירד + הוכחת הכללה של אימות מולו ──────────
 
 function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
   const [open, setOpen] = useState(false);
@@ -147,7 +147,7 @@ function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
     e.preventDefault();
     const seqNum = Number(seq);
     if (!Number.isInteger(seqNum)) {
-      toast.error("נדרש seq — מספר שלם");
+      toast.error("נדרש seq - מספר שלם");
       return;
     }
     setBusy(true);
@@ -171,7 +171,7 @@ function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
           { description: `${res.report.proof.length} צעדי הוכחה · Merkle תקף` }
         );
       } else {
-        toast.error("האימות הושלם עם כשלים — ראה את השורות המסומנות");
+        toast.error("האימות הושלם עם כשלים - ראה את השורות המסומנות");
       }
     } catch (err) {
       setReport(null);
@@ -197,7 +197,7 @@ function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
           </span>
         </span>
         <Badge variant="secondary" dir="ltr" className="font-mono text-[10px]">
-          seq {anchor.attFrom} → {anchor.attTo} · {covered} leaves
+          seq {anchor.attFrom}{" -> "}{anchor.attTo} · {covered} leaves
         </Badge>
         <span className="text-xs text-muted-foreground sm:ms-auto">
           {fmtDateTime(anchor.anchoredAt)}
@@ -245,15 +245,15 @@ function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
         </Button>
       </div>
 
-      {/* פאנל הוכחת הכללה — בחירת seq בטווח ואימות מלא מול ה-root */}
+      {/* פאנל הוכחת הכללה - בחירת seq בטווח ואימות מלא מול ה-root */}
       {open ? (
         <div className="mt-3 border-t pt-3">
           <p className="text-xs leading-relaxed text-muted-foreground">
             בחר אימות (seq) בטווח{" "}
             <span dir="ltr" className="font-mono">
-              {anchor.attFrom}–{anchor.attTo}
+              {anchor.attFrom}-{anchor.attTo}
             </span>{" "}
-            — השרת יחשב את העלה מחדש מהרשומה, יבנה הוכחת Merkle ויאמת אותה
+            - השרת יחשב את העלה מחדש מהרשומה, יבנה הוכחת Merkle ויאמת אותה
             מול ה-root שברישום.
           </p>
 
@@ -289,8 +289,8 @@ function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
               <ul className="flex flex-col gap-2">
                 <CheckRow
                   ok={report.leafRecomputedMatch}
-                  label="העלה חושבה מחדש מהרשומה — תואמת"
-                  hint="hashEntry(רשומת האימות) === entryHash השמור — לא סמיכות על השדה"
+                  label="העלה חושבה מחדש מהרשומה - תואמת"
+                  hint="hashEntry(רשומת האימות) === entryHash השמור - לא סמיכות על השדה"
                 />
                 <CheckRow
                   ok={report.rootInRegistry}
@@ -346,7 +346,7 @@ function AnchorRow({ anchor }: { anchor: LocalAnchorDTO }) {
                 <span dir="ltr" className="font-mono">
                   {report.mode}
                 </span>{" "}
-                — סימולציית חוזה בשרת, לא שרשרת
+                - סימולציית חוזה בשרת, לא שרשרת
               </p>
             </div>
           ) : null}

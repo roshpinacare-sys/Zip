@@ -1,14 +1,14 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 1 — לוח בקרה
+// THE WEAVE · טאב 1 - לוח בקרה
 // KPI + תקפות שרשרת (אימות אוטומטי בעת טעינה) + סטטוסים + 8 אחרונים
 //
 // שני מצבי אמת (Task 38):
-//  · cloud — המראה הציבורית של הספר החי. תקפות מוצגת כעד משקיף
-//    (Steem block + txid ← explorer + טריות) — חישוב-מחדש מלא הוא
+//  · cloud - המראה הציבורית של הספר החי. תקפות מוצגת כעד משקיף
+//    (Steem block + txid · explorer · טריות) - חישוב-מחדש מלא הוא
 //    מנגנון שרץ על עותק מקומי, ולכן נעול במצב סנדבוקס.
-//  · local — כמו תמיד: אימות אוטומטי + כפתור "אמת מחדש" חי.
+//  · local - כמו תמיד: אימות אוטומטי + כפתור "אמת מחדש" חי.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect } from "react";
@@ -87,15 +87,15 @@ function SourceBadge() {
       <TooltipContent side="top" className="max-w-[280px]">
         <p className="text-xs leading-relaxed">
           {cloud
-            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
-            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+            ? "מראה ציבורית קריאה-בלבד של הספר החי - נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס - כאן פועלות כל פעולות הכתיבה והתרגילים"}
         </p>
       </TooltipContent>
     </Tooltip>
   );
 }
 
-// ── גיל עד המשקיף — מחושב רק בצד הלקוח, אחרי שהמראה נטענה ──────────
+// ── גיל עד המשקיף - מחושב רק בצד הלקוח, אחרי שהמראה נטענה ──────────
 
 function witnessAge(at: string): string {
   const t = new Date(at).getTime();
@@ -195,7 +195,7 @@ function WitnessStatus({
         </a>
       ) : null}
       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-        הלב מאמת את השרשרת בכל פעימה — חישוב-מחדש מלא זמין במצב סנדבוקס
+        הלב מאמת את השרשרת בכל פעימה - חישוב-מחדש מלא זמין במצב סנדבוקס
       </p>
     </>
   );
@@ -211,7 +211,7 @@ export function DashboardTab() {
     loadState();
     loadAttestations();
     // אימות אוטומטי של השרשרת בכל כניסה ללוח הבקרה (read-only, מהיר).
-    // משמעותי רק על העותק המקומי — בענן הלב מאמת בכל פעימה ומוצג עד משקיף.
+    // משמעותי רק על העותק המקומי - בענן הלב מאמת בכל פעימה ומוצג עד משקיף.
     if (mode === "local") {
       runVerify().catch(() => undefined);
     }
@@ -221,11 +221,11 @@ export function DashboardTab() {
     try {
       const r = await runVerify();
       if (r.valid) {
-        toast.success(`שרשרת תקינה ✓ ${r.checked} רשומות`, {
+        toast.success(`שרשרת תקינה (${r.checked} רשומות)`, {
           description: `חתימות EIP-191 תקינות: ${r.sigOk}/${r.checked}`,
         });
       } else {
-        toast.error(`שבר בשרשרת — seq ${r.firstBreak ?? "?"}`, {
+        toast.error(`שבר בשרשרת - seq ${r.firstBreak ?? "?"}`, {
           description: "חישוב מחדש לכל אורך השרשרת גילה סטייה",
         });
       }
@@ -265,7 +265,7 @@ export function DashboardTab() {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold sm:text-base">
-              שום טענה בלי מדידה — חישוב מחדש, לא סמיכות
+              שום טענה בלי מדידה - חישוב מחדש, לא סמיכות
             </p>
             <p className="text-xs text-muted-foreground">
               טענה שלא נמדדה היא רעש · השרת קובע סטטוס, לא הלקוח · תווית אמת מוצהרת
@@ -359,7 +359,7 @@ export function DashboardTab() {
                   report.data.valid ? (
                     <Badge className="mt-1.5 gap-1 border-emerald-500/40 bg-emerald-500/10 text-sm text-emerald-700 dark:text-emerald-400">
                       <ShieldCheck className="size-4" />
-                      שרשרת תקינה ✓ {report.data.checked} רשומות
+                      שרשרת תקינה ({report.data.checked} רשומות)
                     </Badge>
                   ) : (
                     <Badge className="mt-1.5 gap-1 border-rose-500/40 bg-rose-500/10 text-sm text-rose-700 dark:text-rose-400">
@@ -386,7 +386,7 @@ export function DashboardTab() {
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-[280px]">
                       <p className="text-xs leading-relaxed">
-                        אימות חישוב-מחדש רץ על עותק מקומי — עבור למצב סנדבוקס
+                        אימות חישוב-מחדש רץ על עותק מקומי - עבור למצב סנדבוקס
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -411,7 +411,7 @@ export function DashboardTab() {
         </div>
       )}
 
-      {/* חיות 24ש׳ — רק בענן, פס דק מהמראה החיה */}
+      {/* חיות 24ש׳ - רק בענן, פס דק מהמראה החיה */}
       {cloud && lv ? (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] px-4 py-2.5">
           <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
@@ -494,7 +494,7 @@ export function DashboardTab() {
               אימותים אחרונים
             </h2>
             <p className="text-xs text-muted-foreground">
-              8 הרשומות החדשות בספר — מסודרות לפי seq
+              8 הרשומות החדשות בספר - מסודרות לפי seq
             </p>
           </div>
         </div>

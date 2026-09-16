@@ -1,11 +1,11 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Agents Fleet View — הצי החי.
+// THE WEAVE · Agents Fleet View - הצי החי.
 //
 // 12 הסוכנים האוטונומיים ב-5 ריפואים, כפי שהענן מכיר אותם:
 // רישום חי מ-agents-watch (מתעדכן שעתית מה-API של גיטהאב) + נקודת
-// חיים לפי זמן הריצה האחרונה. מי שמת — נראה מת. הכל עובדות.
+// חיים לפי זמן הריצה האחרונה. מי שמת - נראה מת. הכל עובדות.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
@@ -105,19 +105,19 @@ function AgentCard({
         <div className="grid grid-cols-3 gap-2 border-t pt-3 text-center">
           <div>
             <div className="text-lg font-bold tabular-nums leading-none">
-              {agent.stats ? `${Math.round(agent.stats.successRate)}%` : "—"}
+              {agent.stats ? `${Math.round(agent.stats.successRate)}%` : "-"}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">הצלחה</div>
           </div>
           <div>
             <div className="text-lg font-bold tabular-nums leading-none">
-              {agent.stats?.runs_sampled ?? "—"}
+              {agent.stats?.runs_sampled ?? "-"}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">ריצות שנדגמו</div>
           </div>
           <div>
             <div className="text-lg font-bold tabular-nums leading-none">
-              {agent.stats ? `${agent.stats.avgDurS.toFixed(0)}ש׳` : "—"}
+              {agent.stats ? `${agent.stats.avgDurS.toFixed(0)}ש׳` : "-"}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">משך ממוצע</div>
           </div>
@@ -167,7 +167,7 @@ export function AgentsFleetView() {
     loadRegistry();
   }, [loadRegistry]);
 
-  // רענון גילאים כל דקה — בלי לרדוף אחרי הענן
+  // רענון גילאים כל דקה - בלי לרדוף אחרי הענן
   useEffect(() => {
     const t = setInterval(() => setTick((x) => x + 1), 60_000);
     return () => clearInterval(t);
@@ -199,7 +199,7 @@ export function AgentsFleetView() {
             הצי החי
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            הסוכנים האוטונומיים שמפעילים את הרשת — בענן, 24/7, בלי תלות בשום סביבת
+            הסוכנים האוטונומיים שמפעילים את הרשת - בענן, 24/7, בלי תלות בשום סביבת
             עבודה חולפת. הרישום מתעדכן שעתית על-ידי agents-watch מה-API של גיטהאב.
           </p>
         </div>
@@ -285,7 +285,7 @@ export function AgentsFleetView() {
           <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
             <AlertTriangle className="size-8 text-amber-500" aria-hidden="true" />
             <p className="text-sm text-muted-foreground">
-              {registry.error ?? "הרישום לא נטען — הענן לא נענה."}
+              {registry.error ?? "הרישום לא נטען - הענן לא נענה."}
             </p>
             <Button variant="outline" size="sm" onClick={() => loadRegistry()}>
               נסה שוב
@@ -308,7 +308,7 @@ export function AgentsFleetView() {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            ריפואים אלה אינם מריצים סוכנים בכוונה — הם ארכיון קר, כספות וגיבויים.
+            ריפואים אלה אינם מריצים סוכנים בכוונה - הם ארכיון קר, כספות וגיבויים.
             גלויים ברישום כדי שהתמונה תהיה מלאה וכנה.
           </p>
         </div>

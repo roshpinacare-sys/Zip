@@ -1,10 +1,10 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · חבילת פריסה · שער EVM-1 (הכנה) —
+// THE WEAVE · חבילת פריסה · שער EVM-1 (הכנה):
 // artifact שנוצר בקומפילציית solc אמיתית: bytecode, keccak מתועד,
 // בדיקות אינטגריציות ו-checklist אמת. מה שחסר לפריסה בפועל מסומן
-// בכנות כ-NOT-YET. תווית אמת: REAL — קומפילציה מקומית.
+// בכנות כ-NOT-YET. תווית אמת: REAL - קומפילציה מקומית.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -92,14 +92,14 @@ export function DeployKitCard() {
               dir="ltr"
               className="gap-1 border-emerald-500/40 bg-emerald-500/10 font-mono text-[10px] text-emerald-700 dark:text-emerald-400"
             >
-              REAL — קומפילציה מקומית
+              REAL - קומפילציה מקומית
             </Badge>
           </div>
           <p className="text-xs leading-relaxed text-muted-foreground">
             <span dir="ltr" className="font-mono">
               {k.contractName}
             </span>{" "}
-            — מוכן לפריסה: bytecode, ABI, keccak מתועד ונתוני tx. מה שחסר
+            - מוכן לפריסה: bytecode, ABI, keccak מתועד ונתוני tx. מה שחסר
             (חותם ממומן, RPC) מסומן בכנות כ-NOT-YET.
           </p>
         </div>
@@ -133,10 +133,10 @@ export function DeployKitCard() {
           <dt className="text-xs text-muted-foreground">codeDeposit gas</dt>
           <dd className="flex flex-wrap items-center gap-2">
             <span dir="ltr" className="font-mono text-xs font-medium tabular-nums">
-              {k.codeDepositGas !== null ? `${k.codeDepositGas.toLocaleString("en-US")} gas` : "—"}
+              {k.codeDepositGas !== null ? `${k.codeDepositGas.toLocaleString("en-US")} gas` : "-"}
             </span>
             <span className="text-[11px] text-muted-foreground">
-              אומדן קומפילטור — לא מדידת רשת
+              אומדן קומפילטור - לא מדידת רשת
             </span>
           </dd>
         </div>
@@ -154,7 +154,7 @@ export function DeployKitCard() {
         <CheckRow
           ok={k.deterministicRecompileMatch}
           label="קומפילציה דטרמיניסטית"
-          hint="קומפילציה כפולה — אותו bytecode יצא פעמיים"
+          hint="קומפילציה כפולה - אותו bytecode יצא פעמיים"
         />
         <CheckRow
           ok={k.runtimeEmbeddedInCreation}
@@ -177,7 +177,7 @@ export function DeployKitCard() {
             <span dir="ltr" className="font-mono text-xs">
               bun scripts/compile-anchor.ts
             </span>{" "}
-            מחדש ואז רענן — ה-bytecode חייב להיות מכפיל של המקור המוצג.
+            מחדש ואז רענן - ה-bytecode חייב להיות מכפיל של המקור המוצג.
           </AlertDescription>
         </Alert>
       ) : null}

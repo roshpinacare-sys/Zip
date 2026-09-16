@@ -1,11 +1,11 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Admin — מרכז הפיקוד.
+// THE WEAVE · Admin - מרכז הפיקוד.
 //
 // היד של המפעיל על הענן: פעימת כל ריפו, ריצות אחרונות לכל סוכן,
 // וכפתור הזנקה ישיר (workflow_dispatch) לסוכנים שתומכים בזה.
-// ה-PAT חי רק צד-שרת — הדפדפן לעולם לא רואה אותו.
+// ה-PAT חי רק צד-שרת - הדפדפן לעולם לא רואה אותו.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
@@ -93,7 +93,7 @@ export function AdminCommandView() {
         const j = (await res.json()) as { ok: boolean; error?: string };
         if (!j.ok) throw new Error(j.error ?? "ההזנקה נכשלה");
         toast.success(`הזנקת "${label}" נשלחה לענן`, {
-          description: "הסוכן יתחיל לרוץ בתוך דקה — רענן לראות את הריצה",
+          description: "הסוכן יתחיל לרוץ בתוך דקה - רענן לראות את הריצה",
         });
         setTimeout(() => void load(), 30_000);
       } catch (e) {
@@ -117,7 +117,7 @@ export function AdminCommandView() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             שליטה ישירה בצי הענן: מי רץ, מתי לאחרונה, והזנקה ידנית של כל סוכן.
-            הכל דרך ה-API של גיטהאב — האסמכתה נשארת צד-שרת.
+            הכל דרך ה-API של גיטהאב - האסמכתה נשארת צד-שרת.
           </p>
         </div>
         <Button variant="outline" size="sm" className="gap-2" onClick={() => void load()} disabled={loading}>
@@ -135,7 +135,7 @@ export function AdminCommandView() {
           </div>
           {data && !data.canDispatch ? (
             <p className="text-sm text-muted-foreground">
-              אין אסמכתת צד-שרת לגיטהאב בסביבה זו — הצגה בלבד.
+              אין אסמכתת צד-שרת לגיטהאב בסביבה זו - הצגה בלבד.
             </p>
           ) : (
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

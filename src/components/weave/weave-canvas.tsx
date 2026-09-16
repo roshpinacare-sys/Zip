@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Hero Canvas — הרשת החיה שמאחורי ההיירו.
+// THE WEAVE · Hero Canvas - הרשת החיה שמאחורי ההיירו.
 //
 // סימולציית אימות חיה: סוכנים (צמתים זוהרים) שטים במרחב, קשרי-אמת
 // (חוטים) נוצרים ונקרעים לפי מרחק, ופעימות-עדות (גראדיאנטים) זורמות
@@ -135,7 +135,7 @@ export function WeaveCanvas({ className }: { className?: string }) {
       // צמתים
       for (const n of nodes) {
         if (n.ledger) {
-          // הספר — טבעת נשימה
+          // הספר - טבעת נשימה
           const breathe = 0.5 + 0.5 * Math.sin(frame / 42);
           const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, 26 + breathe * 8);
           g.addColorStop(0, "rgba(16, 185, 129, 0.5)");

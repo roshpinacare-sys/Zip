@@ -1,17 +1,17 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Site Nav — הניווט הראשי של האתר.
+// THE WEAVE · Site Nav - הניווט הראשי של האתר.
 //
 // ארכיטקטורת מידע חדשה (אחרי ביקורת המפעיל): 6 סקציות ברורות
 // במקום 7 עמודים שטוחים + 8 טאבים מוסתרים. כל סקציה עשירה מקבלת
-// תתי-תפריט משלה — החומר מאורגן לפי כמותו, לא נדחס לשורה אחת.
+// תתי-תפריט משלה - החומר מאורגן לפי כמותו, לא נדחס לשורה אחת.
 //
 //   בית · הרשת · סוכנים · בורסה · ידע · אדמין
 //
-// ניתוב hash עמוק (#/network/ledger) — קישורים ניתנים לשיתוף.
+// ניתוב hash עמוק (#/network/ledger) - קישורים ניתנים לשיתוף.
 // מתג מקור-אמת ליד הלוגו: הספר החי מהענן (ברירת מחדל) או עותק
-// הסנדבוקס. ה-HEAD החי תמיד גלוי — השרשרת נוכחת בשורת הכתובת.
+// הסנדבוקס. ה-HEAD החי תמיד גלוי - השרשרת נוכחת בשורת הכתובת.
 // מובייל: תפריט-גשר מקונן (Sheet) במקום שורה דחוסה.
 // ─────────────────────────────────────────────────────────────────────
 
@@ -119,7 +119,7 @@ export function sectionOf(view: SiteView) {
   return SECTIONS.find((s) => s.view === view);
 }
 
-// ── מתג מקור האמת: ענן חי ← → סנדבוקס ──────────────────────────────
+// ── מתג מקור האמת: ענן חי <-> סנדבוקס ──────────────────────────────
 
 function ModeToggle() {
   const { mode, setMode } = useWeave();
@@ -143,8 +143,8 @@ function ModeToggle() {
             aria-pressed={active}
             title={
               it.m === "cloud"
-                ? "הספר החי מהענן — האמת שפועמת 24/7 בלי תלות בסנדבוקס"
-                : "עותק הסנדבוקס המקומי — מרחב טסט עם פעולות כתיבה"
+                ? "הספר החי מהענן - האמת שפועמת 24/7 בלי תלות בסנדבוקס"
+                : "עותק הסנדבוקס המקומי - מרחב טסט עם פעולות כתיבה"
             }
             className={cn(
               "flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium transition-colors",
@@ -208,12 +208,12 @@ export function SiteNav({
       )}
     >
       <div className="mx-auto flex w-full max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
-        {/* לוגו — כפתור הבית */}
+        {/* לוגו - כפתור הבית */}
         <button
           type="button"
           onClick={() => go("home")}
           className="group flex min-w-0 items-center gap-3 text-start"
-          aria-label="THE WEAVE — עמוד הבית"
+          aria-label="THE WEAVE - עמוד הבית"
         >
           <span
             className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 transition-transform duration-300 group-hover:scale-105 dark:text-emerald-400"
@@ -349,7 +349,7 @@ export function SiteNav({
         </div>
       </div>
 
-      {/* תתי-תפריט — רק לסקציות עשירות, גלוי גם במובייל (גלילה) */}
+      {/* תתי-תפריט - רק לסקציות עשירות, גלוי גם במובייל (גלילה) */}
       {currentSection && currentSection.subs.length > 0 && (
         <nav
           aria-label={`תתי-תפריט: ${currentSection.label}`}

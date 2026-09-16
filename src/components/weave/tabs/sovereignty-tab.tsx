@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 7 — רשת ריבונית
+// THE WEAVE · טאב 7 - רשת ריבונית
 // הריפו הוא האמת: לב-ענן חמוש · הספר בגיט · seal · גזירת העוגנים ·
 // מפת הפערים ל"הכל על גבי הרשת שלנו" · כפתור סנכרון מהריפו.
 // ─────────────────────────────────────────────────────────────────────
@@ -264,7 +264,7 @@ interface SyncReport {
   error?: string;
 }
 
-// ── SAOS-NET — השרשרת הכלכלית של הצי (משוקף מה-runner) ──
+// ── SAOS-NET - השרשרת הכלכלית של הצי (משוקף מה-runner) ──
 
 interface SaosnetAccount {
   name: string;
@@ -326,7 +326,7 @@ interface SaosnetDTO {
   truthLabel: string;
 }
 
-// ── עוגן-עוגנים — ההצלבה של SAOS-NET בספר (מה-API) ──
+// ── עוגן-עוגנים - ההצלבה של SAOS-NET בספר (מה-API) ──
 
 interface CrosschainInfo {
   attSeq: number;
@@ -362,22 +362,22 @@ const RELATION_META: Record<
   "REPO-AHEAD": {
     label: "הריפו קדימה",
     tone: "text-amber-600 dark:text-amber-400",
-    hint: "יש פעימות חדשות בריפו (למשל מהענן) — משוך סנכרון",
+    hint: "יש פעימות חדשות בריפו (למשל מהענן) - משוך סנכרון",
   },
   "LOCAL-AHEAD": {
     label: "המקומי קדימה",
     tone: "text-amber-600 dark:text-amber-400",
-    hint: "ה-DB המקומי חדש — דחוף פעימה (bun scripts/weave-beat.ts --local)",
+    hint: "ה-DB המקומי חדש - דחוף פעימה (bun scripts/weave-beat.ts --local)",
   },
   "NO-LEDGER": {
     label: "אין ספר בריפו",
     tone: "text-zinc-500",
-    hint: "sovereign/ledger.json טרם נוצר — הפעימה הראשונה תייצא אותו",
+    hint: "sovereign/ledger.json טרם נוצר - הפעימה הראשונה תייצא אותו",
   },
   "HEAD-MISMATCH": {
     label: "סתירת head",
     tone: "text-rose-600 dark:text-rose-400",
-    hint: "אורך זהה אך head שונה — נדרשת בדיקה ידנית",
+    hint: "אורך זהה אך head שונה - נדרשת בדיקה ידנית",
   },
 };
 
@@ -411,8 +411,8 @@ export function SovereigntyTab() {
     void load();
   }, [load]);
 
-  // SAOS-NET — replay דטרמיניסטי בצד השרת (כבד יחסית; מטומנן 60 שניות)
-  // + אינדקס ההצלבה — אימות ה-CROSSCHAIN האחרון בספר (עוגן-עוגנים)
+  // SAOS-NET - replay דטרמיניסטי בצד השרת (כבד יחסית; מטומנן 60 שניות)
+  // + אינדקס ההצלבה - אימות ה-CROSSCHAIN האחרון בספר (עוגן-עוגנים)
   useEffect(() => {
     let alive = true;
     fetch("/api/weave/saosnet", { cache: "no-store" })
@@ -445,7 +445,7 @@ export function SovereigntyTab() {
       if (json.ok && json.synced) {
         toast.success(
           `נמשכו ${json.remote?.chainCount ?? "?"} אימותים מהריפו · אימות מחדש: ${
-            json.verify?.valid ? "תקין ✓" : "שבור ✗"
+            json.verify?.valid ? "תקין" : "שבור"
           }`
         );
       } else if (json.ok) {
@@ -461,8 +461,8 @@ export function SovereigntyTab() {
     }
   }, [load]);
 
-  // עוגן-עוגנים — המסלול הידני (אותה מכניקה של הפעימה §5.6): המדידה
-  // קובעת, לעולם לא הלקוח — replay מלא בשרת ⇒ אימות CROSSCHAIN חתום
+  // עוגן-עוגנים - המסלול הידני (אותה מכניקה של הפעימה §5.6): המדידה
+  // קובעת, לעולם לא הלקוח - replay מלא בשרת => אימות CROSSCHAIN חתום
   const runCrossAnchor = useCallback(async () => {
     setCrossAnchoring(true);
     try {
@@ -474,7 +474,7 @@ export function SovereigntyTab() {
       const ca = json.crossAnchor;
       if (ca.status === "ATTESTED") {
         toast.success(
-          `SAOS-NET הוצלב בספר — att ${ca.attSeq} · cp#${ca.checkpoint?.index ?? "?"} · העוגנים יעידו ב-$0`
+          `SAOS-NET הוצלב בספר - att ${ca.attSeq} · cp#${ca.checkpoint?.index ?? "?"} · העוגנים יעידו ב-$0`
         );
         setCrosschain({
           attSeq: ca.attSeq ?? 0,
@@ -495,9 +495,9 @@ export function SovereigntyTab() {
     }
   }, []);
 
-  // עד הארכיון — המסלול הידני (אותה מכניקה של הפעימה §5.7): המדידה
-  // קובעת, לעולם לא הלקוח — גזירה חיה מהמקור בשרת ⇒ אימות CROSSCHAIN
-  // חתום ⇒ checkpoint ⇒ ledger.json
+  // עד הארכיון - המסלול הידני (אותה מכניקה של הפעימה §5.7): המדידה
+  // קובעת, לעולם לא הלקוח - גזירה חיה מהמקור בשרת => אימות CROSSCHAIN
+  // חתום => checkpoint => ledger.json
   const [archiving, setArchiving] = useState(false);
   const runArchiveWitness = useCallback(async () => {
     setArchiving(true);
@@ -520,7 +520,7 @@ export function SovereigntyTab() {
       const aw = json.archiveWitness;
       if (aw.status === "ATTESTED") {
         toast.success(
-          `הארכיון הועיד בספר — att ${aw.attSeq} · cp#${aw.checkpoint?.index ?? "?"} · העוגנים יעידו ב-$0`
+          `הארכיון הועיד בספר - att ${aw.attSeq} · cp#${aw.checkpoint?.index ?? "?"} · העוגנים יעידו ב-$0`
         );
         await load();
       } else if (aw.status === "SKIPPED") {
@@ -568,14 +568,14 @@ export function SovereigntyTab() {
                   : "text-rose-600 dark:text-rose-400"
               )}
             >
-              {data.cloud.armed ? "חמוש ✓" : "לא חמוש"}
+              {data.cloud.armed ? "חמוש" : "לא חמוש"}
             </span>
             <TruthLabel kind="REAL" />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-            {data.cloud.schedule ?? "—"} ·{" "}
+            {data.cloud.schedule ?? "-"} ·{" "}
             <span dir="ltr" className="font-mono">
-              {data.cloud.workflow ?? "—"}
+              {data.cloud.workflow ?? "-"}
             </span>
           </p>
         </MotionCard>
@@ -590,7 +590,7 @@ export function SovereigntyTab() {
             <TruthLabel kind="LOCAL" />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-            מקומי {data.ledger.localCount} · ריפו {data.ledger.repoCount ?? "—"} ·{" "}
+            מקומי {data.ledger.localCount} · ריפו {data.ledger.repoCount ?? "-"} ·{" "}
             {data.ledger.exportedAt
               ? new Date(data.ledger.exportedAt).toLocaleString("he-IL")
               : "לא ייוצא"}
@@ -618,7 +618,7 @@ export function SovereigntyTab() {
             <StatusBadge status={data.lastBeat?.verdict?.startsWith("LEDGER-VALID") ? "VERIFIED" : data.lastBeat ? "REFUTED" : "UNMEASURED"} />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-            {data.lastBeat?.at ? new Date(data.lastBeat.at).toLocaleString("he-IL") : "—"}
+            {data.lastBeat?.at ? new Date(data.lastBeat.at).toLocaleString("he-IL") : "-"}
             {data.lastBeat?.beatSeq ? ` · seq ${data.lastBeat.beatSeq}` : ""}
             {data.lastBeat?.checkpoint ? ` · cp #${data.lastBeat.checkpoint.index}` : ""}
           </p>
@@ -638,21 +638,21 @@ export function SovereigntyTab() {
                   : "text-zinc-500"
               )}
             >
-              {data.anchors.derived ? "נארג ✓" : "טרם"}
+              {data.anchors.derived ? "נארג" : "טרם"}
             </span>
             <TruthLabel kind="REAL" />
           </div>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
             {data.anchors.derived
-              ? `${data.anchors.fileCount ?? "?"} קבצים ⇒ שורש מרקל בספר`
+              ? `${data.anchors.fileCount ?? "?"} קבצים => שורש מרקל בספר`
               : "הארכיון עדיין לא נגרר לשורש"}
           </p>
         </MotionCard>
       </div>
 
-      {/* ── שרשרת הריבונות — דיאגרמה ── */}
+      {/* ── שרשרת הריבונות - דיאגרמה ── */}
       <Section
-        title="שרשרת הריבונות — מי מפעיל את מי"
+        title="שרשרת הריבונות - מי מפעיל את מי"
         icon={<Globe2 />}
         description="הסנדבוקס הוא workspace; הריפו הוא האמת; הענן הוא המנוע שלא מת"
       >
@@ -664,21 +664,21 @@ export function SovereigntyTab() {
                   icon: Server,
                   title: "Runner ראשי",
                   sub: "סנדבוקס / מקומי",
-                  body: "פעימה מלאה: pull → verify → attest → checkpoint → push",
+                  body: "פעימה מלאה: pull -> verify -> attest -> checkpoint -> push",
                   tone: "border-amber-500/40",
                 },
                 {
                   icon: GitBranch,
                   title: "הבית בריפו",
                   sub: "roshpinacare-sys · weave-core",
-                  body: "ledger.json + seal + workflow + הקוד — שורד איפוסים",
+                  body: "ledger.json + seal + workflow + הקוד - שורד איפוסים",
                   tone: "border-emerald-500/40",
                 },
                 {
                   icon: Cloud,
                   title: "לב-ענן",
                   sub: "GitHub Actions · כל 6 שעות",
-                  body: "ספר טרי ⇒ אימות-בלבד · ישן ⇒ TAKEOVER",
+                  body: "ספר טרי => אימות-בלבד · ישן => TAKEOVER",
                   tone: "border-emerald-500/40",
                 },
                 {
@@ -692,7 +692,7 @@ export function SovereigntyTab() {
                   icon: ShieldCheck,
                   title: "שער-סודות",
                   sub: "לפני כל דחיפה",
-                  body: "WIF/PEM/PAT/מפתח ב-diff ⇒ חסימה מוחלטת",
+                  body: "WIF/PEM/PAT/מפתח ב-diff => חסימה מוחלטת",
                   tone: "border-rose-500/40",
                 },
               ].map((step, i) => (
@@ -721,8 +721,8 @@ export function SovereigntyTab() {
               ))}
             </div>
             <p className="mt-4 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              שיפוט הבריאות — השרשרת עצמה: טריות האימות האחרון בספר + הדחיפה האחרונה בגיט.
-              אין תיאום, אין שרת-בחירות, אין אמון בין runners. מפתח המפעיל לא נחוץ בענן —{" "}
+              שיפוט הבריאות - השרשרת עצמה: טריות האימות האחרון בספר + הדחיפה האחרונה בגיט.
+              אין תיאום, אין שרת-בחירות, אין אמון בין runners. מפתח המפעיל לא נחוץ בענן -{" "}
               <span dir="ltr" className="font-mono">
                 {data.cloud.authModel}
               </span>
@@ -740,8 +740,8 @@ export function SovereigntyTab() {
         <Card>
           <CardContent className="flex flex-col gap-4 p-4 sm:p-6">
             <div className="flex flex-wrap items-center gap-3">
-              <HashChip value={data.ledger.repoHead ?? "—"} label="head בריפו" />
-              <HashChip value={data.ledger.localHead ?? "—"} label="head מקומי" />
+              <HashChip value={data.ledger.repoHead ?? "-"} label="head בריפו" />
+              <HashChip value={data.ledger.localHead ?? "-"} label="head מקומי" />
               <Button
                 onClick={() => void runSync()}
                 disabled={syncing}
@@ -780,8 +780,8 @@ export function SovereigntyTab() {
                     <span>
                       אימות לאחר ייבוא:{" "}
                       {syncReport.verify?.valid
-                        ? `תקין ✓ (${syncReport.verify.sigOk}/${syncReport.verify.checked} חתימות)`
-                        : "שבור ✗ — עצור ובדוק"}
+                        ? `תקין (${syncReport.verify.sigOk}/${syncReport.verify.checked} חתימות)`
+                        : "שבור - עצור ובדוק"}
                     </span>
                   </div>
                 ) : syncReport.ok ? (
@@ -797,9 +797,9 @@ export function SovereigntyTab() {
 
       {/* ── ה-seal + סוכן הענן ── */}
       <Section
-        title="משמורת הזהויות — ה-seal"
+        title="משמורת הזהויות - ה-seal"
         icon={<Lock />}
-        description="מפתחות במעטפת מוצפנת; הסיסמה במשמרת מפוצלת — Secrets (ענן) + .env.local (מקומי) + כספת המפעיל"
+        description="מפתחות במעטפת מוצפנת; הסיסמה במשמרת מפוצלת - Secrets (ענן) + .env.local (מקומי) + כספת המפעיל"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <Card>
@@ -821,11 +821,11 @@ export function SovereigntyTab() {
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-zinc-500 dark:text-zinc-400">כתובת ענן</span>
-                    <HashChip value={data.seal.cloudAddress ?? "—"} label="" />
+                    <HashChip value={data.seal.cloudAddress ?? "-"} label="" />
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-zinc-500 dark:text-zinc-400">כתובת רשת</span>
-                    <HashChip value={data.seal.networkAddress ?? "—"} label="" />
+                    <HashChip value={data.seal.networkAddress ?? "-"} label="" />
                   </div>
                   <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                     {data.seal.custody}
@@ -837,7 +837,7 @@ export function SovereigntyTab() {
                 </>
               ) : (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  seal טרם נוצר — הרץ{" "}
+                  seal טרם נוצר - הרץ{" "}
                   <span dir="ltr" className="font-mono text-xs">
                     bun scripts/weave-seal.ts --create
                   </span>
@@ -849,7 +849,7 @@ export function SovereigntyTab() {
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
                 <Cloud className="h-4 w-4" />
-                סוכן הענן — weave-cloud-heart
+                סוכן הענן - weave-cloud-heart
               </CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2 text-sm">
@@ -864,7 +864,7 @@ export function SovereigntyTab() {
                     <StatusBadge status={data.cloudAgent.status === "ACTIVE" ? "VERIFIED" : "UNMEASURED"} />
                   </div>
                   <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    חותם את אימותי הפעימה; מפתחו חי רק ב-seal — לעולם לא בספר ולא ב-DB המיוצא.
+                    חותם את אימותי הפעימה; מפתחו חי רק ב-seal - לעולם לא בספר ולא ב-DB המיוצא.
                   </p>
                 </>
               ) : (
@@ -877,12 +877,12 @@ export function SovereigntyTab() {
         </div>
       </Section>
 
-      {/* ── עד הארכיון — ההיסטוריה הכתובה מעידה חיה (Task 19) ── */}
+      {/* ── עד הארכיון - ההיסטוריה הכתובה מעידה חיה (Task 19) ── */}
       {(data.archiveLine?.exists || data.anchors.derived) && (
         <Section
-          title="עד הארכיון — ההיסטוריה הכתובה של הרשת מעידה חיה"
+          title="עד הארכיון - ההיסטוריה הכתובה של הרשת מעידה חיה"
           icon={<Archive />}
-          description="גזירה חיה מהמקור בכל פעימה · שורש חדש ⇒ CROSSCHAIN חתום ⇒ העוגנים מעידים ב-$0 · אותו שורש ⇒ דילוג כנה"
+          description="גזירה חיה מהמקור בכל פעימה · שורש חדש => CROSSCHAIN חתום => העוגנים מעידים ב-$0 · אותו שורש => דילוג כנה"
         >
           <Card>
             <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
@@ -905,18 +905,18 @@ export function SovereigntyTab() {
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       הגזירה המקורית שאטמה את הארכיון פעם אחת; העד המחזר יורש את אותה
-                      תוכנית-האש — נאמנות ההעברה הוכחה בשחזור מושלם של אותו שורש.
+                      תוכנית-האש - נאמנות ההעברה הוכחה בשחזור מושלם של אותו שורש.
                     </TooltipContent>
                   </Tooltip>
                 )}
                 <span className="font-mono text-xs text-zinc-500 dark:text-zinc-400" dir="ltr">
-                  {data.archiveLine?.repo ?? data.anchors.source?.repo ?? "—"}
+                  {data.archiveLine?.repo ?? data.anchors.source?.repo ?? "-"}
                 </span>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <HashChip
-                  value={data.archiveLine?.witness?.root ?? data.anchors.root ?? "—"}
+                  value={data.archiveLine?.witness?.root ?? data.anchors.root ?? "-"}
                   label={data.archiveLine?.witness ? "archiveRoot" : "merkleRoot"}
                 />
                 <CopyButton
@@ -929,7 +929,7 @@ export function SovereigntyTab() {
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">קבצים</div>
                   <div className="font-mono">
-                    {data.archiveLine?.witness?.fileCount ?? data.anchors.fileCount ?? "—"}
+                    {data.archiveLine?.witness?.fileCount ?? data.anchors.fileCount ?? "-"}
                   </div>
                 </div>
                 <div>
@@ -949,7 +949,7 @@ export function SovereigntyTab() {
                       ? `@${truncateMiddle(data.archiveLine.witness.commit, 10, 8)}`
                       : data.anchors.source?.commit
                         ? `@${truncateMiddle(data.anchors.source.commit, 10, 8)}`
-                        : "—"}
+                        : "-"}
                   </div>
                 </div>
                 <div>
@@ -961,12 +961,12 @@ export function SovereigntyTab() {
                       ? new Date(
                           data.archiveLine?.witness?.at ?? data.anchors.derivedAt ?? ""
                         ).toLocaleString("he-IL")
-                      : "—"}
+                      : "-"}
                   </div>
                 </div>
               </div>
 
-              {/* המדידה החיה מול העדות — תיבת ההשוואה */}
+              {/* המדידה החיה מול העדות - תיבת ההשוואה */}
               <div
                 className={cn(
                   "rounded-lg border p-3 text-sm",
@@ -982,10 +982,10 @@ export function SovereigntyTab() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-medium">
                         {data.archiveLine.comparison === "MATCHES-LAST-TESTIMONY"
-                          ? "המדידה החיה תואמת את העדות האחרונה — הארכיון לא השתנה ✓"
+                          ? "המדידה החיה תואמת את העדות האחרונה - הארכיון לא השתנה"
                           : data.archiveLine.comparison === "ADVANCED-BEYOND-LAST-TESTIMONY"
-                            ? "הארכיון התקדם מעבר לעדות — הפעימה הבאה תעיד ⤴"
-                            : "מדידה חיה — אין עדות קודמת להשוות"}
+                            ? "הארכיון התקדם מעבר לעדות - הפעימה הבאה תעיד"
+                            : "מדידה חיה - אין עדות קודמת להשוות"}
                       </span>
                       <span
                         dir="ltr"
@@ -1008,7 +1008,7 @@ export function SovereigntyTab() {
                   </div>
                 ) : (
                   <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    מדידה חיה לא זמינה כרגע (הריפו פרטי — הגישה ב-runner הראשי; בענן נדרש
+                    מדידה חיה לא זמינה כרגע (הריפו פרטי - הגישה ב-runner הראשי; בענן נדרש
                     WEAVE_ARCHIVE_TOKEN)
                   </span>
                 )}
@@ -1039,9 +1039,9 @@ export function SovereigntyTab() {
               </div>
 
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                תוכנית-ההאש הקנונית: {data.archiveLine?.hashPlan ?? 'sha256(file) → keccak256("path:sha256") → merkle-keccak256'}.
+                תוכנית-ההאש הקנונית: {data.archiveLine?.hashPlan ?? 'sha256(file) -> keccak256("path:sha256") -> merkle-keccak256'}.
                 הכלל שנגזר מהעוגנים: עוגן שרק "יושב" = ארכיון; שורש שנכנס לשרשרת-חתומה = כוח.
-                מרגע זה כל דחיפה של הצי לארכיון נקלטת אוטומטית בפעימה הבאה — שינוי של בית
+                מרגע זה כל דחיפה של הצי לארכיון נקלטת אוטומטית בפעימה הבאה - שינוי של בית
                 אחד ניתן לאיתור ע"י חישוב-מחדש מכל clone. משמרת:{" "}
                 {data.archiveLine?.custody ?? "upload/pat.env (runner ראשי)"}
               </p>
@@ -1050,10 +1050,10 @@ export function SovereigntyTab() {
         </Section>
       )}
 
-      {/* ── הקונסולה הציבורית — החלון חסר-המפתחות (G5) ── */}
+      {/* ── הקונסולה הציבורית - החלון חסר-המפתחות (G5) ── */}
       {data.console && (
         <Section
-          title="הקונסולה הציבורית — הרשת מפרסמת את עצמה בחוץ"
+          title="הקונסולה הציבורית - הרשת מפרסמת את עצמה בחוץ"
           icon={<Globe2 />}
           description="ריפו ציבורי שמפרסם את קו העוגנים חזרה מהשרשרת · אפס סודות · אפס תלות בסנדבוקס"
         >
@@ -1101,7 +1101,7 @@ export function SovereigntyTab() {
                   <div className="font-mono">
                     {data.console.publicStatus?.witness?.checkpoint != null
                       ? `cp#${data.console.publicStatus.witness.checkpoint}`
-                      : "—"}
+                      : "-"}
                   </div>
                 </div>
                 <div>
@@ -1111,7 +1111,7 @@ export function SovereigntyTab() {
                       ? `${data.console.publicStatus.freshness.verdict} · ${
                           data.console.publicStatus.freshness.ageHours ?? "?"
                         }h`
-                      : "—"}
+                      : "-"}
                   </div>
                 </div>
                 <div>
@@ -1119,7 +1119,7 @@ export function SovereigntyTab() {
                   <div className="font-mono text-xs">
                     {data.console.publicStatus?.generatedAt
                       ? new Date(data.console.publicStatus.generatedAt).toLocaleString("he-IL")
-                      : "—"}
+                      : "-"}
                   </div>
                 </div>
                 <div>
@@ -1150,8 +1150,8 @@ export function SovereigntyTab() {
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 ארכיטקטורה חסרת-מפתחות: workflow בריפו הציבורי קורא את קו העוגנים מ-Steem
                 RPC ציבורי (custom_json מהעד בסמכות posting), מרנדר status.json ומבצע
-                commit ב-GITHUB_TOKEN שלו בלבד — כל 6 שעות (פעימה :00 → עיגון :20 →
-                קריאה-חזרה :40). מוות של הסנדבוקס או של הריפו הפרטי לא מפיל את החלון.
+                commit ב-GITHUB_TOKEN שלו בלבד - כל 6 שעות (פעימה ב-:00, עיגון ב-:20,
+                קריאה-חזרה ב-:40). מוות של הסנדבוקס או של הריפו הפרטי לא מפיל את החלון.
                 מה שלא עולה לחוץ לעולם: מפתחות, טוקנים, יתרות, מסמכים פנימיים (CONSOLE-POLICY.md).
               </p>
             </CardContent>
@@ -1159,17 +1159,17 @@ export function SovereigntyTab() {
         </Section>
       )}
 
-      {/* ── ערכת הכלים — משמרת בת-קיימא ── */}
+      {/* ── ערכת הכלים - משמרת בת-קיימא ── */}
       {data.toolkit?.derived && (
         <Section
-          title="ערכת הכלים — ה-toolkit הפך לנכס מאומת"
+          title="ערכת הכלים - ה-toolkit הפך לנכס מאומת"
           icon={<FileCheck2 />}
-          description="5 zips + פריצה מלאה ⇒ שורש מרקל בספר · הבתים במשמרת Project-files"
+          description="5 zips + פריצה מלאה => שורש מרקל בספר · הבתים במשמרת Project-files"
         >
           <Card>
             <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
               <div className="flex flex-wrap items-center gap-3">
-                <HashChip value={data.toolkit.root ?? "—"} label="merkleRoot" />
+                <HashChip value={data.toolkit.root ?? "-"} label="merkleRoot" />
                 <CopyButton value={data.toolkit.root ?? ""} label="העתק שורש" />
                 {data.toolkit.attestation ? (
                   <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
@@ -1184,7 +1184,7 @@ export function SovereigntyTab() {
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">קבצים</div>
-                  <div className="font-mono">{data.toolkit.fileCount ?? "—"}</div>
+                  <div className="font-mono">{data.toolkit.fileCount ?? "-"}</div>
                 </div>
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">נפח</div>
@@ -1201,13 +1201,13 @@ export function SovereigntyTab() {
                   <div className="font-mono text-xs">
                     {data.toolkit.derivedAt
                       ? new Date(data.toolkit.derivedAt).toLocaleString("he-IL")
-                      : "—"}
+                      : "-"}
                   </div>
                 </div>
               </div>
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 ה-zips המקוריים הוצלבו מול ה-blob-sha של Project-files (5/5 זהים לבית) · הורדה עתידית
-                מאומתת מול השורש בספר — מות הסנדבוקס לא מאבד מה-toolkit דבר.
+                מאומתת מול השורש בספר - מות הסנדבוקס לא מאבד מה-toolkit דבר.
               </p>
             </CardContent>
           </Card>
@@ -1217,7 +1217,7 @@ export function SovereigntyTab() {
       {/* ── קו ה-Steem/Hive ── */}
       {data.steemLine?.exists && (
         <Section
-          title="קו ה-Steem/Hive — הספר מעיד על עצמו מחוץ לגיטהאב"
+          title="קו ה-Steem/Hive - הספר מעיד על עצמו מחוץ לגיטהאב"
           icon={<Globe2 />}
           description="root של ה-checkpoint עולה כ-custom_json על שתי שרשראות ציבוריות · ה-txids חוזרים לספר כאימות ANCHOR חתום"
         >
@@ -1232,7 +1232,7 @@ export function SovereigntyTab() {
                   }
                 />
                 <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-                  @{data.steemLine?.account ?? "—"} · {data.steemLine?.opId ?? "—"}
+                  @{data.steemLine?.account ?? "-"} · {data.steemLine?.opId ?? "-"}
                 </span>
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   {data.steemLine?.authority ?? ""}
@@ -1241,7 +1241,7 @@ export function SovereigntyTab() {
               {data.steemLine?.last ? (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <HashChip value={data.steemLine.last.root ?? "—"} label={`cp#${data.steemLine.last.checkpoint ?? "?"}`} />
+                    <HashChip value={data.steemLine.last.root ?? "-"} label={`cp#${data.steemLine.last.checkpoint ?? "?"}`} />
                     {data.steemLine.last.attSeq != null && (
                       <span className="text-xs text-zinc-500 dark:text-zinc-400">
                         אימות ANCHOR seq {data.steemLine.last.attSeq}
@@ -1274,13 +1274,13 @@ export function SovereigntyTab() {
                       </a>
                     )}
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                      עוגן {data.steemLine.last.at ? new Date(data.steemLine.last.at).toLocaleString("he-IL") : "—"}
+                      עוגן {data.steemLine.last.at ? new Date(data.steemLine.last.at).toLocaleString("he-IL") : "-"}
                     </span>
                   </div>
                 </>
               ) : (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  הקו חמוש אך טרם עוגן — הריצה היומית (07:17Z) או dispatch ידני יעגנו את ה-checkpoint האחרון.
+                  הקו חמוש אך טרם עוגן - הריצה היומית (07:17Z) או dispatch ידני יעגנו את ה-checkpoint האחרון.
                 </p>
               )}
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
@@ -1295,27 +1295,27 @@ export function SovereigntyTab() {
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">workload ענן</div>
                   <div className="font-mono text-xs" dir="ltr">
-                    {data.steemLine?.workflowArmed ? "weave-anchor.yml" : "—"}
+                    {data.steemLine?.workflowArmed ? "weave-anchor.yml" : "-"}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">קצב</div>
-                  <div className="font-mono text-xs" dir="ltr">{data.steemLine?.schedule ?? "—"}</div>
+                  <div className="font-mono text-xs" dir="ltr">{data.steemLine?.schedule ?? "-"}</div>
                 </div>
               </div>
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 {data.steemLine?.custody}
-                {" · העדות חיה לנצח מול ה-RPC הציבורי — בלי לסמוך עלינו ועל גיטהאב כלל."}
+                {" · העדות חיה לנצח מול ה-RPC הציבורי - בלי לסמוך עלינו ועל גיטהאב כלל."}
               </p>
             </CardContent>
           </Card>
         </Section>
       )}
 
-      {/* ── קו ה-ZERO — מסילת ה-EVM בגז-אפס (G1) ── */}
+      {/* ── קו ה-ZERO - מסילת ה-EVM בגז-אפס (G1) ── */}
       {data.zeroLine?.exists && (
         <Section
-          title="קו ה-ZERO — מסילת EVM בגז-אפס (G1 · Z Chain 9369)"
+          title="קו ה-ZERO - מסילת EVM בגז-אפס (G1 · Z Chain 9369)"
           icon={<Zap />}
           description="root של ה-checkpoint עולה כטרנזקציית EVM אמיתית על רשת EVM ראשית ציבורית שבה הגז מדוד 0x0 · העלות הכוללת: 0.000000"
         >
@@ -1345,7 +1345,7 @@ export function SovereigntyTab() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-                  {data.zeroLine?.account ?? "—"}
+                  {data.zeroLine?.account ?? "-"}
                 </span>
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   מפתח הרשת מה-seal · מאזן 0 בכוונה
@@ -1354,7 +1354,7 @@ export function SovereigntyTab() {
               {data.zeroLine?.last ? (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <HashChip value={data.zeroLine.last.root ?? "—"} label={`cp#${data.zeroLine.last.checkpoint ?? "?"}`} />
+                    <HashChip value={data.zeroLine.last.root ?? "-"} label={`cp#${data.zeroLine.last.checkpoint ?? "?"}`} />
                     {data.zeroLine.last.attSeq != null && (
                       <span className="text-xs text-zinc-500 dark:text-zinc-400">
                         אימות ANCHOR seq {data.zeroLine.last.attSeq}
@@ -1383,22 +1383,22 @@ export function SovereigntyTab() {
                       </a>
                     )}
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                      עוגן {data.zeroLine.last.at ? new Date(data.zeroLine.last.at).toLocaleString("he-IL") : "—"}
+                      עוגן {data.zeroLine.last.at ? new Date(data.zeroLine.last.at).toLocaleString("he-IL") : "-"}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
                     <div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400">בלוק</div>
-                      <div className="font-mono" dir="ltr">{data.zeroLine.last.block ?? "—"}</div>
+                      <div className="font-mono" dir="ltr">{data.zeroLine.last.block ?? "-"}</div>
                     </div>
                     <div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400">גז שנוצל</div>
-                      <div className="font-mono" dir="ltr">{data.zeroLine.last.gasUsed ?? "—"}</div>
+                      <div className="font-mono" dir="ltr">{data.zeroLine.last.gasUsed ?? "-"}</div>
                     </div>
                     <div>
                       <div className="text-xs text-zinc-500 dark:text-zinc-400">מחיר בפועל</div>
                       <div className="font-mono" dir="ltr">
-                        {data.zeroLine.last.effectiveGasPrice === "0" ? "0x0 — אפס" : (data.zeroLine.last.effectiveGasPrice ?? "—")}
+                        {data.zeroLine.last.effectiveGasPrice === "0" ? "0x0 - אפס" : (data.zeroLine.last.effectiveGasPrice ?? "-")}
                       </div>
                     </div>
                     <div>
@@ -1411,7 +1411,7 @@ export function SovereigntyTab() {
                 </>
               ) : (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  הקו חמוש אך טרם עוגן — הריצה המתוזמנת (:30) או dispatch ידני יעגנו את ה-checkpoint האחרון.
+                  הקו חמוש אך טרם עוגן - הריצה המתוזמנת (:30) או dispatch ידני יעגנו את ה-checkpoint האחרון.
                 </p>
               )}
               {data.zeroLine?.live?.readback && (
@@ -1442,28 +1442,28 @@ export function SovereigntyTab() {
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">workload ענן</div>
                   <div className="font-mono text-xs" dir="ltr">
-                    {data.zeroLine?.workflowArmed ? "weave-anchor-zero.yml" : "—"}
+                    {data.zeroLine?.workflowArmed ? "weave-anchor-zero.yml" : "-"}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-zinc-500 dark:text-zinc-400">קצב</div>
-                  <div className="font-mono text-xs" dir="ltr">{data.zeroLine?.schedule ?? "—"}</div>
+                  <div className="font-mono text-xs" dir="ltr">{data.zeroLine?.schedule ?? "-"}</div>
                 </div>
               </div>
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 {data.zeroLine?.zeroGasProtocol}
                 {" · "}
                 {data.zeroLine?.custody}
-                {" · כל צד שלישי מאמת מ-zscan.live או rpc.zero.tech — בלי לסמוך עלינו ועל גיטהאב כלל."}
+                {" · כל צד שלישי מאמת מ-zscan.live או rpc.zero.tech - בלי לסמוך עלינו ועל גיטהאב כלל."}
               </p>
             </CardContent>
           </Card>
         </Section>
       )}
 
-      {/* ── SAOS-NET — שרשרת הכלכלה של הצי ("המערכת שתחליף") ── */}
+      {/* ── SAOS-NET - שרשרת הכלכלה של הצי ("המערכת שתחליף") ── */}
       <Section
-        title="SAOS-NET — שרשרת הכלכלה של הצי (המערכת שתחליף)"
+        title="SAOS-NET - שרשרת הכלכלה של הצי (המערכת שתחליף)"
         icon={<Coins />}
         description="קרנל דטרמיניסטי (saos-net/0): אותו ג׳נזיס + אותן טרנזקציות = אותו state-root בכל מכונה · DEX + נכסים עטופים + דלתות רשת (108) + קציר (111) + ארנקי-הצבא (113) · האימות כאן: replay מלא מה-snapshot"
       >
@@ -1472,12 +1472,12 @@ export function SovereigntyTab() {
         {saosnetState === "loading" && (
           <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
             <RefreshCw className="h-4 w-4 animate-spin" />
-            מריץ replay דטרמיניסטי על ה-pack (snapshot ⇒ בלוקים ⇒ שורש)…
+            מריץ replay דטרמיניסטי על ה-pack (snapshot =&gt; בלוקים =&gt; שורש)…
           </div>
         )}
         {saosnetState === "error" && (
           <p className="text-sm text-rose-600 dark:text-rose-400">
-            אימות SAOS-NET לא עלה כרגע — ה-runner ינסה שוב בטעינה הבאה. כנות: לא מוצג סטטוס בלי מדידה.
+            אימות SAOS-NET לא עלה כרגע - ה-runner ינסה שוב בטעינה הבאה. כנות: לא מוצג סטטוס בלי מדידה.
           </p>
         )}
         {saosnetState === "ready" && saosnet && (
@@ -1505,7 +1505,7 @@ export function SovereigntyTab() {
 
             <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-3">
               <div className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                אימות replay עצמאי (מתמטי — רץ כרגע בשרת)
+                אימות replay עצמאי (מתמטי - רץ כרגע בשרת)
               </div>
               <p dir="auto" className="mt-1 font-mono text-[11px] leading-relaxed text-emerald-700/90 dark:text-emerald-400/90">
                 {saosnet.verify.verdict}
@@ -1516,12 +1516,12 @@ export function SovereigntyTab() {
               </p>
             </div>
 
-            {/* עוגן-עוגנים — ההצלבה של שרשרת הצי בספר של THE WEAVE */}
+            {/* עוגן-עוגנים - ההצלבה של שרשרת הצי בספר של THE WEAVE */}
             <div className="rounded-md border border-violet-500/20 bg-violet-500/5 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-400">
                   <Link2 className="h-3.5 w-3.5" />
-                  עוגן-עוגנים — ההצלבה בספר של THE WEAVE
+                  עוגן-עוגנים - ההצלבה בספר של THE WEAVE
                 </div>
                 <Button
                   size="sm"
@@ -1543,7 +1543,7 @@ export function SovereigntyTab() {
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <StatusBadge status="VERIFIED" />
                     <span dir="ltr" className="font-mono text-xs text-zinc-500 dark:text-zinc-400">
-                      att {crosschain.attSeq} · {crosschain.netVersion ?? "—"} ·
+                      att {crosschain.attSeq} · {crosschain.netVersion ?? "-"} ·
                       h={crosschain.height?.toLocaleString("en-US") ?? "?"}
                     </span>
                     <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
@@ -1558,25 +1558,25 @@ export function SovereigntyTab() {
                       <HashChip value={crosschain.stateRoot} label="stateRoot מוצלב" />
                       {crosschain.height === saosnet.net.height ? (
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
-                          תואם ל-replay החי ✓ — הספר מעיד על המצב הנוכחי
+                          תואם ל-replay החי - הספר מעיד על המצב הנוכחי
                         </span>
                       ) : (
                         <span className="text-[11px] text-amber-600 dark:text-amber-400">
-                          ה-pack התקדם מאז העדות (עדות h={crosschain.height?.toLocaleString("en-US")} · נוכחי h={saosnet.net.height.toLocaleString("en-US")}) — הפעימה הבאה תצלב את החדש
+                          ה-pack התקדם מאז העדות (עדות h={crosschain.height?.toLocaleString("en-US")} · נוכחי h={saosnet.net.height.toLocaleString("en-US")}) - הפעימה הבאה תצלב את החדש
                         </span>
                       )}
                     </div>
                   )}
                   <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                    העדות נכתבה כאימות CROSSCHAIN חתום (עד נגזר-seal) ⇒ checkpoint מכסה ⇒ העוגנים
-                    (Steem/Hive ב-:20 · ZERO-EVM ב-:30) מעידים עליה החוצה ב-$0. אותו stateRoot ⇒ דילוג
-                    כנה; replay שבור ⇒ REFUSED — לא נכתבת עדות על מצב בלתי-מאומת.
+                    העדות נכתבה כאימות CROSSCHAIN חתום (עד נגזר-seal) =&gt; checkpoint מכסה =&gt; העוגנים
+                    (Steem/Hive ב-:20 · ZERO-EVM ב-:30) מעידים עליה החוצה ב-$0. אותו stateRoot =&gt; דילוג
+                    כנה; replay שבור =&gt; REFUSED - לא נכתבת עדות על מצב בלתי-מאומת.
                   </p>
                 </>
               ) : (
                 <p className="mt-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  שרשרת הכלכלה של הצי טרם הוצלבה בספר — הפעימה (§5.6) או הכפתור יכתבו את העדות
-                  החתומה הראשונה: replay מלא ⇒ אימות CROSSCHAIN ⇒ checkpoint ⇒ עיגון ב-$0.
+                  שרשרת הכלכלה של הצי טרם הוצלבה בספר - הפעימה (§5.6) או הכפתור יכתבו את העדות
+                  החתומה הראשונה: replay מלא =&gt; אימות CROSSCHAIN =&gt; checkpoint =&gt; עיגון ב-$0.
                 </p>
               )}
             </div>
@@ -1592,7 +1592,7 @@ export function SovereigntyTab() {
               </div>
               <div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">נכסים עטופים</div>
-                <div className="font-mono text-xs" dir="ltr">{saosnet.economy.wrappedSymbols.join(" · ") || "—"}</div>
+                <div className="font-mono text-xs" dir="ltr">{saosnet.economy.wrappedSymbols.join(" · ") || "-"}</div>
               </div>
               <div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">ארנקי-הצבא (113)</div>
@@ -1606,11 +1606,11 @@ export function SovereigntyTab() {
               </div>
               <div>
                 <div className="text-xs text-zinc-500 dark:text-zinc-400">דלתות (108)</div>
-                <div className="font-mono" dir="ltr">{saosnet.doors.issued}↑ / {saosnet.doors.sent}✓</div>
+                <div className="font-mono" dir="ltr">{saosnet.doors.issued} הונפקו / {saosnet.doors.sent} נשלחו</div>
               </div>
             </div>
 
-            {/* חיילי הצי — החשבונות והכלכלה החיה */}
+            {/* חיילי הצי - החשבונות והכלכלה החיה */}
             <div>
               <div className="mb-2 flex items-center gap-2 text-sm font-medium">
                 <Server className="h-4 w-4 text-zinc-400" />
@@ -1636,10 +1636,10 @@ export function SovereigntyTab() {
                         <TableCell className="font-mono text-xs" dir="ltr">{a.steem}</TableCell>
                         <TableCell className="font-mono text-xs" dir="ltr">{a.lp}</TableCell>
                         <TableCell className="hidden font-mono text-xs sm:table-cell" dir="ltr">
-                          {a.lockedSaos > 0 ? a.lockedSaos : "—"}
+                          {a.lockedSaos > 0 ? a.lockedSaos : "-"}
                         </TableCell>
                         <TableCell className="hidden font-mono text-[11px] md:table-cell" dir="ltr">
-                          {a.wrapped.join(" · ") || "—"}
+                          {a.wrapped.join(" · ") || "-"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1648,11 +1648,11 @@ export function SovereigntyTab() {
               </div>
             </div>
 
-            {/* ארנקי-הצבא — כתובות החיילים בארבע רשתות */}
+            {/* ארנקי-הצבא - כתובות החיילים בארבע רשתות */}
             <div>
               <div className="mb-2 flex items-center gap-2 text-sm font-medium">
                 <Wallet className="h-4 w-4 text-zinc-400" />
-                כתובות החיילים — ארנקים רב-רשתיים מעוגנים (evm · tron · sol · btc)
+                כתובות החיילים - ארנקים רב-רשתיים מעוגנים (evm · tron · sol · btc)
               </div>
               <div className={cn("max-h-64 overflow-y-auto", scrollBoxClass)}>
                 <Table>
@@ -1670,13 +1670,13 @@ export function SovereigntyTab() {
                       <TableRow key={w.agent + w.digest}>
                         <TableCell className="font-mono text-xs">{w.agent}</TableCell>
                         <TableCell className="font-mono text-[11px]" dir="ltr">
-                          {w.evm ? truncateMiddle(w.evm, 10, 6) : "—"}
+                          {w.evm ? truncateMiddle(w.evm, 10, 6) : "-"}
                         </TableCell>
                         <TableCell className="font-mono text-[11px]" dir="ltr">
-                          {w.tron ? truncateMiddle(w.tron, 10, 6) : "—"}
+                          {w.tron ? truncateMiddle(w.tron, 10, 6) : "-"}
                         </TableCell>
                         <TableCell className="hidden font-mono text-[11px] lg:table-cell" dir="ltr">
-                          {w.sol ? truncateMiddle(w.sol, 8, 4) : "—"}
+                          {w.sol ? truncateMiddle(w.sol, 8, 4) : "-"}
                         </TableCell>
                         <TableCell className="hidden text-xs xl:table-cell">
                           {w.hostTxid ? (
@@ -1691,7 +1691,7 @@ export function SovereigntyTab() {
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           ) : (
-                            "—"
+                            "-"
                           )}
                         </TableCell>
                       </TableRow>
@@ -1712,8 +1712,8 @@ export function SovereigntyTab() {
             </div>
 
             <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-              {saosnet.truthLabel} · הראש: <span dir="ltr" className="font-mono">{saosnet.net.issuer ?? "—"}</span> ·
-              פעימה אחרונה: <span dir="auto" className="font-mono text-[11px]">{saosnet.net.lastHeartbeat ?? "—"}</span>
+              {saosnet.truthLabel} · הראש: <span dir="ltr" className="font-mono">{saosnet.net.issuer ?? "-"}</span> ·
+              פעימה אחרונה: <span dir="auto" className="font-mono text-[11px]">{saosnet.net.lastHeartbeat ?? "-"}</span>
             </p>
           </>
         )}
@@ -1723,9 +1723,9 @@ export function SovereigntyTab() {
 
       {/* ── שערי SOV ── */}
       <Section
-        title="שערי הריבונות — SOV"
+        title="שערי הריבונות - SOV"
         icon={<ShieldCheck />}
-        description="כל שער נסגר רק ע״י אימות VERIFIED — הרשת סוגרת לעצמה"
+        description="כל שער נסגר רק ע״י אימות VERIFIED - הרשת סוגרת לעצמה"
       >
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {data.sovGates.map((g) => (
@@ -1752,7 +1752,7 @@ export function SovereigntyTab() {
       <Section
         title="מה חסר עוד ל׳הכל על גבי הרשת׳"
         icon={<Siren />}
-        description="שישה פערים בלבד — כולם נסגרים באותה שיטה: עוד workflow + עוד שורה חתומה בספר"
+        description="שישה פערים בלבד - כולם נסגרים באותה שיטה: עוד workflow + עוד שורה חתומה בספר"
       >
         <Card>
           <CardContent className="p-0">
@@ -1789,14 +1789,14 @@ export function SovereigntyTab() {
           <span dir="ltr" className="font-mono">
             {data.sovereigntyDoc ?? "SOVEREIGNTY.md"}
           </span>{" "}
-          בשורש הריפו — כולל ההסקה (I1-I5), הרכיבים שנבנו ותורת העוגנים.
+          בשורש הריפו - כולל ההסקה (I1-I5), הרכיבים שנבנו ותורת העוגנים.
         </p>
       </Section>
 
-      {/* ── פעימה אחרונה — פירוט ── */}
+      {/* ── פעימה אחרונה - פירוט ── */}
       {data.lastBeat && (
         <Section
-          title="הפעימה האחרונה — פירוט מלא"
+          title="הפעימה האחרונה - פירוט מלא"
           icon={<HeartPulse />}
           description="הדוח כפי שנכתב ע״י ה-runner שהריץ (מקומי או ענן)"
         >
@@ -1805,7 +1805,7 @@ export function SovereigntyTab() {
               <div className="flex flex-wrap gap-x-6 gap-y-1">
                 <span>
                   <span className="text-zinc-500 dark:text-zinc-400">מתי: </span>
-                  {data.lastBeat.at ? new Date(data.lastBeat.at).toLocaleString("he-IL") : "—"}
+                  {data.lastBeat.at ? new Date(data.lastBeat.at).toLocaleString("he-IL") : "-"}
                 </span>
                 <span>
                   <span className="text-zinc-500 dark:text-zinc-400">runner: </span>
@@ -1833,7 +1833,7 @@ export function SovereigntyTab() {
                     )}
                     dir="ltr"
                   >
-                    {data.lastBeat.verdict ?? "—"}
+                    {data.lastBeat.verdict ?? "-"}
                   </span>
                 </span>
                 {data.lastBeat.checked != null && (
@@ -1854,7 +1854,7 @@ export function SovereigntyTab() {
                 <div className="text-xs text-emerald-600 dark:text-emerald-400">
                   שערים שנסגרו בפעימה:{" "}
                   {data.lastBeat.gatesClosed
-                    .map((g) => `${g.code} ← אימות #${g.attSeq}`)
+                    .map((g) => `אימות #${g.attSeq} סגר ${g.code}`)
                     .join(" · ")}
                 </div>
               )}

@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 5 — אקוסיסטם
+// THE WEAVE · טאב 5 - אקוסיסטם
 // מלאי 13 הריפוים: נפח, שכפול מדוד, מטרות מבניות וממצאים
 // ─────────────────────────────────────────────────────────────────────
 
@@ -102,7 +102,7 @@ export function EcosystemTab() {
                 {totalMb} MB
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                רק חלק מהריפוים נמדד בפועל — השאר ממתינים למלאי מדוד
+                רק חלק מהריפוים נמדד בפועל - השאר ממתינים למלאי מדוד
               </p>
             </MotionCard>
             <MotionCard className="p-4 sm:p-6">
@@ -132,7 +132,7 @@ export function EcosystemTab() {
           <Card className="flex flex-wrap items-center gap-2 border-amber-500/30 bg-amber-500/[0.05] p-3 sm:p-4">
             <Ruler className="size-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <p className="text-xs leading-relaxed sm:text-sm">
-              <span className="font-semibold">סטטוס: ביקורת 2026-09</span> — מבוסס מדידה,
+              <span className="font-semibold">סטטוס: ביקורת 2026-09</span> - מבוסס מדידה,
               לא התרשמות. כל ציון שכפול נמדד ותועד; ריפו לא מדוד מסומן במפורש.
             </p>
           </Card>
@@ -148,7 +148,7 @@ export function EcosystemTab() {
           <div className="flex-1">
             <h2 className="text-base font-semibold tracking-tight sm:text-lg">מלאי הריפוים</h2>
             <p className="text-xs text-muted-foreground sm:text-sm">
-              מסודר לפי שכפול מדוד — המשוכפל ביותר ראשון
+              מסודר לפי שכפול מדוד - המשוכפל ביותר ראשון
             </p>
           </div>
         </div>
@@ -200,7 +200,7 @@ export function EcosystemTab() {
           <TargetItem
             icon={<Boxes className="size-4" />}
             name="weave-core"
-            description="פלטפורמת האימות — הפרויקט הזה"
+            description="פלטפורמת האימות - הפרויקט הזה"
           />
           <TargetItem
             icon={<Database className="size-4" />}
@@ -219,7 +219,7 @@ export function EcosystemTab() {
           />
         </div>
         <p className="mt-4 rounded-lg border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
-          כל מעבר ריפו נעול מאחורי שער R1 עם מדידת שכפול חוזרת — המטרה: שכפול
+          כל מעבר ריפו נעול מאחורי שער R1 עם מדידת שכפול חוזרת - המטרה: שכפול
           ממוצע מדוד מתחת ל-0.2.
         </p>
       </MotionCard>
@@ -236,7 +236,7 @@ function RepoRow({ repo }: { repo: RepoDTO }) {
         {repo.name}
       </TableCell>
       <TableCell className="font-mono text-xs tabular-nums" dir="ltr">
-        {repo.sizeMb > 0 ? `${repo.sizeMb} MB` : "—"}
+        {repo.sizeMb > 0 ? `${repo.sizeMb} MB` : "-"}
       </TableCell>
       <TableCell className="max-w-[13rem] sm:max-w-[18rem]">
         <span className="flex flex-wrap items-center gap-1.5 text-xs">

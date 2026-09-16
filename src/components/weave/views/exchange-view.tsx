@@ -1,12 +1,12 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Exchange View — הבורסה הריבונית החיה.
+// THE WEAVE · Exchange View - הבורסה הריבונית החיה.
 //
 // הדקס האמיתי מתוך saos-dex (ריפו פרטי, מופעל מ-127.0.0.1:3010 דרך
 // ה-rewrite של שרת-האם). כל הנתונים נמשכים מ-/saos-dex/api/dex/state
-// ב-long-poll (v=N) — השרשרת מתקדמת, העמוד מתעדכן לבד.
-// הגרף: canvas טהור מהיסטוריית הטייפ שנצברת בצד הלקוח — אפס CDN.
+// ב-long-poll (v=N) - השרשרת מתקדמת, העמוד מתעדכן לבד.
+// הגרף: canvas טהור מהיסטוריית הטייפ שנצברת בצד הלקוח - אפס CDN.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -123,7 +123,7 @@ interface DexStateResponse {
   tape: TapeEvent[];
 }
 
-// µ → יחידות (1 SAOS = 1000µ; מחיר = µ-ציטוט ליחידת בסיס)
+// µ -> יחידות (1 SAOS = 1000µ; מחיר = µ-ציטוט ליחידת בסיס)
 function fmtPriceMu(p: number): string {
   return (p / 1000).toFixed(3);
 }
@@ -321,7 +321,7 @@ function OrderBook({ market }: { market: DexMarket }) {
       </div>
       {bids.length === 0 && asks.length === 0 && (
         <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-          הספר ריק — הארנה עדיין מצטטת
+          הספר ריק - הארנה עדיין מצטטת
         </p>
       )}
     </div>
@@ -387,7 +387,7 @@ export function ExchangeView() {
         }
       }
       if (alive) {
-        // מראת ענן: הגרסה מתקדמת בפעימות הבורסה — סקירה רגועה של 12ש'
+        // מראת ענן: הגרסה מתקדמת בפעימות הבורסה - סקירה רגועה של 12ש'
         timer = setTimeout(poll, 12_000);
       }
     };
@@ -510,7 +510,7 @@ export function ExchangeView() {
           <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
             <p className="text-sm">
               מראת הדקס בענן לא נענית כרגע ({error}). הבורסה עצמה פועמת
-              בענן — הבעיה בקריאה בלבד; נסה שוב בעוד רגע.
+              בענן - הבעיה בקריאה בלבד; נסה שוב בעוד רגע.
             </p>
             <Button size="sm" variant="outline" onClick={refreshNow}>
               נסה שוב
@@ -592,7 +592,7 @@ export function ExchangeView() {
                 >
                   {m.bestAsk > 0 && m.bestBid > 0
                     ? `${(((m.fair - m.refPrice) / m.refPrice) * 100).toFixed(2)}%`
-                    : "—"}
+                    : "-"}
                 </span>
               </button>
             );
@@ -609,7 +609,7 @@ export function ExchangeView() {
               <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
                 <div className="flex items-baseline gap-3">
                   <span className="font-mono text-lg font-bold">
-                    {market ? fmtPriceMu(market.fair) : "—"} $
+                    {market ? fmtPriceMu(market.fair) : "-"} $
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {market?.key ?? ""}
@@ -617,13 +617,13 @@ export function ExchangeView() {
                 </div>
                 <div className="flex gap-4 font-mono text-xs text-muted-foreground">
                   <span>
-                    bid {market ? fmtPriceMu(market.bestBid) : "—"}
+                    bid {market ? fmtPriceMu(market.bestBid) : "-"}
                   </span>
                   <span>
-                    ask {market ? fmtPriceMu(market.bestAsk) : "—"}
+                    ask {market ? fmtPriceMu(market.bestAsk) : "-"}
                   </span>
                   <span>
-                    TWAP {market ? fmtPriceMu(market.twap) : "—"}
+                    TWAP {market ? fmtPriceMu(market.twap) : "-"}
                   </span>
                 </div>
               </div>
@@ -679,13 +679,13 @@ export function ExchangeView() {
                           {ev.base}/{ev.quote}
                         </td>
                         <td className="px-2 py-1.5 font-mono font-semibold">
-                          {ev.price ? fmtPriceMu(ev.price) : "—"}
+                          {ev.price ? fmtPriceMu(ev.price) : "-"}
                         </td>
                         <td className="px-2 py-1.5 font-mono text-muted-foreground">
-                          {ev.amountMu ? fmtAmtMu(ev.amountMu) : "—"}
+                          {ev.amountMu ? fmtAmtMu(ev.amountMu) : "-"}
                         </td>
                         <td className="px-2 py-1.5 font-mono text-muted-foreground">
-                          {ev.taker ?? ev.maker ?? "—"}
+                          {ev.taker ?? ev.maker ?? "-"}
                         </td>
                       </tr>
                     ))}
@@ -781,7 +781,7 @@ export function ExchangeView() {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">חלון בלוקים</span>
                     <span className="font-mono">
-                      {lastSeal.fromHeight}–{lastSeal.toHeight}
+                      {lastSeal.fromHeight}-{lastSeal.toHeight}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-2">

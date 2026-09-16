@@ -1,10 +1,10 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · רוטציית מפתח (EVM-3) — הסמכה חתומה EIP-712 עם nonce:
+// THE WEAVE · רוטציית מפתח (EVM-3) - הסמכה חתומה EIP-712 עם nonce:
 // המפתח הישן מסמיך את ההעברה לכתובת החדשה, ה-nonce נצרך, והפעולה
 // מתועדת ב-KeyOp. לאחר מכן: הדגמת דחיית המפתח המשוך (replay-demo)
-// ותיעוד המנגנון בספר באימות BUILD — לקראת סגירת שער EVM-3.
+// ותיעוד המנגנון בספר באימות BUILD - לקראת סגירת שער EVM-3.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -37,7 +37,7 @@ import { CheckRow } from "./bits";
 // ── מצב מנגנון משותף לזרימות ההדגמה (אתגר + רוטציה) ────────────────
 // נשמר ברמת כרטיס הסוכן כדי לבנות את ה-evidence של אימות ה-BUILD
 // מתוצאות הצעדים שבוצעו בפועל בסשן זה. הדיאלוג מציג את המצב הזה
-// ישירות — סגירה ופתיחה שומרות על רציפות ההדגמה.
+// ישירות - סגירה ופתיחה שומרות על רציפות ההדגמה.
 
 export interface MechanismState {
   challengeNonce?: number;
@@ -99,8 +99,8 @@ export function RotateDialog({
       onMechanism({ op: res.op });
       onActivity();
       reloadAgents();
-      toast.success(`המפתח של ${agent.name} הוחלף — op nonce ${res.op.nonce}`, {
-        description: `old ${short(res.op.oldAddress)} → new ${short(res.op.newAddress)}`,
+      toast.success(`המפתח של ${agent.name} הוחלף - op nonce ${res.op.nonce}`, {
+        description: `old ${short(res.op.oldAddress)} -> new ${short(res.op.newAddress)}`,
       });
     } catch (err) {
       const msg = errorMessage(err);
@@ -120,7 +120,7 @@ export function RotateDialog({
       );
       onMechanism({ replayDemo: res.result });
       onActivity();
-      toast.success("הדגמת הדחייה עברה — המפתח המשוך נדחה", {
+      toast.success("הדגמת הדחייה עברה - המפתח המשוך נדחה", {
         description:
           "attempted ≠ active: החתימה תקינה קריפטוגרפית, אך הזהות שלולה",
       });
@@ -148,7 +148,7 @@ export function RotateDialog({
     );
     if (op) {
       parts.push(
-        `rotation op digest=${short(op.digest)} nonce=${op.nonce} old=${short(op.oldAddress)}→new=${short(op.newAddress)}`
+        `rotation op digest=${short(op.digest)} nonce=${op.nonce} old=${short(op.oldAddress)}->new=${short(op.newAddress)}`
       );
     }
     if (replayDemo) {
@@ -173,10 +173,10 @@ export function RotateDialog({
         claim: BUILD_CLAIM,
         evidence,
       });
-      // אימות ראשון של הסוכן — attCount עולה ורוטציה ננעלת מעתה (דוקטרינה)
+      // אימות ראשון של הסוכן - attCount עולה ורוטציה ננעלת מעתה (דוקטרינה)
       reloadAgents();
       toast.success(
-        "נרשם בספר — כעת סגור את שער EVM-3 בלשונית 'תוכנית ופרוטוקול'",
+        "נרשם בספר - כעת סגור את שער EVM-3 בלשונית 'תוכנית ופרוטוקול'",
         {
           description: "אימות BUILD חתום EIP-191 נוסף לשרשרת",
         }
@@ -201,7 +201,7 @@ export function RotateDialog({
             </Badge>
           </DialogTitle>
           <DialogDescription>
-            הסמכה חתומה EIP-712 עם nonce — המפתח הישן מסמיך את ההעברה, ואז נשלל.
+            הסמכה חתומה EIP-712 עם nonce - המפתח הישן מסמיך את ההעברה, ואז נשלל.
           </DialogDescription>
         </DialogHeader>
 
@@ -219,7 +219,7 @@ export function RotateDialog({
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="rotate-note" className="text-xs text-muted-foreground">
-                  הערה (אופציונלי — תתועד ב-op)
+                  הערה (אופציונלי - תתועד ב-op)
                 </Label>
                 <Input
                   id="rotate-note"
@@ -252,7 +252,7 @@ export function RotateDialog({
               {/* פאנל תוצאה */}
               <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.04] p-3 sm:p-4">
                 <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-                  הרוטציה בוצעה — הסמכה חתומה במפתח הישן
+                  הרוטציה בוצעה - הסמכה חתומה במפתח הישן
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <HashChip value={op.oldAddress} label="old" head={8} tail={6} />
@@ -288,7 +288,7 @@ export function RotateDialog({
                     label="recovered === oldAddress"
                     hint={
                       <span className="inline-flex flex-wrap items-center gap-1.5">
-                        ecrecover שחזר את הכתובת הישנה מהחתימה — ההסמכה אמיתית:{" "}
+                        ecrecover שחזר את הכתובת הישנה מהחתימה - ההסמכה אמיתית:{" "}
                         <HashChip value={op.recovered} head={8} tail={6} copy={false} />
                       </span>
                     }
@@ -328,7 +328,7 @@ export function RotateDialog({
                 <div className="rounded-lg border border-rose-500/40 bg-rose-500/[0.06] p-3 sm:p-4">
                   <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-300">
                     <Ban className="size-4 shrink-0" />
-                    נדחה ✓ — החתימה במפתח הישן
+                    נדחה - החתימה במפתח הישן
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2">
                     <HashChip

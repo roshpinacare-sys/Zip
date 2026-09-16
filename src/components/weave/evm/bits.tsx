@@ -1,9 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · EVM UI bits — אבנים משותפות להרחבות ה-EVM בטאבים
-// CheckRow (✓/✗), Stepper לזרימות צעדים, ועזרת העתקה עם טוסט.
-// סמנטיקה: emerald=✓/הצלחה · rose=✗/דחייה · amber=LOCAL · zinc=NOT-YET
+// THE WEAVE · EVM UI bits - אבנים משותפות להרחבות ה-EVM בטאבים
+// CheckRow (OK/FAIL), Stepper לזרימות צעדים, ועזרת העתקה עם טוסט.
+// סמנטיקה: emerald=תקין/הצלחה · rose=כשל/דחייה · amber=LOCAL · zinc=NOT-YET
 // ─────────────────────────────────────────────────────────────────────
 
 import type * as React from "react";
@@ -12,7 +12,7 @@ import { Check, CheckCircle2, Copy, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// ── CheckRow — שורת בדיקה עם ✓ emerald / ✗ rose ─────────────────────
+// ── CheckRow - שורת בדיקה עם emerald תקין / rose כשל ─────────────────────
 
 export function CheckRow({
   ok,
@@ -48,7 +48,7 @@ export function CheckRow({
   );
 }
 
-// ── Stepper — מצביע צעדים ויזואלי פשוט ──────────────────────────────
+// ── Stepper - מצביע צעדים ויזואלי פשוט ──────────────────────────────
 
 export function Stepper({
   steps,
@@ -56,7 +56,7 @@ export function Stepper({
   className,
 }: {
   steps: { label: string }[];
-  current: number; // 1-based; current > steps.length ⇒ הכל הושלם
+  current: number; // 1-based; current > steps.length => הכל הושלם
   className?: string;
 }) {
   return (
@@ -138,7 +138,7 @@ export async function copyWithToast(text: string, label: string): Promise<boolea
   return ok;
 }
 
-// ── LabeledCopyButton — כפתור עם אייקון + טקסט + העתקה ──────────────
+// ── LabeledCopyButton - כפתור עם אייקון + טקסט + העתקה ──────────────
 
 export function LabeledCopyButton({
   value,

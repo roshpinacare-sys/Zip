@@ -1,9 +1,9 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 6 — תוכנית ופרוטוקול
+// THE WEAVE · טאב 6 - תוכנית ופרוטוקול
 // לוח שלבים L/R/EVM + סגירת שלב באימות VERIFIED + הפרוטוקול
-// הדגמת מפתח: R2 (ROTATION) — אימות 5 הוא UNMEASURED ולא יסגור שער
+// הדגמת מפתח: R2 (ROTATION) - אימות 5 הוא UNMEASURED ולא יסגור שער
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
@@ -56,22 +56,22 @@ const PRINCIPLES: string[] = [
   "כל טענה נחתמת במפתח EVM של הסוכן (EIP-191) ושוחזרה ב-ecrecover.",
   "אימות = חישוב מחדש של כל השרשרת, לא סמיכות על אף צומת.",
   "שלב בתוכנית נסגר רק ע\"י אימות VERIFIED מסוג השער.",
-  "סודות לעולם לא עולים לשרשרת — רק שורשים (roots) והוכחות (proofs).",
+  "סודות לעולם לא עולים לשרשרת - רק שורשים (roots) והוכחות (proofs).",
   "תווית אמת מוצהרת תמיד: REAL / LOCAL / NOT-YET.",
 ];
 
 const CHAIN_RULES: { term: string; description: string }[] = [
   {
     term: "GENESIS",
-    description: "prevHash של רשומה 1 — 0x00..00 (32 בתים אפס)",
+    description: "prevHash של רשומה 1 - 0x00..00 (32 בתים אפס)",
   },
   {
     term: "entryHash",
-    description: "keccak256(רשומה קנונית) — סדר מפתחות קבוע",
+    description: "keccak256(רשומה קנונית) - סדר מפתחות קבוע",
   },
   {
     term: "prevHash",
-    description: "כל רשומה מקשרת לקודמת — hash-chained",
+    description: "כל רשומה מקשרת לקודמת - hash-chained",
   },
   {
     term: "Merkle root",
@@ -79,7 +79,7 @@ const CHAIN_RULES: { term: string; description: string }[] = [
   },
   {
     term: "EIP-712 domain",
-    description: "chainId=31337 — devnet מתועד",
+    description: "chainId=31337 - devnet מתועד",
   },
 ];
 
@@ -99,14 +99,14 @@ export function PlanTab() {
     return [
       {
         key: "L",
-        title: "הסמכה L0–L4",
-        description: "הסמכה הדרגתית של הסוכן — מביקורת ועד אוטונומיה מגודרת",
+        title: "הסמכה L0-L4",
+        description: "הסמכה הדרגתית של הסוכן - מביקורת ועד אוטונומיה מגודרת",
         stages: all.filter((s) => s.code.startsWith("L")),
       },
       {
         key: "R",
         title: "ארגון הרשת R",
-        description: "ארגון האקוסיסטם, הכספת והמלאי — מיזוג וניקוי מדודים",
+        description: "ארגון האקוסיסטם, הכספת והמלאי - מיזוג וניקוי מדודים",
         stages: all.filter((s) => s.code.startsWith("R")),
       },
       {
@@ -119,7 +119,7 @@ export function PlanTab() {
         key: "SOV",
         title: "ריבונות SOV",
         description:
-          "סולם הריבונות — בית בגיט, לב-ענן, איחול-עצמי; נסגרים בפעימות חתומות",
+          "סולם הריבונות - בית בגיט, לב-ענן, איחול-עצמי; נסגרים בפעימות חתומות",
         stages: all.filter((s) => s.code.startsWith("SOV")),
       },
     ];
@@ -136,7 +136,7 @@ export function PlanTab() {
             לוח התוכנית
           </h2>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            שלב נסגר רק ע&quot;י אימות VERIFIED מסוג השער — לא בהצהרה
+            שלב נסגר רק ע&quot;י אימות VERIFIED מסוג השער - לא בהצהרה
           </p>
         </div>
       </section>
@@ -216,7 +216,7 @@ export function PlanTab() {
             </span>
             <div>
               <h3 className="font-semibold">כללי השרשרת</h3>
-              <p className="text-xs text-muted-foreground">קנון ה-hash — מ-GENESIS ועד ה-head</p>
+              <p className="text-xs text-muted-foreground">קנון ה-hash - מ-GENESIS ועד ה-head</p>
             </div>
           </div>
           <dl className="mt-4 flex flex-col gap-3">
@@ -347,7 +347,7 @@ function CloseStageDialog({
   const eligible = attestations.filter(
     (a) => a.status === "VERIFIED" && a.claimType === stage.gateType
   );
-  // אימותים מסוג השער שאינם VERIFIED — להדגמה שהשרת הוא הסמכות
+  // אימותים מסוג השער שאינם VERIFIED - להדגמה שהשרת הוא הסמכות
   const nonVerified = attestations.filter(
     (a) => a.status !== "VERIFIED" && a.claimType === stage.gateType
   );
@@ -359,7 +359,7 @@ function CloseStageDialog({
     try {
       const updated = await onClose({ code: stage.code, attestationSeq: selected });
       toast.success(`שלב ${updated.code} נסגר באימות #${updated.attSeq}`, {
-        description: "השער נבדק מול הספר — רק אימות VERIFIED סוגר שלב",
+        description: "השער נבדק מול הספר - רק אימות VERIFIED סוגר שלב",
       });
       onOpenChange(false);
     } catch (err) {
@@ -383,7 +383,7 @@ function CloseStageDialog({
             <ClaimTypeBadge type={stage.gateType} />
           </DialogTitle>
           <DialogDescription>
-            השער: {stage.gate} — נדרש אימות VERIFIED מסוג{" "}
+            השער: {stage.gate} - נדרש אימות VERIFIED מסוג{" "}
             <span dir="ltr" className="font-mono">
               {stage.gateType}
             </span>
@@ -421,7 +421,7 @@ function CloseStageDialog({
               <AlertTriangle className="text-amber-600 dark:text-amber-400" />
               <AlertTitle>השער נשאר סגור</AlertTitle>
               <AlertDescription>
-                אין אימות VERIFIED מתאים — השער נשאר סגור. צור אימות{" "}
+                אין אימות VERIFIED מתאים - השער נשאר סגור. צור אימות{" "}
                 <span dir="ltr" className="font-mono">
                   {stage.gateType}
                 </span>{" "}
@@ -434,7 +434,7 @@ function CloseStageDialog({
             <div className="rounded-lg border border-dashed p-3">
               <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                 <ShieldQuestion className="size-3.5" />
-                אימותים מסוג השער שאינם VERIFIED — נסה בכל זאת (השרת יקבע):
+                אימותים מסוג השער שאינם VERIFIED - נסה בכל זאת (השרת יקבע):
               </p>
               <RadioGroup
                 value={selected !== null ? String(selected) : undefined}

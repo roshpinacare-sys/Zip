@@ -1,15 +1,15 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 3 — סוכנים
+// THE WEAVE · טאב 3 - סוכנים
 // גריד כרטיסי זהויות EVM + רישום סוכן חדש + פס סטטיסטיקות EVM-3
 // (replay protection) + אתגרי nonce ורוטציית מפתח לסוכנים פעילים
 //
 // שני מצבי אמת (Task 38):
-//  · cloud — זהויות הסוכנים מהמראה הציבורית (כתובות וספירות אמיתיות;
+//  · cloud - זהויות הסוכנים מהמראה הציבורית (כתובות וספירות אמיתיות;
 //    מפתח ציבורי לא נחשף במראה ומוצג כ-placeholder מושתק). מנגנוני
 //    EVM-3 פועלים על זהויות הסנדבוקס ולכן מוסתרים בענן; קישור לצי החי.
-//  · local — כמו תמיד: כרטיסים מלאים + אתגר nonce + רוטציית מפתח.
+//  · local - כמו תמיד: כרטיסים מלאים + אתגר nonce + רוטציית מפתח.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
@@ -97,8 +97,8 @@ function SourceBadge() {
       <TooltipContent side="top" className="max-w-[280px]">
         <p className="text-xs leading-relaxed">
           {cloud
-            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
-            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+            ? "מראה ציבורית קריאה-בלבד של הספר החי - נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס - כאן פועלות כל פעולות הכתיבה והתרגילים"}
         </p>
       </TooltipContent>
     </Tooltip>
@@ -135,8 +135,8 @@ export function AgentsTab() {
           </div>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {cloud
-              ? "זהויות הסוכנים מהמראה הציבורית — כתובות EVM וספירות אימות אמיתיות"
-              : "זהויות EVM אמיתיות — secp256k1, כתובת, מפתח ציבורי"}
+              ? "זהויות הסוכנים מהמראה הציבורית - כתובות EVM וספירות אימות אמיתיות"
+              : "זהויות EVM אמיתיות - secp256k1, כתובת, מפתח ציבורי"}
           </p>
         </div>
         {cloud ? (
@@ -164,7 +164,7 @@ export function AgentsTab() {
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[280px]">
               <p className="text-xs leading-relaxed">
-                הסוכן החדש ייווצר בעותק הסנדבוקס המקומי — צי הענן נרשם על-ידי
+                הסוכן החדש ייווצר בעותק הסנדבוקס המקומי - צי הענן נרשם על-ידי
                 המרכז
               </p>
             </TooltipContent>
@@ -176,14 +176,14 @@ export function AgentsTab() {
         </Button>
       </section>
 
-      {/* פס סטטיסטיקות EVM-3 — replay protection */}
+      {/* פס סטטיסטיקות EVM-3 - replay protection */}
       <Evm3Section refreshKey={evm3Key} />
 
       <Alert className="border-amber-500/40 bg-amber-500/[0.06]">
         <KeyRound className="text-amber-600 dark:text-amber-400" />
         <AlertTitle>היכן נשמר המפתח הפרטי?</AlertTitle>
         <AlertDescription className="leading-relaxed">
-          בדמו ה-DEVNET המפתח הפרטי נשמר בשרת בלבד. בייצור המפתח אצל הסוכן —
+          בדמו ה-DEVNET המפתח הפרטי נשמר בשרת בלבד. בייצור המפתח אצל הסוכן -
           הרשת מחזיקה כתובת ומפתח ציבורי ומאמתת ב-ecrecover.
         </AlertDescription>
       </Alert>
@@ -213,7 +213,7 @@ export function AgentsTab() {
 
       {/* הערת יושר לסיכום */}
       <p className="mt-auto text-center text-xs leading-relaxed text-muted-foreground">
-        הערת יושר: המפתחות הפרטיים נשמרים בשרת לצורך ה-DEVNET בלבד — בייצור הם
+        הערת יושר: המפתחות הפרטיים נשמרים בשרת לצורך ה-DEVNET בלבד - בייצור הם
         נשמרים אצל הסוכן, והרשת רואה רק חתימות שמאומתות ב-ecrecover.
       </p>
     </FadeIn>
@@ -227,19 +227,19 @@ function AgentCard({
 }: {
   agent: AgentDTO;
   onActivity: () => void;
-  /** מצב ענן — הכרטיס מהמראה הציבורית, מנגנוני הסנדבוקס לא רלוונטיים */
+  /** מצב ענן - הכרטיס מהמראה הציבורית, מנגנוני הסנדבוקס לא רלוונטיים */
   mirror: boolean;
 }) {
   const [challengeOpen, setChallengeOpen] = useState(false);
   const [rotateOpen, setRotateOpen] = useState(false);
-  // תוצאות זרימות EVM-3 — נשמרות לבניית ה-evidence של אימות ה-BUILD
+  // תוצאות זרימות EVM-3 - נשמרות לבניית ה-evidence של אימות ה-BUILD
   const [mechanism, setMechanism] = useState<MechanismState>({});
   const patchMechanism = useCallback((patch: Partial<MechanismState>) => {
     setMechanism((m) => ({ ...m, ...patch }));
   }, []);
 
   const active = agent.status === "ACTIVE";
-  // דוקטרינה: רוטציה ב-v1 לסוכנים ללא אימותים בלבד — הכתובת בזמן החתימה
+  // דוקטרינה: רוטציה ב-v1 לסוכנים ללא אימותים בלבד - הכתובת בזמן החתימה
   // קפואה ב-entryHash של ההיסטוריה של הספר
   const rotateLocked = agent.attCount > 0;
 
@@ -297,12 +297,12 @@ function AgentCard({
                     dir="ltr"
                     className="cursor-help font-mono text-[11px] text-muted-foreground"
                   >
-                    —
+                    -
                   </span>
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p className="text-xs">
-                    המפתח הציבורי נשמר בספר הריבוני — לא נחשף במראה
+                    המפתח הציבורי נשמר בספר הריבוני - לא נחשף במראה
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -331,7 +331,7 @@ function AgentCard({
         </div>
       </dl>
 
-      {/* פעולות EVM-3 — לסוכנים פעילים בלבד, על זהויות הסנדבוקס */}
+      {/* פעולות EVM-3 - לסוכנים פעילים בלבד, על זהויות הסנדבוקס */}
       {active && !mirror ? (
         <div className="mt-4 grid grid-cols-2 gap-2 border-t pt-4">
           <Button
@@ -345,7 +345,7 @@ function AgentCard({
           {rotateLocked ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                {/* עטיפה — כדי ש-tooltip יעבוד גם על כפתור מושבת */}
+                {/* עטיפה - כדי ש-tooltip יעבוד גם על כפתור מושבת */}
                 <span className="inline-flex w-full">
                   <Button variant="outline" className="h-11 w-full" disabled>
                     <KeyRound />
@@ -355,7 +355,7 @@ function AgentCard({
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-[280px]">
                 <p className="text-xs leading-relaxed">
-                  רוטציה ב-v1 לזוכנים ללא אימותים — הכתובת בזמן החתימה קפואה
+                  רוטציה ב-v1 לזוכנים ללא אימותים - הכתובת בזמן החתימה קפואה
                   ב-entryHash של ההיסטוריה
                 </p>
               </TooltipContent>

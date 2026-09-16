@@ -1,14 +1,14 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Store — הקשר נתונים משותף לכל הטאבים.
+// THE WEAVE · Store - הקשר נתונים משותף לכל הטאבים.
 //
 // שני מצבי אמת (החלטה ארכיטקטונית אחרי מות-הסנדבוקס השלישי):
-//  · cloud (ברירת מחדל) — הספר החי מהענן: mirror.json דרך /api/live/*.
-//    הסנדבוקס ימות מתי שימות — האתר ימשיך להראות את האמת הפועמת.
-//  · local — עותק הסנדבוקס: SQLite מקומי עם מלוא הפעולות האינטראקטיביות
-//    (אימות חדש, ערעור מדומה, צ'קפוינט) — מרחב טסט מסומן בבירור.
-// פעולות כתיבה תמיד נוגעות בעותק המקומי בלבד — הענן כותב בעצמו
+//  · cloud (ברירת מחדל) - הספר החי מהענן: mirror.json דרך /api/live/*.
+//    הסנדבוקס ימות מתי שימות - האתר ימשיך להראות את האמת הפועמת.
+//  · local - עותק הסנדבוקס: SQLite מקומי עם מלוא הפעולות האינטראקטיביות
+//    (אימות חדש, ערעור מדומה, צ'קפוינט) - מרחב טסט מסומן בבירור.
+// פעולות כתיבה תמיד נוגעות בעותק המקומי בלבד - הענן כותב בעצמו
 // דרך סוכניו (ראה אזור האדמין: מרכז הפיקוד).
 // ─────────────────────────────────────────────────────────────────────
 
@@ -185,7 +185,7 @@ interface WeaveContextValue {
 
 const WeaveContext = createContext<WeaveContextValue | null>(null);
 
-// ── מיפוי המראה ← DTO מקומי (צורה תואמת, מקור מסומן) ────────────────
+// ── מיפוי המראה <- DTO מקומי (צורה תואמת, מקור מסומן) ────────────────
 
 function liveStateFromOverview(o: LiveOverview): WeaveStateDTO {
   const lastCp = o.lastCheckpoint;
@@ -269,7 +269,7 @@ function useSlice<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
     loading: false,
     error: null,
   });
-  const startedRef = useRef(0);
+  const startedRef = useRef("");
   const inFlightRef = useRef(false);
   const fetcherRef = useRef(fetcher);
   fetcherRef.current = fetcher;
@@ -308,7 +308,7 @@ function useSlice<T>(fetcher: () => Promise<T>, deps: unknown[] = []) {
 export function WeaveProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<DataMode>("cloud");
 
-  // ── השכבה החיה (תמיד נטענת — היא האמת הפומבית של האתר) ────────────
+  // ── השכבה החיה (תמיד נטענת - היא האמת הפומבית של האתר) ────────────
   const { slice: liveSlice, loadLazy: loadLive, reload: reloadLiveRaw } =
     useSlice(() =>
       apiFetch<{ live: LiveOverview; registry: RegistryDTO | null }>("/api/live/overview")
@@ -325,7 +325,7 @@ export function WeaveProvider({ children }: { children: ReactNode }) {
   };
   const loadRegistry = loadLive;
 
-  // רענון אוטומטי של האמת החיה כל 5 דקות — האתר נושם עם הענן
+  // רענון אוטומטי של האמת החיה כל 5 דקות - האתר נושם עם הענן
   useEffect(() => {
     const t = setInterval(() => void reloadLiveRaw(), 5 * 60_000);
     return () => clearInterval(t);
@@ -337,7 +337,7 @@ export function WeaveProvider({ children }: { children: ReactNode }) {
   const fetchState = useCallback(() => {
     if (mode === "cloud" && liveData) return Promise.resolve(liveStateFromOverview(liveData));
     if (mode === "cloud") {
-      // עדיין אין סקירה חיה — נסה למשוך, ואם הענן מת נפול בכנות למקומי
+      // עדיין אין סקירה חיה - נסה למשוך, ואם הענן מת נפול בכנות למקומי
       return apiFetch<{ live: LiveOverview }>("/api/live/overview")
         .then((r) => liveStateFromOverview(r.live))
         .catch(() => fetchLocalState());
@@ -379,7 +379,7 @@ export function WeaveProvider({ children }: { children: ReactNode }) {
   const { slice: stagesSlice, loadLazy: loadStages, reload: reloadStages } =
     useSlice(fetchStages);
 
-  // ── אימות שרשרת (חישוב-מחדש — מקומי בהגדרה; בענן הלב מאמת בכל פעימה) ──
+  // ── אימות שרשרת (חישוב-מחדש - מקומי בהגדרה; בענן הלב מאמת בכל פעימה) ──
   const [report, setReport] = useState<VerifyReportDTO | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<string | null>(null);
@@ -408,7 +408,7 @@ export function WeaveProvider({ children }: { children: ReactNode }) {
     return promise;
   }, []);
 
-  // ── פעולות (תמיד על העותק המקומי — הענן כותב רק דרך סוכניו) ───────
+  // ── פעולות (תמיד על העותק המקומי - הענן כותב רק דרך סוכניו) ───────
 
   const attest = useCallback(
     async (input: AttestInput) => {

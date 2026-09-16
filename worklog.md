@@ -1163,3 +1163,85 @@ Stage Summary:
 - **לולאת האימון נסגרה**: בקשה → ספר בקשות → בנייה → מסירה פומבית → הרשת מודדת → פסק דין פומבי. אם הסוכן "נופל" — זה נראה מיד, לא נשכח.
 - הכפתור של המפעיל: https://roshpinacare-sys.github.io/Console/ — התמונה הגדולה למשתמש החדש, הארנק שלם, האדמין האישי, ופסק הדין של הרשת על הסוכן.
 ---
+---
+Task ID: 2-c
+Agent: subagent-evm-root-cleaner
+Task: ניקוי גליפים (em-dash/חצים/וי-איקס/אימוג'י) מקבצי evm/ + שורש weave - עריכות טקסט בלבד
+
+Work Log:
+- נסרקו 14 הקבצים המוקצים (rg עם טווחי U+2013-2015, U+2190-21FF, U+2600-27BF, U+2B00-2BFF, U+1F000+, U+FE0F): 126 גליפים לפני -> 0 אחרי (ספירת מופעים מלאה).
+- challenge-dialog.tsx: 17 -> 0. מחרוזות toast/JSX: " — " -> " - "; "ecrecover ✓" -> "ecrecover תקין"; "ecrecover →" -> {"ecrecover ->"} (ביטוי מחרוזת כדי לעקוף TS1382 על -> בטקסט JSX).
+- local-registry-section.tsx: 16 -> 0. "seq {a} → {b}" -> "seq {a}{" -> "}{b}" (אותה סיבה); טווח "{a}–{b}" -> "{a}-{b}"; " — " -> " - " בכותרות/רמזים/toast; "שער EVM-2 (LOCAL) —" -> ":".
+- rotate-dialog.tsx: 14 -> 0. old→new -> old->new בתיאורי toast; ב-evidence (תבנית מחרוזת) old=X→new=Y -> old=X->new=Y; "נדחה ✓ —" -> "נדחה -".
+- bits.tsx: 7 -> 0. הגליפים ✓/✗/⇒ היו בהערות בלבד - CheckRow כבר מרנדר אייקוני Lucide (CheckCircle2/XCircle/Check), לכן לא נדרש שינוי קומפוננטה. הערות נוקו: (✓/✗) -> (OK/FAIL), emerald=✓ -> emerald=תקין, ⇒ -> =>.
+- deploy-kit-card.tsx: 8 -> 0. באדג' "REAL — קומפילציה מקומית" -> "REAL - ..."; placeholder "—" ל-gas -> "-".
+- evm3-section.tsx: 5 -> 0. "ecrecover ✓" ב-hint -> "ecrecover תקין".
+- shared.tsx: 16 -> 0. fmtDateTime placeholders "—" -> "-" (2 מוקומות); HashChip empty-value "—" -> "-"; רמזי תפקידים וכותרות מקטעים " — " -> " - ".
+- store.tsx: 12 -> 0. כולל "מיפוי המראה ← DTO" -> "<-" (הערה טכנית).
+- site-nav.tsx: 10 -> 0. כותרות מתג המצב: "הספר החי מהענן — האמת שפועמת..." -> " - "; aria-label "THE WEAVE — עמוד הבית" -> " - "; הערת "ענן חי ← → סנדבוקס" -> "ענן חי <-> סנדבוקס".
+- weave-canvas.tsx: 2 -> 0 (הערות). header.tsx / footer.tsx / theme-toggle.tsx: נבדקו - היו נקיים כבר (0 שינויים).
+- api.ts: 12 -> 0. רק הערות נוקו (כולל "// →" -> "// rightwards arrow" וכו' לפי שמות Unicode); מפת ההמרות GLYPH_MAP ("\u2192": "->" וכו') והרג'קס GLYPH_STRIP לא נוגעו - המנקה עצמו שלם; הודעת השגיאה "לא ניתן להתחבר לשרת — " -> " - ".
+- אומת: סריקת rg על 14 הקבצים -> 0 שורות. bunx tsc --noEmit -> 0 שגיאות בקבצים שלי (תוקנו 2 שגיאות TS1382 שנוצרו מ-"->" חשוף בטקסט JSX ע"י עטיפה בביטוי מחרוזת; הפלט זהה לחלוטין).
+
+Stage Summary:
+- 126 גליפים אסורים נוקו מ-12 קבצים (2 נוספים נמצאו נקיים); 0 נותרו. עברית טבעית נשמרה, אפס שינוי לוגיקה/imports/מחלקות/מפתחות.
+- מלכודת שחוזרת על עצמה: "->" חשוף בתור טקסט JSX מפיל TS1382 (Unexpected token). פתרון: עטיפה בביטוי מחרוזת {" -> "}. נותרו 15 שגיאות TS1382 כאלה בקבצים של סוכנים מקבילים (tabs/market-tab.tsx, tabs/sovereignty-tab.tsx, views/evolution-view.tsx) - לא שלי, לא נגעתי.
+- חריגה אחת מהרשימה שלי: ל-evm/use-local-anchors.ts יש 2 גליפים (שורות 4, 7, em-dash בהערות) - לא ברשימתי, לא נוגע. כדאי לשייך למישהו.
+---
+Task ID: 2-a
+Agent: subagent-views-cleaner
+Task: ניקוי גליפים אסורים (em-dash, חצים, ⇒/✗/↳) מעשרת קבצי views/ - עריכות טקסט בלבד, לפי מדיניות האפס-גליפים של המפעיל.
+
+Work Log:
+- ספירת בסיס מדויקת (rg -o, כל הטווחים U+2013-2015, U+2190-21FF, U+2600-27BF, U+2B00-2BFF, U+1F000+, U+FE0F): 251 גליפים ב-10 קבצים. לפי קובץ (לפני -> אחרי): evolution-view 100 -> 0, admin/missions-view 33 -> 0, home-view 25 -> 0, doctrine-view 25 -> 0, holdings-view 17 -> 0, exchange-view 16 -> 0, brain-view 14 -> 0, agents-fleet-view 9 -> 0, admin/server-view 7 -> 0, admin/command-view 5 -> 0.
+- החלפות המוניות: " — " -> " - " בפרוזה, כותרות, hints, הערות; מקפים מספריים "2020–2023" -> "2020-2023", "$0.1–0.3" -> "$0.1-0.3", "חוק 11–12" -> "חוק 11-12"; placeholder לחוסר-ערך "—" -> "-" (?? / || / : בסטטיסטיקות וטבלאות חיות, ~25 מופעים).
+- חצים בזרימות טכניות/מונו -> ASCII: doctrine "verify → attest → checkpoint → push" -> "verify -> attest -> checkpoint -> push"; missions "חותם EVM ממומן ← כוח פרסום ← עתודה" -> "->"; brain "429→קירור 90ש' · 401/403→30 דק'" -> " -> "; evolution "אינפלציה→תוכן→מכירה" -> " -> "; exchange הערת µ; "קלט←פלט" -> "קלט -> פלט" (missions).
+- עברית בפרוזה - איפה שהחץ היה תחבירי, נוסח מחדש במילים ללא איבוד משמעות: evolution "אינפלציה ← יוצרים ← בורסה" -> "אינפלציה מממנת יוצרים שמוכרים בבורסה"; הערת "הכשל שלהם ← ההפך אצלנו" -> "מול".
+- ⇒ -> => טכני: doctrine "ראיה ריקה => UNMEASURED", "מדידה לא זמינה => לא מוכרע"; evolution "טמפר של בית אחד => verdict FAIL מיידי". ✗ -> FAIL בהקשר מונו-אנגלי ("verdict ✗" -> "verdict FAIL", שני מופעים). ↳ -> -> ("def ↳" -> "def ->").
+- evolution years: "2016 →" -> "2016+", "2020 → (פיצול Steem)" -> "2020+ (פיצול Steem)", "2020 →" -> "2020+", "2019 →" -> "2019+" - עקבי עם התבנית "2019–2021+" שכבר הייתה בקובץ.
+- מלכודת TS1382 (אותה שתיינו גם אצל 2-c): "->" ו-"=>" חשופים בטקסט JSX שוברים קומפילציה. תוקנו 5 מופעים באמצעות פיציות HTML (&gt;) שרנדרזות בדיוק "->"/"=>": brain 429/401-403, missions "קלט -> פלט", evolution "=> verdict FAIL" ו-"def ->". שאר החצים יושבים בתוך מחרוזות JS - לא דורשים כלום.
+- אימות חובה: (1) rg על עשרת הקבצים עם כל הטווחים האסורים -> אפס שורות. (2) bunx tsc --noEmit -> 0 שגיאות בקבצים שלי (14 שגיאות נותרו בסך הכל, כולן TS1382 ב-tabs/anchor-tab, tabs/market-tab, tabs/sovereignty-tab - קבצים של סוכנים מקבילים, לא נגעתי).
+- משמעת טקסט-בלבד: לא שונו לוגיקה, imports, hooks, class names, keys, URLs, data-*, מפתחות i18n או רגקסים. נשמרו במכוון (מותרים): קווי הפרדה ─ (U+2500) בהערות, נקודה אמצעית · (U+00B7), גרשיים/סוגריים, סימנים מתמטיים ≠ ≫ ≥ ו-U+2212 מינוס (מחוץ לטווחים האסורים).
+
+Stage Summary:
+- 251 -> 0 גליפים בעשרת קבצי views/; tsc נקי לכל העשרה; git diff מאוזן (222 שורות הוחלפו, אפס שורות קוד שהוספו/נמחקו).
+- שיטה שעבדה: תחליפים טהורים לפי הקשר - " - " לפרוזה, "->"/"=>" ASCII לזרימות טכניות, ניסוח מחדש במילים כשהחץ היה חלק מהמשפט העברי, "&gt;" בטקסט JSX.
+- לתשומת לב המהנדס המוביל: (א) 14 שגיאות TS1382 ממתינות ב-tabs/ (חצים ASCII חשופים בטקסט JSX של סוכנים מקבילים - אותו תיקון &gt; או {" -> "} יסגור אותן). (ב) 2 em-dash בהערות evm/use-local-anchors.ts דווחו על ידי 2-c ועדיין לא שויכו לאף סוכן.
+- בדיקת A/B חד-משמעית לייחוס שגיאות: בריצת tsc מאוחרת צצו 4 שגיאות המדווחות נגד holdings-view (3) ו-home-view (1) - SourceNote children string[]/string, net?.issuer אופציונלי, BrainCircuitIcon מול typeof Gauge. הוחזרו גרסאות HEAD של שני הקבצים זמנית והורץ tsc: אותן 4 שגיאות בדיוק. כלומר קדם-קיימות בתוכנית הנוכחית (כנראה שינוי טיפוסים/תלות מסוכנים מקבילים במהלך העבודה), לא מהעריכות שלי. הגרסאות הנקיות שלי הוחזרו ואומתו. תיקון טיפוסים אלה (children: string -> ReactNode וכו') הוא שינוי לוגי - מחוץ למנדט שלי, מועבר הלאה.
+
+---
+Task ID: 2-b
+Agent: subagent-tabs-cleaner
+Task: ניקוי גליפים אסורים (אימוג'י/חצים/דינגבטים/מקפים טיפוגרפיים) מ-8 קבצי טאבי ה-weave - עריכות טקסט בלבד, אפס שינוי לוגיקה
+
+Work Log:
+- נקראו הסעיפים האחרונים של ה-worklog + מדידת בסיס מדויקת: 329 תווים אסורים ב-8 הקבצים (sovereignty 153 · market 52 · ledger 35 · anchor 28 · agents 19 · plan 18 · dashboard 17 · ecosystem 7).
+- כללי ההמרה שיושמו: " — " -> " - " בפרוזה; "—" בודד כ-placeholder -> "-" או "(במראה)"; en-dash -> "-" (L0-L4); ⇒/→ בזרימות טכניות -> ASCII "=>"/"->"; בפרוזה עברית נבנו מחדש במילים; ✓/✗ נמחקו כשהמילה הסמוכה נושאת את המשמעות ("תקין ✓" -> "תקין").
+- sovereignty-tab (153 -> 0): toast סנכרון "תקין ✓/שבור ✗" -> "תקין/שבור"; אריח דלתות "{issued}↑ / {sent}✓" -> "{issued} הונפקו / {sent} נשלחו"; רשימת שערים "code ← אימות #N" -> "אימות #N סגר code"; לוח זמנים "(פעימה :00 → עיגון :20 → קריאה-חזרה :40)" -> "(פעימה ב-:00, עיגון ב-:20, קריאה-חזרה ב-:40)"; ⤴ (U+2934 - מחוץ לטווחי הבדיקה של המשימה אך חץ-אימוג'י מובהק) נמחק גם כן; שרשראות חזקקנות טכניות (snapshot => בלוקים => שורש) נשארו כ-ASCII.
+- market-tab (52 -> 0): שבבי הימור "↑/↓" -> "YES/NO" (הצבע כבר מבדיל צדדים); "כשל מדידה ⇒ לא מוכרע (fail-closed)" -> "כשל מדידה משאיר ללא הכרעה (fail-closed)"; "ללא השגה ⇒ החזר מלא" -> "ללא השגה - החזר מלא"; שבבי זוכים "points → payout" -> "points -&gt; payout".
+- ledger-tab (35 -> 0): toast "שרשרת תקינה ✓ N רשומות" -> "שרשרת תקינה (N רשומות)"; תיאור ערעור "לפני: X ← אחרי: Y" -> "לפני: X · אחרי: Y"; placeholder טבלה "— במראה —" -> "(במראה)".
+- anchor-tab (28 -> 0): טווח seq "attFrom → attTo" -> "-&gt;" במונו; "— במראה" -> "(במראה)" x2; "—" בודד ב-tooltip -> "-".
+- agents-tab (19 -> 0), plan-tab (18 -> 0, כולל en-dash "L0–L4" -> "L0-L4"), dashboard-tab (17 -> 0; "txid ← explorer" בהערת כותרת -> "txid · explorer"; toast+badge תקינה באותה שיטת ledger), ecosystem-tab (7 -> 0) - כולם " — " -> " - " + טיפול במקרי קצה.
+- נקודת JSX שנתפסה ב-tsc ותוקנה: ">" חשוף בטקסט JSX שובר קימפול (TS1382), ולכן חצים טכניים בטקסט-על הוצלחו כישויות HTML: " =&gt; " ו-" -&gt; " (במקור ASCII טהור, ברינדור -> / =>). הכל בתוך מחרוזות/תגובות נשאר ASCII רגיל.
+- אימות חובה: (1) rg על טווחי המשימה [U+2013-2015 · U+2190-21FF · U+2600-27BF · U+2B00-2BFF · U+1F000-1FAFF · U+FE0F] וגם U+2900-297F על 8 הקבצים -> 0 שורות; (2) bunx tsc --noEmit -> 0 שגיאות המיוחסות לקבצים אלה; (3) git diff: 295/295 שורות בדיוק (החלפות טקסט 1:1, אפס שורות שנוספו/הוסרו) - לוגיקה, imports, hooks, מפתחות, classNames, URLs, data-* לא נגעו; המותר (· · ─ במפרידי תגובות · מרכאות) נשמר במקומו.
+
+Stage Summary:
+- 329 -> 0: כל הגליפים האסורים טוהרו מ-8 טאבי ה-weave (string literals + תגובות), העברית נשארה טבעית וללא איבוד משמעות; סריקת המאמת A14 תעבור על החלק הזה של הקונסולה.
+- שיעור לצוות: חצים בטקסט JSX חייבים escape כישות (&gt;) - ">" חשוף שובר קימפול; במחרוזות ובתגובות ASCII רגיל עובד.
+---
+Task ID: 4
+Agent: subagent-public-port
+Task: התאמת הקונסולה הציבורית לעיצוב הסנדבוקס (zinc כהה + אמרלד, header זכוכית, pill nav) + עברית RTL כברירת מחדל + אפס גליפים ב-index.html ו-wallet.html - בלי לשבור אף אחת מ-15 הקביעות של agent-verify.
+
+Work Log:
+- קריאת הקשר: 3 הסעיפים האחרונים ב-worklog (Task 39, 2-a, 2-b, 2-c) + agent/verify/assertions.json - 15 קביעות מול ה-URL החי, כולל A02 (6 סקציות data-console-section), A03 (data-submenu), A04-A06 (hero-bigpicture / fleet-live / admin-area), A14 (אפס אימוג'י/דינגבט/חצים בדף הבית), A15 (verify-results גלוי).
+- מצב העץ בקבלה: index.html ו-wallet.html כבר היו מודיפיקאים בעץ העבודה (סשן קודם שלא סיים דיווח). ה-diff כולו נבדק שורה-שורה מול המפרט, הושלמו הפערים והכל אומת E2E. אף קובץ אחר לא נגע (agent/, .github/, gate/acid/net.html, assets, hub/ וכו').
+- עיצוב (index.html, ~464 שורות הוחלפו): פלטת gold #d4af37 הוסרה לחלוטין - bg #09090b, panel rgba(255,255,255,.03)/.05, גבולות .09/.16, accent אמרלד #10b981/#34d399 (bg .10, border .35) + radial אמרלד ברקע. header sticky rgba(9,9,11,.85) + backdrop-blur(10px). nav מרכזי במיכל pill (rounded-full, מסגרת, padding 4px) עם 6 אייקוני SVG מוטמעים 16px stroke-1.8 (בית=בית, הרשת=גריד, סוכנים=משתמשים, בורסה=גרף, ידע=ספר, אדמין=מגן-וי) - active = #fafafa מוצק + טקסט #09090b + צל קטן. בלוק מותג: קופסת לוגו rounded-xl עם מסגרת אמרלד .35 + רקע .10 + woven-star SVG (כמו site-nav.tsx) + "SAOS · THE WEAVE". תת-תפריט: pills מלאים #fafafa/#09090b ב-active. hero: eyebrow אמרלד, h1 clamp(30,5.4vw,52) משקל 800, CTAs #fafafa/ghost. כרטיסים radius 16 + hover translateY(-2px), KPI 28px tabular-nums, tags rounded-full עם רקע צבעוני עדין (emerald/green/red/amber), שורות טבלה rgba(.06), meter אמרלד, footer mt-auto + safe-area, focus-visible אמרלד, transitions 150-200ms, theme-color #09090b, favicon אמרלד.
+- שפת ברירת מחדל הפוכה: html lang="he" dir="rtl", LANG="he" בטעינה (localStorage מכבד בחירה קודמת), כפתור "English" ב-header, כותרת עברית. שני המילונים EN/HE שלמים - אפס מפתחות data-i ששונו (diff מאוזן מול HEAD).
+- ניקוי גליפים (תקן המפעיל): index.html 149 -> 0 (הכל U+2014 em-dash; " - " בפרוזה, ":" בהקשרי ניסוח, "…" במקום placeholder מקף בודד). wallet.html 21 -> 0: em-dash 5, en-dash 1 (CSS content), חצים 3 (-> בזרימות מונו), וי 5 + סימני-X 3 (נמחקו/FAIL), אימוג'י 4 (👛🔁🌱🧬 הוחלפו באייקוני SVG מוטמעים 22px stroke-1.8 - עדיין A14-תקין כי SVG בלבד), FE0F/אחרים - סה"כ לשני הקבצים 170 -> 0. גם הערות קוד בעברית נוקו.
+- שימור לוגיקה מלא: כל ה-fetches זהים ל-HEAD (status.json, mirror.json, agents/registry.json, saos-live.json, dex/world.json, agent/state.json, agent/requests.json, agent/verify/results.json, GitHub API x2 - diff מאומת), כל ה-ID וה-data-i keys זהים, ראוטינג hash + תתי-תפריט + מובייל + toggle שפה ללא שינוי.
+
+Stage Summary:
+- אימות מלא (שרת :8901 + agent-browser): אפס שגיאות קונסולה; עברית RTL בטעינה; 6 סקציות מנווטות + תתי-תפריט נגלל; נתונים חיים - 136 אימותים, צי 10/13, מוח 3/3, עד "טרי"; verify-results מרנדר ALL_PASS עם 15 שורות; toggle EN/HE עובד שני הכיוונים; מובייל 375x812 בלי גלישה אופקית (scrollW=clientW=375) + burger + 24 קישורי תפריט; wallet.html נפתח ללא שגיאות; 25 בקשות, אפס 404; סריקת node - שני הקבצים CLEAN; מדדי A02-A06+A14+A15 נספרו ועברו.
+- צילומי ראיה: /tmp/task4-public-local.png (דסקטופ EN), /tmp/task4-public-local-he.png (דסקטופ HE - ברירת המחדל), /tmp/task4-public-mobile-he.png, /tmp/task4-verify-area.png, /tmp/task4-wallet-check.png. בדיקת VLM: אפס זהב/צהוב במסך, layout נקי בלי חפיפות.
+- לסיכום המהנדס המוביל: שינויים לא מחויבים בעץ (index.html 464 שורות, wallet.html 40) - מוכנים ל-commit + push; agent-verify צפוי להישאר ALL_PASS 15/15 (שום סמן/URL/רינדור לא נפגע). שים לב ש-wallet.html שמר במכוון על עיצוב הזהב שלו (ניקוי גליפים בלבד לפי המנדט).

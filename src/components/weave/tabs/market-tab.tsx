@@ -1,15 +1,15 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · טאב 8 — שוק האמת (השוק החכם של הרשת)
+// THE WEAVE · טאב 8 - שוק האמת (השוק החכם של הרשת)
 //
-// הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה — של
+// הסחורה: הכרעה עתידית של טענות מדידות. השופט: המדידה - של
 // הרשת עצמה (PlanStage שנסגר · Checkpoint שנוצר · מספר אימותי
 // ANCHOR · עוגני ZERO בספר · סטטוס אימות) או של שרשרת ציבורית
-// חיצונית חיה (גובה בלוק ZERO 9369 — השופט החיצוני, בקריאה
+// חיצונית חיה (גובה בלוק ZERO 9369 - השופט החיצוני, בקריאה
 // חסרת-מפתחות ב-$0).
-// לא הצבעה, לא דעה, לא כסף — נקודות אמת (מוניטין מוצהר).
-// הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0.
+// לא הצבעה, לא דעה, לא כסף - נקודות אמת (מוניטין מוצהר).
+// הסליקה נכנסת לספר => checkpoint => עיגון ב-$0.
 //
 // כל אירוע בספר השוק חתום EIP-191: STAKE בחתימת הסוכן שמהמר,
 // OPEN בחתימת הפותח, SETTLE/REFUND בחתימת מפתח הרשת.
@@ -220,10 +220,10 @@ export function MarketTab() {
       const settled = (r.settled ?? []).length;
       const refunded = (r.refunded ?? []).length;
       if (settled + refunded === 0) {
-        toast.info("המכריע רץ — אין שווקים להכרעה כרגע; המדידה קובעת");
+        toast.info("המכריע רץ - אין שווקים להכרעה כרגע; המדידה קובעת");
       } else {
         toast.success(
-          `הוכרעו ${settled} · הוחזרו ${refunded} · אימותי MARKET ${(r.attSeqs ?? []).join(", ")} · cp#${r.checkpoint?.index ?? "—"} נוצר`
+          `הוכרעו ${settled} · הוחזרו ${refunded} · אימותי MARKET ${(r.attSeqs ?? []).join(", ")} · cp#${r.checkpoint?.index ?? "-"} נוצר`
         );
       }
       await load();
@@ -259,7 +259,7 @@ export function MarketTab() {
             שוק האמת
           </h2>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            שוק חכם על טענות מדידות — השופט הוא המדידה: של הרשת עצמה, או של שרשרת ציבורית חיצונית חיה (ZERO 9369) — לא הצבעה ולא דעה
+            שוק חכם על טענות מדידות - השופט הוא המדידה: של הרשת עצמה, או של שרשרת ציבורית חיצונית חיה (ZERO 9369) - לא הצבעה ולא דעה
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -297,7 +297,7 @@ export function MarketTab() {
           <Section
             title="החוקה של השוק"
             icon={<Scale />}
-            description="הסחורה: הכרעה עתידית של טענות מדידות · ההון: נקודות אמת (מוניטין מוצהר, אפס כסף) · הסליקה נכנסת לספר ⇒ checkpoint ⇒ עיגון ב-$0"
+            description="הסחורה: הכרעה עתידית של טענות מדידות · ההון: נקודות אמת (מוניטין מוצהר, אפס כסף) · הסליקה נכנסת לספר => checkpoint => עיגון ב-$0"
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <MotionCard className="p-4 sm:p-6">
@@ -313,9 +313,9 @@ export function MarketTab() {
                   <HashChip value={data.book.headHash} label="head" />
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  כל צומת יכול לחשב מחדש — ומטרות גובה-בלוק ZERO נמדדות מהשרשרת
+                  כל צומת יכול לחשב מחדש - ומטרות גובה-בלוק ZERO נמדדות מהשרשרת
                   הציבורית עצמה, בקריאה חסרת-מפתחות. השוק לא ממציא תוצאות:
-                  כשל מדידה ⇒ לא מוכרע (fail-closed).
+                  כשל מדידה משאיר ללא הכרעה (fail-closed).
                 </p>
                 {data.openContext.zeroJudge?.reachable && (
                   <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
@@ -334,7 +334,7 @@ export function MarketTab() {
               <MotionCard className="p-4 sm:p-6">
                 <div className="flex items-center gap-2">
                   <Coins className="size-4 text-muted-foreground" />
-                  <span className="text-sm font-semibold">לוח ההון — נקודות אמת</span>
+                  <span className="text-sm font-semibold">לוח ההון - נקודות אמת</span>
                   <span className="ms-auto font-mono text-xs text-muted-foreground" dir="ltr">
                     start {data.startingPoints}
                   </span>
@@ -370,7 +370,7 @@ export function MarketTab() {
                   </Table>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  הון פתיחה מוצהר לכל סוכן — מוניטין, לא כסף; השוק לא מלווה ולא מנפיש.
+                  הון פתיחה מוצהר לכל סוכן - מוניטין, לא כסף; השוק לא מלווה ולא מנפיש.
                 </p>
               </MotionCard>
             </div>
@@ -382,7 +382,7 @@ export function MarketTab() {
               <div className="flex flex-wrap items-center gap-2">
                 <Gavel className="size-4 text-emerald-600 dark:text-emerald-400" />
                 <span className="text-sm font-semibold">
-                  {actionable.length} שווקים מוכנים להכרעה — המדידה כבר קיימת
+                  {actionable.length} שווקים מוכנים להכרעה - המדידה כבר קיימת
                 </span>
                 <Button size="sm" className="ms-auto" onClick={runResolver} disabled={settleBusy}>
                   {settleBusy ? "מכריע…" : "הכרע עכשיו"}
@@ -404,7 +404,7 @@ export function MarketTab() {
                       )}
                       dir="ltr"
                     >
-                      {r.action === "SETTLE" ? `→ ${r.measured.outcome}` : "→ REFUND"}
+                      {r.action === "SETTLE" ? `-> ${r.measured.outcome}` : "-> REFUND"}
                     </span>
                     <p className="mt-0.5 font-mono text-[11px] text-muted-foreground" dir="auto">
                       {r.measured.evidence}
@@ -419,11 +419,11 @@ export function MarketTab() {
           <Section
             title={`שווקים פתוחים (${openListings.length})`}
             icon={<TrendingUp />}
-            description="כל שוק — טענה מדידה עם תאריך תפוגה; פג תוקף ללא הכרעה ⇒ החזר מלא (כנות מבנית)"
+            description="כל שוק - טענה מדידה עם תאריך תפוגה; פג תוקף ללא הכרעה => החזר מלא (כנות מבנית)"
           >
             {openListings.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                אין שווקים פתוחים — פתח שוק על טענה מדידה הבאה של הרשת.
+                אין שווקים פתוחים - פתח שוק על טענה מדידה הבאה של הרשת.
               </p>
             ) : (
               <div className="flex flex-col gap-4">
@@ -446,7 +446,7 @@ export function MarketTab() {
             <Section
               title={`היסטוריית סליקות (${closedListings.length})`}
               icon={<Gavel />}
-              description="כל סליקה — אימות MARKET חתום בספר הראשי; ה-checkpoint מכסה; העוגנים מעידים ב-$0"
+              description="כל סליקה - אימות MARKET חתום בספר הראשי; ה-checkpoint מכסה; העוגנים מעידים ב-$0"
             >
               <div className={cn("max-h-96 overflow-y-auto", scrollBoxClass)}>
                 <div className="flex flex-col gap-3">
@@ -498,7 +498,7 @@ function OpenMarketCard({
   const yesShare = total > 0 ? Math.round((listing.potYes / total) * 100) : 50;
   const expired = Date.parse(listing.byDate) <= Date.now();
 
-  // מטרת השופט החיצוני — התקדמות חיה מהשרשרת הציבורית
+  // מטרת השופט החיצוני - התקדמות חיה מהשרשרת הציבורית
   const zeroTarget =
     listing.target?.type === "zero-block-height" ? Number(listing.target.height) : null;
   const zeroLive = zeroJudge?.reachable ? (zeroJudge.height ?? null) : null;
@@ -509,7 +509,7 @@ function OpenMarketCard({
   const zeroRemaining =
     zeroTarget != null && zeroLive != null ? Math.max(0, zeroTarget - zeroLive) : null;
 
-  // מטרת קו ה-ZERO — התקדמות עוגנים חיה מהספר (ספירת anchorNet)
+  // מטרת קו ה-ZERO - התקדמות עוגנים חיה מהספר (ספירת anchorNet)
   const zeroAnchorTarget =
     listing.target?.type === "zero-anchor-count" ? Number(listing.target.count) : null;
   const zeroAnchorProgress =
@@ -558,7 +558,7 @@ function OpenMarketCard({
           <span
             dir="ltr"
             className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-mono text-[10px] text-amber-700 dark:text-amber-300"
-            title={listing.successorOf ? `רצף — הדור שנולד מ-m#${listing.successorOf}` : "רצף — דור הייסוד"}
+            title={listing.successorOf ? `רצף - הדור שנולד מ-m#${listing.successorOf}` : "רצף - דור הייסוד"}
           >
             SEQUENCE·D{listing.sequence.depth}
             {listing.successorOf ? `·M${listing.successorOf}` : "·GEN"}
@@ -578,14 +578,14 @@ function OpenMarketCard({
         <div className="mt-2 rounded-lg border bg-muted/40 px-3 py-2">
           <div className="flex flex-wrap items-center gap-2">
             <Link2 className="size-3.5 text-muted-foreground" />
-            <span className="text-xs font-medium">קו ה-ZERO — עוגנים בספר</span>
+            <span className="text-xs font-medium">קו ה-ZERO - עוגנים בספר</span>
             {zeroAnchorCount != null ? (
               <span className="ms-auto font-mono text-xs text-muted-foreground" dir="ltr">
                 live {zeroAnchorCount} / target {zeroAnchorTarget}
               </span>
             ) : (
               <span className="ms-auto text-[10px] text-red-600 dark:text-red-400">
-                הספירה לא זמינה — המכריע יחכה למדידה (fail-closed)
+                הספירה לא זמינה - המכריע יחכה למדידה (fail-closed)
               </span>
             )}
           </div>
@@ -611,7 +611,7 @@ function OpenMarketCard({
             </div>
           )}
           <p className="mt-1.5 text-[10px] leading-relaxed text-muted-foreground">
-            המדידה: ספירת anchorNet=zero-9369 בספר — כל checkpoint שנחת בפועל על
+            המדידה: ספירת anchorNet=zero-9369 בספר - כל checkpoint שנחת בפועל על
             Z Chain 9369 בגז-אפס. ניתנת לספירה-חוזרת ע"י כל צומת מה-ledger המיוצא.
           </p>
         </div>
@@ -621,14 +621,14 @@ function OpenMarketCard({
         <div className="mt-2 rounded-lg border bg-muted/40 px-3 py-2">
           <div className="flex flex-wrap items-center gap-2">
             <Globe className="size-3.5 text-muted-foreground" />
-            <span className="text-xs font-medium">השופט החיצוני — שרשרת ZERO 9369</span>
+            <span className="text-xs font-medium">השופט החיצוני - שרשרת ZERO 9369</span>
             {zeroLive != null ? (
               <span className="ms-auto font-mono text-xs text-muted-foreground" dir="ltr">
                 live {zeroLive.toLocaleString("en-US")} / target {zeroTarget.toLocaleString("en-US")}
               </span>
             ) : (
               <span className="ms-auto text-[10px] text-red-600 dark:text-red-400">
-                RPC לא זמין — המכריע יחכה למדידה (fail-closed)
+                RPC לא זמין - המכריע יחכה למדידה (fail-closed)
               </span>
             )}
           </div>
@@ -702,7 +702,7 @@ function OpenMarketCard({
                       : "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-400"
                   )}
                 >
-                  {s.agentName} {s.side === "YES" ? "↑" : "↓"} {s.points}
+                  {s.agentName} {s.side === "YES" ? "YES" : "NO"} {s.points}
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top">
@@ -748,7 +748,7 @@ function OpenMarketCard({
                     : "hover:bg-muted"
                 )}
               >
-                YES — יאומת
+                YES - יאומת
               </button>
               <button
                 type="button"
@@ -760,7 +760,7 @@ function OpenMarketCard({
                     : "hover:bg-muted"
                 )}
               >
-                NO — יופרך
+                NO - יופרך
               </button>
             </div>
           </div>
@@ -787,7 +787,7 @@ function OpenMarketCard({
         </div>
         {maxPoints <= 0 && agentId && (
           <p className="mt-2 text-xs text-red-600 dark:text-red-400">
-            אין הון זמין לסוכן זה — השוק לא מלווה (כנות).
+            אין הון זמין לסוכן זה - השוק לא מלווה (כנות).
           </p>
         )}
       </div>
@@ -834,7 +834,7 @@ function ClosedMarketCard({ listing }: { listing: ListingView }) {
                 dir="ltr"
                 className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[10px] text-emerald-700 dark:text-emerald-400"
               >
-                {w.agentName}: {w.points} → {w.payout}
+                {w.agentName}: {w.points} -&gt; {w.payout}
               </span>
             ))}
             {(listing.losers ?? []).map((x) => (
@@ -848,14 +848,14 @@ function ClosedMarketCard({ listing }: { listing: ListingView }) {
             ))}
           </div>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            הסליקה נכתבה כאימות MARKET חתום בספר הראשי — העוגנים (Steem/Hive/ZERO) מעידים עליה ב-$0.
+            הסליקה נכתבה כאימות MARKET חתום בספר הראשי - העוגנים (Steem/Hive/ZERO) מעידים עליה ב-$0.
           </p>
         </>
       ) : (
         <p className="mt-2 text-xs text-muted-foreground">
           {listing.refundReason === "expired-unresolved"
-            ? "פג תוקף ללא הכרעה מדודה — כל ההימורים הוחזרו במלואם (השוק לא ממציא תוצאה)."
-            : "אין זוכים — ההימורים הוחזרו (פתיחת-חזרה כנה)."}
+            ? "פג תוקף ללא הכרעה מדודה - כל ההימורים הוחזרו במלואם (השוק לא ממציא תוצאה)."
+            : "אין זוכים - ההימורים הוחזרו (פתיחת-חזרה כנה)."}
         </p>
       )}
     </MotionCard>
@@ -903,11 +903,11 @@ function NewMarketDialog({
       setIndex(String(context.checkpointMax + 2));
       setCount(String(context.anchorCount + 3));
       // ברירת מחדל חכמה לקו ה-ZERO: שתי ריצות עוגן נוספות (הקו מעיד
-      // כל 6 שעות — 00:30 · 06:30 · 12:30 · 18:30 UTC) ⇒ אופק ~12 שעות
+      // כל 6 שעות - 00:30 · 06:30 · 12:30 · 18:30 UTC) => אופק ~12 שעות
       // לטענה עתידית-ממשית בקצב הקו האמיתי
       setZeroCount(String((context.zeroAnchorCount ?? 0) + 2));
       // ברירת מחדל חכמה לשופט החיצוני: הגובה החי + 4,320 בלוקים (≈3 שעות
-      // בקצב הנמדד) — טענה עתידית-ממשית באופק סביר להימור
+      // בקצב הנמדד) - טענה עתידית-ממשית באופק סביר להימור
       const liveHeight = context.zeroJudge?.reachable ? context.zeroJudge.height : null;
       if (liveHeight != null) {
         setHeight(String(liveHeight + 4320));
@@ -955,7 +955,7 @@ function NewMarketDialog({
       const json = await res.json();
       if (!json.ok) throw new Error(json.error ?? "פתיחת השוק נכשלה");
       toast.success(
-        `השוק נפתח ונחתם — אירוע m#${json.market.marketSeq} בספר השוק${type === "zero-anchor-count" && sequence ? " · הימור-רצף: בסליקה מדודה הרשת תפתח את הדור הבא בעצמה" : ""}`
+        `השוק נפתח ונחתם - אירוע m#${json.market.marketSeq} בספר השוק${type === "zero-anchor-count" && sequence ? " · הימור-רצף: בסליקה מדודה הרשת תפתח את הדור הבא בעצמה" : ""}`
       );
       setTitle("");
       onOpenChange(false);
@@ -978,7 +978,7 @@ function NewMarketDialog({
             פתיחת שוק על טענה מדידה
           </DialogTitle>
           <DialogDescription>
-            המטרה חייבת להיות מדידה עתידית — של הרשת עצמה (ה-DB) או של
+            המטרה חייבת להיות מדידה עתידית - של הרשת עצמה (ה-DB) או של
             שרשרת ציבורית חיצונית חיה (ZERO 9369). שוק על עבר או על דבר
             שאינו ניתן למדידה יידחה (fail-closed).
           </DialogDescription>
@@ -991,7 +991,7 @@ function NewMarketDialog({
               className="mt-1 text-sm"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="למשל: קו העדות יתעבה — אימותי ANCHOR יגיעו ל-12"
+              placeholder="למשל: קו העדות יתעבה - אימותי ANCHOR יגיעו ל-12"
             />
           </div>
 
@@ -1070,11 +1070,11 @@ function NewMarketDialog({
                 onChange={(e) => setZeroCount(e.target.value)}
               />
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-                הקו מעיד כל 6 שעות (00:30 · 06:30 · 12:30 · 18:30 UTC) — עוגן ZERO
+                הקו מעיד כל 6 שעות (00:30 · 06:30 · 12:30 · 18:30 UTC) - עוגן ZERO
                 = checkpoint שנחת בפועל על Z Chain 9369 בגז-אפס. המדידה:
                 ספירת anchorNet=zero-9369 ב-DB, ניתנת לספירה-חוזרת מהספר
                 המיוצא. ההכרעה האפשרית היחידה: YES כשהמספר הושג; פג תוקף
-                ללא השגה ⇒ החזר מלא.
+                ללא השגה - החזר מלא.
               </p>
               <label
                 className="mt-2 flex cursor-pointer items-start gap-2 rounded-lg border border-dashed p-2.5"
@@ -1087,9 +1087,9 @@ function NewMarketDialog({
                   className="mt-0.5"
                 />
                 <span className="text-[11px] leading-relaxed text-muted-foreground">
-                  <span className="font-semibold text-foreground">הימור-רצף</span> — בסליקה
+                  <span className="font-semibold text-foreground">הימור-רצף</span> - בסליקה
                   מדודה הרגולטור יפתח אוטומטית את הדור הבא (המציאות + 2 חלונות
-                  עוגן). הרשת ממשיכה לשאול בעצמה — הסוכנים בוחרים צדדים כל דור
+                  עוגן). הרשת ממשיכה לשאול בעצמה - הסוכנים בוחרים צדדים כל דור
                   מחדש. תקרה: 30 דורות (fail-closed).
                 </span>
               </label>
@@ -1131,7 +1131,7 @@ function NewMarketDialog({
                 השופט: השרשרת הציבורית עצמה (Z Chain 9369), בקריאה חסרת-מפתחות.
                 קצב נמדד: בלוק ל-2.5 שניות · 4,320 בלוקים ≈ 3 שעות · מינימום 120 בלוקים
                 מעל הגובה החי. ההכרעה היחידה האפשרית: YES כשהגובה הושג; פג תוקף
-                ללא השגה ⇒ החזר מלא.
+                ללא השגה - החזר מלא.
               </p>
             </div>
           )}

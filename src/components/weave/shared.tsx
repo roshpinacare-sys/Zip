@@ -1,7 +1,7 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Shared UI — תוויות אמת, צ'יפים ל-hash, תגיות סטטוס,
+// THE WEAVE · Shared UI - תוויות אמת, צ'יפים ל-hash, תגיות סטטוס,
 // סקלטונים, אנימציות עדינות וסקרולבר מעוצב.
 // סמנטיקה: emerald=VERIFIED/REAL · rose=REFUTED/שבר · amber=UNMEASURED/LOCAL · zinc=NOT-YET
 // ─────────────────────────────────────────────────────────────────────
@@ -53,9 +53,9 @@ export function truncateEnd(value: string, max = 64): string {
 }
 
 export function fmtDateTime(iso: string | null | undefined): string {
-  if (!iso) return "—";
+  if (!iso) return "-";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "-";
   return d.toLocaleString("he-IL", {
     day: "2-digit",
     month: "2-digit",
@@ -138,7 +138,7 @@ export function CopyButton({
   );
 }
 
-// ── HashChip — mono, קטוע באמצע, עם tooltip והעתקה ───────────────────
+// ── HashChip - mono, קטוע באמצע, עם tooltip והעתקה ───────────────────
 
 export function HashChip({
   value,
@@ -158,7 +158,7 @@ export function HashChip({
   if (!value) {
     return (
       <span dir="ltr" className={cn("font-mono text-xs text-muted-foreground", className)}>
-        —
+        -
       </span>
     );
   }
@@ -191,7 +191,7 @@ export function HashChip({
   );
 }
 
-// ── TruthLabel — תווית אמת מוצהרת ────────────────────────────────────
+// ── TruthLabel - תווית אמת מוצהרת ──────────────────────────────────
 
 const TRUTH_META: Record<TruthKind, { tooltip: string; badge: string }> = {
   REAL: {
@@ -203,7 +203,7 @@ const TRUTH_META: Record<TruthKind, { tooltip: string; badge: string }> = {
     badge: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
   },
   "NOT-YET": {
-    tooltip: "מוכן אך נעול מאחורי שער — טרם בוצע",
+    tooltip: "מוכן אך נעול מאחורי שער - טרם בוצע",
     badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400",
   },
 };
@@ -241,7 +241,7 @@ export function TruthLabel({
   );
 }
 
-// ── StatusBadge — סטטוס אימות ────────────────────────────────────────
+// ── StatusBadge - סטטוס אימות ───────────────────────────────────
 
 const STATUS_META: Record<string, { icon: LucideIcon; badge: string }> = {
   VERIFIED: {
@@ -287,7 +287,7 @@ export function StatusBadge({
   );
 }
 
-// ── ClaimTypeBadge — סוג טענה (מונח טכני, mono) ─────────────────────
+// ── ClaimTypeBadge - סוג טענה (מונח טכני, mono) ─────────────────
 
 export function ClaimTypeBadge({
   type,
@@ -316,27 +316,27 @@ export const ROLE_META: Record<string, { icon: LucideIcon; badge: string; hint: 
   AUDITOR: {
     icon: ShieldCheck,
     badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-    hint: "מבקא — חותם אימותי AUDIT",
+    hint: "מבקא - חותם אימותי AUDIT",
   },
   SCOUT: {
     icon: Compass,
     badge: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-    hint: "סייר — מודד ומדווח מדידות",
+    hint: "סייר - מודד ומדווח מדידות",
   },
   BUILDER: {
     icon: Hammer,
     badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400",
-    hint: "בונה — אחראי על BUILD",
+    hint: "בונה - אחראי על BUILD",
   },
   DAEMON: {
     icon: Bot,
     badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400",
-    hint: "דמון רקע — אוטומציה ותחזוקה",
+    hint: "דמון רקע - אוטומציה ותחזוקה",
   },
   RELAYER: {
     icon: Radio,
     badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400",
-    hint: "ממסר — העברת עוגנים לשרשרת",
+    hint: "ממסר - העברת עוגנים לשרשרת",
   },
 };
 
@@ -382,7 +382,7 @@ export function RoleIcon({ role, className }: { role: string; className?: string
   );
 }
 
-// ── Section — כותרת מקטע עם אייקון ופעולה ────────────────────────────
+// ── Section - כותרת מקטע עם אייקון ופעולה ────────────────────────
 
 export function Section({
   title,
@@ -461,7 +461,7 @@ export function MotionCard({
   );
 }
 
-// ── ErrorBox — שגיאה ברורה עם ניסיון חוזר ───────────────────────────
+// ── ErrorBox - שגיאה ברורה עם ניסיון חוזר ───────────────────────
 
 export function ErrorBox({
   message,
