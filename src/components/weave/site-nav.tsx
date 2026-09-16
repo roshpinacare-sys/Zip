@@ -3,13 +3,13 @@
 // ─────────────────────────────────────────────────────────────────────
 // THE WEAVE · Site Nav — הניווט הראשי של האתר.
 //
-// ארבעה יעדים בלבד (היררכיה אמיתית): בית · קונסולה · המוח · דוקטרינה.
+// היררכיה אמיתית: בית · בורסה · המטבעים · קונסולה · המוח · אבולוציה · דוקטרינה.
 // ה-HEAD החי ליד הלוגו — השרשרת נוכחת גם בשורת הכתובת של האתר.
 // מובייל: תפריט-גשר (Sheet) במקום שורה דחוסה.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
-import { BrainCircuit, Globe2, History, Home, LayoutDashboard, Menu, ScrollText } from "lucide-react";
+import { BarChart3, Coins, BrainCircuit, Globe2, History, Home, LayoutDashboard, Menu, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -22,10 +22,19 @@ import { useWeave } from "./store";
 import { HashChip } from "./shared";
 import { ThemeToggle } from "./theme-toggle";
 
-export type SiteView = "home" | "console" | "brain" | "doctrine" | "evolution";
+export type SiteView =
+  | "home"
+  | "exchange"
+  | "holdings"
+  | "console"
+  | "brain"
+  | "doctrine"
+  | "evolution";
 
 const NAV: Array<{ view: SiteView; label: string; icon: typeof Home }> = [
   { view: "home", label: "בית", icon: Home },
+  { view: "exchange", label: "בורסה", icon: BarChart3 },
+  { view: "holdings", label: "המטבעים", icon: Coins },
   { view: "console", label: "קונסולה", icon: LayoutDashboard },
   { view: "brain", label: "המוח הריבוני", icon: BrainCircuit },
   { view: "evolution", label: "אבולוציה", icon: History },

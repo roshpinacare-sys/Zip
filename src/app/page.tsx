@@ -17,6 +17,8 @@ import { AgentsTab } from "@/components/weave/tabs/agents-tab";
 import { AnchorTab } from "@/components/weave/tabs/anchor-tab";
 import { DashboardTab } from "@/components/weave/tabs/dashboard-tab";
 import { EcosystemTab } from "@/components/weave/tabs/ecosystem-tab";
+import { ExchangeView } from "@/components/weave/views/exchange-view";
+import { HoldingsView } from "@/components/weave/views/holdings-view";
 import { LedgerTab } from "@/components/weave/tabs/ledger-tab";
 import { MarketTab } from "@/components/weave/tabs/market-tab";
 import { PlanTab } from "@/components/weave/tabs/plan-tab";
@@ -113,6 +115,8 @@ export default function Page() {
                 transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               >
                 {view === "home" ? <HomeView onNavigate={setView} /> : null}
+                {view === "exchange" ? <ExchangeView /> : null}
+                {view === "holdings" ? <HoldingsView /> : null}
                 {view === "console" ? <ConsoleView /> : null}
                 {view === "brain" ? <BrainView /> : null}
                 {view === "doctrine" ? <DoctrineView /> : null}
