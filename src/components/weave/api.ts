@@ -34,7 +34,7 @@ const GLYPH_MAP: Record<string, string> = {
 };
 
 const GLYPH_STRIP =
-  /[\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D\u20E3\u1F000-\u1FAFF\u2190-\u21FF\u2014\u2013\u2015]/g;
+  /[\u2600-\u27BF\u2B00-\u2BFF\uFE0F\u200D\u20E3\u2190-\u21FF\u2014\u2013\u2015\u{1F000}-\u{1FAFF}]/gu;
 
 export function cleanGlyphs(input: string): string {
   if (!input) return input;
