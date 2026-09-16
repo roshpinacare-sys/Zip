@@ -4,13 +4,22 @@
 // THE WEAVE · טאב 4 — עוגן EVM
 // Checkpoints עם Merkle root + עיגון ברישום המקומי (EVM-2 · LOCAL) +
 // חבילת הפריסה האמיתית (EVM-1) + מפת אמת + החוזה WeaveAnchorRegistry.sol
+//
+// שני מצבי אמת (Task 38):
+//  · cloud — checkpoints מהמראה הציבורית: root, טווח seq ו-anchorStatus
+//    אמיתיים (כולל "ANCHORED (steem/zero)" שמוצג כתג emerald מפוצל);
+//    calldata/חתימות/prevRoot לא נחשפים במראה ומוצגים כ-placeholder
+//    מושתק וכנה. פעולות הכתיבה מסומנות כמקומיות.
+//  · local — כמו תמיד: checkpoint חי, calldata אמיתי, עיגון ברישום המקומי.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Anchor,
+  Cloud,
   FileCode2,
+  HardDrive,
   Landmark,
   Lock,
   Plus,
@@ -45,8 +54,45 @@ import { DeployKitCard } from "../evm/deploy-kit-card";
 import { LocalRegistrySection } from "../evm/local-registry-section";
 import { useLocalAnchors } from "../evm/use-local-anchors";
 
+// ── תג מקור הנתונים: ענן חי / סנדבוקס מקומי ─────────────────────────
+
+function SourceBadge() {
+  const { mode } = useWeave();
+  const cloud = mode === "cloud";
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="outline"
+          className={cn(
+            "cursor-help gap-1.5 text-[11px]",
+            cloud
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+          )}
+        >
+          {cloud ? (
+            <Cloud className="size-3" aria-hidden="true" />
+          ) : (
+            <HardDrive className="size-3" aria-hidden="true" />
+          )}
+          {cloud ? "ענן חי · מראה ציבורית" : "סנדבוקס מקומי · מרחב טסט"}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[280px]">
+        <p className="text-xs leading-relaxed">
+          {cloud
+            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function AnchorTab() {
   const {
+    mode,
     checkpoints,
     state,
     loadCheckpoints,
@@ -54,6 +100,7 @@ export function AnchorTab() {
     loadState,
     createCheckpoint,
   } = useWeave();
+  const cloud = mode === "cloud";
   const {
     slice: anchors,
     loadLazy: loadAnchors,
@@ -74,7 +121,9 @@ export function AnchorTab() {
     try {
       const cp = await createCheckpoint();
       toast.success(`Checkpoint #${cp.index} נוצר`, {
-        description: `root: ${cp.root}`,
+        description: cloud
+          ? `root: ${cp.root} · נוצר בעותק הסנדבוקס המקומי`
+          : `root: ${cp.root}`,
       });
     } catch (err) {
       toast.error(errorMessage(err));
@@ -121,9 +170,14 @@ export function AnchorTab() {
           <Anchor className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold tracking-tight sm:text-lg">עוגן EVM</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold tracking-tight sm:text-lg">עוגן EVM</h2>
+            <SourceBadge />
+          </div>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            שורש Merkle לכל טווח אימותים — מוכן לרדת לשרשרת כשייפתח השער
+            {cloud
+              ? "שורשי Merkle מהספר החי — חלקם עוגנו בשרשרות ציבוריות (steem, zero)"
+              : "שורש Merkle לכל טווח אימותים — מוכן לרדת לשרשרת כשייפתח השער"}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -137,6 +191,23 @@ export function AnchorTab() {
               טרם נוצר
             </Badge>
           )}
+          {cloud ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className="cursor-help gap-1.5 border-amber-500/40 bg-amber-500/10 text-[11px] text-amber-700 dark:text-amber-400"
+                >
+                  פעולה מקומית
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-[280px]">
+                <p className="text-xs leading-relaxed">
+                  ה-checkpoint ייווצר בעותק הסנדבוקס המקומי — הענן כותב דרך סוכניו
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          ) : null}
           <Button
             className="h-11 border border-emerald-500/40 bg-emerald-600 text-white hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500"
             onClick={() => void onCreate()}
@@ -169,6 +240,7 @@ export function AnchorTab() {
               anchor={anchorsList.find((a) => a.checkpointIndex === cp.index) ?? null}
               onAnchor={onSimulateAnchor}
               anchorBusy={anchorBusy}
+              mirror={cloud}
             />
           ))}
           {list.length === 0 ? (
@@ -313,14 +385,21 @@ function CheckpointCard({
   anchor,
   onAnchor,
   anchorBusy,
+  mirror,
 }: {
   cp: CheckpointDTO;
   anchor: LocalAnchorDTO | null;
   onAnchor: (index: number) => void;
   anchorBusy: boolean;
+  /** מצב ענן — הרשומה מהמראה הציבורית, שדות פנימיים לא נחשפים */
+  mirror: boolean;
 }) {
   const anchored = cp.anchorStatus === "LOCAL-ANCHORED";
   const realAnchored = cp.anchorStatus === "ANCHORED" && !!cp.anchorTx;
+  // צורת הענן: "ANCHORED (steem)" / "ANCHORED (zero+steem)" — עיגון אמיתי
+  // בשרשרת ציבורית, ללא txid נחשף במראה
+  const cloudAnchored = /^ANCHORED \((.+)\)$/.exec(cp.anchorStatus);
+  const nets = cloudAnchored ? cloudAnchored[1].split("+") : [];
   const registryIndex = anchor?.registryIndex;
 
   return (
@@ -341,7 +420,25 @@ function CheckpointCard({
         <Badge variant="secondary" dir="ltr" className="font-mono text-[10px]">
           {cp.leafCount} leaves
         </Badge>
-        {realAnchored ? (
+        {cloudAnchored ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                dir="ltr"
+                className="cursor-help gap-1 border-emerald-500/40 bg-emerald-500/10 font-mono text-[10px] text-emerald-700 dark:text-emerald-400"
+              >
+                <Anchor className="size-3" />
+                ANCHORED · {nets.join(" + ")}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="max-w-xs text-xs leading-relaxed">
+                ה-root עוגן בשרשרת ציבורית ({nets.join(", ")}) — פרטי הטרנזקציה
+                נשמרים בספר הריבוני ואינם נחשפים במראה הציבורית
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        ) : realAnchored ? (
           <Tooltip>
             <TooltipTrigger asChild>
               <a
@@ -414,19 +511,40 @@ function CheckpointCard({
         <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-start sm:gap-3">
           <dt className="text-xs text-muted-foreground">prevRoot</dt>
           <dd>
-            <HashChip value={cp.prevRoot} head={8} tail={6} />
+            {mirror && !cp.prevRoot ? (
+              <span className="font-mono text-xs text-muted-foreground">— במראה</span>
+            ) : (
+              <HashChip value={cp.prevRoot} head={8} tail={6} />
+            )}
           </dd>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-start sm:gap-3">
           <dt className="text-xs text-muted-foreground">חותם הרשת</dt>
           <dd>
-            <HashChip value={cp.signerAddr} head={8} tail={6} />
+            {mirror && !cp.signerAddr ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help font-mono text-xs text-muted-foreground">—</span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">
+                    חותם הרשת נשמר בספר הריבוני — לא נחשף במראה
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <HashChip value={cp.signerAddr} head={8} tail={6} />
+            )}
           </dd>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-start sm:gap-3">
           <dt className="text-xs text-muted-foreground">entryHash (EIP-712)</dt>
           <dd>
-            <HashChip value={cp.entryHash} head={8} tail={6} />
+            {mirror && !cp.entryHash ? (
+              <span className="font-mono text-xs text-muted-foreground">— במראה</span>
+            ) : (
+              <HashChip value={cp.entryHash} head={8} tail={6} />
+            )}
           </dd>
         </div>
       </dl>
@@ -450,10 +568,16 @@ function CheckpointCard({
             </TooltipContent>
           </Tooltip>
         </div>
+      ) : mirror ? (
+        <div className="mt-4 rounded-lg border border-dashed bg-muted/30 px-3 py-2 text-center">
+          <span className="text-[11px] text-muted-foreground">
+            calldata · נשמר בספר הריבוני — לא נחשף במראה
+          </span>
+        </div>
       ) : null}
 
-      {/* עיגון ברישום המקומי — ל-checkpoints שטרם עוגנו */}
-      {!anchored ? (
+      {/* עיגון ברישום המקומי — ל-checkpoints שטרם עוגנו (מנגנון סנדבוקס בלבד) */}
+      {!anchored && !mirror ? (
         <div className="mt-4 flex justify-end">
           <Button
             type="button"

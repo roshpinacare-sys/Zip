@@ -351,11 +351,12 @@ export function ExchangeView() {
     const poll = async () => {
       try {
         const res = await fetch(
-          `/saos-dex/api/dex/state?v=${versionRef.current}`,
+          `/api/live/dex?v=${versionRef.current}`,
           { cache: "no-store" }
         );
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const j = (await res.json()) as DexStateResponse;
+        if (!j.ok) throw new Error("המראה לא תקינה");
         if (!alive) return;
         setData(j);
         setError(null);
@@ -386,7 +387,8 @@ export function ExchangeView() {
         }
       }
       if (alive) {
-        timer = setTimeout(poll, 1500);
+        // מראת ענן: הגרסה מתקדמת בפעימות הבורסה — סקירה רגועה של 12ש'
+        timer = setTimeout(poll, 12_000);
       }
     };
 
@@ -461,8 +463,14 @@ export function ExchangeView() {
             <BarChart3 className="size-5" />
           </span>
           <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
               הבורסה הריבונית
+              <Badge
+                variant="outline"
+                className="border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-700 dark:text-emerald-300"
+              >
+                מראת ענן חיה
+              </Badge>
             </h1>
             <p className="text-xs text-muted-foreground sm:text-sm">
               שרשרת דטרמיניסטית חיה · בלוק כל 3 שניות · ספר-זמנות בערבות · AMM
@@ -483,7 +491,13 @@ export function ExchangeView() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => window.open("/saos-dex", "_blank", "noopener")}
+            onClick={() =>
+              window.open(
+                "https://roshpinacare-sys.github.io/Console/saos-dex/",
+                "_blank",
+                "noopener"
+              )
+            }
           >
             <ExternalLink className="size-4" />
             טרמינל מלא
@@ -495,8 +509,8 @@ export function ExchangeView() {
         <Card className="mb-6 border-amber-500/40 bg-amber-500/5">
           <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
             <p className="text-sm">
-              הבורסה לא נענית כרגע ({error}). הדקס רץ על שרת נפרד — ייתכן
-              שהוא בהליך עלייה מחדש.
+              מראת הדקס בענן לא נענית כרגע ({error}). הבורסה עצמה פועמת
+              בענן — הבעיה בקריאה בלבד; נסה שוב בעוד רגע.
             </p>
             <Button size="sm" variant="outline" onClick={refreshNow}>
               נסה שוב

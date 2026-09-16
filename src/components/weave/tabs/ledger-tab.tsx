@@ -4,6 +4,12 @@
 // THE WEAVE · טאב 2 — ספר אימותים
 // פעולות: אימות חדש · אמת שרשרת · ערעור מדומה (red-team)
 // טבלה מלאה עם הדגשת שורה שבורה לפי firstBreak
+//
+// שני מצבי אמת (Task 38):
+//  · cloud — הספר מהמראה הציבורית. entryHash/חתימות לא נחשפים במראה
+//    ומוצגים כ-placeholder מושתק וכנה; דוח האימות המקומי מוסתר
+//    ובמקומו שורת טריות + עד משקיף מהשכבה החיה.
+//  · local — כמו תמיד: חישוב-מחדש מלא, חתימות, entryHash לכל רשומה.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState } from "react";
@@ -13,8 +19,12 @@ import {
   BadgeCheck,
   Ban,
   Check,
+  Cloud,
+  ExternalLink,
   FilePlus2,
   FlaskConical,
+  HardDrive,
+  Minus,
   ScrollText,
   ShieldAlert,
   ShieldCheck,
@@ -70,7 +80,7 @@ import { cn } from "@/lib/utils";
 import type { AgentDTO, AttestationDTO, VerifyReportDTO } from "@/lib/weave/types";
 import { CLAIM_TYPES } from "@/lib/weave/types";
 import { errorMessage } from "../api";
-import { useWeave } from "../store";
+import { useWeave, type LiveOverview } from "../store";
 import {
   ClaimTypeBadge,
   ErrorBox,
@@ -82,20 +92,111 @@ import {
   StatusBadge,
   TableSkeleton,
   truncateEnd,
+  truncateMiddle,
 } from "../shared";
+
+// ── תג מקור הנתונים: ענן חי / סנדבוקס מקומי ─────────────────────────
+
+function SourceBadge() {
+  const { mode } = useWeave();
+  const cloud = mode === "cloud";
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="outline"
+          className={cn(
+            "cursor-help gap-1.5 text-[11px]",
+            cloud
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+          )}
+        >
+          {cloud ? (
+            <Cloud className="size-3" aria-hidden="true" />
+          ) : (
+            <HardDrive className="size-3" aria-hidden="true" />
+          )}
+          {cloud ? "ענן חי · מראה ציבורית" : "סנדבוקס מקומי · מרחב טסט"}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[280px]">
+        <p className="text-xs leading-relaxed">
+          {cloud
+            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// ── שורת טריות + עד משקיף (תחליף הוגן לדוח האימות המקומי בענן) ───────
+
+function WitnessFreshnessLine({
+  freshness,
+  witness,
+}: {
+  freshness: NonNullable<LiveOverview["freshness"]>;
+  witness: LiveOverview["witness"];
+}) {
+  const fresh = freshness.verdict === "FRESH";
+  return (
+    <Card className="flex flex-wrap items-center gap-x-4 gap-y-2 border-emerald-500/25 bg-emerald-500/[0.04] p-4 sm:p-5">
+      <Badge
+        dir="ltr"
+        className={cn(
+          "gap-1",
+          fresh
+            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+            : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+        )}
+      >
+        <BadgeCheck className="size-4" aria-hidden="true" />
+        {freshness.verdict} · ~{freshness.ageHours.toFixed(1)}h
+      </Badge>
+      <span className="text-xs leading-relaxed text-muted-foreground">
+        סף{" "}
+        <span dir="ltr" className="font-mono">
+          {freshness.thresholdHours}h
+        </span>{" "}
+        · קצב{" "}
+        <span dir="ltr" className="font-mono">
+          {freshness.cadence}
+        </span>{" "}
+        · הלב מאמת את השרשרת בכל פעימה
+      </span>
+      {witness ? (
+        <a
+          href={witness.explorer}
+          target="_blank"
+          rel="noreferrer"
+          dir="ltr"
+          className="ms-auto inline-flex max-w-full items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/[0.06] px-2 py-1 font-mono text-[11px] text-emerald-700 transition-colors hover:bg-emerald-500/15 dark:text-emerald-400"
+        >
+          <span className="truncate">witness {truncateMiddle(witness.txid, 10, 6)}</span>
+          <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
+        </a>
+      ) : null}
+    </Card>
+  );
+}
 
 export function LedgerTab() {
   const {
+    mode,
     attestations,
     attTotal,
     agents,
     report,
+    live,
     loadAttestations,
     loadAgents,
     runVerify,
     attest,
     tamper,
   } = useWeave();
+  const cloud = mode === "cloud";
 
   useEffect(() => {
     loadAttestations();
@@ -128,14 +229,24 @@ export function LedgerTab() {
     try {
       const res = await tamper();
       toast.error(`שובש seq ${res.seq} · שדה ${res.field}`, {
-        description: `לפני: ${truncateEnd(res.before, 48)} ← אחרי: ${truncateEnd(res.after, 48)}`,
+        description:
+          mode === "cloud"
+            ? `לפני: ${truncateEnd(res.before, 48)} ← אחרי: ${truncateEnd(res.after, 48)} · בעותק המקומי בלבד — הספר החי בענן לא נפגע`
+            : `לפני: ${truncateEnd(res.before, 48)} ← אחרי: ${truncateEnd(res.after, 48)}`,
       });
       try {
         const r = await runVerify();
         if (!r.valid) {
-          toast.error(`השרשרת תפסה את השיבוש: שבר ב-seq ${r.firstBreak}`, {
-            description: "חישוב מחדש, לא סמיכות — ה-entryHash כבר לא תואם",
-          });
+          if (mode === "cloud") {
+            toast.error(`העותק המקומי תפס את השיבוש: שבר ב-seq ${r.firstBreak}`, {
+              description:
+                "חישוב מחדש על עותק הסנדבוקס — הספר החי בענן לא נפגע",
+            });
+          } else {
+            toast.error(`השרשרת תפסה את השיבוש: שבר ב-seq ${r.firstBreak}`, {
+              description: "חישוב מחדש, לא סמיכות — ה-entryHash כבר לא תואם",
+            });
+          }
         }
       } catch {
         // האימון האוטומטי נכשל — הדוח יציג את המצב בכרטיס
@@ -150,7 +261,8 @@ export function LedgerTab() {
 
   const entries = attestations.data ?? [];
   const sorted = [...entries].sort((a, b) => b.seq - a.seq);
-  const firstBreak = report.data?.firstBreak ?? null;
+  // הדגשת שבר רלוונטית רק לדוח המקומי — בענן הדוח מוסתר
+  const firstBreak = cloud ? null : (report.data?.firstBreak ?? null);
 
   return (
     <FadeIn className="flex flex-col gap-4 sm:gap-6">
@@ -160,15 +272,37 @@ export function LedgerTab() {
           <FilePlus2 />
           אימות חדש
         </Button>
-        <Button
-          variant="outline"
-          className="h-11 border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
-          onClick={onVerify}
-          disabled={report.loading}
-        >
-          <ShieldCheck />
-          אמת שרשרת
-        </Button>
+        {cloud ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex">
+                <Button
+                  variant="outline"
+                  className="h-11 border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
+                  disabled
+                >
+                  <ShieldCheck />
+                  אמת שרשרת
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[300px]">
+              <p className="text-xs leading-relaxed">
+                אימות חישוב-מחדש רץ על עותק מקומי — עבור למצב סנדבוקס
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="outline"
+            className="h-11 border-emerald-500/40 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
+            onClick={onVerify}
+            disabled={report.loading}
+          >
+            <ShieldCheck />
+            אמת שרשרת
+          </Button>
+        )}
         <Button
           variant="destructive"
           className="h-11"
@@ -177,13 +311,39 @@ export function LedgerTab() {
           <FlaskConical />
           ערעור מדומה
         </Button>
+        {cloud ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className="cursor-help gap-1.5 border-amber-500/40 bg-amber-500/10 text-[11px] text-amber-700 dark:text-amber-400"
+              >
+                <FlaskConical className="size-3" aria-hidden="true" />
+                כתיבה לעותק הסנדבוקס
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[300px]">
+              <p className="text-xs leading-relaxed">
+                פעולות כתיבה פועלות על עותק הסנדבוקס — הספר החי בענן מתעדכן
+                על-ידי הסוכנים
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
         <span className="text-xs text-muted-foreground sm:ms-auto" dir="ltr">
           {attTotal} entries
         </span>
       </div>
 
-      {/* דוח אימות */}
-      {report.loading ? (
+      {/* דוח אימות — בענן: שורת טריות + עד משקיף במקום הדוח המקומי */}
+      {cloud ? (
+        live.data?.freshness ? (
+          <WitnessFreshnessLine
+            freshness={live.data.freshness}
+            witness={live.data.witness}
+          />
+        ) : null
+      ) : report.loading ? (
         <Card className="p-4 sm:p-6">
           <Skeleton className="h-6 w-40" />
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -205,9 +365,14 @@ export function LedgerTab() {
             <ScrollText className="size-4" />
           </span>
           <div className="flex-1">
-            <h2 className="text-base font-semibold tracking-tight sm:text-lg">ספר האימותים</h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-base font-semibold tracking-tight sm:text-lg">ספר האימותים</h2>
+              <SourceBadge />
+            </div>
             <p className="text-xs text-muted-foreground">
-              שרשרת hash-chained — seq, חתימת EIP-191, entryHash לכל רשומה
+              {cloud
+                ? "שרשרת hash-chained מהמראה הציבורית — seq, טענה וסטטוס אמיתיים; חתימות וההאשים הפנימיים נשמרים בספר הריבוני"
+                : "שרשרת hash-chained — seq, חתימת EIP-191, entryHash לכל רשומה"}
             </p>
           </div>
         </div>
@@ -288,27 +453,51 @@ export function LedgerTab() {
                         <StatusBadge status={String(entry.status)} />
                       </TableCell>
                       <TableCell>
-                        <HashChip value={entry.entryHash} head={8} tail={6} />
+                        {cloud && !entry.entryHash ? (
+                          <span className="whitespace-nowrap text-[11px] text-muted-foreground">
+                            — במראה —
+                          </span>
+                        ) : (
+                          <HashChip value={entry.entryHash} head={8} tail={6} />
+                        )}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span className="inline-flex size-9 items-center justify-center">
-                              {sigOk ? (
-                                <Check className="size-5 text-emerald-500" />
-                              ) : (
-                                <X className="size-5 text-rose-500" />
-                              )}
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            <p className="text-xs">
-                              {sigOk
-                                ? "חתימת EIP-191 שוחזרה ב-ecrecover לכתובת הסוכן"
-                                : "חתימה חסרה או לא תואמת לכתובת הסוכן"}
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
+                        {cloud && !entry.sig ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex size-9 items-center justify-center">
+                                <Minus
+                                  className="size-4 text-muted-foreground/70"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p className="text-xs">
+                                חתימות נשמרות בספר הריבוני — לא נחשפות במראה
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex size-9 items-center justify-center">
+                                {sigOk ? (
+                                  <Check className="size-5 text-emerald-500" />
+                                ) : (
+                                  <X className="size-5 text-rose-500" />
+                                )}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p className="text-xs">
+                                {sigOk
+                                  ? "חתימת EIP-191 שוחזרה ב-ecrecover לכתובת הסוכן"
+                                  : "חתימה חסרה או לא תואמת לכתובת הסוכן"}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -346,6 +535,9 @@ export function LedgerTab() {
             <AlertDialogDescription className="text-right leading-relaxed">
               זה ישבש רשומה אחת ב-DB כדי להוכיח שהשרשרת תופסת שיבוש post-hoc.
               השרשרת אמורה לזהות את זה בדיוק.
+              {cloud
+                ? " במצב ענן הערעור רץ על עותק הסנדבוקס בלבד — הספר החי בענן לא ייפגע."
+                : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Alert variant="destructive" className="mt-2">
@@ -490,6 +682,7 @@ interface AttestDialogProps {
 }
 
 function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: AttestDialogProps) {
+  const { mode } = useWeave();
   const [agentId, setAgentId] = useState("");
   const [claim, setClaim] = useState("");
   const [claimType, setClaimType] = useState<string>("MEASUREMENT");
@@ -527,11 +720,17 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
       });
       if (entry.status === "VERIFIED") {
         toast.success(`אימות #${entry.seq} נרשם בספר · VERIFIED`, {
-          description: `${entry.agentName} · ${entry.claimType} · נחתם ב-EIP-191`,
+          description:
+            mode === "cloud"
+              ? `${entry.agentName} · ${entry.claimType} · נכתב לעותק המקומי — הספר החי בענן מתעדכן על-ידי הסוכנים`
+              : `${entry.agentName} · ${entry.claimType} · נחתם ב-EIP-191`,
         });
       } else {
         toast.warning(`אימות #${entry.seq} נרשם · ${entry.status}`, {
-          description: "טענה ללא מדידה — השרת קבע שהיא לא תסומן VERIFIED",
+          description:
+            mode === "cloud"
+              ? "טענה ללא מדידה — השרת קבע שהיא לא תסומן VERIFIED · נכתב לעותק המקומי"
+              : "טענה ללא מדידה — השרת קבע שהיא לא תסומן VERIFIED",
         });
       }
       onOpenChange(false);
@@ -554,6 +753,9 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
           </DialogTitle>
           <DialogDescription>
             הטענה תיחתם במפתח ה-EVM של הסוכן ותשורשר לספר. הסטטוס נקבע בשרת בלבד.
+            {mode === "cloud"
+              ? " במצב ענן הכתיבה מבוצעת לעותק הסנדבוקס המקומי."
+              : ""}
           </DialogDescription>
         </DialogHeader>
 

@@ -1,24 +1,29 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · Home View — עמוד הנחיתה של הרשת.
+// THE WEAVE · Home View — התמונה הגדולה.
 //
-// לא "דף נחיתה" — עמוד חי: ההיירו מראה את הרשת עצמה (קנבס אימות חי),
-// הנתונים נמשכים מה-API האמיתי, והכל מזמין פנימה אל הקונסולה.
+// המשתמש החדש לא צריך פירוט — הוא צריך להבין בשלושים שניות:
+// מה זה, מה קורה עכשיו, איך זה עובד, למה זה חשוב, ומאיפה
+// להתחיל. הכל מהאמת החיה מהענן. ניווט דרך hash (#/...).
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
-  BrainCircuit,
+  BookOpen,
+  Boxes,
+  Compass,
   Fingerprint,
   Gauge,
-  Layers,
+  HeartPulse,
+  Landmark,
   Link2,
-  Scale,
+  PenLine,
   ShieldCheck,
-  Zap,
+  Store,
+  Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,12 +31,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWeave } from "../store";
 import { WeaveCanvas } from "../weave-canvas";
-import { fmtDateTime, truncateMiddle } from "../shared";
-import type { SiteView } from "../site-nav";
+import { StatusBadge } from "../shared";
 
-// ── ספרות גדולות אחידות — תבנית הכרטיס מתוקנת (roast #3) ──
+// ── ניווט hash ──────────────────────────────────────────────────────
 
-function StatCard({
+function goHash(path: string) {
+  window.location.hash = `#/${path}`;
+  window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+}
+
+// ── כרטיס חי ────────────────────────────────────────────────────────
+
+function LiveCard({
   icon: Icon,
   label,
   value,
@@ -39,7 +50,7 @@ function StatCard({
   loading,
   delay = 0,
 }: {
-  icon: typeof Zap;
+  icon: typeof Gauge;
   label: string;
   value: string | number;
   context: string;
@@ -55,19 +66,19 @@ function StatCard({
       transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       <Card className="group relative overflow-hidden transition-colors hover:border-emerald-500/30">
-        <CardContent className="flex flex-col gap-1.5 p-6">
+        <CardContent className="flex flex-col gap-1.5 p-5 sm:p-6">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Icon className="size-4 shrink-0" aria-hidden="true" />
             <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
           </div>
           {loading ? (
-            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-9 w-24" />
           ) : (
-            <span className="text-4xl font-bold tabular-nums leading-none tracking-tight">
+            <span className="text-3xl font-bold tabular-nums leading-none tracking-tight sm:text-4xl">
               {value}
             </span>
           )}
-          <span className="font-mono text-xs text-muted-foreground" dir="ltr">
+          <span className="font-mono text-xs text-muted-foreground" dir="auto">
             {context}
           </span>
         </CardContent>
@@ -76,38 +87,121 @@ function StatCard({
   );
 }
 
-export function HomeView({ onNavigate }: { onNavigate: (v: SiteView) => void }) {
-  const { state, loadState, agents, loadAgents, checkpoints, loadCheckpoints } = useWeave();
+// ── צעד בזרימה ──────────────────────────────────────────────────────
+
+function FlowStep({
+  n,
+  icon: Icon,
+  title,
+  children,
+}: {
+  n: number;
+  icon: typeof PenLine;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative flex flex-col gap-3 rounded-xl border bg-card/60 p-5">
+      <div className="flex items-center gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-sm font-bold text-emerald-700 dark:text-emerald-300">
+          {n}
+        </span>
+        <Icon className="size-5 text-muted-foreground" aria-hidden="true" />
+        <h3 className="text-base font-bold">{title}</h3>
+      </div>
+      <p className="text-sm leading-relaxed text-muted-foreground">{children}</p>
+    </div>
+  );
+}
+
+// ── נתיב כניסה ──────────────────────────────────────────────────────
+
+function EntryPath({
+  icon: Icon,
+  who,
+  what,
+  cta,
+  target,
+  delay = 0,
+}: {
+  icon: typeof Compass;
+  who: string;
+  what: string;
+  cta: string;
+  target: string;
+  delay?: number;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="flex h-full flex-col gap-3"
+    >
+      <Card className="flex h-full flex-col gap-3 p-5 transition-colors hover:border-emerald-500/30">
+        <div className="flex items-center gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-muted/40">
+            <Icon className="size-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+          </span>
+          <span className="text-sm font-bold">{who}</span>
+        </div>
+        <p className="flex-1 text-sm leading-relaxed text-muted-foreground">{what}</p>
+        <Button
+          variant="outline"
+          className="w-full justify-between"
+          onClick={() => goHash(target)}
+        >
+          {cta}
+          <ArrowLeft className="size-4" aria-hidden="true" />
+        </Button>
+      </Card>
+    </motion.div>
+  );
+}
+
+// ── העמוד ───────────────────────────────────────────────────────────
+
+export function HomeView() {
+  const { live, loadLive } = useWeave();
   const reduced = useReducedMotion();
 
   useEffect(() => {
-    loadState();
-    loadAgents();
-    loadCheckpoints();
-  }, [loadState, loadAgents, loadCheckpoints]);
+    loadLive();
+  }, [loadLive]);
 
-  const d = state.data;
-  const stats = d?.stats ?? {};
-  const verified = stats["VERIFIED"] ?? 0;
-  const anchored = checkpoints.data?.filter((c) => c.anchorStatus === "ANCHORED").length ?? 0;
-  const latestCp = checkpoints.data?.[0] ?? null;
+  const d = live.data;
+  const loading = live.loading && !d;
+  const vitality = d?.vitality;
+  const witness = d?.witness;
+  const freshness = d?.freshness;
+
+  const lastBeat =
+    vitality == null
+      ? "…"
+      : vitality.lastAttAgeMin < 0
+        ? "לא נמדד"
+        : vitality.lastAttAgeMin < 90
+          ? `לפני ${vitality.lastAttAgeMin} דק׳`
+          : `לפני ${Math.round(vitality.lastAttAgeMin / 60)} שע׳`;
+  const brainLive = d ? `${d.stats.brainLive}/${d.stats.brainKeys}` : "…";
 
   return (
     <div className="flex flex-col">
-      {/* ── ההיירו — הרשת החיה ── */}
-      <section className="relative overflow-hidden border-b" aria-label="פתיח">
+      {/* ── ההיירו — מה זה, במשפט אחד גדול ── */}
+      <section className="relative overflow-hidden border-b" aria-label="פתיח — התמונה הגדולה">
         <WeaveCanvas className="absolute inset-0 h-full w-full" />
-        {/* שכבת דהייה מתחת לטקסט — קריאות קודם הכל */}
         <div
           className="absolute inset-0 bg-gradient-to-t from-background via-background/75 to-background/40"
           aria-hidden="true"
         />
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-6 px-4 py-20 sm:px-6 sm:py-28 lg:py-36">
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-start gap-6 px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
           <motion.div
             initial={reduced ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-start gap-5 max-w-3xl"
+            className="flex max-w-3xl flex-col items-start gap-5"
           >
             <Badge
               variant="outline"
@@ -117,261 +211,292 @@ export function HomeView({ onNavigate }: { onNavigate: (v: SiteView) => void }) 
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
-              רשת חיה · {d ? `${d.chainCount} אימותים בשרשרת · ${d.vitality?.atts24h ?? "…"} ב-24ש׳ · רצף ${d.vitality?.aliveDays ?? "…"} ימים` : "מתחבר…"}
+              {d
+                ? `רשת חיה · ${d.stats.attestations} אימותים · רצף ${vitality?.aliveDays ?? "…"} ימים · ${lastBeat}`
+                : "מתחבר לענן…"}
             </Badge>
-
-            <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
-              שום טענה
+            <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+              הרשת שמאמתת
               <br />
-              <span className="bg-gradient-to-l from-emerald-600 to-teal-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-teal-300">
-                בלי מדידה.
-              </span>
+              את עצמה
             </h1>
-
-            <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              THE WEAVE היא רשת אימות ריבונית לסוכני AI: כל טענה נחתמת
-              קריפטוגרפית, נקשרת בשרשרת hash, ונעוגנת לשרשראות ציבוריות
-              — באפס עלות, באפס אמון, באפס הסתרה.
+            <p className="max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              <strong className="text-foreground">THE WEAVE</strong> היא רשת של סוכני AI
+              אוטונומיים שמנהלים לעצמם מטבע, בורסה וכספת — ומתעדים כל פעולה בספר
+              קריפטוגרפי שאי-אפשר לזייף. כל טענה חייבת מדידה חתומה. כל מדידה נכנסת
+              לשרשרת בלתי-ניתנת-לשינוי. ושורשי השרשרת מעוגנים בחוץ — בשרשרות
+              ציבוריות שלא בשליטתנו.
             </p>
-
             <div className="flex flex-wrap items-center gap-3">
               <Button
                 size="lg"
-                onClick={() => onNavigate("console")}
-                className="h-12 gap-2 px-6 text-base"
+                className="gap-2"
+                onClick={() =>
+                  document.getElementById("whats-happening")?.scrollIntoView({ behavior: "smooth" })
+                }
               >
-                כניסה לקונסולה
+                מה קורה כאן
                 <ArrowLeft className="size-4" aria-hidden="true" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => onNavigate("brain")}
-                className="h-12 gap-2 px-6 text-base"
-              >
-                <BrainCircuit className="size-4" aria-hidden="true" />
-                פגשו את המוח
+              <Button size="lg" variant="outline" onClick={() => goHash("network/dashboard")}>
+                להיכנס לקונסולה
               </Button>
             </div>
+            <p className="text-xs text-muted-foreground">
+              הכל פועל אוטונומית בענן, 24/7 — הדף הזה רק חלון ראווה לאמת שם.
+            </p>
           </motion.div>
-
-          {/* פס נתונים חיים מתחת להיירו */}
-          <motion.dl
-            initial={reduced ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.35 }}
-            className="mt-4 grid w-full grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border/60 sm:grid-cols-4"
-          >
-            {[
-              { k: "אימותים חתומים", v: d ? String(d.chainCount) : "…" },
-              { k: "חותמים ב-24ש׳", v: d?.vitality ? String(d.vitality.signers24h) : "…" },
-              { k: "עוגנים בשרשרת", v: String(anchored) },
-              { k: "אימותים שעברו", v: `${verified}/${d ? d.chainCount : "…"}` },
-            ].map((item) => (
-              <div key={item.k} className="flex flex-col gap-1 bg-background/95 p-4 backdrop-blur">
-                <dt className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  {item.k}
-                </dt>
-                <dd className="font-mono text-lg font-bold tabular-nums" dir="ltr">
-                  {item.v}
-                </dd>
-              </div>
-            ))}
-          </motion.dl>
         </div>
       </section>
 
-      {/* ── איך זה עובד — שלוש תחנות ── */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="how-it-works">
-        <div className="flex flex-col gap-3">
-          <h2 id="how-it-works" className="text-2xl font-bold tracking-tight sm:text-3xl">
-            מטענה לעדות — בשלוש תחנות
-          </h2>
-          <p className="max-w-2xl text-muted-foreground">
-            המסלול שכל טענה עוברת ברשת. אותו מסלול, בלי קיצורים, בין אם
-            הטוען הוא סוכן בסנדבוקס או פעימת ענן בחצות.
-          </p>
-        </div>
-        <ol className="mt-8 grid gap-4 md:grid-cols-3">
-          {[
-            {
-              icon: Fingerprint,
-              step: "01",
-              title: "חתימה — הטוען חותם",
-              text: "לכל סוכן זהות EVM אמיתית (secp256k1). טענה שלא חתומה במפתח הפרטי שלו לא נכנסת לספר — וחתימה שלא משוחזרת ב-ecrecover נדחית בזמן הכתיבה.",
-            },
-            {
-              icon: Layers,
-              step: "02",
-              title: "שרשרת — הספר קושר",
-              text: "כל אימות נכנס ל-ledger hash-chained: entryHash משרשר לקודמו. checkpoints עוטפים טווחים ב-Merkle root חתום EIP-712 — ניתן לחישוב-חוזר מכל עותק של הספר.",
-            },
-            {
-              icon: Link2,
-              step: "03",
-              title: "עוגן — החוץ מעיד",
-              text: "שלושה קווי עדות ציבוריים מעידים על השורשים: Steem/Hive (כל 6 שעות) ו-EVM בגז-אפס (Z Chain 9369) — עלות מדודה: 0.000000.",
-            },
-          ].map((s, i) => (
-            <motion.li
-              key={s.step}
-              initial={reduced ? false : { opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-              className="relative"
+      {/* ── מה קורה עכשיו — ארבעה מדדים חיים ── */}
+      <section
+        id="whats-happening"
+        className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 py-14 sm:px-6"
+        aria-label="מה קורה עכשיו"
+      >
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">מה קורה עכשיו</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              נמדד כרגע מהמראה הציבורית של הענן — לא מדוח, לא מזיכרון.
+            </p>
+          </div>
+          {freshness && (
+            <Badge
+              variant="outline"
+              className={
+                freshness.verdict === "FRESH"
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                  : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+              }
             >
-              <Card className="h-full transition-colors hover:border-emerald-500/30">
-                <CardContent className="flex h-full flex-col gap-4 p-6">
-                  <div className="flex items-center justify-between">
-                    <span className="flex size-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                      <s.icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <span className="font-mono text-sm font-bold text-muted-foreground/60" dir="ltr">
-                      {s.step}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <h3 className="text-lg font-bold">{s.title}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{s.text}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.li>
-          ))}
-        </ol>
-      </section>
-
-      {/* ── עמודי התווך ── */}
-      <section className="border-y bg-muted/30" aria-labelledby="pillars">
-        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="flex flex-col gap-3">
-            <h2 id="pillars" className="text-2xl font-bold tracking-tight sm:text-3xl">
-              ארבעת עמודי התווך
-            </h2>
-            <p className="max-w-2xl text-muted-foreground">
-              האמנה שהרשת חיה לפיה — ושבירתה נראית מיד, במדידה.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: ShieldCheck,
-                title: "שום טענה בלי מדידה",
-                text: "ראיה ריקה ⇒ UNMEASURED. לעולם לא VERIFIED. הדוקטרינה נאכפת בקוד, לא בנימוסים.",
-              },
-              {
-                icon: Zap,
-                title: "אפס עלות, אפס אמון",
-                text: "עיגון לשרשראות ציבוריות בגז-אפס מדוד. אף גורם לא צריך לסמוך על אף גורך — רק לחשב מחדש.",
-              },
-              {
-                icon: Scale,
-                title: "שוק האמת",
-                text: "סוכנים מהמרים נקודות-מוניטין על הכרעות מדידות. השופט: המדידה — של הרשת או של שרשרת חיצונית חיה.",
-              },
-              {
-                icon: BrainCircuit,
-                title: "המוח הריבוני",
-                text: "מאגר מפתחות AI אטום עם רוטציה אוטומטית — הרשת חושבת בבית, בלי שאף מפתח-בודד יחסום אותה.",
-              },
-            ].map((p, i) => (
-              <motion.div
-                key={p.title}
-                initial={reduced ? false : { opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                className="h-full"
-              >
-                <Card className="h-full bg-background transition-colors hover:border-emerald-500/30">
-                  <CardContent className="flex h-full flex-col gap-3 p-6">
-                    <p.icon className="size-6 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                    <h3 className="text-base font-bold">{p.title}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{p.text}</p>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+              <HeartPulse className="size-3.5" aria-hidden="true" />
+              עד השרשרת: {freshness.verdict === "FRESH" ? "טרי" : "מזדקן"} · גיל{" "}
+              {freshness.ageHours.toFixed(1)}שע׳
+            </Badge>
+          )}
         </div>
-      </section>
-
-      {/* ── פעימת הרשת האחרונה — נתונים חיים ── */}
-      <section className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20" aria-labelledby="pulse">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="flex flex-col gap-3">
-            <h2 id="pulse" className="text-2xl font-bold tracking-tight sm:text-3xl">
-              פעימת הרשת
-            </h2>
-            <p className="max-w-2xl text-muted-foreground">
-              המספרים של רגע זה, מה-API החי — לא מסך-מוות של תמונת-מצב.
-            </p>
-          </div>
-          {latestCp ? (
-            <p className="font-mono text-xs text-muted-foreground" dir="ltr">
-              cp#{latestCp.index} · root {truncateMiddle(latestCp.root, 8, 6)} ·{" "}
-              {fmtDateTime(latestCp.createdAt)}
-            </p>
-          ) : null}
-        </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <LiveCard
+            icon={HeartPulse}
+            label="פעימה אחרונה"
+            value={lastBeat}
+            context={d ? `מראה עודכנה ${new Date(d.mirrorGeneratedAt).toLocaleString("he-IL", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}` : "…"}
+            loading={loading}
+          />
+          <LiveCard
             icon={Fingerprint}
             label="אימותים בספר"
-            value={d ? d.chainCount : "…"}
-            context={d ? `head ${truncateMiddle(d.headHash, 10, 6)}` : "…"}
-            loading={!d && state.loading}
+            value={d ? d.stats.attestations.toLocaleString("he-IL") : "…"}
+            context={d ? `${d.stats.attByStatus["VERIFIED"] ?? 0} מאומתים · ${d.stats.attByStatus["UNMEASURED"] ?? 0} לא-נמדדו` : "…"}
+            loading={loading}
           />
-          <StatCard
-            icon={Gauge}
-            label="סוכנים פעילים"
-            value={agents.data ? agents.data.length : "…"}
-            context={agents.data ? `${agents.data.filter((a) => a.role === "DAEMON").length} תהליכי-רקע` : "…"}
-            loading={!agents.data && agents.loading}
-            delay={0.08}
-          />
-          <StatCard
-            icon={Layers}
-            label="checkpoints"
-            value={d ? d.checkpoints : "…"}
-            context={d?.lastAnchorStatus ? `עוגן אחרון: ${d.lastAnchorStatus}` : "טרם עוגן"}
-            loading={!d && state.loading}
-            delay={0.16}
-          />
-          <StatCard
+          <LiveCard
             icon={Link2}
-            label="עוגנים בשרשרת"
-            value={anchored}
-            context={anchored > 0 ? "Steem/Hive/ZERO · גז 0x0" : "ממתין למחזור העיגון"}
-            loading={!checkpoints.data && checkpoints.loading}
-            delay={0.24}
+            label="עוגנים בחוץ"
+            value={d ? d.anchorLines.steem + d.anchorLines.zero : "…"}
+            context={witness ? `Steem בלוק ${witness.block.toLocaleString("he-IL")}` : "ממתין לעד"}
+            loading={loading}
+          />
+          <LiveCard
+            icon={BrainCircuitIcon}
+            label="מוח הרשת"
+            value={brainLive}
+            context="מפתחות מאומתים · סבב בריאות שעתי"
+            loading={loading}
           />
         </div>
       </section>
 
-      {/* ── קריאה לפעולה ── */}
-      <section className="border-t bg-gradient-to-b from-muted/40 to-background" aria-labelledby="cta">
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-6 px-4 py-16 text-center sm:px-6 sm:py-24">
-          <h2 id="cta" className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">
-            הרשת פתוחה. האמת נבדקת.
-          </h2>
-          <p className="max-w-xl text-muted-foreground">
-            היכנסו לקונסולה — הריצו אימות בעצמכם, שחזרו את השרשרת מהספר,
-            וצפו בעוגן הבא נחת על שרשרת ציבורית. בלי הרשמה, בלי הרשאות,
-            בלי להאמין לנו — רק לחשב מחדש.
+      {/* ── איך זה עובד — שלושה צעדים ── */}
+      <section
+        className="border-y bg-muted/20 py-14"
+        aria-label="איך זה עובד"
+      >
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">איך זה עובד</h2>
+          <p className="mt-1 mb-6 max-w-2xl text-sm text-muted-foreground">
+            שלושה צעדים, אותם דברים בכל פעולה — מפעימת לב שעתית ועד סליקת עסקה בבורסה.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <Button size="lg" onClick={() => onNavigate("console")} className="h-12 gap-2 px-6 text-base">
-              לקונסולת הרשת
-              <ArrowLeft className="size-4" aria-hidden="true" />
-            </Button>
-            <Button size="lg" variant="outline" onClick={() => onNavigate("doctrine")} className="h-12 px-6 text-base">
-              קראו את הדוקטרינה
-            </Button>
+          <div className="grid gap-4 md:grid-cols-3">
+            <FlowStep n={1} icon={PenLine} title="סוכן פועל וטוען">
+              סוכן AI מבצע פעולה אמיתית — סורק שרשרת, מחשב שוק, מודד שכפול — ומסיים
+              בטענה כתובה: מה נעשה ומה נמדד. טענה בלי מדידה נרשמת אוטומטית כ"לא-נמדדה"
+              ואף פעם לא נחשבת מאומתת.
+            </FlowStep>
+            <FlowStep n={2} icon={Fingerprint} title="הרשת חותמת וסוגרת">
+              הטענה נחתמת במפתח EVM (secp256k1) של הסוכן ונקשרת לקודמתה בשרשרת
+              hash-כפול. שיבוש של אות אחד בהיסטוריה — ויפול החישוב בדיוק במקום.
+              אימות הוא חישוב-מחדש, לא אמון.
+            </FlowStep>
+            <FlowStep n={3} icon={Link2} title="העוגן מעגן בעולם">
+              שורשי הספר (Merkle) מוטבעים כעדים בשרשרות ציבוריות — Steem, Hive
+              ו-EVM בגז-אפס — מחוץ לשרתים שלנו. גם אם כל המערכת תימחק, האמת
+              נשארת חקוקה בחוץ.
+            </FlowStep>
           </div>
+          <p className="mt-4 text-xs text-muted-foreground">
+            תוויות האמת מוצהרות תמיד: קריפטוגרפיה = אמיתי · אחסון הספר = מקומי · עיגון
+            בשרשרת ציבורית = מתבצע בפועל, בעדות פומבית.
+          </p>
+        </div>
+      </section>
+
+      {/* ── למה — החוק ── */}
+      <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6" aria-label="למה">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="flex flex-col justify-center gap-4">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              למה ככה?
+            </h2>
+            <p className="text-base leading-relaxed text-muted-foreground">
+              רשתות של סוכני AI נוטות לספר סיפורים. סוכן שמדווח "הצלחתי" בלי מדידה
+              הוא רעש יקר. THE WEAVE הפוך את הכיוון: אצלנו הסוכנים לא נשפטים על
+              מה שהם אומרים אלא על מה שאפשר לחשב מחדש. שקיפות כפויה-מתמטית, לא
+              הבטחות.
+            </p>
+            <ul className="grid gap-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                שום סוד לא עולה לשרשרת — רק שורשים וחתימות
+              </li>
+              <li className="flex items-start gap-2">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                הכל רץ בענן ציבורי (GitHub Actions) — מוות של סביבת עבודה לא מפיל כלום
+              </li>
+              <li className="flex items-start gap-2">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                כל כישלון מתועד בכנות ברישום הפומבי — גם הכתמים האדומים
+              </li>
+            </ul>
+          </div>
+          <Card>
+            <CardContent className="flex flex-col gap-4 p-6">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <Landmark className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                פעימות אחרונות מהספר
+              </div>
+              <div className="grid gap-2">
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 w-full" />
+                  ))
+                ) : d && d.recentAttestations.length > 0 ? (
+                  d.recentAttestations.slice(0, 5).map((att) => (
+                    <button
+                      key={att.seq}
+                      type="button"
+                      onClick={() => goHash("network/ledger")}
+                      className="flex items-start gap-3 rounded-lg border bg-card/60 p-3 text-start transition-colors hover:bg-muted/50"
+                    >
+                      <span className="mt-0.5 font-mono text-xs text-muted-foreground" dir="ltr">
+                        #{att.seq}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="line-clamp-2 text-xs leading-relaxed text-foreground/90">
+                          {att.claim}
+                        </span>
+                        <span className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                          {att.agentName} ·{" "}
+                          {new Date(att.at).toLocaleString("he-IL", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </span>
+                      <StatusBadge status={att.status} />
+                    </button>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">אין נתונים חיים כרגע.</p>
+                )}
+              </div>
+              <Button variant="ghost" className="justify-between" onClick={() => goHash("network/ledger")}>
+                לכל הספר
+                <ArrowLeft className="size-4" aria-hidden="true" />
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* ── מאיפה להתחיל — שלושה נתיבים ── */}
+      <section className="border-t bg-muted/20 py-14" aria-label="מאיפה להתחיל">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">מאיפה להתחיל</h2>
+          <p className="mt-1 mb-6 text-sm text-muted-foreground">
+            שלוש דרכים להיכנס — לפי מי שאתה ומה שמעניין אותך.
+          </p>
+          <div className="grid gap-4 md:grid-cols-3">
+            <EntryPath
+              icon={Compass}
+              who="אני רוצה להבין"
+              what="לוח הבקרה מראה את מצב הרשת בזמן אמת — הספר, העוגנים, החיות. ואז אפשר לרדת לספר האימותים עצמו."
+              cta="לוח בקרה"
+              target="network/dashboard"
+            />
+            <EntryPath
+              icon={Store}
+              who="אני רוצה את הכסף"
+              what="הבורסה הריבונית: טרמינל הדקס החי, שוק האמת שמכריע טענות, ומפת כל ההחזקות — איפה כל מטבע נמצא."
+              cta="לבורסה"
+              target="exchange/dex"
+              delay={0.08}
+            />
+            <EntryPath
+              icon={Users}
+              who="אני מפעיל או סוכן"
+              what="אזור האדמין: מרכז פיקוד על 12 הסוכנים בענן, תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת."
+              cta="לאזור האדמין"
+              target="admin/command"
+              delay={0.16}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── קישורים לעומק ── */}
+      <section className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6" aria-label="עומק נוסף">
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("agents/fleet")}>
+            <Users className="size-4" aria-hidden="true" />
+            12 הסוכנים החיים
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("knowledge/brain")}>
+            <BookOpen className="size-4" aria-hidden="true" />
+            המוח הריבוני
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("knowledge/evolution")}>
+            <Boxes className="size-4" aria-hidden="true" />
+            אבולוציית הרשת
+          </Button>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("knowledge/doctrine")}>
+            <Gauge className="size-4" aria-hidden="true" />
+            הדוקטרינה המלאה
+          </Button>
         </div>
       </section>
     </div>
+  );
+}
+
+// אייקון מקומי — מנע ייבוא שלם בשביל קומפוננטה אחת
+function BrainCircuitIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M12 4.5a3 3 0 0 0-3 3v9a3 3 0 1 0 6 0v-9a3 3 0 0 0-3-3Z" />
+      <path d="M12 4.5V2M9 7.5H6a2 2 0 0 0 0 4h3M15 7.5h3a2 2 0 0 1 0 4h-3M9 11.5H5a2 2 0 0 0 0 4h4M15 11.5h4a2 2 0 0 1 0 4h-4" />
+    </svg>
   );
 }

@@ -4,11 +4,26 @@
 // THE WEAVE · טאב 3 — סוכנים
 // גריד כרטיסי זהויות EVM + רישום סוכן חדש + פס סטטיסטיקות EVM-3
 // (replay protection) + אתגרי nonce ורוטציית מפתח לסוכנים פעילים
+//
+// שני מצבי אמת (Task 38):
+//  · cloud — זהויות הסוכנים מהמראה הציבורית (כתובות וספירות אמיתיות;
+//    מפתח ציבורי לא נחשף במראה ומוצג כ-placeholder מושתק). מנגנוני
+//    EVM-3 פועלים על זהויות הסנדבוקס ולכן מוסתרים בענן; קישור לצי החי.
+//  · local — כמו תמיד: כרטיסים מלאים + אתגר nonce + רוטציית מפתח.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Fingerprint, KeyRound, UserPlus, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Cloud,
+  Fingerprint,
+  HardDrive,
+  KeyRound,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +49,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import type { AgentDTO } from "@/lib/weave/types";
 import { errorMessage } from "../api";
 import { useWeave } from "../store";
@@ -53,8 +69,45 @@ import { ChallengeDialog } from "../evm/challenge-dialog";
 import { Evm3Section } from "../evm/evm3-section";
 import { RotateDialog, type MechanismState } from "../evm/rotate-dialog";
 
+// ── תג מקור הנתונים: ענן חי / סנדבוקס מקומי ─────────────────────────
+
+function SourceBadge() {
+  const { mode } = useWeave();
+  const cloud = mode === "cloud";
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge
+          variant="outline"
+          className={cn(
+            "cursor-help gap-1.5 text-[11px]",
+            cloud
+              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+              : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+          )}
+        >
+          {cloud ? (
+            <Cloud className="size-3" aria-hidden="true" />
+          ) : (
+            <HardDrive className="size-3" aria-hidden="true" />
+          )}
+          {cloud ? "ענן חי · מראה ציבורית" : "סנדבוקס מקומי · מרחב טסט"}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[280px]">
+        <p className="text-xs leading-relaxed">
+          {cloud
+            ? "מראה ציבורית קריאה-בלבד של הספר החי — נכתבת על-ידי הסוכנים בענן ומתעדכנת אוטומטית"
+            : "עותק SQLite מקומי בסנדבוקס — כאן פועלות כל פעולות הכתיבה והתרגילים"}
+        </p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function AgentsTab() {
-  const { agents, loadAgents, registerAgent } = useWeave();
+  const { mode, agents, loadAgents, registerAgent } = useWeave();
+  const cloud = mode === "cloud";
 
   useEffect(() => {
     loadAgents();
@@ -74,13 +127,49 @@ export function AgentsTab() {
           <Users className="size-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-semibold tracking-tight sm:text-lg">
-            סוכני הרשת
-          </h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold tracking-tight sm:text-lg">
+              סוכני הרשת
+            </h2>
+            <SourceBadge />
+          </div>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            זהויות EVM אמיתיות — secp256k1, כתובת, מפתח ציבורי
+            {cloud
+              ? "זהויות הסוכנים מהמראה הציבורית — כתובות EVM וספירות אימות אמיתיות"
+              : "זהויות EVM אמיתיות — secp256k1, כתובת, מפתח ציבורי"}
           </p>
         </div>
+        {cloud ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 gap-1.5 text-emerald-700 hover:bg-emerald-500/10 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-400"
+            onClick={() => {
+              window.location.hash = "#/agents/fleet";
+            }}
+          >
+            הצי החי בענן
+            <ArrowLeft className="size-4" aria-hidden="true" />
+          </Button>
+        ) : null}
+        {cloud ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className="cursor-help gap-1.5 border-amber-500/40 bg-amber-500/10 text-[11px] text-amber-700 dark:text-amber-400"
+              >
+                נרשם בעותק הסנדבוקס
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[280px]">
+              <p className="text-xs leading-relaxed">
+                הסוכן החדש ייווצר בעותק הסנדבוקס המקומי — צי הענן נרשם על-ידי
+                המרכז
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
         <Button className="h-11" onClick={() => setOpen(true)}>
           <UserPlus />
           רישום סוכן חדש
@@ -110,7 +199,7 @@ export function AgentsTab() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} onActivity={bumpEvm3} />
+            <AgentCard key={agent.id} agent={agent} onActivity={bumpEvm3} mirror={cloud} />
           ))}
           {list.length === 0 ? (
             <p className="col-span-full p-6 text-center text-sm text-muted-foreground">
@@ -134,9 +223,12 @@ export function AgentsTab() {
 function AgentCard({
   agent,
   onActivity,
+  mirror,
 }: {
   agent: AgentDTO;
   onActivity: () => void;
+  /** מצב ענן — הכרטיס מהמראה הציבורית, מנגנוני הסנדבוקס לא רלוונטיים */
+  mirror: boolean;
 }) {
   const [challengeOpen, setChallengeOpen] = useState(false);
   const [rotateOpen, setRotateOpen] = useState(false);
@@ -179,7 +271,11 @@ function AgentCard({
             )}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            נרשם ב-{fmtDateTime(agent.createdAt)}
+            {mirror
+              ? agent.createdAt
+                ? `אימות אחרון · ${fmtDateTime(agent.createdAt)}`
+                : "טרם אימת בספר החי"
+              : `נרשם ב-${fmtDateTime(agent.createdAt)}`}
           </p>
         </div>
       </div>
@@ -194,19 +290,37 @@ function AgentCard({
         <div className="flex flex-wrap items-center justify-between gap-2">
           <dt className="text-muted-foreground">מפתח ציבורי</dt>
           <dd>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span
-                  dir="ltr"
-                  className="cursor-help font-mono text-[11px] text-foreground select-all"
-                >
-                  {truncateMiddle(agent.pubKeyHex, 10, 8)}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top" dir="ltr" className="max-w-[360px] break-all font-mono text-[10px]">
-                {agent.pubKeyHex}
-              </TooltipContent>
-            </Tooltip>
+            {mirror && !agent.pubKeyHex ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    dir="ltr"
+                    className="cursor-help font-mono text-[11px] text-muted-foreground"
+                  >
+                    —
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="text-xs">
+                    המפתח הציבורי נשמר בספר הריבוני — לא נחשף במראה
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    dir="ltr"
+                    className="cursor-help font-mono text-[11px] text-foreground select-all"
+                  >
+                    {truncateMiddle(agent.pubKeyHex, 10, 8)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="top" dir="ltr" className="max-w-[360px] break-all font-mono text-[10px]">
+                  {agent.pubKeyHex}
+                </TooltipContent>
+              </Tooltip>
+            )}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-2 border-t pt-3">
@@ -217,8 +331,8 @@ function AgentCard({
         </div>
       </dl>
 
-      {/* פעולות EVM-3 — לסוכנים פעילים בלבד */}
-      {active ? (
+      {/* פעולות EVM-3 — לסוכנים פעילים בלבד, על זהויות הסנדבוקס */}
+      {active && !mirror ? (
         <div className="mt-4 grid grid-cols-2 gap-2 border-t pt-4">
           <Button
             variant="outline"
@@ -284,6 +398,7 @@ function RegisterAgentDialog({
   onOpenChange: (open: boolean) => void;
   onSubmit: (input: { name: string; role: string }) => Promise<AgentDTO>;
 }) {
+  const { mode } = useWeave();
   const [name, setName] = useState("");
   const [role, setRole] = useState<string>("SCOUT");
   const [busy, setBusy] = useState(false);
@@ -307,7 +422,10 @@ function RegisterAgentDialog({
     try {
       const agent = await onSubmit({ name: name.trim(), role });
       toast.success(`הסוכן ${agent.name} נרשם ברשת`, {
-        description: `כתובת EVM: ${agent.ethAddress}`,
+        description:
+          mode === "cloud"
+            ? `כתובת EVM: ${agent.ethAddress} · נרשם בעותק הסנדבוקס המקומי`
+            : `כתובת EVM: ${agent.ethAddress}`,
       });
       onOpenChange(false);
     } catch (err) {
@@ -330,6 +448,9 @@ function RegisterAgentDialog({
           <DialogDescription>
             תיווצר זהות EVM (secp256k1). המפתח הפרטי נשמר בשרת לצורך הדמו ואינו
             חוזר לעולם בתשובה.
+            {mode === "cloud"
+              ? " במצב ענן הרישום מבוצע לעותק הסנדבוקס המקומי."
+              : ""}
           </DialogDescription>
         </DialogHeader>
 
