@@ -1,38 +1,33 @@
 {
-  "at": "2026-09-16T16:10:07.561Z",
+  "at": "2026-09-16T16:33:40.050Z",
   "runner": "github-actions",
-  "mode": "ANCHORED",
-  "checkpoint": {
-    "index": 125,
-    "root": "0x63c7a048c588afcb86c1bb46850751c6d0014292cbc10a9e6c100b0951e7131d",
-    "attFrom": 132,
-    "attTo": 132
+  "mode": "RC-SKIPPED (both chains regenerating — honest skip; ZERO line anchors in $0)",
+  "payload": {
+    "protocol": "saos-weave-core/v1",
+    "action": "checkpoint",
+    "at": "2026-09-16T16:33:40.050Z",
+    "net": "weave-core",
+    "repo": "roshpinacare-sys/Zip",
+    "checkpoint": 127,
+    "root": "0xba806a690eb7dc8a776a8cfdfa7f332767d306319abe1b774078b5e9c4c560ab",
+    "attFrom": 134,
+    "attTo": 134,
+    "attestations": 134,
+    "headHash": "0xba806a690eb7dc8a776a8cfdfa7f332767d306319abe1b774078b5e9c4c560ab",
+    "commit": "cbf0306"
   },
-  "txids": {
-    "steem": null,
-    "hive": "1b768e199574feb7729d59bf462369fa29410e76"
-  },
-  "hiveSkipped": null,
   "notes": [
-    "steem: rc-gated (live-mana=5.58e+7 < floor=2.00e+8 — regen budget, honest skip)",
-    "hive: broadcast-accepted (await history confirm)"
+    "steem: rc-gated (live-mana=6.35e+7 < floor=2.00e+8 — regen budget, honest skip)",
+    "hive: rc-gated (mana=4.28e+7 < floor=3.00e+8 — regen budget, honest skip)"
   ],
-  "attSeq": 133,
-  "nextCheckpoint": {
-    "index": 126,
-    "root": "0x3b082b3a2dc589475f5b1070fb90d078c44348e2efda522a672a417ba1ab6ed1"
+  "rcGates": {
+    "steem": "rc-gated (live-mana=6.35e+7 < floor=2.00e+8 — regen budget, honest skip)",
+    "hive": "rc-gated (mana=4.28e+7 < floor=3.00e+8 — regen budget, honest skip)"
   },
-  "market": {
-    "settled": [],
-    "refunded": [],
-    "attSeqs": [],
-    "checkpoint": null
-  },
-  "attestations": 133,
   "context": {
     "runner": "github-actions",
-    "gitHead": "3e48e34",
+    "gitHead": "cbf0306",
     "repoSlug": "roshpinacare-sys/Zip",
-    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/35120104984"
+    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/35122614447"
   }
 }
