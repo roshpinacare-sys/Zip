@@ -1120,3 +1120,46 @@ Work Log:
 
 Stage Summary:
 - ארבעת טאבי הליבה מציגים עכשיו את האמת משני המקורות בלי לשקר למשתמש: מה מראה, מה סנדבוקס, ומה ההבדל — מוצהר בכל מסך.
+
+---
+Task ID: 6
+Agent: subagent-verifier (Z.ai)
+Task: בניית תת-מערכת "הרשת מאמתת את הסוכן" (agent-verify) בריפו Console: מאמת עצמאי, אפס-תלויות, שמודד את האתר החי מול חוזה טענות נבדק-מכונה ומפרסם את התוצאה בפומבי. ארבעה קבצים חדשים בלבד; אף קובץ קיים לא נגע; לא בוצע commit/push.
+
+Work Log:
+- נבנה agent/verify/assertions.json — החוזה (format: agent-verify-assertions-v1, baseUrl האתר החי): 15 טענות דו-לשוניות (desc en/he) — A01 זמינות index (http_ok) · A02 לפחות 6 סקציות data-console-section (סוג contains_min שנוסף לסכמה) · A03 data-submenu מינימום 1 · A04 hero-bigpicture · A05 fleet-live · A06 admin-area · A07 wallet.html נשמר · A08 agents/registry.json מינימום 13 סוכנים · A09 mirror.json מינימום 100 אימותים · A10 status.json freshness.verdict = FRESH · A11 agent/state.json זמין · A12 agent/handoff.md זמין · A13 agent/requests.json מינימום 12 בקשות · A14 regex_absent לטווחי אימוג'י/דינגבט/חץ (U+1F300-1FAFF, U+2600-27BF, U+2190-21FF, U+2B00-2BFF, דגל u) · A15 verify-results גלוי בעמוד.
+- נכתב agent/verify/run.mjs — המאמת, אפס תלויות (Node 20+, fetch גלובלי): קורא assertions.json מספרייתו; כל target ייחודי מורד פעם אחת בריצה עם שובר-מטמון ?t= (תמונת-מצב קוהרנטית אחת לכל הטענות, נגד מטמון ה-CDN); מעריך וכותב results.json לצידו (agent-verify-results-v1: generatedAt, runBy github-actions|local, durationMs, summary עם verdict ALL_PASS|HAS_FAILURES, מערך results עם id/ok/details/ms). סוגים: http_ok, contains, contains_min, json_field, json_min, regex_absent; פותר נתיבים מנוקדים מקוננים כולל מקרה מיוחד "agents.length" (length על מערך). קוד יציאה תמיד 0 — תוצאות הן נתונים, לא קריסה: כישלון fetch/JSON/טענה שבורה נרשם בכנות ב-details; assertions.json חסר = ריצה כנה עם total 0 ו-verdict NO_ASSERTIONS; אפילו קריסה בלתי-צפויה כותבת קובץ תוצאות ויוצאת 0. פלט: טבלה קומפקטית ל-stdout + שורת פסק-דין. קובץ נכתב עם הזחה של 2 רווחים ושורה מסיימת.
+- נבנה .github/workflows/agent-verify.yml — name agent-verify; מנגנוני הרצה: schedule cron '55 */6 * * *' + workflow_dispatch; permissions contents: write; concurrency (group agent-verify, cancel-in-progress: false); job verify (ubuntu-latest, timeout-minutes 10): checkout, setup-node@v4 עם Node 20, node agent/verify/run.mjs, ואז commit של agent/verify/results.json אם השתנה — git config weave-verify[bot] / weave-verify[bot]@users.noreply.github.com, הודעה בתבנית "agent-verify: <verdict> · <passed>/<total> · <UTC timestamp>", ו-push. צעד ה-commit נבנה עם git add לפי בדיקת git diff --cached כדי לתפוס גם את הקובץ החדש בריצה הראשונה אחרי הדחיפה (git diff רגיל על untracked מחזיר "ללא שינוי" והיה מדלג). YAML אומת ב-parsing מלא — שדות מדויקים, אפס טאבים.
+- נכתב agent/verify/README.md — דו-לשוני (EN ואחר-כך HE): מה זה (האימות העצמאי של הרשת למסירת הסוכן — בקשה · בנייה · הרשת מודדת · תוצאה ציבורית), איך מריצים (workflow_dispatch מלשונית Actions, או node agent/verify/run.mjs משורש הריפו), ואיפה התוצאות חיות (agent/verify/results.json בריפו וב-URL הציבורי, מוצג באזור verify-results).
+- אימות אמת של המאמת עצמו, ריצה חיה מול האתר: 4/15 עברו — A01 (index 200), A08 (13 סוכנים בדיוק), A09 (135 אימותים), A10 (FRESH). 11 נכשלו בכנות וכמצופה — הארכיטקטורה החדשה טרם נדחפה (data-console-section/submenu, hero-bigpicture, fleet-live, admin-area, wallet.html 404, agent/state.json 404, agent/handoff.md 404, agent/requests.json מוגש כ-HTML של 404, verify-results). יציאה 0, results.json תקף נכתב, ואז נמחק — לא מעלים צילום כושל לריפו; ה-workflow ייצור את הראשון אחרי הדחיפה.
+- נתיבי חוסן נבדקו: מחיקה זמנית של assertions.json הובילה לכתיבת results תקף עם total 0, verdict NO_ASSERTIONS והערת סיבה כנה, יציאה 0; bash של צעד ה-commit אומת ב-bash -n.
+- משמעת איכות: אפס תווים מטווחי האימוג'י/חץ/דינגבט בכל ארבעת הקבצים (נמדד תו-תו; ה"·" הוא פיסוק טהור) · אפס סודות (קריאה ציבורית בלבד, הכתיבה היחידה היא results.json עצמו) · git status נקי — רק 4 הקבצים החדשים, אף קובץ קיים לא שונה, כולל הקבצים של המהנדס המוביל (index.html, wallet.html, agent/state.json, agent/handoff.md, agent/requests.json, agent/limitations.md — לא נוגעו ולא נוצרו על ידי).
+
+Stage Summary:
+- agent-verify מוכן ומוכח כולו: הרשת מודדת את מסירת הסוכן בכוחות עצמה, כל 6 שעות, ומפרסמת את פסק הדין בריפו הציבורי. 15 טענות דו-לשוניות, מאמת אפס-תלויות עם מצבי כישלון כנים, workflow שמבצע commit רק כשהתוצאה השתנתה.
+- מצב חי נוכחי (לפני דחיפת הקונסולה החדשה): 4/15 — הזמינות ושלושת נתוני הרשת החיים עוברים; כל השאר ממתינים ל-6-section console, wallet.html וקבצי ה-bridgehead. אחרי הדחיפה היעד הוא ALL_PASS 15/15.
+- תגלית כנה שנמדדה בדרך: ל-index החי הוותיק יש בדיוק 15 תווים מטווחי האימוג'י (הראשון U+1F45B) — זהה לקלון המקומי של main, כלומר ניקוי הגליפים של Task 37 לא שרד את פעימות הפרסום שאחריו. A14 יאכוף את מדיניות האפס-אימוג'י קדימה באופן אוטומטי ופומבי.
+---
+
+---
+Task ID: 39
+Agent: main (Z.ai Code)
+Task: הוראת המפעיל: roast חריף + ביקורת בקשה מול מסירה + תיקון מקיף + מאחז ריבוני ב-Console + מערכת מאמתת לסוכן + רצף בין שיחות
+
+Work Log:
+- **האבחנה המרכזית (מה שהמפעיל תפס כ"חזרה לגרסה קודמת")**: ארכיטקטורת Task 38 (6 סקציות+תתי-תפריטים+אדמין) נבנתה באפליקציית הסנדבוקס בלבד; ה-URL הציבורי המשיך להגיש את עמוד הארנק מתקופת Task 29-31. הריפו Zip היה מסונכרן (0/0) אבל המסירה לא הגיעה לענן הציבורי. זה בדיוק כשל L3 שתועד אחר כך ב-limitations.md.
+- **הקונסולה הציבורית החדשה (index.html, ~97KB)**: 6 סקציות — בית (תמונה גדולה: hero + 4 כרטיסי "מה קורה עכשיו" חיים + איך זה עובד ב-3 צעדים + למה זה קיים/החוק + פעימות אחרונות + 3 נתיבי כניסה לפי סוג מבקר) · הרשת (סקירה/ספר/עוגנים/אקוסיסטם/תוכנית) · סוכנים (הצי 13 כרטיסים חיים + זהויות EVM) · בורסה (טרמינל דקס חי + שוק אמת + ספר חי) · ידע (מוח/ריבונות/אבולוציה/דוקטרינה) · אדמין (פיקוד/משימות וכסף/שרת/אימות). תתי-תפריט גלוי, ניתוב hash עמוק #/section/sub, EN/HE עם RTL, מובייל מקונן, אפס אימוג'י, footer דביק.
+- **כל הנתונים ממקורות ציבוריים בלבד** (אותו origin): status.json (עד Steem), mirror.json (136 אימותים), agents/registry.json (13 סוכנים), saos-live.json, dex/world.json, agent/state.json, agent/requests.json, agent/verify/results.json + GitHub API ציבורי (14 ריפואים + ריצות). אפס סודות, אפס תלות בסנדבוקס.
+- **הארנק לא אבד**: ה-index הוותיק (111KB, ארנק/בורסה/הפקדות) נשמר כ-wallet.html עם canonical מתוקן + קישור "הקונסולה" בניווט + מפתחות i18n (en/he). 8 התצוגות שלמות.
+- **המאחז (agent/) — לב הדרישה**: state.json (מצב מכונה: phase, currentTask, lastHandoff, environment+recovery, standingOrders SO-1..SO-5, openLoops P0-P3, moneyPlan 4 דליים, authorities, safetyLaws) · handoff.md (פרוטוקול המשך: 4 פקודות boot לכל סוכן בכל סשן) · requests.json (ספר בקשות R01-R16: מה ביקש המפעיל מול מה קיבל בפועל, עם סטטוס כנה) · limitations.md (L1-L7: מוות הקשר, ארעיות סנדבוקס, פער מסירה, בריחה מהבקשה, הטיית דיווח עצמי, חריגה, ריקבון המאמת — ולכל אחת מניעת-רשת).
+- **המערכת המא�נת (Task 6 של תת-סוכן)**: workflow agent-verify — כל 6 שעות ב-:55 + dispatch — מודד 15 קביעות מול ה-URL הציבורי החי ומבצע commit ל-results.json. הרשת מאמתת את הסוכן, לא הסוכן את עצמו.
+- **אומת E2E לפני דחיפה**: שרת סטטי מקומי + דפדפן — 6 סקציות, עד FRESH, 135→136 אימותים, צי 10/13, מוח 3/3, 13 כרטיסי צי, מאחז מתרנדר, עברית RTL מלאה, מובייל בלי גלישה, wallet.html עם קישור חזרה. דחיפה עם rebase (הרשת ביצעה 2 קומיטים בינתיים — חיים).
+- **הפעלת המאמת מהענן**: dispatch → הצלחה → **ALL_PASS 15/15** נרשם ב-results.json על ידי weave-verify[bot] — לא על ידי הסוכן. הפסק הדין מוצג חי ב-#/admin/verify באתר הציבורי.
+- **אומת בציבור**: הדפדפן פתח את ה-URL החי — כותרת חדשה, 6 סקציות, עד FRESH, 136 אימותים, ALL_PASS 15/15 באזור האדמין. צילומי ראיה: task39-live-public.png, task39-live-verify.png (+ מקומיים EN/HE).
+
+Stage Summary:
+- **המאחז קיים**: מצב הסוכן, פרוטוקול ההמשך, ספר הבקשות ומפת המגבלות חיים בריפו הציבורי — שיחה חדשה, סוכן אחר, סנדבוקס שמת: ההמשך מהמקום שהופסק, ב-4 פקודות (handoff.md §2).
+- **"נמסר" קיבל הגדרה מדידה**: SO-1 — מה שלא נראה ב-URL הציבורי לא נחשב. המאמת מודד את זה כל 6 שעות, פומבית.
+- **לולאת האימון נסגרה**: בקשה → ספר בקשות → בנייה → מסירה פומבית → הרשת מודדת → פסק דין פומבי. אם הסוכן "נופל" — זה נראה מיד, לא נשכח.
+- הכפתור של המפעיל: https://roshpinacare-sys.github.io/Console/ — התמונה הגדולה למשתמש החדש, הארנק שלם, האדמין האישי, ופסק הדין של הרשת על הסוכן.
+---
