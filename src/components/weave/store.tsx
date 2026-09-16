@@ -88,6 +88,13 @@ export interface LiveOverview {
     claim: string;
   }>;
   lastCheckpoint: { index: number; root: string; attFrom: number; attTo: number; at: string; anchoredOn: string[] } | null;
+  loop: {
+    coverage: { withAgents: number; total: number; idle: number; agents: number } | null;
+    requests: { delivered: number; total: number } | null;
+    standingOrders: number | null;
+    verify: { total: number; passed: number; failed: number; verdict: string } | null;
+    checkpoints: number;
+  } | null;
 }
 
 export interface RegistryAgentDTO {

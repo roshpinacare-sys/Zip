@@ -20,10 +20,13 @@ import {
   Gauge,
   HeartPulse,
   Landmark,
+  Lightbulb,
   Link2,
   PenLine,
   ShieldCheck,
   Store,
+  Target,
+  TrendingUp,
   Users,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -164,6 +167,66 @@ function EntryPath({
 
 // ── העמוד ───────────────────────────────────────────────────────────
 
+// ── שער בלולאת ההישגיות ──────────────────────────────────────────
+
+function LoopGate({
+  icon: Icon,
+  step,
+  title,
+  value,
+  context,
+  warn,
+  loading,
+  delay = 0,
+}: {
+  icon: typeof Gauge;
+  step: number;
+  title: string;
+  value: string;
+  context: string;
+  warn?: boolean;
+  loading?: boolean;
+  delay?: number;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      className="flex h-full flex-col"
+    >
+      <Card className="flex h-full flex-col gap-3 p-5 transition-colors hover:border-emerald-500/30">
+        <div className="flex items-center justify-between">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+            <Icon className="size-4" aria-hidden="true" />
+          </span>
+          <span className="font-mono text-[11px] text-muted-foreground" dir="ltr">
+            {String(step).padStart(2, "0")}
+          </span>
+        </div>
+        {loading ? (
+          <Skeleton className="h-8 w-20" />
+        ) : (
+          <span
+            className={`text-2xl font-bold tabular-nums leading-none tracking-tight ${
+              warn ? "text-amber-600 dark:text-amber-300" : ""
+            }`}
+            dir="auto"
+          >
+            {value}
+          </span>
+        )}
+        <h3 className="text-sm font-bold">{title}</h3>
+        <span className="font-mono text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+          {context}
+        </span>
+      </Card>
+    </motion.div>
+  );
+}
+
 export function HomeView() {
   const { live, loadLive } = useWeave();
   const reduced = useReducedMotion();
@@ -187,6 +250,9 @@ export function HomeView() {
           ? `לפני ${vitality.lastAttAgeMin} דק׳`
           : `לפני ${Math.round(vitality.lastAttAgeMin / 60)} שע׳`;
   const brainLive = d ? `${d.stats.brainLive}/${d.stats.brainKeys}` : "…";
+  const loopCov = d?.loop?.coverage ?? null;
+  const loopReq = d?.loop?.requests ?? null;
+  const loopVer = d?.loop?.verify ?? null;
 
   return (
     <div className="flex flex-col">
@@ -341,6 +407,73 @@ export function HomeView() {
             תוויות האמת מוצהרות תמיד: קריפטוגרפיה = אמיתי · אחסון הספר = מקומי · עיגון
             בשרשרת ציבורית = מתבצע בפועל, בעדות פומבית.
           </p>
+        </div>
+      </section>
+
+      {/* ── לולאת ההישגיות - חמישה שערים נמדדים ── */}
+      <section
+        className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6"
+        aria-label="לולאת ההישגיות"
+      >
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">לולאת ההישגיות</h2>
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            כל משימה ברשת עוברת חמישה שערים נמדדים לפני שהיא נחשבת מושלמת. המספרים
+            חיים ונמשכים מהמראות הציבוריות.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 items-stretch gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <LoopGate
+            icon={Gauge}
+            step={1}
+            title="יעילות"
+            value={loopCov ? `${loopCov.withAgents}/${loopCov.total}` : "…"}
+            context={
+              loopCov
+                ? `${loopCov.agents} סוכנים · ${loopCov.idle} רדומים`
+                : "ממתין לרישום"
+            }
+            loading={loading}
+            delay={0}
+          />
+          <LoopGate
+            icon={TrendingUp}
+            step={2}
+            title="ערך"
+            value={loopReq ? `${loopReq.delivered}/${loopReq.total}` : "…"}
+            context="בקשות מפעיל שנסגרו בפומבי"
+            warn={loopReq ? loopReq.delivered < loopReq.total : false}
+            loading={loading}
+            delay={0.06}
+          />
+          <LoopGate
+            icon={Lightbulb}
+            step={3}
+            title="היסק"
+            value={d?.loop?.standingOrders != null ? String(d.loop.standingOrders) : "…"}
+            context="הנחיות כתובות מחייבות כל פעולה"
+            loading={loading}
+            delay={0.12}
+          />
+          <LoopGate
+            icon={ShieldCheck}
+            step={4}
+            title="אימות"
+            value={loopVer ? `${loopVer.passed}/${loopVer.total}` : "…"}
+            context={loopVer ? `${loopVer.verdict} · בוט עצמאי` : "ממתין לבוט"}
+            warn={loopVer ? loopVer.verdict !== "ALL_PASS" : false}
+            loading={loading}
+            delay={0.18}
+          />
+          <LoopGate
+            icon={Target}
+            step={5}
+            title="הישגיות"
+            value={d ? d.stats.checkpoints.toLocaleString("he-IL") : "…"}
+            context="נקודות ביקורת ציבוריות, הכל גלוי"
+            loading={loading}
+            delay={0.24}
+          />
         </div>
       </section>
 

@@ -8,6 +8,9 @@ import {
   getMirror,
   getChainStatus,
   getAgentsRegistry,
+  getAgentState,
+  getAgentRequests,
+  getVerifyResults,
   computeVitalityFromMirror,
 } from "@/lib/live/cloud";
 
@@ -15,10 +18,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [mirror, chain, registry] = await Promise.all([
+    const [mirror, chain, registry, agentState, agentRequests, verify] = await Promise.all([
       getMirror(),
       getChainStatus().catch(() => null),
       getAgentsRegistry().catch(() => null),
+      getAgentState().catch(() => null),
+      getAgentRequests().catch(() => null),
+      getVerifyResults().catch(() => null),
     ]);
     const vitality = computeVitalityFromMirror(mirror);
 
@@ -40,6 +46,27 @@ export async function GET() {
         agents: mirror.agents,
         recentAttestations: mirror.attestations.slice(0, 8),
         lastCheckpoint: mirror.checkpoints[0] ?? null,
+        loop: {
+          coverage: registry
+            ? {
+                withAgents: registry.reposWithAgents.length,
+                total: registry.reposTotal,
+                idle: registry.reposIdle.length,
+                agents: registry.agents.length,
+              }
+            : null,
+          requests: agentRequests
+            ? {
+                delivered: agentRequests.requests.filter((r) =>
+                  String(r.status ?? "").startsWith("delivered")
+                ).length,
+                total: agentRequests.requests.length,
+              }
+            : null,
+          standingOrders: agentState ? agentState.standingOrders.length : null,
+          verify: verify ? verify.summary : null,
+          checkpoints: mirror.stats.checkpoints,
+        },
       },
       registry: registry
         ? {

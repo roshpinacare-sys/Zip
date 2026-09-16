@@ -183,6 +183,56 @@ export function getAgentsRegistry(): Promise<AgentsRegistry> {
   );
 }
 
+// ── מצב הסוכן הציבורי (agent/state.json) — הנחיות ופאזה ──────────────
+
+export interface AgentStatePublic {
+  format: string;
+  phase: string;
+  standingOrders: Array<{ id: string; en?: string; he?: string }>;
+  [k: string]: unknown;
+}
+
+export function getAgentState(): Promise<AgentStatePublic> {
+  return fetchJsonCached<AgentStatePublic>(
+    "agent-state",
+    `${RAW_BASE}/agent/state.json`,
+    undefined,
+    120_000
+  );
+}
+
+// ── ספר הבקשות הציבורי (agent/requests.json) ─────────────────────────
+
+export interface AgentRequestsPublic {
+  requests: Array<{ id: string; status: string }>;
+  [k: string]: unknown;
+}
+
+export function getAgentRequests(): Promise<AgentRequestsPublic> {
+  return fetchJsonCached<AgentRequestsPublic>(
+    "agent-requests",
+    `${RAW_BASE}/agent/requests.json`,
+    undefined,
+    120_000
+  );
+}
+
+// ── תוצאות האימות העצמאי (agent/verify/results.json) ─────────────────
+
+export interface VerifyResultsPublic {
+  summary: { total: number; passed: number; failed: number; verdict: string };
+  [k: string]: unknown;
+}
+
+export function getVerifyResults(): Promise<VerifyResultsPublic> {
+  return fetchJsonCached<VerifyResultsPublic>(
+    "verify-results",
+    `${RAW_BASE}/agent/verify/results.json`,
+    undefined,
+    120_000
+  );
+}
+
 // ── ה-PAT — מה-remote של הגיט, צד-שרת בלבד ──────────────────────────
 
 let cachedToken: string | null | undefined;
