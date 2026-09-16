@@ -932,3 +932,64 @@ Stage Summary:
 - **הפקדות ומעקב חיים**: תביעת משתמש חתומה + זיכוי אוצר מתועד + תגמולים נראים — כל ההיסטוריה בספר הפתוח. הזרימה לחברים: ארנק → הפקדה לכתובת שהאוצר יפרסם (saos.addr) → זיכוי (saos.credit) לפי השער (saos.rate) — כל ההוראות מהשער, מבוצעות על ידי הלב בחתימת האוצר.
 - **נותר אמיתי (נמדד, לא מדומיין)**: הג'נזיס ממתין ל-RC (1.33% ב-23:29Z, הלב מניח בשלבים בכל פעימה — אוטונומי) · כתובות ההפקדה בפועל יפורסמו על ידי המפעיד מהשער אחרי הג'נזיס · ההמרה "כל מטבע → SAOS" פועלת בזיכוי מתועד; הצבעה רשמית על שערים היא המשך טבעי (cfg.rate כבר על השרשרת).
 - מצב סוף: 100 אימותים · cp#92 · המנוע saos.live.v1.1 (30/30) · האתר החדש חי · הצינור הכלכלי מלא בקצוות (דפדפן↔שער↔לב↔שרשרת).
+
+---
+Task ID: 31
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "איפה הדקס?! יש מערכת שלמה בתיקייה רק להפעיל · איפה כל המטבעות SAOS הקיימים אצל מי איך · מה נעצר בטעות · תעבור על הכל · להקים את הדברים מהתיקיות בצורה שהמשתמש רואה וקשור נכון יחד · נתיב הכסף בקריפטו · הכנסת נזילות חוץ"
+
+Work Log:
+- **בדיקת אמת לפני ההקמה**: הדקס לא "לא קיים" — הריפו saos-dex (פרטי, 32MB) שוכפל מהגיטהאב עם הטוקן העובד. תוכנו: קרנל דטרמיניסטי (38 ops, טבלת GAS, שלמים בלבד), ספר-זמנות escrow, AMM x·y=k (30bps: 70% LP / 30% אוצר), ארנת חיילים, chain 3ש' + חותמים כל 12, relay ל-5 רשתות, ve(3,3)+bonds+launchpad+CoW+אורקל. 13,258 שורות ב-lib/dex לבד.
+- **מפת המטבעות (נמדדה מ-replay חי)**: SAOS-NET v0 — היצע 126,682 למנפיק headcorner (מחזיק אישית 138.769) · 11 חיילים (siq 8.094, lsa 7.671, wog 6.274, cashmachine 2.325…) · LP 25.072 · 5 נכסים עטופים (ENERGY/PHIVE/WDOGE/WSBD/WXRP) · קציר 0.008 · 12 ארנקי צבא רב-שרשרתיים (EVM/TRON/SOL/BTC) · stateRoot 29778d14… FULLY-VERIFIED 38/38.
+- **הקמת הדקס מהתיקייה**: הועתק ל-/home/z/my-project/saos-dex (המיקום שתוכנן אליו — חוזי הנתיבים שלו: master-key מ-../upload, DATABASE_URL מוחלט) · bun install (192 חבילות) · prisma generate+push ל-DB חדש · עלייה: "chain live · height 1 · genesis — verified empty DB" (fail-closed, אפס זיוף ראיות) · האורקל הוזן (WTRX/WSOL/WSTEEM/HIVE/ETH/BTC) · הארנה ובוטי-הרעש מייצרים מסחר אמיתי.
+- **השרת-האם מגשר**: next.config.ts קיבל rewrite — /saos-dex/:path* → 127.0.0.1:3010/saos-dex/:path* (כפי שתוכנן בריפו: basePath + rewrite בשרת-האם, אחרת chunks 404). הטרמינל המלא נפתח מהאתר בכפתור "טרמינל מלא".
+- **תצוגת הבורסה (חדשה בניווט)**: long-poll v=N מ-/saos-dex/api/dex/state · פס בריאות (גובה/TPS/פעימה/עסקאות/חותמים/ריצה) · כרטיסי שוק (SAOS/USDS, USDS/WSTEEM עם מחיר+שינוי%) · גרף מחירים canvas טהור מהיסטוריית הטייפ (אפס CDN) · סולם ספר-זמנות עם עומק · בריכת AMM (מאגרים/אמצע/סוופים/עמלות) · טייפ עסקאות חי · חותם אחרון עם stateRoot · כפתורי השהיה/טרמינל מלא.
+- **תצוגת המטבעים (חדשה בניווט)**: שלוש שכבות אמת זו לצד זו — v0 (replay מאומת), v1 SAOS-LIVE (ג'נזיס בהנחה אוטונומית, תקרה 21M), הדקס החי · טבלת 11 החיילים עם מנפיק מסומן + שורת סה"כ · ארנקי הצבא · קציר · כל מספר עם מקור מדידה בתחתית. API: /api/saosnet מאחד את שלושת המקורות.
+- **תיקון מובייל שנתפס במדידה**: 570>390 — כרטיסי ה-grid בתחתית לא אופסו min-width והטבלאות הרחיבו את המסלול. תוקן: min-w-0 לפריטי ה-grid + overflow-x-auto לטייפ. אומת: 390=390 בשתי התצוגות.
+- **E2E מהקרקע (דפדפן)**: הבורסה חיה — גובה 192→266, TPS 9, 147+ מילויים, 200+ סוופים, SAOS $2.438 (-0.49%), bid/ask/TWAP, 8 חותמים, טייפ זורם בשניות האחרונות · המטבעים — 11 חיילים עם נתוני replay אמיתיים · **הטרמינל המלא חי**: SAOS-DEX SOVEREIGN TERMINAL, מחיר 2.43, h261, Replay Determinism PASS (3 roots), Grid-made liquidity 90% · אפס שגיאות קונסולה/עמוד · lint נקי (saos-dex חוץ ל-ESLint של האם, .gitignore גם).
+- דחיפות: Zip b35910c. הדקס עצמו ללא שינויי קוד (הוקם כמו שהוא — ג'נזיס נקי מ-DB ריק מאומת).
+
+Stage Summary:
+- **הבורסה הריבונית חיה ונראית למשתמש**: מהניווט "בורסה" — נתונים חיים ב-long-poll, גרף, ספר, בריכה, חותמים; "טרמינל מלא" פותח את הטרמינל המקורי; "המטבעים" עונה סוף סוף ל"איפה כל ה-SAOS" בשלוש שכבות אמת מקושרות.
+- **מה ש"נעצר" הוקם מחדש מהתיקייה**: הדמון של הדקס מת עם הסנדבוקס הקודם (TRUTH-AUDIT תיעד) — עכשיו הוא רץ מהריפו הפרטי עם ג'נזיס נקי, בלי לזייף ראיות (fail-closed מוכח בקוד).
+- הרשת הציבורית (לב, עוגנים, SAOS-LIVE) לא נפגעה — היא רצה בענן כל הזמן (run 36 ירוק).
+- נותר (המשך המשימה): מחקר נתיב הכסף (ווליום/דקסים/רשתות חכמות) · תכנית הכנסת נזילות חוץ · סקירת יתר הריפואים והמערכות הרצות (ה-grid) · ג'נזיס v1 ממתין ל-RC (אוטונומי).
+
+---
+Task ID: 32-a
+Agent: research (money path)
+Task: מיפוי נתיב הכסף בקריפטו — ווליום, דקסים, רשתות, נזילות
+
+Work Log:
+- קריאת הקשר מהוורקלוג (150 שורות אחרונות) — רשת Steem ריבונית, SAOS-LIVE v1, הדקס הוקם ב-Task 31, המשימה: מיפוי נתיבי כסף אמיתיים לתכנית הכנסת נזילות חוץ.
+- שאיבה חיה מ-API ציבוריים (2026-09-16 00:14–00:23 UTC): DefiLlama dexs overview (19MB, 1,353 פרוטוקולים) + per-chain ל-10 שרשרות · DefiLlama chains TVL (467 שרשרות) · DefiLlama protocols (6,604, לפי TVL) · DefiLlama stablecoins + stablecoinchains · CoinGecko global + markets (STEEM) · CoinPaprika (STEEM/HIVE כגיבוי rate-limit) · Coinbase spot (BTC/ETH) · RPC ישיר: api.steemit.com (בלוק 109,615,083, 3,703,545 חשבונות) + api.hive.blog (בלוק 109,949,962, 2.6M חשבונות) · ethereum-rpc.publicnode.com (גז 0.041 gwei!).
+- 8 חיפושי רשת (z-ai web_search): pump.fun/PumpSwap · CoW/UniswapX/אינטנטים · Robinhood Chain+Pons · אונרמפים בלי KYC (RoboSats/Bisq/Peach/HodlHodl) · טרון USDT (Messari/CoinStats/CoinDesk) · איירדרופ/נקודות Hyperliquid · שוקי חיזוי Kalshi/Polymarket · גשרים (Across/USDT0/deBridge) · מחירי Steem בספטמבר (פאמפ ל-$0.33 וקריסה).
+- תוויות אמת תועדו: DefiLlama derivatives+Raises עברו לתשלום ("Upgrade to the paid API plan") · api.llama.fi/bridges מחזיר 404 (הוחלף בציטוטי דף+מחקרים) · Tronscan חסום בלי מפתח · אין API ציבורי למשתמשים פעילים יומיים ב-Steem/Hive.
+- הדוח המלא נכתב ל-sovereign/reports/money-path-research.md (עברית, RTL, 7 סעיפים, כל טענה עם מקור+תאריך, טבלת "איך SAOS נכנס" לכל נתיב).
+
+Stage Summary:
+- **ווליום DEX עולמי: $10.39B ליום** (30 יום: $288.6B, DefiLlama) — ~10% מסך ווליום הקריפטו ($105.3B, CoinGecko). לפי שרשרת: Solana $2.51B · Robinhood Chain $2.00B (רשת בת חודשיים שעקפה את Ethereum! cryptorank 2026-07-14) · Ethereum $1.31B · BSC $1.11B · Base $0.95B — חמש שרשרות = 76% מהשוק. Steem/Hive: אפס נוכחות דפ"י.
+- **טרון הוא עורק הכסף האמיתי:** $94.07B סטייבלקוין (DefiLlama) · ~$23.8B העברות USDT ליום (CoinStats/Messari) · 52% מכל העברות ה-USDT הקטנות מ-$1,000 בעולם (CoinDesk Q2 2026) · 12.7M טרנזאקציות ליום, 392M חשבונות. ההמלצה החדה: כתובות הפקדה USDT-TRON (זהויות TRON כבר נגזרות ברשת) → deposit.claim → זיכוי — המנגנון חי בספר, חסרה רק החלטת שער.
+- **מה מושך נזילות טרייה (מדידה):** launchpads (pump.fun: $465.7M הכנסות מונציונליזציה; Pons V2: $2.04B ווליום ב-30 יום) · איירדרופ/נקודות (Hyperliquid: $100M פקדות מחקלאות עונות, 310M HYPE=31% היצע) · שוקי חיזוי (Kalshi $547M ליום; Polymarket+Kalshi ~$24B לחודש, x5 מ-2025) · בוטים (GMGN $210M ליום) · הפצה (Robinhood). המכנה: קשב+טוקן, לא תשתית. ל-SAOS: "עונות" של נקודות=עדויות חתומות + launchpad עקום-אגדידה + שוק חיזוי על האורקל הקיים.
+- **Steem בספטמבר 2026:** $0.0604, שווי $33.7M (דירוג 600), ווליום יומי $36.3M = 108% מחזור מהשווי; פאמפ ל-$0.33 בראשית החודש וקריסה ל-$0.055 — השרשרת חיה וזולה אך כלכלית זעירה; היתרון שלנו בה הוא עלות-אפס לעדויות, לא קהל משקיעים. Hive: $28.8M שווי.
+- **עלויות העברה 2026:** גז Ethereum נמדד 0.041 gwei ≈ $0.002 להעברה (הפעילות עברה ל-rollups) · XRP $0.0011 · BTC ~$0.30 · Steem/Hive $0 — אין יותר יתרון עלות לשרשרות קטנות; גשרים: Across $268M/יום, USDT0 +604% (DefiLlama bridges page) · אונרמפים בלי KYC חיים: RoboSats/Bisq/Peach/HodlHodl.
+- מסקנת-על: הכסף זורם בסליקה (טרון), בקשב (launchpads/חיזוי), בנקודות (איירדרופ) ובהפצה — SAOS צריך לקבל כסף מהעורקים האלה ולהשתמש ב-Steem רק כשרשרת-עדות ב-$0. הדוח המלא: sovereign/reports/money-path-research.md.
+
+---
+Task ID: 32-b
+Agent: research (systems inventory)
+Task: מלאי מערכות וריפואים — ה-grid, הרץ עכשיו, הרדום
+
+Work Log:
+- המלאי המלא נכתב ל-**sovereign/reports/systems-inventory.md** (עברית, כל מספר ממדידה ישירה). להלן הצעדים והממצאים.
+- **רשימת הריפואים**: ה-remote token זוהה כ-User (לא Org — `/orgs/` החזיר 404); הרשימה נמשכה דרך `/user/repos` ⇒ **14/14 ריפואים**, אפס gists. Console הוא הציבורי היחיד; 11 הריפואים הלא-פעילים נדחפו כולם באירוע-גיבוי אחד (2026-09-14T17:36–37Z).
+- **עצי קבצים** נמשכו לכל 14 הריפואים (recursive, אף אחד truncated); נקראו README/DAEMONS/AGENTS/FLEET/מפרטים + קבצי state. זיהוי לכל ריפו: Zip=ה-WEAVE · Console=Pages ציבורי · steem=המונוליט (240MB, צי+SAOS-NET+grid+כספת) · saos-dex=הבורסה · saos-sovereign-platform=אגרי v86 (חקלאות/השקיה, ארכיון קנוני "folder B") · foundry=6 מיני-שירותים (external-signer :3033, chief-of-staff :3032, key-broker, vault-guardian, fleet-cure) · jummper=נוטריון חוצה-שרשרות+FREE-OPERATIONS · control-center=revenue-governor+dex-watchdog+R56 · roshpina=קרנל כלכלת-סוכנים (114 קבצים, escrow/passports/PQC/transparency-log) · Sdk=ריפו-מצביעי G6 · Saosmartwallet=ארנק 7-רשתות M0–M4 מאומת · Project-files=ארכיון 10 הזיפים · Adsmarket=ערכת שיווק מוכנה · anchor-baseline=בסיס הדוחות R1–R41.
+- **ה-grid נמצא ותועד**: grid98.cjs (61KB, steem/sovereign/node) + grid98-state.json — המצב האחרון (2026-09-12T19:38Z, רגע מות הסנדבוקס): 131,752 עסקאות, רווח אוצר 13,122,139 SAOS, סולם-רצפה 0.01688→0.017832 (12 מדרגות), 11 עוגני מחיר, bench 722,251 txs/שנ', שערי-כנות מצטברים (skippedForEdge 1.23M). אב-טיפוס: agent/grid79.cjs (הסקת-עלות RC). מעבדה חיה: Saosmartwallet grid98-bench+hydrate (מריץ את המנוע האמיתי על ארכיון השרשרת). הדקס החי הוא הצאצא הישיר ("Grid-made liquidity 90%"). אזהרת בלבול: ה-microgrid ב-platform הוא אנרגיה, לא מסחר.
+- **מה רץ עכשיו (מלוגים, לא מדוחות)**: (1) weave-heart ב-Zip — שעתי, success; (2) weave-anchor-lines+anchor+anchor-zero — שלושת קווי העדות (dispatch מהלב + cron דו-שעתי); (3) weave-ecosystem — יומי 05:30Z; (4) **cloud-heart ב-steem — כל 30 דק', 408 ריצות, והוא ב-TAKEOVER**: ריצה 35036211914 (23:33Z) פסקה SANDBOX-DOWN ⇒ "no fleet_keys.enc in repo — running keyless" ⇒ **saosnet beat --live: advanced (SAOS-NET ממשיכה לפעום מהענן)** ⇒ chain attest FAILED (ACTIVE_WIF missing) ⇒ gitkeeper דחף 6 קבצים (loop 21). הריצה הבאה ראתה "SANDBOX-ALIVE (git fresh)" — דלת מסתובבת של החייאה-חלקית. (5) Console Pages — בנייה בכל דחיפה. (6) foundry CI — 200 ריצות, אדום, לא-רץ. (7) בסנדבוקס: Zip dev :3000 + saos-dex dev :3010; אפס דמוני-צי (כל 55+ הדמונים ב-steem/agent רדומים, DRY-by-default לפי DAEMONS.md).
+- **כספת המפתחות אותרה**: steem/agent/vault/KEYS-ZIP-2026-09-10.zip.enc (246KB; 12 חשבונות, 120 כתובות-HD, מנמוניקי TRON) — ה-README מצהיר שהסיסמה ב-agent/recovery-meta.json באותו ריפו (חד-גורמי — תועד כהערת-אבטחה למפעיל, לא נפתח).
+- לא בוצעו שינויי קוד; לא נגעתי בסודות ולא הדפסתי ערכים.
+
+Stage Summary:
+- **ה-20% שלא נראו — מופו**: הנכסים הרדומים היקרים ביותר לנזילות/ריבונות: (1) **grid98** — מכונת ה-liquidity שייצרה 90% מנזילות הדקס עם רווח אוצר 13.1M SAOS מתועד; (2) **Saosmartwallet** — ארנק 7-רשתות מאומת-ביטים מול שרשראות חיות (בדיוק מה שהמפעיל ביקש: ארנק+הפקדות+מעקב); (3) **R56** — מפת-דרכים דקס מוכנה (TWAP→Price-Seal→ProtoRev→לאנצ'פד→טריגרים keeperless→DCA→CoW→LBP) — "מחקר נתיב הכסף" כבר בוצע ב-control-center; (4) **roshpina kernel** — שכבת האמון לחוקים 11–12/15 (דרכונים, escrow, תקציבים, kill-switch, PQC); (5) **גשר TRON חינמי + jummper** — טבעת 5 כתובות ממומנות שעדיין חיה בשרשרת הציבורית (12 רגלי net_fee=0) + מתמטיקת 5,128 עוגנים חינמיים/יום.
+- **האמת על "הרץ עכשיו"**: שתי לבבות פועמים במקביל — weave-heart (Zip, שעתי, מלא) ו-cloud-heart (steem, 30 דק', TAKEOVER חסר-מפתחות: SAOS-NET פועמת, עדות-השרשרת מתה מ-2026-09-06~ בערך, אין agent-cycle). מצב ההחייאה תלוי בהשבת חותמת-הצי מהכספת — החלטת מפעיל.
+- הדוח המלא: sovereign/reports/systems-inventory.md (טבלת 14 ריפואים, ממצאי grid עם נתוני state, טבלת מה-רץ-עכשיו עם run-ids, טופ-5 נכסים רדומים, הערות אבטחה, פעולות מוצעות).
