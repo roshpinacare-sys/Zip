@@ -3,31 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>SAOS Exchange | Deposit USDT USDC ETH SOL BTC and Trade on a Sovereign DEX</title>
-<meta name="description" content="Deposit real coins: USDT on Tron, USDT and USDC on Ethereum and Solana, SOL, TRX and Bitcoin. Trade on the SAOS sovereign exchange with a live order book, AMM pools and an open ledger you can verify in your browser.">
-<meta name="keywords" content="deposit USDT, deposit USDC, deposit crypto, USDT Tron, USDT Solana, crypto exchange, DEX, decentralized exchange, trade SAOS, crypto wallet, open ledger, הפקדת USDT, הפקדת USDC, בורסת קריפטו, ארנק קריפטו, מטבע דיגיטלי">
+<title>SAOS Network | Crypto Wallet, Token Exchange and Earn</title>
+<meta name="description" content="Open a free SAOS wallet in seconds, hold and send the SAOS currency, exchange at network rates, fund the network and follow every coin in an open ledger. Your keys never leave your device.">
+<meta name="keywords" content="SAOS, crypto wallet, digital wallet, blockchain, token exchange, DEX, decentralized exchange, earn, validation network, sovereign network, open ledger, ארנק דיגיטלי, קריפטו, בורסה, מטבע דיגיטלי, רשת">
 <meta name="theme-color" content="#050507">
 <link rel="canonical" href="https://roshpinacare-sys.github.io/Console/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SAOS Network">
-<meta property="og:title" content="SAOS Exchange | Deposit real coins, trade on a sovereign DEX">
-<meta property="og:description" content="Deposit USDT, USDC, ETH, SOL, TRX or BTC and trade on a live order book with AMM pools. Every balance, fill and seal is public and verifiable in your browser.">
+<meta property="og:title" content="SAOS Network | Crypto Wallet, Token Exchange and Earn">
+<meta property="og:description" content="A free wallet with your own address, a transparent exchange, and a currency you can verify line by line. No custody, no middleman.">
 <meta property="og:url" content="https://roshpinacare-sys.github.io/Console/">
 <meta property="og:image" content="https://roshpinacare-sys.github.io/Console/assets/og-cover.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="SAOS Exchange">
-<meta name="twitter:description" content="Deposit real coins. Trade on a sovereign exchange. Open ledger, no custody.">
+<meta name="twitter:title" content="SAOS Network">
+<meta name="twitter:description" content="Free wallet, transparent exchange, open ledger. Your keys stay on your device.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5 20.5 7v10L12 21.5 3.5 17V7z' fill='none' stroke='%23d4af37' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23d4af37'/%3E%3C/svg%3E">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","name":"SAOS Exchange","url":"https://roshpinacare-sys.github.io/Console/","description":"Deposit real coins and trade on a sovereign exchange with an open ledger.","inLanguage":["en","he"]}
+{"@context":"https://schema.org","@type":"WebSite","name":"SAOS Network","url":"https://roshpinacare-sys.github.io/Console/","description":"Crypto wallet, token exchange and open validation network.","inLanguage":["en","he"]}
 </script>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
 {"@type":"Question","name":"How do I open a SAOS wallet?","acceptedAnswer":{"@type":"Answer","text":"Press Open Wallet, then Create. Your key is generated on your device and your address is derived from it. Nothing is sent to a server and no account is needed."}},
 {"@type":"Question","name":"Who holds my keys?","acceptedAnswer":{"@type":"Answer","text":"Only you. Keys are generated in your browser and stay in memory. You can save an encrypted backup with a password you choose. There is no recovery and no custody."}},
-{"@type":"Question","name":"Which coins can I deposit?","acceptedAnswer":{"@type":"Answer","text":"USDT on Tron or Solana, USDT and USDC on Ethereum, USDC on Solana, SOL, TRX and Bitcoin. Deposits are detected by a public watcher that scans the deposit addresses every twenty minutes, and your balance is credited in USDS, the trading unit of the exchange."}},
-{"@type":"Question","name":"How can I check the numbers myself?","acceptedAnswer":{"@type":"Answer","text":"The whole ledger is public. The Network page lets your browser read every operation from the public chain, check every signature and compare the result with what this site shows. Exchange state carries a state root that any node can recompute."}},
-{"@type":"Question","name":"Who holds my keys and my coins?","acceptedAnswer":{"@type":"Answer","text":"Your wallet keys are generated in your browser and never leave your device. Deposited coins are held by the network treasury in published addresses; your exchange balance is a documented claim you can follow in the open ledger at every step."}}
+{"@type":"Question","name":"How can I check the numbers myself?","acceptedAnswer":{"@type":"Answer","text":"The whole ledger is public. Press Verify in the Network page and your browser reads every operation from the public chain, checks every signature and compares the result with what this site shows."}},
+{"@type":"Question","name":"What do deposits do?","acceptedAnswer":{"@type":"Answer","text":"Deposits fund network development and are converted to SAOS at the current network rate. Every deposit, credit and reward is recorded in the open ledger. No promise of profit is made or implied."}}
 ]}
 </script>
 <style>
@@ -197,6 +196,14 @@ footer.site a{color:var(--dim)}
   .card{padding:17px}
   .view{padding:24px 0 56px}
 }
+/* ═══ DEX terminal view ═══ */
+.dex-strip{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:4px 0 16px}
+.dex-strip>span{display:flex;flex-direction:column;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:9px 16px;min-width:92px}
+.dex-strip b{font-family:var(--mono);font-size:15px;color:var(--gold-bright)}
+.dex-strip small{opacity:.6;font-size:11px;color:var(--dim)}
+.dex-frame{border:1px solid var(--line2);border-radius:var(--r);overflow:hidden;background:#09090b;box-shadow:0 24px 70px -30px rgba(0,0,0,.8)}
+.dex-frame iframe{display:block;width:100%;height:min(84vh,900px);border:0}
+@media(max-width:520px){.dex-frame iframe{height:70vh}.dex-strip>span{padding:7px 10px;min-width:74px}}
 </style>
 </head>
 <body>
@@ -212,7 +219,8 @@ footer.site a{color:var(--dim)}
       <a class="tab" href="#home" data-nav="home" data-i="navHome">Home</a>
       <a class="tab" href="#wallet" data-nav="wallet" data-i="navWallet">Wallet</a>
       <a class="tab" href="#exchange" data-nav="exchange" data-i="navExchange">Exchange</a>
-      <a class="tab" href="#earn" data-nav="earn" data-i="navEarn">Deposit</a>
+      <a class="tab" href="#dex" data-nav="dex" data-i="navDex">DEX</a>
+      <a class="tab" href="#earn" data-nav="earn" data-i="navEarn">Deposit and Earn</a>
       <a class="tab" href="#currency" data-nav="currency" data-i="navCurrency">Currency</a>
       <a class="tab" href="#tokens" data-nav="tokens" data-i="navTokens">Tokens</a>
       <a class="tab" href="#network" data-nav="network" data-i="navNetwork">Network</a>
@@ -231,18 +239,18 @@ footer.site a{color:var(--dim)}
   <section class="view" id="view-home">
     <div class="hero">
       <div class="chip"><span data-i="chipLive">live on a public blockchain</span></div>
-      <h1><span data-i="heroTop">Deposit real coins.</span> <span class="grad" data-i="heroGrad">Trade sovereign.</span><br><span data-i="heroBottom">SAOS.</span></h1>
-      <p class="lead" data-i="heroLead">Send USDT, USDC, ETH, SOL, TRX or Bitcoin to a published network address and get a trading balance on the SAOS exchange: a live order book, AMM pools and an open ledger that your own browser can verify. No custody of your keys, no hidden books.</p>
+      <h1><span data-i="heroTop">Your money.</span> <span class="grad" data-i="heroGrad">Your network.</span><br><span data-i="heroBottom">SAOS.</span></h1>
+      <p class="lead" data-i="heroLead">Open a free wallet in seconds, hold the SAOS currency, exchange at network rates and fund the network while following every coin in an open ledger. No custody, no middleman: your keys never leave your device.</p>
       <div class="cta">
-        <a class="btn gold" href="#earn" data-i="ctaDeposit">Deposit coins</a>
+        <a class="btn gold" href="#wallet" data-i="ctaWallet">Open a free wallet</a>
         <a class="btn ghost" href="#exchange" data-i="ctaExchange">See the exchange</a>
       </div>
     </div>
 
     <div class="sect grid g4">
       <div class="kpi"><div class="k" data-i="kSupply">SAOS supply</div><div class="v num" id="st-sup">126,682</div><div class="s" data-i="kSupplySub">hard cap 21,000,000</div></div>
-      <div class="kpi"><div class="k" data-i="kDexPrice">SAOS price</div><div class="v num" id="st-px">-</div><div class="s" id="st-px-s" data-i="kDexPriceSub">live from the exchange</div></div>
-      <div class="kpi"><div class="k" data-i="kDexFills">Exchange fills</div><div class="v num" id="st-fills">0</div><div class="s" id="st-swaps">0 swaps</div></div>
+      <div class="kpi"><div class="k" data-i="kWallets">Wallets on chain</div><div class="v num" id="st-wal">0</div><div class="s" data-i="kWalletsSub">personal addresses</div></div>
+      <div class="kpi"><div class="k" data-i="kContracts">Token contracts</div><div class="v num" id="st-tok">0</div><div class="s" data-i="kContractsSub">real on-chain contracts</div></div>
       <div class="kpi"><div class="k" data-i="kValidations">Network validations</div><div class="v num" id="st-att">0</div><div class="s" id="st-cp">0 checkpoints</div></div>
     </div>
 
@@ -250,9 +258,9 @@ footer.site a{color:var(--dim)}
       <h3 data-i="featTitle">What you can do here</h3>
       <p class="sect-sub" data-i="featSub">Everything runs from public connections. This page is itself a network node.</p>
       <div class="grid g4">
-        <a class="card feat" href="#wallet"><div class="ic">👛</div><b data-i="feat1T">Free wallet</b><p data-i="feat1P">Your own network address in seconds. The key is born on your device and the address is derived from it. No account, no email, no approval.</p></a>
-        <a class="card feat" href="#exchange"><div class="ic">🔁</div><b data-i="feat2T">Live exchange</b><p data-i="feat2P">A real order book with escrow, AMM pools and a public tape. The chain advances around the clock from the cloud and every state root is published.</p></a>
-        <a class="card feat" href="#earn"><div class="ic">💧</div><b data-i="feat3T">Deposit real coins</b><p data-i="feat3P">Send USDT, USDC, ETH, SOL, TRX or Bitcoin to a published address. A public watcher detects the deposit and your balance is credited in USDS for trading.</p></a>
+        <a class="card feat" href="#wallet"><div class="ic">👛</div><b data-i="feat1T">Free wallet</b><p data-i="feat1P">Your own SAOS address in seconds. The key is born on your device and the address is derived from it. No account, no email, no approval.</p></a>
+        <a class="card feat" href="#exchange"><div class="ic">🔁</div><b data-i="feat2T">Exchange</b><p data-i="feat2P">Sell SAOS for listed currencies at your price. Your SAOS sits in open escrow until the deal settles, and every fill is recorded on chain.</p></a>
+        <a class="card feat" href="#earn"><div class="ic">🌱</div><b data-i="feat3T">Deposit and earn</b><p data-i="feat3P">Fund the network with any listed currency, get credited in SAOS at the current rate, and follow your deposit, credit and rewards in the open ledger.</p></a>
         <a class="card feat" href="#tokens"><div class="ic">🧬</div><b data-i="feat4T">Launch tokens</b><p data-i="feat4P">Every token here is a real smart contract: fixed supply rules, signed parameters and a public state anyone can verify in a browser.</p></a>
       </div>
     </div>
@@ -279,7 +287,7 @@ footer.site a{color:var(--dim)}
         <details class="faq"><summary data-i="faq1Q">How do I open a SAOS wallet?</summary><p data-i="faq1A">Press Open a free wallet, then Create. Your key is generated on your device and your address is derived from it. Nothing is sent to a server and no account is needed.</p></details>
         <details class="faq"><summary data-i="faq2Q">Who holds my keys?</summary><p data-i="faq2A">Only you. Keys are generated in your browser and stay in memory. You can save an encrypted backup with a password you choose. There is no recovery and no custody.</p></details>
         <details class="faq"><summary data-i="faq3Q">How can I check the numbers myself?</summary><p data-i="faq3A">The whole ledger is public. Press Verify in the Network page and your browser reads every operation from the public chain, checks every signature and compares the result with what this site shows.</p></details>
-        <details class="faq"><summary data-i="faq4Q">Which coins can I deposit?</summary><p data-i="faq4A">USDT on Tron or Solana, USDC on Ethereum or Solana, SOL, TRX and Bitcoin. A public watcher scans the deposit addresses every twenty minutes and your balance is credited in USDS, the trading unit of the exchange. Larger deposits are credited after a sender check.</p></details>
+        <details class="faq"><summary data-i="faq4Q">What do deposits do?</summary><p data-i="faq4A">Deposits fund network development and are converted to SAOS at the current network rate. Every deposit, credit and reward is recorded in the open ledger. No promise of profit is made or implied.</p></details>
       </div>
     </div>
   </section>
@@ -366,82 +374,119 @@ footer.site a{color:var(--dim)}
   <!-- ═══════════ EXCHANGE ═══════════ -->
   <section class="view" id="view-exchange">
     <h1 style="font-size:26px;margin-bottom:6px" data-i="xTitle">Exchange</h1>
-    <p class="sect-sub" data-i="xSub">The sovereign order book and AMM. The chain advances around the clock from the network cloud: every fill, swap and seal is written to a public state root that any node can recompute.</p>
+    <p class="sect-sub" data-i="xSub">Sell SAOS for listed currencies at your price. Your SAOS sits in deterministic escrow on chain until the deal settles or you cancel.</p>
 
-    <div class="grid g4">
-      <div class="kpi"><div class="k" data-i="xHeight">Chain height</div><div class="v num" id="x-height">-</div><div class="s mono" id="x-root" style="font-size:10px;word-break:break-all">-</div></div>
-      <div class="kpi"><div class="k" data-i="xBeat">Last cloud beat</div><div class="v" id="x-beat" style="font-size:16px">-</div><div class="s" id="x-next">-</div></div>
-      <div class="kpi"><div class="k" data-i="xFills">Fills</div><div class="v num" id="x-fills">0</div><div class="s" id="x-swaps">0 swaps</div></div>
-      <div class="kpi"><div class="k" data-i="xSeal">Last seal root</div><div class="v mono" id="x-seal" style="font-size:10px;word-break:break-all">-</div><div class="s" id="x-seal-s">-</div></div>
+    <div class="grid g2">
+      <div class="card">
+        <h2 data-i="xRatesT">Network rates</h2>
+        <p class="sub" data-i="xRatesP">Reference rates published on chain by network governance.</p>
+        <div class="tblwrap"><table><thead><tr><th data-i="xPair">Pair</th><th data-i="xPrice">Price</th></tr></thead><tbody id="x-rates"></tbody></table></div>
+        <div class="note" data-i="xRatesNote">Rates are set by signed treasury operations and are visible to everyone. They are a reference: each offer carries its own price.</div>
+      </div>
+      <div class="card">
+        <h2 data-i="xOfferT">Place a sell offer</h2>
+        <p class="sub" data-i="xOfferP">Your SAOS moves into escrow the moment the offer lands on chain.</p>
+        <div class="frow">
+          <div class="field"><label class="f" data-i="xCur">Currency you accept</label><input class="mono" id="off-cur" placeholder="USD" maxlength="10"></div>
+          <div class="field"><label class="f" data-i="xAmt">Amount (SAOS)</label><input class="mono" id="off-amt" placeholder="10.000"></div>
+          <div class="field"><label class="f" data-i="xPricePer">Price per 1 SAOS</label><input class="mono" id="off-price" placeholder="0.001"></div>
+        </div>
+        <button class="btn gold" id="btn-offer" data-i="xOfferBtn">Sign offer</button>
+        <div class="note" data-i="xOfferNote">Settlement of the currency side is recorded by the network treasury with a payment reference. Both sides stay visible on chain.</div>
+      </div>
     </div>
-
-    <div class="sect" id="x-markets" style="display:grid;gap:14px"></div>
 
     <div class="sect grid g2">
       <div class="card">
-        <h2 data-i="xBookT">Order book</h2>
-        <p class="sub" data-i="xBookP">Live ladder, aggregated by price. Bids buy the base asset, asks sell it.</p>
-        <select id="x-book-mkt" class="mono" style="width:100%;margin-bottom:10px;padding:8px;background:var(--bg2);border:1px solid var(--line);border-radius:8px;color:var(--fg)"></select>
-        <div class="tblwrap"><table><thead><tr><th data-i="xSide">Side</th><th data-i="xPrice">Price</th><th data-i="xAmt">Amount</th></tr></thead><tbody id="x-book"></tbody></table></div>
+        <h2 data-i="xBookT">Open offers</h2>
+        <p class="sub" data-i="xBookP">Escrowed SAOS for sale right now.</p>
+        <div class="tblwrap"><table><thead><tr><th data-i="xSell">Seller</th><th data-i="xGet">You pay</th><th data-i="xRemain">SAOS remaining</th><th data-i="xPrice2">Price / SAOS</th></tr></thead><tbody id="x-book"></tbody></table></div>
       </div>
       <div class="card">
-        <h2 data-i="xPoolsT">AMM pools</h2>
-        <p class="sub" data-i="xPoolsP">Constant product pools with dynamic fees. 70 percent of fees stay in the reserves for liquidity providers, 30 percent go to the treasury.</p>
-        <div class="tblwrap"><table><thead><tr><th data-i="xPool">Pool</th><th data-i="xRes">Reserves</th><th data-i="xMid">Mid</th><th data-i="xSwapsT">Swaps</th></tr></thead><tbody id="x-pools"></tbody></table></div>
+        <h2 data-i="xMineT">My offers</h2>
+        <p class="sub" data-i="xMineP">Open a wallet to see and manage your offers here.</p>
+        <div id="x-mine" class="feed"></div>
       </div>
     </div>
 
     <div class="card" style="margin-top:16px">
-      <h2 data-i="xTapeT">Recent trades</h2>
-      <p class="sub" data-i="xTapeP">The public tape straight from the chain, newest first.</p>
-      <div class="feed" id="x-tape"></div>
-      <div class="note" data-i="xTradeNote">To trade, deposit coins and get a USDS balance, then place orders through the signed operations relay. Every order sits in open escrow and every fill is sealed.</div>
+      <h2 data-i="xFillsT">Recent fills</h2>
+      <p class="sub" data-i="xFillsP">Settled deals with their on-chain payment references.</p>
+      <div class="feed" id="x-fills"></div>
     </div>
   </section>
 
-  <!-- ═══════════ DEPOSITS ═══════════ -->
+  <!-- ═══════════ DEX TERMINAL ═══════════ -->
+  <section class="view" id="view-dex">
+    <div class="hero" style="padding:36px 0 8px">
+      <div class="chip"><span data-i="dexChip">the network's own exchange terminal</span></div>
+      <h1><span data-i="dexTitle">Sovereign DEX</span> <span class="grad" data-i="dexGrad">Terminal</span></h1>
+      <p class="lead" style="max-width:780px;margin:12px auto 0" data-i="dexLead">The exact terminal the chain runs: a deterministic order book, AMM pools, an autonomous soldier arena, sealed anchors and a live tape — mirrored publicly and refreshed with every cloud beat. Read-only mirror; trading runs on the sovereign side.</p>
+    </div>
+    <div class="dex-strip" id="dex-strip" aria-live="polite">
+      <span><b id="dx-price">…</b><small>SAOS/USDS</small></span>
+      <span><b id="dx-spread">…</b><small data-i="dxSpread">spread</small></span>
+      <span><b id="dx-height">…</b><small data-i="dxHeight">height</small></span>
+      <span><b id="dx-fills">…</b><small data-i="dxFills">fills</small></span>
+      <span><b id="dx-pools">…</b><small data-i="dxPools">pools</small></span>
+      <span><b id="dx-age">…</b><small data-i="dxAge">data age</small></span>
+    </div>
+    <div class="dex-frame">
+      <iframe id="dex-frame" src="saos-dex/" title="SAOS-DEX Sovereign Terminal" loading="lazy" referrerpolicy="no-referrer"></iframe>
+    </div>
+    <p style="text-align:center;margin:18px 0 0">
+      <a class="btn gold" href="saos-dex/" target="_blank" rel="noopener" data-i="dexOpen">Open full terminal</a>
+    </p>
+  </section>
+
+  <!-- ═══════════ EARN ═══════════ -->
   <section class="view" id="view-earn">
-    <h1 style="font-size:26px;margin-bottom:6px" data-i="eTitle">Deposit coins</h1>
-    <p class="sect-sub" data-i="eSub">Send real coins to the network addresses below. A public watcher scans them around the clock, your claim is signed by your wallet, and your balance is credited in USDS for trading on the exchange.</p>
+    <h1 style="font-size:26px;margin-bottom:6px" data-i="eTitle">Deposit and earn</h1>
+    <p class="sect-sub" data-i="eSub">Fund the network with any listed currency. Your deposit is recorded on chain, credited in SAOS at the current rate, and tracked in the open ledger.</p>
 
     <div class="grid g3">
       <div class="card">
         <h2 data-i="eHowT">How it works</h2>
-        <div class="step"><div class="n">1</div><div><b data-i="eS1T">Open a wallet</b><p data-i="eS1P">Free and takes seconds. This is the address your USDS balance is credited to, and the key that signs your claim.</p></div></div>
-        <div class="step"><div class="n">2</div><div><b data-i="eS2T">Send coins to an address</b><p data-i="eS2P">Pick a coin below, send it on the exact network shown, and keep the transaction hash.</p></div></div>
-        <div class="step"><div class="n">3</div><div><b data-i="eS3T">Claim and get credited</b><p data-i="eS3P">Report the deposit with the transaction hash. The watcher record and your signature are checked, USDS lands on your address, and every step stays public.</p></div></div>
-        <div class="note honest" data-i="eHonest">Honest model: deposited coins are held by the network treasury at the published addresses. Your USDS balance is a documented claim on that reserve, visible in the open ledger at every step. Credits are automatic up to 250 USDS per deposit, larger amounts are credited after a sender check. Nothing here is a promise of profit.</div>
+        <div class="step"><div class="n">1</div><div><b data-i="eS1T">Open a wallet</b><p data-i="eS1P">Free, takes seconds, and gives you the personal address your SAOS lands on.</p></div></div>
+        <div class="step"><div class="n">2</div><div><b data-i="eS2T">Send to a deposit address</b><p data-i="eS2P">Pick a currency below, send any amount, and keep your transaction reference.</p></div></div>
+        <div class="step"><div class="n">3</div><div><b data-i="eS3T">Get credited and follow it</b><p data-i="eS3P">The network verifies the deposit, credits SAOS at the current rate, and every step stays visible on chain.</p></div></div>
+        <div class="note honest" data-i="eHonest">Deposits fund network development. Rewards, when approved by network governance, are paid to depositor wallets and recorded in the open ledger. Nothing here is a promise of profit.</div>
       </div>
 
-      <div class="card" style="grid-column:span 2 / span 2">
-        <h2 data-i="eAddrT">Deposit methods</h2>
-        <p class="sub" data-i="eAddrP">Real coins on their native networks. Send only the coin shown next to each address.</p>
-        <div id="e-addrs" style="display:grid;gap:10px"></div>
-        <div class="note" data-i="eAddrNote">Send only the coin and network shown. A transfer that arrives on the wrong network cannot be detected automatically. Minimum recorded deposit is 5 USD worth.</div>
+      <div class="card">
+        <h2 data-i="eAddrT">Deposit addresses</h2>
+        <p class="sub" data-i="eAddrP">Published on chain by the network treasury.</p>
+        <div id="e-addrs"></div>
+        <div class="note" data-i="eAddrNote">Send only the currency shown next to each address. The reference of your transfer is what you paste in the claim below.</div>
+      </div>
+
+      <div class="card">
+        <h2 data-i="eClaimT">Report a deposit</h2>
+        <p class="sub" data-i="eClaimP">Tell the network what you sent. Your wallet signs the claim.</p>
+        <div class="frow">
+          <div class="field"><label class="f" data-i="eClaimCur">Currency</label><input class="mono" id="cl-cur" placeholder="USD" maxlength="10"></div>
+          <div class="field"><label class="f" data-i="eClaimAmt">Amount</label><input class="mono" id="cl-amt" placeholder="25"></div>
+        </div>
+        <div class="field"><label class="f" data-i="eClaimRef">Transaction reference</label><input class="mono" id="cl-ref" placeholder="tx hash or payment id" maxlength="90"></div>
+        <button class="btn gold" id="btn-claim" data-i="eClaimBtn">Sign claim</button>
       </div>
     </div>
 
     <div class="sect grid g2">
       <div class="card">
-        <h2 data-i="eClaimT">Claim a deposit</h2>
-        <p class="sub" data-i="eClaimP">Tell the network what you sent. Your wallet signs the claim and the network checks it against the watcher record.</p>
-        <div class="frow">
-          <div class="field"><label class="f" data-i="eClaimCur">Coin</label><input class="mono" id="cl-cur" placeholder="USDT" maxlength="10"></div>
-          <div class="field"><label class="f" data-i="eClaimAmt">Amount</label><input class="mono" id="cl-amt" placeholder="25"></div>
-        </div>
-        <div class="field"><label class="f" data-i="eClaimRef">Transaction hash</label><input class="mono" id="cl-ref" placeholder="the hash of your deposit transfer" maxlength="90"></div>
-        <button class="btn gold" id="btn-claim" data-i="eClaimBtn">Sign claim</button>
-        <div class="note" data-i="eClaimNote">The signed claim goes to your operations queue. Broadcast it from the wallet page with any Steem account as transport, or hand it to the network relay.</div>
+        <h2 data-i="eMineT">My deposits</h2>
+        <p class="sub" data-i="eMineP">Your claims and credits from the open ledger.</p>
+        <div id="e-mine" class="feed"></div>
       </div>
       <div class="card">
-        <h2 data-i="eWatchT">Live watcher</h2>
-        <p class="sub" data-i="eWatchP">A keyless public scanner reads the deposit addresses around the clock.</p>
+        <h2 data-i="eStatsT">Network totals</h2>
+        <p class="sub" data-i="eStatsP">Everyone's deposits, credits and rewards, folded from the chain.</p>
         <div class="grid g3" style="gap:10px">
-          <div class="kpi"><div class="k" data-i="eWLast">Last scan</div><div class="v" id="e-wlast" style="font-size:16px">-</div><div class="s" id="e-wnext">-</div></div>
-          <div class="kpi"><div class="k" data-i="eWTotal">Deposits seen</div><div class="v num" id="e-wtotal" style="font-size:17px">0</div><div class="s" id="e-wchains">-</div></div>
-          <div class="kpi"><div class="k" data-i="eWCred">USDS credited</div><div class="v num" id="e-wcred" style="font-size:17px">0</div><div class="s" data-i="eWCredS">by the cloud heart</div></div>
+          <div class="kpi"><div class="k" data-i="eDepT">Deposited</div><div class="v" id="e-total-dep" style="font-size:17px">-</div></div>
+          <div class="kpi"><div class="k" data-i="eCredT">SAOS credited</div><div class="v num" id="e-total-cred" style="font-size:17px">0</div></div>
+          <div class="kpi"><div class="k" data-i="eRewT">Rewards paid</div><div class="v num" id="e-total-rew" style="font-size:17px">0</div></div>
         </div>
-        <div class="feed" id="e-recent" style="margin-top:14px"></div>
+        <div class="feed" id="e-credits" style="margin-top:14px"></div>
       </div>
     </div>
   </section>
@@ -580,18 +625,24 @@ const C = globalThis.GateCrypto;
 /* ═══════════ i18n ═══════════ */
 const I18N = {
 en: {
-  brandSub:"Network", navHome:"Home", navWallet:"Wallet", navExchange:"Exchange", navEarn:"Deposit",
+  brandSub:"Network", navHome:"Home", navWallet:"Wallet", navExchange:"Exchange", navEarn:"Deposit and Earn",
   navCurrency:"Currency", navTokens:"Tokens", navNetwork:"Network", liveConnecting:"connecting",
+  navDex:"DEX",
+  dexChip:"the network's own exchange terminal",
+  dexTitle:"Sovereign DEX", dexGrad:"Terminal",
+  dexLead:"The exact terminal the chain runs: a deterministic order book, AMM pools, an autonomous soldier arena, sealed anchors and a live tape — mirrored publicly and refreshed with every cloud beat. Read-only mirror; trading runs on the sovereign side.",
+  dxSpread:"spread", dxHeight:"height", dxFills:"fills", dxPools:"pools", dxAge:"data age",
+  dexOpen:"Open full terminal",
   chipLive:"live on a public blockchain",
-  heroTop:"Deposit real coins.", heroGrad:"Trade sovereign.", heroBottom:"SAOS.",
-  heroLead:"Send USDT, USDC, ETH, SOL, TRX or Bitcoin to a published network address and get a trading balance on the SAOS exchange: a live order book, AMM pools and an open ledger that your own browser can verify. No custody of your keys, no hidden books.",
-  ctaDeposit:"Deposit coins", ctaWallet:"Open a free wallet", ctaExchange:"See the exchange",
-  kSupply:"SAOS supply", kSupplySub:"hard cap 21,000,000", kDexPrice:"SAOS price", kDexPriceSub:"live from the exchange",
-  kDexFills:"Exchange fills", kValidations:"Network validations",
+  heroTop:"Your money.", heroGrad:"Your network.", heroBottom:"SAOS.",
+  heroLead:"Open a free wallet in seconds, hold the SAOS currency, exchange at network rates and fund the network while following every coin in an open ledger. No custody, no middleman: your keys never leave your device.",
+  ctaWallet:"Open a free wallet", ctaExchange:"See the exchange",
+  kSupply:"SAOS supply", kSupplySub:"hard cap 21,000,000", kWallets:"Wallets on chain", kWalletsSub:"personal addresses",
+  kContracts:"Token contracts", kContractsSub:"real on-chain contracts", kValidations:"Network validations",
   featTitle:"What you can do here", featSub:"Everything runs from public connections. This page is itself a network node.",
-  feat1T:"Free wallet", feat1P:"Your own network address in seconds. The key is born on your device and the address is derived from it. No account, no email, no approval.",
-  feat2T:"Live exchange", feat2P:"A real order book with escrow, AMM pools and a public tape. The chain advances around the clock from the cloud and every state root is published.",
-  feat3T:"Deposit real coins", feat3P:"Send USDT, USDC, ETH, SOL, TRX or Bitcoin to a published address. A public watcher detects the deposit and your balance is credited in USDS for trading.",
+  feat1T:"Free wallet", feat1P:"Your own SAOS address in seconds. The key is born on your device and the address is derived from it. No account, no email, no approval.",
+  feat2T:"Exchange", feat2P:"Sell SAOS for listed currencies at your price. Your SAOS sits in open escrow until the deal settles, and every fill is recorded on chain.",
+  feat3T:"Deposit and earn", feat3P:"Fund the network with any listed currency, get credited in SAOS at the current rate, and follow your deposit, credit and rewards in the open ledger.",
   feat4T:"Launch tokens", feat4P:"Every token here is a real smart contract: fixed supply rules, signed parameters and a public state anyone can verify in a browser.",
   trustTitle:"Numbers you can check", trustSub:"Every figure on this page is read live from a public blockchain. Nothing is copy pasted from reports.",
   trust1T:"The ledger is public", trust1P:"All wallets, balances, deposits and offers live as signed operations on a public chain that anyone can read.",
@@ -603,7 +654,7 @@ en: {
   faq1Q:"How do I open a SAOS wallet?", faq1A:"Press Open a free wallet, then Create. Your key is generated on your device and your address is derived from it. Nothing is sent to a server and no account is needed.",
   faq2Q:"Who holds my keys?", faq2A:"Only you. Keys are generated in your browser and stay in memory. You can save an encrypted backup with a password you choose. There is no recovery and no custody.",
   faq3Q:"How can I check the numbers myself?", faq3A:"The whole ledger is public. Press Verify in the Network page and your browser reads every operation from the public chain, checks every signature and compares the result with what this site shows.",
-  faq4Q:"Which coins can I deposit?", faq4A:"USDT on Tron or Solana, USDT and USDC on Ethereum, USDC on Solana, SOL, TRX and Bitcoin. A public watcher scans the deposit addresses every twenty minutes and your balance is credited in USDS, the trading unit of the exchange. Larger deposits are credited after a sender check.",
+  faq4Q:"What do deposits do?", faq4A:"Deposits fund network development and are converted to SAOS at the current network rate. Every deposit, credit and reward is recorded in the open ledger. No promise of profit is made or implied.",
   wTitle:"Your wallet", wSub:"A personal SAOS address that belongs to the key on your device. Register it once and the whole network can see it.",
   wNewT:"Create a new wallet", wNewP:"A fresh key is generated with the browser's secure random generator. It never leaves this tab's memory.",
   wNewBtn:"Create wallet", wNewNote:"Write the key down or save the encrypted backup. If it is lost, the wallet is lost. There is no reset.",
@@ -617,26 +668,30 @@ en: {
   wQueueT:"Signed operations queue", wQueueP:"Signed and waiting. Copy them for the network, or broadcast below.", wQueueCopy:"Copy signed JSON",
   wRelayT:"Broadcast", wRelayP:"A Steem account key is transport only: it cannot change your operations. The inner signature is the authority.",
   wRelayAcc:"Steem account", wRelayWif:"Posting key (WIF)", wRelayBtn:"Broadcast queue",
-  xTitle:"Exchange", xSub:"The sovereign order book and AMM. The chain advances around the clock from the network cloud: every fill, swap and seal is written to a public state root that any node can recompute.",
-  xHeight:"Chain height", xBeat:"Last cloud beat", xFills:"Fills", xSeal:"Last seal root",
-  xBookT:"Order book", xBookP:"Live ladder, aggregated by price. Bids buy the base asset, asks sell it.",
-  xSide:"Side", xPrice:"Price", xAmt:"Amount", xPool:"Pool", xRes:"Reserves", xMid:"Mid", xSwapsT:"Swaps",
-  xPoolsT:"AMM pools", xPoolsP:"Constant product pools with dynamic fees. 70 percent of fees stay in the reserves for liquidity providers, 30 percent go to the treasury.",
-  xTapeT:"Recent trades", xTapeP:"The public tape straight from the chain, newest first.",
-  xTradeNote:"To trade, deposit coins and get a USDS balance, then place orders through the signed operations relay. Every order sits in open escrow and every fill is sealed.",
-  eTitle:"Deposit coins", eSub:"Send real coins to the network addresses below. A public watcher scans them around the clock, your claim is signed by your wallet, and your balance is credited in USDS for trading on the exchange.",
+  xTitle:"Exchange", xSub:"Sell SAOS for listed currencies at your price. Your SAOS sits in deterministic escrow on chain until the deal settles or you cancel.",
+  xRatesT:"Network rates", xRatesP:"Reference rates published on chain by network governance.",
+  xPair:"Pair", xPrice:"Price",
+  xRatesNote:"Rates are set by signed treasury operations and are visible to everyone. They are a reference: each offer carries its own price.",
+  xOfferT:"Place a sell offer", xOfferP:"Your SAOS moves into escrow the moment the offer lands on chain.",
+  xCur:"Currency you accept", xAmt:"Amount (SAOS)", xPricePer:"Price per 1 SAOS", xOfferBtn:"Sign offer",
+  xOfferNote:"Settlement of the currency side is recorded by the network treasury with a payment reference. Both sides stay visible on chain.",
+  xBookT:"Open offers", xBookP:"Escrowed SAOS for sale right now.",
+  xSell:"Seller", xGet:"You pay", xRemain:"SAOS remaining", xPrice2:"Price / SAOS",
+  xMineT:"My offers", xMineP:"Open a wallet to see and manage your offers here.",
+  xFillsT:"Recent fills", xFillsP:"Settled deals with their on-chain payment references.",
+  eTitle:"Deposit and earn", eSub:"Fund the network with any listed currency. Your deposit is recorded on chain, credited in SAOS at the current rate, and tracked in the open ledger.",
   eHowT:"How it works",
-  eS1T:"Open a wallet", eS1P:"Free and takes seconds. This is the address your USDS balance is credited to, and the key that signs your claim.",
-  eS2T:"Send coins to an address", eS2P:"Pick a coin below, send it on the exact network shown, and keep the transaction hash.",
-  eS3T:"Claim and get credited", eS3P:"Report the deposit with the transaction hash. The watcher record and your signature are checked, USDS lands on your address, and every step stays public.",
-  eHonest:"Honest model: deposited coins are held by the network treasury at the published addresses. Your USDS balance is a documented claim on that reserve, visible in the open ledger at every step. Credits are automatic up to 250 USDS per deposit, larger amounts are credited after a sender check. Nothing here is a promise of profit.",
-  eAddrT:"Deposit methods", eAddrP:"Real coins on their native networks. Send only the coin shown next to each address.",
-  eAddrNote:"Send only the coin and network shown. A transfer that arrives on the wrong network cannot be detected automatically. Minimum recorded deposit is 5 USD worth.",
-  eClaimT:"Claim a deposit", eClaimP:"Tell the network what you sent. Your wallet signs the claim and the network checks it against the watcher record.",
-  eClaimCur:"Coin", eClaimAmt:"Amount", eClaimRef:"Transaction hash", eClaimBtn:"Sign claim",
-  eClaimNote:"The signed claim goes to your operations queue. Broadcast it from the wallet page with any Steem account as transport, or hand it to the network relay.",
-  eWatchT:"Live watcher", eWatchP:"A keyless public scanner reads the deposit addresses around the clock.",
-  eWLast:"Last scan", eWTotal:"Deposits seen", eWCred:"USDS credited", eWCredS:"by the cloud heart",
+  eS1T:"Open a wallet", eS1P:"Free, takes seconds, and gives you the personal address your SAOS lands on.",
+  eS2T:"Send to a deposit address", eS2P:"Pick a currency below, send any amount, and keep your transaction reference.",
+  eS3T:"Get credited and follow it", eS3P:"The network verifies the deposit, credits SAOS at the current rate, and every step stays visible on chain.",
+  eHonest:"Deposits fund network development. Rewards, when approved by network governance, are paid to depositor wallets and recorded in the open ledger. Nothing here is a promise of profit.",
+  eAddrT:"Deposit addresses", eAddrP:"Published on chain by the network treasury.",
+  eAddrNote:"Send only the currency shown next to each address. The reference of your transfer is what you paste in the claim below.",
+  eClaimT:"Report a deposit", eClaimP:"Tell the network what you sent. Your wallet signs the claim.",
+  eClaimCur:"Currency", eClaimAmt:"Amount", eClaimRef:"Transaction reference", eClaimBtn:"Sign claim",
+  eMineT:"My deposits", eMineP:"Your claims and credits from the open ledger.",
+  eStatsT:"Network totals", eStatsP:"Everyone's deposits, credits and rewards, folded from the chain.",
+  eDepT:"Deposited", eCredT:"SAOS credited", eRewT:"Rewards paid",
   cTitle:"The SAOS currency", cSub:"A currency you can verify line by line. Fixed rules, public state, no administrator can bend it quietly.",
   cSupply:"Supply", cCap:"Hard cap", cCapSub:"fixed in code", cMint:"Mint state", cRoot:"Ledger root", cRootSub:"sha256 of the folded state",
   cTechT:"How it is built",
@@ -684,6 +739,12 @@ en: {
 he: {
   brandSub:"רשת", navHome:"ראשי", navWallet:"ארנק", navExchange:"בורסה", navEarn:"הפקדה ורווחים",
   navCurrency:"המטבע", navTokens:"טוקנים", navNetwork:"רשת", liveConnecting:"מתחבר",
+  navDex:"דקס",
+  dexChip:"טרמינל הבורסה של הרשת עצמה",
+  dexTitle:"הבורסה הריבונית", dexGrad:"במראה ציבורית",
+  dexLead:"הטרמינל שהשרשרת מריצה בעצמה: ספר-זמנות דטרמיניסטי, בריכות AMM, ארנה אוטונומית של חיילים, חותמים מעוגנים וטייפ חי — משוקף פומבית ומתעדכן עם כל פעימת ענן. מראה לקריאה בלבד; המסחר רץ בצד הריבוני.",
+  dxSpread:"ספרד", dxHeight:"גובה", dxFills:"מילויים", dxPools:"בריכות", dxAge:"גיל נתונים",
+  dexOpen:"פתיחת הטרמינל המלא",
   chipLive:"חי על שרשרת ציבורית",
   heroTop:"הכסף שלך.", heroGrad:"הרשת שלך.", heroBottom:"SAOS.",
   heroLead:"פתח ארנק חינם בשניות, החזק את המטבע SAOS, סחור בשערי הרשת וממן את הרשת כשכל מטבע נראה בספר פתוח. בלי כתובת-שרת, בלי מתווך: המפתחות שלך לא עוזבים את המכשיר.",
@@ -835,7 +896,7 @@ function timeAgo(iso) {
 $("year").textContent = new Date().getFullYear();
 
 /* ═══════════ routing ═══════════ */
-const VIEWS = ["home", "wallet", "exchange", "earn", "currency", "tokens", "network"];
+const VIEWS = ["home", "wallet", "exchange", "dex", "earn", "currency", "tokens", "network"];
 function route() {
   let h = (location.hash || "#home").slice(1);
   if (!VIEWS.includes(h)) h = "home";
@@ -844,6 +905,34 @@ function route() {
   window.scrollTo({ top: 0 });
 }
 window.addEventListener("hashchange", route);
+
+/* ═══════════ DEX mirror strip ═══════════ */
+(() => {
+  const el = (id) => document.getElementById(id);
+  const fmtInt = (n) => Number(n || 0).toLocaleString("en-US");
+  const ago = (iso) => {
+    const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    return m < 60 ? m + "m" : Math.round(m / 60) + "h";
+  };
+  async function pull() {
+    try {
+      const r = await fetch("dex/world.json?t=" + Date.now(), { cache: "no-store" });
+      const j = await r.json();
+      if (!j || !j.ok) return;
+      const m = (j.markets || []).find((x) => x.key === "SAOS/USDS") || (j.markets || [])[0];
+      if (m) {
+        el("dx-price").textContent = (m.fair / 1000).toFixed(3);
+        el("dx-spread").textContent = (m.spreadBps ?? 0) + " bps";
+      }
+      el("dx-height").textContent = "h" + fmtInt(j.state && j.state.height);
+      el("dx-fills").textContent = fmtInt(j.state && j.state.fills);
+      el("dx-pools").textContent = fmtInt((j.pools || []).length);
+      el("dx-age").textContent = j.publishedAt ? ago(j.publishedAt) : "—";
+    } catch { /* המראה מחזיקה את המסגרת האחרונה — הסבב הבא ינסה שוב */ }
+  }
+  pull();
+  setInterval(pull, 60000);
+})();
 
 /* ═══════════ hidden operator access: 5 logo taps ═══════════ */
 (() => {
