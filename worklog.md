@@ -1620,3 +1620,20 @@ Stage Summary:
 - Fourth real incident this session caught, diagnosed and cured at the root: roast page deployed, verifier trained 36 to 42, Pages pipeline hardened, dual-truth sync bug eliminated.
 - All four fixes are permanent: workflow gates, detector ratchets, code-level rules with incident provenance.
 - Pending (async, will self-verify): HIVE oracle key resumes updating on the next dex-beat run (engine 862c12c live); A37 will keep measuring oracle truth every 2h.
+---
+Task ID: R29-session-a
+Agent: main (Z.ai Code)
+Task: Recovery of crashed-session commit, sovereign wallet page live, verifier doctrine update.
+
+Work Log:
+- Environment reset discovered: local clone was 2 ahead / 124 behind origin. The 2 local commits (Task 36 crash-sync + wallet.html build) had NEVER been pushed - the sandbox died before push. Parallel R28 session on GitHub had already landed equivalent work (money.html, agent files identical by md5).
+- Recovery executed: reset to origin/main (1ec23ee), re-applied unique artifacts only - console/wallet.html (1590 lines, in-browser keys via GateCrypto, zero server, glyph-law clean), 13 evidence screenshots (task35-LIVE, task36), and the R28-session-c worklog record. Pushed as Zip 5b87016.
+- Public Console deploy: wallet.html live at 200 / 112,974 bytes. Wired into index.html at both navigation points (pathlink card + footer tools), he+en dictionary entries (kn.walletPage/kn.walletPageSub), sitemap.xml entry. Pushed as Console cc2ff10.
+- Golden path verified end-to-end in browser: Open Wallet - Create - real secp256k1 key generation in-browser (saos1GXA6m7hWuTBECrrWEh8AcCgxpFuoD8p3W, STM public key, private key shown once with Copy / Save encrypted backup / Clear from memory). Hebrew toggle works (title flips to RTL). Zero console errors. Mobile 390x844 captured. Evidence: taskR29-wallet-live-create.png, taskR29-wallet-live-he.png, taskR29-wallet-mobile.png.
+- Verifier doctrine update (Console 8d85a00): A07 was a retirement-guard (old wallet page must 4xx) - inverted to crypto-core check (saos1 x10 in wallet.html, min 5). A22 was a link-ban (no wallet.html refs in home) - inverted to wiring requirement (2 refs = pathlink + footer, min 2). A40 page sweep 20 to 21 pages (wallet.html at 100,000 bytes floor). Local run: 42/42 ALL_PASS (A37 oracle worst 0.65% vs CoinGecko).
+- Sovereign copies synced to Zip (console/wallet.html, index.html, sitemap.xml, agent/verify/assertions.json).
+
+Stage Summary:
+- The crashed session's work is fully landed: nothing lost, doctrine updated honestly (guards inverted with provenance, not deleted).
+- The site now has a REAL working product page: a wallet a visitor can actually create and use, not a shell.
+- Verifier permanently trained on the new page: hollowing, unwiring, or retirement regression will fail A07/A22/A40 in public.
