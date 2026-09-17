@@ -304,6 +304,164 @@ function FirstDropProof() {
   );
 }
 
+// ── המחזור-המלא-הראשון: הוכחה-חיה מהמראה-הציבורית ────────────────────
+
+const RECEIPT_URL = "https://roshpinacare-sys.github.io/Console/receipts/r35-full-cycle.json";
+const ENGINE_COMMIT = "https://github.com/roshpinacare-sys/saos-dex/commit/afccfff";
+
+interface CycleMirror {
+  ok?: boolean;
+  publishedAt?: string;
+  version?: number;
+  state?: {
+    height?: number;
+    backing?: Record<string, number>;
+    assets?: Record<string, { refPrice?: number; listed?: number }>;
+    oracle?: Record<string, { mu?: number; atH?: number; src?: string }>;
+  };
+  pools?: Array<{ a?: string; b?: string; ra?: number; rb?: number; lp?: number; swaps?: number; feeAccruedTreasury?: number }>;
+  wallets?: Array<{ name?: string; balances?: Record<string, number> }>;
+}
+
+function FullCycleProof() {
+  const [w, setW] = useState<CycleMirror | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    setErr(null);
+    try {
+      const r = await fetch(`${WORLD_URL}?t=${Date.now()}`, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setW((await r.json()) as CycleMirror);
+    } catch (e) {
+      setErr(String((e as Error).message).slice(0, 60));
+    }
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const pool = w?.pools?.find((p) => p.a === "USDS" && p.b === "WTRX") ?? null;
+  const wallet = (n: string) => w?.wallets?.find((x) => x.name === n)?.balances ?? null;
+  const op = wallet("operator");
+  const outbox = wallet("peg-outbox");
+  const oracleMu = w?.state?.oracle?.WTRX?.mu ?? null;
+  const midMilli = pool && pool.rb ? Math.floor(((pool.ra ?? 0) * 1000) / pool.rb) : null;
+  const oracleMilli = oracleMu != null ? Math.round(oracleMu / 1000) : null;
+  const spreadBps =
+    midMilli != null && oracleMilli
+      ? Math.round(((midMilli - oracleMilli) / oracleMilli) * 10_000)
+      : null;
+  const verdict =
+    spreadBps == null ? null : Math.abs(spreadBps) < 300 ? "CONVERGED" : Math.abs(spreadBps) < 1500 ? "DRIFT" : "DIVERGENT";
+  const sumLive =
+    (op?.WTRX ?? 0) + (outbox?.WTRX ?? 0) + (pool?.rb ?? 0);
+  const backingWtrx = w?.state?.backing?.WTRX ?? null;
+  const live = pool != null && op != null && outbox != null;
+
+  return (
+    <Card className="border-[#d4af37]/30 bg-gradient-to-b from-[#d4af37]/[0.08] to-transparent">
+      <CardContent className="space-y-4 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <Coins className="h-5 w-5 text-[#e8cd6e]" aria-hidden />
+          <h3 className="text-base font-bold text-zinc-100">
+            המחזור-המלא-הראשון — מהפקדה ועד תביעת-פדיון
+          </h3>
+          <Badge
+            className={cn(
+              verdict === "CONVERGED"
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                : verdict
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                  : "border-zinc-600/40 bg-zinc-600/10 text-zinc-400",
+            )}
+          >
+            {live ? (verdict ? `שוק-חי · ${verdict}` : "נטען…") : "ממתין לקריאה…"}
+          </Badge>
+        </div>
+        <p className="text-sm leading-relaxed text-zinc-300">
+          הכסף-האמת שנכנן בדלת (2.0 TRX → 2,000µ WTRX) עבר את כל המסלול הכלכלי על השרשרת-הקנונית:{" "}
+          <span className="font-semibold text-zinc-100">רישום בסולם-הערך</span> (refPrice 335, h21496) ·{" "}
+          <span className="font-semibold text-zinc-100">שוק-חי USDS/WTRX</span> שנפתח במחיר-האורקל ·{" "}
+          <span className="font-semibold text-zinc-100">המכירה-האמיתית הראשונה</span> 30µ WTRX → 9µ USDS ·{" "}
+          <span className="font-semibold text-zinc-100">קנייה-חזרה</span> 9µ USDS → 27µ WTRX (שוק דו-כיווני) ·{" "}
+          <span className="font-semibold text-zinc-100">תביעת-הפדיון הראשונה</span> — 100µ לתיבת-היציאה
+          עם יעד-TRON חתום.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-[#d4af37]/20 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">השוק החי (USDS/WTRX)</div>
+            <div className="mt-0.5 font-mono text-sm font-bold text-[#e8cd6e]">
+              {pool ? `${(pool.ra ?? 0).toLocaleString()}µ USDS + ${(pool.rb ?? 0).toLocaleString()}µ WTRX` : "…"}
+            </div>
+            <div className="mt-1 text-[10px] text-zinc-600">
+              {pool ? `LP ${pool.lp?.toLocaleString() ?? 0}µ · ${pool.swaps ?? 0} החלפות` : "ממתין למראה"}
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+            <div className="text-[11px] text-zinc-500">עוגן-חי מול אורקל</div>
+            <div className="mt-0.5 font-mono text-sm font-bold text-emerald-300">
+              {midMilli != null && oracleMilli ? `mid ${midMilli} מול ${oracleMilli}mµ` : "…"}
+            </div>
+            <div className="mt-1 text-[10px] text-zinc-600">
+              {spreadBps != null ? `${spreadBps > 0 ? "+" : ""}${spreadBps}bps · ${verdict}` : "ממתין למראה"}
+            </div>
+          </div>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">תיבת-היציאה — תביעת-פדיון</div>
+            <div className="mt-0.5 font-mono text-sm font-bold text-[#e8cd6e]">
+              {outbox ? `${(outbox.WTRX ?? 0).toLocaleString()}µ WTRX` : "…"}
+            </div>
+            <div className="mt-1 text-[10px] text-zinc-600">ממתין לשידור-המפעיל מהמשמרת</div>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">יתרת-המפעיל אחרי המחזור (חי)</div>
+            <div className="mt-0.5 font-mono text-sm font-bold text-zinc-100">
+              {op ? `${(op.WTRX ?? 0).toLocaleString()}µ WTRX · ${(op.USDS ?? 0).toLocaleString()}µ USDS` : "…"}
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+            <div className="text-[11px] text-zinc-500">אינווריאנטה חיה (סכום = גיבוי)</div>
+            <div className="mt-0.5 font-mono text-sm font-bold text-emerald-300">
+              {live && backingWtrx != null
+                ? `${sumLive.toLocaleString()}µ = ${backingWtrx.toLocaleString()}µ ✓`
+                : "…"}
+            </div>
+            <div className="mt-1 text-[10px] text-zinc-600">מפעיל + תיבת-יציאה + בריכה = 2.0 TRX במשמרת</div>
+          </div>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">מקור-המדידה</div>
+            <div className="mt-0.5 font-mono text-[11px] text-zinc-400">
+              {w ? `world.json · h${w.state?.height} · ${w.publishedAt?.slice(11, 16) ?? "?"}Z` : err ? `קריאה נכשלה (${err})` : "…"}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+            <a className="text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]" href={RECEIPT_URL} target="_blank" rel="noreferrer">
+              קבלת-מכונה (JSON)
+            </a>
+            <a className="text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]" href="https://roshpinacare-sys.github.io/Console/receipts/" target="_blank" rel="noreferrer">
+              קיר-הקבלות
+            </a>
+            <a className="text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]" href={ENGINE_COMMIT} target="_blank" rel="noreferrer">
+              commit השרשרת (afccfff)
+            </a>
+            <a className="text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]" href={`https://tronscan.org/#/transaction/${DROP_TXID}`} target="_blank" rel="noreferrer">
+              הפקדה ב-Tronscan
+            </a>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => void load()} className="shrink-0">
+            <RefreshCw className="ml-1 h-3.5 w-3.5" aria-hidden />
+            רענן
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── הדלת: הזנת-המפתח ────────────────────────────────────────────────
 
 function ArmDoor({ onArmed }: { onArmed: () => void }) {
@@ -574,6 +732,11 @@ export function GateView() {
       {/* ── הטיפה הראשונה — הוכחה חיה ── */}
       <motion.div {...fade(1)}>
         <FirstDropProof />
+      </motion.div>
+
+      {/* ── המחזור-המלא-הראשון — הוכחה חיה ── */}
+      <motion.div {...fade(1)}>
+        <FullCycleProof />
       </motion.div>
 
       {/* ── מלאי-אמת ── */}
