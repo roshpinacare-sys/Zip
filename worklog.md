@@ -1603,3 +1603,20 @@ Work Log:
 Stage Summary:
 - Third real incident caught and cured this session (after anchor starvation and legacy oracle keys): the publish pipeline was choking itself. Each cure is now permanent via workflow gates or detectors.
 - Site temporarily serving bf94927 (roast page live, training view pending quota window clear). Next scheduled commits (console-publish 10:45Z, agent-verify 10:55Z) should build successfully once the rolling window frees (~10:20Z onward).
+
+---
+Task ID: R28-session-c
+Agent: main (Z.ai Code)
+Task: Dual-truth clobber incident caught and cured, final verification.
+
+Work Log:
+- Detected live regression minutes after deploy: index.html shrank 142377B to 132597B, training view + roast cards gone. Cause: weave-console-assets commit 73763e3 (10:09:04Z) synced a stale sovereign copy of index.html over the live public repo. The CONSOLE_ASSETS list in src/lib/weave/mirror.ts included index.html even though its own comment said the file is born in the public repo and must not be touched. Classic dual-source-of-truth bug.
+- Cure, both layers: (1) root - index.html removed from CONSOLE_ASSETS with the rule written in code (a file edited directly in the public repo never appears in the sync list; two sources of truth for one file is a bug, not sovereignty), pushed to Zip as 3349666; (2) belt - the sovereign console/index.html copy refreshed to the current full version so even a rogue future sync pushes truth.
+- Public Console restored (706ded2): training view, roast cards, milestones all back. Live-verified: 142377B, sub-agents-training present, kn.roastPage x4.
+- Final full verification: local run 42/42 ALL_PASS; live results.json (authoritative, from GitHub Actions) 42/42 ALL_PASS at 10:08:01Z.
+- Note: the "errored dur 0" Pages builds were supersession/coalescing of rapid pushes, not quota failures per se; the semantic gates remain a correct hardening (fewer no-op builds, less coalescing). weave-heart at 11:08Z runs with the fixed mirror.ts.
+
+Stage Summary:
+- Fourth real incident this session caught, diagnosed and cured at the root: roast page deployed, verifier trained 36 to 42, Pages pipeline hardened, dual-truth sync bug eliminated.
+- All four fixes are permanent: workflow gates, detector ratchets, code-level rules with incident provenance.
+- Pending (async, will self-verify): HIVE oracle key resumes updating on the next dex-beat run (engine 862c12c live); A37 will keep measuring oracle truth every 2h.
