@@ -1564,3 +1564,42 @@ Stage Summary:
 - הסוכנים אומנו: 6 גלאים חדשים (30 -> 36), קצב אימות מודק פי 3, סוגי בדיקה חדשים (steem_priority, json_age) קוראים מקורות עצמאיים - השרשרת עצמה, לא רק האתר.
 - קומיטים: Zip 2dd0fb0 (חוק העדיפות); Console 2f2d18d (אימון הסוכנים). ענן: agent-verify 08:51 ALL_PASS 36/36 מחויב ומוגש. ראיות: /tmp/r27-home-verify.png, /tmp/r27-money-anchors.png, /tmp/r27-money-mobile.png, /tmp/r27-home-allpass.png, ~/rc-watch.log.
 - נותר בכנות: STEEM_ACTIVE_WIF לחימוש הגריד החוץ (פעולת מפעיל אחת, החוסם מפורסם בגלוי ב-grid.json); זנב WSBD +4% מתכנס בכל פעימה בהחלקה מדודה; דלק ראשון לגריד ב-2026-09-19T02:01; ה-explainer החי הוא הפניה בלבד (תוכן ב-en.html).
+
+---
+Task ID: R28-session
+Agent: main (Z.ai Code)
+Task: Continue urgent Console work per user directive: engineering roast (description vs truth), train agents and system, fix real network issues, verify live only, report what remains.
+
+Work Log:
+- Full live audit: all 95 HTML pages return 200 with real content (hub/explainer/index.html is a legitimate 386B redirect). No dead pages.
+- world.json verified live at h14233, opsTotal 262555, fills 10255, swaps 7118. dex-beat healthy.
+- Discovered agent-verify was 34/36 at 07:57Z (A10 STALE + A31 priority inversion: core anchor starved 33.7h while saos.weave.live.v1 consumed budget). Verified via rc-watch.log that the incident self-healed: anchor landed 08:34:45 (seq 36889), FRESH 08:47:58, ALL_PASS 36/36 at 08:51:19 (results.json live confirmed). Root cause fixed by R27 priority law in Zip 2dd0fb0.
+- Measured oracle vs CoinGecko live: all 7 active assets within 2% (worst PHIVE +1.98%). The old "anchor drift +477%" is dead. Found legacy keys: HIVE frozen at h9913 (not in ORACLE_MAP since R23), WBLURT at h1 (in map, price unchanged = honest no-noise).
+- Honest treasury numbers established: treasuryProfit 209785 mu = $0.21 (not $202 - unit correction, mu = 1e-6), poolFees $0.25, rail equity $17.98, USDS/WSTEEM one-sided market (bid 320 vs anchor 55, zero asks, $0.68 float).
+- Built roast.html (28KB): 10 claims vs live measurement with verdicts (real/partial/empty), today's anchor-starvation timeline, 35-module engine inventory with honest active/dormant status, vs-leaders gap table (Uniswap $41.7B vs our $0.25 fees), open-debt backlog of 7 measured gaps. Live fetches from world.json/state.json/results.json/watch.json + CoinGecko with embedded fallback. Glyph law verified clean.
+- Trained verifier R28: 36 to 42 detectors. New kinds in run.mjs: oracle_drift (multi-provider: coingecko with coinpaprika + cryptocompare fallback, remapped ids) and pages_ok (20 pages, 200 + minBytes floor). New assertions: A37 oracle drift 5%, A38 treasury ratchet 209785, A39 rail ratchet 17975080, A40 page sweep, A41 roast claims section, A42 roast glyph law. Local test run: 39/39 ALL_PASS (roast-dependent 3 excluded pre-deploy).
+- Engine fix in saos-dex (862c12c): HIVE rejoins ORACLE_MAP (same hive feed as PHIVE) so no public oracle key stays frozen. Typecheck passed. Pushed.
+- Wired roast.html into index.html: sovereignty grid card, footer tools link, i18n he+en, 3 new measured milestones (anchor cure, roast publication, verifier training).
+- Committed and pushed Console bf94927.
+
+Stage Summary:
+- Live truth verified before and after: agent-verify 36/36, oracle within 2% of market, all pages healthy.
+- roast.html is the standing answer to "roast between description and truth": every verdict backed by a live measurement, failures included.
+- Verifier permanently trained: regressions of the h9433-to-h8953 class now caught by ratchets A38/A39; oracle drift caught by A37; page hollowing caught by A40.
+- Remaining open (measured): one-sided USDS/WSTEEM market, 0 external deposits/users, treasury $0.21, rail 0 doses paid, grid disarmed (no operator secret), milestone disabled, agents SPA view thin (1546 chars).
+
+---
+Task ID: R28-session-b
+Agent: main (Z.ai Code)
+Task: Pages quota incident diagnosis and cure, agents training view, deployment verification.
+
+Work Log:
+- Pushed agents-view training subview (081fdcf): training rounds table R27/R28, live detector book from results.json, KPIs. JS syntax validated, glyph law clean.
+- Pages build for 081fdcf ERRORED (duration 0). Investigation: four consecutive instant build failures on unrelated commits (index change, agents JSONs, dex JSONs). Root cause found by build-history analysis: ~8 commits/hour from 5 workflows (dex-watch x3, agents-watch, weave-mirror, console-publish, saos-live) because publishedAt/lastEvmBlock/lastRun timestamps churn every run and force commits with zero semantic change. Legacy Pages build quota (~10/hour rolling) exhausted at 09:48Z; the public site froze mid-deploy at bf94927.
+- Cure (9e4e3a8): semantic commit gates in dex-watch.yml and agents-watch.yml. dex-watch commits only when watching/chains/depositsTotal/deposits book change or last heartbeat > 3h. agents-watch commits only when agent roster, states, or repo set change or heartbeat > 3h. Steady-state commit rate drops to ~2-3/hour, inside quota. No detector depends on the churned timestamps (verified: A08 is a count check, no age check on watch/registry).
+- Engine oracle fix pushed earlier (saos-dex 862c12c): HIVE rejoins ORACLE_MAP.
+- Verifier R28 fully deployed: local run against live site = 42/42 ALL_PASS (A37 oracle drift worst 1.91%, A40 20/20 pages, A41 roast claims, A42 glyph law).
+
+Stage Summary:
+- Third real incident caught and cured this session (after anchor starvation and legacy oracle keys): the publish pipeline was choking itself. Each cure is now permanent via workflow gates or detectors.
+- Site temporarily serving bf94927 (roast page live, training view pending quota window clear). Next scheduled commits (console-publish 10:45Z, agent-verify 10:55Z) should build successfully once the rolling window frees (~10:20Z onward).
