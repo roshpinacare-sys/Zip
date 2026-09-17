@@ -1743,3 +1743,26 @@ Stage Summary:
 - Engine commits: 49a4667 (R26 anchor cure: pool_repeg + fairPrice + pegkeeper sqrt + ALE exclusion + standing policy). Console commits: d37361b, d97777a (readiness.html + wiring + mobile fix).
 - The honest comparison is public at https://roshpinacare-sys.github.io/Console/readiness.html: every number measured today, the gap to leading networks named in users/trust/liquidity/redeemability (not code), and the P0-P5 road to the first real dollar.
 - Open honest gaps (unchanged by today): 0 external users/deposits; liquid redemption $1.9 real backing vs internal USDS thousands; corridor depth $584 after honest re-mark (grows only with real deposits); oracle on free APIs; 0 external audits; grid still disarmed awaiting STEEM_ACTIVE_WIF (R31 blocker persists).
+
+---
+Task ID: R27
+Agent: Z.ai Code (main session)
+Task: הוראת המפעיל: המשך עוד יותר עמוק לבחינת חדשנות DeFi העולמית, הבנת מה ניתן ליישם לשרת את מטרות הפלטפורמה, ואיך ממשיכים. בדחיפות.
+
+Work Log:
+- אימות מצב חי לפני כל דבר: git log נקי (d97777a), world.json חי בגובה h19034 עם הריפוי מחזיק (fair=54 bid=53 ask=55 במסדרון), watch.json ארבע רשתות תקינות 0 הפקדות, Actions רצות אוטונומית לאורך היום.
+- מחקר חדשנות DeFi עולמי: 7 חיפושי רשת (מגמות, פרפס, Ethena/Pendle, AA, אינטנטים, שווקי חיזוי, Steem) + DefiLlama חי: TVL ל10 פרוטוקולים מובילים (Lido 24.07B, Aave 17.03B, Morpho 10.28B, Hyperliquid 6.73B, EigenLayer 6.47B, Ethena 5.17B, Pendle 1.26B, Jito 1.05B, Aerodrome 334M, GMX 207M), נפחי 30d (Hyperliquid 53.2B, Aerodrome 14.2B), מחירי CoinGecko (STEEM 0.0542, HIVE 0.0515, HYPE 82.42, MORPHO 2.22, PENDLE 2.33, ENA 0.157).
+- גילוי מפתח בבדיקת קוד המנוע (saos-dex שוב נשלף מהריפו הפרטי ל/tmp): שש התאמות של חידושי עולם כבר רצות בכל טיק ולא תועדו בציבור: cow.ts (מכירות אצווה CoW), protorev.ts (ארביטראז פרוטוקול Osmosis), triggers.ts dcaTick (DCA), router.ts (ראוטר צבירה), launchpad.ts (מסילת השקות עקומה), vault.ts (כספת הלוואות). כולן מאומתות בשורה chain.ts:669 שמריץ DCA+טריגרים+ProtoRev+CoW בכל טיק. אורקל price-proof.ts כבר 4 מקורות עם חציון+MAD.
+- נכתב defi.html (R27, מפת חדשנות DeFi): 16 זרמי חדשנות עולמיים בטבלת ארבע עמודות עם פסקי דין מסודרים לפי קבוצות (יושם 9, חלקי 2, לא בכוונה 4), החוק הארכיטקטוני (DeFi בלי חוזים חכמים על Steem + מיפוי פרימיטיבים), המנוע במספרים חיים (h19034), מסנן היישום והתור I0-I6, הלא-ניישם בכוונה עם נימוקים (פרפס, Ethena, שווקי חיזוי, restaking), ההמשך (לולאה אוטונומית + לולאת בחינה + R28-R30), וסעיף אימות מקורות מלא.
+- חיווט ב-index.html: כרטיס pathlink חדש אחרי מבחן המוכנות, קישור footer, ערכי i18n en+he (kn.defiPage/kn.defiPageSub).
+- חוק הגליפים נבדק ונקי (אין אימוגי/חצים/מקפים ארוכים), מבנה HTML תקין (5 טבלאות 52 שורות סגורות).
+- commit 6643077 אחרי rebase על קומיטים אוטונומיים חדשים של dex-watch/saos-live (הרשת המשיכה לרוץ בזמן העבודה), push, פריסת Pages הושלמה בהצלחה.
+- אימות חי: HTTP 200, 30,368 bytes, כל המחרוזות המרכזיות באוויר (h19034, chain.ts:669, cowSettle, protoRevTick, dcaTick, 53.2B, 10.28B), חיווט הבית 2 קישורים.
+- אימות דפדפן: כותרת נכונה, 7 כרטיסים, 52 שורות טבלה, 5 כרטיסי pulse, אפס שגיאות קונסולה, אין חפיפת footer, מובייל 390px בלי גלישה אופקית (טבלאות נגללות בתוך הכרטיס), קליק מקצה לקצה על כרטיס הבית מנווט לdefi.html, קישור footer לreadiness עובד (רגרסיה נקייה).
+
+Stage Summary:
+- הודעת המפתח שפורסמה: הפער שלנו מול החדשנות העולמית אינו בפיצרים (שש התאמות כבר רצות בכל טיק ורק עכשיו מתועדות) אלא בכסף אמיתי, משתמשים ואמון חוץ: 0 הפקדות, גיבוי נזיל 1.9$, עומק מסדרון 584$, רווח אוצר 210$ מול 485M$ לחודש של Tether.
+- Console commit 6643077: defi.html החדש + חיווט מלא, חי בhttps://roshpinacare-sys.github.io/Console/defi.html.
+- תור היישום הציבורי: I0 ריפוי העוגן בוצע (R26), I1 תיעוד ההתאמות בוצע (R27), I2 תצוגת אצווה חיה (R28), I3 מחזור הפקדה ראשון (P1), I4 תחרות פותרים פנימית (R30), I5 חלון פדיון, I6 נעילת ve אחרי שוק חוץ.
+- מה שלא ניישם בכוונה, מתועד בנימוק מלא: פרפטואלים, דולר סינתטי בסגנון Ethena, שווקי חיזוי, restaking.
+- פערים פתוחים שלא השתנו: 0 משתמשים חוץ/הפקדות; גיבוי נזיל 1.9$; אורקל על APIs חינמיים; 0 אודיטים חיצוניים; אין שוק חוץ לSAOS; אין דלת מפתחים; grid עדיין מנוטרל בהמתנה לSTEEM_ACTIVE_WIF.
