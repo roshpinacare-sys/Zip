@@ -270,8 +270,12 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
 /** הקבצים הכתובים-יד שמקורם בריפו הריבוני - הלב מסנכרן אותם החוצה.
  * (index.html/status.json נולדים בריפו הציבורי עצמו ע"י render.mjs -
  * לא נוגעים בהם.) */
+// R28: index.html removed from this list after it clobbered live edits on
+// 2026-09-17 (the sync restored a stale sovereign copy and erased the
+// training view and roast cards from the public site). Rule: a file that is
+// edited directly in the public repo never appears here. Two sources of
+// truth for one file is a bug, not sovereignty.
 const CONSOLE_ASSETS = [
-  "index.html",
   "gate.html",
   "gate-crypto.js",
   "saos-live.js",
