@@ -278,6 +278,7 @@ const CONSOLE_ASSETS = [
   "net.html",
   "acid.html",
   "acid-engine.js",
+  "money.html",
 ];
 
 export interface ConsoleAssetsResult {
