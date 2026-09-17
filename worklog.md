@@ -1658,3 +1658,45 @@ Stage Summary:
 - The engine now has: two-sided WSTEEM market, rail grinding premiums with wrapped-STEEM inventory, honest finite-supply behavior (grinding stops when inventory exhausts - external deposits are the only future source).
 - Verifier permanently armed: A43/A44 make both regressions public failures.
 - Remaining honest gaps (unchanged, for next sessions): 0 external deposits/users, treasury $0.21, premium still ~776% vs anchor, grid disarmed until operator arms it (fuel scheduled 2026-09-19T02:01), milestone off.
+---
+Task ID: R30-session-a
+Agent: main (Z.ai Code)
+Task: Continue and push harder (תמשיך ודחוף) - frozen-number cure on money path + THE-VAULT lending instrument built, proven and shipped.
+
+Work Log:
+- Confirmed position: Console at 6675d22, live chain h16153, all 4 endpoints 200, anchor drift measured fresh: WSTEEM -0.6% vs CoinGecko (the R23 glide mechanism works, scale-confusion display fix from 6675d22 holds).
+- Full frozen-number audit across all 8 standalone pages: index.html and roast.html fully live-fed; ONE frozen forgery found in money.html line 133 ("מדוד: 8,805 מילויים, 6,449 החלפות" - build-day numbers presented as current while the live ledger says 10,839/7,120).
+- SETTLE-19 cure (Console 6521c51): ammLive injection reads fills/swaps/treasury-profit/height LIVE from dex/world.json on every open + static KPI cards honestly tagged "תמונת 17/09" (snapshot date labels, no pretending to be live) + lede rewritten to distinguish live from tagged snapshot.
+- Verifier trained 44 to 47 (Console ca4e858): A45 ammLive injection required, A46 frozen-marker regex dead forever, A47 snapshot tagging min 5. Local run against live site: 47/47 ALL_PASS.
+- THE-VAULT (Task 80, saos-dex 0730e4f after rebase): the money-path clock step 2 built for real. 4 new ops: vault_open (80 gas, CR 250% min, draw=mint), vault_repay (60, interest->treasury, principal burn), vault_liquidate (60, any citizen below CR 150%, +5% bonus), vault_backstop (40, treasury-only for underwater, loss recorded forever). Caps: 100K mu per vault / 500K mu global. Interest chain-state-priced: 5%/yr base + up to 10% utilization surge, lazy capitalization (pure function of state, zero per-block writes).
+- Local proof on a COPY of the live chain caught TWO real defects before they ever touched the truth chain: (1) undeclared mint halted the iron ledger-audit at the first seal (native USDS live != genesis+declared) - cured by issuedMu/burnedMu counters riding the chain + ledgerAudit native-USDS expected += issued-burned; (2) the draw was missing from the principal (32 cycles x 2160 mu free money printed with a "clean" audit because issuedMu counted it - economics broken, accounting exact) - cured by precise principal/interest split (intMu never masquerades as supply).
+- Final local proof: open h15753 CR exactly 250%, citizen full repay (principal 2160 mu burned, collateral returned, USDS delta 0), iron audit GREEN across seals with declared supply, issued-burned equals the open vault's debt exactly.
+- Demo agent (vault.ts): soldier-4 locks REAL rail-earned WSTEEM only (no fake seeding - the guard waits until rail doses raise free balance above working capital), holds one simulated day, repays, self-heals below CR 175%.
+- Console public side (9b51b0d): live vault card on money.html (state.vaults + state.vaultTot: live rate, open positions with CR, realized interest, liquidations, backstop losses, declared supply), lending row upgraded "לא קיים" to "קיים ופועל", clock step 2 marked delivered, verifier A48/A49 trained (49 total).
+- dex-beat manually dispatched (HTTP 204) with the vault code - awaiting first live vault open.
+
+Stage Summary:
+- The last frozen-number forgery on the public site is dead and guarded by A45-A47.
+- The network's biggest missing instrument (yield on parked capital) is now real, audited and honest: CDP against WSTEEM with iron-ledger-exact supply accounting.
+- Proof discipline proved itself again: two would-be production defects caught locally first (including a subtle one where exact accounting hid broken economics).
+- Next honest gaps: 0 external users/deposits unchanged, realized interest is micro-scale at current collateral (honest truth of a $200-treasury network), grid still disarmed (operator secret), milestone off.
+
+---
+Task ID: R30-session-a (completion addendum)
+Agent: main (Z.ai Code)
+Task: THE-VAULT live on the public chain + verifier 49/49 + A44 honesty cure.
+
+Work Log:
+- Visibility cure (saos-dex 7788b48): getState() whitelist was hiding the LIVE vault from world.json — the beat h16633-17113 had already opened a real vault at h16672 (CR 250%, 2160 mu drawn) but state.vaults never reached the public mirror: truth hidden from the public eye is as bad as a lie. vaults/vaultTot now ride the published state.
+- Adaptive demo guard: hard KEEP-reserve blocked forever (market maker SELLS its WSTEEM live, free fell 360K to 260K); now at most 40% of real free balance, min meaningful 50K mu.
+- Sovereign sync discipline learned: pushed to Console without syncing Zip first, the weave-console-assets bot overwrote the vault card with the older sovereign copy (d0b9e4b). Cure: both repos now carry identical truth (money.html + 49-assertion contract); Zip 1388707/efe065a/ecaa324, Console 1422ac4/21fcdb1/5d42132.
+- A44 honesty cure (saos-dex 8160b86 + assertion update): state.rail.doses is a per-run window counter (resets every Action) — asserting >= 2 asserted on a transient and failed when the rail honestly exhausted its WSTEEM inventory (SETTLE-18 finite-supply doctrine). The true SETTLE-18 ratchet is the LIFETIME paid counter (db/rail-lifetime.json, max-load) — now published in state.rail.lifetime and asserted at wsteem >= 300,000.
+- Live verification (h18073): vaults {"soldier-4": col 100,000 mu WSTEEM, debt 2,160 mu USDS, atH 16672} · vaultTot {opened 1, issued 2,160, burned 0} · rail lifetime wsteem 300,000.
+- Verifier: 49/49 ALL_PASS against the live site (A43 bestAsk 306, A44 lifetime 300,000, A45 ammLive, A46 frozen-dead, A47 snapshot tags, A48 vaultLive, A49 delivered-graduation).
+- Browser end-to-end proof: live money.html renders the vault card (1 open position, live rate 5.04%/yr, collateral 100.0 WSTEEM $5.40, debt 2,160 USDS $2.16, soldier-4) and the ammLive injection reads 11,607 fills / 7,120 swaps / $209.78 treasury / h18073 — zero console errors. Screenshot: taskR30-vault-live.png.
+
+Stage Summary:
+- The network's first lending position is LIVE and PUBLIC: real rail-earned WSTEEM locked, real USDS drawn against it, iron-audit-exact supply accounting, public card on the money path.
+- Proof discipline caught three more defects before/around landing: hidden truth (whitelist), overwritten card (sovereign sync), transient assertion (A44 window vs lifetime).
+- Engine commits: 0730e4f (vault), 7788b48 (visibility+guard), 8160b86 (lifetime publication). Console commits: 6521c51, ca4e858, 9b51b0d, 1422ac4, 21fcdb1.
+- Open honest gaps: 0 external users/deposits; realized interest micro-scale at current collateral (grows with adoption); rail WSTEEM inventory exhausted (external deposits are the only future source — by doctrine); grid still disarmed awaiting operator secret (fuel scheduled 2026-09-19); premium ~776% still burning.
