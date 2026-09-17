@@ -1637,3 +1637,24 @@ Stage Summary:
 - The crashed session's work is fully landed: nothing lost, doctrine updated honestly (guards inverted with provenance, not deleted).
 - The site now has a REAL working product page: a wallet a visitor can actually create and use, not a shell.
 - Verifier permanently trained on the new page: hollowing, unwiring, or retirement regression will fail A07/A22/A40 in public.
+
+---
+Task ID: R29-session-b
+Agent: main (Z.ai Code)
+Task: Deep engine cures - one-sided market root-caused and fixed, starved rail fed, verifier trained to 44 detectors.
+
+Work Log:
+- Open debt attacked: USDS/WSTEEM one-sided market (zero asks while bids live).
+- Root cause proven (not guessed): genesis funded soldiers with SAOS+USDS only (kernel.ts); the SETTLE-14 rearm line feeds the ARENA with WSTEEM, but no line ever fed the SOLDIERS. They held 15-64K WSTEEM vs sizeMu 80K per ask level - every sell quote rejected on real inventory. The market could never be two-sided by design.
+- SETTLE-17 (saos-dex ffddc96 rebased): arena-to-soldier pure inventory routing. State-persisted per-soldier lifetime caps (320K mu, Roast-64 pattern), target 160K mu, arena floor 300K mu respected, zero minting. Local proof on canonical snapshot copy: 80 ticks, 0 to 4 asks + 4 bids. Dispatched beat: live at h15673 - asks 322 x4 + bids 320 x4, two-sided market LIVE.
+- Second root cause found while verifying: the sovereign micro-rail NEVER executed a single dose (doses=0 ever) with a +82,777bps premium burning. Sources: bot bags empty, operator zero, treasury residual 18.3K mu below the 20K mu noise gate - funding rejected forever while 316K mu of honest native STEEM sat unused in the treasury.
+- SETTLE-18 (saos-dex bd2dd54): rail-WSTEEM wrap bridge - treasury wraps native STEEM before the funding transfer (same two-window dance as SETTLE-14, backing recorded, zero mint). PLUS persistence fix: rail lifetime counters lived in gitignored state/ - reset every Actions run, the exact phantom-cap class Roast-64-c promised to prevent; now they ride the chain in db/rail-lifetime.json (max-load, committed every beat).
+- Local proof of SETTLE-18: rail funded to its 100K mu floor, sold the entire inventory into the premium, +147,564 mu USDS real grinding profit, stops honestly at treasury residual 420 mu. Live after dispatched beat: rail doses 2 (first in history), premium 82,777 to 77,592 bps, asks tightened 322 to 306.
+- Verifier trained 42 to 44: A43 two-sided WSTEEM guard (markets.1.bestAsk >= 1) + A44 rail doses ratchet (>= 2). Local run against live site: 44/44 ALL_PASS (Console 89fd5b4).
+- roast.html truth update (Console 7f78332 + 6675d22): the claims section was displaying FROZEN snapshot prices for WSTEEM as if current - exactly the forgery this page exists to fight; now reads the book LIVE from world.json. Debt 1 reframed from one-sidedness (cured) to the remaining premium (honest open gap). Debt 5 updated: first doses paid, inventory finite. Anchor display fixed to book scale (rail anchor, not oracle mu - scale mixing was display confusion). Glyph law violation (5 em-dashes introduced in my own edit) caught by A42 logic and cured before push.
+
+Stage Summary:
+- Two structural economic defects cured at the root with proven lineage: the market maker that could never sell, and the rail that could never grind.
+- The engine now has: two-sided WSTEEM market, rail grinding premiums with wrapped-STEEM inventory, honest finite-supply behavior (grinding stops when inventory exhausts - external deposits are the only future source).
+- Verifier permanently armed: A43/A44 make both regressions public failures.
+- Remaining honest gaps (unchanged, for next sessions): 0 external deposits/users, treasury $0.21, premium still ~776% vs anchor, grid disarmed until operator arms it (fuel scheduled 2026-09-19T02:01), milestone off.
