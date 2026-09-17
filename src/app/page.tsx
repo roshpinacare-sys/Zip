@@ -34,6 +34,7 @@ import { EvolutionView } from "@/components/weave/views/evolution-view";
 import { ExchangeView } from "@/components/weave/views/exchange-view";
 import { HoldingsView } from "@/components/weave/views/holdings-view";
 import { HomeView } from "@/components/weave/views/home-view";
+import { GateView } from "@/components/weave/views/gate-view";
 import { AgentsFleetView } from "@/components/weave/views/agents-fleet-view";
 import {
   AdminCommandView,
@@ -52,7 +53,7 @@ function parseHash(): Route {
   const raw = window.location.hash.replace(/^#\/?/, "");
   const [v, s] = raw.split("/");
   const def = SECTIONS_LIST.find((x) => x.view === v);
-  const view: SiteView = def ? def.view : "home";
+  const view: SiteView = def ? def.view : "gate";
   const subs = def?.subs ?? [];
   const section = subs.find((x) => x.key === s)?.key ?? subs[0]?.key ?? "";
   return { view, section };
@@ -66,6 +67,8 @@ function routeHash(route: Route): string {
 
 function SectionBody({ view, section }: Route) {
   switch (view) {
+    case "gate":
+      return <GateView />;
     case "home":
       return <HomeView />;
     case "network":
@@ -113,12 +116,12 @@ function SectionBody({ view, section }: Route) {
           return <AdminCommandView />;
       }
     default:
-      return <HomeView />;
+      return <GateView />;
   }
 }
 
 export default function Page() {
-  const [route, setRoute] = useState<Route>({ view: "home", section: "" });
+  const [route, setRoute] = useState<Route>({ view: "gate", section: "" });
   const reduced = useReducedMotion();
 
   // סנכרון hash ↔ מצב (כולל ניווט אחורה)

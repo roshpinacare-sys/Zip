@@ -20,6 +20,7 @@ import {
   BarChart3,
   BookOpen,
   Cloud,
+  DoorOpen,
   HardDrive,
   Home,
   LayoutDashboard,
@@ -42,6 +43,7 @@ import { ThemeToggle } from "./theme-toggle";
 // ── הסקציות ─────────────────────────────────────────────────────────
 
 export type SiteView =
+  | "gate"
   | "home"
   | "network"
   | "agents"
@@ -60,6 +62,7 @@ export const SECTIONS: Array<{
   icon: typeof Home;
   subs: SubSection[];
 }> = [
+  { view: "gate", label: "שער המפעיל", icon: DoorOpen, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
   {
     view: "network",
