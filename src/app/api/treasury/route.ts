@@ -34,6 +34,7 @@ const STEEM_FLEET = [
 
 const TRON_ADDRS = [
   { label: "כתובת-ההפקדה (TRON)", address: "TVESRr1TX1RaKzsN6TKszutJBFDPEGPx1e" },
+  { label: "משמורת-הדלת (2 TRX · הגיבוי של WTRX)", address: "TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy" },
   { label: "headcorner (idx=2)", address: "TG6SrsMJjRqnqAyYM8kGZu1rgkpsgizKEn" },
   { label: "headcorner (R11-derive)", address: "TMXHfFQdG6BB8kwVfbMYuiXWqr9P5S4VAU" },
 ] as const;

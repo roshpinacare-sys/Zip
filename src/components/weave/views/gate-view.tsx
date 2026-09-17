@@ -179,6 +179,131 @@ function GateSection({
   );
 }
 
+// ── הטיפה-הראשונה: הוכחה-חיה מהאתר-הציבורי ──────────────────────────
+
+const DROP_TXID = "8d84e637f3ebc87b8248361a58342eb05014315beb9a9e9b6f3c1c403de9e917";
+const DROP_CUSTODY = "TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy";
+const WORLD_URL = "https://roshpinacare-sys.github.io/Console/dex/world.json";
+
+interface WorldMirror {
+  ok?: boolean;
+  publishedAt?: string;
+  state?: { height?: number; backing?: Record<string, number> };
+  wallets?: Array<{ name?: string; balances?: Record<string, number> }>;
+}
+
+function FirstDropProof() {
+  const [w, setW] = useState<WorldMirror | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const load = useCallback(async () => {
+    setErr(null);
+    try {
+      const r = await fetch(`${WORLD_URL}?t=${Date.now()}`, { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setW((await r.json()) as WorldMirror);
+    } catch (e) {
+      setErr(String((e as Error).message).slice(0, 60));
+    }
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  const operatorWtrx =
+    w?.wallets?.find((x) => x.name === "operator")?.balances?.WTRX ?? null;
+  const backingWtrx = w?.state?.backing?.WTRX ?? null;
+  const live = operatorWtrx != null && operatorWtrx > 0;
+  return (
+    <Card
+      className={cn(
+        "border-emerald-500/25 bg-gradient-to-b from-emerald-500/[0.07] to-transparent",
+      )}
+    >
+      <CardContent className="space-y-4 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xl" aria-hidden>💧</span>
+          <h3 className="text-base font-bold text-zinc-100">
+            הטיפה הראשונה — הכסף האמת הראשון בדלת
+          </h3>
+          <Badge
+            className={cn(
+              live
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                : "border-zinc-600/40 bg-zinc-600/10 text-zinc-400",
+            )}
+          >
+            {live ? "נטען-חי מהאתר-הציבורי" : "ממתין לקריאה…"}
+          </Badge>
+        </div>
+        <p className="text-sm leading-relaxed text-zinc-300">
+          הפקדה-אמיתית של <span className="font-semibold text-zinc-100">2.000 TRX</span> (TransferContract
+          על-רשת-TRON) אומתה מול-RPC-ציבורי, והוטבעו מולה{" "}
+          <span className="font-semibold text-emerald-300">2,000µ WTRX</span> — הנכס-העטוף הראשון
+          בהיסטוריה-של-הרשת שמגובה 1:1 בכסף-אמת שנמדד-חי. ה-TRX נשאר בכתובת-המשמורת כגיבוי-פיזי;{" "}
+          ה-WTRX הוא זכות-הפדיון המתועדת.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">כתובת-המשמורת (TRON)</div>
+            <a
+              className="break-all font-mono text-[11px] text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]"
+              href={`https://tronscan.org/#/address/${DROP_CUSTODY}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {DROP_CUSTODY}
+            </a>
+          </div>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">העסקה על-השרשרת (Tronscan)</div>
+            <a
+              className="break-all font-mono text-[11px] text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]"
+              href={`https://tronscan.org/#/transaction/${DROP_TXID}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {DROP_TXID.slice(0, 26)}…
+            </a>
+          </div>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">התביעה בספר (חד-פעמית)</div>
+            <div className="break-all font-mono text-[11px] text-zinc-300">trx:{DROP_TXID.slice(0, 18)}…</div>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+            <div className="text-[11px] text-zinc-500">יתרת-המפעיל (חי)</div>
+            <div className="font-mono text-lg font-bold text-emerald-300">
+              {operatorWtrx != null ? `${operatorWtrx.toLocaleString()}µ WTRX` : "…"}
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+            <div className="text-[11px] text-zinc-500">גיבוי-האוצר (חי)</div>
+            <div className="font-mono text-lg font-bold text-emerald-300">
+              {backingWtrx != null ? `${backingWtrx.toLocaleString()}µ` : "…"}
+            </div>
+          </div>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
+            <div className="text-[11px] text-zinc-500">מקור-המדידה</div>
+            <div className="font-mono text-[11px] text-zinc-400">
+              {w ? `world.json · h${w.state?.height} · ${w.publishedAt?.slice(11, 16) ?? "?"}Z` : err ? `קריאה נכשלה (${err})` : "…"}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[11px] leading-relaxed text-zinc-500">
+            כל-מספר בכרטיס נקרא בזמן-פתיחת-העמוד מהמראה-הציבורית שפרסם הלב (GitHub Pages) — לא מהאתר-הזה. אם-הוא
+            מופיע-כאן, הוא נכתב על-ידי השרשרת-הקנונית ונראה-לכל-אדם.
+          </p>
+          <Button size="sm" variant="outline" onClick={() => void load()} className="shrink-0">
+            <RefreshCw className="ml-1 h-3.5 w-3.5" aria-hidden />
+            רענן
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── הדלת: הזנת-המפתח ────────────────────────────────────────────────
 
 function ArmDoor({ onArmed }: { onArmed: () => void }) {
@@ -444,6 +569,11 @@ export function GateView() {
             מקורות שלא ענו כרגע: {data.down.join(" · ")} — הם לא נספרים בסכומים.
           </p>
         )}
+      </motion.div>
+
+      {/* ── הטיפה הראשונה — הוכחה חיה ── */}
+      <motion.div {...fade(1)}>
+        <FirstDropProof />
       </motion.div>
 
       {/* ── מלאי-אמת ── */}
