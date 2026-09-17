@@ -125,6 +125,47 @@ export async function readLiveEnvelopes(): Promise<{ envelopes: LiveEnvelope[]; 
   throw new Error(`קריאת ספר SAOS-LIVE נכשלה בכל הצמתים: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
 }
 
+/* ── עדיפות עוגן הליבה (R27, נולד ממדידת 2026-09-17): כשעוגן הליבה
+ * רעב (גיל מעל הסף), כל שידור אוטומטי אחר של הרשת מהחשבון נכנע -
+ * תקציב ה-RC של אותה פעימה שייך לעוגן. ההיסטוריה שהולידה את החוק:
+ * הג'נזיס (deploy 15:08Z, mint 00:11Z) צרך את המנה המתאוששת פעמיים
+ * בזמן שקו העוגן המתין בכנות מעל הרצפה - והרשת נשארה STALE 32.7
+ * שעות. אוטומטים נכנעים; פקודת מפעיל מפורשת לא נכנעת (המפעיל
+ * דיבר). הקריאה חסרת-מפתח לחלוטין - היסטוריה ציבורית בלבד. ── */
+export const CORE_OP_ID = "saos.weave.core.v1";
+export const CORE_PRIORITY_H = Number(process.env.WEAVE_CORE_PRIORITY_H || 12);
+
+export async function readCoreAnchorAge(): Promise<{ ok: boolean; ageHours?: number; lastAt?: string; reason?: string }> {
+  let lastErr: unknown = null;
+  for (const node of STEEM_RPC_NODES) {
+    try {
+      const hist = await rpcV4<Array<[number, { timestamp?: string; op?: [string, Record<string, unknown>] }]>>(
+        node,
+        "condenser_api.get_account_history",
+        [WITNESS_ACCOUNT, -1, 100],
+      );
+      if (!Array.isArray(hist)) continue;
+      let lastAt = "";
+      for (const [, entry] of hist) {
+        const op = entry && entry.op;
+        if (!op || op[0] !== "custom_json") continue;
+        const body = op[1] as { id?: string; required_posting_auths?: string[] } | undefined;
+        if (!body || body.id !== CORE_OP_ID) continue;
+        if (!Array.isArray(body.required_posting_auths) || !body.required_posting_auths.includes(WITNESS_ACCOUNT)) continue;
+        const ts = String(entry.timestamp || "");
+        if (ts && ts > lastAt) lastAt = ts; // חיתוך ISO - השוואה מילולית בטוחה
+      }
+      if (!lastAt) return { ok: true, ageHours: 9999, reason: "core op not found in last 100 ops" };
+      const ageH = (Date.now() - Date.parse(lastAt + "Z")) / 3_600_000;
+      if (!Number.isFinite(ageH)) return { ok: false, reason: `unparsable core timestamp: ${lastAt}` };
+      return { ok: true, ageHours: ageH, lastAt };
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  return { ok: false, reason: `core-age unreadable: ${lastErr instanceof Error ? lastErr.message.slice(0, 80) : String(lastErr)}` };
+}
+
 /* ── הנחת הג'נזיס (ענן בלבד) - מדורגת: פעולה אחת לפעימה ──
  * נלמד במדידה חיה (22:15Z): השרשרת דחתה טרנזאקציית 3-פעולות במחיר
  * RC שוק של 444M - בעוד המנה החיה 200M. התיקון הריבוני: לא לחכות
@@ -164,6 +205,16 @@ async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Pro
     }
     const step = !registered ? "רישום האוצר" : !deployed ? "פריסת החוזה" : "ההטבעה הראשונה";
     const nextOp = !registered ? ops[0] : !deployed ? ops[1] : ops[2];
+
+    // עדיפות עוגן הליבה לפני שער ה-RC (R27): אוטומט נכנע כשהעוגן רעב.
+    // אם הגיל בלתי-קריא - גם כן נכנעים: לא מוציאים תקציב בעלטה.
+    const core = await readCoreAnchorAge();
+    if (!core.ok) {
+      return { broadcast: false, note: `דילוג-כנה - גיל עוגן הליבה בלתי-קריא (${core.reason ?? "?"}) - לא מוציאים תקציב בעלטה` };
+    }
+    if ((core.ageHours ?? 0) > CORE_PRIORITY_H) {
+      return { broadcast: false, note: `דילוג-כנה - עדיפות עוגן הליבה (גיל ${(core.ageHours ?? 0).toFixed(1)} ש' > ${CORE_PRIORITY_H} ש') - הג'נזיס נכנע לעוגן` };
+    }
 
     // שער ה-RC לפני שידור - אותה משמעת כמו קווי העוגן
     const gate = await steemRcGate(WITNESS_ACCOUNT);
