@@ -1,21 +1,21 @@
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · ops — קורא פקודות המפעיל מהשרשרת הציבורית (שער הכניסה)
+// THE WEAVE · ops - קורא פקודות המפעיל מהשרשרת הציבורית (שער הכניסה)
 //
 // השער (הקונסולה הציבורית /gate.html) משדר custom_json חתום מחשבון
-// המפעיל — רשות POSTING בלבד: השרשרת עצמה אוסרת על המפתח הזה להזיז
+// המפעיל - רשות POSTING בלבד: השרשרת עצמה אוסרת על המפתח הזה להזיז
 // כסף, והיא גם זו שאימתה את החתימה בהכללה לבלוק. הלב קורא את
 // ההיסטוריה הציבורית (חסר-מפתח) ומבצע פקודות שטרם בוצעו.
 //
 // דוקטרינה:
-//   · ההיסטוריה של השרשרת היא הקבלה — אין מקור סמכות אחר.
+//   · ההיסטוריה של השרשרת היא הקבלה - אין מקור סמכות אחר.
 //   · אידמפוטנטיות: כל פקודה נושאת id ייחודי; sovereign/ops-log.json
-//     (בגיט) מתעד מה בוצע — ריצה חוזרת לעולם לא מבצעת פעמיים.
+//     (בגיט) מתעד מה בוצע - ריצה חוזרת לעולם לא מבצעת פעמיים.
 //   · חלון-זמן: רק פקודות מ-48 השעות האחרונות (היסטוריה ישנה היא
 //     ארכיון, לא תור).
-//   · תקרה: עד 5 פקודות לפעימה — שיטפון חתום הוא עדיין שיטפון.
+//   · תקרה: עד 5 פקודות לפעימה - שיטפון חתום הוא עדיין שיטפון.
 //   · פקודת מפעיל מעירה את הרשת: גם במצב SANDBOX-ALIVE (הענן
-//     הנסוג) — המפעיל דיבר, הרשת מגיבה בפעימה מלאה ודחיפה.
-//   · פקודה לא מוכרת נרשמת כמתעלמת בכנות — לא נופלת, לא מתבצעת.
+//     הנסוג) - המפעיל דיבר, הרשת מגיבה בפעימה מלאה ודחיפה.
+//   · פקודה לא מוכרת נרשמת כמתעלמת בכנות - לא נופלת, לא מתבצעת.
 // ─────────────────────────────────────────────────────────────────────
 
 import * as fs from "fs";
@@ -45,15 +45,15 @@ export interface OperatorCommand {
   note?: string;
   txid: string;
   block: number | null;
-  /** הוכחת גילוי (פקודת acid) — המתכון שהרשת משחזרת לפני שהיא מעידה */
+  /** הוכחת גילוי (פקודת acid) - המתכון שהרשת משחזרת לפני שהיא מעידה */
   proof?: AcidProof;
-  /** מטען SAOS חתום-להיות (פקודות saos.*) — הענן חותם במפתח האוצר */
+  /** מטען SAOS חתום-להיות (פקודות saos.*) - הענן חותם במפתח האוצר */
   saos?: Record<string, unknown>;
 }
 
-/** חבילת ההוכחה שנחתמת לשרשרת — הגילוי כולו נגזר מחדש ממנה */
+/** חבילת ההוכחה שנחתמת לשרשרת - הגילוי כולו נגזר מחדש ממנה */
 export interface AcidProof {
-  ev: string; // גרסת המנוע — שחזור חוצה-גרסאות אסור
+  ev: string; // גרסת המנוע - שחזור חוצה-גרסאות אסור
   t: string; // מזהה משימה
   s: number; // זרע
   g: number; // דורות
@@ -92,7 +92,7 @@ function loadOpsLog(): OpsLogFile {
     const raw = JSON.parse(fs.readFileSync(OPS_LOG_PATH, "utf8")) as OpsLogFile;
     if (raw.format === "weave-ops-log-v1" && raw.executed && typeof raw.executed === "object") return raw;
   } catch {
-    /* אין עדיין — נולד עכשיו */
+    /* אין עדיין - נולד עכשיו */
   }
   return { format: "weave-ops-log-v1", operator: OPERATOR_ACCOUNT, executed: {}, updatedAt: new Date(0).toISOString() };
 }
@@ -103,7 +103,7 @@ function saveOpsLog(log: OpsLogFile): void {
   fs.writeFileSync(OPS_LOG_PATH, JSON.stringify(log, null, 2) + "\n");
 }
 
-/** קריאת היסטוריית הפקודות של המפעיל מהשרשרת הציבורית — חסרת-מפתח לחלוטין */
+/** קריאת היסטוריית הפקודות של המפעיל מהשרשרת הציבורית - חסרת-מפתח לחלוטין */
 export async function readOperatorCommands(): Promise<{ commands: OperatorCommand[]; node: string; skippedOld: number }> {
   const cutoff = Date.now() - WINDOW_MS;
   let lastErr: unknown = null;
@@ -130,7 +130,7 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
           if (!op || op[0] !== "custom_json") continue;
           const body = op[1] as { id?: string; json?: string; required_posting_auths?: string[] } | undefined;
           if (!body || body.id !== OPS_OP_ID) continue;
-          // רק מהחשבון עצמו — לא פקודות מתחזות ב-required_posting_auths אחר
+          // רק מהחשבון עצמו - לא פקודות מתחזות ב-required_posting_auths אחר
           if (!Array.isArray(body.required_posting_auths) || !body.required_posting_auths.includes(OPERATOR_ACCOUNT)) continue;
           let pl: Record<string, unknown>;
           try {
@@ -145,7 +145,7 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
             skippedOld++;
             continue;
           }
-          // הוכחת גילוי (acid) — ולידציה קפדנית לפני שהיא נכנסת לתור
+          // הוכחת גילוי (acid) - ולידציה קפדנית לפני שהיא נכנסת לתור
           let proof: AcidProof | undefined;
           if (pl.cmd === "acid" && pl.proof && typeof pl.proof === "object") {
             const pr = pl.proof as Record<string, unknown>;
@@ -160,7 +160,7 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
               proof = { ev: pr.ev, t: pr.t, s: pr.s as number, g: pr.g as number, p: pr.p as number, h: pr.h };
             }
           }
-          // מטען SAOS (פקודות saos.*) — ולידציה קפדנית לפני שהענן חותם במפתח האוצר.
+          // מטען SAOS (פקודות saos.*) - ולידציה קפדנית לפני שהענן חותם במפתח האוצר.
           // הפקודה מפרטת מה לעשות; החתימה על הפעולה עצמה נעשית בענן בלבד.
           let saos: Record<string, unknown> | undefined;
           if (typeof pl.cmd === "string" && pl.cmd.startsWith("saos.") && pl.saos && typeof pl.saos === "object") {
@@ -226,7 +226,7 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
   throw new Error(`קריאת פקודות המפעיל נכשלה בכל הצמתים: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
 }
 
-/** שיגור workflow באמצעות ה-API — מותר רק בענן (יש טוקן) */
+/** שיגור workflow באמצעות ה-API - מותר רק בענן (יש טוקן) */
 async function dispatchWorkflow(repo: string, workflow: string, token: string): Promise<{ ok: boolean; detail: string }> {
   try {
     const res = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`, {
@@ -247,7 +247,7 @@ async function dispatchWorkflow(repo: string, workflow: string, token: string): 
 }
 
 /**
- * עיבוד פקודות המפעיל — השלב שהלב מריץ בכל פעימה.
+ * עיבוד פקודות המפעיל - השלב שהלב מריץ בכל פעימה.
  * cloudAgentId: סוכן הענן מה-seal (חותם את אימוץ ה-OPERATOR).
  */
 export async function processOperatorCommands(ctx: {
@@ -289,9 +289,9 @@ export async function processOperatorCommands(ctx: {
     };
     try {
       if (cmd.cmd === "ping") {
-        // נוכחות חתומה — נרשמת בספר כאימות OPERATOR ומכוסה checkpoint
+        // נוכחות חתומה - נרשמת בספר כאימות OPERATOR ומכוסה checkpoint
         const claim =
-          `פקודת מפעיל "ping" התקבלה מהשרשרת הציבורית מ-@${OPERATOR_ACCOUNT} — ` +
+          `פקודת מפעיל "ping" התקבלה מהשרשרת הציבורית מ-@${OPERATOR_ACCOUNT} - ` +
           `נוכחות חתומה של בעל הרשת, נאספה בפעימת הלב` +
           (cmd.note ? ` · דבר המפעיל: "${cmd.note}"` : "");
         const evidence = [
@@ -320,7 +320,7 @@ export async function processOperatorCommands(ctx: {
         executed.action = `OPERATOR attestation att${att.seq}`;
         executed.ok = true;
         executed.detail = att.entryHash.slice(0, 18);
-        console.log(`[weave-ops] ping → אימות OPERATOR att${att.seq} · txid=${cmd.txid.slice(0, 12)}…`);
+        console.log(`[weave-ops] ping · אימות OPERATOR att${att.seq} · txid=${cmd.txid.slice(0, 12)}…`);
       } else if (cmd.cmd === "beat" || cmd.cmd === "anchor") {
         if (ctx.runner === "github-actions" && githubToken) {
           const wf = cmd.cmd === "beat" ? "weave-heart.yml" : "weave-anchor-lines.yml";
@@ -328,33 +328,33 @@ export async function processOperatorCommands(ctx: {
           executed.action = `dispatch ${wf}`;
           executed.ok = d.ok;
           executed.detail = d.detail;
-          console.log(`[weave-ops] ${cmd.cmd} → dispatch ${wf}: ${d.ok ? "שוגר ✓" : `נכשל — ${d.detail}`}`);
+          console.log(`[weave-ops] ${cmd.cmd} · dispatch ${wf}: ${d.ok ? "שוגר" : `נכשל - ${d.detail}`}`);
         } else {
-          executed.action = `dispatch ${cmd.cmd} (local — skipped honestly)`;
+          executed.action = `dispatch ${cmd.cmd} (local - skipped honestly)`;
           executed.ok = true;
           executed.detail = "local runner has no dispatch token";
-          console.log(`[weave-ops] ${cmd.cmd} → דילוג-כנה (רץ מקומית, אין טוקן dispatch)`);
+          console.log(`[weave-ops] ${cmd.cmd} · דילוג-כנה (רץ מקומית, אין טוקן dispatch)`);
         }
       } else if (cmd.cmd === "acid") {
-        // ── גילוי ריבוני — הרשת משחזרת לפני שהיא מעידה ──
+        // ── גילוי ריבוני - הרשת משחזרת לפני שהיא מעידה ──
         // המפעיל חתם מתכון (משימה, זרע, דורות, אוכלוסייה, hash).
         // הלב מריץ את אותו חיפוש דטרמיניסטי בענן ומשווה:
-        //   · גרסת מנוע שונה ⇒ דילוג-כנה (לא מעידים על מה שלא נבדק)
-        //   · לא נמצא / hash שונה ⇒ רישום כשל-שחזור בכנות — בלי אימות
-        //   · נמצא וזהה ⇒ אימות 5-מבחנים בענן ⇒ אימות DISCOVERY + checkpoint
+        //   · גרסת מנוע שונה · דילוג-כנה (לא מעידים על מה שלא נבדק)
+        //   · לא נמצא / hash שונה · רישום כשל-שחזור בכנות - בלי אימות
+        //   · נמצא וזהה · אימות 5-מבחנים בענן · אימות DISCOVERY + checkpoint
         const proof = cmd.proof;
         if (!proof) {
           executed.action = "acid-without-proof";
           executed.ok = true;
-          executed.detail = "פקודת acid ללא הוכחה תקינה — נרשמה כמתעלמת בכנות";
-          console.log(`[weave-ops] acid בלי הוכחה תקינה — התעלמות כנה`);
+          executed.detail = "פקודת acid ללא הוכחה תקינה - נרשמה כמתעלמת בכנות";
+          console.log(`[weave-ops] acid בלי הוכחה תקינה - התעלמות כנה`);
         } else {
           const acid = await import("../../../console/acid-engine.js");
           if (acid.ENGINE_VERSION !== proof.ev) {
             executed.action = "acid-engine-version-drift";
             executed.ok = true;
-            executed.detail = `הוכחה מגרסה ${proof.ev}, הענן מריץ ${acid.ENGINE_VERSION} — שחזור חוצה-גרסאות אסור`;
-            console.log(`[weave-ops] acid: אי-התאמת גרסאות מנוע (${proof.ev} ≠ ${acid.ENGINE_VERSION}) — דילוג-כנה`);
+            executed.detail = `הוכחה מגרסה ${proof.ev}, הענן מריץ ${acid.ENGINE_VERSION} - שחזור חוצה-גרסאות אסור`;
+            console.log(`[weave-ops] acid: אי-התאמת גרסאות מנוע (${proof.ev} ≠ ${acid.ENGINE_VERSION}) - דילוג-כנה`);
           } else {
             const t0 = Date.now();
             const rerun = acid.discoverSync({ taskId: proof.t, seed: proof.s, generations: proof.g, population: proof.p });
@@ -362,27 +362,27 @@ export async function processOperatorCommands(ctx: {
             if (!rerun.found || !rerun.program || !rerun.hash) {
               executed.action = "acid-reproduction-failed";
               executed.ok = true;
-              executed.detail = `הריצה מחדש לא מצאה את הגילוי (${proof.g} דורות, ${ms}ms) — לא הועד`;
-              console.log(`[weave-ops] acid: השחזור לא מצא — לא הועד (אמת נשמרת)`);
+              executed.detail = `הריצה מחדש לא מצאה את הגילוי (${proof.g} דורות, ${ms}ms) - לא הועד`;
+              console.log(`[weave-ops] acid: השחזור לא מצא - לא הועד (אמת נשמרת)`);
             } else if (rerun.hash !== proof.h) {
               executed.action = "acid-hash-mismatch";
               executed.ok = true;
-              executed.detail = `hash שונה בשחזור: ${rerun.hash} ≠ ${proof.h} — לא הועד`;
-              console.log(`[weave-ops] acid: אי-התאמת hash — לא הועד`);
+              executed.detail = `hash שונה בשחזור: ${rerun.hash} ≠ ${proof.h} - לא הועד`;
+              console.log(`[weave-ops] acid: אי-התאמת hash - לא הועד`);
             } else {
               const verify = acid.verifyFull(rerun.program, proof.t, proof.s);
               if (!verify.verified) {
                 executed.action = "acid-verification-failed";
                 executed.ok = true;
-                executed.detail = `השחזור עבר אך האימות נכשל (${verify.passedCount}/5) — לא הועד`;
-                console.log(`[weave-ops] acid: אימות 5-מבחנים נכשל — לא הועד`);
+                executed.detail = `השחזור עבר אך האימות נכשל (${verify.passedCount}/5) - לא הועד`;
+                console.log(`[weave-ops] acid: אימות 5-מבחנים נכשל - לא הועד`);
               } else {
                 const task = acid.TASKS[proof.t];
                 const claim =
-                  `גילוי ריבוני "${proof.t}" (${task ? task.en : "?"}) — תוכנית שנמצאה בחיפוש אבולוציוני ` +
+                  `גילוי ריבוני "${proof.t}" (${task ? task.en : "?"}) - תוכנית שנמצאה בחיפוש אבולוציוני ` +
                   `בדפדפן המפעיל, שוחזרה בענן מהמתכון החתום (hash זהה ${proof.h}) ואומתה ${verify.passedCount}/5 מבחנים` +
                   (cmd.note ? ` · דבר המגלה: "${cmd.note}"` : "");
-                const testSummary = verify.tests.map((t) => `${t.id}:${t.pass ? "✓" : "✗"}`).join(" ");
+                const testSummary = verify.tests.map((t) => `${t.id}:${t.pass ? "ok" : "FAIL"}`).join(" ");
                 const evidence = [
                   `proof=${JSON.stringify(proof)}`,
                   `reproduced=cloud (deterministic, ${ms}ms)`,
@@ -412,7 +412,7 @@ export async function processOperatorCommands(ctx: {
                 executed.action = `DISCOVERY attestation att${att.seq}`;
                 executed.ok = true;
                 executed.detail = `${proof.t} · ${proof.h} · ${verify.passedCount}/5`;
-                console.log(`[weave-ops] acid → DISCOVERY att${att.seq} · ${proof.t} · hash ${proof.h} · שוחזר בענן ✓`);
+                console.log(`[weave-ops] acid -> DISCOVERY att${att.seq} · ${proof.t} · hash ${proof.h} · שוחזר בענן`);
               }
             }
           }
@@ -423,12 +423,12 @@ export async function processOperatorCommands(ctx: {
           executed.action = "dispatch Console/console-publish";
           executed.ok = d.ok;
           executed.detail = d.detail;
-          console.log(`[weave-ops] console → dispatch משואה ציבורית: ${d.ok ? "שוגרה ✓" : `נכשל — ${d.detail}`}`);
+          console.log(`[weave-ops] console -> dispatch משואה ציבורית: ${d.ok ? "שוגרה" : `נכשל - ${d.detail}`}`);
         } else {
-          executed.action = "dispatch console (no PAT — skipped honestly)";
+          executed.action = "dispatch console (no PAT - skipped honestly)";
           executed.ok = true;
           executed.detail = "runner without WEAVE_OPS_PAT";
-          console.log(`[weave-ops] console → דילוג-כנה (אין WEAVE_OPS_PAT בסביבה)`);
+          console.log(`[weave-ops] console · דילוג-כנה (אין WEAVE_OPS_PAT בסביבה)`);
         }
       } else if (cmd.cmd.startsWith("saos.")) {
         // SAOS currency commands: the operator orders, the treasury signs.
@@ -517,12 +517,12 @@ export async function processOperatorCommands(ctx: {
         executed.action = "ignored-unknown-cmd";
         executed.ok = true;
         executed.detail = `cmd="${cmd.cmd}" אינה בסט הפקודות (ping/beat/anchor/console/acid/saos.*)`;
-        console.log(`[weave-ops] פקודה לא מוכרת "${cmd.cmd}" — נרשמה כמתעלמת בכנות`);
+        console.log(`[weave-ops] פקודה לא מוכרת "${cmd.cmd}" - נרשמה כמתעלמת בכנות`);
       }
     } catch (e) {
       executed.ok = false;
       executed.detail = e instanceof Error ? e.message.slice(0, 160) : String(e);
-      console.log(`[weave-ops] פקודה ${cmd.cmd} (${cmd.id}) נכשלה — ${executed.detail}`);
+      console.log(`[weave-ops] פקודה ${cmd.cmd} (${cmd.id}) נכשלה - ${executed.detail}`);
     }
     log.executed[cmd.id] = executed;
     result.executed.push(executed);
@@ -530,7 +530,7 @@ export async function processOperatorCommands(ctx: {
 
   saveOpsLog(log);
 
-  // אימותי OPERATOR שנכתבו — מכוסים מיידי ב-checkpoint (העוגנים יעידו)
+  // אימותי OPERATOR שנכתבו - מכוסים מיידי ב-checkpoint (העוגנים יעידו)
   if (result.attSeqs.length > 0) {
     const cp = await createCheckpointNow();
     if (cp) {

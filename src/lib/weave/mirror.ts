@@ -1,18 +1,18 @@
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · mirror — המראה הציבורית של הרשת (Task 27)
+// THE WEAVE · mirror - המראה הציבורית של הרשת (Task 27)
 //
 // הבעיה שהמראה פותרת: הפלטפורמה החיה (הסוכנים, הספר, השוק, המוח)
 // רצה עד עכשיו רק בסנדבוקס (localhost:3000). מוות של הסביבה = החזות
 // כולה נעלמת למרות שכל האמת חיה בגיט ובשרשרת.
 //
-// הפתרון: הלב (בענן, בכל פעימה — גם ב-SANDBOX-ALIVE) בונה מראה
+// הפתרון: הלב (בענן, בכל פעימה - גם ב-SANDBOX-ALIVE) בונה מראה
 // נגזרת-ציבורית של מצב הרשת ומפרסם אותה לריפו הציבורי Console
-// (mirror.json) דרך WEAVE_OPS_PAT. הקונסולה מציגה אותה ב-net.html —
+// (mirror.json) דרך WEAVE_OPS_PAT. הקונסולה מציגה אותה ב-net.html -
 // והרשת כולה נראית לכל אחד, מכל מקום, בלי שום סנדבוקס.
 //
-// מה נכנס למראה: אמת נגזרת בלבד — סוכנים (בלי מפתחות), אימותים
+// מה נכנס למראה: אמת נגזרת בלבד - סוכנים (בלי מפתחות), אימותים
 // (טענות קצוצות), checkpoints (שורשים ציבוריים) + קווי עוגן, אירועי
-// שוק, סטטוס המוח (בלי גושי הצופן — הם חיים בספר בלבד).
+// שוק, סטטוס המוח (בלי גושי הצופן - הם חיים בספר בלבד).
 // מה לא נכנס לעולם: devKeyHex, pubKeyHex, encKey/keyIv/keyTag, חתימות
 // גולמיות, כל סוד. שער-הסודות של הרשת רץ על התוכן לפני כל פרסום.
 // ─────────────────────────────────────────────────────────────────────
@@ -24,10 +24,16 @@ import { secretGate, filterKnownHashes } from "../../../scripts/weave-gate";
 
 const OWNER = process.env.WEAVE_OWNER || "roshpinacare-sys";
 const CONSOLE_REPO = `${OWNER}/Console`;
-/* src/lib/weave ⇒ שלוש רמות למעלה הוא שורש הריפו. תיקון אמת (Task 28):
- * "..", ".." הביא ל-src/ — המראה פורסמה מ-Task 27 בלי קווי עוגן וקבצי
+/* src/lib/weave · שלוש רמות למעלה הוא שורש הריפו. תיקון אמת (Task 28):
+ * "..", ".." הביא ל-src/ - המראה פורסמה מ-Task 27 בלי קווי עוגן וקבצי
  * הקונסולה לא נמצאו בכלל. נבדק במקום (probe: existsSync). */
 const ROOT = path.resolve(__dirname, "..", "..", "..");
+
+/** חוק הטיפוגרפיה של המפעיל (R20): אף מקף-אמה ואף חץ-גליף בטקסט הנראה.
+ * ההיסטוריה החתומה בספר נשארת בדיוק כפי שנחתמה; המראה היא שכבת
+ * תצוגה נגזרת - היא מנרמלת לתצוגה בלבד, בלי לגעת בספר. */
+const plainText = (s: string): string =>
+  s.replace(/\u2014/g, "-").replace(/[\u2190-\u21ff]/g, "\u00b7");
 
 export interface MirrorPublishResult {
   published: boolean;
@@ -43,7 +49,7 @@ interface LineAnchor {
   txid?: string;
 }
 
-/** בניית המראה — אמת נגזרת מה-DB ומקווי העוגן, אפס סודות */
+/** בניית המראה - אמת נגזרת מה-DB ומקווי העוגן, אפס סודות */
 export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
   const [agents, attestations, checkpoints, marketEvents, brainKeys, attTotal, cpTotal, discoveryAtts] = await Promise.all([
     db.agent.findMany({ orderBy: { name: "asc" } }),
@@ -56,7 +62,7 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
     db.attestation.findMany({ where: { claimType: "DISCOVERY" }, orderBy: { seq: "desc" }, take: 20, select: { seq: true, createdAt: true, claim: true, evidence: true } }),
   ]);
 
-  // קווי העוגן — אילו checkpoints כבר העידו, ובאילו שרשרות
+  // קווי העוגן - אילו checkpoints כבר העידו, ובאילו שרשרות
   const steemLine = readLineFile("steem-line.json");
   const zeroLine = readLineFile("zero-line.json");
   const anchoredMap = new Map<number, string[]>();
@@ -88,7 +94,7 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
     format: "weave-console-mirror-v1",
     generatedAt: new Date().toISOString(),
     source: "the sovereign ledger (Zip repo, cloud heart beat)",
-    doctrine: "derived public truth — no keys, no vault blocks, no secrets; the ledger and the chains remain the source of truth",
+    doctrine: "derived public truth - no keys, no vault blocks, no secrets; the ledger and the chains remain the source of truth",
     stats: {
       attestations: attTotal,
       checkpoints: cpTotal,
@@ -102,7 +108,7 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
       const act = agentActivity.get(a.name) || { count: 0, lastSeq: null, lastAt: null };
       return {
         name: a.name,
-        role: a.role,
+        role: plainText(a.role),
         status: a.status,
         address: a.ethAddress,
         attestations: act.count,
@@ -116,7 +122,7 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
       status: a.status,
       at: a.createdAt.toISOString(),
       agentName: agents.find((x) => x.id === a.agentId)?.name ?? "?",
-      claim: a.claim.length > 300 ? a.claim.slice(0, 297) + "…" : a.claim,
+      claim: plainText(a.claim.length > 300 ? a.claim.slice(0, 297) + "\u2026" : a.claim),
     })),
     checkpoints: checkpoints.map((c) => ({
       index: c.index,
@@ -144,9 +150,9 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
       let payloadSummary = "";
       try {
         const p = JSON.parse(m.payload) as Record<string, unknown>;
-        payloadSummary = `#${p.marketSeq ?? "?"} ${String(p.reason ?? p.outcome ?? "").slice(0, 60)}`;
+        payloadSummary = plainText(`#${p.marketSeq ?? "?"} ${String(p.reason ?? p.outcome ?? "").slice(0, 60)}`);
       } catch {
-        payloadSummary = m.payload.slice(0, 60);
+        payloadSummary = plainText(m.payload.slice(0, 60));
       }
       return { seq: m.seq, kind: m.kind, at: m.createdAt.toISOString(), summary: payloadSummary };
     }),
@@ -156,8 +162,8 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
       lastCode: b.lastCode,
       verifiedAt: b.verifiedAt?.toISOString() ?? null,
     })),
-    /* גילויים ריבוניים — מתכונים ציבוריים שכל אחד משחזר בדפדפן שלו
-     * (acid.html). ההוכחה נחלצת משורת ה-evidence של אימות DISCOVERY —
+    /* גילויים ריבוניים - מתכונים ציבוריים שכל אחד משחזר בדפדפן שלו
+     * (acid.html). ההוכחה נחלצת משורת ה-evidence של אימות DISCOVERY -
      * הרשת מעידה רק על גילויים שהיא עצמה שחזרה בענן. */
     discoveries: discoveryAtts
       .map((a) => {
@@ -177,7 +183,7 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
             hash: p.h,
             ev: typeof p.ev === "string" ? p.ev : null,
             txid: tx ? tx[1] : null,
-            claim: a.claim.length > 160 ? a.claim.slice(0, 157) + "…" : a.claim,
+            claim: plainText(a.claim.length > 160 ? a.claim.slice(0, 157) + "\u2026" : a.claim),
           };
         } catch {
           return null;
@@ -196,20 +202,20 @@ function readLineFile(name: string): LineAnchor[] {
   }
 }
 
-/** שער-הסודות על תוכן המראה — ברזל, בדיוק כמו כל דחיפה של הרשת */
+/** שער-הסודות על תוכן המראה - ברזל, בדיוק כמו כל דחיפה של הרשת */
 function gateMirror(text: string): void {
   const leak = secretGate(filterKnownHashes(text));
-  if (leak) throw new Error(`מראה נחסמה בשער-הסודות: ${leak} — לא מפורסם כלום`);
+  if (leak) throw new Error(`מראה נחסמה בשער-הסודות: ${leak} - לא מפורסם כלום`);
 }
 
-/** פרסום לריפו הציבורי — PUT אטומי של הקובץ, רק כשהתוכן השתנה */
+/** פרסום לריפו הציבורי - PUT אטומי של הקובץ, רק כשהתוכן השתנה */
 export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
   const mirror = await buildConsoleMirror();
   const text = JSON.stringify(mirror, null, 2) + "\n";
-  gateMirror(text); // השער רץ תמיד — גם בסביבה בלי PAT, התוכן נבדק
+  gateMirror(text); // השער רץ תמיד - גם בסביבה בלי PAT, התוכן נבדק
 
   const pat = process.env.WEAVE_OPS_PAT || "";
-  if (!pat) return { published: false, reason: "אין WEAVE_OPS_PAT בסביבה — דילוג-כנה (המראה מתפרסמת רק מהענן) — השער עבר ✓" };
+  if (!pat) return { published: false, reason: "אין WEAVE_OPS_PAT בסביבה - דילוג-כנה (המראה מתפרסמת רק מהענן) - השער עבר" };
 
   const api = async (method: string, url: string, body?: unknown) => {
     const res = await fetch(`https://api.github.com${url}`, {
@@ -225,12 +231,12 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
     return { status: res.status, json: (await res.json().catch(() => null)) as Record<string, unknown> | null };
   };
 
-  // הקובץ הקיים — פרסום רק כשיש שינוי אמיתי (לא כל פעימה מחדש)
+  // הקובץ הקיים - פרסום רק כשיש שינוי אמיתי (לא כל פעימה מחדש)
   const cur = await api("GET", `/repos/${CONSOLE_REPO}/contents/mirror.json?ref=main`);
   if (cur.status === 200 && cur.json && typeof cur.json.content === "string") {
     const curText = Buffer.from(cur.json.content, "base64").toString("utf8");
     if (curText.trim() === text.trim()) {
-      return { published: false, reason: "המראה כבר עדכנית — אין שינוי לפרסם", bytes: text.length };
+      return { published: false, reason: "המראה כבר עדכנית - אין שינוי לפרסם", bytes: text.length };
     }
   }
 
@@ -241,28 +247,28 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
     branch: "main",
   });
   if (put.status !== 200 && put.status !== 201) {
-    return { published: false, reason: `פרסום נכשל (HTTP ${put.status}) — ${(put.json?.message as string || "").slice(0, 80)}` };
+    return { published: false, reason: `פרסום נכשל (HTTP ${put.status}) - ${(put.json?.message as string || "").slice(0, 80)}` };
   }
-  return { published: true, reason: "פורסם ✓", bytes: text.length };
+  return { published: true, reason: "פורסם", bytes: text.length };
 }
 
 /* ═════════════════════════════════════════════════════════════════════
- * נכסי הקונסולה — סנכרון ריבוני (Task 28)
+ * נכסי הקונסולה - סנכרון ריבוני (Task 28)
  *
  * הבעיה: הקבצים הכתובים-יד (gate.html, acid.html…) חיים בריפו הריבוני
  * (console/) אך פורסמו ידנית לריפו הציבורי Console. הידניות היא תלות
- * בסנדבוקס — מי שמחזיק את הסוד לוחץ את הכפתור. ה-PAT של הסנדבוקס
- * אף נמחק (מדידה: upload/pat.env מוחלף ב-placeholder) — הענן הוא
+ * בסנדבוקס - מי שמחזיק את הסוד לוחץ את הכפתור. ה-PAT של הסנדבוקס
+ * אף נמחק (מדידה: upload/pat.env מוחלף ב-placeholder) - הענן הוא
  * המחזיק היחיד בסוד מעתה.
  *
- * הפתרון: הלב עצמו מסנכרן את הקבצים — בכל פעימה, מה-clone של הריפו
+ * הפתרון: הלב עצמו מסנכרן את הקבצים - בכל פעימה, מה-clone של הריפו
  * הריבוני אל הריפו הציבורי, דרך WEAVE_OPS_PAT (Actions Secret). מקור
  * האמת: הגיט. שער-הסודות רץ על כל קובץ לפני פרסום. פרסום רק בשינוי
- * אמיתי (השוואת תוכן מול הקיים) — תקציב ה-API נשמר.
+ * אמיתי (השוואת תוכן מול הקיים) - תקציב ה-API נשמר.
  * ═════════════════════════════════════════════════════════════════════ */
 
-/** הקבצים הכתובים-יד שמקורם בריפו הריבוני — הלב מסנכרן אותם החוצה.
- * (index.html/status.json נולדים בריפו הציבורי עצמו ע"י render.mjs —
+/** הקבצים הכתובים-יד שמקורם בריפו הריבוני - הלב מסנכרן אותם החוצה.
+ * (index.html/status.json נולדים בריפו הציבורי עצמו ע"י render.mjs -
  * לא נוגעים בהם.) */
 const CONSOLE_ASSETS = [
   "index.html",
@@ -284,7 +290,7 @@ export interface ConsoleAssetsResult {
 export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
   const pat = process.env.WEAVE_OPS_PAT || "";
   if (!pat) {
-    return { published: [], unchanged: [], failed: [], reason: "אין WEAVE_OPS_PAT בסביבה — דילוג-כנה (הסנכרון רץ מהענן)" };
+    return { published: [], unchanged: [], failed: [], reason: "אין WEAVE_OPS_PAT בסביבה - דילוג-כנה (הסנכרון רץ מהענן)" };
   }
 
   const api = async (method: string, url: string, body?: unknown) => {
@@ -308,11 +314,11 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
     try {
       const localPath = path.join(ROOT, "console", file);
       if (!fs.existsSync(localPath)) {
-        failed.push(`${file}:missing-in-sovereign-repo`); // מקור חסר — נרשם, לא מוסתר
+        failed.push(`${file}:missing-in-sovereign-repo`); // מקור חסר - נרשם, לא מוסתר
         continue;
       }
       const text = fs.readFileSync(localPath, "utf8");
-      // שער-הסודות על כל קובץ לפני שהוא יוצא החוצה — ברזל
+      // שער-הסודות על כל קובץ לפני שהוא יוצא החוצה - ברזל
       const leak = secretGate(filterKnownHashes(text));
       if (leak) throw new Error(`${file}: ${leak}`);
 
@@ -325,7 +331,7 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
         }
       }
       const put = await api("PUT", `/repos/${CONSOLE_REPO}/contents/${encodeURIComponent(file)}`, {
-        message: `weave-console-assets: ${file} — synced from the sovereign repo (console/)`,
+        message: `weave-console-assets: ${file} - synced from the sovereign repo (console/)`,
         content: Buffer.from(text, "utf8").toString("base64"),
         sha: cur.status === 200 && cur.json ? String(cur.json.sha || "") : undefined,
         branch: "main",
@@ -333,7 +339,7 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
       if (put.status === 200 || put.status === 201) {
         published.push(file);
       } else {
-        // כשל-פרסום נרשם בכנות — לעולם לא "ללא שינוי" (תווית שקר נתפסה בביקורת)
+        // כשל-פרסום נרשם בכנות - לעולם לא "ללא שינוי" (תווית שקר נתפסה בביקורת)
         failed.push(`${file}:HTTP${put.status}:${String(put.json?.message || "").slice(0, 80)}`);
       }
     } catch (e) {

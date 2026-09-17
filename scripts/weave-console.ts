@@ -1,21 +1,21 @@
 #!/usr/bin/env bun
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · weave-console — G5: הקונסולה הציבורית (המשואה של הרשת)
+// THE WEAVE · weave-console - G5: הקונסולה הציבורית (המשואה של הרשת)
 //
 // ארכיטקטורת החוץ (הקונסולה):
 //   · הריפו הציבורי Console מחזיק אתר סטטי + render.mjs + workflow משלו
-//     (schedule כל 6 שעות ב-:40, GITHUB_TOKEN שלו בלבד — אפס סודות).
+//     (schedule כל 6 שעות ב-:40, GITHUB_TOKEN שלו בלבד - אפס סודות).
 //   · render.mjs קורא את קו העוגנים מ-Steem ציבורי (חסר-מפתח) ומרנדר
 //     status.json; ה-workflow מבצע commit ומפרסם Pages. השרשרת הציבורית
 //     היא המקור: אין תלות בסנדבוקס, בריפו הפרטי או בפתחי-מפתח כלשהם.
-//   · מקור האתר חי בריפו הריבוני (console/) — זר משחזר את החלון מהבית.
+//   · מקור האתר חי בריפו הריבוני (console/) - זר משחזר את החלון מהבית.
 //
 // התפקיד של הסקריפט הזה: לסגור את G5 במדידה חתומה. הוא בודק את הצינור
-// מקצה לקצה — ledger מקומי → עוגן on-chain → status.json שמוגש בחוץ —
+// מקצה לקצה - ledger מקומי · עוגן on-chain -> status.json שמוגש בחוץ -
 // ורק אז כותב אימות CONSOLE לספר (חתום EIP-191 במפתח הענן מה-seal).
 //
 // שימוש: bun scripts/weave-console.ts --attest-g5
-// (ברירת מחדל בלי דגל: בדיקה בלבד, לא נכתב כלום — "אין טענה בלי מדידה")
+// (ברירת מחדל בלי דגל: בדיקה בלבד, לא נכתב כלום - "אין טענה בלי מדידה")
 // ─────────────────────────────────────────────────────────────────────
 
 import * as fs from "fs";
@@ -66,11 +66,11 @@ async function main(): Promise<void> {
   const runner = process.env.GITHUB_ACTIONS && !process.argv.includes("--local") ? "github-actions" : "local-primary";
   console.log(`[weave-console] runner=${runner} · repo=${CONSOLE_REPO} · pages=${PAGES_URL}`);
 
-  // 1. מקומית — pull קודם (ה-remote הוא האמת)
+  // 1. מקומית - pull קודם (ה-remote הוא האמת)
   if (runner === "local-primary" && gitOrNull("git remote get-url origin")) {
     const pull = gitOrNull(`git pull --rebase origin ${BRANCH} --no-edit`) ?? "";
     if (pull.includes("CONFLICT")) {
-      throw new Error("קונפליקט pull — הרץ ידנית: git pull --rebase ואז weave-console --attest-g5");
+      throw new Error("קונפליקט pull - הרץ ידנית: git pull --rebase ואז weave-console --attest-g5");
     }
     if (pull) console.log("[weave-console] pull:", pull.split("\n").slice(-2).join(" "));
   }
@@ -85,10 +85,10 @@ async function main(): Promise<void> {
     }
   }
 
-  // 3. המדידה של הריצה הזאת — הספר חייב להיות תקין לפני כל טענה
+  // 3. המדידה של הריצה הזאת - הספר חייב להיות תקין לפני כל טענה
   const verify = await verifyLedger();
   if (!verify.valid) {
-    throw new Error(`הספר שבור (firstBreak=${verify.firstBreak ?? "?"}) — אין עדות על ספר שקרי`);
+    throw new Error(`הספר שבור (firstBreak=${verify.firstBreak ?? "?"}) - אין עדות על ספר שקרי`);
   }
   console.log(`[weave-console] ledger תקין: ${verify.checked} · ${verify.sigOk}/${verify.checked} חתימות`);
 
@@ -104,7 +104,7 @@ async function main(): Promise<void> {
     }
   })();
   const lastAnchor = line.last;
-  // הקונסולה מתעדכנת ב-:40, העוגן ב-:20 — ההתאמה הכנה היא "מגישה עוגן
+  // הקונסולה מתעדכנת ב-:40, העוגן ב-:20 - ההתאמה הכנה היא "מגישה עוגן
   // מהמחזור האחרון או הקודם", לא "את העוגן ששודר כרגע"
   const recentSteemTxids = (line.anchors ?? [])
     .slice(-2)
@@ -115,7 +115,7 @@ async function main(): Promise<void> {
   const pub = await fetch(PAGES_URL, { method: "HEAD" }).catch(() => null);
   const pagesLive = !!(pub && pub.ok);
   pagesStatus = pub ? pub.status : 0;
-  console.log(`[weave-console] Pages ${PAGES_URL} → ${pagesStatus} ${pagesLive ? "LIVE" : "DOWN"}`);
+  console.log(`[weave-console] Pages ${PAGES_URL} · ${pagesStatus} ${pagesLive ? "LIVE" : "DOWN"}`);
 
   let consoleServesLatest = false;
   let consoleWitness: ConsoleStatusPublic["witness"] | undefined;
@@ -142,21 +142,21 @@ async function main(): Promise<void> {
   }
 
   if (!ATTEST_G5) {
-    console.log("[weave-console] מצב אימות בלבד (בלי --attest-g5 לא נכתב כלום) — הפעל עם --attest-g5 אחרי שהצינור נמדד חי");
+    console.log("[weave-console] מצב אימות בלבד (בלי --attest-g5 לא נכתב כלום) - הפעל עם --attest-g5 אחרי שהצינור נמדד חי");
     return;
   }
 
-  // 5. סגירת G5 — עדות אחת לכל הדורות, ורק על צינור שנמדד חי מקצה לקצה.
-  //    Pages שעדיין לא הופעל ע״י המפעיל (הרשאת Administration) — דילוג
+  // 5. סגירת G5 - עדות אחת לכל הדורות, ורק על צינור שנמדד חי מקצה לקצה.
+  //    Pages שעדיין לא הופעל ע״י המפעיל (הרשאת Administration) - דילוג
   //    רך-כנה, ריצה ירוקה, השער ייסגר במחזור הראשון שאחרי ההפעלה.
   const existing = await db.attestation.findFirst({ where: { claimType: "CONSOLE" } });
   if (existing) {
-    console.log(`[weave-console] G5 כבר נחתם (אימות seq=${existing.seq}) — כלום לא נכתב`);
+    console.log(`[weave-console] G5 כבר נחתם (אימות seq=${existing.seq}) - כלום לא נכתב`);
     return;
   }
   if (!pagesLive) {
     console.log(
-      `[weave-console] Pages עדיין לא חי (HTTP ${pagesStatus}) — נדרשת הפעלה חד-פעמית ` +
+      `[weave-console] Pages עדיין לא חי (HTTP ${pagesStatus}) - נדרשת הפעלה חד-פעמית ` +
         `ע״י המפעיל בהגדרות הריפו הציבורי (חסרה הרשאת Administration לטוקן). ` +
         `דילוג כנה: אין טענה בלי מדידה; השער ייסגר אוטומטית במחזור הבא שאחרי ההפעלה.`
     );
@@ -164,7 +164,7 @@ async function main(): Promise<void> {
   }
   if (!consoleServesLatest) {
     console.log(
-      "[weave-console] status.json בחוץ עדיין לא מגיש עוגן משני המחזורים האחרונים — דילוג כנה, ניסיון חוזר במחזור הבא"
+      "[weave-console] status.json בחוץ עדיין לא מגיש עוגן משני המחזורים האחרונים - דילוג כנה, ניסיון חוזר במחזור הבא"
     );
     return;
   }
@@ -178,7 +178,7 @@ async function main(): Promise<void> {
     `קונסולה ציבורית (G5): ה-UI של הרשת עזב את הסנדבוקס. אתר סטטי חי בריפו הציבורי ${CONSOLE_REPO} ` +
     `ומוגש ב-GitHub Pages (${PAGES_URL}); workflow חסר-מפתחות בריפו הציבורי קורא את קו העוגנים מ-Steem ` +
     `(RPC ציבורי, custom_json בסמכות posting) ומפרסם status.json כל 6 שעות ב-GITHUB_TOKEN שלו בלבד; ` +
-    `מקור האתר חי בריפו הריבוני (console/) — זר משחזר הכל מהבית; ה-PAT לא מגיע לענן ולא לקונסולה.`;
+    `מקור האתר חי בריפו הריבוני (console/) - זר משחזר הכל מהבית; ה-PAT לא מגיע לענן ולא לקונסולה.`;
   const evidence = [
     `repo=${CONSOLE_REPO}`,
     `pages=${PAGES_URL}`,
@@ -190,13 +190,13 @@ async function main(): Promise<void> {
     `anchorLineTxid=${lastAnchor?.txids.steem}`,
     `anchorLineCp=${lastAnchor?.checkpoint}`,
     `ledger=${attCount} att · ${verify.sigOk}/${verify.checked} sig`,
-    `renderPipeline=keyless steem-rpc → render.mjs → commit → pages (GITHUB_TOKEN of Console only)`,
-    `cadence=heart :00 → anchor :20 → console :40, every 6h`,
+    `renderPipeline=keyless steem-rpc -> render.mjs -> commit -> pages (GITHUB_TOKEN of Console only)`,
+    `cadence=heart :00 -> anchor :20 -> console :40, every 6h`,
     `runner=${runner}`,
     `commit=${gitOrNull("git rev-parse --short HEAD") ?? "unknown"}`,
     process.env.GITHUB_SERVER_URL
       ? `run=${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
-      : `note=attested from primary runner after end-to-end public verification (ledger→chain→console)`,
+      : `note=attested from primary runner after end-to-end public verification (ledger->chain->console)`,
   ]
     .filter((s) => s && !s.endsWith("="))
     .join(" · ");
@@ -212,9 +212,9 @@ async function main(): Promise<void> {
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(snap, null, 2) + "\n");
   console.log(`[weave-console] ledger.json ייוצא: ${snap.chainCount} אימותים`);
 
-  // 6. דחיפה לבית הריבוני — שער-סודות ואז commit+push (כמו הלב)
+  // 6. דחיפה לבית הריבוני - שער-סודות ואז commit+push (כמו הלב)
   if (!gitOrNull("git remote get-url origin")) {
-    throw new Error("אין remote origin — בלי ריפו אין עדות");
+    throw new Error("אין remote origin - בלי ריפו אין עדות");
   }
   if (process.env.GITHUB_ACTIONS) {
     execSync('git config user.name "weave-console[bot]" && git config user.email "weave-console[bot]@users.noreply.github.com"', {
@@ -242,7 +242,7 @@ async function main(): Promise<void> {
   })();
   if (leak) {
     execSync("git reset", { cwd: ROOT, stdio: "ignore" });
-    throw new Error(`שער הסודות חסם את הדחיפה: ${leak} — כלום לא נדחף`);
+    throw new Error(`שער הסודות חסם את הדחיפה: ${leak} - כלום לא נדחף`);
   }
   const msg = `weave-console: G5 sealed · att ${att.seq} · pages LIVE · witness cp#${consoleWitness?.checkpoint} matches anchor line`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });

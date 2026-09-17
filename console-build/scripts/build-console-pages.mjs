@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// build-console-pages.mjs — installs the Adsmarket assets into the public Console
+// build-console-pages.mjs - installs the Adsmarket assets into the public Console
 // (Task 34: engineer + edit + publish the existing folders, at the most professional level)
 //
 //   about/     <- index-en.html      (marketing landing)
@@ -112,7 +112,7 @@ function shell(title, bodyHtml, he, nav) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${escH(title)} · SAOS</title>
-<meta name="description" content="${escH(title)} — SAOS Network">
+<meta name="description" content="${escH(title)} - SAOS Network">
 <meta name="theme-color" content="#050507">
 <link rel="canonical" href="${SITE}/hub/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5 20.5 7v10L12 21.5 3.5 17V7z' fill='none' stroke='%23d4af37' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23d4af37'/%3E%3C/svg%3E">
@@ -283,7 +283,7 @@ for (const p of PAGES) {
   report.pages.push(p.out);
 }
 
-/* ─────────── Hebrew article names → their English twins (same NN prefix) ─────────── */
+/* ─────────── Hebrew article names -> their English twins (same NN prefix) ─────────── */
 const EN_DIR = join(SRC, "content/articles/en");
 const enFiles = existsSync(EN_DIR) ? readdirSync(EN_DIR).filter((f) => f.endsWith(".md")) : [];
 const heMap = {};
@@ -333,7 +333,7 @@ function dirIndex(dir) {
     const t = readFileSync(join(dir, f), "utf8").match(/<title>([^<]*)<\/title>/);
     return `<li style="margin:8px 0"><a class="mono" style="font-size:14px" href="${f}">${f.replace(/\.html$/, "")}</a><div style="color:var(--faint);font-size:12.5px">${t ? t[1] : ""}</div></li>`;
   }).join("");
-  const title = rel.split("/").pop() + " — SAOS";
+  const title = rel.split("/").pop() + " - SAOS";
   writeFileSync(join(dir, "index.html"), shell(title, `<h1>${rel.split("/").pop()}</h1><ul style="list-style:none;padding:0">${items}</ul>`, true, nav));
   report.pages.push(rel + "/index.html");
 }

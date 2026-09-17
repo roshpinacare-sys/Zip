@@ -1,26 +1,26 @@
 // ─────────────────────────────────────────────────────────────────────
-// THE WEAVE · saoslite — SAOS-LIVE v1: המטבע החי של הרשת (Task 29)
+// THE WEAVE · saoslite - SAOS-LIVE v1: המטבע החי של הרשת (Task 29)
 //
 // מה המודול הזה עושה בכל פעימת לב:
 //   1. קורא את ספר הטוקנים מהשרשרת הציבורית (חסר-מפתח לחלוטין):
 //      כל custom_json עם op id `saos.weave.live.v1` מחשבונות הרשת
-//      (קו העדות cashmachine + המפעיל headcorner) — בסדר חסין.
-//   2. מנכיש את הג'נזיס (ענן בלבד): אם SAOS טרם נפרש על השרשרת —
-//      בונה את שלוש פעולות הג'נזיס (רישום האוצר → פריסת החוזה →
+//      (קו העדות cashmachine + המפעיל headcorner) - בסדר חסין.
+//   2. מנכיש את הג'נזיס (ענן בלבד): אם SAOS טרם נפרש על השרשרת -
+//      בונה את שלוש פעולות הג'נזיס (רישום האוצר · פריסת החוזה ·
 //      הטבעה ראשונה 126,682 SAOS המשקפת את v0 בדיוק 1:1), חתומות
-//      במפתח ה-posting של קו העדות (WEAVE_STEEM_WIF — אותו מפתח
+//      במפתח ה-posting של קו העדות (WEAVE_STEEM_WIF - אותו מפתח
 //      שמעגן את כל checkpoints), ומשדר טרנזאקציה אחת אטומית.
-//   3. מקפל את הספר (המנוע: console/saos-live.js — אותו קוד בדיוק
+//   3. מקפל את הספר (המנוע: console/saos-live.js - אותו קוד בדיוק
 //      רץ בדפדפן של כל משתמש; אפס הסתעפות, אפס העתקה) ומאמת
 //      כל חתימה מחדש.
 //   4. מפרסם את saos-live.json לקונסולה הציבורית (WEAVE_OPS_PAT,
-//      שער-סודות על התוכן, פרסום רק בשינוי) — הצומת של כל דפדפן.
-//   5. מעיד על שינוי מצב: stateRoot חדש ⇒ אימות SAOSLIVE חתום
-//      + checkpoint שמכסה אותו — העוגנים יעידו ב-$0.
+//      שער-סודות על התוכן, פרסום רק בשינוי) - הצומת של כל דפדפן.
+//   5. מעיד על שינוי מצב: stateRoot חדש · אימות SAOSLIVE חתום
+//      + checkpoint שמכסה אותו - העוגנים יעידו ב-$0.
 //
 // דוקטרינת האמון (תווית אמת מלאה): ה-relayer הוא תעבורה. הסמכות
 // היא החתימה הפנימית של בעל הארנק. הספר ציבורי, הקיפול דטרמיניסטי,
-// וכל צומת — דפדפן או ענן — מגיע לאותו stateRoot מאותן פעולות.
+// וכל צומת - דפדפן או ענן - מגיע לאותו stateRoot מאותן פעולות.
 // ─────────────────────────────────────────────────────────────────────
 
 import * as fs from "fs";
@@ -35,7 +35,7 @@ import { secretGate, filterKnownHashes } from "../../../scripts/weave-gate";
 export const SAOS_LIVE_OP_ID = "saos.weave.live.v1";
 const WITNESS_ACCOUNT = (process.env.WEAVE_STEEM_ACCOUNT || "cashmachine").toLowerCase();
 const OPERATOR_ACCOUNT = (process.env.WEAVE_OPERATOR_ACCOUNT || "headcorner").toLowerCase();
-/** שני המשדרים הרשומים כרגע — סדר קבוע לקנון הקריאה */
+/** שני המשדרים הרשומים כרגע - סדר קבוע לקנון הקריאה */
 const RELAY_ACCOUNTS = [WITNESS_ACCOUNT, OPERATOR_ACCOUNT];
 
 const OWNER = process.env.WEAVE_OWNER || "roshpinacare-sys";
@@ -72,7 +72,7 @@ function saveStateFile(st: SaosLiveStateFile): void {
   fs.writeFileSync(STATE_PATH, JSON.stringify(st, null, 2) + "\n");
 }
 
-/* ── קריאת הספר מהשרשרת הציבורית — חסרת-מפתח לחלוטין ── */
+/* ── קריאת הספר מהשרשרת הציבורית - חסרת-מפתח לחלוטין ── */
 export interface LiveEnvelope {
   env: Record<string, unknown>;
   txid: string;
@@ -102,20 +102,20 @@ export async function readLiveEnvelopes(): Promise<{ envelopes: LiveEnvelope[]; 
             if (!op || op[0] !== "custom_json") continue;
             const body = op[1] as { id?: string; json?: string; required_posting_auths?: string[] } | undefined;
             if (!body || body.id !== SAOS_LIVE_OP_ID) continue;
-            // רק מהחשבון שמשדר — לא התחזות ב-required_posting_auths אחר
+            // רק מהחשבון שמשדר - לא התחזות ב-required_posting_auths אחר
             if (!Array.isArray(body.required_posting_auths) || !body.required_posting_auths.includes(account)) continue;
             try {
               const env = JSON.parse(String(body.json || "{}")) as Record<string, unknown>;
               out.push({ env, txid: String(entry.trx_id || ""), block: typeof entry.block === "number" ? entry.block : null, trxInBlock: typeof entry.trx_in_block === "number" ? entry.trx_in_block : null, account });
             } catch {
-              /* ג'ייסון שבור — הקיפול ידחה אותו בכנות */
+              /* ג'ייסון שבור - הקיפול ידחה אותו בכנות */
             }
           }
           if (oldest === Infinity || oldest <= 1) break;
           start = Math.max(1, oldest - 1);
         }
       }
-      // סדר חסין-קנוני: בלוק → מיקום בבלוק → שם חשבון (דטרמיניסטי בכל מכונה)
+      // סדר חסין-קנוני: בלוק · מיקום בבלוק · שם חשבון (דטרמיניסטי בכל מכונה)
       out.sort((a, b) => (a.block ?? 0) - (b.block ?? 0) || (a.trxInBlock ?? 0) - (b.trxInBlock ?? 0) || a.account.localeCompare(b.account));
       return { envelopes: out, node: new URL(node).hostname };
     } catch (e) {
@@ -125,12 +125,12 @@ export async function readLiveEnvelopes(): Promise<{ envelopes: LiveEnvelope[]; 
   throw new Error(`קריאת ספר SAOS-LIVE נכשלה בכל הצמתים: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}`);
 }
 
-/* ── הנחת הג'נזיס (ענן בלבד) — מדורגת: פעולה אחת לפעימה ──
+/* ── הנחת הג'נזיס (ענן בלבד) - מדורגת: פעולה אחת לפעימה ──
  * נלמד במדידה חיה (22:15Z): השרשרת דחתה טרנזאקציית 3-פעולות במחיר
- * RC שוק של 444M — בעוד המנה החיה 200M. התיקון הריבוני: לא לחכות
- * ל-20 שעות למנה שלמה, אלא להניח את הג'נזיס בשלבים — פעולה אחת
- * לכל פעימה, כל עוד ה-RC מאפשר: רישום האוצר → פריסת החוזה → ההטבעה.
- * כל שלב נבדק מול הקיפול של מה שכבר על השרשרת — אידמפוטנטי מטבעו. */
+ * RC שוק של 444M - בעוד המנה החיה 200M. התיקון הריבוני: לא לחכות
+ * ל-20 שעות למנה שלמה, אלא להניח את הג'נזיס בשלבים - פעולה אחת
+ * לכל פעימה, כל עוד ה-RC מאפשר: רישום האוצר · פריסת החוזה · ההטבעה.
+ * כל שלב נבדק מול הקיפול של מה שכבר על השרשרת - אידמפוטנטי מטבעו. */
 interface GenesisFoldState {
   wallets: Record<string, unknown>;
   tokens: Record<string, unknown>;
@@ -138,21 +138,21 @@ interface GenesisFoldState {
 }
 async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Promise<{ broadcast: boolean; note: string; txid?: string; treasury?: string }> {
   const wif = (process.env.WEAVE_STEEM_WIF || "").trim();
-  if (!wif) return { broadcast: false, note: "אין WEAVE_STEEM_WIF בסביבה — דילוג-כנה (הג'נזיס מונח רק מהענן)" };
+  if (!wif) return { broadcast: false, note: "אין WEAVE_STEEM_WIF בסביבה - דילוג-כנה (הג'נזיס מונח רק מהענן)" };
   if (st.genesis.attempted && st.genesis.broadcastAt && Date.now() - Date.parse(st.genesis.broadcastAt) < 10 * 60 * 1000) {
-    return { broadcast: false, note: "ניסיון ג'נזיס אחרון לפני פחות מ-10 דק' — המתנה כנה להיכללות בבלוק" };
+    return { broadcast: false, note: "ניסיון ג'נזיס אחרון לפני פחות מ-10 דק' - המתנה כנה להיכללות בבלוק" };
   }
 
   try {
     const GateCrypto = await import("../../../console/gate-crypto.js");
     const SaosLive = await import("../../../console/saos-live.js");
 
-    // האוצר = הזהות שנגזרת ממפתח ה-posting של קו העדות — ניתן לאימות ציבורי מהשרשרת
+    // האוצר = הזהות שנגזרת ממפתח ה-posting של קו העדות - ניתן לאימות ציבורי מהשרשרת
     const priv = await GateCrypto.wifToPriv(wif);
     const pubSTM = await GateCrypto.pubToSTM(GateCrypto.privToPubBytes(priv));
     const { treasury, ops } = await SaosLive.buildGenesisOps(priv, pubSTM);
 
-    // מה כבר על השרשרת? (מהקיפול — השרשרת היא השופט)
+    // מה כבר על השרשרת? (מהקיפול - השרשרת היא השופט)
     const registered = Boolean(fold.wallets[treasury]);
     const deployed = Boolean(fold.tokens[SaosLive.SAOS_GENESIS.symbol]);
     const minted = (fold.supply[SaosLive.SAOS_GENESIS.symbol] ?? BigInt(0)) >= BigInt(SaosLive.SAOS_GENESIS.initialMint);
@@ -165,10 +165,10 @@ async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Pro
     const step = !registered ? "רישום האוצר" : !deployed ? "פריסת החוזה" : "ההטבעה הראשונה";
     const nextOp = !registered ? ops[0] : !deployed ? ops[1] : ops[2];
 
-    // שער ה-RC לפני שידור — אותה משמעת כמו קווי העוגן
+    // שער ה-RC לפני שידור - אותה משמעת כמו קווי העוגן
     const gate = await steemRcGate(WITNESS_ACCOUNT);
     if (!gate.ok) {
-      return { broadcast: false, note: `דילוג-כנה — RC נמוך (${gate.reason ?? "gated"}) · הבא: ${step}` };
+      return { broadcast: false, note: `דילוג-כנה - RC נמוך (${gate.reason ?? "gated"}) · הבא: ${step}` };
     }
 
     const txOps: GrapheneOperation[] = [[
@@ -185,7 +185,7 @@ async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Pro
     st.genesis.attempted = true;
     st.genesis.broadcastAt = new Date().toISOString();
     st.genesis.treasury = treasury;
-    st.genesis.note = res.txid ? `${step} שודרה ✓ (tx ${res.txid.slice(0, 14)}…) — ממתין להיכללות` : `שידור נכשל: ${res.note ?? "?"} · הבא: ${step}`;
+    st.genesis.note = res.txid ? `${step} שודרה (tx ${res.txid.slice(0, 14)}…) - ממתין להיכללות` : `שידור נכשל: ${res.note ?? "?"} · הבא: ${step}`;
     if (res.txid) st.genesis.txid = res.txid;
     return { broadcast: true, txid: res.txid ?? undefined, treasury, note: st.genesis.note };
   } catch (e) {
@@ -196,14 +196,14 @@ async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Pro
   }
 }
 
-/* ── פרסום saos-live.json לריפו הציבורי — כמו המראה: שער + שינוי-בלבד ── */
+/* ── פרסום saos-live.json לריפו הציבורי - כמו המראה: שער + שינוי-בלבד ── */
 async function publishLiveFile(payload: Record<string, unknown>): Promise<{ published: boolean; reason: string; bytes?: number }> {
   const text = JSON.stringify(payload, null, 2) + "\n";
   const leak = secretGate(filterKnownHashes(text));
-  if (leak) throw new Error(`saos-live.json נחסם בשער-הסודות: ${leak} — לא מפורסם כלום`);
+  if (leak) throw new Error(`saos-live.json נחסם בשער-הסודות: ${leak} - לא מפורסם כלום`);
 
   const pat = process.env.WEAVE_OPS_PAT || "";
-  if (!pat) return { published: false, reason: "אין WEAVE_OPS_PAT בסביבה — דילוג-כנה (הפרסום רק מהענן)" };
+  if (!pat) return { published: false, reason: "אין WEAVE_OPS_PAT בסביבה - דילוג-כנה (הפרסום רק מהענן)" };
 
   const api = async (method: string, url: string, body?: unknown) => {
     const res = await fetch(`https://api.github.com${url}`, {
@@ -222,7 +222,7 @@ async function publishLiveFile(payload: Record<string, unknown>): Promise<{ publ
   const cur = await api("GET", `/repos/${CONSOLE_REPO}/contents/saos-live.json?ref=main`);
   if (cur.status === 200 && cur.json && typeof cur.json.content === "string") {
     const curText = Buffer.from(cur.json.content, "base64").toString("utf8");
-    if (curText.trim() === text.trim()) return { published: false, reason: "הספר החי כבר עדכני — אין שינוי לפרסם", bytes: text.length };
+    if (curText.trim() === text.trim()) return { published: false, reason: "הספר החי כבר עדכני - אין שינוי לפרסם", bytes: text.length };
   }
   const put = await api("PUT", `/repos/${CONSOLE_REPO}/contents/saos-live.json`, {
     message: `saos-live: ${(payload.stateRoot as string || "").slice(0, 16)} · ${(payload.ops as unknown[] || []).length} ops · ${((payload.state as Record<string, Record<string, unknown>>)?.wallets ? Object.keys((payload.state as Record<string, Record<string, unknown>>).wallets).length : 0)} wallets · sovereign live ledger`,
@@ -231,9 +231,9 @@ async function publishLiveFile(payload: Record<string, unknown>): Promise<{ publ
     branch: "main",
   });
   if (put.status !== 200 && put.status !== 201) {
-    return { published: false, reason: `פרסום נכשל (HTTP ${put.status}) — ${String(put.json?.message || "").slice(0, 80)}` };
+    return { published: false, reason: `פרסום נכשל (HTTP ${put.status}) - ${String(put.json?.message || "").slice(0, 80)}` };
   }
-  return { published: true, reason: "פורסם ✓", bytes: text.length };
+  return { published: true, reason: "פורסם", bytes: text.length };
 }
 
 /* ── סיכום פעולה לתצוגה ── */
@@ -242,21 +242,21 @@ function opSummary(env: Record<string, unknown>): string {
   const n = (x: unknown) => Number(x || 0).toLocaleString("en");
   if (k === "wallet.create") return `רישום ארנק${env.nick ? ` "${env.nick}"` : ""} ${String(env.by || "").slice(0, 12)}…`;
   if (k === "token.deploy") return `פריסת חוזה ${env.symbol} (תקרה ${n(env.maxSupply)})`;
-  if (k === "token.mint") return `הטבעת ${n(env.amount)} ${env.symbol} → ${String(env.to || "").slice(0, 12)}…`;
-  if (k === "token.transfer") return `${n(env.amount)} ${env.symbol} → ${String(env.to || "").slice(0, 12)}…`;
+  if (k === "token.mint") return `הטבעת ${n(env.amount)} ${env.symbol} · ${String(env.to || "").slice(0, 12)}…`;
+  if (k === "token.transfer") return `${n(env.amount)} ${env.symbol} · ${String(env.to || "").slice(0, 12)}…`;
   if (k === "token.burn") return `שריפת ${n(env.amount)} ${env.symbol}`;
   if (k === "deposit.claim") return `תביעת הפקדה ${env.amt} ${env.cur}`;
   if (k === "deposit.credit") return `זיכוי הפקדה ${n(env.saos)} SAOS עבור ${env.amt} ${env.cur}`;
   if (k === "dex.offer") return `הצעת מכירה ${n(env.units)} SAOS במחיר ${env.price} ${env.cur}`;
   if (k === "dex.cancel") return `ביטול הצעה`;
-  if (k === "dex.fill") return `מילוי הצעה: ${n(env.units)} SAOS → ${String(env.to || "").slice(0, 12)}…`;
-  if (k === "reward.pay") return `תגמול ${n(env.amount)} SAOS → ${String(env.to || "").slice(0, 12)}…`;
+  if (k === "dex.fill") return `מילוי הצעה: ${n(env.units)} SAOS -> ${String(env.to || "").slice(0, 12)}…`;
+  if (k === "reward.pay") return `תגמול ${n(env.amount)} SAOS -> ${String(env.to || "").slice(0, 12)}…`;
   if (k === "cfg.addr") return `כתובת הפקדה פורסמה ל${env.cur}`;
   if (k === "cfg.rate") return `שער ${env.pair} = ${env.price}`;
   return k;
 }
 
-/** שדות נתונים לתצוגת הציבור לפי סוג — הספר הפתוח */
+/** שדות נתונים לתצוגת הציבור לפי סוג - הספר הפתוח */
 function opData(env: Record<string, unknown>): Record<string, unknown> | null {
   const k = String(env.k || "");
   const pick = (keys: string[]) => Object.fromEntries(keys.filter((x) => env[x] !== undefined).map((x) => [x, env[x]]));
@@ -289,8 +289,8 @@ export interface SaosLiveResult {
 }
 
 /**
- * השלב שהלב מריץ בכל פעימה: קריאה → ג'נזיס (ענן) → קיפול → פרסום → עדות-על-שינוי.
- * attested=true מעיר את הרשת (עוקף את נסיגת SANDBOX-ALIVE) — המטבע דיבר.
+ * השלב שהלב מריץ בכל פעימה: קריאה · ג'נזיס (ענן) · קיפול · פרסום · עדות-על-שינוי.
+ * attested=true מעיר את הרשת (עוקף את נסיגת SANDBOX-ALIVE) - המטבע דיבר.
  */
 export async function processSaosLive(ctx: { runner: string; cloudAgentId: string; gitHead: string; repoSlug: string; runUrl?: string }): Promise<SaosLiveResult> {
   const st = loadStateFile();
@@ -299,17 +299,17 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
   const SaosLive = await import("../../../console/saos-live.js");
   let res = await SaosLive.fold(envelopes.map((e) => e.env));
 
-  // הנחת הג'נזיס — מדורג: רק הפעולה החסרה (השרשרת היא השופט)
+  // הנחת הג'נזיס - מדורג: רק הפעולה החסרה (השרשרת היא השופט)
   const gen = await ensureGenesis(res.state, st);
   if (gen.broadcast && gen.txid) {
-    // המתנה קצרה להיכללות ואז קריאה חוזרת — הפעימה הבאה תאסוף אם פספסנו
+    // המתנה קצרה להיכללות ואז קריאה חוזרת - הפעימה הבאה תאסוף אם פספסנו
     await new Promise((r) => setTimeout(r, 9000));
     const again = await readLiveEnvelopes().catch(() => null);
     if (again) {
       res = await SaosLive.fold(again.envelopes.map((e) => e.env));
     }
   }
-  // השלמת הג'נזיס — רק מהקיפול: אוצר רשום + חוזה פרוס + אספקה מלאה
+  // השלמת הג'נזיס - רק מהקיפול: אוצר רשום + חוזה פרוס + אספקה מלאה
   if (res.state.tokens?.SAOS && (res.state.supply?.SAOS ?? BigInt(0)) >= BigInt(SaosLive.SAOS_GENESIS.initialMint)) {
     st.genesis.done = true;
   }
@@ -373,19 +373,19 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
       readFrom: node,
       engine: "console/saos-live.js (same code as every browser)",
     },
-    truthLabel: "REAL — deterministic fold of public-chain custom_json ops; every signature re-verified; relayer = transport only",
+    truthLabel: "REAL - deterministic fold of public-chain custom_json ops; every signature re-verified; relayer = transport only",
   };
 
-  // פרסום לקונסולה — הצומת של כל דפדפן
+  // פרסום לקונסולה - הצומת של כל דפדפן
   let publishNote = "";
   try {
     const pub = await publishLiveFile(payload);
-    publishNote = pub.published ? `פורסם ✓ (${Math.round((pub.bytes || 0) / 1024)}KB)` : pub.reason;
+    publishNote = pub.published ? `פורסם (${Math.round((pub.bytes || 0) / 1024)}KB)` : pub.reason;
   } catch (pubErr) {
     publishNote = `נדחה: ${pubErr instanceof Error ? pubErr.message.slice(0, 90) : String(pubErr)}`;
   }
 
-  // עדות על שינוי מצב בלבד — הספר לא מציף את החותמת, הוא מעיד על אמת מתקדמת
+  // עדות על שינוי מצב בלבד - הספר לא מציף את החותמת, הוא מעיד על אמת מתקדמת
   let attested = false;
   let attSeq: number | undefined;
   let checkpoint: { index: number; root: string } | undefined;
@@ -395,8 +395,8 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
     if (lastRoot !== res.stateRoot) {
       const first = !last;
       const claim = first
-        ? `SAOS-LIVE v1 נולד: ספר הטוקנים החי על השרשרת הציבורית — ${res.valid} פעולות תקפות, ${Object.keys(state.wallets).length} ארנקים, ${Object.keys(state.tokens).length} חוזים, אספקת SAOS ${saosDisplay} (משקף את SAOS-NET v0 בדיוק 1:1)`
-        : `SAOS-LIVE v1 התקדם: stateRoot חדש ${res.stateRoot.slice(0, 16)}… — ${res.valid} פעולות תקפות, ${Object.keys(state.wallets).length} ארנקים, ${Object.keys(state.tokens).length} חוזים, אספקת SAOS ${saosDisplay}`;
+        ? `SAOS-LIVE v1 נולד: ספר הטוקנים החי על השרשרת הציבורית - ${res.valid} פעולות תקפות, ${Object.keys(state.wallets).length} ארנקים, ${Object.keys(state.tokens).length} חוזים, אספקת SAOS ${saosDisplay} (משקף את SAOS-NET v0 בדיוק 1:1)`
+        : `SAOS-LIVE v1 התקדם: stateRoot חדש ${res.stateRoot.slice(0, 16)}… - ${res.valid} פעולות תקפות, ${Object.keys(state.wallets).length} ארנקים, ${Object.keys(state.tokens).length} חוזים, אספקת SAOS ${saosDisplay}`;
       const evidence = [
         `protocol=${SaosLive.PROTOCOL}`,
         `opId=${SAOS_LIVE_OP_ID}`,
