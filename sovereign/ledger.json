@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-17T00:41:01.442Z",
-  "chainCount": 147,
-  "headHash": "0x9cc0fd44fa4292ec0489343d6088146016c6f3f90f1e7827badee6b62c905ae8",
+  "exportedAt": "2026-09-17T01:06:25.885Z",
+  "chainCount": 150,
+  "headHash": "0x285b5eced01d755acd7dea369116a1d9601b271bd9a139c0319adbe10bc02a64",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -2309,6 +2309,51 @@
       "sig": "0xd8bed345366a7214dddc698a71708e2b64d5aa3ac894018d0c1f04811f1cb54846d2690c96b2261090ac3e8cc46c424d49ba31ef00fd47393717a7c58a0be19f1b",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-17T00:41:01.350Z"
+    },
+    {
+      "id": "cmu4tuv1t000142mrazc67vc9",
+      "seq": 148,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "ביקורת יכולת-חתימה יומית: 9 זהויות תפקיד בספר, 1 חותמים בפועל (sealed) · השאר memory-only - מפתחותיהם חיו ב-DB סביבתי ומתים עם הסביבה · הפונקציות שלהם נבלעו בלב (gitkeeper·דחיפות, scout·סריקת האקוסיסטם) או ממתינות (relayer·עדות הפוכה)",
+      "claimType": "AUDIT",
+      "evidence": "capAuditDate=2026-09-17 · identities=9 · sealedSigners=1 · roster=gitkeeper(DAEMON:memory-only - key lost with its environment) · scout-r19(SCOUT:memory-only - key lost with its environment) · weave-archive-witness(DAEMON:memory-only - key lost with its environment) · weave-auditor(AUDITOR:memory-only - key lost with its environment) · weave-cloud-heart(RELAYER:sealed-key ok) · weave-market-regulator(DAEMON:memory-only - key lost with its environment) · weave-market-regulator-v1-retired(DAEMON:memory-only - key lost with its environment) · weave-relayer(RELAYER:memory-only - key lost with its environment) · weave-saosnet-witness(DAEMON:memory-only - key lost with its environment) · law15-next=separate sealed keys per role · runner=github-actions · commit=ab4d5c4",
+      "evidenceHash": "0xe465487f84693f106ce35c71d4c6ace42f4d615146b4d2c5d2263e8cb7af1411",
+      "status": "VERIFIED",
+      "prevHash": "0x9cc0fd44fa4292ec0489343d6088146016c6f3f90f1e7827badee6b62c905ae8",
+      "entryHash": "0x9ab84a65a8d1b38da06e5a65cc747533aa7af2858ef1b31cf507c550e0ab83d6",
+      "sig": "0x0f09f15b33d317e2b87787e2aefb56f9d42a3b64072d174da1878d9214f2036829dcd0c696031c06ad9926d04735335724086454d981ed2870ab2ea7a7fa43b31b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-17T01:04:53.672Z"
+    },
+    {
+      "id": "cmu4tuxzo000442mrfimz98rb",
+      "seq": 149,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "SAOS-LIVE v1 התקדם: stateRoot חדש 9ac42df4e84ad0f5… - 3 פעולות תקפות, 1 ארנקים, 1 חוזים, אספקת SAOS 126682",
+      "claimType": "SAOSLIVE",
+      "evidence": "protocol=saos.live.v1 · opId=saos.weave.live.v1 · stateRoot=9ac42df4e84ad0f55aba2408bdad61353d0598b7ece95ebd4e3ad1f195fdb0f5 · ops=3/3 · wallets=1 · tokens=1 · saosSupply=126682000 · treasury=saos1CKtmFmsKpVuGFvqpZew9kPp24MfvFhj5k · fold=console/saos-live.js (deterministic, same code in every browser) · relayers=@cashmachine+@headcorner (posting, transport only) · readFrom=api.steemit.com · runner=github-actions · commit=ab4d5c4 · run=https://github.com/roshpinacare-sys/Zip/actions/runs/35169115113",
+      "evidenceHash": "0xbb62f1d1c7daf65cf0971934fb23a0604aa3072172614df2cd0398b482724592",
+      "status": "VERIFIED",
+      "prevHash": "0x9ab84a65a8d1b38da06e5a65cc747533aa7af2858ef1b31cf507c550e0ab83d6",
+      "entryHash": "0x29be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea",
+      "sig": "0xedc982821c5b97cddbb280c92734cdefe8063bcdf0b212a76bd3aa0e1ccd4abf4301c88f40b1001938d986adce80853175e63e23fb195d68ed8cae045f0c4c961b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-17T01:04:57.484Z"
+    },
+    {
+      "id": "cmu4tv2xh000742mrg0crcg82",
+      "seq": 150,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 149 רשומות, חתימות 149/149, head תואם. הרץ: GitHub Actions (הענן שלנו).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=github-actions · gitHead=ab4d5c4 · repo=roshpinacare-sys/Zip · run=https://github.com/roshpinacare-sys/Zip/actions/runs/35169115113 · verify: valid=true checked=149 sigOk=149 sigFail=0 firstBreak=null · recomputedHead=0x29be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea · headHash=0x29be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea · at=2026-09-17T01:05:03.885Z",
+      "evidenceHash": "0x8133f8e31cc296ee3db9addbe4df8dd55211e08c0be60e252da17f33962ddef0",
+      "status": "VERIFIED",
+      "prevHash": "0x29be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea",
+      "entryHash": "0x285b5eced01d755acd7dea369116a1d9601b271bd9a139c0319adbe10bc02a64",
+      "sig": "0x053b3fbd47f9f0958c8ac64322f21a58a24bbfeeab4e69b9fa74b8fa88a18866629b463e4a0655f2c8bc155e075505950c001d4232fb24ae738506ad0be4c4b31c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-17T01:05:03.889Z"
     }
   ],
   "checkpoints": [
@@ -4691,6 +4736,57 @@
       "anchorTx": null,
       "calldata": "0xeecdf9279cc0fd44fa4292ec0489343d6088146016c6f3f90f1e7827badee6b62c905ae8",
       "createdAt": "2026-09-17T00:41:01.372Z"
+    },
+    {
+      "id": "cmu4tuv2d000242mr9bukuw4g",
+      "index": 141,
+      "attFrom": 148,
+      "attTo": 148,
+      "leafCount": 1,
+      "root": "0x9ab84a65a8d1b38da06e5a65cc747533aa7af2858ef1b31cf507c550e0ab83d6",
+      "prevRoot": "0x9cc0fd44fa4292ec0489343d6088146016c6f3f90f1e7827badee6b62c905ae8",
+      "entryHash": "0x18fd2a2f21fe042f904d5a0c48098f0cdc889c0d4a177c058d68bce944f02672",
+      "sig": "0xe7067f7756e8b42291e67342295a031fadc0b962004d9b04f32db957e720010c6c6702357953fc8f25502bdc06848b898d7b774bd9ea53709a56e66bd82dc6b81b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9279ab84a65a8d1b38da06e5a65cc747533aa7af2858ef1b31cf507c550e0ab83d6",
+      "createdAt": "2026-09-17T01:04:53.702Z"
+    },
+    {
+      "id": "cmu4tuy00000542mr49z60ebg",
+      "index": 142,
+      "attFrom": 149,
+      "attTo": 149,
+      "leafCount": 1,
+      "root": "0x29be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea",
+      "prevRoot": "0x9ab84a65a8d1b38da06e5a65cc747533aa7af2858ef1b31cf507c550e0ab83d6",
+      "entryHash": "0x2a1f84aed375e7741f1af7433fca47f97a6889f2399786c621069ee88823506b",
+      "sig": "0x4cb69448aade36ffa6a3a3f50101af1bc4f80709aa9aadbd9681e6ead584dfd117432af6802e57121772723f49c990daeaf1d530cccaac9c85ed442eea3b6e671c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf92729be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea",
+      "createdAt": "2026-09-17T01:04:57.505Z"
+    },
+    {
+      "id": "cmu4tv2xt000842mrxlszt2h7",
+      "index": 143,
+      "attFrom": 150,
+      "attTo": 150,
+      "leafCount": 1,
+      "root": "0x285b5eced01d755acd7dea369116a1d9601b271bd9a139c0319adbe10bc02a64",
+      "prevRoot": "0x29be0d20fd73846bb48adbd7562446c77e300f7ba3cc7a179cbc9714afe0bbea",
+      "entryHash": "0xeba0d4a6f8a106af8b17b7bff76f87217f85f26dd647a6995c9f249bcea6ffcf",
+      "sig": "0xad5b6df37c5855b3789836ad9d69cf40b291b1c37fde02c8761e0fc7e2dae6fc2e6781ca8dad5dcde12e7dc96d118aad51202111d6fea97182f03de344b0e3221b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf927285b5eced01d755acd7dea369116a1d9601b271bd9a139c0319adbe10bc02a64",
+      "createdAt": "2026-09-17T01:05:03.906Z"
     }
   ],
   "networkKey": {
@@ -5481,7 +5577,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-17T00:40:23.940Z",
+      "verifiedAt": "2026-09-17T01:05:55.861Z",
       "createdAt": "2026-09-15T13:13:34.866Z"
     },
     {
