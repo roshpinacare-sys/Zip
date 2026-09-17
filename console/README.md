@@ -1,4 +1,4 @@
-# SAOS· Console — the public beacon of THE WEAVE
+# SAOS· Console - the public beacon of THE WEAVE
 
 This repository is the public console of the SAOS ecosystem: a single static
 page plus one status file. No build step, no tracking, no external
@@ -9,7 +9,7 @@ dependencies, no CDN assets. Everything it serves lives in this repository.
 Nothing pushes to this repository from the outside. A workflow inside this
 repository runs every 6 hours and:
 
-1. reads THE WEAVE's anchor line back from a public Steem RPC node (deduplicated by checkpoint — a re-anchored checkpoint is one row, its newest witness)
+1. reads THE WEAVE's anchor line back from a public Steem RPC node (deduplicated by checkpoint - a re-anchored checkpoint is one row, its newest witness)
    (custom_json `saos.weave.core.v1` from the witness account, posting
    authority: free, zero capital risk, already public on-chain)
 2. renders `status.json` from what the chain returned
@@ -22,14 +22,14 @@ publish beacon: one commit per cycle, timestamped, auditable by anyone.
 
 ## What it contains
 
-- `index.html` — the console page (static marketing surface with a live
+- `index.html` - the console page (static marketing surface with a live
   THE WEAVE status panel)
-- `status.json` — the live network status, read back from the chain:
+- `status.json` - the live network status, read back from the chain:
   latest checkpoint root, transaction id, block, covered attestation range,
   ledger head hash at anchor time, sealing commit, witness freshness
-- `render.mjs` — the keyless renderer (zero dependencies, plain fetch)
-- `.github/workflows/console-publish.yml` — the publish cycle
-- `assets/og-cover.png` — the social preview image
+- `render.mjs` - the keyless renderer (zero dependencies, plain fetch)
+- `.github/workflows/console-publish.yml` - the publish cycle
+- `assets/og-cover.png` - the social preview image
 
 ## What it never contains
 
@@ -63,14 +63,14 @@ sovereign repository. Operator: roshpinacare-sys.
 
 - the owner connects with his own key (Steem master password or a role WIF);
   everything is derived and verified **in the browser** against the account's
-  on-chain keys (public RPC, keyless read) — the key never leaves the browser
+  on-chain keys (public RPC, keyless read) - the key never leaves the browser
 - signed commands (`ping` · `beat` · `anchor` · `console`) are broadcast as
-  free `custom_json` (op id `saos.weave.ops.v1`, posting authority only —
+  free `custom_json` (op id `saos.weave.ops.v1`, posting authority only -
   the chain itself forbids this key from moving funds)
 - the network's cloud heart reads the commands back from the public chain,
   executes them, and records the execution in its signed ledger; the anchors
   witness it at $0
-- the command history shown in the gate is read back from the public chain —
+- the command history shown in the gate is read back from the public chain -
   the chain is the receipt
 
 All gate cryptography is implemented locally in `gate-crypto.js` (pure JS:
