@@ -64,8 +64,24 @@ jobs:
         env:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
 
+      # ── שומר-עדיפות רשת-האחסון (R50) ──
+      # בזמן העלאת תוכן לשרשרת, תקציב ה-RC מוקדש קודם לסוכן השידור
+      # (web-publish). הקווים חוזרים לפעום ברגע שהדואר הנכנס מתרוקן —
+      # דילוג-כנה ומדווח, לא כישלון.
+      - name: Web-upload priority guard (honest skip while inbox pending)
+        id: webguard
+        run: |
+          PENDING=$(ls sovereign/web/inbox/*/job.json 2>/dev/null | wc -l)
+          echo "pending=$PENDING" >> "$GITHUB_OUTPUT"
+          if [ "$PENDING" -gt 0 ]; then
+            echo "דואר נכנס של רשת-האחסון לא ריק ($PENDING חבילות) — תקציב ה-RC מוקדש לשידור התוכן. הקווים יעגנו במחזור הבא."
+          else
+            echo "דואר נכנס ריק — הקווים פועלים כסדרם"
+          fi
+
       - name: Line 1 — Steem/Hive anchor (external witness, posting authority)
         id: steem
+        if: steps.webguard.outputs.pending == '0'
         continue-on-error: true
         run: |
           MODE_FLAG=""
@@ -81,7 +97,7 @@ jobs:
 
       - name: Line 2 — Zero-gas EVM anchor on Z Chain 9369
         id: zero
-        if: always()
+        if: steps.webguard.outputs.pending == '0'
         continue-on-error: true
         run: |
           MODE_FLAG=""
@@ -95,9 +111,12 @@ jobs:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
           WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
 
-      - name: Honesty verdict — red if any line failed
+      - name: Honesty verdict — red if any line failed (skipped-by-guard = green honest skip)
         if: always()
         run: |
+          if [ "${{ steps.webguard.outputs.pending }}" != "0" ]; then
+            echo "דילוג-כנה: העלאת תוכן בעדיפות — אף קו לא רץ המחזור הזה"; exit 0
+          fi
           echo "steem: ${{ steps.steem.outcome }} · zero: ${{ steps.zero.outcome }}"
           if [ "${{ steps.steem.outcome }}" = "failure" ] || [ "${{ steps.zero.outcome }}" = "failure" ]; then
             echo "לפחות קו עדות אחד אדום — הריצה אדומה בכנות"; exit 1

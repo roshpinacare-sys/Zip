@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2048 — SAOS GAMES</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#09090b; color:#e4e4e7; font-family:'Segoe UI',system-ui,Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:16px; touch-action:none; }
+  h1 { font-size:22px; color:#d4af37; }
+  #hud { display:flex; gap:18px; font-size:14px; align-items:center; }
+  #hud b { color:#a78bfa; }
+  button { background:#18181b; color:#d4af37; border:1px solid #d4af3766; border-radius:8px; padding:5px 14px; font-size:13px; cursor:pointer; }
+  #bd { background:#101014; border:1px solid #27272a; border-radius:14px; padding:10px; display:grid; grid-template-columns:repeat(4,72px); grid-gap:8px; direction:ltr; }
+  .t { width:72px; height:72px; border-radius:8px; background:#18181b; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:24px; color:#e4e4e7; }
+  .t2{background:#3a3328;color:#d4af37}.t4{background:#4d4433;color:#d4af37}.t8{background:#7a5c2e;color:#fff}.t16{background:#8f6a2f;color:#fff}.t32{background:#a97d33;color:#fff}.t64{background:#c49438;color:#fff}
+  .t128{background:#8b6fda;color:#fff}.t256{background:#7c5cd6;color:#fff}.t512{background:#6d48d2;color:#fff}.t1024{background:#5e39ce;color:#fff}.t2048{background:#d4af37;color:#09090b}
+  .hint { font-size:12px; color:#71717a; }
+  a.back { color:#a1a1aa; font-size:13px; text-decoration:none; border:1px solid #27272a; padding:6px 16px; border-radius:99px; }
+  #win { font-size:15px; color:#d4af37; font-weight:700; display:none; }
+</style>
+</head>
+<body>
+  <h1>🔢 2048</h1>
+  <div id="hud"><span>ניקוד <b id="sc">0</b></span><button onclick="init()">משחק חדש</button><span id="win">🏆 הגעת ל-2048!</span></div>
+  <div id="bd"></div>
+  <p class="hint">חצים / WASD · החלקת אצבע בנייד</p>
+  <a class="back" href="index.html">↩ למגרש</a>
+<script>
+(function(){
+  var g,sc,win=false;
+  var C={2:'t2',4:'t4',8:'t8',16:'t16',32:'t32',64:'t64',128:'t128',256:'t256',512:'t512',1024:'t1024',2048:'t2048'};
+  window.init=function(){
+    g=Array.from({length:4},function(){return[0,0,0,0]});sc=0;win=false;
+    document.getElementById('win').style.display='none';
+    document.getElementById('sc').textContent=0;
+    add();add();render();
+  };
+  function add(){var e=[];for(var r=0;r<4;r++)for(var c=0;c<4;c++)if(!g[r][c])e.push([r,c]);if(!e.length)return;var p=e[~~(Math.random()*e.length)];g[p[0]][p[1]]=Math.random()<0.9?2:4}
+  function render(){
+    var b=document.getElementById('bd');b.innerHTML='';
+    for(var r=0;r<4;r++)for(var c=0;c<4;c++){
+      var d=document.createElement('div');d.className='t '+(C[g[r][c]]||'');d.textContent=g[r][c]||'';b.appendChild(d);
+    }
+    document.getElementById('sc').textContent=sc;
+  }
+  function line(v){ // מזז אפסים וממזג שווים
+    var a=v.filter(function(x){return x}),m=false;
+    for(var i=0;i<a.length-1;i++)if(a[i]==a[i+1]){a[i]*=2;sc+=a[i];if(a[i]==2048&&!win){win=true;document.getElementById('win').style.display='inline'}a.splice(i+1,1);m=true}
+    while(a.length<4)a.push(0);
+    return {a:a,m:m};
+  }
+  function move(k){
+    var moved=false;
+    for(var i=0;i<4;i++){
+      var v=[],j;
+      for(j=0;j<4;j++)v.push(k=='l'||k=='r'?g[i][j]:g[j][i]);
+      if(k=='r'||k=='d')v.reverse();
+      var o=line(v);
+      if(o.m||v.join()!=''+o.a)moved=true;
+      if(k=='r'||k=='d')o.a.reverse();
+      for(j=0;j<4;j++){if(k=='l'||k=='r')g[i][j]=o.a[j];else g[j][i]=o.a[j]}
+    }
+    if(moved){add();render();chk()}
+  }
+  function chk(){
+    for(var r=0;r<4;r++)for(var c=0;c<4;c++){if(!g[r][c])return;if(c<3&&g[r][c]==g[r][c+1])return;if(r<3&&g[r][c]==g[r+1][c])return}
+    setTimeout(function(){alert('אין מהלכים נוספים · ניקוד סופי: '+sc)},120);
+  }
+  document.addEventListener('keydown',function(e){
+    var m={ArrowLeft:'l',ArrowRight:'r',ArrowUp:'u',ArrowDown:'d',a:'l',d:'r',w:'u',s:'d'}[e.key];
+    if(m){e.preventDefault();move(m)}
+  });
+  var ts=null;
+  document.addEventListener('touchstart',function(e){ts={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!ts)return;var dx=e.changedTouches[0].clientX-ts.x,dy=e.changedTouches[0].clientY-ts.y;
+    if(Math.abs(dx)<16||Math.abs(dy)<16)return;
+    move(Math.abs(dx)>Math.abs(dy)?(dx>0?'r':'l'):(dy>0?'d':'u'));
+  },{passive:true});
+  init();
+})();
+</script>
+</body>
+</html>

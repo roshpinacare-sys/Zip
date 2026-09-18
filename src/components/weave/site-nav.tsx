@@ -80,6 +80,7 @@ export const SECTIONS: Array<{
     icon: LayoutDashboard,
     subs: [
       { key: "dashboard", label: "לוח בקרה" },
+      { key: "webnet", label: "רשת-האחסון" },
       { key: "ledger", label: "ספר אימותים" },
       { key: "anchor", label: "עוגן EVM" },
       { key: "ecosystem", label: "אקוסיסטם" },

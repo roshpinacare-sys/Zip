@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>זיכרון — SAOS GAMES</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#09090b; color:#e4e4e7; font-family:'Segoe UI',system-ui,Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:16px; }
+  h1 { font-size:22px; color:#d4af37; }
+  #hud { display:flex; gap:18px; font-size:14px; }
+  #hud b { color:#a78bfa; }
+  button { background:#18181b; color:#d4af37; border:1px solid #d4af3766; border-radius:8px; padding:5px 14px; font-size:13px; cursor:pointer; }
+  #gd { display:grid; grid-template-columns:repeat(4,minmax(58px,78px)); gap:8px; }
+  .c { aspect-ratio:1; border-radius:10px; background:#18181b; border:1px solid #27272a; font-size:clamp(24px,7vw,36px); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:.18s; user-select:none; }
+  .c.up { background:#1d1a24; border-color:#a78bfa66; transform:scale(1.04); }
+  .c.done { background:#16211a; border-color:#2e7d4f; cursor:default; }
+  .hint { font-size:12px; color:#71717a; }
+  a.back { color:#a1a1aa; font-size:13px; text-decoration:none; border:1px solid #27272a; padding:6px 16px; border-radius:99px; }
+  #done { font-size:16px; color:#d4af37; font-weight:700; display:none; }
+</style>
+</head>
+<body>
+  <h1>🃏 זיכרון</h1>
+  <div id="hud"><span>הלוכות <b id="mv">0</b></span><span>זוגות <b id="pr">0</b>/8</span><button onclick="init()">משחק חדש</button></div>
+  <div id="gd"></div>
+  <span id="done">🏆 כל הזוגות נמצאו!</span>
+  <p class="hint">פתח שני קלפים · התאמה נשארת גלויה</p>
+  <a class="back" href="index.html">↩ למגרש</a>
+<script>
+(function(){
+  var cards,open,lock,mv,pairs;
+  var E=['🏛️','⚡','🔗','🪙','🧭','🕯️','📜','🔮'];
+  window.init=function(){
+    cards=[];open=[];lock=false;mv=0;pairs=0;
+    document.getElementById('done').style.display='none';
+    document.getElementById('mv').textContent=0;
+    document.getElementById('pr').textContent=0;
+    var d=E.concat(E);
+    for(var i=d.length-1;i>0;i--){var j=~~(Math.random()*(i+1)),t=d[i];d[i]=d[j];d[j]=t}
+    var g=document.getElementById('gd');g.innerHTML='';
+    d.forEach(function(e,i){
+      var c=document.createElement('div');c.className='c';c.dataset.e=e;c.dataset.i=i;
+      c.onclick=function(){flip(this)};g.appendChild(c);cards.push(c);
+    });
+  };
+  function flip(c){
+    if(lock||c.classList.contains('up')||c.classList.contains('done'))return;
+    c.classList.add('up');c.textContent=c.dataset.e;
+    open.push(c);
+    if(open.length==2){
+      mv++;document.getElementById('mv').textContent=mv;lock=true;
+      var a=open[0],b=open[1];
+      if(a.dataset.e==b.dataset.e){
+        setTimeout(function(){
+          a.classList.remove('up');b.classList.remove('up');
+          a.classList.add('done');b.classList.add('done');
+          a.textContent=b.textContent='';
+          pairs++;document.getElementById('pr').textContent=pairs;
+          if(pairs==8)document.getElementById('done').style.display='block';
+          open=[];lock=false;
+        },420);
+      }else{
+        setTimeout(function(){
+          a.classList.remove('up');b.classList.remove('up');
+          a.textContent=b.textContent='';
+          open=[];lock=false;
+        },760);
+      }
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>

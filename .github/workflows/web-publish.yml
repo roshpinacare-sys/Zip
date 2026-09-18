@@ -1,0 +1,56 @@
+# WEB-PUBLISH — סוכן הענן של רשת-האחסון הריבונית (R50)
+#
+# לוקח חבילות מהדואר הנכנס (sovereign/web/inbox) ומעלה אותן
+# לשרשרת Steem הציבורית בסמכות posting בלבד:
+#   · מכולת מניפסט (פוסט שורש, תג saosweb)
+#   · צ׳אנקי תוכן (תגובות base64, sha256 כל אחת)
+#   · עוגן אינדקס custom_json (id=saos.web.v1)
+#
+# אידמפוטנטי לחלוטין: כל צ׳אנק נבדק על השרשרת לפני שידור;
+# אין RC ⇒ דילוג-כנה והריצה הבאה ממשיכה. הסוד (WEAVE_STEEM_WIF)
+# חי ב-Actions Secrets בלבד — לעולם לא בקוד, לא בלוג.
+#
+# קדנס: כל 20 דקות + הזנקה ידנית מהאפליקציה (כפתור המפעיל).
+
+name: web-publish
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout origin/main (the sovereign home)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install --frozen-lockfile --no-save 2>/dev/null || bun install --no-save
+
+      - name: Publish inbox packages to Steem (posting authority, RC-gated)
+        run: bun scripts/web-publish.ts
+        env:
+          WEAVE_STEEM_WIF: ${{ secrets.WEAVE_STEEM_WIF }}
+          WEAVE_STEEM_ACCOUNT: cashmachine
+          # רצפה נמוכה בזמן העלאה: קווי העוגן מדלגים בכנות כל-עוד הדואר
+          # הנכנס לא-ריק (השומר ב-weave-anchor-lines), ולכן כל הרגנרציה
+          # שייכת לשידור התוכן. האומדן ההתחלתי נלמד-חי מכל שידור.
+          WEB_RC_RESERVE: '20000000'
+          WEB_RC_EST: '95000000'

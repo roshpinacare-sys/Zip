@@ -309,6 +309,7 @@ export const DISPATCHABLE: Array<{ repo: string; workflow: string; label: string
   { repo: "Zip", workflow: "weave-heart.yml", label: "פעימת לב", description: "אימות שרשרת + קומיט פעימה + הזנקת קווי העוגן" },
   { repo: "Zip", workflow: "weave-anchor-lines.yml", label: "קווי עוגן", description: "עיגון Steem/Hive/ZERO לצ'קפוינט האחרון" },
   { repo: "Zip", workflow: "weave-ecosystem.yml", label: "סריקת אקוסיסטם", description: "מדידת שכפול בכל 14 הריפואים" },
+  { repo: "Zip", workflow: "web-publish.yml", label: "שידור רשת-אחסון", description: "העלאת צ׳אנקי תוכן מהדואר הנכנס אל שרשרת Steem — כל עוד תקציב ה-RC מאפשר" },
   { repo: "steem", workflow: "cloud-heart.yml", label: "לב הצי", description: "פעימת saosnet live מול RPC ציבורי" },
   { repo: "saos-dex", workflow: "dex-beat.yml", label: "פעימת בורסה", description: "חישוב שוק + פרסום נתוני DEX" },
   { repo: "saos-dex", workflow: "dex-grid.yml", label: "גריד חוץ", description: "ריצת הגריד החיצוני — ספר STEEM/SBD החי, ממיין מחדש ומפרסם לקונסולה" },

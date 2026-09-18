@@ -40,6 +40,7 @@ import { AgentsFleetView } from "@/components/weave/views/agents-fleet-view";
 import { ArrayView } from "@/components/weave/views/array-view";
 import { FlywheelView } from "@/components/weave/views/flywheel-view";
 import { MoneyMarketView } from "@/components/weave/views/money-market-view";
+import { WebNetView } from "@/components/weave/views/webnet-view";
 import {
   AdminCommandView,
   AdminMissionsView,
@@ -83,6 +84,8 @@ function SectionBody({ view, section }: Route) {
       return <HomeView />;
     case "network":
       switch (section) {
+        case "webnet":
+          return <WebNetView />;
         case "ledger":
           return <LedgerTab />;
         case "anchor":
