@@ -82,9 +82,12 @@ interface WorldDoc {
     // לסולם/גז-לפי-תכנון). נפרסם-על-ידי-dex-beat מ-R46; עד-שייפרסם — נפילה-כנה-ליתרה-העובדת.
     income?: { treasuryProfitEverMu?: number };
     // FIX(R47): THE-SAVE — קרן-החוסכים החיה: זרמי-ההכנסה המדודים + חלון-היום-האמיתי.
+    // FIX(R48 · calibration-truth): apyBps עשוי-להיות null — חלון-הכיול שלאחר-מיגרציית-בסיס-ההכנסה
+    // אינו-מפורסם-כשנתי לעולם (windows<2). windows/demoMu/dayMarkH מועברים-בשקיפות-מלאה.
     savings?: {
       potMu?: number; savers?: number; paidMu?: number; dayPaidMu?: number; dayPaidPrevMu?: number;
-      apyBps?: number; opens?: number; closes?: number; incomeSourceMu?: number;
+      apyBps?: number | null; opens?: number; closes?: number; incomeSourceMu?: number;
+      windows?: number; demoMu?: number; dayMarkH?: number | null;
       incomeStreams?: { vaultInterestMu?: number; lendReserveMu?: number; feeShareMu?: number };
       dayWindowBlocks?: number; feeSharePct?: number;
     };
@@ -160,7 +163,10 @@ async function worldSide() {
       paidUsds: mu(w.state?.savings?.paidMu),
       dayPaidUsds: mu(w.state?.savings?.dayPaidMu),
       dayPaidPrevUsds: mu(w.state?.savings?.dayPaidPrevMu),
-      apyBps: w.state?.savings?.apyBps ?? 0,
+      apyBps: w.state?.savings?.apyBps ?? null,
+      windows: w.state?.savings?.windows ?? 0,
+      demoUsds: mu(w.state?.savings?.demoMu),
+      dayMarkH: w.state?.savings?.dayMarkH ?? null,
       incomeSourceUsds: mu(w.state?.savings?.incomeSourceMu),
       incomeStreams: {
         vaultInterestUsds: mu(w.state?.savings?.incomeStreams?.vaultInterestMu),

@@ -59,9 +59,12 @@ interface DefiDoc {
     treasuryProfitUsds: number;
     treasuryProfitEverUsds?: number; // FIX(R46): המונה-המונוטוני — מצטבר-לנצח, לעולם לא נשחק לדלק
     // FIX(R47): THE-SAVE — החיסכון-החי על-השרשרת: קרן, הכנסה-מדודה, שיעור-יום-אמת
+    // FIX(R48 · calibration-truth): apyBps=null בזמן-חלון-הכיול (החלון-הראשון שלאחר-מיגרציה
+    // קולט-הצטבר-היסטורי ואינו-מפורסם-כשנתי). demoUsds — גילוי-מלא של עמדת-ההדגמה-של-המפעיל.
     savings?: {
       potUsds: number; savers: number; paidUsds: number; dayPaidUsds: number; dayPaidPrevUsds: number;
-      apyBps: number; incomeSourceUsds: number;
+      apyBps: number | null; windows?: number; demoUsds?: number; dayMarkH?: number | null;
+      incomeSourceUsds: number;
       incomeStreams: { vaultInterestUsds: number; lendReserveUsds: number; feeShareUsds: number };
       dayWindowBlocks: number | null; feeSharePct: number | null;
     };
@@ -271,9 +274,19 @@ export function FlywheelView() {
                     { k: "בריכות AMM", v: w ? `${w.pools.length}` : "—" },
                     { k: "אוצר מצטבר לנצח", v: w ? fmtUsd(w.treasuryProfitEverUsds ?? w.treasuryProfitUsds) : "—", t: "מונה-מונוטוני (R46): כל-קציר עולה, לעולם לא נשחק לדלק-סולם/גז" },
                     { k: "יתרת אוצר עובדת", v: w ? fmtUsd(w.treasuryProfitUsds) : "—", t: "היתרה שמזרימה-דלק-סולם וגז — יורדת-כלפי-מטה-לפי-תכנון" },
-                    { k: "חיסכון משלם", v: w?.savings ? `${fmtUsd(w.savings.paidUsds)} ל-${w.savings.savers} חוסכים` : "—", t: "THE-SAVE (R47): הכנסה-מדודה ששולמה-בפועל — אפס-הטבעה, העברה-טהורה מיתרת-האוצר" },
+                    { k: "חיסכון משלם", v: w?.savings ? `${fmtUsd(w.savings.paidUsds)} ל-${w.savings.savers} חוסכים${w.savings.demoUsds && w.savings.demoUsds > 0 ? " (עמדת-ההדגמה של המפעיל: " + fmtUsd(w.savings.demoUsds) + ")" : ""}` : "—", t: "THE-SAVE (R47): הכנסה-מדודה ששולמה-בפועל — אפס-הטבעה, העברה-טהורה מיתרת-האוצר. גילוי-מלא (R48): החוסך-היחיד הוא-המפעיל-עצמו — עמדת-הדגמה-עומדת מכספו-שלו, לא-הפקדה-חוץ" },
                     { k: "הכנסת החיסכון (מדודה)", v: w?.savings ? fmtUsd(w.savings.incomeSourceUsds) : "—", t: "FIX(R47): 30% מחית-עמלות-הבריכות + ריבית-כספת + עתודת-אוצר-שוק-הכספים — מונים-מונוטוניים של הכנסה-אמת" },
-                    { k: "שיעור-יום שנמדד", v: w?.savings && w.savings.apyBps > 0 ? `${(w.savings.apyBps / 100).toFixed(2)}% APY` : "חלון-ראשון מתגלגל", t: `חלון-היום-האמיתי (5,760 גבהים = יום-אחד): מה-ששולם-בפועל-אתמול × 365 — לא-הבטחה, מדידה` },
+                    {
+                      k: "שיעור-יום שנמדד",
+                      v: w?.savings
+                        ? w.savings.apyBps != null && w.savings.apyBps > 0
+                          ? `${(w.savings.apyBps / 100).toFixed(2)}% APY`
+                          : `חלון-כיול · $${w.savings.dayPaidUsds.toFixed(2)} בחלון הנוכחי`
+                        : "—",
+                      t: w?.savings && w.savings.apyBps == null
+                        ? "FIX(R48 · calibration-truth): חלון-הפתיחה שלאחר-מיגרציית-בסיס-ההכנסה קלט-את-ההצטבר-ההיסטורי ביום-אחד (77,184µ) — ארטיפקט-מיגרציה, לא-קצב-אמת. ה-APY השנתי יפורסם-רק-מחלון-יום-שני-והלאה; עד-אז מוצג-התשלום-החי-של-החלון-הנוכחי — מדידה, לא-הבטחה"
+                        : `חלון-היום-האמיתי (5,760 גבהים = יום-אחד): מה-ששולם-בפועל-אתמול × 365 — לא-הבטחה, מדידה`,
+                    },
                     { k: "פעולות שרשרת", v: w ? `${(w.opsTotal ?? 0).toLocaleString("he-IL")}` : "—" },
                   ].map((x) => (
                     <div key={x.k} title={x.t} className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
