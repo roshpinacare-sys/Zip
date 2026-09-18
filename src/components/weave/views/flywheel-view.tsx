@@ -89,6 +89,9 @@ interface DefiDoc {
 interface MarketState {
   supplyUsds: number; treasuryUsds: number; operatorUsds: number; arenaUsds: number;
   borrowedUsds: number; utilization: number; borrowApr: number; supplyApr: number;
+  onChain?: boolean;
+  onChainNote?: string;
+  onChainTotals?: { interestPaidUsds: number; reservesToTreasuryUsds: number; opens: number; closes: number; treasuryEarnedUsds: number } | null;
   policy: {
     optimalUtilBps: number; baseApr: number; slope1: number; slope2: number;
     reserveFactor: number; ltv: number; liquidationThreshold: number; liquidationPenalty: number;
@@ -422,6 +425,13 @@ export function FlywheelView() {
         title="שוק-הכספים הריבוני — עקומת kink בסטנדרט Aave-v3"
         sub="ריבית נגזרת מניצולת אמיתית של השרשרת · פרמטרים גלויים · 10% לאוצר"
       >
+        {market?.onChain && (
+          <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-3 py-2 text-[11px] text-emerald-300">
+            <span className="inline-block size-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden />
+            <b>חי על-השרשרת</b> — state.lend ב-world.json: הנתונים שלהלן נכתבו-על-ידי-המנוע-הקנוני, לא מחושבים-מיתרות. {market.onChainNote}
+            <a href="#/money-market" className="mr-auto rounded-lg border border-emerald-500/30 px-2 py-1 font-semibold text-emerald-200 underline-offset-4 hover:underline">← התצוגה-המלאה</a>
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-5">
           {/* מצב השוק */}
           <Card className="border-zinc-700/60 bg-zinc-900/40 lg:col-span-3">

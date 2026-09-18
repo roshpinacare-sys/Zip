@@ -39,6 +39,7 @@ import { GateView } from "@/components/weave/views/gate-view";
 import { AgentsFleetView } from "@/components/weave/views/agents-fleet-view";
 import { ArrayView } from "@/components/weave/views/array-view";
 import { FlywheelView } from "@/components/weave/views/flywheel-view";
+import { MoneyMarketView } from "@/components/weave/views/money-market-view";
 import {
   AdminCommandView,
   AdminMissionsView,
@@ -76,6 +77,8 @@ function SectionBody({ view, section }: Route) {
       return <ArrayView />;
     case "flywheel":
       return <FlywheelView />;
+    case "money-market":
+      return <MoneyMarketView />;
     case "home":
       return <HomeView />;
     case "network":

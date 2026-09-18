@@ -122,6 +122,23 @@ async function worldSide() {
   // ריבית למלווה = ריבית הלוואה × (1 − גורם-היתרה) × ניצולת — כמו Aave
   const supplyApr = bApr * (1 - MM.reserveFactor) * util;
 
+  // ── R44 · THE-MARKET: השוק-עצמו חי-על-השרשרת (state.lend ב-world.json).
+  //    נתוני-השרשרת-האמיתיים גוברים-תמיד על-החישוב-התיאורטי — אמת-לפני-המחשה:
+  //    אם קיים שוק-USDS-חי, הניצולת/APR/עמדות הם מה שהמנוע-כתב-בפועל.
+  const lend = (w.state as any)?.lend as {
+    markets?: Array<{ asset: string; sMu: number; bMu: number; utilBps: number; borrowAprBps: number; supplyAprBps: number }>;
+    positions?: Array<{ who: string; supplies?: Array<{ asset: string; mu: number }>; borrows?: Array<{ asset: string; debtMu: number }> }>;
+    treasury?: { suppliedMu: number; earnedMu: number; supplyAprBps: number };
+    totals?: { suppliesMu: number; borrowsMu: number; interestPaidMu: number; resToTreasuryMu: number; opens: number; closes: number };
+  } | undefined;
+  const lendUsds = lend?.markets?.find((m) => m.asset === "USDS");
+  const onChain = !!(lendUsds && lendUsds.sMu > 0);
+  const realUtil = onChain ? lendUsds!.utilBps / 10_000 : util;
+  const realBorrowApr = onChain ? lendUsds!.borrowAprBps / 10_000 : bApr;
+  const realSupplyApr = onChain ? lendUsds!.supplyAprBps / 10_000 : supplyApr;
+  const realSupply = onChain ? lendUsds!.sMu / 1000 : supply;
+  const realBorrowed = onChain ? lendUsds!.bMu / 1000 : borrowed;
+
   return {
     height: w.state?.height ?? null,
     treasuryProfitUsds: mu(w.state?.treasuryProfit),
@@ -140,13 +157,27 @@ async function worldSide() {
       derived: p.derived ?? false,
     })),
     market: {
-      supplyUsds: supply,
+      supplyUsds: realSupply,
       treasuryUsds, operatorUsds, arenaUsds,
-      borrowedUsds: borrowed,
-      utilization: util,
-      borrowApr: bApr,
-      supplyApr,
+      borrowedUsds: realBorrowed,
+      utilization: realUtil,
+      borrowApr: realBorrowApr,
+      supplyApr: realSupplyApr,
       policy: MM,
+      // אמת-לפני-המחשה: הדגל אומר-מאיפה המספרים — מהשרשרת-עצמה או מחושבים-מיתרות
+      onChain,
+      onChainNote: onChain
+        ? `נתוני-השרשרת-החיה (state.lend): ${lend?.positions?.length ?? 0} עמדות · אוצר ${((lend?.treasury?.suppliedMu ?? 0) / 1000).toFixed(0)}$ מוזרם · ${lend?.totals?.opens ?? 0} מחזורים`
+        : "טרם-נולד — מחושב-מיתרות-הרשת",
+      onChainTotals: lend?.totals
+        ? {
+            interestPaidUsds: lend.totals.interestPaidMu / 1000,
+            reservesToTreasuryUsds: lend.totals.resToTreasuryMu / 1000,
+            opens: lend.totals.opens,
+            closes: lend.totals.closes,
+            treasuryEarnedUsds: (lend.treasury?.earnedMu ?? 0) / 1000,
+          }
+        : null,
     },
     publishedAt: (w as any).publishedAt ?? null,
   };

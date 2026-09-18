@@ -23,6 +23,7 @@ import {
   DoorOpen,
   HardDrive,
   Home,
+  Landmark,
   LayoutDashboard,
   LayoutGrid,
   Menu,
@@ -49,6 +50,7 @@ export type SiteView =
   | "gate"
   | "array"
   | "flywheel"
+  | "money-market"
   | "home"
   | "network"
   | "agents"
@@ -70,6 +72,7 @@ export const SECTIONS: Array<{
   { view: "gate", label: "שער המפעיל", icon: DoorOpen, subs: [] },
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
+  { view: "money-market", label: "שוק-הכספים", icon: Landmark, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
   {
     view: "network",
