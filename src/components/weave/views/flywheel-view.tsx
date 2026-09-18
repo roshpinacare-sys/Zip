@@ -57,6 +57,7 @@ interface DefiDoc {
   world?: {
     height: number | null;
     treasuryProfitUsds: number;
+    treasuryProfitEverUsds?: number; // FIX(R46): המונה-המונוטוני — מצטבר-לנצח, לעולם לא נשחק לדלק
     fills: number; swaps: number; liveOrders: number; opsTotal: number;
     pools: Array<{
       key: string; ra: number; rb: number; swaps: number;
@@ -261,10 +262,11 @@ export function FlywheelView() {
                     { k: "מילויים נספרים", v: w ? `${(w.fills ?? 0).toLocaleString("he-IL")}` : "—" },
                     { k: "החלפות", v: w ? `${(w.swaps ?? 0).toLocaleString("he-IL")}` : "—" },
                     { k: "בריכות AMM", v: w ? `${w.pools.length}` : "—" },
-                    { k: "אוצר מצטבר", v: w ? fmtUsd(w.treasuryProfitUsds) : "—" },
+                    { k: "אוצר מצטבר לנצח", v: w ? fmtUsd(w.treasuryProfitEverUsds ?? w.treasuryProfitUsds) : "—", t: "מונה-מונוטוני (R46): כל-קציר עולה, לעולם לא נשחק לדלק-סולם/גז" },
+                    { k: "יתרת אוצר עובדת", v: w ? fmtUsd(w.treasuryProfitUsds) : "—", t: "היתרה שמזרימה-דלק-סולם וגז — יורדת-כלפי-מטה-לפי-תכנון" },
                     { k: "פעולות שרשרת", v: w ? `${(w.opsTotal ?? 0).toLocaleString("he-IL")}` : "—" },
                   ].map((x) => (
-                    <div key={x.k} className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
+                    <div key={x.k} title={x.t} className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
                       <div className="text-[10px] text-zinc-500">{x.k}</div>
                       <div className="font-mono text-sm font-semibold text-zinc-100">{x.v}</div>
                     </div>

@@ -96,6 +96,8 @@ interface GridDoc {
 interface WorldDoc {
   state?: {
     height?: number; treasuryProfit?: number; fills?: number; swaps?: number;
+    // FIX(R46): המונה-המונוטוני — מצטבר-לנצח (היתרה-העובדת נשחקת-לדלק-לפי-תכנון)
+    income?: { treasuryProfitEverMu?: number; treasuryProfitMu?: number };
     rail?: {
       doses?: number; netMu?: number; equityMu?: number;
       doseLog?: { tick: number; pair: string; side: string; inMu: number; midMu: number; anchorMu: number; premBps: number; ok: boolean | null }[];
@@ -439,8 +441,8 @@ export function ArrayView() {
           />
           <StatusPill
             icon={Coins}
-            label="רווח אוצר"
-            value={`$${fmtUsd((world?.state?.treasuryProfit ?? 0) / 1000)}`}
+            label="רווח אוצר לנצח"
+            value={`$${fmtUsd((world?.state?.income?.treasuryProfitEverMu ?? world?.state?.treasuryProfit ?? 0) / 1000)}`}
             tone="violet"
           />
           <StatusPill
@@ -717,6 +719,20 @@ export function ArrayView() {
                   "17 נקודות-דחיפה של סוכנים השתמשו ב-nonce-מבוסס-טיק — אבל tickCount מתאפס-בכל-אתחול-תהליך וטבעת-ה-nonce זוכרת-לנצח ← כל ריצת-ענן נעלה-על המנעולים של קודמתה (נמדד: refuel-replay-rejected). כעת: הכל מבוסס-גובה — ייחודי-לנצח. גם הזמנות-הצי קיבלו בעלים ב-nonce (קוד-ה-seeding היה מת).",
                 status: "done",
                 statusLabel: "טופל — nonce-height",
+              },
+              {
+                what: "ראצ'ט אוצר שקרס (R46)",
+                detail:
+                  "חוזה הגרעין אמר \"רווח-אוצר מצטבר-מונוטוני\" — אבל ה-economy מנקז את היתרה לדלק-סולם/גז, והיא צנחה מ-213,752µ (גיט-מוכח) ל-200,000µ. טענת A38 (ראצ'ט-האוצר) תפסה את זה בדיוק-כמתוכנן: 49/52. הריפוי: מונה-מונוטוני-אמיתי treasuryProfitEver — עולה-בכל-קציר, לעולם-לא-נשחק, זרוע-מהשיא-הגיט-מוכח. הוכחה-מבודדת 13/13 + חי על-השרשרת ב-h30748: 213,752µ · 52/52.",
+                status: "done",
+                statusLabel: "טופל — treasuryProfitEver",
+              },
+              {
+                what: "טיפוגרפיה ציבורית מופרת (R46)",
+                detail:
+                  "טענות-הניקיון של הקונסולה (A14/A42) נכשלו-חי: 36 מקפי-אמה אסורים בדף-הבית + 3 בדף-הרוסט. הוחלפו-כירורגית (ערכי-נפילה ל-\"-\", פרוזה לנקודת-אמצע) — אימות-עצמאי-חוזר: אפס-תווים-אסורים, 52/52 ALL_PASS מ-GitHub Actions.",
+                status: "done",
+                statusLabel: "טופל — 52/52 ALL_PASS",
               },
               {
                 what: "מפת-האחזקות מיושנת",

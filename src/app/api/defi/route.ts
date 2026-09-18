@@ -78,6 +78,9 @@ interface WorldDoc {
   state?: {
     height?: number; treasuryProfit?: number; fills?: number; swaps?: number;
     liveOrders?: number; tps?: number; opsTotal?: number;
+    // FIX(R46): המונה-המונוטוני-האמיתי — עולה-רק, לעולם-לא-נשחק-לדלק (היתרה-העובדת נשחקת
+    // לסולם/גז-לפי-תכנון). נפרסם-על-ידי-dex-beat מ-R46; עד-שייפרסם — נפילה-כנה-ליתרה-העובדת.
+    income?: { treasuryProfitEverMu?: number };
   };
   pools?: Array<{
     key: string; ra: number; rb: number; swaps: number;
@@ -142,6 +145,7 @@ async function worldSide() {
   return {
     height: w.state?.height ?? null,
     treasuryProfitUsds: mu(w.state?.treasuryProfit),
+    treasuryProfitEverUsds: mu(w.state?.income?.treasuryProfitEverMu ?? w.state?.treasuryProfit),
     fills: w.state?.fills ?? 0,
     swaps: w.state?.swaps ?? 0,
     liveOrders: w.state?.liveOrders ?? 0,
@@ -324,9 +328,9 @@ export async function GET() {
     },
     treasury: {
       label: "אוצר מתעצם",
-      value: world?.treasuryProfitUsds ?? 0,
+      value: world?.treasuryProfitEverUsds ?? world?.treasuryProfitUsds ?? 0,
       unit: "USDS",
-      detail: "רווח מצטבר + 10% מריבית שוק-הכספים (גורם-היתרה)",
+      detail: `מצטבר-לנצח ${(world?.treasuryProfitEverUsds ?? 0).toFixed(1)} (מונוטוני — לעולם לא נשחק לדלק) · יתרה-עובדת ${(world?.treasuryProfitUsds ?? 0).toFixed(1)} (מזרימה-דלק-סולם) · +10% מריבית שוק-הכספים`,
     },
     grid: {
       label: "הגריד מזרים",
