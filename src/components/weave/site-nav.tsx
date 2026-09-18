@@ -24,6 +24,7 @@ import {
   HardDrive,
   Home,
   LayoutDashboard,
+  LayoutGrid,
   Menu,
   ShieldCheck,
   Users,
@@ -45,6 +46,7 @@ import { OperatorPill } from "./operator";
 
 export type SiteView =
   | "gate"
+  | "array"
   | "home"
   | "network"
   | "agents"
@@ -64,6 +66,7 @@ export const SECTIONS: Array<{
   subs: SubSection[];
 }> = [
   { view: "gate", label: "שער המפעיל", icon: DoorOpen, subs: [] },
+  { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
   {
     view: "network",
