@@ -311,6 +311,7 @@ export const DISPATCHABLE: Array<{ repo: string; workflow: string; label: string
   { repo: "Zip", workflow: "weave-ecosystem.yml", label: "סריקת אקוסיסטם", description: "מדידת שכפול בכל 14 הריפואים" },
   { repo: "steem", workflow: "cloud-heart.yml", label: "לב הצי", description: "פעימת saosnet live מול RPC ציבורי" },
   { repo: "saos-dex", workflow: "dex-beat.yml", label: "פעימת בורסה", description: "חישוב שוק + פרסום נתוני DEX" },
+  { repo: "saos-dex", workflow: "dex-grid.yml", label: "גריד חוץ", description: "ריצת הגריד החיצוני — ספר STEEM/SBD החי, ממיין מחדש ומפרסם לקונסולה" },
   { repo: "Console", workflow: "agents-watch.yml", label: "רענון רישום סוכנים", description: "עדכון registry מה-API של גיטהאב" },
   { repo: "Console", workflow: "dex-watch.yml", label: "סריקת הפקדות", description: "סריקת TRON/ETH/SOL/BTC אחר כסף נכנס" },
 ];

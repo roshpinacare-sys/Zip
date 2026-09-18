@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminGate, useOperator } from "@/components/weave/operator";
+import { GridArmCard } from "@/components/weave/views/admin/grid-arm-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -135,6 +136,9 @@ export function AdminCommandView() {
         </Button>
       </div>
 
+      {/* חימום הגריד החוץ — עורק הכסף האמיתי */}
+      <GridArmCard />
+
       {/* הזנקה מהירה */}
       <Card className="mb-6">
         <CardContent className="flex flex-col gap-4 p-5">
@@ -154,7 +158,7 @@ export function AdminCommandView() {
                   <Button
                     key={key}
                     variant="outline"
-                    className="h-auto flex-col items-start gap-1 p-4 text-start"
+                    className="h-auto flex-col items-start gap-1 whitespace-normal p-4 text-start break-words"
                     disabled={dispatching !== null}
                     onClick={() => void dispatch(d.repo, d.workflow, d.label)}
                   >
