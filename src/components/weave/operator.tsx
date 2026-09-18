@@ -70,22 +70,29 @@ function authedFetchImpl(token: string, input: string, init: RequestInit = {}) {
 // ── Provider ─────────────────────────────────────────────────────────
 
 export function OperatorProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<OperatorState>(() => {
-    // אתחול בטוח-SSR: בלי טוקן בלשונית — "לא מחובר" מיד; עם טוקן — "בודק"
-    // עד שהאימות מול השרת יחזור
-    const token =
-      typeof window === "undefined" ? null : sessionStorage.getItem(TOKEN_KEY);
-    return token
-      ? { status: "checking", account: null, publicKey: null, expiresAt: null }
-      : { status: "out", account: null, publicKey: null, expiresAt: null };
+  // אתחול בטוח-SSR: הרינדור הראשון זהה תמיד — "בודק" — גם בשרת וגם
+  // בקליינט, בלי קריאת sessionStorage בזמן-הרינדור. ההחלטה בין "לא
+  // מחובר"/"מחובר" מתרחשת רק באפקט שאחרי ה-mount — כך עץ ההידרציה
+  // לעולם לא נקרע (תיקון hydration-mismatch: בלי סתם שרת≠קליינט).
+  const [state, setState] = useState<OperatorState>({
+    status: "checking",
+    account: null,
+    publicKey: null,
+    expiresAt: null,
   });
 
-  // בטעינה: אם יש טוקן בלשונית — מאומת מול השרת (הטוקן אולי פג-תוקף)
+  // בטעינה: בלי טוקן בלשונית — "לא מחובר" מיד; עם טוקן — מאומת מול
+  // השרת (הטוקן אולי פג-תוקף). כל מעברי-המצב בתוך ה-flow האסינכרוני —
+  // אף setState סינכרוני בגוף האפקט.
   useEffect(() => {
-    const token = sessionStorage.getItem(TOKEN_KEY);
-    if (!token) return;
     let alive = true;
     void (async () => {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        if (alive)
+          setState({ status: "out", account: null, publicKey: null, expiresAt: null });
+        return;
+      }
       try {
         const res = await authedFetchImpl(token, "/api/auth/session");
         if (!alive) return;

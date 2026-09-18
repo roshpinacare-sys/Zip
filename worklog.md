@@ -1923,3 +1923,25 @@ Stage Summary:
 - ההבדל מה-login: ההתחברות מאמתת ושוכחת; החימום אוטם את המפתח אל הכספת המוצפנת של הריפו — המקום היחיד שבו הוא חי מרגע זה. לא דיסק, לא לוג, לא תשובה.
 - הוכחות חיות: curl-י 401/400/403/200, PUT+DELETE 201/204 של סוד-ניסוי, דפדפן-חי עם טוסט-דחייה, VLM אישר ויזואלית, מובייל 390=390, lint נקי.
 - מה נותר בידי המפעיל בלבד: להזין את המפתח בכרטיס (ואז להזניק "גריד חוץ" ידנית אם רוצים ריצה ראשונה מיידית). השלב הפיזי האחרון — שידור-TRON הפדיון (100µ WTRX ל-TG6SrsMJ…) — עדיין ממתין: העמלה-על-רוחב-פס (~0.345 TRX) גבוהה מסכום-הפדיון (0.1 TRX); כדאי לצבור פדיונות עד סכום שמשתלם.
+
+---
+Task ID: R38
+Agent: Z.ai Code (main session, continuation)
+Task: הודעת המפעיל: שגיאת hydration בכניסה + "הוספתי מפתח בגיטהאב תבדוק" — תיקון הקריעה ובדיקת המפתח שהוזן, עד הקצה.
+
+Work Log:
+- שוחזרה שרשרת-האירועים מה-dev.log: שני ניסיונות login נכשלו (403) ← הצלחה (200 — המפעיל מחזיק את ה-active הנכון) ← ניסיון חימום דרך הדלת: 400 (פורמט) ואז 403×2 (authority — כנראה הודבק מפתח-ציבורי/posting במקום WIF) ← המפעיל הוסיף סוד HEADCORNER לכספת Console בגיטהאב (נמדד: 2026-09-18T01:53:33Z).
+- תוקן hydration-mismatch ב-OperatorProvider (operator.tsx): ה-initializer קרא sessionStorage בזמן-רינדור ← שרת "out" מול קליינט "checking" בכל טעינה של משתמש מחובר. עכשיו: מצב התחלתי דטרמיניסטי "checking" בשני הצדדים, כל מעברי-המצב בתוך flow אסינכרוני באפקט. גם react-hooks/set-state-in-effect נוקה. אומת בדפדפן עם טוקן אמת: אפס שגיאות-קונסולה, רינדור תקין, מובייל 390=390.
+- נבנה סוכן key-verify (Console, R38): agents/key-verify.mjs + .github/workflows/key-verify.yml — היחיד שיכול לקרוא את HEADCORNER (Actions של הריפו). גוזר WIF/סיסמת-אב בקריפטו הריבוני (gate-crypto), משווה ביט-מול-ביט מול הרשויות החיות מ-api.steemit.com, ובאבחון מלא (מפתח-ציבורי מודבק / posting / owner / memo / אי-התאמה). בהתאמה בלבד — אוטם libsodium sealed-box → saos-dex/STEEM_ACTIVE_WIF → מזניק dex-grid. הוכח מקומית בשלושה נתיבי-כישלון חיים לפני הפריסה; תוקן באג first-run (ENOENT בלוג) ובאג פרסום (git add לפני diff — קבצים חדשים).
+- הריצה החיה: run 35298963781 הצליח — המפתח ב-HEADCORNER אומת כה-active האמת (STM5HhJD5WUX… ≡ השרשרת ביט-מול-ביט), נאטם ל-saos-dex/STEEM_ACTIVE_WIF (verified-in-list 02:20:48Z), והגריד הוזנק (run 35298656651 success; commit bd3d54a בקונסולה).
+- מצב-חי מפורסם: grid.json — armed: true, verdict ARMED-WAITING, blockers כנים (צד-מכירה: 0.658 STEEM commitable < 3; צד-קנייה: 0.044 SBD < 0.15; powerdown הבא 2026-09-19T02:01:27Z), מדדים חיים (STEEM $0.0525 · SBD $0.4445 · parity 0.118).
+- הקוקפיט אומת עם סשן-מפעיל אמת: כרטיס החימום מציג "הגריד חמוש · מפתח נאטם בכספת", /api/admin/arm-grid מחזיר secretPresent: true + דלק חי. צילומים: r38-hydration-fixed, r38-grid-armed-cockpit, r38-grid-armed-mobile.
+- ניקוי: HEADCORNER נמחק מכספת Console (204) לאחר שההעברה הוכחה — המפתח חי רק בכספת-המנוע שצורכת אותו. נבדק: Console=[AGENTS_WATCH_TOKEN], saos-dex=[CONSOLE_PUSH_TOKEN, STEEM_ACTIVE_WIF].
+- קיר-הקבלות: סעיף R38 חי ב-Pages (7 שורות: הוספה/אימות/השוואה/העברה/הזנקה/מצב-חי/ניקוי) + receipts/key-check.json חי (HTTP 200). lint נקי.
+
+Stage Summary:
+- המפתח שהמפעיל הוסיף בגיטהאב נבדק עד הקצה והתגלה כה-active האמת של @headcorner: אומת ביט-מול-ביט מול השרשרת החיה, הועבר מכספת-הקונסולה אל כספת-המנוע (saos-dex/STEEM_ACTIVE_WIF), הגריד החוץ התחמש ורץ — הריצה היומית 03:17 UTC תחתום מעכשיו על סדרות-אמת, ודלק-ה-powerdown (475 SP ≈ $25) נוחת מחר 02:01:27Z.
+- הגריד נמצא ב-ARMED-WAITING כנה: אין עדיין מלאי מעל המינימום לפריסת שורות — הריצה הראשונה הונחה 0 בוטלה 0. המצב מפורסם בגלוי עם הסיבה, כלום לא מדומה.
+- שגיאת ה-hydration תוקנה מהשורש (קריאת sessionStorage בזמן-רינדור) — האתר נטען נקי גם למשתמש מחובר.
+- ההוכחות: run 35298963781 (ציבורי), commit bd3d54a, grid.json חי (armed: true), receipts/key-check.json חי, קבלה מכונה מלאה, סוד בכספת (verified-in-list), אפס שכפול (HEADCORNER נמחק).
+- מה נותר: הפקדות חוץ (0 עדיין), שידור-TRON הפדיון (ממתין לצבירת סכום שמשתלם), והמתנה לדלק מחר 02:01 — משם הגריד סוחר לבד.
