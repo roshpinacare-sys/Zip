@@ -58,6 +58,13 @@ interface DefiDoc {
     height: number | null;
     treasuryProfitUsds: number;
     treasuryProfitEverUsds?: number; // FIX(R46): המונה-המונוטוני — מצטבר-לנצח, לעולם לא נשחק לדלק
+    // FIX(R47): THE-SAVE — החיסכון-החי על-השרשרת: קרן, הכנסה-מדודה, שיעור-יום-אמת
+    savings?: {
+      potUsds: number; savers: number; paidUsds: number; dayPaidUsds: number; dayPaidPrevUsds: number;
+      apyBps: number; incomeSourceUsds: number;
+      incomeStreams: { vaultInterestUsds: number; lendReserveUsds: number; feeShareUsds: number };
+      dayWindowBlocks: number | null; feeSharePct: number | null;
+    };
     fills: number; swaps: number; liveOrders: number; opsTotal: number;
     pools: Array<{
       key: string; ra: number; rb: number; swaps: number;
@@ -264,6 +271,9 @@ export function FlywheelView() {
                     { k: "בריכות AMM", v: w ? `${w.pools.length}` : "—" },
                     { k: "אוצר מצטבר לנצח", v: w ? fmtUsd(w.treasuryProfitEverUsds ?? w.treasuryProfitUsds) : "—", t: "מונה-מונוטוני (R46): כל-קציר עולה, לעולם לא נשחק לדלק-סולם/גז" },
                     { k: "יתרת אוצר עובדת", v: w ? fmtUsd(w.treasuryProfitUsds) : "—", t: "היתרה שמזרימה-דלק-סולם וגז — יורדת-כלפי-מטה-לפי-תכנון" },
+                    { k: "חיסכון משלם", v: w?.savings ? `${fmtUsd(w.savings.paidUsds)} ל-${w.savings.savers} חוסכים` : "—", t: "THE-SAVE (R47): הכנסה-מדודה ששולמה-בפועל — אפס-הטבעה, העברה-טהורה מיתרת-האוצר" },
+                    { k: "הכנסת החיסכון (מדודה)", v: w?.savings ? fmtUsd(w.savings.incomeSourceUsds) : "—", t: "FIX(R47): 30% מחית-עמלות-הבריכות + ריבית-כספת + עתודת-אוצר-שוק-הכספים — מונים-מונוטוניים של הכנסה-אמת" },
+                    { k: "שיעור-יום שנמדד", v: w?.savings && w.savings.apyBps > 0 ? `${(w.savings.apyBps / 100).toFixed(2)}% APY` : "חלון-ראשון מתגלגל", t: `חלון-היום-האמיתי (5,760 גבהים = יום-אחד): מה-ששולם-בפועל-אתמול × 365 — לא-הבטחה, מדידה` },
                     { k: "פעולות שרשרת", v: w ? `${(w.opsTotal ?? 0).toLocaleString("he-IL")}` : "—" },
                   ].map((x) => (
                     <div key={x.k} title={x.t} className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
@@ -546,7 +556,7 @@ export function FlywheelView() {
       <FlySection
         id="wheel"
         icon={Repeat}
-        title="הגלגל — שבע חוליות שכל אחת מזרימה לבאה"
+        title="הגלגל — שמונה חוליות שכל אחת מזרימה לבאה"
         sub="המספר בכל חוליה נמדד חי מהקונסולה הציבורית — שום דבר לא ישן"
       >
         <FlywheelDiagram fw={data?.flywheel ?? null} />
@@ -716,7 +726,9 @@ function MarketCalc({
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// דיאגרמת הגלגל — 7 חוליות במעגל, כל אחת עם המספר החי שלה
+// דיאגרמת הגלגל — 8 חוליות במעגל, כל אחת עם המספר החי שלה
+// FIX(R47): חוליית-החיסכון (save) נכנסה-למעגל בין-האוצר-לגריד — ההכנסה
+// זורמת מהאוצר אל-החוסכים ומשם נמשכת-חזרה-לעבודה. דבר-גורר-דבר.
 // ═══════════════════════════════════════════════════════════════════════
 
 function FlywheelDiagram({
@@ -724,7 +736,7 @@ function FlywheelDiagram({
 }: {
   fw: Record<string, { label: string; value: number | string; unit: string; detail: string }> | null;
 }) {
-  const ORDER = ["deposits", "credit", "market", "liquidity", "fees", "treasury", "grid"] as const;
+  const ORDER = ["deposits", "credit", "market", "liquidity", "fees", "treasury", "save", "grid"] as const;
   const reduced = useReducedMotion();
 
   const nodes = ORDER.map((k, i) => {

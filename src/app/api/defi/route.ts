@@ -81,6 +81,13 @@ interface WorldDoc {
     // FIX(R46): המונה-המונוטוני-האמיתי — עולה-רק, לעולם-לא-נשחק-לדלק (היתרה-העובדת נשחקת
     // לסולם/גז-לפי-תכנון). נפרסם-על-ידי-dex-beat מ-R46; עד-שייפרסם — נפילה-כנה-ליתרה-העובדת.
     income?: { treasuryProfitEverMu?: number };
+    // FIX(R47): THE-SAVE — קרן-החוסכים החיה: זרמי-ההכנסה המדודים + חלון-היום-האמיתי.
+    savings?: {
+      potMu?: number; savers?: number; paidMu?: number; dayPaidMu?: number; dayPaidPrevMu?: number;
+      apyBps?: number; opens?: number; closes?: number; incomeSourceMu?: number;
+      incomeStreams?: { vaultInterestMu?: number; lendReserveMu?: number; feeShareMu?: number };
+      dayWindowBlocks?: number; feeSharePct?: number;
+    };
   };
   pools?: Array<{
     key: string; ra: number; rb: number; swaps: number;
@@ -146,6 +153,23 @@ async function worldSide() {
     height: w.state?.height ?? null,
     treasuryProfitUsds: mu(w.state?.treasuryProfit),
     treasuryProfitEverUsds: mu(w.state?.income?.treasuryProfitEverMu ?? w.state?.treasuryProfit),
+    // FIX(R47): THE-SAVE — החיסכון על-השרשרת: קרן, הכנסה-מדודה, שיעור-יום-אמת
+    savings: {
+      potUsds: mu(w.state?.savings?.potMu),
+      savers: w.state?.savings?.savers ?? 0,
+      paidUsds: mu(w.state?.savings?.paidMu),
+      dayPaidUsds: mu(w.state?.savings?.dayPaidMu),
+      dayPaidPrevUsds: mu(w.state?.savings?.dayPaidPrevMu),
+      apyBps: w.state?.savings?.apyBps ?? 0,
+      incomeSourceUsds: mu(w.state?.savings?.incomeSourceMu),
+      incomeStreams: {
+        vaultInterestUsds: mu(w.state?.savings?.incomeStreams?.vaultInterestMu),
+        lendReserveUsds: mu(w.state?.savings?.incomeStreams?.lendReserveMu),
+        feeShareUsds: mu(w.state?.savings?.incomeStreams?.feeShareMu),
+      },
+      dayWindowBlocks: w.state?.savings?.dayWindowBlocks ?? null,
+      feeSharePct: w.state?.savings?.feeSharePct ?? null,
+    },
     fills: w.state?.fills ?? 0,
     swaps: w.state?.swaps ?? 0,
     liveOrders: w.state?.liveOrders ?? 0,
@@ -331,6 +355,12 @@ export async function GET() {
       value: world?.treasuryProfitEverUsds ?? world?.treasuryProfitUsds ?? 0,
       unit: "USDS",
       detail: `מצטבר-לנצח ${(world?.treasuryProfitEverUsds ?? 0).toFixed(1)} (מונוטוני — לעולם לא נשחק לדלק) · יתרה-עובדת ${(world?.treasuryProfitUsds ?? 0).toFixed(1)} (מזרימה-דלק-סולם) · +10% מריבית שוק-הכספים`,
+    },
+    save: {
+      label: "חיסכון-USDS מרוויח",
+      value: world?.savings?.potUsds ?? 0,
+      unit: "USDS",
+      detail: `קרן ${(world?.savings?.potUsds ?? 0).toFixed(0)}$ · שולם-לחוסכים ${(world?.savings?.paidUsds ?? 0).toFixed(2)}$ · הכנסה-מדודה ${(world?.savings?.incomeSourceUsds ?? 0).toFixed(2)}$ (30% חית-עמלות + ריבית-כספת + עתודת-שוק)`,
     },
     grid: {
       label: "הגריד מזרים",
