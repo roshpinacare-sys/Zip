@@ -29,6 +29,7 @@ import {
   Flame,
   Fuel,
   Gauge,
+  Landmark,
   LayoutGrid,
   ListChecks,
   Loader2,
@@ -38,6 +39,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Waypoints,
+  Zap,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,7 +94,20 @@ interface GridDoc {
   marks?: { steemUsd?: number | null; sbdUsd?: number | null };
 }
 interface WorldDoc {
-  state?: { height?: number; treasuryProfit?: number; fills?: number; swaps?: number };
+  state?: {
+    height?: number; treasuryProfit?: number; fills?: number; swaps?: number;
+    rail?: {
+      doses?: number; netMu?: number; equityMu?: number;
+      doseLog?: { tick: number; pair: string; side: string; inMu: number; midMu: number; anchorMu: number; premBps: number; ok: boolean | null }[];
+      budget?: { usdsMu?: number; energyMu?: number; saosMu?: number; wsteemMu?: number };
+      premiums?: { id: string; pair: string; mid: number; anchor: number; premBps: number; active: boolean }[];
+    };
+    lend?: {
+      markets?: { asset: string; sMu: number; bMu: number; utilBps: number; borrowAprBps: number; supplyAprBps: number }[];
+      positions?: { who: string; supplies: { asset: string; mu: number }[]; borrows: { asset: string; mu: number }[]; hf: number }[];
+      totals?: { suppliesMu: number; borrowsMu: number; opens: number; closes: number };
+    };
+  };
 }
 
 // ── עזרים ────────────────────────────────────────────────────────────
@@ -339,6 +354,13 @@ export function ArrayView() {
   const steemUsdMark = money?.marks?.steemUsd ?? null;
   const weeklyUsd = grid?.fuel?.weeklyUsd ?? (rateSp !== null && steemUsdMark !== null ? rateSp * steemUsdMark : null);
   const redemption = money?.redemption;
+  // R45 · גלגל-הפנים — שוק-הכספים והמסילה מהשרשרת הקנונית
+  const lend = world?.state?.lend;
+  const rail = world?.state?.rail;
+  const usdsMkt = lend?.markets?.find((m) => m.asset === "USDS");
+  const lendSuppliers = (lend?.positions ?? []).filter((p) => (p.supplies ?? []).some((s) => s.mu > 0));
+  const lendBorrowers = (lend?.positions ?? []).filter((p) => (p.borrows ?? []).some((b) => b.mu > 0));
+  const railDose = rail?.doseLog?.[0];
 
   if (loading) {
     return (
@@ -394,9 +416,9 @@ export function ArrayView() {
         id="posture"
         icon={Gauge}
         title="תנוחת המערך — כרגע"
-        sub="חמשת צווארי-הבקבוק במבט אחד, כולם מדידה חיה"
+        sub="ששת צווארי-הבקבוק במבט אחד, כולם מדידה חיה"
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <StatusPill
             icon={ShieldCheck}
             label="גריד חוץ"
@@ -426,6 +448,12 @@ export function ArrayView() {
             label="פדיון"
             value={redemption?.verdict ?? "—"}
             tone={redemption?.verdict === "SEND-NOW" ? "emerald" : "amber"}
+          />
+          <StatusPill
+            icon={Landmark}
+            label="שוק-כספים"
+            value={usdsMkt ? `${(usdsMkt.utilBps / 100).toFixed(1)}% ניצולת` : "—"}
+            tone={(usdsMkt?.bMu ?? 0) > 0 ? "emerald" : "zinc"}
           />
         </div>
         {grid?.blocker && grid.blocker.length > 0 && (
@@ -543,6 +571,76 @@ export function ArrayView() {
         )}
       </ArraySection>
 
+      {/* ── 2.5 גלגל-הפנים: שוק-הכספים + המסילה (R45) ── */}
+      <ArraySection
+        id="wheel"
+        icon={Zap}
+        title="גלגל-הפנים — שוק-הכספים והמסילה"
+        sub="דבר גורר דבר: ההון הרדום מלווה, הצי שואל, המסילה שופשפת — הכל על השרשרת הקנונית"
+      >
+        <div className="grid gap-3 lg:grid-cols-2">
+          <Card className="border-[#d4af37]/25 bg-[#d4af37]/[0.03]">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Landmark className="h-4 w-4 text-[#e8cd6e]" aria-hidden />
+                <h3 className="text-sm font-bold text-zinc-100">THE-MARKET · שוק-הכספים</h3>
+                <Badge variant="outline" className="ml-auto border-emerald-500/30 font-mono text-[10px] text-emerald-400">
+                  חי על-השרשרת
+                </Badge>
+              </div>
+              <dl className="grid gap-1.5">
+                {[
+                  { k: "אספקת USDS", v: usdsMkt ? `$${fmtUsd(usdsMkt.sMu / 1000)}` : "—" },
+                  { k: "חוב חי", v: usdsMkt ? `$${fmtUsd(usdsMkt.bMu / 1000)}` : "—" },
+                  { k: "ניצולת / APR שאילה", v: usdsMkt ? `${(usdsMkt.utilBps / 100).toFixed(2)}% · ${(usdsMkt.borrowAprBps / 100).toFixed(2)}%` : "—" },
+                  { k: "מלווים עצמאיים", v: `${lendSuppliers.length} (${lendSuppliers.map((p) => p.who).join(", ") || "—"})` },
+                  { k: "לווים במחזור", v: `${lendBorrowers.length} (${lendBorrowers.map((p) => p.who).join(", ") || "—"})` },
+                  { k: "מחזורים נפתחו/נסגרו", v: `${lend?.totals?.opens ?? 0} / ${lend?.totals?.closes ?? 0}` },
+                ].map((r) => (
+                  <div key={r.k} className="flex items-baseline justify-between gap-3 text-xs">
+                    <dt className="shrink-0 text-zinc-500">{r.k}</dt>
+                    <dd className="font-mono text-zinc-200 text-left" dir="ltr">{r.v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-2.5 text-[11px] leading-relaxed text-zinc-500">
+                Aave-style peer-to-pool: עקומת-kink, 90% מהריבית למלווים פרו-ראטה, 10% לאוצר.
+                מאז R45 יש עמיתים אמת — soldier-2/4 מזרימים אספקה עצמאית משלהם.
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-violet-500/25 bg-violet-500/[0.03]">
+            <CardContent className="p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <Zap className="h-4 w-4 text-violet-300" aria-hidden />
+                <h3 className="text-sm font-bold text-zinc-100">THE-MICRORAIL · המסילה</h3>
+                <Badge variant="outline" className="ml-auto border-violet-500/30 font-mono text-[10px] text-violet-300">
+                  {(rail?.doses ?? 0) > 0 ? `${rail?.doses} מנות בריצה זו` : "ממתינה לפרמיה"}
+                </Badge>
+              </div>
+              <dl className="grid gap-1.5">
+                {[
+                  { k: "הון-עוגן", v: rail ? `$${fmtUsd((rail.equityMu ?? 0) / 1000)}` : "—" },
+                  { k: "מנה אחרונה", v: railDose ? `${railDose.side === "buy" ? "קנייה" : "מכירה"} ${railDose.inMu}µ ${railDose.pair} @ ${railDose.premBps > 0 ? "+" : ""}${railDose.premBps}bps ${railDose.ok ? "✓" : "נדחתה"}` : "—" },
+                  { k: "תקציב (USDS/SAOS/ENERGY)", v: rail ? `${fmtUsd((rail.budget?.usdsMu ?? 0) / 1000)}$ / ${fmtUsd((rail.budget?.saosMu ?? 0) / 1000, 0)} / ${fmtUsd((rail.budget?.energyMu ?? 0) / 1000, 0)} µ` : "—" },
+                  { k: "פרמיית WSTEEM", v: rail?.premiums?.find((p) => p.id === "wsteem") ? `${rail.premiums.find((p) => p.id === "wsteem")!.premBps}bps ${rail.premiums.find((p) => p.id === "wsteem")!.active ? "(פעילה)" : "(מתחת לסף 200bps)"}` : "—" },
+                  { k: "פרמיית ENERGY", v: rail?.premiums?.find((p) => p.id === "energy") ? `${rail.premiums.find((p) => p.id === "energy")!.premBps}bps ${rail.premiums.find((p) => p.id === "energy")!.active ? "(פעילה)" : "(מתחת לסף 200bps)"}` : "—" },
+                ].map((r) => (
+                  <div key={r.k} className="flex items-baseline justify-between gap-3 text-xs">
+                    <dt className="shrink-0 text-zinc-500">{r.k}</dt>
+                    <dd className="font-mono text-zinc-200 text-left" dir="ltr">{r.v}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="mt-2.5 text-[11px] leading-relaxed text-zinc-500">
+                שפשוף-TWAP מדוד לעוגן: מנה ליניארית-חצי-פער בתקרת-השפעה 25%, minOut fail-closed.
+                R45 שבר את הקיפאון המבני — בריכה דקה מקבלת מנות-כנות במקום שתישאר קפואה.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </ArraySection>
+
       {/* ── 3. צי הסוכנים ── */}
       <ArraySection
         id="fleet"
@@ -595,9 +693,30 @@ export function ArrayView() {
               {
                 what: "מסמכי מנוע מיושנים בשורש הריפו",
                 detail:
-                  "למעלה מ-25 מסמכי SAOS-PULSE/DAILY-REPORT מספטמבר המוקדם יושבים בשורש saos-dex ומערפים את התמונה. ההעברה לארכיון מתועדת ב-worklog.",
-                status: "open",
-                statusLabel: "בטיפול",
+                  "למעלה מ-25 מסמכי SAOS-PULSE/DAILY-REPORT מספטמבר המוקדם הועברו ל-docs/archive עם README מסביר (commit 8a17920) — שורש המנוע נקי, ההיסטוריה שמורה.",
+                status: "done",
+                statusLabel: "טופל — הועבר לארכיון",
+              },
+              {
+                what: "שוק-כספים בלי עמיתים (R45)",
+                detail:
+                  "THE-MARKET נולד (R44) עם מלווה אחד — האוצר. חלוקת-ה-90% זרמה-כולה-חזרה-אליו וה-pro-rata היה תיאורטי. עכשיו: soldier-2/4 מנהלים אספקה-אדפטיבית-עצמאית משלהם (יעד 3× חוב-חי, רצפה 10kµ, תקרה 150kµ) — שלושה כיסים עצמאיים בפועל.",
+                status: "done",
+                statusLabel: "טופל — THE-PEERS חי",
+              },
+              {
+                what: "מסילה בקיפאון מבני (R45)",
+                detail:
+                  "נמדד-חי: בריכת-ENERGY/SAOS החזיקה-3,162µ SAOS בלבד ← תקרת-ההשפעה rIn/4=790µ נפלה-מתחת-למינימום-המנה-1,000µ ← המסילה החזיקה-201,838µ SAOS ולעולם-לא-ירתה. הריפוי: רצפת-אבק 300µ במקום מינימום-שוק — נמדד-חי: 3 מנות, הפרמיה נשחקה 49→93 מול עוגן-94, הבריכה העמיקה.",
+                status: "done",
+                statusLabel: "טופל — thin-pool-cure",
+              },
+              {
+                what: "מנעולי-nonce בין-ריצות (R45)",
+                detail:
+                  "17 נקודות-דחיפה של סוכנים השתמשו ב-nonce-מבוסס-טיק — אבל tickCount מתאפס-בכל-אתחול-תהליך וטבעת-ה-nonce זוכרת-לנצח ← כל ריצת-ענן נעלה-על המנעולים של קודמתה (נמדד: refuel-replay-rejected). כעת: הכל מבוסס-גובה — ייחודי-לנצח. גם הזמנות-הצי קיבלו בעלים ב-nonce (קוד-ה-seeding היה מת).",
+                status: "done",
+                statusLabel: "טופל — nonce-height",
               },
               {
                 what: "מפת-האחזקות מיושנת",
@@ -623,7 +742,7 @@ export function ArrayView() {
               {
                 what: "צופה נחיתת דלק + הזנקה מיידית",
                 detail:
-                  "הפער הכי יקר במערך: הכניסה היחידה של ערך חוץ המתינה 76 דקות כל שבוע. נבנה, נפרס, ריצה ראשונה ירוקה (35303619186) — מחר ב-02:01 הוא יקלוט את התשלום הראשון.",
+                  "הפער הכי יקר במערך: הכניסה היחידה של ערך חוץ המתינה 76 דקות כל שבוע. נבנה, נפרס, ריצה ראשונה ירוקה (35303619186) — בכל נחיתה הוא קולט בתוך רבע-שעה ומזניק את הגריד מיד.",
                 status: "done",
                 statusLabel: "נבנה — חי בענן",
               },
@@ -640,6 +759,20 @@ export function ArrayView() {
                   "צד הקנייה של הגריד חסום על מלאי SBD (0.049 < 0.15). המנגנון הקיים: מילויי המכירה מעל קו-הזהות מזרימים SBD שמחמש את צד הקנייה בריצה הבאה — הצינור מזין את עצמו, לא צריך מקור חוץ.",
                 status: "done",
                 statusLabel: "קיים — מזרים מעצמו",
+              },
+              {
+                what: "שוק-כספים ריבוני (DeFi gap)",
+                detail:
+                  "מול Aave/Compound הרשת היתה עם כספת-CDP וחיסכון אבל בלי שוק-עמיתים. R44: THE-MARKET נולד — עקומת-kink, 5 אופס קנוניים, ניזולת בחסר-HF. השאלה הראשונה בהיסטוריה: h28764, 1,368µ USDS ב-HF 1.62 — מתועדת לנצח ב-op-log.",
+                status: "done",
+                statusLabel: "נולד — R44 THE-MARKET",
+              },
+              {
+                what: "עיגון-Hive של אבני-הדרך",
+                detail:
+                  "מנוע-העיגון (אבני-P&L על-Hive, תקציב-RC-מודע) בנוי-ומוכח — אבל כספת-הצי (posting keys) הוסרה מהריפו אחרי תקרית-האבטחה R11 ולא נאטמה-מחדש. דלת-המפעיל: איטום מחדש בדפוס-ה-STEEM-המוכח (sealed-box ← Actions secret), ואז הוא חי בענן.",
+                status: "open",
+                statusLabel: "דלת מפעיל — מפתח-צי",
               },
               {
                 what: "הפקדות חוץ — 0 עדיין",

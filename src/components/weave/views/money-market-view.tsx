@@ -466,7 +466,7 @@ export function MoneyMarketView(): React.JSX.Element {
             <Card className="border-zinc-800/80 bg-zinc-950/60">
               <CardContent className="p-5">
                 <h2 className="mb-3 flex items-center gap-2 text-sm font-bold text-zinc-200">
-                  <Landmark className="size-4 text-[#e8cd6e]" aria-hidden /> ניהול-אוצר-אוטונומי
+                  <Landmark className="size-4 text-[#e8cd6e]" aria-hidden /> הסוכנים האוטונומיים — שלושה-תפקידים
                 </h2>
                 <div className="space-y-2.5 text-[12px]">
                   <div className="rounded-lg border border-[#d4af37]/20 bg-[#d4af37]/5 p-3">
@@ -478,6 +478,17 @@ export function MoneyMarketView(): React.JSX.Element {
                       מזרים-אדפטיבית 3× ביקוש-האשראי-החי (בין 20kµ ל-500kµ) — ההון-הרדום מרוויח,
                       והשוק מעמיק-כשהביקוש-גדל. תשואה-חיה: {fmtPctBps(lend.treasury.supplyAprBps)} ·
                       רווח שנצבר: {fmtMu(lend.treasury.earnedMu)}µ
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-violet-300">ספקי-הצי (R45) — THE-PEERS</span>
+                      <span className="tabular-nums text-zinc-300">{lend.positions.filter((p) => (p.supplies.find((s) => s.asset === "USDS")?.mu ?? 0) > 0 && p.who !== "treasury").length} עמיתים</span>
+                    </div>
+                    <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                      soldier-2 ו-soldier-4 מזרימים אספקת-USDS עצמאית משלהם (יעד-אדפטיבי 3× חוב-חי, רצפה-10kµ,
+                      תקרה-150kµ, נוזר מ-2.5Mµ לנזילות-עבודת-שוק) — חלוקת-ה-90% זורמת-פרו-ראטה-אמת
+                      בין-כיסים-עצמאיים, לא-חזרה-לאוצר-לבד.
                     </p>
                   </div>
                   <div className="rounded-lg border border-zinc-800/60 bg-zinc-900/40 p-3">
