@@ -5,10 +5,22 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { dispatchWorkflow, DISPATCHABLE } from "@/lib/live/cloud";
+import { operatorFromRequest } from "@/lib/operator-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  // פעולת-מפעיל: בלי סשן-מפעיל חתום — אין הזנקה
+  if (!operatorFromRequest(req)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "הזנקת סוכנים נעולה. התחבר עם מפתח ה-active של המפעיל.",
+        locked: true,
+      },
+      { status: 401 },
+    );
+  }
   let body: { repo?: string; workflow?: string } = {};
   try {
     body = (await req.json()) as typeof body;

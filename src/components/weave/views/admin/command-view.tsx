@@ -22,6 +22,7 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AdminGate, useOperator } from "@/components/weave/operator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +57,7 @@ function ageLabel(iso: string): string {
 }
 
 export function AdminCommandView() {
+  const { authedFetch, status } = useOperator();
   const [data, setData] = useState<CloudData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,33 +67,40 @@ export function AdminCommandView() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/cloud", { cache: "no-store" });
+      const res = await authedFetch("/api/admin/cloud");
       const j = (await res.json()) as { ok: boolean; error?: string } & CloudData;
-      if (!j.ok) throw new Error(j.error ?? "שגיאה");
+      if (!res.ok || !j.ok) {
+        throw new Error(
+          j.error ??
+            (res.status === 401
+              ? "אזור האדמין נעול — התחבר עם מפתח המפעיל"
+              : "שגיאה")
+        );
+      }
       setData(j);
     } catch (e) {
       setError(e instanceof Error ? e.message : "הענן לא נענה");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authedFetch]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (status === "in") void load();
+  }, [load, status]);
 
   const dispatch = useCallback(
     async (repo: string, workflow: string, label: string) => {
       const key = `${repo}/${workflow}`;
       setDispatching(key);
       try {
-        const res = await fetch("/api/admin/dispatch", {
+        const res = await authedFetch("/api/admin/dispatch", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ repo, workflow }),
         });
         const j = (await res.json()) as { ok: boolean; error?: string };
-        if (!j.ok) throw new Error(j.error ?? "ההזנקה נכשלה");
+        if (!res.ok || !j.ok) throw new Error(j.error ?? "ההזנקה נכשלה");
         toast.success(`הזנקת "${label}" נשלחה לענן`, {
           description: "הסוכן יתחיל לרוץ בתוך דקה - רענן לראות את הריצה",
         });
@@ -104,11 +113,11 @@ export function AdminCommandView() {
         setDispatching(null);
       }
     },
-    [load]
+    [load, authedFetch]
   );
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+    <AdminGate>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
@@ -291,6 +300,6 @@ export function AdminCommandView() {
           </div>
         </div>
       )}
-    </div>
+    </AdminGate>
   );
 }

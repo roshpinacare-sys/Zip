@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { AdminGate, useOperator } from "@/components/weave/operator";
 import { HashChip } from "../../shared";
 
 interface ServerData {
@@ -56,6 +57,7 @@ function uptime(sec: number): string {
 }
 
 export function AdminServerView() {
+  const { authedFetch, status } = useOperator();
   const [data, setData] = useState<ServerData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,23 +66,28 @@ export function AdminServerView() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/server", { cache: "no-store" });
+      const res = await authedFetch("/api/admin/server");
       const j = (await res.json()) as { ok: boolean; error?: string } & ServerData;
-      if (!j.ok) throw new Error(j.error ?? "שגיאה");
+      if (!res.ok || !j.ok) {
+        throw new Error(
+          j.error ??
+            (res.status === 401 ? "אזור האדמין נעול — התחבר עם מפתח המפעיל" : "שגיאה")
+        );
+      }
       setData(j);
     } catch (e) {
       setError(e instanceof Error ? e.message : "המדידה נכשלה");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authedFetch]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (status === "in") void load();
+  }, [load, status]);
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+    <AdminGate>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
@@ -281,6 +288,6 @@ export function AdminServerView() {
           </Card>
         </div>
       ) : null}
-    </div>
+    </AdminGate>
   );
 }

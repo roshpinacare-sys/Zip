@@ -10,6 +10,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { db } from "@/lib/db";
 import { getMirror } from "@/lib/live/cloud";
+import { operatorFromRequest } from "@/lib/operator-auth";
 
 const execAsync = promisify(exec);
 
@@ -60,7 +61,18 @@ async function localLedgerFile() {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  // אזור-מפעיל: מצב השרת והסנכרון — רק לסשן חתום
+  if (!operatorFromRequest(req)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "אזור האדמין נעול. התחבר עם מפתח ה-active של המפעיל.",
+        locked: true,
+      },
+      { status: 401 },
+    );
+  }
   const startedAt = Date.now();
   try {
     const [localAtts, localCps, localAgents, git, ledgerFile, mirror] = await Promise.all([

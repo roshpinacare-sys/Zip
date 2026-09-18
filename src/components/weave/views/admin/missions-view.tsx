@@ -27,6 +27,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AdminGate } from "@/components/weave/operator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -230,7 +231,7 @@ export function AdminMissionsView() {
   );
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+    <AdminGate>
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
           <ListOrdered className="size-7 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
@@ -496,6 +497,6 @@ export function AdminMissionsView() {
           </p>
         </section>
       )}
-    </div>
+    </AdminGate>
   );
 }

@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppFooter } from "@/components/weave/footer";
+import { OperatorProvider } from "@/components/weave/operator";
 import {
   SECTIONS as SECTIONS_LIST,
   SiteNav,
@@ -145,6 +146,7 @@ export default function Page() {
 
   return (
     <WeaveProvider>
+      <OperatorProvider>
       <TooltipProvider delayDuration={150}>
         <div className="flex min-h-screen flex-col">
           <SiteNav view={route.view} section={route.section} onNavigate={navigate} />
@@ -164,6 +166,7 @@ export default function Page() {
           <AppFooter />
         </div>
       </TooltipProvider>
+      </OperatorProvider>
     </WeaveProvider>
   );
 }

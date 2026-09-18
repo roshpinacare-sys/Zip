@@ -39,6 +39,7 @@ import { cn } from "@/lib/utils";
 import { useWeave, type DataMode } from "./store";
 import { HashChip } from "./shared";
 import { ThemeToggle } from "./theme-toggle";
+import { OperatorPill } from "./operator";
 
 // ── הסקציות ─────────────────────────────────────────────────────────
 
@@ -264,6 +265,7 @@ export function SiteNav({
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 lg:flex-none">
+          <OperatorPill />
           <ModeToggle />
           <HashChip
             value={headHash}
