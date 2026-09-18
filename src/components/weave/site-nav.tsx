@@ -26,6 +26,7 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Menu,
+  Repeat,
   ShieldCheck,
   Users,
 } from "lucide-react";
@@ -47,6 +48,7 @@ import { OperatorPill } from "./operator";
 export type SiteView =
   | "gate"
   | "array"
+  | "flywheel"
   | "home"
   | "network"
   | "agents"
@@ -67,6 +69,7 @@ export const SECTIONS: Array<{
 }> = [
   { view: "gate", label: "שער המפעיל", icon: DoorOpen, subs: [] },
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
+  { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
   {
     view: "network",
