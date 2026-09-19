@@ -51,27 +51,42 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
   record("G1-site-up", home.ok ? "PASS" : "FAIL",
     `HTTP ${home.status} · ${homeBytes} bytes`);
 
-  // ── G2: אפס קישורים שבורים בכל העמודים הציבוריים (לקח R57: בדיקת
-  //    הבית בלבד פספסה קישור מת ב-wallet — השער מכסה את הספרייה כולה) ──
-  const PAGES = ["", "wallet.html", "money.html", "net.html", "acid.html", "gate.html", "roast.html", "defi.html", "deposits.html", "readiness.html", "sovereign.html"];
+  // ── G2: אפס קישורים שבורים בדור הנוכחי של העמודים הציבוריים (לקח R57:
+  //    הבית בלבד פספס את ה-wallet. לקח R58: הרשימה היא הדור הנוכחי בלבד —
+  //    החזיתות שיצאו מהמחזור מכוסות על ידי G8) ──
+  const PAGES = ["", "wallet.html", "truth.html", "receipts/", "hub/index.html"];
   let broken = [], blocked = [], checked = 0;
+  const seenLinks = new Set();
   for (const page of PAGES) {
-    const ph = page ? await fetchJson(`${BASE}/${page}`, 15000) : home;
-    if (!ph.ok || !ph.text) { if (page) broken.push(`${page} → HTTP ${ph.status}`); continue; }
+    const pageUrl = page ? `${BASE}/${page}` : `${BASE}/`;
+    const ph = page ? await fetchJson(pageUrl, 15000) : home;
+    if (!ph.ok || !ph.text) { if (page) broken.push(`${page} עצמו → HTTP ${ph.status}`); continue; }
+    const pageBase = new URL(pageUrl);
     const hrefs = new Set();
     const re = /href="([^"]*)"/g; let m;
     while ((m = re.exec(ph.text)) !== null) hrefs.add(m[1]);
-    const links = [...hrefs].filter(h =>
-      !h.startsWith("#") && !h.startsWith("data:") && !h.startsWith("javascript:") &&
-      !h.includes("'") && !h.includes("+") && h.trim().length > 1
-    );
-    for (const h of links) {
-      const url = h.startsWith("http") ? h : BASE + "/" + h.replace(/^\.\//, "");
+    for (const h of hrefs) {
+      if (!h || h.startsWith("#") || h.startsWith("data:") || h.startsWith("javascript:") ||
+          h.startsWith("mailto:") || h.startsWith("tel:")) continue;
+      // קטעי תבנית-JS מוטמעים (href="' + esc(x)) הם קוד, לא קישורים
+      if (h.includes("'") || h.includes("+") || h.includes("<")) continue;
+      let u;
+      try { u = new URL(h, pageBase); } catch { continue; }
+      if (u.protocol !== "http:" && u.protocol !== "https:") continue;
+      u.hash = "";
+      const key = u.toString();
+      if (seenLinks.has(key)) continue;
+      seenLinks.add(key);
       checked++;
-      const r = await fetchJson(url, 12000);
-      // 404/5xx = שבור בוודאות. 403 מאתר-צד שלישי = חומת-בוטים, לא הוכחת שבירה.
-      if (r.status === 403) blocked.push(`${h} → 403 (חומת-בוטים, בלתי-מוכרע)`);
-      else if (!r.ok) broken.push(`${page || "(home)"}: ${h} → ${r.status}`);
+      const r = await fetchJson(key, 12000);
+      // שלנו: כל מה שאינו 200 — שבור, זה שלנו. צד-שלישי: 404/4xx = שבור
+      // בוודאות; 403/5xx/0 = בלתי-מוכרע (חומות-בוטים, קריסת מקור חולפת).
+      const sameOrigin = u.origin === pageBase.origin;
+      if (sameOrigin ? !r.ok : (r.ok ? false : !(r.status === 403 || r.status === 0 || r.status >= 500))) {
+        broken.push(`${page || "(home)"}: ${h} → ${r.status}`);
+      } else if (!sameOrigin && !r.ok) {
+        blocked.push(`${h} (${r.status})`);
+      }
     }
   }
   record("G2-zero-broken-links",
@@ -92,7 +107,9 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
   // ── G4: אף תאום מזויף — קבצים שנולדים בריפו הציבורי לא מחזיקים עותק
   //    מקומי (דוקטרינת Task 28 + ריפוי R57: עותק מקומי של קובץ שנולד
   //    בציבורי = אמת שנייה שמתיישנת בשקט — בדיוק הכשל שנתפס כאן).
-  const PUBLIC_BORN = ["index.html", "status.json"];
+  // הרחבת R58: החזיתות שיצאו מהמחזור נולדו-מחדש כ-stub ציבורי — עותק מקומי שלהן הוא תאום מזויף.
+  const RETIRED = ["money.html", "net.html", "acid.html", "gate.html", "roast.html", "defi.html", "deposits.html", "readiness.html", "sovereign.html", "versus.html"];
+  const PUBLIC_BORN = ["index.html", "status.json", ...RETIRED];
   const forged = PUBLIC_BORN.filter((f) => fs.existsSync(path.join(ROOT, "console", f)));
   record("G4-no-forged-twins", forged.length === 0 ? "PASS" : "FAIL",
     forged.length ? `עותקים מקומיים מזויפים: ${forged.join(", ")}` : "אף קובץ שנולד בציבורי לא מחזיק תאום בריבוני ✓",
@@ -135,6 +152,28 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
   const dev = await fetchJson("http://localhost:3000/api/health", 5000);
   record("G7-dev-server", dev.ok ? "PASS" : "WARN",
     `HTTP ${dev.status} (סנדבוקס ארעי — לא מקור האמת, רק מקום העבודה)`);
+
+
+  // ── G8: דור ממשק אחד (R58) — החזיתות שיצאו מהמחזור מגישות הפניה קבועה
+  //    בלבד, האינדקס לא מקשר אליהן, האמת מקושרת, והמפה נקייה מהן. ──
+  const stubFail = [];
+  for (const p of RETIRED) {
+    const r = await fetchJson(`${BASE}/${p}`, 12000);
+    if (!r.ok || !r.text) { stubFail.push(`${p}: HTTP ${r.status}`); continue; }
+    const bytes = Buffer.byteLength(r.text);
+    if (bytes > 2500) { stubFail.push(`${p}: ${bytes}B > 2500B`); continue; }
+    if (!r.text.includes('content="0; url=/Console/"')) { stubFail.push(`${p}: אין הפניה קבועה`); continue; }
+    if (!r.text.includes('rel="canonical"')) { stubFail.push(`${p}: אין canonical`); continue; }
+  }
+  const indexText = home.text || "";
+  const retiredHrefs = RETIRED.filter((p) => indexText.includes(`href="${p}"`));
+  const truthLinked = indexText.includes('href="truth.html"');
+  const sitemap = await fetchJson(BASE + "/sitemap.xml", 15000);
+  const retiredInSitemap = sitemap.ok && sitemap.text ? RETIRED.filter((p) => sitemap.text.includes(`/${p}`)) : ["(מפה בלתי-קריאה)"];
+  const g8ok = stubFail.length === 0 && retiredHrefs.length === 0 && truthLinked && retiredInSitemap.length === 0;
+  record("G8-single-generation", g8ok ? "PASS" : "FAIL",
+    `${RETIRED.length} stubs מוצאים · hrefs מוצאים באינדקס ${retiredHrefs.length} · אמת מקושרת ${truthLinked ? "כן" : "לא"} · במפה ${retiredInSitemap.length === 1 && retiredInSitemap[0] === "(מפה בלתי-קריאה)" ? "?" : retiredInSitemap.length}`,
+    [stubFail.join(" | "), retiredHrefs.join(" | "), retiredInSitemap.join(" | ")].filter(Boolean).join(" || "));
 
   // ── אגידה ─────────────────────────────────────────────────────────
   const pass = results.filter(r => r.status === "PASS").length;

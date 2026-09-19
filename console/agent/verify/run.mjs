@@ -88,6 +88,191 @@ async function evaluate(a, baseUrl) {
   if (!a || typeof a !== "object") return { id, ok: false, details: "invalid assertion: not an object" };
   if (typeof a.kind !== "string") return { id, ok: false, details: "invalid assertion: kind is missing" };
 
+  // ── steem_priority: the R27 priority-inversion detector ──────────────
+  // Keyless public-history read from a Steem RPC. If the core anchor op
+  // is older than staleHours AND a newer non-core custom_json op from the
+  // same account exists, the anchor's RC budget was consumed by a
+  // lower-priority op: exactly the 2026-09-17 incident (genesis deploy +
+  // mint fired while the anchor line waited and the network stayed STALE
+  // for 32.7h). Independent of the Console target: the chain is a second
+  // witness, not a page fetch.
+  if (a.kind === "steem_priority") {
+    const account = String(a.account ?? "cashmachine");
+    const coreOp = String(a.coreOp ?? "saos.weave.core.v1");
+    const staleHours = Number(a.staleHours ?? 26);
+    if (!Number.isFinite(staleHours)) return { id, ok: false, details: "invalid assertion: staleHours is not a number" };
+    const rpc = String(a.rpc ?? "https://api.steemit.com");
+    let hist;
+    try {
+      const r = await fetch(rpc, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "condenser_api.get_account_history", params: [account, -1, 100] }),
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+      const j = await r.json();
+      hist = j?.result;
+      if (!Array.isArray(hist)) return { id, ok: false, details: `rpc returned no history array (HTTP ${r.status})` };
+    } catch (err) {
+      return { id, ok: false, details: `rpc fetch failed: ${err?.message ?? err}` };
+    }
+    let coreTs = "";
+    let nonCore = null;
+    for (const [, entry] of hist) {
+      const op = entry?.op;
+      if (!op || op[0] !== "custom_json") continue;
+      const body = op[1] ?? {};
+      if (!Array.isArray(body.required_posting_auths) || !body.required_posting_auths.includes(account)) continue;
+      const ts = String(entry.timestamp ?? "");
+      if (!ts) continue;
+      if (body.id === coreOp) {
+        if (ts > coreTs) coreTs = ts;
+      } else if (!nonCore || ts > nonCore.ts) {
+        nonCore = { id: String(body.id ?? "?"), ts };
+      }
+    }
+    if (!coreTs) return { id, ok: false, details: `core op ${coreOp} not found in last 100 ops of @${account}` };
+    const coreAgeH = (Date.now() - Date.parse(coreTs + "Z")) / 3_600_000;
+    if (coreAgeH <= staleHours) {
+      return { id, ok: true, details: `core anchor ${coreAgeH.toFixed(1)}h old (fresh, <= ${staleHours}h)` };
+    }
+    if (nonCore && nonCore.ts > coreTs) {
+      return { id, ok: false, details: `priority inversion: core ${coreAgeH.toFixed(1)}h stale while ${nonCore.id} fired later (${nonCore.ts}Z) and consumed the anchor budget` };
+    }
+    return { id, ok: true, details: `core anchor ${coreAgeH.toFixed(1)}h stale but no non-core op fired after it (honest starvation: RC regen, no inversion)` };
+  }
+
+  // ── oracle_drift: R28 truth anchor ──────────────────────────────────
+  // The DEX oracle claims to track real markets. This detector makes it
+  // prove it: reads the live world.json oracle, fetches a public keyless
+  // price source (CoinGecko first, CoinPaprika and CryptoCompare as
+  // honest fallbacks, mirroring the engine's own multi-source doctrine)
+  // and fails when any ACTIVE asset drifts beyond maxDriftPct.
+  // Legacy frozen keys (not in the assets map) are ignored by design.
+  if (a.kind === "oracle_drift") {
+    const maxDriftPct = Number(a.maxDriftPct ?? 5);
+    const assets = a.assets && typeof a.assets === "object" ? a.assets : {};
+    if (Object.keys(assets).length === 0) return { id, ok: false, details: "invalid assertion: assets map is empty" };
+    let world;
+    try {
+      const r = await fetchTarget(baseUrl, a.target ?? "dex/world.json");
+      world = JSON.parse(r.body);
+    } catch (err) {
+      return { id, ok: false, details: `cannot read world.json: ${err?.message ?? err}` };
+    }
+    const oracle = world?.state?.oracle;
+    if (!oracle || typeof oracle !== "object") return { id, ok: false, details: "field state.oracle is missing" };
+
+    const cgIds = [...new Set(Object.values(assets))];
+    const PAPRIKA = { "steem": "steem-steem", "hive": "hive-hive", "steem-dollars": "sbd-steem-dollars", "solana": "sol-solana", "tron": "trx-tron", "ethereum": "eth-ethereum", "bitcoin": "btc-bitcoin" };
+    const CCSYMS = { "steem": "STEEM", "hive": "HIVE", "steem-dollars": "SBD", "solana": "SOL", "tron": "TRX", "ethereum": "ETH", "bitcoin": "BTC" };
+
+    async function tryFetchJson(url) {
+      try {
+        const r = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+        if (!r.ok) return { error: `HTTP ${r.status}` };
+        return { json: await r.json() };
+      } catch (err) {
+        return { error: err?.message ?? String(err) };
+      }
+    }
+
+    let cg = null, provider = "", providerErrs = [];
+    const invPaprika = {};
+    for (const [gid, pid] of Object.entries(PAPRIKA)) invPaprika[pid] = gid;
+    const cgRes = await tryFetchJson(`https://api.coingecko.com/api/v3/simple/price?ids=${cgIds.join(",")}&vs_currencies=usd&t=${cacheBust}`);
+    if (cgRes.json && cgIds.some((id) => Number(cgRes.json?.[id]?.usd) > 0)) { cg = cgRes.json; provider = "coingecko"; }
+    else {
+      providerErrs.push(`coingecko:${cgRes.error ?? "no-prices"}`);
+      const ppRes = await tryFetchJson(`https://api.coinpaprika.com/v1/tickers?quotes=USD&t=${cacheBust}`);
+      if (Array.isArray(ppRes.json)) {
+        const m = {};
+        for (const t of ppRes.json) {
+          const gid = invPaprika[t.id];
+          if (gid) m[gid] = { usd: Number(t?.quotes?.USD?.price) };
+        }
+        if (cgIds.some((id) => Number(m?.[id]?.usd) > 0)) { cg = m; provider = "coinpaprika"; }
+        else providerErrs.push("coinpaprika:no-prices");
+      } else providerErrs.push(`coinpaprika:${ppRes.error ?? "no-array"}`);
+      if (!cg) {
+        const ccRes = await tryFetchJson(`https://min-api.cryptocompare.com/data/pricemulti?fsyms=${cgIds.map((id) => CCSYMS[id] ?? id).join(",")}&tsyms=USD&t=${cacheBust}`);
+        if (ccRes.json && !ccRes.json.Response) {
+          const invCc = {};
+          for (const [gid, sym] of Object.entries(CCSYMS)) invCc[sym] = gid;
+          const m = {};
+          for (const [sym, v] of Object.entries(ccRes.json)) {
+            const gid = invCc[sym];
+            if (gid) m[gid] = { usd: Number(v?.USD) };
+          }
+          if (cgIds.some((id) => Number(m?.[id]?.usd) > 0)) { cg = m; provider = "cryptocompare"; }
+          else providerErrs.push("cryptocompare:no-prices");
+        } else providerErrs.push(`cryptocompare:${ccRes.error ?? "error-shape"}`);
+      }
+    }
+    if (!cg) return { id, ok: false, details: `all price sources failed: ${providerErrs.join(", ")}` };
+
+    const parts = [];
+    let worstAbs = 0, worstName = "", compared = 0;
+    for (const [asset, cgId] of Object.entries(assets)) {
+      const mu = Number(oracle?.[asset]?.mu);
+      const market = Number(cg?.[cgId]?.usd);
+      if (!Number.isFinite(mu) || mu <= 0) { parts.push(`${asset}:no-oracle`); continue; }
+      if (!Number.isFinite(market) || market <= 0) { parts.push(`${asset}:no-market`); continue; }
+      const driftPct = ((mu / 1e6 - market) / market) * 100;
+      compared++;
+      parts.push(`${asset} ${driftPct >= 0 ? "+" : ""}${driftPct.toFixed(2)}%`);
+      if (Math.abs(driftPct) > worstAbs) { worstAbs = Math.abs(driftPct); worstName = asset; }
+    }
+    if (compared === 0) return { id, ok: false, details: `no asset could be compared via ${provider} (oracle or market missing)` };
+    const ok = worstAbs <= maxDriftPct;
+    return { id, ok, details: `${compared} assets vs ${provider}: ${parts.join(", ")} · worst ${worstName} ${worstAbs.toFixed(2)}%, limit ${maxDriftPct}%` };
+  }
+
+  // ── retired_pages: R58 single-generation doctrine ──────────────────
+  // A page retired from a previous interface generation must serve a
+  // permanent redirect stub: HTTP 200, tiny, http-equiv refresh to the
+  // console root, canonical present. Anything bigger or livelier is a
+  // second-generation front coexisting with the current one (the exact
+  // disease this detector refuses to bless).
+  if (a.kind === "retired_pages") {
+    const pages = Array.isArray(a.pages) ? a.pages : [];
+    if (pages.length === 0) return { id, ok: false, details: "invalid assertion: pages list is empty" };
+    const maxBytes = Number(a.maxBytes ?? 2500);
+    const redirectTo = String(a.redirectTo ?? "/Console/");
+    const bad = [];
+    for (const p of pages) {
+      const path = String(p ?? "");
+      const r = await fetchTarget(baseUrl, path);
+      if (r.error) { bad.push(`${path}:fetch-error`); continue; }
+      if (r.status !== 200) { bad.push(`${path}:HTTP${r.status}`); continue; }
+      if (r.body.length > maxBytes) { bad.push(`${path}:${r.body.length}B>${maxBytes}B`); continue; }
+      if (!r.body.includes(`content="0; url=${redirectTo}"`)) { bad.push(`${path}:no-refresh`); continue; }
+      if (!r.body.includes(`rel="canonical"`)) { bad.push(`${path}:no-canonical`); continue; }
+    }
+    const ok = bad.length === 0;
+    return { id, ok, details: ok ? `${pages.length}/${pages.length} retired fronts serve permanent redirect stubs (<= ${maxBytes}B)` : `${pages.length - bad.length}/${pages.length} stubs healthy · failing: ${bad.join(", ")}` };
+  }
+
+  // ── pages_ok: R28 inventory sweep ───────────────────────────────────
+  // Every page the Console publicly promises must exist and carry real
+  // content. A page that answers 200 with an empty shell is a lie this
+  // detector refuses to bless: minBytes is the floor for "real content".
+  if (a.kind === "pages_ok") {
+    const pages = Array.isArray(a.pages) ? a.pages : [];
+    if (pages.length === 0) return { id, ok: false, details: "invalid assertion: pages list is empty" };
+    const bad = [];
+    for (const p of pages) {
+      const path = String(p?.path ?? "");
+      const minBytes = Number(p?.minBytes ?? 1024);
+      const r = await fetchTarget(baseUrl, path);
+      if (r.error) { bad.push(`${path}:fetch-error`); continue; }
+      if (r.status !== 200) { bad.push(`${path}:HTTP${r.status}`); continue; }
+      if (r.body.length < minBytes) { bad.push(`${path}:${r.body.length}B<${minBytes}B`); }
+    }
+    const ok = bad.length === 0;
+    return { id, ok, details: ok ? `${pages.length}/${pages.length} pages healthy (200 + content floor)` : `${pages.length - bad.length}/${pages.length} healthy · failing: ${bad.join(", ")}` };
+  }
+
   const target = a.target ?? "";
   const res = await fetchTarget(baseUrl, target);
 
@@ -154,6 +339,25 @@ async function evaluate(a, baseUrl) {
       const min = Number(a.min);
       if (!Number.isFinite(min)) return { id, ok: false, details: `invalid assertion: min is not a number` };
       return { id, ok: num >= min, details: `${a.field} = ${num}, minimum is ${min}` };
+    }
+
+    // json_age: a date field must be at most maxHours old - liveness of a
+    // publisher, measured against the live file (not a claim in a page).
+    case "json_age": {
+      let json;
+      try {
+        json = JSON.parse(res.body);
+      } catch (err) {
+        return { id, ok: false, details: `target is not valid JSON: ${err?.message ?? err}` };
+      }
+      const { found, value } = resolvePath(json, a.field);
+      if (!found) return { id, ok: false, details: `field "${a.field}" is missing` };
+      const t = Date.parse(String(value));
+      if (!Number.isFinite(t)) return { id, ok: false, details: `field "${a.field}" = ${JSON.stringify(value)} is not a parsable date` };
+      const ageH = (Date.now() - t) / 3_600_000;
+      const maxH = Number(a.maxHours);
+      if (!Number.isFinite(maxH)) return { id, ok: false, details: `invalid assertion: maxHours is not a number` };
+      return { id, ok: ageH <= maxH, details: `field "${a.field}" = ${JSON.stringify(value)}, age ${ageH.toFixed(2)}h, maximum ${maxH}h` };
     }
 
     case "regex_absent": {
