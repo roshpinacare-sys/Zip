@@ -1,42 +1,34 @@
 #!/usr/bin/env bun
 // ─────────────────────────────────────────────────────────────────────
-// SAOS WEB · web-publish — סוכן הענן של רשת-האחסון (R50).
+// SAOS WEB · web-publish — סוכן הענן של רשת-האחסון הריבונית (R50).
 //
-// משימה: לקחת חבילה מהדואר הנכנס של הריפו הריבוני ולהעלות אותה
-// לשרשרת Steem הציבורית — בסמכות posting בלבד, מודד-עלות-חיה,
-// אידמפוטנטי לחלוטין (כל צ׳אנק נבדק על השרשרת לפני שידור) וכנה
-// בדילוג: אין RC ⇒ המשימה נשארת בתור והריצה הבאה מנסה שוב.
+// מה שנמדד בפועל (probe1/probe2, 2026-09-19):
+//   · comment ב-Steem: בסיס 976M RC + 320k/תו — מסלול מת.
+//   · custom_json ב-Steem: בסיס ~65M + 320k/תו — המסלול החי.
+//   · Hive: 509k/תו — יקר יותר. Steem הוא הנתיב.
 //
-// מבנה על השרשרת (חשבון העוגן):
-//   · מכולה: פוסט שורש permlink=saosweb-<hash10>, תג=saosweb,
-//     גוף=מניפסט JSON (במצב inline גם התוכן עצמו)
-//   · צ׳אנקים: תגובות על המכולה permlink=saosweb-<hash10>-c001..
-//   · אינדקס: custom_json id=saos.web.v1 {h,n,s,at} — הולך אחרון
+// הארכיטקטורה על השרשרת (חשבון העוגן, סמכות posting):
+//   · מניפסט: custom_json id=saos.web.v1 — חותם-sha256 של החבילה.
+//     הולך ראשון, עולה ~110M RC — נוחת בריצה הראשונה שיש לה תקציב.
+//   · צ׳אנקים: custom_json id=saos.web.c.v1 {h,i,d} — הבייטים עצמם,
+//     בגודל שנקבע לפי המנה החיה בעת השידור (adaptive). מצטבר עד שלמות.
+//   · שלמות = join(d) במיון-i ⇒ אורך s + sha256 של המניפסט. שום "אמון".
 //
-// מגבלות-אמת שהקוד מכבד:
-//   · פוסט שורש אחד לכל 5 דקות (קונצנזוס Steem) — מרווח בין מכולות
-//   · תגובה אחת לכל 20 שניות (MIN_REPLY_INTERVAL) — מרווח בין צ׳אנקים
-//   · תקציב RC: שידור רק מעל רצפת בטיחות + אומדן-עלות שנלמד חי
-//
-// דגלים: --dry (בלי שידור) · --verify-only (קריאה בלבד)
+// אידמפוטנטי לחלוטין: סריקת היסטוריה לפני כל שידור; דילוג-כנה כשאין
+// RC; הקומיט מתעדכן רק בריצה חיה. ההיסטוריה השופטת היחידה: השרשרת.
 // ─────────────────────────────────────────────────────────────────────
 
 import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
 import {
-  sha256Hex,
-  containerPermlink,
-  chunkPermlink,
-  WEB_TAG,
   WEB_OP_ID,
+  WEB_CHUNK_OP_ID,
   WEB_PROTOCOL,
   WEB_ACCOUNT,
-  MAX_INLINE_B64,
-  DEFAULT_CHUNK_B64,
+  sha256Hex,
   type WebInboxJob,
   type WebManifest,
-  type WebManifestRecord,
 } from "@/lib/web/netstore";
 import { steemBroadcast, rpcV4, STEEM_RPC_NODES } from "@/lib/weave/graphene";
 import type { GrapheneOperation } from "steem";
@@ -44,21 +36,23 @@ import type { GrapheneOperation } from "steem";
 const ROOT = path.resolve(__dirname, "..");
 const INBOX = path.join(ROOT, "sovereign", "web", "inbox");
 const MANIFESTS = path.join(ROOT, "sovereign", "web", "manifests");
+const PACKAGES = path.join(ROOT, "sovereign", "web", "packages");
 
 const DRY = process.argv.includes("--dry");
 const VERIFY_ONLY = process.argv.includes("--verify-only");
 const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
 const ACCOUNT = WEB_ACCOUNT;
 
-/** רצפת בטיחות: לא שולחים את הרשת מתחת לזה (עתודה לקווי העוגן) */
-const RC_RESERVE = Number(process.env.WEB_RC_RESERVE || 150e6);
-/** אומדן התחלתי לעלות פעולה — מתעדכן ממדידה חיה */
-let estCost = Number(process.env.WEB_RC_EST || 150e6);
+/** רצפת בטיחות: לא שולחים את הרשת מתחת לזה */
+const RC_RESERVE = Number(process.env.WEB_RC_RESERVE || 20e6);
+/** מודל המחיר שנלמד ממדידות probe2: cost ≈ BASE + K × אורך ה-json */
+const RC_BASE = Number(process.env.WEB_RC_BASE || 65e6);
+const RC_PER_CHAR = Number(process.env.WEB_RC_PER_CHAR || 320_000);
+/** תוספת-בטיחות על האומדן */
+const EST_MARGIN = 1.15;
 
-const ROOT_POST_GAP_MS = 5.5 * 60_000; // קונצנזוס: 5 דקות בין פוסטי-שורש
-const REPLY_GAP_MS = 21_000; // קונצנזוס: 20 שניות בין תגובות
-let lastOpAt = 0;
-let lastRootAt = 0;
+let estBase = RC_BASE;
+let estPerChar = RC_PER_CHAR;
 
 // ── עזרי ריצה ────────────────────────────────────────────────────────
 
@@ -72,29 +66,26 @@ function sh(cmd: string): string {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// ── RPC קריאה (ציבורי) ───────────────────────────────────────────────
-
 async function rpcRead<T>(method: string, params: unknown): Promise<T | null> {
   for (const node of STEEM_RPC_NODES) {
     try {
       return await rpcV4<T>(node, method, params, 20_000);
     } catch {
-      /* צומת הבא */
+      /* הצומת הבא */
     }
   }
   return null;
 }
+
+// ── מצב ה-RC החי ──────────────────────────────────────────────────────
 
 interface RcAccount {
   max_rc: string | number;
   rc_manabar: { current_mana: string | number; last_update_time: number };
 }
 
-/** מנה חיה עם רגנרציה — אותה נוסחה מוכחת מ-graphene.ts */
 async function liveMana(): Promise<{ mana: number; max: number } | null> {
-  const res = await rpcRead<{ rc_accounts: RcAccount[] }>("rc_api.find_rc_accounts", {
-    accounts: [ACCOUNT],
-  });
+  const res = await rpcRead<{ rc_accounts: RcAccount[] }>("rc_api.find_rc_accounts", { accounts: [ACCOUNT] });
   const a = res?.rc_accounts?.[0];
   if (!a) return null;
   let nowSec = Math.floor(Date.now() / 1000);
@@ -110,386 +101,354 @@ async function liveMana(): Promise<{ mana: number; max: number } | null> {
   return { mana: Math.round(mana), max };
 }
 
-interface ChainContent {
-  author?: string;
-  permlink?: string;
-  body?: string;
-  created?: string;
+// ── סריקת ההיסטוריה — מה כבר על השרשרת ──────────────────────────────
+
+interface HistoryScan {
+  manifestOp: { block?: number; txid?: string } | null;
+  chunks: Array<{ i: number; chars: number; block?: number; txid?: string }>;
+  /** הגופים הגולמיים לשלב האימות הסופי */
+  rawChunkMap: Map<number, { d: string; block?: number; txid?: string }>;
 }
 
-async function getContent(permlink: string): Promise<ChainContent | null> {
-  const r = await rpcRead<ChainContent | null>("condenser_api.get_content", [ACCOUNT, permlink]);
-  if (!r || !r.body || r.body.trim() === "") return null;
-  return r;
-}
-
-/** איתור block/txid מההיסטוריה — ההיסטוריה השופטת היחידה (best-effort) */
-async function findRef(permlink: string): Promise<{ block: number; txid: string } | null> {
-  const hist = await rpcRead<Array<[number, { op?: [string, { permlink?: string }]; trx_id?: string; block?: number }]>>(
-    "condenser_api.get_account_history",
-    [ACCOUNT, -1, 80]
-  );
-  if (!Array.isArray(hist)) return null;
-  for (const [, e] of [...hist].reverse()) {
-    const op = e.op;
-    if (!op || op[0] !== "comment") continue;
-    if (op[1].permlink === permlink) {
-      return { block: e.block ?? 0, txid: e.trx_id || "" };
-    }
-  }
-  return null;
-}
-
-async function findAnchorRef(hash: string): Promise<{ block: number; txid: string } | null> {
+async function scanChain(hash: string): Promise<HistoryScan> {
+  const out: HistoryScan = { manifestOp: null, chunks: [], rawChunkMap: new Map() };
   const hist = await rpcRead<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>(
     "condenser_api.get_account_history",
-    [ACCOUNT, -1, 120]
+    [ACCOUNT, -1, 1000]
   );
-  if (!Array.isArray(hist)) return null;
-  for (const [, e] of [...hist].reverse()) {
+  if (!Array.isArray(hist)) return out;
+  for (const [, e] of hist) {
     const op = e.op;
-    if (!op || op[0] !== "custom_json" || op[1].id !== WEB_OP_ID) continue;
+    if (!op || op[0] !== "custom_json") continue;
+    const id = op[1].id;
+    if (id !== WEB_OP_ID && id !== WEB_CHUNK_OP_ID) continue;
     try {
-      const pl = JSON.parse(String(op[1].json || "{}")) as { h?: string };
-      if (pl.h === hash) return { block: e.block ?? 0, txid: e.trx_id || "" };
+      const pl = JSON.parse(String(op[1].json || "{}")) as {
+        h?: string; i?: number; d?: string;
+      };
+      if (pl.h !== hash) continue;
+      if (id === WEB_OP_ID) {
+        out.manifestOp = { block: e.block, txid: e.trx_id };
+      } else if (typeof pl.i === "number" && typeof pl.d === "string") {
+        out.chunks.push({ i: pl.i, chars: pl.d.length, block: e.block, txid: e.trx_id });
+        out.rawChunkMap.set(pl.i, { d: pl.d, block: e.block, txid: e.trx_id });
+      }
     } catch {
-      /* דלג */
+      /* json זר */
     }
   }
-  return null;
+  out.chunks.sort((a, b) => a.i - b.i);
+  return out;
 }
 
-// ── שידור (מפתח בענן בלבד) ──────────────────────────────────────────
+// ── שידור עם שער-RC לומד ─────────────────────────────────────────────
+
+function estimateCost(jsonLen: number): number {
+  return Math.round((estBase + estPerChar * jsonLen) * EST_MARGIN);
+}
 
 interface BroadcastOutcome {
   ok: boolean;
   skipped?: string;
-  cost?: number;
 }
 
-/** שידור פעולות עם שער-RC חי, מדידת עלות וכיבוד מרווחי-הקונצנזוס */
-async function guardedBroadcast(
-  ops: GrapheneOperation[],
-  kind: "root" | "reply" | "json"
-): Promise<BroadcastOutcome> {
+async function guardedBroadcast(ops: GrapheneOperation[], jsonLen: number, label: string): Promise<BroadcastOutcome> {
   if (DRY || VERIFY_ONLY || !WIF) {
     return { ok: false, skipped: DRY ? "dry" : VERIFY_ONLY ? "verify-only" : "no-wif" };
   }
-  // מרווחי קונצנזוס
-  const gap = kind === "root" ? ROOT_POST_GAP_MS : REPLY_GAP_MS;
-  const lastMark = kind === "root" ? lastRootAt : lastOpAt;
-  const since = Date.now() - lastMark;
-  if (since < gap) {
-    return { ok: false, skipped: `interval (${Math.ceil((gap - since) / 1000)}s left)` };
-  }
-  // שער RC
   const m = await liveMana();
   if (!m) return { ok: false, skipped: "rc-unreachable" };
-  if (m.mana < RC_RESERVE + estCost) {
+  const need = estimateCost(jsonLen);
+  if (m.mana < RC_RESERVE + need) {
     return {
       ok: false,
-      skipped: `rc-budget (live=${(m.mana / 1e6).toFixed(0)}M < reserve=${(RC_RESERVE / 1e6).toFixed(0)}M + est=${(estCost / 1e6).toFixed(0)}M — honest skip, cron will retry)`,
+      skipped: `rc-budget (live=${(m.mana / 1e6).toFixed(0)}M < reserve=${(RC_RESERVE / 1e6).toFixed(0)}M + est=${(need / 1e6).toFixed(0)}M — דילוג-כנה, ה-cron ינסה שוב)`,
     };
   }
   const before = m.mana;
   const res = await steemBroadcast(ops, WIF);
   if (!res.txid && res.note) {
-    return { ok: false, skipped: `broadcast-rejected: ${res.note}` };
+    // כישלון RC מלמד את המודל: "needs X RC" חושף את המחיר האמיתי
+    const mm = /needs (\d+) RC/.exec(res.note);
+    if (mm) {
+      const real = Number(mm[1]);
+      estBase = Math.max(1e6, Math.round(real - estPerChar * jsonLen));
+      log(`  · מחיר אמיתי מהדחיה: ${real} RC ⇒ בסיס נלמד ${(estBase / 1e6).toFixed(0)}M`);
+    }
+    return { ok: false, skipped: `broadcast-rejected: ${res.note.slice(0, 140)}` };
   }
   const after = await liveMana();
-  const cost = after ? Math.max(0, before - after.mana) : undefined;
-  if (cost && cost > 0) {
-    estCost = Math.round(cost * 1.15); // למידה חיה + מרווח בטיחות
-    log(`  · עלות נמדדה: ${(cost / 1e6).toFixed(1)}M RC (אומדן הבא: ${(estCost / 1e6).toFixed(0)}M)`);
+  if (after) {
+    const cost = Math.max(0, before - after.mana);
+    if (cost > 0) {
+      // למידה חיה של הקבועים
+      estBase = Math.max(1e6, cost - estPerChar * jsonLen);
+      log(`  · עלות נמדדה: ${(cost / 1e6).toFixed(1)}M RC (בסיס נלמד ${(estBase / 1e6).toFixed(0)}M)`);
+    }
   }
-  lastOpAt = Date.now();
-  if (kind === "root") lastRootAt = Date.now();
-  return { ok: true, cost };
+  log(`  · ${label} שודר ✓`);
+  return { ok: true };
 }
 
-function commentOp(
-  permlink: string,
-  title: string,
-  body: string,
-  parentAuthor: string,
-  parentPermlink: string,
-  allowReplies: boolean
-): GrapheneOperation[] {
-  return [
-    [
-      "comment",
-      {
-        parent_author: parentAuthor,
-        parent_permlink: parentPermlink,
-        author: ACCOUNT,
-        permlink,
-        title,
-        body,
-        json_metadata: JSON.stringify({
-          app: "saos-web/1",
-          format: "saos-web",
-          sha256: "see-manifest",
-          tags: [WEB_TAG, "saos"],
-        }),
-      },
-    ],
-    [
-      "comment_options",
-      {
-        author: ACCOUNT,
-        permlink,
-        max_accepted_payout: "0.000 SBD",
-        percent_steem_dollars: 0,
-        allow_votes: false,
-        allow_curation_rewards: false,
-        allow_replies: allowReplies,
-        extensions: [],
-      },
-    ],
-  ];
-}
+// ── בניית הפעולות ─────────────────────────────────────────────────────
 
-// ── תוכנית החבילה ────────────────────────────────────────────────────
-
-interface ChunkPlan {
-  mode: "inline" | "chunks";
-  b64: string;
-  chunks: Array<{ i: number; permlink: string; sha256: string; body: string }>;
-}
-
-function planPackage(hash: string, b64: string): ChunkPlan {
-  if (b64.length <= MAX_INLINE_B64) {
-    return { mode: "inline", b64, chunks: [] };
-  }
-  const size = DEFAULT_CHUNK_B64;
-  const chunks: ChunkPlan["chunks"] = [];
-  for (let off = 0, i = 1; off < b64.length; off += size, i++) {
-    const body = b64.slice(off, off + size);
-    chunks.push({ i, permlink: chunkPermlink(hash, i), sha256: sha256Hex(body), body });
-  }
-  return { mode: "chunks", b64, chunks };
-}
-
-function buildManifest(job: WebInboxJob, plan: ChunkPlan): WebManifest {
-  // at = חותמת היצירה של המשימה — קבועה. אם היה נגזר מזמן-הריצה,
-  // כל ריצה חוזרת הייתה בונה גוף מניפסט שונה והאידמפוטנציה הייתה נשברת.
-  const at = job.createdAt || new Date().toISOString();
-  const m: WebManifest = {
+function manifestOp(manifest: WebManifest): { op: GrapheneOperation; jsonLen: number } {
+  // המניפסט על השרשרת — קומפקטי בכוונה: כל תו עולה כסף
+  const payload = {
     v: 1,
     protocol: WEB_PROTOCOL,
-    name: job.name,
-    sha256: job.sha256,
-    bytes: job.bytes,
-    mime: job.mime,
-    entry: job.entry,
-    b64len: plan.b64.length,
-    chunkSize: plan.mode === "inline" ? 0 : DEFAULT_CHUNK_B64,
-    mode: plan.mode,
-    by: ACCOUNT,
-    at,
+    name: manifest.name,
+    sha256: manifest.sha256,
+    bytes: manifest.bytes,
+    mime: manifest.mime,
+    entry: manifest.entry || "",
+    s: manifest.b64len,
+    at: manifest.at,
   };
-  if (plan.mode === "inline") {
-    (m as WebManifest & { b64?: string }).b64 = plan.b64;
-  } else {
-    m.chunks = plan.chunks.map((c) => ({ i: c.i, permlink: c.permlink, sha256: c.sha256 }));
+  const json = JSON.stringify(payload);
+  return {
+    op: ["custom_json", {
+      required_auths: [],
+      required_posting_auths: [ACCOUNT],
+      id: WEB_OP_ID,
+      json,
+    }],
+    jsonLen: json.length,
+  };
+}
+
+function chunkOp(hash: string, i: number, data: string): { op: GrapheneOperation; jsonLen: number } {
+  const json = JSON.stringify({ v: 1, h: hash, i, d: data });
+  return {
+    op: ["custom_json", {
+      required_auths: [],
+      required_posting_auths: [ACCOUNT],
+      id: WEB_CHUNK_OP_ID,
+      json,
+    }],
+    jsonLen: json.length,
+  };
+}
+
+/** גודל צ׳אנק שהמנה החיה מרשה — מינימום אמיתי 500 תווים */
+function affordableChars(mana: number, remaining: number): number {
+  const budget = Math.floor((mana - RC_RESERVE - estBase) / estPerChar);
+  return Math.max(0, Math.min(remaining, Math.min(Math.max(500, budget), 6500)));
+}
+
+// ── רשומת המניפסט בריפו ──────────────────────────────────────────────
+
+interface RepoRecord {
+  manifest: WebManifest;
+  status: "pending-seal" | "partial" | "complete";
+  chain: {
+    manifestOp?: { block?: number | null; txid?: string | null } | null;
+    chunks?: Array<{ i: number; chars: number; block?: number | null; txid?: string | null }>;
+  };
+  inboxJob?: WebInboxJob;
+  publishedBy?: string;
+  verifiedAt?: string;
+  note?: string;
+}
+
+function writeRecord(rec: RepoRecord): void {
+  fs.mkdirSync(MANIFESTS, { recursive: true });
+  fs.writeFileSync(path.join(MANIFESTS, `${rec.manifest.sha256}.json`), JSON.stringify(rec, null, 2) + "\n");
+}
+
+function readRecord(hash: string): RepoRecord | null {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(MANIFESTS, `${hash}.json`), "utf8")) as RepoRecord;
+  } catch {
+    return null;
   }
-  return m;
 }
 
 // ── פרסום חבילה אחת ──────────────────────────────────────────────────
 
-interface PublishResult {
-  status: "complete" | "progress" | "skipped";
-  note: string;
-  record?: WebManifestRecord;
-  costTotal?: number;
-}
-
-async function publishJob(job: WebInboxJob): Promise<PublishResult> {
+async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "skipped"> {
   const hash = job.sha256;
   log(`חבילה: ${job.name} · ${job.bytes}B · sha256=${hash.slice(0, 16)}…`);
 
   const b64Path = path.join(INBOX, hash, "package.b64");
   if (!fs.existsSync(b64Path)) {
-    return { status: "skipped", note: "package.b64 חסר בדואר הנכנס" };
+    log("  package.b64 חסר — דילוג");
+    return "skipped";
   }
   const b64 = fs.readFileSync(b64Path, "utf8").trim();
   const bytes = Buffer.from(b64, "base64");
-  const gotHash = sha256Hex(bytes);
-  if (gotHash !== hash) {
-    return { status: "skipped", note: `שלמות נכשלה: ${gotHash.slice(0, 12)} ≠ ${hash.slice(0, 12)}` };
-  }
-  if (bytes.length !== job.bytes) {
-    return { status: "skipped", note: `גודל שונה מהמוצהר: ${bytes.length} ≠ ${job.bytes}` };
+  if (sha256Hex(bytes) !== hash || bytes.length !== job.bytes) {
+    log("  שלמות נכשלה — דילוג");
+    return "skipped";
   }
 
-  const plan = planPackage(hash, b64);
-  const manifest = buildManifest(job, plan);
-  const manifestBody = JSON.stringify(manifest);
-  if (manifestBody.length > 63_000) {
-    return { status: "skipped", note: `גוף מניפסט ${manifestBody.length} > 63,000 — חריגה` };
+  // עותק כתובת-חשיש למשמרת (ההגשה מאמתת אותו מול החותם שעל השרשרת)
+  const binPath = path.join(PACKAGES, `${hash}.bin`);
+  if (!fs.existsSync(binPath)) {
+    fs.mkdirSync(PACKAGES, { recursive: true });
+    fs.writeFileSync(binPath, bytes);
   }
-  log(`  · תוכנית: ${plan.mode}${plan.mode === "chunks" ? ` · ${plan.chunks.length} צ׳אנקים` : " (פוסט אחד)"}`);
 
-  const record: WebManifestRecord = {
+  const manifest: WebManifest = {
+    v: 1,
+    protocol: WEB_PROTOCOL,
+    name: job.name,
+    sha256: hash,
+    bytes: job.bytes,
+    mime: job.mime,
+    entry: job.entry,
+    b64len: b64.length,
+    chunkSize: 0, // גדלים אדפטיביים — השלמות נקבעת באורך+חשיש, לא בספירה
+    mode: "chunks",
+    by: ACCOUNT,
+    at: job.createdAt || new Date().toISOString(),
+  };
+
+  const rec: RepoRecord = readRecord(hash) || {
     manifest,
-    status: "partial",
-    chain: { container: undefined, chunks: [], anchor: null },
+    status: "pending-seal",
+    chain: { manifestOp: null, chunks: [] },
+    inboxJob: job,
     publishedBy: "cloud/web-publish",
   };
-  let costTotal = 0;
+  // רענון שדות המשימה
+  rec.inboxJob = job;
 
-  // 1. מכולה
-  const cPermlink = containerPermlink(hash);
-  let cont = await getContent(cPermlink);
-  if (!cont) {
-    const ops = commentOp(cPermlink, `SAOS WEB · ${job.name}`, manifestBody, "", WEB_TAG, plan.mode === "chunks");
-    const out = await guardedBroadcast(ops, "root");
+  const chain = await scanChain(hash);
+  const charsOnChain = chain.chunks.reduce((s, c) => s + c.chars, 0);
+  log(`  שרשרת: מניפסט ${chain.manifestOp ? "✓" : "—"} · צ׳אנקים ${chain.chunks.length} · תווים ${charsOnChain}/${b64.length}`);
+
+  // 1. החותם (המניפסט) — הולך ראשון
+  if (!chain.manifestOp) {
+    const { op, jsonLen } = manifestOp(manifest);
+    const out = await guardedBroadcast([op], jsonLen, "מניפסט");
     if (!out.ok) {
-      return { status: "progress", note: `מכולה לא שודרה: ${out.skipped}`, costTotal };
+      rec.note = `מניפסט: ${out.skipped}`;
+      if (!DRY && !VERIFY_ONLY) writeRecord(rec);
+      log(`  ⏳ ${rec.note}`);
+      return "progress";
     }
-    costTotal += out.cost || 0;
-    // אימות הופעה
-    for (let t = 0; t < 6 && !cont; t++) {
+    // אימות מההיסטוריה — השופטת היחידה
+    let ok = false;
+    for (let t = 0; t < 6 && !ok; t++) {
       await sleep(4000);
-      cont = await getContent(cPermlink);
-    }
-    if (!cont) {
-      return { status: "progress", note: "המכולה שודרה אך לא נקראה חזרה — נאמת בריצה הבאה", costTotal };
-    }
-    log(`  · מכולה על השרשרת: ${cPermlink}`);
-  } else if (cont.body !== manifestBody) {
-    // קיים פוסט באותו permlink עם גוף שונה — התנגשות חשיש (פרקטית אפסית)
-    return { status: "skipped", note: "התנגשות permlink — גוף קיים שונה מהמניפסט" };
-  }
-  const ref = await findRef(cPermlink);
-  record.chain.container = { permlink: cPermlink, block: ref?.block ?? null, txid: ref?.txid ?? null };
-
-  // 2. צ׳אנקים (מצב chunks בלבד)
-  for (const ch of plan.chunks) {
-    let c = await getContent(ch.permlink);
-    if (!c) {
-      const ops = commentOp(
-        ch.permlink,
-        `SAOS WEB · ${job.name} · צ׳אנק ${ch.i}/${plan.chunks.length}`,
-        ch.body,
-        ACCOUNT,
-        cPermlink,
-        false
-      );
-      const out = await guardedBroadcast(ops, "reply");
-      if (!out.ok) {
-        record.note = `צ׳אנק ${ch.i}/${plan.chunks.length}: ${out.skipped}`;
-        if (!DRY && !VERIFY_ONLY) writeRecord(record, job);
-        return { status: "progress", note: record.note, record, costTotal };
-      }
-      costTotal += out.cost || 0;
-      for (let t = 0; t < 6 && !c; t++) {
-        await sleep(4000);
-        c = await getContent(ch.permlink);
-      }
-      if (!c) {
-        record.note = `צ׳אנק ${ch.i} שודר אך לא נקרא חזרה — נאמת בריצה הבאה`;
-        if (!DRY && !VERIFY_ONLY) writeRecord(record, job);
-        return { status: "progress", note: record.note, record, costTotal };
+      const again = await scanChain(hash);
+      if (again.manifestOp) {
+        rec.chain.manifestOp = again.manifestOp;
+        ok = true;
       }
     }
-    const got = sha256Hex(c.body);
-    if (got !== ch.sha256) {
-      return { status: "skipped", note: `צ׳אנק ${ch.i} על השרשרת לא תואם (${got.slice(0, 10)} ≠ ${ch.sha256.slice(0, 10)})` };
+    if (!ok) {
+      rec.note = "המניפסט שודר אך טרם נראה בהיסטוריה — נאמת בריצה הבאה";
+      if (!DRY && !VERIFY_ONLY) writeRecord(rec);
+      return "progress";
     }
-    const cref = await findRef(ch.permlink);
-    record.chain.chunks!.push({ permlink: ch.permlink, block: cref?.block ?? null, txid: cref?.txid ?? null });
-    log(`  · צ׳אנק ${ch.i}/${plan.chunks.length} על השרשרת ✓`);
-  }
-
-  // 3. כל הגופים קיימים — אימות-סופי מהשרשרת
-  const joined =
-    plan.mode === "inline"
-      ? (JSON.parse((await getContent(cPermlink))!.body) as WebManifest).b64 || ""
-      : plan.chunks.map((ch) => ch.body).join("");
-  const finalBytes = Buffer.from(joined, "base64");
-  const finalHash = sha256Hex(finalBytes);
-  if (finalHash !== hash || finalBytes.length !== job.bytes) {
-    return { status: "skipped", note: "אימות-סופי מהשרשרת נכשל — לא נכתב מניפסט" };
-  }
-
-  // 4. עוגן אינדקס (custom_json) — אידמפוטנטי
-  let anchorRef = await findAnchorRef(hash);
-  if (!anchorRef) {
-    const payload = {
-      v: 1,
-      protocol: WEB_PROTOCOL,
-      pkg: job.name,
-      h: hash,
-      n: plan.mode === "inline" ? 1 : plan.chunks.length,
-      s: job.bytes,
-      at: manifest.at,
-    };
-    const ops: GrapheneOperation[] = [
-      [
-        "custom_json",
-        {
-          required_auths: [],
-          required_posting_auths: [ACCOUNT],
-          id: WEB_OP_ID,
-          json: JSON.stringify(payload),
-        },
-      ],
-    ];
-    const out = await guardedBroadcast(ops, "json");
-    if (out.ok) {
-      costTotal += out.cost || 0;
-      anchorRef = await findAnchorRef(hash);
-      record.chain.anchor = { permlink: WEB_OP_ID, block: anchorRef?.block ?? null, txid: anchorRef?.txid ?? null, foundOnChain: !!anchorRef };
-      log(`  · עוגן אינדקס שודר${anchorRef ? ` · בלוק ${anchorRef.block}` : ""}`);
-    } else {
-      record.chain.anchor = null;
-      record.note = `התוכן על השרשרת במלואו; עוגן האינדקט נדחה בכנות: ${out.skipped}`;
-    }
+    log(`  · החותם על השרשרת ✓ ${JSON.stringify(rec.chain.manifestOp)}`);
   } else {
-    record.chain.anchor = { permlink: WEB_OP_ID, block: anchorRef.block, txid: anchorRef.txid, foundOnChain: true };
+    rec.chain.manifestOp = chain.manifestOp;
+  }
+  rec.status = "partial";
+
+  // 2. הצ׳אנקים — בקצב ה-RC האמיתי
+  const seenIdx = new Set(chain.chunks.map((c) => c.i));
+  const nextIdx = (chain.chunks.length ? Math.max(...chain.chunks.map((c) => c.i)) : 0) + 1;
+  const remaining = b64.length - charsOnChain;
+  void seenIdx;
+
+  if (remaining > 0) {
+    const m = await liveMana();
+    if (!m) {
+      rec.note = "RC לא נקרא — דילוג-כנה";
+      writeRecordIfLive(rec);
+      return "progress";
+    }
+    const size = affordableChars(m.mana, remaining);
+    if (size < 500) {
+      rec.note = `צ׳אנק הבא ממתין ל-RC (מנה ${(m.mana / 1e6).toFixed(0)}M ⇒ ${(estBase / 1e6).toFixed(0)}M+500×0.32M נדרשים)`;
+      writeRecordIfLive(rec);
+      log(`  ⏳ ${rec.note}`);
+      return "progress";
+    }
+    const start = charsOnChain;
+    const data = b64.slice(start, start + size);
+    const { op, jsonLen } = chunkOp(hash, nextIdx, data);
+    const out = await guardedBroadcast([op], jsonLen, `צ׳אנק ${nextIdx} (${size} תווים)`);
+    if (!out.ok) {
+      rec.note = `צ׳אנק ${nextIdx}: ${out.skipped}`;
+      writeRecordIfLive(rec);
+      log(`  ⏳ ${rec.note}`);
+      return "progress";
+    }
+    let landed = false;
+    for (let t = 0; t < 6 && !landed; t++) {
+      await sleep(4000);
+      const again = await scanChain(hash);
+      const hit = again.chunks.find((c) => c.i === nextIdx);
+      if (hit) {
+        rec.chain.chunks = again.chunks;
+        landed = true;
+      }
+    }
+    if (!landed) {
+      rec.note = `צ׳אנק ${nextIdx} שודר אך טרם נראה — נאמת בריצה הבאה`;
+      writeRecordIfLive(rec);
+      return "progress";
+    }
+    log(`  · צ׳אנק ${nextIdx} על השרשרת ✓ (${size} תווים)`);
   }
 
-  record.status = "complete";
-  record.verifiedAt = new Date().toISOString();
-  writeRecord(record, job);
-  log(`  ✓ החבילה שלמה על השרשרת · מאומשה קריאה-חוזרת · עלות כוללת ${(costTotal / 1e6).toFixed(1)}M RC`);
-  return { status: "complete", note: "על השרשרת ומאומת", record, costTotal };
+  // 3. שלמות?
+  const finalScan = await scanChain(hash);
+  const finalChars = finalScan.chunks.reduce((s, c) => s + c.chars, 0);
+  rec.chain.chunks = finalScan.chunks;
+  if (finalChars === b64.length) {
+    // הרכבה מסודרת-אינדקס ואימות סופי — sha256 הוא השופט
+    const parts = [...finalScan.rawChunkMap.keys()].sort((a, b) => a - b).map((i) => {
+      const c = finalScan.rawChunkMap.get(i);
+      if (!c) throw new Error(`צ׳אנק ${i} חסר בסריקה — סתירה פנימית`);
+      return c.d;
+    });
+    const gotBytes = Buffer.from(parts.join(""), "base64");
+    if (sha256Hex(gotBytes) === hash && gotBytes.length === job.bytes) {
+      rec.status = "complete";
+      rec.verifiedAt = new Date().toISOString();
+      rec.note = "כל הבייטים על השרשרת ומאומתים";
+      writeRecordIfLive(rec);
+      log("  ✓ החבילה שלמה על השרשרת — מקצה לקצה");
+      return "complete";
+    }
+    rec.note = "אימות-סופי נכשל — הריצה הבאה תחזור";
+    writeRecordIfLive(rec);
+    return "skipped";
+  }
+
+  rec.note = `מתקדם: ${finalChars}/${b64.length} תווים על השרשרת`;
+  writeRecordIfLive(rec);
+  log(`  ⏳ ${rec.note}`);
+  return "progress";
 }
 
-function writeRecord(record: WebManifestRecord, job: WebInboxJob): void {
-  fs.mkdirSync(MANIFESTS, { recursive: true });
-  fs.writeFileSync(
-    path.join(MANIFESTS, `${job.sha256}.json`),
-    JSON.stringify({ ...record, inboxJob: job }, null, 2) + "\n"
-  );
+function writeRecordIfLive(rec: RepoRecord): void {
+  if (!DRY && !VERIFY_ONLY) writeRecord(rec);
 }
-
-// ── סגירת משימה שהושלמה: הסרה מהדואר הנכנס ──────────────────────────
 
 function closeJob(hash: string): void {
   const dir = path.join(INBOX, hash);
-  if (fs.existsSync(dir)) {
-    fs.rmSync(dir, { recursive: true, force: true });
-  }
+  if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
 }
 
 // ── main ─────────────────────────────────────────────────────────────
 
 async function main(): Promise<number> {
-  log(`סוכן שידור רשת-האחסון · חשבון=${ACCOUNT} · dry=${DRY} · verify-only=${VERIFY_ONLY} · wif=${WIF ? "יש" : "אין"}`);
+  log(`סוכן שידור · חשבון=${ACCOUNT} · dry=${DRY} · verify-only=${VERIFY_ONLY} · wif=${WIF ? "יש" : "אין"}`);
 
-  // סטטוס RC פותח — מד חי
   const m0 = await liveMana();
   if (m0) {
-    log(`RC חי: ${(m0.mana / 1e6).toFixed(0)}M / ${(m0.max / 1e6).toFixed(0)}M (${((m0.mana / m0.max) * 100).toFixed(1)}%) · רצפה=${(RC_RESERVE / 1e6).toFixed(0)}M`);
-  } else {
-    log("אזהרה: RC לא נקרא — ממשיכים בזהירות");
+    log(`RC חי: ${(m0.mana / 1e6).toFixed(0)}M / ${(m0.max / 1e6).toFixed(0)}M (${((m0.mana / m0.max) * 100).toFixed(1)}%) · מודל מחיר: בסיס ${(estBase / 1e6).toFixed(0)}M + ${(estPerChar / 1e3).toFixed(0)}k/תו`);
   }
 
   if (!fs.existsSync(INBOX)) {
-    log("אין דואר נכנס — אין מה לשדר");
+    log("אין דואר נכנס");
     return 0;
   }
   const jobs: WebInboxJob[] = [];
@@ -499,7 +458,7 @@ async function main(): Promise<number> {
     try {
       jobs.push(JSON.parse(fs.readFileSync(jp, "utf8")) as WebInboxJob);
     } catch {
-      log(`משימה שחורה בתיקייה ${d} — דולג`);
+      log(`משימה שחורה בתיקייה ${d}`);
     }
   }
   if (!jobs.length) {
@@ -512,43 +471,24 @@ async function main(): Promise<number> {
   let progressed = 0;
   for (const job of jobs) {
     const res = await publishJob(job);
-    if (res.status === "complete") {
+    if (res === "complete") {
       closeJob(job.sha256);
       completed++;
-    } else if (res.status === "progress") {
+    } else if (res === "progress") {
       progressed++;
-      log(`  ⏳ ${res.note}`);
-      // עדכון ניסיונות ב-job.json — בריצה חיה בלבד (דריי לא נוגע בדיסק)
-      if (!DRY && !VERIFY_ONLY) {
-        try {
-          const jp = path.join(INBOX, job.sha256, "job.json");
-          const j = JSON.parse(fs.readFileSync(jp, "utf8")) as WebInboxJob;
-          j.attempts = (j.attempts || 0) + 1;
-          j.lastNote = res.note;
-          fs.writeFileSync(jp, JSON.stringify(j, null, 2) + "\n");
-        } catch {
-          /* כבר נסגר? */
-        }
-      }
-    } else {
-      log(`  ✗ ${res.note}`);
     }
-    // עצירה מנומסת: אם המנה ירדה קרוב לרצפה — עוצרים להיום
     const m = await liveMana();
     if (m && m.mana < RC_RESERVE) {
-      log(`RC נמוך (${(m.mana / 1e6).toFixed(0)}M < רצפה) — עוצרים; ה-cron ימשיך`);
+      log(`RC ברצפה (${(m.mana / 1e6).toFixed(0)}M) — עוצרים; ה-cron ימשיך`);
       break;
     }
   }
 
-  // גיט: רק אם משהו השתנה — ובכלל-לא בדריי/אימות-בלבד (לקח הריצה
-  // המקומית הראשונה: commit ללא שמירת-דגל יצר קומיטי-רעש מקומיים)
-  const hasManifests = fs.existsSync(MANIFESTS) && fs.readdirSync(MANIFESTS).length > 0;
-  try {
-    if (DRY || VERIFY_ONLY) {
-      log("דריי — אין גיט");
-    } else {
-      sh("git add sovereign/web/manifests sovereign/web/inbox");
+  if (DRY || VERIFY_ONLY) {
+    log("דריי — אין גיט");
+  } else {
+    try {
+      sh("git add -A sovereign/web");
       const status = sh("git status --porcelain -- sovereign/web");
       if (status.trim() !== "") {
         sh(`git commit -m "web-publish: ${completed} complete · ${progressed} in-progress · ${new Date().toISOString().slice(0, 16)}Z"`);
@@ -557,12 +497,11 @@ async function main(): Promise<number> {
       } else {
         log("אין שינויים לדחיפה");
       }
+    } catch (e) {
+      log(`שגיאת גיט: ${String(e).slice(0, 300)}`);
+      return 1;
     }
-  } catch (e) {
-    log(`שגיאת גיט: ${String(e).slice(0, 300)}`);
-    return 1;
   }
-  void hasManifests;
   return 0;
 }
 

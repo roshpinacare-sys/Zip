@@ -1,17 +1,23 @@
 // ─────────────────────────────────────────────────────────────────────
-// SAOS WEB · netstore — רשת-האחסון הריבונית: השרשרת הציבורית כדיסק.
+// SAOS WEB · netstore — רשת-האחסון הריבונית: השרשרת הציבורית כאמת.
 //
 // דוקטרינה (פקודת המפעיל, R50): "האמת היא האימות של השרת על הרשת."
-// השער הזה לא סומך על שום מקור מקומי: כל ביט שהוא מגיש נקרא
-// מה-RPC הציבורי של Steem ומאומת ב-sha256 מול מניפסט שעצמו נושא
-// את החשיש של התוכן. אין "גרסה מקומית" — יש רק שרשרת.
+// שכבת האחסון (נמדד בפועל, probe1/probe2 2026-09-19):
+//   · Steem custom_json — המסלול החי: בסיס ~65M RC + ~320k RC לתו.
+//   · Steem comment — בסיס 976M RC — מסלול מת (מדידה קשה, כנה).
+//   · Hive — 509k/תו, יקר יותר.
 //
-// מבנה האחסון על השרשרת (חשבון העוגן, סמכות posting בלבד):
-//   · פוסט-מכולה: parent_permlink="saosweb", permlink=saosweb-<hash10>
-//     body = מניפסט JSON (ובמצב inline גם התוכן עצמו ב-base64)
-//   · צ׳אנק-תשובות: permlink=saosweb-<hash10>-c001.. — body=base64 גולמי
-//   · עוגן אינדקס: custom_json id="saos.web.v1" {h,n,s,at} — ניתן לסריקה
-//     ציבורית בהיסטוריית החשבון
+// מבנה על השרשרת (חשבון העוגן cashmachine, סמכות posting בלבד):
+//   · חותם: custom_json id=saos.web.v1 {name, sha256, bytes, mime, entry,
+//     s(b64len), at} — הולך ראשון. ~110M RC.
+//   · צ׳אנקים: custom_json id=saos.web.c.v1 {h, i, d} — הבייטים עצמם,
+//     בגודל אדפטיבי לפי המנה החיה. מצטבר עד שלמות (join ⇒ s ⇒ sha256).
+//   · שלמות: join(d) לפי i ⇒ אורך s + sha256 חייבים להתאים לחותם.
+//
+// הגשה (השרת של הרשת): קודם צ׳אנקים מהשרשרת; מה שטרם הגיע מגיע
+// מהעותק בריפו הריבוני (sovereign/web/packages/<hash>.bin) — אבל
+// רק לאחר שה-sha256 שלו נבדק מול החותם שעל השרשרת. השרשרת היא
+// השופטת; הריפו הוא רק מחסן מאומת.
 //
 // כל פונקציה כאן נטולת-מפתח: קריאה ואימות בלבד. השידור חי בענן
 // (scripts/web-publish.ts + web-publish.yml) אצל WEAVE_STEEM_WIF.
@@ -19,6 +25,7 @@
 
 import { createHash } from "crypto";
 import { inflateRawSync } from "zlib";
+import { readFile } from "fs/promises";
 import path from "path";
 import {
   STEEM_RPC_NODES,
@@ -30,51 +37,52 @@ import {
 
 export const WEB_TAG = "saosweb";
 export const WEB_OP_ID = "saos.web.v1";
+export const WEB_CHUNK_OP_ID = "saos.web.c.v1";
 export const WEB_PROTOCOL = "saos-web/1";
 export const WEB_ACCOUNT = (process.env.WEB_STEEM_ACCOUNT || "cashmachine").toLowerCase();
-/** תקרת מצב-inline: מניפסט+תוכן בפוסט אחד (גוף פוסט ≤64KB) */
-export const MAX_INLINE_B64 = 44_000;
-/** גודל צ׳אנק ברירת-מחדל במצב מרובה-צ׳אנקים */
-export const DEFAULT_CHUNK_B64 = 6_000;
 
 // ── טיפוסים ─────────────────────────────────────────────────────────
 
 export interface WebChunk {
   i: number;
-  permlink: string;
-  sha256: string; // sha256 של מחרוזת ה-base64 של הצ׳אנק (הגוף החי)
+  chars: number;
+  block?: number | null;
+  txid?: string | null;
 }
 
 export interface WebManifest {
   v: 1;
   protocol: "saos-web/1";
   name: string;
-  sha256: string; // sha256 של בייטי התוכן המלאים
+  sha256: string;
   bytes: number;
   mime: string;
-  entry?: string; // קובץ פתיחה בתוך zip
-  b64?: string; // מצב inline בלבד
+  entry?: string;
   b64len: number;
-  chunkSize: number;
-  mode: "inline" | "chunks";
-  chunks?: WebChunk[];
+  chunkSize: number; // 0 = אדפטיבי
+  mode: "chunks";
   by: string;
   at: string;
 }
 
-export interface ChainRef {
-  permlink: string;
-  txid?: string | null;
-  block?: number | null;
-}
-
 export interface WebManifestRecord {
   manifest: WebManifest;
-  status: "complete" | "partial";
+  status: "pending-seal" | "partial" | "complete";
   chain: {
-    container?: ChainRef;
-    chunks?: ChainRef[];
-    anchor?: (ChainRef & { foundOnChain?: boolean }) | null;
+    manifestOp?: { block?: number | null; txid?: string | null } | null;
+    chunks?: WebChunk[];
+  };
+  inboxJob?: {
+    id: string;
+    name: string;
+    sha256: string;
+    bytes: number;
+    mime: string;
+    entry?: string;
+    status: string;
+    createdAt: string;
+    attempts?: number;
+    lastNote?: string;
   };
   publishedBy?: string;
   verifiedAt?: string;
@@ -100,20 +108,12 @@ export function sha256Hex(input: Buffer | string): string {
   return createHash("sha256").update(input).digest("hex");
 }
 
-export function containerPermlink(hash: string): string {
-  return `saosweb-${hash.slice(0, 10)}`;
-}
-
-export function chunkPermlink(hash: string, i: number): string {
-  return `saosweb-${hash.slice(0, 10)}-c${String(i).padStart(3, "0")}`;
-}
-
 export function looksLikeSha256(hash: string): boolean {
   return /^[0-9a-f]{64}$/.test(hash);
 }
 
 /** RPC ציבורי עם ניסיון חלופה בין צמתים */
-async function steemRpc<T>(method: string, params: unknown, timeoutMs = 20_000): Promise<T> {
+async function steemRpc<T>(method: string, params: unknown, timeoutMs = 20_000): Promise<T | null> {
   let lastErr: unknown = null;
   for (const node of STEEM_RPC_NODES) {
     try {
@@ -122,99 +122,136 @@ async function steemRpc<T>(method: string, params: unknown, timeoutMs = 20_000):
       lastErr = e;
     }
   }
-  throw new Error(`steem-rpc-unreachable: ${String(lastErr).slice(0, 120)}`);
+  if (lastErr) throw new Error(`steem-rpc-unreachable: ${String(lastErr).slice(0, 120)}`);
+  return null;
 }
 
-export interface ChainComment {
-  author: string;
-  permlink: string;
-  body: string;
-  created?: string;
-  block?: number;
-  trx_id?: string;
+// ── סריקת ההיסטוריה — השרשרת מה יש עליה ──────────────────────────────
+
+interface ChainWebOps {
+  manifest: (WebManifest & { block?: number; txid?: string }) | null;
+  chunks: Array<{ i: number; d: string; block?: number; txid?: string }>;
 }
 
-/** קריאת גוף פוסט/תגובה מהשרשרת — המקור היחיד לתוכן */
-export async function getChainComment(
-  permlink: string,
-  account: string = WEB_ACCOUNT
-): Promise<ChainComment | null> {
-  const r = await steemRpc<ChainComment | null>(
-    "condenser_api.get_content",
-    [account, permlink]
+async function scanWebOps(hash: string, account: string = WEB_ACCOUNT): Promise<ChainWebOps> {
+  const out: ChainWebOps = { manifest: null, chunks: [] };
+  const hist = await steemRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>(
+    "condenser_api.get_account_history",
+    [account, -1, 1000]
   );
-  if (!r || typeof r.body !== "string" || r.body.trim() === "") return null; // פוסט שלא נוצר מחזיר גוף ריק
-  return r;
-}
-
-// ── מניפסט ──────────────────────────────────────────────────────────
-
-/** מניפסט מהשרשרת: פוסט-המכולה. מאומת שהחשיש שבו תואם לחשיש המבוקש. */
-export async function loadManifestFromChain(
-  hash: string
-): Promise<{ manifest: WebManifest; comment: ChainComment } | null> {
-  const c = await getChainComment(containerPermlink(hash));
-  if (!c) return null;
-  let m: WebManifest;
-  try {
-    m = JSON.parse(c.body) as WebManifest;
-  } catch {
-    return null; // גוף שאינו מניפסט — לא חבילה שלנו
+  if (!Array.isArray(hist)) return out;
+  for (const [, e] of hist) {
+    const op = e.op;
+    if (!op || op[0] !== "custom_json") continue;
+    const id = op[1].id;
+    if (id !== WEB_OP_ID && id !== WEB_CHUNK_OP_ID) continue;
+    try {
+      const pl = JSON.parse(String(op[1].json || "{}")) as Record<string, unknown>;
+      if (pl.h !== undefined && pl.h !== hash && id === WEB_CHUNK_OP_ID) continue;
+      if (id === WEB_OP_ID) {
+        if (pl.sha256 !== hash) continue;
+        out.manifest = {
+          v: 1,
+          protocol: WEB_PROTOCOL,
+          name: String(pl.name || ""),
+          sha256: String(pl.sha256 || ""),
+          bytes: Number(pl.bytes || 0),
+          mime: String(pl.mime || "application/octet-stream"),
+          entry: pl.entry ? String(pl.entry) : undefined,
+          b64len: Number(pl.s || 0),
+          chunkSize: 0,
+          mode: "chunks",
+          by: account,
+          at: String(pl.at || ""),
+          block: e.block,
+          txid: e.trx_id,
+        };
+      } else if (pl.h === hash && typeof pl.i === "number" && typeof pl.d === "string") {
+        out.chunks.push({ i: pl.i, d: pl.d, block: e.block, txid: e.trx_id });
+      }
+    } catch {
+      /* json זר */
+    }
   }
-  if (!m || m.protocol !== WEB_PROTOCOL || m.sha256 !== hash) return null;
-  return { manifest: m, comment: c };
+  out.chunks.sort((a, b) => a.i - b.i);
+  return out;
 }
 
-// ── מטמון תוכן (כתובות-תוכן = בלתי-משתנות ⇒ מטמון תמידי בתוך התהליך) ──
+/** חותם החבילה מהשרשרת — null אם לא נחתם */
+export async function loadManifestFromChain(hash: string): Promise<WebManifest | null> {
+  const ops = await scanWebOps(hash);
+  return ops.manifest;
+}
 
-interface PackageCacheEntry {
+// ── מטמון תוכן (כתובות-תוכן = בלתי-משתנות) ───────────────────────────
+
+export interface PackageBytes {
   bytes: Buffer;
   manifest: WebManifest;
+  /** מהיכן הגוף: שרשרת מלאה | ריפו מאומת-חותם */
+  source: "chain" | "repo-sealed";
+  /** כמה מהתווים כבר על השרשרת */
+  chainChars: number;
+  b64len: number;
 }
 
-const pkgCache = new Map<string, PackageCacheEntry>();
-const inflight = new Map<string, Promise<PackageCacheEntry>>();
+const pkgCache = new Map<string, PackageBytes>();
+const inflight = new Map<string, Promise<PackageBytes>>();
 const CACHE_MAX = 48;
 
-/** בייטי החבילה מהשרשרת — כל צ׳אנק נבדק ב-sha256 בטעינה. */
-export async function fetchPackageBytes(hash: string): Promise<PackageCacheEntry> {
+async function repoPackageBytes(hash: string): Promise<Buffer | null> {
+  const p = path.join(process.cwd(), "sovereign", "web", "packages", `${hash}.bin`);
+  try {
+    return await readFile(p);
+  } catch {
+    return null;
+  }
+}
+
+/** בייטי החבילה — שרשרת קודם, ריפו-מאומת אחרי; חותם-שרשרת תמיד חובה. */
+export async function fetchPackageBytes(hash: string): Promise<PackageBytes> {
   if (!looksLikeSha256(hash)) throw new Error("חשיש לא תקין — נדרש sha256 בן 64 תווי-הקס");
   const cached = pkgCache.get(hash);
   if (cached) return cached;
   const running = inflight.get(hash);
   if (running) return running;
 
-  const task = (async (): Promise<PackageCacheEntry> => {
-    const loaded = await loadManifestFromChain(hash);
-    if (!loaded) {
-      throw new Error("המניפסט לא נמצא על השרשרת — החבילה עדיין לא פורסמה או שהחשיש שגוי");
+  const task = (async (): Promise<PackageBytes> => {
+    const ops = await scanWebOps(hash);
+    if (!ops.manifest) {
+      throw new Error("אין חותם על השרשרת עבור חשיש זה — החבילה לא נחתמה על ידי הרשת");
     }
-    const m = loaded.manifest;
-    let b64 = "";
-    if (m.mode === "inline") {
-      const inline = m.b64;
-      if (!inline) throw new Error("מניפסט inline ללא שדה תוכן");
-      b64 = inline;
-    } else {
-      const chunks = m.chunks ?? [];
-      const bodies: string[] = [];
-      for (const ch of chunks) {
-        const c = await getChainComment(ch.permlink);
-        if (!c) throw new Error(`צ׳אנק ${ch.i} חסר על השרשרת (${ch.permlink})`);
-        const got = sha256Hex(c.body);
-        if (got !== ch.sha256) {
-          throw new Error(`צ׳אנק ${ch.i} לא עבר אימות: ${got.slice(0, 12)} ≠ ${ch.sha256.slice(0, 12)}`);
-        }
-        bodies.push(c.body);
+    const m = ops.manifest;
+
+    // 1) נסיון שרשרת-מלאה: הרכבה לפי אינדקס
+    const joined = ops.chunks.map((c) => c.d).join("");
+    if (joined.length === m.b64len) {
+      const bytes = Buffer.from(joined, "base64");
+      if (sha256Hex(bytes) === hash && bytes.length === m.bytes) {
+        const entry: PackageBytes = { bytes, manifest: m, source: "chain", chainChars: joined.length, b64len: m.b64len };
+        pkgCache.set(hash, entry);
+        return entry;
       }
-      b64 = bodies.join("");
+      throw new Error("אימות שרשרת נכשל — הבייטים שהורכבו אינם תואמים לחותם (דלג על ריפו: השרשרת השופטת)");
     }
-    const bytes = Buffer.from(b64, "base64");
-    const gotHash = sha256Hex(bytes);
-    if (gotHash !== hash) {
-      throw new Error(`אימות-סופי נכשל: sha256 בפועל ${gotHash.slice(0, 12)} ≠ המניפסט ${hash.slice(0, 12)}`);
+
+    // 2) ריפו מאומת-חותם: המחסן מותר רק אם sha256 תואם לחותם שעל השרשרת
+    const repoBytes = await repoPackageBytes(hash);
+    if (!repoBytes) {
+      throw new Error(
+        `הצ׳אנקים על השרשרת חלקיים (${joined.length}/${m.b64len} תווים) ואין עותק-ריפו — ההגשה ממתינה להשלמת העלייה`
+      );
     }
-    const entry: PackageCacheEntry = { bytes, manifest: m };
+    if (sha256Hex(repoBytes) !== hash || repoBytes.length !== m.bytes) {
+      throw new Error("עותק הריפו לא תואם לחותם שעל השרשרת — סירוב הגשה (השרשרת השופטת)");
+    }
+    const entry: PackageBytes = {
+      bytes: repoBytes,
+      manifest: m,
+      source: "repo-sealed",
+      chainChars: joined.length,
+      b64len: m.b64len,
+    };
     if (pkgCache.size >= CACHE_MAX) {
       const oldest = pkgCache.keys().next().value;
       if (oldest) pkgCache.delete(oldest);
@@ -231,9 +268,14 @@ export async function fetchPackageBytes(hash: string): Promise<PackageCacheEntry
   }
 }
 
-/** הצצה למטמון בלבד (בלי RPC) */
-export function peekCache(hash: string): PackageCacheEntry | undefined {
+/** הצצה למטמון בלבד */
+export function peekCache(hash: string): PackageBytes | undefined {
   return pkgCache.get(hash);
+}
+
+/** ניקוי מטמון של חבילה (אחרי התקדמות עלייה) */
+export function evictCache(hash: string): void {
+  pkgCache.delete(hash);
 }
 
 // ── קורא ZIP מינימלי (STORE + DEFLATE) — בלי תלות חוץ ────────────────
@@ -244,7 +286,6 @@ export interface ZipEntry {
 }
 
 export function parseZip(buf: Buffer): ZipEntry[] {
-  // EOCD — סריקה לאחור מהסוף
   let eocd = -1;
   const minStart = Math.max(0, buf.length - 66_000);
   for (let i = buf.length - 22; i >= minStart; i--) {
@@ -269,8 +310,7 @@ export function parseZip(buf: Buffer): ZipEntry[] {
     const lho = buf.readUInt32LE(off + 42);
     const name = buf.subarray(off + 46, off + 46 + nameLen).toString("utf8");
     off += 46 + nameLen + extraLen + commentLen;
-    if (name.endsWith("/")) continue; // תיקייה
-    // כותרת מקומית
+    if (name.endsWith("/")) continue;
     if (lho + 30 > buf.length || buf.readUInt32LE(lho) !== 0x04034b50) {
       throw new Error(`ZIP לא תקין: כותרת מקומית של ${name} פגומה`);
     }
@@ -293,7 +333,7 @@ export function zipIndex(entries: ZipEntry[]): Map<string, ZipEntry> {
     const safe = e.name.replace(/^\.\//, "");
     map.set(safe, e);
     const base = safe.includes("/") ? safe.slice(safe.lastIndexOf("/") + 1) : safe;
-    if (!map.has(base)) map.set(base, e); // מציאה לפי שם-בסיס גם בלי נתיב
+    if (!map.has(base)) map.set(base, e);
   }
   return map;
 }
@@ -336,13 +376,14 @@ export interface ServedFile {
   mime: string;
   manifest: WebManifest;
   resolvedPath: string;
+  source: "chain" | "repo-sealed";
 }
 
-/** הגשת קובץ מתוך חבילה על-פי נתיב פנימי. zip מפורק בזיכרון. */
 export async function servePackageFile(hash: string, innerPath?: string): Promise<ServedFile> {
-  const { bytes, manifest } = await fetchPackageBytes(hash);
+  const pkg = await fetchPackageBytes(hash);
+  const { bytes, manifest } = pkg;
   if (manifest.mime !== "application/zip") {
-    return { bytes, mime: manifest.mime, manifest, resolvedPath: manifest.name };
+    return { bytes, mime: manifest.mime, manifest, resolvedPath: manifest.name, source: pkg.source };
   }
   const idx = zipIndex(parseZip(bytes));
   let wanted = (innerPath || manifest.entry || "index.html").replace(/^\/+/, "");
@@ -351,129 +392,89 @@ export async function servePackageFile(hash: string, innerPath?: string): Promis
   let hit = idx.get(wanted);
   if (!hit) hit = idx.get(wanted.split("/").pop() || "");
   if (!hit) {
-    throw new Error(
-      `הקובץ "${wanted}" לא נמצא בחבילה. קבצים: ${[...idx.keys()].slice(0, 12).join(", ")}`
-    );
+    throw new Error(`הקובץ "${wanted}" לא נמצא בחבילה. קבצים: ${[...idx.keys()].slice(0, 12).join(", ")}`);
   }
-  return { bytes: hit.data, mime: mimeOf(hit.name), manifest, resolvedPath: hit.name };
+  return { bytes: hit.data, mime: mimeOf(hit.name), manifest, resolvedPath: hit.name, source: pkg.source };
 }
 
 // ── אימות חי מלא (בלי מטמון) — מנוע ההוכחות ─────────────────────────
 
 export interface VerifyChunkReport {
   i: number;
-  permlink: string;
+  chars: number;
   onChain: boolean;
-  expected: string;
-  got: string | null;
-  ok: boolean;
-  created?: string;
+  block?: number | null;
+  txid?: string | null;
 }
 
 export interface VerifyReport {
   hash: string;
   ok: boolean;
   name: string;
-  mode: string;
   bytes: number;
-  manifestOnChain: boolean;
-  chunks: VerifyChunkReport[];
-  totalB64: string | null;
-  totalSha: string | null;
-  anchor: { opId: string; onChain: boolean; raw?: unknown; block?: number | null; txid?: string | null } | null;
+  sealOnChain: boolean;
+  sealBlock: number | null;
+  sealTxid: string | null;
+  chainChars: number;
+  b64len: number;
+  residencyPct: number;
+  assembledSha: string | null;
+  repoCopy: { exists: boolean; shaMatches: boolean } | null;
   manifest: WebManifest | null;
   at: string;
 }
 
-/** אימות מקיר לקיר מול השרשרת הציבורית — כל צ׳אנק, כל חשיש. */
+/** אימות מקיר לקיר מול השרשרת הציבורית. */
 export async function verifyPackageOnChain(hash: string): Promise<VerifyReport> {
   const report: VerifyReport = {
     hash,
     ok: false,
     name: "",
-    mode: "",
     bytes: 0,
-    manifestOnChain: false,
-    chunks: [],
-    totalB64: null,
-    totalSha: null,
-    anchor: null,
+    sealOnChain: false,
+    sealBlock: null,
+    sealTxid: null,
+    chainChars: 0,
+    b64len: 0,
+    residencyPct: 0,
+    assembledSha: null,
+    repoCopy: null,
     manifest: null,
     at: new Date().toISOString(),
   };
-  const loaded = await loadManifestFromChain(hash);
-  if (!loaded) return report;
-  report.manifestOnChain = true;
-  const m = loaded.manifest;
-  report.manifest = m;
-  report.name = m.name;
-  report.mode = m.mode;
-  report.bytes = m.bytes;
+  const ops = await scanWebOps(hash);
+  if (!ops.manifest) return report;
+  report.sealOnChain = true;
+  report.sealBlock = ops.manifest.block ?? null;
+  report.sealTxid = ops.manifest.txid ?? null;
+  report.manifest = ops.manifest;
+  report.name = ops.manifest.name;
+  report.bytes = ops.manifest.bytes;
+  report.b64len = ops.manifest.b64len;
 
-  let b64 = "";
-  if (m.mode === "inline") {
-    b64 = m.b64 || "";
-    report.chunks.push({
-      i: 0,
-      permlink: containerPermlink(hash),
-      onChain: true,
-      expected: hash,
-      got: null,
-      ok: true,
-      created: loaded.comment.created,
-    });
-  } else {
-    for (const ch of m.chunks ?? []) {
-      const c = await getChainComment(ch.permlink);
-      const got = c ? sha256Hex(c.body) : null;
-      report.chunks.push({
-        i: ch.i,
-        permlink: ch.permlink,
-        onChain: !!c,
-        expected: ch.sha256,
-        got,
-        ok: !!c && got === ch.sha256,
-        created: c?.created,
-      });
-      if (c) b64 += c.body;
-    }
-  }
-  report.totalB64 = sha256Hex(b64);
-  if (b64) {
-    const bytes = Buffer.from(b64, "base64");
-    report.totalSha = sha256Hex(bytes);
+  const joined = ops.chunks.map((c) => c.d).join("");
+  report.chainChars = joined.length;
+  report.residencyPct = report.b64len ? Math.round((joined.length / report.b64len) * 1000) / 10 : 0;
+
+  if (joined) {
+    const bytes = Buffer.from(joined, "base64");
+    report.assembledSha = sha256Hex(bytes);
     report.bytes = bytes.length;
   }
-  report.ok =
-    report.manifestOnChain &&
-    report.chunks.every((c) => c.ok) &&
-    report.totalSha === hash;
-
-  // עוגן האינדקס (custom_json) — סריקת היסטוריה אחרונה
-  try {
-    const hist = await steemRpc<
-      Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>
-    >("condenser_api.get_account_history", [WEB_ACCOUNT, -1, 120]);
-    for (const [, e] of [...hist].reverse()) {
-      const op = e.op;
-      if (!op || op[0] !== "custom_json" || op[1].id !== WEB_OP_ID) continue;
-      try {
-        const pl = JSON.parse(String(op[1].json || "{}")) as { h?: string };
-        if (pl.h === hash) {
-          report.anchor = { opId: WEB_OP_ID, onChain: true, raw: pl, block: e.block ?? null, txid: e.trx_id ?? null };
-          break;
-        }
-      } catch {
-        /* דלג */
-      }
-    }
-  } catch {
-    /* ההיסטוריה אינה חובה לאימות התוכן */
+  const repoBytes = await repoPackageBytes(hash);
+  if (repoBytes) {
+    report.repoCopy = { exists: true, shaMatches: sha256Hex(repoBytes) === hash };
+  } else {
+    report.repoCopy = { exists: false, shaMatches: false };
   }
+  report.ok =
+    report.sealOnChain &&
+    joined.length === report.b64len &&
+    report.assembledSha === hash;
   return report;
 }
 
-// ── מצב ה-RC החי של חשבון האחסון (מד-חוזק הרשת) ─────────────────────
+// ── מצב ה-RC החי של חשבון האחסון ─────────────────────────────────────
 
 export interface RcProbe {
   account: string;
@@ -498,10 +499,7 @@ export async function probeStorageRc(account: string = WEB_ACCOUNT): Promise<RcP
     const max = Number(a.max_rc);
     let dgp: DynamicGlobalProperties | null = null;
     try {
-      dgp = await steemRpc<DynamicGlobalProperties>(
-        "condenser_api.get_dynamic_global_properties",
-        []
-      );
+      dgp = await steemRpc<DynamicGlobalProperties>("condenser_api.get_dynamic_global_properties", []);
     } catch {
       /* בלי זמן שרשרת נסתפק במנה הקפואה */
     }
@@ -509,10 +507,7 @@ export async function probeStorageRc(account: string = WEB_ACCOUNT): Promise<RcP
       ? Math.floor(new Date(dgp.time + "Z").getTime() / 1000)
       : Math.floor(Date.now() / 1000);
     const lut = Number(a.rc_manabar.last_update_time);
-    const mana = Math.min(
-      max,
-      Number(a.rc_manabar.current_mana) + Math.max(0, nowSec - lut) * (max / 432_000)
-    );
+    const mana = Math.min(max, Number(a.rc_manabar.current_mana) + Math.max(0, nowSec - lut) * (max / 432_000));
     return {
       account,
       mana: Math.round(mana),
@@ -527,7 +522,7 @@ export async function probeStorageRc(account: string = WEB_ACCOUNT): Promise<RcP
   }
 }
 
-/** נתיבי הספריות של רשת-האחסון בריפו (אינדקס בלבד — השרשרת היא האמת) */
+/** נתיבי הספריות של רשת-האחסון בריפו */
 export function webRepoPaths(repoRoot: string) {
   return {
     manifests: path.join(repoRoot, "sovereign", "web", "manifests"),
@@ -536,7 +531,7 @@ export function webRepoPaths(repoRoot: string) {
   };
 }
 
-// ── פרופיל מה העוגנים נותנים (לתצוגה — אמת מדודה, לא שיווק) ─────────
+// ── פרופיל מה העוגנים נותנים — אמת מדודה בלבד ───────────────────────
 
 export interface AnchorCapability {
   key: string;
@@ -549,31 +544,31 @@ export function anchorCapabilities(): AnchorCapability[] {
   return [
     {
       key: "storage",
-      title: "אחסון קבוע על שרשרת ציבורית",
+      title: "אחסון על שרשרת ציבורית — במחיר האמיתי",
       detail:
-        "פוסט של Steem שומר עד 64KB גוף על השרשרת לנצח — כל צומת מלא בעולם מחזיק עותק. אנחנו מפרקים כל תוכן לצ׳אנקים חתומים ב-sha256 וכותבים אותם כפוסטים בסמכות posting בלבד (אפס סיכון הון).",
-      measured: "חבילת המשחקים: 9,643 בייטים = פוסט אחד",
+        "כל ביט שנכתב ל-Steem נשמר לנצח בכל צומת מלא בעולם. המחיר נמדד אצלנו בפועל: ~65M RC בסיס + ~320k RC לכל תו — החבילות עולות בצ׳אנקים אדפטיביים בקצב שהמאגר מרשה, והחותם (sha256) נוחת ראשון.",
+      measured: "probe2: 1,000 תווים = 404M RC · 2,000 = 725M · 4,000 = 1,365M",
     },
     {
       key: "identity",
       title: "חתימת רשת ללא שרת",
       detail:
-        "חשבון העוגן (cashmachine, ~4,678 SP) חותם על כל צ׳אנק במפתח ה-posting. כל אחד יכול לאמת את החתימה מול ה-RPC הציבורי — ההרשאה היא השרשרת עצמה, לא אנחנו.",
+        "חשבון העוגן (cashmachine, ~4,678 SP) חותם על כל פעולה במפתח ה-posting. המפתח הציבורי אומת ב-2026-09-19 מול השרשרת (STM6EML1…) — ההרשאה היא השרשרת עצמה.",
       measured: "פעיל מ-2018 · 107 פרסומים · מעגן את הספר עד היום",
     },
     {
       key: "budget",
       title: "תקציב כתיבה כלכלי אמיתי (RC)",
       detail:
-        "הכתיבה לשרשרת מוגבלת ב-Resource Credits הנטענים מ-SP: מאגר 2.35 מיליארד, התחדשות ~470 מיליון ביום. הרשת מפרסמת רק כשהמאגר מעל רצפת בטיחות — ולעולם לא מלווה מהעתיד.",
-      measured: "המאגר נמדד חי בכל פעימה — ראה את המד",
+        "מאגר 2.35 מיליארד RC, התחדשות ~470 מיליון ביום. הרשת מפרסמת רק מעל רצפת בטיחות, מודדת את העלות בפועל אחרי כל שידור, ולומדת מדחיות (ההודעה needs-X-RC היא מדידה חינם). יותר SP = קצב הגירה גבוה יותר.",
+      measured: "המאגר נמדד חי בכל פעימה — המד למעלה",
     },
     {
       key: "index",
-      title: "אינדקס ציבורי נטול-שרת",
+      title: "חותם ואינדקס נטולי-שרת",
       detail:
-        "עוגן custom_json (id=saos.web.v1) מפרסם את חשיש כל חבילה להיסטוריית החשבון — סריקה ציבורית חושפת את כל מה שהרשת מאחסנת, בלי לשאול אותנו. הפוסטים עצמם מתויגים saosweb.",
-      measured: "כל חבילה מקבלת permlink=saosweb-<hash10>",
+        "החותם של כל חבילה (custom_json id=saos.web.v1) נושא את ה-sha256 ונודד בהיסטוריית החשבון הציבורית — כל אחד יכול לסרוק ולגלות מה הרשת מאחסנת. ההגשה מאומתת מול החותם בכל טעינה: השרשרת היא השופטת.",
+      measured: "מבנה: {name, sha256, bytes, mime, entry, s, at}",
     },
   ];
 }

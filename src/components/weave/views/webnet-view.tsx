@@ -324,7 +324,7 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
     }
   }, [hash]);
 
-  const curl = `curl -s -X POST https://api.steemit.com -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"condenser_api.get_content","params":["${account}","saosweb-${hash.slice(0, 10)}"],"id":1}'`;
+  const curl = `curl -s -X POST https://api.steemit.com -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"condenser_api.get_account_history","params":["${account}",-1,1000],"id":1}'`;
 
   return (
     <div className="mt-3 grid gap-3 rounded-xl border bg-muted/20 p-3 sm:p-4">
@@ -344,63 +344,47 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
       {report ? (
         <div className="grid gap-3">
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {report.ok ? (
+            {report.sealOnChain ? (
               <Badge className="gap-1 bg-emerald-600 text-white">
                 <ShieldCheck className="size-3" aria-hidden="true" />
-                כל הצ׳אנקים תואמים · sha256 סופי אומת
+                חותם על השרשרת · בלוק {report.sealBlock ?? "?"}
               </Badge>
             ) : (
               <Badge variant="destructive" className="gap-1">
-                אימות לא הושלם
+                אין חותם על השרשרת
               </Badge>
             )}
             <Badge variant="outline">
-              מניפסט על השרשרת: {report.manifestOnChain ? "כן" : "לא"}
+              תושבות-שרשרת: {report.residencyPct}% ({report.chainChars.toLocaleString("he-IL")}/{report.b64len.toLocaleString("he-IL")} תווים)
             </Badge>
-            <Badge variant="outline">עוגן אינדקס: {report.anchor ? `בלוק ${report.anchor.block ?? "?"}` : "טרם נמצא"}</Badge>
-            <Badge variant="outline">
-              נבדק ב- {fmtDateTime(report.at)}
-            </Badge>
+            {report.repoCopy?.exists ? (
+              <Badge
+                variant="outline"
+                className={
+                  report.repoCopy.shaMatches
+                    ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400"
+                    : "border-rose-500/40 text-rose-600"
+                }
+              >
+                עותק-ריפו: {report.repoCopy.shaMatches ? "תואם לחותם ✓" : "חורג מהחותם!"}
+              </Badge>
+            ) : null}
+            <Badge variant="outline">נבדק {fmtDateTime(report.at)}</Badge>
           </div>
 
-          <div className={cn("overflow-x-auto", scrollBoxClass)}>
-            <table className="w-full min-w-[560px] text-xs">
-              <thead>
-                <tr className="border-b text-start text-muted-foreground">
-                  <th className="p-2 text-start font-medium">#</th>
-                  <th className="p-2 text-start font-medium">permlink על השרשרת</th>
-                  <th className="p-2 text-start font-medium">sha256 מצופה</th>
-                  <th className="p-2 text-start font-medium">sha256 שהתקבל</th>
-                  <th className="p-2 text-start font-medium">מצב</th>
-                </tr>
-              </thead>
-              <tbody>
-                {report.chunks.map((c) => (
-                  <tr key={c.permlink} className="border-b border-border/40">
-                    <td className="p-2 tabular-nums">{c.i}</td>
-                    <td className="p-2 font-mono text-[11px]">{c.permlink}</td>
-                    <td className="p-2 font-mono text-[11px] text-muted-foreground">
-                      {truncateMiddle(c.expected, 8, 6)}
-                    </td>
-                    <td className="p-2 font-mono text-[11px] text-muted-foreground">
-                      {c.got ? truncateMiddle(c.got, 8, 6) : "—"}
-                    </td>
-                    <td className="p-2">
-                      {c.ok ? (
-                        <span className="text-emerald-600 dark:text-emerald-400">תואם ✓</span>
-                      ) : (
-                        <span className="text-rose-600 dark:text-rose-400">פער</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {report.chainChars > 0 ? (
+            <div>
+              <Progress value={report.residencyPct} className="h-2" aria-label={`תושבות שרשרת ${report.residencyPct}%`} />
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                הבייטים נודדים מהמחסן הריבוני אל השרשרת בקצב ה-RC — והחותם שעל השרשרת מחייב שני מקורות לאותו sha256 בדיוק.
+              </p>
+            </div>
+          ) : null}
 
           <p className="text-[11px] text-muted-foreground">
-            sha256 סופי מהשרשרת:{" "}
-            <span className="font-mono">{report.totalSha ?? "—"}</span> — חייב להתאים בדיוק לחשיש החבילה למעלה.
+            sha256 מהרכב-השרשרת:{" "}
+            <span className="font-mono">{report.assembledSha ?? "—"}</span>
+            {report.ok ? " — התאמה מלאה ✓" : report.chainChars > 0 ? " — ההרכבה עדיין חלקית" : ""}
           </p>
 
           <details className="group">
@@ -436,11 +420,14 @@ function PackageCard({
   isFeatured: boolean;
 }) {
   const m = rec.manifest;
-  const playable = rec.status === "complete";
-  const chunkCount = m.mode === "inline" ? 1 : (m.chunks?.length ?? 0);
+  const playable = rec.status === "partial" || rec.status === "complete";
+  const chunks = rec.chain.chunks ?? [];
+  const chainChars = chunks.reduce((s, c) => s + c.chars, 0);
+  const residencyPct = m.b64len ? Math.min(100, Math.round((chainChars / m.b64len) * 100)) : 0;
+  const sealed = rec.status !== "pending-seal";
   const blocks = [
-    rec.chain.container?.block,
-    ...(rec.chain.chunks ?? []).map((c) => c.block),
+    rec.chain.manifestOp?.block,
+    ...chunks.map((c) => c.block),
   ].filter((b): b is number => typeof b === "number" && b > 0);
   const lastBlock = blocks.length ? Math.max(...blocks) : null;
 
@@ -451,7 +438,7 @@ function PackageCard({
           <span
             className={cn(
               "flex size-11 shrink-0 items-center justify-center rounded-xl border",
-              playable
+              sealed
                 ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
             )}
@@ -461,17 +448,21 @@ function PackageCard({
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="truncate text-sm font-bold">{m.name}</p>
-              {playable ? (
+              {rec.status === "complete" ? (
                 <Badge className="gap-1 bg-emerald-600 text-white">
                   <ShieldCheck className="size-3" aria-hidden="true" />
-                  על השרשרת
+                  כולה על השרשרת
+                </Badge>
+              ) : sealed ? (
+                <Badge variant="outline" className="gap-1 border-emerald-500/40 text-emerald-700 dark:text-emerald-400">
+                  חתום · מהגר בקצב RC
                 </Badge>
               ) : (
                 <Badge variant="outline" className="gap-1 border-amber-500/40 text-amber-700 dark:text-amber-400">
-                  שידור חלקי
+                  ממתין לחותם
                 </Badge>
               )}
-              <Badge variant="outline">{m.mode === "inline" ? "פוסט יחיד" : `${chunkCount} צ׳אנקים`}</Badge>
+              <Badge variant="outline">{chunks.length} צ׳אנקים על השרשרת</Badge>
               {isFeatured ? (
                 <Badge variant="outline" className="gap-1 border-amber-500/40 text-amber-700 dark:text-amber-400">
                   <Sparkles className="size-3" aria-hidden="true" />
@@ -487,9 +478,20 @@ function PackageCard({
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <HashChip value={m.sha256} label="sha256" head={10} tail={8} />
               <span className="font-mono text-[11px] text-muted-foreground">
-                @{account}/saosweb-{m.sha256.slice(0, 10)}
+                @{account} · saos.web.v1
               </span>
             </div>
+            {m.b64len > 0 ? (
+              <div className="mt-3 max-w-md">
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                  <span>תושבות-שרשרת</span>
+                  <span className="tabular-nums">
+                    {residencyPct}% ({chainChars.toLocaleString("he-IL")}/{m.b64len.toLocaleString("he-IL")} תווים)
+                  </span>
+                </div>
+                <Progress value={residencyPct} className="mt-1 h-1.5" aria-label={`תושבות שרשרת ${residencyPct}%`} />
+              </div>
+            ) : null}
           </div>
         </div>
         <div className="flex flex-col gap-2">
@@ -621,7 +623,7 @@ export function WebNetView() {
   }, [load]);
 
   const featured = useMemo(
-    () => state?.packages.find((p) => p.status === "complete") ?? null,
+    () => state?.packages.find((p) => p.status === "partial" || p.status === "complete") ?? null,
     [state]
   );
 
@@ -638,9 +640,7 @@ export function WebNetView() {
             הרשת היא השרת. השרשרת היא הדיסק.
           </h1>
           <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            כל אתר, אפליקציה ומשחק שמועלה לכאן נחתם ב-sha256, נחתך לצ׳אנקים, ונכתב כפוסטים חתומים על שרשרת
-            Steem הציבורית — בסמכות posting בלבד, בלי שרת-אמת, בלי אמון. השער שמגיש אותם לא מחזיק עותק: הוא
-            קורא מה-RPC הציבורי ומאמת כל ביט בכל טעינה. <b>האמת היא האימות של השרת על הרשת.</b>
+            כל אתר, אפליקציה ומשחק שמועלה לכאן נחתם ב-sha256 על שרשרת Steem הציבורית (custom_json בסמכות posting), והבייטים עצמם נודדים מהמחסן הריבוני אל השרשרת בקצב ה-RC האמיתי. השער שמגיש אותם לא סומך על שום עותק: כל הגשה מאומתת מול החותם שעל השרשרת. <b>האמת היא האימות של השרת על הרשת.</b>
           </p>
         </div>
       </FadeIn>

@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // כתיבה: job + b64 + עותק מקור למשמרת המפעיל
+  // כתיבה: job + b64 + עותק מכותב-חשיש למחסן הריבוני
   const job: WebInboxJob = {
     id: hash,
     name,
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
   await writeFile(path.join(jobDir, "job.json"), JSON.stringify(job, null, 2) + "\n");
   await writeFile(path.join(jobDir, "package.b64"), bytes.toString("base64"));
   await mkdir(paths.packages, { recursive: true });
-  await writeFile(path.join(paths.packages, name), bytes);
+  await writeFile(path.join(paths.packages, `${hash}.bin`), bytes);
 
   // גיט: הוספה ממוקדת בלבד, commit, push — ואז הזנקת סוכן הענן
   let committed = "";
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
   let dispatched = false;
   try {
     sh(
-      `git add "sovereign/web/inbox/${hash}/job.json" "sovereign/web/inbox/${hash}/package.b64" "sovereign/web/packages/${name}"`
+      `git add "sovereign/web/inbox/${hash}/job.json" "sovereign/web/inbox/${hash}/package.b64" "sovereign/web/packages/${hash}.bin"`
     );
     committed = sh(`git commit -m "web-inbox: ${name} · ${bytes}B · ${hash.slice(0, 12)} — ממתין לשידור Steem"`);
     sh("git push origin main");
