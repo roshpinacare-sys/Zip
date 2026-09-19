@@ -307,6 +307,9 @@ interface HistEntry {
 }
 
 const scanCache = new Map<"steem" | "hive", { at: number; entries: number; res: DeepScanResult }>();
+// רענון-רקע single-flight לכל שרשרת + backoff משותף (לא להציף צומת)
+const scanBgInflight = new Map<"steem" | "hive", Promise<void>>();
+let scanBgNextKickAt = 0;
 
 function emptyHashEntry(): ChainHashEntry {
   return { manifest: null, chunks: new Map() };
@@ -355,24 +358,18 @@ function ingestHistOp(byHash: Map<string, ChainHashEntry>, e: HistEntry, account
 }
 
 /**
- * סריקה-עמוקה של כל אופרציות-הרשת על חשבון העוגן.
+ * הסריקה החיה עצמה — עימוד אחורה מלא, ניווט-רך בכשל-צומת.
+ *
  * get_account_history(account, start, limit) מחזיר את הרשומות
  * [start-limit+1 .. start] (עולה). עימוד אחורה: start = האינדקס
  * המוחלט של הרשומה העתיקה בעמוד הקודם, פחות 1.
  */
-export async function deepScanChain(
+async function liveDeepScan(
   chain: "steem" | "hive",
-  opts?: { entries?: number; account?: string }
+  account: string,
+  entriesWanted: number
 ): Promise<DeepScanResult> {
-  const account = (opts?.account || WEB_ACCOUNT).toLowerCase();
   const pageSize = chain === "steem" ? SCAN_PAGE_STEEM : SCAN_PAGE_HIVE;
-  const entriesWanted = Math.min(Math.max(opts?.entries ?? SCAN_ENTRIES_SERVE, pageSize), SCAN_ENTRIES_MAX);
-
-  const cached = scanCache.get(chain);
-  if (cached && Date.now() - cached.at < SCAN_CACHE_TTL_MS && cached.entries >= entriesWanted) {
-    return cached.res;
-  }
-
   const byHash = new Map<string, ChainHashEntry>();
   const meta: WebScanMeta = {
     chain,
@@ -416,6 +413,46 @@ export async function deepScanChain(
   const res: DeepScanResult = { meta, byHash };
   scanCache.set(chain, { at: Date.now(), entries: meta.entriesScanned, res });
   return res;
+}
+
+/**
+ * סריקה-עמוקה של כל אופרציות-הרשת על חשבון העוגן — SWR (R53):
+ *
+ * היסטוריית-שרשרת נספגת בלבד (append-only): חותם שנמצא תקף לנצח,
+ * והבייטים עצמם מאומתים ב-sha256 בכל הגשה בלי קשר לגיל הסריקה.
+ * לכן סריקה בשלה מוגשת מיד ורענון-רקע single-flight (עם backoff)
+ * מביא את הצ׳אנקים החדשים. נמדד לפני: מבקר שהגיע אחרי פקיעת
+ * ה-TTL חסם 3.7–4s על סריקה מלאה; עתה — אפס חסימה.
+ *
+ * חריג-אמת: בקשה לעומק גדול מהמטמון (אימות-עומק) תמיד סורקת
+ * בפועל — האימות העמוק אף פעם לא מוגש מעותק רדוד.
+ */
+export async function deepScanChain(
+  chain: "steem" | "hive",
+  opts?: { entries?: number; account?: string }
+): Promise<DeepScanResult> {
+  const account = (opts?.account || WEB_ACCOUNT).toLowerCase();
+  const pageSize = chain === "steem" ? SCAN_PAGE_STEEM : SCAN_PAGE_HIVE;
+  const entriesWanted = Math.min(Math.max(opts?.entries ?? SCAN_ENTRIES_SERVE, pageSize), SCAN_ENTRIES_MAX);
+
+  const cached = scanCache.get(chain);
+  if (cached && cached.entries >= entriesWanted) {
+    const now = Date.now();
+    if (now - cached.at < SCAN_CACHE_TTL_MS) return cached.res;
+    // בשלה — מוגשת מיד; רענון-רקע פעם אחת (backoff 30s משותף)
+    if (!scanBgInflight.has(chain) && now >= scanBgNextKickAt) {
+      scanBgNextKickAt = now + 30_000;
+      const p = liveDeepScan(chain, account, entriesWanted)
+        .then(() => undefined)
+        .catch(() => undefined)
+        .finally(() => scanBgInflight.delete(chain));
+      scanBgInflight.set(chain, p);
+    }
+    return cached.res;
+  }
+
+  // קור או דרישת-עומק גדולה — סריקה חיה וחוסמת (אמת-אימות)
+  return liveDeepScan(chain, account, entriesWanted);
 }
 
 /** מצב-ביניים לסריקה לפי-חשיש — בנוי מעל הסריקה העמוקה */
@@ -1100,12 +1137,18 @@ export interface RcProbe {
 // ── מטמון-מד RC חכם: מדידת-רשת נדיבה, חישוב-התחדשות מקומי בין לבין ─────
 //
 // התחדשות ה-RC ליניארית לחלוטין (max/432,000 לשנייה — אותה נוסחה
-// שהשרשרת עצמה מחשבת), ולכן דגימה אחת של (current_mana, last_update_time)
+// שהשרשרת עצמה מחשבת), ולכך דגימה אחת של (current_mana, last_update_time)
 // מספיקה כדי לחשב את המד לכל רגע אחר-כך — עד שמישהו מוציא RC בפועל
 // (שידור צ׳אנק; הסוכן בענן מודד בעצמו לפני שידור, אז התצוגה לעולם
-// לא מקבלת החלטות שידור מהמטמון הזה). מדידת-רשת פעם ב-90 שניות
-// לכל היותר; בין לבין — אפס קריאות רשת, תשובה מיידית. נפילת-רשת
-// ממשיכה לשרת את הדגימה הישנה בכנות (stale=true) במקום null.
+// לא מקבלת החלטות שידור מהמטמון הזה).
+//
+// לקח-R53 (נמדד חי ביומן ה-dev): הגרסה הקודמת חסמה את הקריאה על
+// מדידת-רשת חיה כשהדגימה התיישנה — polling של 60 שניות מול TTL של
+// 90 יצר תבנית "900ms, 40ms, 900ms…" נמדדת. מעתה SWR: דגימה בשלה
+// מוגשת מיד (חישוב-regen מדויק, measuredAgoSec גלוי) ורענון-רקע
+// single-flight רץ פעם בכל 15 שניות לכל היותר — צומת שנפל לא
+// מוצף בבעיטות. stale=true נשמר למשמעותו הקשה: הרשת נפלה וזו
+// דגימה ישנה שממשיכה לשרת בכנות.
 
 interface RcSample {
   max: number;
@@ -1116,7 +1159,11 @@ interface RcSample {
 }
 
 const RC_SAMPLE_TTL_MS = 90_000;
+const RC_KICK_BACKOFF_MS = 15_000; // רענון-רקע: בעיטה אחת לכל היותר כל 15 שניות
+
 let rcSample: { at: number; s: RcSample } | null = null;
+let rcInflight: Promise<RcSample | null> | null = null;
+let rcNextKickAt = 0;
 
 function rcProbeFromSample(s: RcSample, atMs: number, measuredAtMs: number, stale: boolean): RcProbe {
   const nowSec = Math.floor(atMs / 1000);
@@ -1134,42 +1181,79 @@ function rcProbeFromSample(s: RcSample, atMs: number, measuredAtMs: number, stal
   };
 }
 
-export async function probeStorageRc(account: string = WEB_ACCOUNT): Promise<RcProbe | null> {
+/** מדידת-רשת חיה אחת (שתי הקריאות במקביל — נמדד: ~0.7s במקום ~1.5s) */
+async function liveRcSample(account: string): Promise<RcSample> {
+  const [rcRes, dgp] = await Promise.all([
+    steemRpc<{
+      rc_accounts: Array<{
+        max_rc: string | number;
+        rc_manabar: { current_mana: string | number; last_update_time: number };
+      }>;
+    }>("rc_api.find_rc_accounts", { accounts: [account] }),
+    steemRpc<DynamicGlobalProperties>("condenser_api.get_dynamic_global_properties", []).catch(
+      () => null,
+    ),
+  ]);
+  const a = rcRes?.rc_accounts?.[0];
+  if (!a) throw new Error("no-rc-account");
+  const s: RcSample = {
+    max: Number(a.max_rc),
+    manaAtLut: Number(a.rc_manabar.current_mana),
+    lutSec: Number(a.rc_manabar.last_update_time),
+    headBlock: dgp?.head_block_number ?? null,
+    chainTime: dgp?.time ?? null,
+  };
+  rcSample = { at: Date.now(), s };
+  return s;
+}
+
+/** מדידה חיה single-flight — קריאות מקבילות מתאחדות ל-promise אחד */
+function startRcProbe(account: string): Promise<RcSample | null> {
+  if (rcInflight) return rcInflight;
+  const p = liveRcSample(account)
+    .catch(() => null) // כישלון: הדגימה הישנה ממשיכה לשרת (stale בפעם הבאה שתיבדק)
+    .finally(() => {
+      rcInflight = null;
+    });
+  rcInflight = p;
+  return p;
+}
+
+export interface ProbeRcOpts {
+  /**
+   * true = מדידת-רשת חיה תמיד, בלי פשרות — לאימות-אמת (/api/health).
+   * ברירת-מחדל false = מסלול-תצוגה: מיידי מהדגימה + רענון-רקע.
+   */
+  fresh?: boolean;
+}
+
+export async function probeStorageRc(
+  account: string = WEB_ACCOUNT,
+  opts: ProbeRcOpts = {},
+): Promise<RcProbe | null> {
   const now = Date.now();
-  if (rcSample && now - rcSample.at < RC_SAMPLE_TTL_MS) {
+
+  // מסלול-האמת: מדידה חיה תמיד (הצטרפות למדידה שכבר רצה זה בסדר — היא חיה)
+  if (opts.fresh) {
+    const ok = await startRcProbe(account);
+    if (!ok || !rcSample) return null;
     return rcProbeFromSample(rcSample.s, now, rcSample.at, false);
   }
-  try {
-    // שתי הקריאות במקביל — במקום בטור (נמדד: ~1.5s → ~0.7s בפעם הראשונה)
-    const [rcRes, dgp] = await Promise.all([
-      steemRpc<{
-        rc_accounts: Array<{
-          max_rc: string | number;
-          rc_manabar: { current_mana: string | number; last_update_time: number };
-        }>;
-      }>("rc_api.find_rc_accounts", { accounts: [account] }),
-      steemRpc<DynamicGlobalProperties>("condenser_api.get_dynamic_global_properties", []).catch(
-        () => null,
-      ),
-    ]);
-    const a = rcRes?.rc_accounts?.[0];
-    if (!a) throw new Error("no-rc-account");
-    const max = Number(a.max_rc);
-    const s: RcSample = {
-      max,
-      manaAtLut: Number(a.rc_manabar.current_mana),
-      lutSec: Number(a.rc_manabar.last_update_time),
-      headBlock: dgp?.head_block_number ?? null,
-      chainTime: dgp?.time ?? null,
-    };
-    rcSample = { at: Date.now(), s };
-    return rcProbeFromSample(s, rcSample.at, rcSample.at, false);
-  } catch {
-    // נפילת-רשת: הדגימה הקודמת ממשיכה לשרת בכנות — עדיף אמת מעופשת
-    // מאשר null מזייף ("הרשת חיה" כשהיא לא). בלי דגימה כלל — null כנה.
-    if (rcSample) return rcProbeFromSample(rcSample.s, now, rcSample.at, true);
-    return null;
+
+  // יש דגימה: מוגשת מיד — טריה או בשלה (חישוב-regen מקומי מדויק), ואם בשלה —
+  // רענון-רקע single-flight עם backoff כדי שצומת שנפל לא יוצף.
+  if (rcSample) {
+    if (now - rcSample.at >= RC_SAMPLE_TTL_MS && now >= rcNextKickAt) {
+      rcNextKickAt = now + RC_KICK_BACKOFF_MS;
+      void startRcProbe(account);
+    }
+    return rcProbeFromSample(rcSample.s, now, rcSample.at, false);
   }
+
+  // קור: אין דגימה — מדידה ראשונה, ממתינים (single-flight מאחד קריאות מקבילות)
+  const ok = await startRcProbe(account);
+  if (!ok || !rcSample) return null;
+  return rcProbeFromSample(rcSample.s, Date.now(), rcSample.at, false);
 }
 
 /** נתיבי הספריות של רשת-האחסון בריפו */

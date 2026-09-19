@@ -16,6 +16,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
+import { swrGet, cacheHeader } from "@/lib/live/swr";
 
 export const dynamic = "force-dynamic";
 
@@ -286,16 +287,31 @@ async function giantsSide() {
   };
 }
 
-// ── מטמון זיכרון 60 שניות ────────────────────────────────────────────
+// ── מטמון SWR (stale-while-revalidate) ──────────────────────────────
+//
+// לקח-R53 (נמדד חי ביומן ה-dev): מטמון-TTL של 60 שניות מול polling של
+// 90 שניות בתצוגת-הגלגל ⇒ כל קריאת-דפדפן הייתה miss של 1.4–1.9 שניות.
+// מעתה: כל תשובה אחרי הראשונה מיידית (טריה או בשלה+רענון-רקע single-flight).
+// כנות: cached/stale/cacheAgeSec/refreshing בגוף + header X-SAOS-Cache.
 
-let cache: { at: number; data: any } | null = null;
-const CACHE_MS = 60_000;
+const SWR_KEY = "api:defi";
+const SWR_TTL_MS = 60_000;
 
 export async function GET() {
-  if (cache && Date.now() - cache.at < CACHE_MS) {
-    return NextResponse.json({ ...cache.data, cached: true, cacheAgeSec: Math.round((Date.now() - cache.at) / 1000) });
-  }
+  const { value, meta } = await swrGet(SWR_KEY, SWR_TTL_MS, composeDefi);
+  return NextResponse.json(
+    {
+      ...value,
+      cached: meta.cached,
+      stale: meta.stale,
+      cacheAgeSec: meta.cacheAgeSec,
+      refreshing: meta.refreshing,
+    },
+    { headers: { "X-SAOS-Cache": cacheHeader(meta) } },
+  );
+}
 
+async function composeDefi() {
   const down: string[] = [];
   const [world, money, giants] = await Promise.all([
     worldSide().catch((e) => { down.push(`world: ${String(e.message).slice(0, 40)}`); return null; }),
@@ -391,8 +407,5 @@ export async function GET() {
     honesty:
       "כל מספר נמדד חי מהקונסולה הציבורית (world/money/grid/watch.json) ומ-DefiLlama. פרמטרי עקומת-הריבית גלויים ב-full. מקור שנפל מסומן ב-down. אף תשואה אינה מובטחת — זו רשת הוכחות, לא הבטחות.",
   };
-  // FIX(R52): המטמון נקרא למעלה אך לא נשמר לעולם — כל קריאה ביצעה
-  // 5-6 fetches חיים במקום לחזור מהזיכרון (נמדד: 1.1-1.3s בכל קריאה).
-  cache = { at: Date.now(), data };
-  return NextResponse.json({ ...data, cached: false, cacheAgeSec: 0 });
+  return data;
 }

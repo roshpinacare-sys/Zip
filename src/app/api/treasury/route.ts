@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
+import { swrGet, cacheHeader } from "@/lib/live/swr";
 
 export const dynamic = "force-dynamic";
 
@@ -267,15 +268,30 @@ async function networkSide() {
   return out;
 }
 
-// ── מטמון זיכרון 60 שניות (מדיניות מקומית, בלי מידלוור) ─────────────
+// ── מטמון SWR (stale-while-revalidate) ──────────────────────────────
+//
+// לקח-R53 (נמדד חי): שער-הכסף מרענן כל 60 שניות — בדיוק בגבול ה-TTL
+// הישן, ולכן כמעט כל poll אכל 1.1–1.4 שניות של 8 מקורות-חיים.
+// מעתה: תשובה מיידית תמיד אחרי הראשונה; רענון-רקע single-flight.
 
-let cache: { at: number; data: any } | null = null;
-const CACHE_MS = 60_000;
+const SWR_KEY = "api:treasury";
+const SWR_TTL_MS = 60_000;
 
 export async function GET() {
-  if (cache && Date.now() - cache.at < CACHE_MS) {
-    return NextResponse.json({ ...cache.data, cached: true, cacheAgeSec: Math.round((Date.now() - cache.at) / 1000) });
-  }
+  const { value, meta } = await swrGet(SWR_KEY, SWR_TTL_MS, composeTreasury);
+  return NextResponse.json(
+    {
+      ...value,
+      cached: meta.cached,
+      stale: meta.stale,
+      cacheAgeSec: meta.cacheAgeSec,
+      refreshing: meta.refreshing,
+    },
+    { headers: { "X-SAOS-Cache": cacheHeader(meta) } },
+  );
+}
+
+async function composeTreasury() {
   const down: string[] = [];
 
   const [steem, hive, tron, evm, sol, btc, prices, network] = await Promise.all([
@@ -354,6 +370,5 @@ export async function GET() {
     prices: p,
     network,
   };
-  cache = { at: Date.now(), data };
-  return NextResponse.json({ ...data, cached: false, cacheAgeSec: 0 });
+  return data;
 }

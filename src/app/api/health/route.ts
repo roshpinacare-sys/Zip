@@ -9,7 +9,7 @@
 //   db       — SQLite חי (שאילתת בדיקה דרך Prisma)
 //   vault    — מחסן-החבילות קריא (מניפסטים + בייטים)
 //   integrity— sha256 של הבייטים במחסן מול החותם שנחתם בשרשרת
-//   rpc      — צומת Steem עונה (מד RC חי, מטמון-דגימה 90 שניות)
+//   rpc      — צומת Steem עונה (מדידת-רשת חיה תמיד — fresh, בלי מטמון)
 //   seals    — לכל חבילה: כתובת-בלוק ומספר-צ׳אנקים על-השרשרת
 // ─────────────────────────────────────────────────────────────────────
 
@@ -104,9 +104,16 @@ export async function GET() {
     return { verified: results.length, all: results };
   });
 
-  // ④ RPC — צומת Steem עונה עכשיו (מד RC; מטמון-דגימה עד 90 שניות)
+  // ④ RPC — צומת Steem עונה עכשיו. זהו מסלול-האמת של הבדיקה: מדידת-רשת
+  // חיה תמיד (fresh), בלי פשרות-מטמון — התצוגה מהירה, האימות נוקשה.
+  // גג-זמן 12 שניות: צומת תלוי-מדי מדווח ככישלון כנה, לא תולה את הבדיקה.
   const rpcCheck = timed("rpc", async () => {
-    const rc = await probeStorageRc();
+    const rc = await Promise.race([
+      probeStorageRc(undefined, { fresh: true }),
+      new Promise<null>((_, rej) =>
+        setTimeout(() => rej(new Error("rpc-timeout-12s")), 12_000),
+      ),
+    ]);
     if (!rc) throw new Error("steem-rpc-unreachable");
     return {
       account: rc.account,
