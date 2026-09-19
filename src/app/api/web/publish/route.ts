@@ -1,11 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/web/publish — העלאת חבילה לרשת-האחסון (פעולת-מפעיל) v2.
+// /api/web/publish — העלאת חבילה לרשת-האחסון (פעולת-מפעיל) v3.
 //
-// הזרימה: הקובץ נבדק (zip תקין/גודל) → זיפים מאורזים-מחדש בדחיסה
-// מקסימלית (כל תו עולה RC — חוסכים בכנות, התוכן זהה) → נכתב לדואר
-// הנכנס של הריפו הריבוני → commit+push → הזנקת סוכן הענן
-// (web-publish.yml) שמשדר את הצ׳אנקים ל-Steem בסמכות posting.
-// השרת המקומי לא נוגע במפתח — אפס סודות.
+// R55 · שני מסלולי מסירה, הריבוני-המקומי הוא ברירת-המחדל:
+//   · deliver=local (ברירת מחדל) — המחסן הריבוני המקומי: הקובץ נבדק
+//     (זיפ תקין/גודל/אינדקס) → מאורז-מחדש בדחיסה מקסימלית → נכתב למחסן
+//     + מניפסט pending-seal. אפס גיט. אפס ענן. התוכן לעולם לא נוגע בריפו
+//     (דרישת המפעיל: משחקים ברשת בלבד). החותם ייחתם במסלול-מפתח עתידי.
+//   · deliver=cloud — המסלול הישן: דואר נכנס בריפו → commit+push →
+//     סוכן הענן (web-publish.yml) משדר צ׳אנקים ל-Steem בסמכות posting.
+//     נדרש בקשה מפורשת — לא ברירת מחדל.
 //
 // R51: קבלת-קבצי-רשת בודדים (svg/png/json/css/js/md…) בנוסף ל-zip/html,
 // ואומדן-הגירה כן (RC + ימים) בתשובה.
@@ -149,6 +152,54 @@ export async function POST(req: NextRequest) {
       { status: 409 }
     );
   }
+
+  // ── R55 · מסלול ריבוני-מקומי (ברירת מחדל): מחסן + מניפסט pending-seal.
+  // אפס גיט — התוכן לא נוגע בריפו. החותם ייחתם במסלול-מפתח של המפעיל.
+  const deliver = String(form.get("deliver") || "local").toLowerCase();
+  if (deliver !== "cloud") {
+    await mkdir(paths.packages, { recursive: true });
+    await mkdir(paths.manifests, { recursive: true });
+    await writeFile(path.join(paths.packages, `${hash}.bin`), bytes);
+    const record = {
+      manifest: {
+        v: 1,
+        protocol: "saos-web/1",
+        name,
+        sha256: hash,
+        bytes: bytes.length,
+        mime,
+        entry,
+        b64len,
+        chunkSize: 0,
+        mode: "chunks",
+        by: "sovereign-local",
+        at: new Date().toISOString(),
+      },
+      status: "pending-seal",
+      chain: { manifestOp: null, chunks: [] },
+      publishedBy: "local/web-publish",
+      note: "פורסם ריבונית-מקומית — לא נשלח דבר לריפו. ממתין לחותם-שרשרת במסלול-מפתח של המפעיל.",
+    };
+    await writeFile(manifestPath, JSON.stringify(record, null, 2) + "\n");
+    return NextResponse.json(
+      {
+        ok: true,
+        sovereign: true,
+        hash,
+        name,
+        bytes: bytes.length,
+        entry,
+        status: "pending-seal",
+        gate: `/api/web/c/${hash}/${entry || "index.html"}`,
+        repackNote,
+        note: "החבילה במחסן הריבוני המקומי — אפס גיט, אפס ענן, התוכן לא נוגע בריפו. החותם על השרשרת ייחתם במסלול-מפתח של המפעיל; עד אז ההגשה מסומנת pending-seal בכנות.",
+        files: filesList,
+      },
+      { status: 200 }
+    );
+  }
+
+  // ── מסלול הענן (מפורש בלבד) — הדואר הנכנס בריפו ──
   // עבודה כפולה בדואר הנכנס?
   const jobDir = path.join(paths.inbox, hash);
   if (await exists(jobDir)) {
@@ -236,7 +287,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    hint: "POST multipart/form-data עם file=‎.zip‎/קובץ-רשת-בודד · דורש סשן-מפעיל · תקרה 400KB · זיפים מאורזים-מחדש בדחיסה מקסימלית · השידור ל-Steem מתבצע בענן בלבד",
+    hint: "POST multipart/form-data עם file=‎.zip‎/קובץ-רשת-בודד · דורש סשן-מפעיל · תקרה 400KB · deliver=local (ברירת מחדל: מחסן ריבוני מקומי, מניפסט pending-seal, אפס-גיט) · deliver=cloud (דואר-נכנס בריפו + סוכן-ענן — מפורש בלבד)",
     mime: mimeOf("x.zip"),
   });
 }

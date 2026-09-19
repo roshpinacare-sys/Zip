@@ -29,6 +29,13 @@ function truthHeaders(etag: string, extra?: Record<string, string>): Record<stri
   };
 }
 
+/** כותרת-מקור כנה: שרשרת | ריפו-מאומת | מחסן-מקומי ממתין-לחותם */
+function sourceHeader(source: "chain" | "repo-sealed" | "local-pending"): string {
+  if (source === "chain") return "steem-chain";
+  if (source === "repo-sealed") return "repo-sealed";
+  return "local-pending-seal";
+}
+
 export async function GET(
   req: NextRequest,
   ctx: { params: Promise<{ hash: string; path?: string[] }> }
@@ -57,7 +64,7 @@ export async function GET(
           "Content-Type": all.manifest.mime,
           "Content-Length": String(all.bytes.length),
           "Content-Disposition": `attachment; filename="${all.manifest.name.replace(/[^\w.-]+/g, "_")}"`,
-          "X-SAOS-Web-Source": all.source === "chain" ? "steem-chain" : "repo-sealed",
+          "X-SAOS-Web-Source": sourceHeader(all.source),
           "X-SAOS-Web-Manifest": hash,
           "X-SAOS-Web-Chain-Chars": `${all.chainChars}/${all.b64len}`,
         }),
@@ -90,9 +97,10 @@ export async function GET(
       headers: truthHeaders(etag, {
         "Content-Type": pkg.mime,
         "Content-Length": String(pkg.bytes.length),
-        "X-SAOS-Web-Source": pkg.source === "chain" ? "steem-chain" : "repo-sealed",
+        "X-SAOS-Web-Source": sourceHeader(pkg.source),
         "X-SAOS-Web-Manifest": pkg.manifest.sha256,
-        "X-SAOS-Web-Chain-Chars": `${pkg.source === "chain" ? "full" : "sealed"}`,
+        "X-SAOS-Web-Chain-Chars":
+          pkg.source === "chain" ? "full" : pkg.source === "repo-sealed" ? "sealed" : "pending-seal",
       }),
     });
   } catch (e) {

@@ -560,8 +560,8 @@ async function chunksFromRepoHint(
 export interface PackageBytes {
   bytes: Buffer;
   manifest: WebManifest;
-  /** מהיכן הגוף: שרשרת מלאה | ריפו מאומת-חותם */
-  source: "chain" | "repo-sealed";
+  /** מהיכן הגוף: שרשרת מלאה | ריפו מאומת-חותם | מחסן מקומי ממתין-לחותם */
+  source: "chain" | "repo-sealed" | "local-pending";
   /** כמה מהתווים כבר על השרשרת */
   chainChars: number;
   b64len: number;
@@ -578,6 +578,23 @@ async function repoPackageBytes(hash: string): Promise<Buffer | null> {
   const p = path.join(process.cwd(), "sovereign", "web", "packages", `${hash}.bin`);
   try {
     return await readFile(p);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * R55 · רשומת מניפסט ריבונית-מקומית: חבילה שפורסמה ישירות למחסן
+ * (בלי-ריפו, בלי-ענן) וממתינה לחותם-שרשרת. מוחזרת רק אם הסטטוס
+ * pending-seal בפירוש — רשומות חתומות-שרשרת לא עוברות מסלול זה.
+ */
+async function readLocalPendingRecord(hash: string): Promise<WebManifestRecord | null> {
+  if (!looksLikeSha256(hash)) return null;
+  const p = path.join(process.cwd(), "sovereign", "web", "manifests", `${hash}.json`);
+  try {
+    const raw = JSON.parse(await readFile(p, "utf8")) as WebManifestRecord;
+    if (raw?.status === "pending-seal" && raw?.manifest?.sha256 === hash) return raw;
+    return null;
   } catch {
     return null;
   }
@@ -612,6 +629,31 @@ export async function fetchPackageBytes(hash: string): Promise<PackageBytes> {
       }
     }
     if (!seal) {
+      // R55 · חבילה ריבונית-מקומית (pending-seal): פורסמה ישירות למחסן
+      // בלי-ריפו ובלי-ענן, וממתינה לחותם-שרשרת במסלול-מפתח של המפעיל.
+      // ההגשה כנה: רק אם מניפסט pending-seal קיים והבייטים במחסן תואמים
+      // לחשיש שבו. הסטטוס מתגלה בכותרות — לא מתחזים לחתום.
+      const local = await readLocalPendingRecord(hash);
+      if (local) {
+        const localBytes = await repoPackageBytes(hash);
+        if (localBytes && sha256Hex(localBytes) === hash && localBytes.length === local.manifest.bytes) {
+          const entry: PackageBytes = {
+            bytes: localBytes,
+            manifest: local.manifest,
+            source: "local-pending",
+            chainChars: 0,
+            b64len: local.manifest.b64len,
+            cachedAt: new Date().toISOString(),
+          };
+          if (pkgCache.size >= CACHE_MAX) {
+            const oldest = pkgCache.keys().next().value;
+            if (oldest) pkgCache.delete(oldest);
+          }
+          pkgCache.set(hash, entry);
+          return entry;
+        }
+        throw new Error("עותק המחסן המקומי לא תואם למניפסט pending-seal — סירוב הגשה (החשיש השופט)");
+      }
       throw new Error("אין חותם על השרשרת (Steem/Hive) עבור חשיש זה — החבילה לא נחתמה על ידי הרשת");
     }
     const m = seal;
@@ -917,7 +959,7 @@ export interface ServedFile {
   mime: string;
   manifest: WebManifest;
   resolvedPath: string;
-  source: "chain" | "repo-sealed";
+  source: "chain" | "repo-sealed" | "local-pending";
 }
 
 export async function servePackageFile(hash: string, innerPath?: string): Promise<ServedFile> {
