@@ -30,6 +30,8 @@ import { MarketTab } from "@/components/weave/tabs/market-tab";
 import { PlanTab } from "@/components/weave/tabs/plan-tab";
 import { SovereigntyTab } from "@/components/weave/tabs/sovereignty-tab";
 import { BrainView } from "@/components/weave/views/brain-view";
+import { BrowserView } from "@/components/weave/views/browser-view";
+import { DomainsView } from "@/components/weave/views/domains-view";
 import { DoctrineView } from "@/components/weave/views/doctrine-view";
 import { EvolutionView } from "@/components/weave/views/evolution-view";
 import { ExchangeView } from "@/components/weave/views/exchange-view";
@@ -48,21 +50,29 @@ import {
   AdminServerView,
 } from "@/components/weave/views/admin";
 
-// ── ניתוב hash: #/view/section ──────────────────────────────────────
+// ── ניתוב hash: #/view/section?query=value ──────────────────────────
+// החלק שאחרי ? נשמר ב-route.query — כך עובדת הקישורית החכמה של דפדפן
+// הסוכנים: ‎/#/browser?s=<slug>‎ משחזר סשן שלם מהשרת בכל דומיין.
 
 interface Route {
   view: SiteView;
   section: string;
+  query: Record<string, string>;
 }
 
 function parseHash(): Route {
   const raw = window.location.hash.replace(/^#\/?/, "");
-  const [v, s] = raw.split("/");
+  const [pathPart, queryPart] = raw.split("?");
+  const [v, s] = pathPart.split("/");
   const def = SECTIONS_LIST.find((x) => x.view === v);
   const view: SiteView = def ? def.view : "gate";
   const subs = def?.subs ?? [];
   const section = subs.find((x) => x.key === s)?.key ?? subs[0]?.key ?? "";
-  return { view, section };
+  const query: Record<string, string> = {};
+  if (queryPart) {
+    for (const [k, val] of new URLSearchParams(queryPart)) query[k] = val;
+  }
+  return { view, section, query };
 }
 
 function routeHash(route: Route): string {
@@ -71,7 +81,7 @@ function routeHash(route: Route): string {
 
 // ── רינדור סקציה+תת-סקציה ← קומפוננטה ────────────────────────────────
 
-function SectionBody({ view, section }: Route) {
+function SectionBody({ view, section, query }: Route) {
   switch (view) {
     case "gate":
       return <GateView />;
@@ -83,6 +93,11 @@ function SectionBody({ view, section }: Route) {
       return <MoneyMarketView />;
     case "games":
       return <GamesView />;
+    case "browser":
+      // key לפי הסלאג — מעבר בין קישוריות שמורות מרענן את התצוגה ומשחזר
+      return <BrowserView key={query.s ?? "fresh"} sessionSlug={query.s} />;
+    case "domains":
+      return <DomainsView />;
     case "home":
       return <HomeView />;
     case "network":
@@ -137,7 +152,11 @@ function SectionBody({ view, section }: Route) {
 }
 
 export default function Page() {
-  const [route, setRoute] = useState<Route>({ view: "gate", section: "" });
+  const [route, setRoute] = useState<Route>({
+    view: "gate",
+    section: "",
+    query: {},
+  });
   const reduced = useReducedMotion();
 
   // סנכרון hash ↔ מצב (כולל ניווט אחורה)
@@ -154,7 +173,7 @@ export default function Page() {
       section && subs.some((x) => x.key === section)
         ? section
         : subs[0]?.key ?? "";
-    const next: Route = { view, section: sec };
+    const next: Route = { view, section: sec, query: {} };
     window.history.replaceState(null, "", routeHash(next));
     setRoute(next);
   }, []);
@@ -174,7 +193,7 @@ export default function Page() {
                 exit={reduced ? undefined : { opacity: 0, y: -8 }}
                 transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               >
-                <SectionBody view={route.view} section={route.section} />
+                <SectionBody view={route.view} section={route.section} query={route.query} />
               </motion.div>
             </AnimatePresence>
           </main>

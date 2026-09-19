@@ -174,3 +174,50 @@ model BrainKey {
   verifiedAt    DateTime? // מתי אומת חי לאחרונה (1-token chat)
   createdAt     DateTime @default(now())
 }
+
+// ── דפדפן הסוכנים ─────────────────────────────────────────────────────
+// סשן גלישה שמור שניתן לשיתוף כ"קישורית חכמה": ‎/#/browser?s=<slug>‎.
+// המצב עצמו JSON (כרטיסיות + הקשר פעיל) — שחזור מלא בכל דומיין שהאתר
+// ייפרס עליו (השעת הסנדבוקס או שרת ריבוני עתידי).
+model BrowserSession {
+  id        String         @id @default(cuid())
+  slug      String         @unique // 8 תווי base62 — קצר וניתן לשיתוף
+  title     String         @default("סשן דפדפן")
+  state     String // JSON: { cards, activeCard, contextCardId }
+  visits    Int            @default(0) // כמה פעמים הקישורית נפתחה
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  visitsLog BrowserVisit[]
+
+  @@index([createdAt])
+}
+
+// יומן ביקורים שנאסף בסשן — כל פעולת קריאה/חיפוש/צ'אט נרשמת
+// עם חותמת-זמן. האמת נשמרת במדידה, לא בזיכרון.
+model BrowserVisit {
+  id        String         @id @default(cuid())
+  sessionId String
+  session   BrowserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  kind      String // READ | SEARCH | CHAT
+  url       String // כתובת העמוד או שאילתת החיפוש
+  title     String @default("")
+  createdAt DateTime       @default(now())
+
+  @@index([sessionId])
+}
+
+// ── מרכז הדומיינים הריבוניים ─────────────────────────────────────────
+// רישום הדומיינים הפרטיים שהמפעיל מתכנן להקים על הרשת. כל דומיין
+// מקבל ערכת פריסה מלאה (docker-compose + Caddy + DNS) שרצה על
+// שרת עצמאי — בלי GitHub, בלי ספק יישומים, בלי תלות באף אחד.
+model SovereignDomain {
+  id        String   @id @default(cuid())
+  domain    String   @unique
+  purpose   String   @default("") // מה יאוחסר/יוגש מהדומיין
+  status    String   @default("PLANNED") // PLANNED | DNS | DEPLOYING | LIVE
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}

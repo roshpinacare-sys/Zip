@@ -20,6 +20,7 @@ import {
   BarChart3,
   BookOpen,
   Cloud,
+  Compass,
   DoorOpen,
   Gamepad2,
   HardDrive,
@@ -28,6 +29,7 @@ import {
   LayoutDashboard,
   LayoutGrid,
   Menu,
+  Network,
   Repeat,
   ShieldCheck,
   Users,
@@ -53,6 +55,8 @@ export type SiteView =
   | "flywheel"
   | "money-market"
   | "games"
+  | "browser"
+  | "domains"
   | "home"
   | "network"
   | "agents"
@@ -76,6 +80,8 @@ export const SECTIONS: Array<{
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
   { view: "money-market", label: "שוק-הכספים", icon: Landmark, subs: [] },
   { view: "games", label: "משחקים", icon: Gamepad2, subs: [] },
+  { view: "browser", label: "דפדפן סוכנים", icon: Compass, subs: [] },
+  { view: "domains", label: "דומיינים", icon: Network, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
   {
     view: "network",
