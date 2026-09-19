@@ -542,7 +542,7 @@ function Playground({ rec }: { rec: WebManifestRecord }) {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-4 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <PlayCircle className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-          מגרש המשחקים — זורם כרגע מהשרשרת
+          מגרש המשחקים — מוגש תחת חותם-השרשרת
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" className="h-8" onClick={() => setKey((k) => k + 1)}>
@@ -561,7 +561,7 @@ function Playground({ rec }: { rec: WebManifestRecord }) {
         {state === "loading" ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-zinc-400">
             <RefreshCw className="size-6 animate-spin" aria-hidden="true" />
-            <p className="text-xs">קורא את הצ׳אנקים מה-RPC הציבורי ומאמת sha256…</p>
+            <p className="text-xs">מאתר את החותם על השרשרת ומאמת את הבייטים מול sha256…</p>
           </div>
         ) : null}
         {state === "err" ? (
@@ -584,8 +584,8 @@ function Playground({ rec }: { rec: WebManifestRecord }) {
         />
       </div>
       <div className="border-t bg-muted/20 px-4 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
-        כל תנועה במגרש הזה מוגשת מ-<b>/api/web/c/</b> — השער שקורא את התוכן ישירות מהשרשרת הציבורית ומאמת כל
-        ביט. שחקו וידעו שהמקור הוא Steem.
+        כל טעינה של המגרש הזה עוברת את שער <b dir="ltr">/api/web/c/</b> — שמאתר את החותם (sha256) על השרשרת הציבורית,
+        מאמת את הבייטים מולו, ורק אז מגיש. שחקו וידעו שהשרשרת היא השופטת.
       </div>
     </Card>
   );

@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
-import { servePackageFile } from "@/lib/web/netstore";
+import { servePackageFile, fetchPackageBytes } from "@/lib/web/netstore";
 
 export const dynamic = "force-dynamic";
 
@@ -19,27 +19,44 @@ export async function GET(
   const { hash, path: inner } = await ctx.params;
   const innerPath = (inner || []).join("/");
   const meta = req.nextUrl.searchParams.get("meta");
+  const raw = req.nextUrl.searchParams.get("raw");
 
   try {
-    const served = await servePackageFile(hash, innerPath);
+    if (raw === "1") {
+      // הורדת החבילה כולה — הבייטים המאומתים-חותם בשלמותם
+      const all = await fetchPackageBytes(hash);
+      return new NextResponse(new Uint8Array(all.bytes), {
+        status: 200,
+        headers: {
+          "Content-Type": all.manifest.mime,
+          "Content-Length": String(all.bytes.length),
+          "Content-Disposition": `attachment; filename="${all.manifest.name.replace(/[^\w.-]+/g, "_")}"`,
+          "Cache-Control": "public, max-age=86400, immutable",
+          "X-SAOS-Web-Source": all.source === "chain" ? "steem-chain" : "repo-sealed",
+          "X-SAOS-Web-Manifest": hash,
+        },
+      });
+    }
+    const pkg = await servePackageFile(hash, innerPath);
     if (meta === "1") {
       return NextResponse.json({
         ok: true,
-        manifest: served.manifest,
-        resolvedPath: served.resolvedPath,
-        mime: served.mime,
-        bytes: served.bytes.length,
+        manifest: pkg.manifest,
+        resolvedPath: pkg.resolvedPath,
+        mime: pkg.mime,
+        bytes: pkg.bytes.length,
+        source: pkg.source,
       });
     }
-    return new NextResponse(new Uint8Array(served.bytes), {
+    return new NextResponse(new Uint8Array(pkg.bytes), {
       status: 200,
       headers: {
-        "Content-Type": served.mime,
-        "Content-Length": String(served.bytes.length),
-        // כתובת-תוכן = בלתי-משתנה — מטמון לתמיד בטוח
+        "Content-Type": pkg.mime,
+        "Content-Length": String(pkg.bytes.length),
+        // כתובת-תוכן = בלתי-משתנה — מטמון בטוח
         "Cache-Control": "public, max-age=86400, immutable",
-        "X-SAOS-Web-Source": "steem-chain",
-        "X-SAOS-Web-Manifest": served.manifest.sha256,
+        "X-SAOS-Web-Source": pkg.source === "chain" ? "steem-chain" : "repo-sealed",
+        "X-SAOS-Web-Manifest": pkg.manifest.sha256,
       },
     });
   } catch (e) {

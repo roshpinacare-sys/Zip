@@ -140,9 +140,15 @@ interface ChainWebOps {
 
 async function scanWebOps(hash: string, chain: "steem" | "hive" = "steem", account: string = WEB_ACCOUNT): Promise<ChainWebOps> {
   const out: ChainWebOps = { manifest: null, chunks: [] };
-  const hist = await (chain === "steem"
-    ? steemRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>("condenser_api.get_account_history", [account, -1, 1000])
-    : hiveRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>("condenser_api.get_account_history", [account, -1, 1000]));
+  // ניווט-רך: כשל-צומת אינו כשל-חבילה — מחזירים ריק וממשיכים לשרשרת הבאה
+  let hist: Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]> | null = null;
+  try {
+    hist = chain === "steem"
+      ? await steemRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>("condenser_api.get_account_history", [account, -1, 1000])
+      : await hiveRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>("condenser_api.get_account_history", [account, -1, 1000]);
+  } catch {
+    return out;
+  }
   if (!Array.isArray(hist)) return out;
   for (const [, e] of hist) {
     const op = e.op;
