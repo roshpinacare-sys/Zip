@@ -142,12 +142,13 @@ async function scanChain(hash: string, chain: "steem" | "hive" = "steem"): Promi
     if (id !== WEB_OP_ID && id !== WEB_CHUNK_OP_ID) continue;
     try {
       const pl = JSON.parse(String(op[1].json || "{}")) as {
-        h?: string; i?: number; d?: string;
+        h?: string; i?: number; d?: string; sha256?: string;
       };
-      if (pl.h !== hash) continue;
+      // החותם (saos.web.v1) נושא sha256; הצ׳אנקים (saos.web.c.v1) נושאים h
       if (id === WEB_OP_ID) {
+        if (pl.sha256 !== hash) continue;
         out.manifestOp = { block: e.block, txid: e.trx_id };
-      } else if (typeof pl.i === "number" && typeof pl.d === "string") {
+      } else if (pl.h === hash && typeof pl.i === "number" && typeof pl.d === "string") {
         out.chunks.push({ i: pl.i, chars: pl.d.length, block: e.block, txid: e.trx_id });
         out.rawChunkMap.set(pl.i, { d: pl.d, block: e.block, txid: e.trx_id });
       }
