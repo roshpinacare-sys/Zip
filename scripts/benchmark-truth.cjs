@@ -175,6 +175,25 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
     `${RETIRED.length} stubs מוצאים · hrefs מוצאים באינדקס ${retiredHrefs.length} · אמת מקושרת ${truthLinked ? "כן" : "לא"} · במפה ${retiredInSitemap.length === 1 && retiredInSitemap[0] === "(מפה בלתי-קריאה)" ? "?" : retiredInSitemap.length}`,
     [stubFail.join(" | "), retiredHrefs.join(" | "), retiredInSitemap.join(" | ")].filter(Boolean).join(" || "));
 
+  // ── G9: פנקס ה-SLO מפורסם באתר החי (שלב 4 — R59) ──────────────────
+  //    ארבעה יעדי שירות, חלון 30 יום, תקציבי שגיאה ויומן שריפה — כולם
+  //    נכתבים על ידי מכונת ה-CI בכל ריצה. השער כאן בודק שהפנקס חי,
+  //    בפורמט הנכון, וטרי (אם ה-CI ימות — השער יאדים תוך 26 שעות).
+  const slo = await fetchJson(BASE + "/truth/slo.json");
+  if (slo.json) {
+    const v = slo.json;
+    const shapeOk = v.format === "slo-v1" && Array.isArray(v.targets) && v.targets.length >= 4 &&
+                    Array.isArray(v.slos) && v.slos.length >= 4 && Array.isArray(v.days) &&
+                    v.days.length >= 1 && typeof v.dataSince === "string";
+    const age = v.generatedAt ? hoursBetween(v.generatedAt, new Date()) : Infinity;
+    const ok = shapeOk && age <= 26;
+    record("G9-slo-published", ok ? "PASS" : "FAIL",
+      shapeOk
+        ? `${v.slos.length} SLOs · חלון ${v.windowDays}d · מילוי ${v.window && v.window.fillPct}% · גיל פנקס ${age.toFixed(1)}h (סף 26h)`
+        : `פנקס סדוק (פורמט ${v.format})`,
+      ok ? "" : "פנקס ה-SLO חייב להיכתב על ידי המכונה בכל ריצה — לא ביד");
+  } else record("G9-slo-published", "FAIL", `truth/slo.json לא נקרא (HTTP ${slo.status})`);
+
   // ── אגידה ─────────────────────────────────────────────────────────
   const pass = results.filter(r => r.status === "PASS").length;
   const fail = results.filter(r => r.status === "FAIL").length;
