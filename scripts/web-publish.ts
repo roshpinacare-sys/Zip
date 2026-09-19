@@ -161,10 +161,15 @@ async function scanChain(hash: string, chain: "steem" | "hive" = "steem"): Promi
 
 // ── שידור עם שער-RC לומד ─────────────────────────────────────────────
 
+/** תקורת-כסף: כל תו ב-json עולה RC — החותם קומפקטי בכוונה */
+const EST_MARGIN_STEEM = 1.15;
+const EST_MARGIN_HIVE = 1.08; // מחירי Hive נמדדו ישירות ב-probe2 — מרווח קטן
+
 function estimateCost(jsonLen: number, chain: "steem" | "hive" = "steem"): number {
   // מודל למד ממדידות probe2: Steem 65M+320k/תו · Hive 81M+509k/תו
   const perChar = chain === "hive" ? Math.max(estPerChar, 509_000) : estPerChar;
-  return Math.round((estBase + perChar * jsonLen) * EST_MARGIN);
+  const margin = chain === "hive" ? EST_MARGIN_HIVE : EST_MARGIN_STEEM;
+  return Math.round((estBase + perChar * jsonLen) * margin);
 }
 
 interface BroadcastOutcome {
@@ -218,17 +223,16 @@ async function guardedBroadcast(
 // ── בניית הפעולות ─────────────────────────────────────────────────────
 
 function manifestOp(manifest: WebManifest): { op: GrapheneOperation; jsonLen: number } {
-  // המניפסט על השרשרת — קומפקטי בכוונה: כל תו עולה כסף
+  // החותם על השרשרת — קומפקטי בכוונה: כל תו עולה ~0.3-0.5M RC.
+  // ה-id (saos.web.v1) מזהה את הפרוטוקול — אין צורך לשאוח אותו גם בגוף.
   const payload = {
-    v: 1,
-    protocol: WEB_PROTOCOL,
     name: manifest.name,
     sha256: manifest.sha256,
     bytes: manifest.bytes,
     mime: manifest.mime,
     entry: manifest.entry || "",
     s: manifest.b64len,
-    at: manifest.at,
+    at: manifest.at.replace(/\.\d{3}Z$/, "Z"),
   };
   const json = JSON.stringify(payload);
   return {
