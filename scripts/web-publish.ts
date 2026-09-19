@@ -1,18 +1,30 @@
 #!/usr/bin/env bun
 // ─────────────────────────────────────────────────────────────────────
-// SAOS WEB · web-publish — סוכן הענן של רשת-האחסון הריבונית (R50).
+// SAOS WEB · web-publish v2 — סוכן הענן של רשת-האחסון הריבונית.
 //
-// מה שנמדד בפועל (probe1/probe2, 2026-09-19):
+// מה שנמדד בפועל (probe1/probe2, 2026-09-19 + R51):
 //   · comment ב-Steem: בסיס 976M RC + 320k/תו — מסלול מת.
-//   · custom_json ב-Steem: בסיס ~65M + 320k/תו — המסלול החי.
-//   · Hive: 509k/תו — יקר יותר. Steem הוא הנתיב.
+//   · custom_json ב-Steem: בסיס ~65M + ~320k לתו — המסלול החי.
+//   · Hive: 509k/תו — יקר יותר. Steem הוא נתיב הבייטים; Hive רשת-ביטחון לחותם.
+//   · ל-Steem יש מגבלת 100 רשומות לקריאת היסטוריה (נמדד חי ב-R51:
+//     "upper limit is 100") — העימוד חייב להיות chain-aware.
 //
 // הארכיטקטורה על השרשרת (חשבון העוגן, סמכות posting):
 //   · מניפסט: custom_json id=saos.web.v1 — חותם-sha256 של החבילה.
-//     הולך ראשון, עולה ~110M RC — נוחת בריצה הראשונה שיש לה תקציב.
+//     הולך ראשון. Steem ואם אין מנה — Hive (רשת-ביטחון).
 //   · צ׳אנקים: custom_json id=saos.web.c.v1 {h,i,d} — הבייטים עצמם,
-//     בגודל שנקבע לפי המנה החיה בעת השידור (adaptive). מצטבר עד שלמות.
-//   · שלמות = join(d) במיון-i ⇒ אורך s + sha256 של המניפסט. שום "אמון".
+//     בגודל שנקבע לפי המנה החיה בעת השידור (adaptive). מטען קומפקטי
+//     בכוונה (R51: כל תו עולה ~320k RC — שדה v הושמט; ה-op-id מזהה).
+//   · שלמות = join(d) לפי רצף קונטיגואלי 1..k ⇒ אורך s + sha256.
+//
+// v2 (R51):
+//   · לולאת-צ׳אנקים בריצה — כשהמאגר עמוס אחרי צבירה שקטה, כמה
+//     צ׳אנקים עולים באותה ריצה עד ריקון התקציב (עד 10 לריצה).
+//   · רצף קונטיגואלי — האינדקס וההיסט של הצ׳אנק הבא נגזרים מהקידומת
+//     המוכחת 1..k בלבד, לא מסכום-אמון.
+//   · חותם-כפילות — כשהחבילה שלמה והחותם רק על Hive, חותמים גם
+//     על Steem (עמידות דו-שרשרתית, אחרי שהבייטים כבר בטוחים).
+//   · אומדן-RC כולל מרווח — החישוב הכן לא מבטיח יותר מהמציאות.
 //
 // אידמפוטנטי לחלוטין: סריקת היסטוריה לפני כל שידור; דילוג-כנה כשאין
 // RC; הקומיט מתעדכן רק בריצה חיה. ההיסטוריה השופטת היחידה: השרשרת.
@@ -26,9 +38,14 @@ import {
   WEB_CHUNK_OP_ID,
   WEB_PROTOCOL,
   WEB_ACCOUNT,
+  RC_MODEL,
+  deepScanChain,
+  contiguousPrefix,
   sha256Hex,
   type WebInboxJob,
   type WebManifest,
+  type WebScanMeta,
+  type ChainChunkRaw,
 } from "@/lib/web/netstore";
 import { steemBroadcast, hiveBroadcast, rpcV4, STEEM_RPC_NODES, HIVE_RPC } from "@/lib/weave/graphene";
 import type { GrapheneOperation } from "steem";
@@ -49,10 +66,20 @@ const RC_RESERVE = Number(process.env.WEB_RC_RESERVE || 20e6);
 const RC_BASE = Number(process.env.WEB_RC_BASE || 65e6);
 const RC_PER_CHAR = Number(process.env.WEB_RC_PER_CHAR || 320_000);
 /** תוספת-בטיחות על האומדן */
-const EST_MARGIN = 1.15;
+const EST_MARGIN_STEEM = 1.15;
+const EST_MARGIN_HIVE = 1.08; // מחירי Hive נמדדו ישירות ב-probe2 — מרווח קטן
 
 let estBase = RC_BASE;
 let estPerChar = RC_PER_CHAR;
+
+/** תקרת-ריצה: עד 10 צ׳אנקים לריצה, ולא יותר מ-15 דקות עבודה */
+const MAX_CHUNKS_PER_RUN = 10;
+const RUN_DEADLINE_MS = 15 * 60_000;
+const runStartedAt = Date.now();
+
+function timeLeft(): number {
+  return RUN_DEADLINE_MS - (Date.now() - runStartedAt);
+}
 
 // ── עזרי ריצה ────────────────────────────────────────────────────────
 
@@ -85,7 +112,7 @@ async function hiveRead<T>(method: string, params: unknown): Promise<T | null> {
   }
 }
 
-// ── מצב ה-RC החי — שתי השרשראות ──────────────────────────────────────────────
+// ── מצב ה-RC החי — שתי השרשראות ──────────────────────────────────────
 
 interface RcAccount {
   max_rc: string | number;
@@ -117,54 +144,36 @@ async function liveManaOn(chain: "steem" | "hive"): Promise<{ mana: number; max:
   return { mana: Math.round(mana), max };
 }
 
-// ── סריקת ההיסטוריה — מה כבר על השרשרת ──────────────────────────────
+// ── סריקת ההיסטוריה — עמוקה, chain-aware ──────────────────────────────
 
 interface HistoryScan {
   manifestOp: { block?: number; txid?: string } | null;
   chunks: Array<{ i: number; chars: number; block?: number; txid?: string }>;
   /** הגופים הגולמיים לשלב האימות הסופי */
-  rawChunkMap: Map<number, { d: string; block?: number; txid?: string }>;
-  chain: "steem" | "hive";
+  rawChunkMap: Map<number, ChainChunkRaw>;
+  scan: WebScanMeta;
 }
 
-type HistEntry = [number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }];
-
-async function scanChain(hash: string, chain: "steem" | "hive" = "steem"): Promise<HistoryScan> {
-  const out: HistoryScan = { manifestOp: null, chunks: [], rawChunkMap: new Map(), chain };
-  const hist = chain === "steem"
-    ? await rpcRead<HistEntry[]>("condenser_api.get_account_history", [ACCOUNT, -1, 1000])
-    : await hiveRead<HistEntry[]>("condenser_api.get_account_history", [ACCOUNT, -1, 1000]);
-  if (!Array.isArray(hist)) return out;
-  for (const [, e] of hist) {
-    const op = e.op;
-    if (!op || op[0] !== "custom_json") continue;
-    const id = op[1].id;
-    if (id !== WEB_OP_ID && id !== WEB_CHUNK_OP_ID) continue;
-    try {
-      const pl = JSON.parse(String(op[1].json || "{}")) as {
-        h?: string; i?: number; d?: string; sha256?: string;
-      };
-      // החותם (saos.web.v1) נושא sha256; הצ׳אנקים (saos.web.c.v1) נושאים h
-      if (id === WEB_OP_ID) {
-        if (pl.sha256 !== hash) continue;
-        out.manifestOp = { block: e.block, txid: e.trx_id };
-      } else if (pl.h === hash && typeof pl.i === "number" && typeof pl.d === "string") {
-        out.chunks.push({ i: pl.i, chars: pl.d.length, block: e.block, txid: e.trx_id });
-        out.rawChunkMap.set(pl.i, { d: pl.d, block: e.block, txid: e.trx_id });
-      }
-    } catch {
-      /* json זר */
-    }
-  }
-  out.chunks.sort((a, b) => a.i - b.i);
-  return out;
+/**
+ * סריקה על-גבי deepScanChain של הרשת: עימוד chain-aware (Steem 100,
+ * Hive 1,000 — נמדד חי ב-R51), התקדמות עד תקציב-הרשומות.
+ */
+async function scanChain(hash: string, chain: "steem" | "hive" = "steem", entries = 2000): Promise<HistoryScan> {
+  const deep = await deepScanChain(chain, { entries });
+  const entry = deep.byHash.get(hash);
+  return {
+    manifestOp: entry?.manifest?.block
+      ? { block: entry.manifest.block, txid: entry.manifest.txid }
+      : null,
+    chunks: entry
+      ? [...entry.chunks.values()].sort((a, b) => a.i - b.i).map((c) => ({ i: c.i, chars: c.chars, block: c.block, txid: c.txid }))
+      : [],
+    rawChunkMap: entry ? entry.chunks : new Map<number, ChainChunkRaw>(),
+    scan: deep.meta,
+  };
 }
 
 // ── שידור עם שער-RC לומד ─────────────────────────────────────────────
-
-/** תקורת-כסף: כל תו ב-json עולה RC — החותם קומפקטי בכוונה */
-const EST_MARGIN_STEEM = 1.15;
-const EST_MARGIN_HIVE = 1.08; // מחירי Hive נמדדו ישירות ב-probe2 — מרווח קטן
 
 function estimateCost(jsonLen: number, chain: "steem" | "hive" = "steem"): number {
   // מודל למד ממדידות probe2: Steem 65M+320k/תו · Hive 81M+509k/תו
@@ -248,7 +257,9 @@ function manifestOp(manifest: WebManifest): { op: GrapheneOperation; jsonLen: nu
 }
 
 function chunkOp(hash: string, i: number, data: string): { op: GrapheneOperation; jsonLen: number } {
-  const json = JSON.stringify({ v: 1, h: hash, i, d: data });
+  // מטען קומפקטי (R51): שדה v הושמט — 8 תווים × ~320k RC לכל צ׳אנק.
+  // הקוראים (netstore + הסוכן) מזהים לפי op-id ומפרשים h/i/d בלבד.
+  const json = JSON.stringify({ h: hash, i, d: data });
   return {
     op: ["custom_json", {
       required_auths: [],
@@ -260,10 +271,14 @@ function chunkOp(hash: string, i: number, data: string): { op: GrapheneOperation
   };
 }
 
-/** גודל צ׳אנק שהמנה החיה מרשה — מינימום אמיתי 500 תווים */
+/**
+ * גודל צ׳אנק שהמנה החיה מרשה — האומדן כולל את מרווח-הבטיחות
+ * (R51: בלי המרווח החישוב הבטיח יותר מהמציאות והריצה דילגה לחינם).
+ */
 function affordableChars(mana: number, remaining: number): number {
-  const budget = Math.floor((mana - RC_RESERVE - estBase) / estPerChar);
-  return Math.max(0, Math.min(remaining, Math.min(Math.max(500, budget), 6500)));
+  const margin = EST_MARGIN_STEEM;
+  const budget = Math.floor((mana - RC_RESERVE - estBase * margin) / (estPerChar * margin));
+  return Math.max(0, Math.min(remaining, Math.min(budget, RC_MODEL.chunkCharsMax)));
 }
 
 // ── רשומת המניפסט בריפו ──────────────────────────────────────────────
@@ -292,6 +307,10 @@ function readRecord(hash: string): RepoRecord | null {
   } catch {
     return null;
   }
+}
+
+function writeRecordIfLive(rec: RepoRecord): void {
+  if (!DRY && !VERIFY_ONLY) writeRecord(rec);
 }
 
 // ── פרסום חבילה אחת ──────────────────────────────────────────────────
@@ -346,9 +365,11 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
 
   const chain = await scanChain(hash, "steem");
   const chainHive = await scanChain(hash, "hive");
-  const charsOnChain = chain.chunks.reduce((s, c) => s + c.chars, 0);
+  const prefix0 = contiguousPrefix([...chain.rawChunkMap.values()].map((c) => ({ i: c.i, chars: c.chars })));
   const sealed = chain.manifestOp || chainHive.manifestOp;
-  log(`  שרשרת: חותם steem ${chain.manifestOp ? "✓" : "—"} · hive ${chainHive.manifestOp ? "✓" : "—"} · צ׳אנקים ${chain.chunks.length} · תווים ${charsOnChain}/${b64.length}`);
+  log(
+    `  שרשרת: חותם steem ${chain.manifestOp ? "✓" : "—"} · hive ${chainHive.manifestOp ? "✓" : "—"} · רצף ${prefix0.count} צ׳אנקים · תווים ${prefix0.chars}/${b64.length} · סריקה ${chain.scan.entriesScanned}/${chain.scan.entriesTotal ?? "?"}`
+  );
 
   // 1. החותם (המניפסט) — הולך ראשון, וברשת-ביטחון דו-שרשרתית:
   //    Steem זול לבייט אבל מרוקן; אם אין לו מנה — החותם נחתם על Hive
@@ -364,7 +385,7 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
     }
     if (!out.ok) {
       rec.note = `מניפסט: ${out.skipped}`;
-      if (!DRY && !VERIFY_ONLY) writeRecord(rec);
+      writeRecordIfLive(rec);
       log(`  ⏳ ${rec.note}`);
       return "progress";
     }
@@ -372,8 +393,8 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
     let ok = false;
     for (let t = 0; t < 6 && !ok; t++) {
       await sleep(4000);
-      const againS = await scanChain(hash, "steem");
-      const againH = await scanChain(hash, "hive");
+      const againS = await scanChain(hash, "steem", 600);
+      const againH = await scanChain(hash, "hive", 600);
       const found = againS.manifestOp || againH.manifestOp;
       if (found) {
         rec.chain.manifestOp = found;
@@ -383,7 +404,7 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
     }
     if (!ok) {
       rec.note = `המניפסט שודר (${onChain}) אך טרם נראה בהיסטוריה — נאמת בריצה הבאה`;
-      if (!DRY && !VERIFY_ONLY) writeRecord(rec);
+      writeRecordIfLive(rec);
       return "progress";
     }
     log(`  · החותם על השרשרת ✓ ${JSON.stringify(rec.chain.manifestOp)}`);
@@ -392,58 +413,56 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
   }
   rec.status = "partial";
 
-  // 2. הצ׳אנקים — בקצב ה-RC האמיתי
-  const seenIdx = new Set(chain.chunks.map((c) => c.i));
-  const nextIdx = (chain.chunks.length ? Math.max(...chain.chunks.map((c) => c.i)) : 0) + 1;
-  const remaining = b64.length - charsOnChain;
-  void seenIdx;
+  // 2. הצ׳אנקים — לולאה בקצב ה-RC האמיתי: כשהמאגר עמוס, כמה צ׳אנקים
+  //    באותה ריצה. הרצף הקונטיגואלי 1..k הוא המקור היחיד ל"מה כבר שם".
+  let nextIdx = prefix0.nextMissing;
+  let start = prefix0.chars;
+  let sent = 0;
+  let lastNote = "";
 
-  if (remaining > 0) {
+  while (sent < MAX_CHUNKS_PER_RUN && start < b64.length && timeLeft() > 120_000) {
     const m = await liveMana();
     if (!m) {
-      rec.note = "RC לא נקרא — דילוג-כנה";
-      writeRecordIfLive(rec);
-      return "progress";
+      lastNote = "RC לא נקרא — דילוג-כנה";
+      break;
     }
-    const size = affordableChars(m.mana, remaining);
-    if (size < 500) {
-      rec.note = `צ׳אנק הבא ממתין ל-RC (מנה ${(m.mana / 1e6).toFixed(0)}M ⇒ ${(estBase / 1e6).toFixed(0)}M+500×0.32M נדרשים)`;
-      writeRecordIfLive(rec);
-      log(`  ⏳ ${rec.note}`);
-      return "progress";
+    const size = affordableChars(m.mana, b64.length - start);
+    if (size < RC_MODEL.chunkCharsMin) {
+      lastNote = `צ׳אנק ${nextIdx} ממתין ל-RC (מנה ${(m.mana / 1e6).toFixed(0)}M ⇒ נדרש ${(estBase / 1e6).toFixed(0)}M בסיס + ${((RC_MODEL.chunkCharsMin * estPerChar) / 1e6).toFixed(0)}M ל-500 תווים, במרווח)`;
+      break;
     }
-    const start = charsOnChain;
     const data = b64.slice(start, start + size);
     const { op, jsonLen } = chunkOp(hash, nextIdx, data);
     const out = await guardedBroadcast([op], jsonLen, `צ׳אנק ${nextIdx} (${size} תווים)`);
     if (!out.ok) {
-      rec.note = `צ׳אנק ${nextIdx}: ${out.skipped}`;
-      writeRecordIfLive(rec);
-      log(`  ⏳ ${rec.note}`);
-      return "progress";
+      lastNote = `צ׳אנק ${nextIdx}: ${out.skipped}`;
+      break;
     }
+    // אימות נחיתה מההיסטוריה — השופטת היחידה (3s לבלוק)
     let landed = false;
-    for (let t = 0; t < 6 && !landed; t++) {
-      await sleep(4000);
-      const again = await scanChain(hash);
-      const hit = again.chunks.find((c) => c.i === nextIdx);
-      if (hit) {
+    for (let t = 0; t < 4 && !landed; t++) {
+      await sleep(3000);
+      const again = await scanChain(hash, "steem", 600);
+      if (again.rawChunkMap.has(nextIdx)) {
         rec.chain.chunks = again.chunks;
         landed = true;
       }
     }
     if (!landed) {
-      rec.note = `צ׳אנק ${nextIdx} שודר אך טרם נראה — נאמת בריצה הבאה`;
-      writeRecordIfLive(rec);
-      return "progress";
+      lastNote = `צ׳אנק ${nextIdx} שודר אך טרם נראה — נאמת בריצה הבאה`;
+      break;
     }
-    log(`  · צ׳אנק ${nextIdx} על השרשרת ✓ (${size} תווים)`);
+    log(`  · צ׳אנק ${nextIdx} על השרשרת ✓ (${size} תווים · רצף ${nextIdx})`);
+    sent++;
+    start += size;
+    nextIdx++;
   }
 
   // 3. שלמות? (צ׳אנקים חיים על Steem בלבד — הנתיב הזול לבייט)
   const finalScan = await scanChain(hash, "steem");
   const finalHive = await scanChain(hash, "hive");
-  const finalChars = finalScan.chunks.reduce((s, c) => s + c.chars, 0);
+  const finalPrefix = contiguousPrefix([...finalScan.rawChunkMap.values()].map((c) => ({ i: c.i, chars: c.chars })));
+  const finalChars = finalPrefix.chars;
   rec.chain.chunks = finalScan.chunks;
   if (finalScan.manifestOp || finalHive.manifestOp) {
     rec.chain.manifestOp = finalScan.manifestOp || finalHive.manifestOp;
@@ -460,6 +479,25 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
       rec.status = "complete";
       rec.verifiedAt = new Date().toISOString();
       rec.note = "כל הבייטים על השרשרת ומאומתים";
+      // 4. חותם-כפילות: אם החותם רק על Hive — חותמים גם על Steem
+      //    (רק אחרי שהבייטים כבר שלמים: לעולם לא מתחרה על תקציב ההגירה)
+      if (!finalScan.manifestOp && finalHive.manifestOp) {
+        const { op, jsonLen } = manifestOp(manifest);
+        const sealOut = await guardedBroadcast([op], jsonLen, "חותם-כפילות Steem", "steem");
+        if (sealOut.ok) {
+          for (let t = 0; t < 5; t++) {
+            await sleep(3000);
+            const again = await scanChain(hash, "steem", 600);
+            if (again.manifestOp) {
+              rec.chain.manifestOp = again.manifestOp;
+              rec.note = "כל הבייטים על השרשרת ומאומתים · חותם כפול: Steem+Hive";
+              break;
+            }
+          }
+        } else {
+          rec.note = `כל הבייטים על השרשרת · חותם-כפילות Steem: ${sealOut.skipped}`;
+        }
+      }
       writeRecordIfLive(rec);
       log("  ✓ החבילה שלמה על השרשרת — מקצה לקצה");
       return "complete";
@@ -469,14 +507,12 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
     return "skipped";
   }
 
-  rec.note = `מתקדם: ${finalChars}/${b64.length} תווים על השרשרת`;
+  rec.note = sent > 0
+    ? `התקדם הריצה: ${sent} צ׳אנקים חדשים · ${finalChars}/${b64.length} תווים ברצף · ${lastNote || "ממשיכים בריצה הבאה"}`
+    : lastNote || `מתקדם: ${finalChars}/${b64.length} תווים על השרשרת`;
   writeRecordIfLive(rec);
   log(`  ⏳ ${rec.note}`);
   return "progress";
-}
-
-function writeRecordIfLive(rec: RepoRecord): void {
-  if (!DRY && !VERIFY_ONLY) writeRecord(rec);
 }
 
 function closeJob(hash: string): void {
@@ -487,11 +523,11 @@ function closeJob(hash: string): void {
 // ── main ─────────────────────────────────────────────────────────────
 
 async function main(): Promise<number> {
-  log(`סוכן שידור · חשבון=${ACCOUNT} · dry=${DRY} · verify-only=${VERIFY_ONLY} · wif=${WIF ? "יש" : "אין"}`);
+  log(`סוכן שידור v2 · חשבון=${ACCOUNT} · dry=${DRY} · verify-only=${VERIFY_ONLY} · wif=${WIF ? "יש" : "אין"}`);
 
   const m0 = await liveMana();
   if (m0) {
-    log(`RC חי: ${(m0.mana / 1e6).toFixed(0)}M / ${(m0.max / 1e6).toFixed(0)}M (${((m0.mana / m0.max) * 100).toFixed(1)}%) · מודל מחיר: בסיס ${(estBase / 1e6).toFixed(0)}M + ${(estPerChar / 1e3).toFixed(0)}k/תו`);
+    log(`RC חי: ${(m0.mana / 1e6).toFixed(0)}M / ${(m0.max / 1e6).toFixed(0)}M (${((m0.mana / m0.max) * 100).toFixed(1)}%) · מודל מחיר: בסיס ${(estBase / 1e6).toFixed(0)}M + ${(estPerChar / 1e3).toFixed(0)}k/תו · תקרת-צ׳אנק ${RC_MODEL.chunkCharsMax} תווים · עד ${MAX_CHUNKS_PER_RUN} צ׳אנקים בריצה`);
   }
 
   if (!fs.existsSync(INBOX)) {
@@ -527,6 +563,10 @@ async function main(): Promise<number> {
     const m = await liveMana();
     if (m && m.mana < RC_RESERVE) {
       log(`RC ברצפה (${(m.mana / 1e6).toFixed(0)}M) — עוצרים; ה-cron ימשיך`);
+      break;
+    }
+    if (timeLeft() < 120_000) {
+      log("מגבלת-זמן ריצה — עוצרים; ה-cron ימשיך");
       break;
     }
   }

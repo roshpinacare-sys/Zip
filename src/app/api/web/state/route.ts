@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/web/state — מצב רשת-האחסון: חבילות, משימות, מד RC חי.
+// /api/web/state — מצב רשת-האחסון v2: חבילות, משימות, מד RC חי,
+// וסה"כ-מצטבר (באגים, תושבות, אומדני-הגירה כנים לכל חבילה חלקית).
 // אינדקס הריפו הוא נוחות בלבד — כל אימות אמת עובר דרך /api/web/verify.
 // ─────────────────────────────────────────────────────────────────────
 
@@ -10,9 +11,11 @@ import {
   probeStorageRc,
   webRepoPaths,
   anchorCapabilities,
+  estimateMigration,
   WEB_ACCOUNT,
   type WebManifestRecord,
   type WebInboxJob,
+  type MigrationEstimate,
 } from "@/lib/web/netstore";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +59,30 @@ export async function GET() {
 
   const rc = await probeStorageRc();
 
+  // אומדני-הגירה הכנים: לכל חבילה חלקית, כמה תווים נותרו לשרשרת
+  const migrations: Record<string, MigrationEstimate> = {};
+  for (const p of packages) {
+    if (p.status !== "partial") continue;
+    const chars = (p.chain.chunks ?? []).reduce((s, c) => s + c.chars, 0);
+    const remaining = Math.max(0, p.manifest.b64len - chars);
+    if (remaining > 0) migrations[p.manifest.sha256] = estimateMigration(remaining, rc?.regenPerDay ?? null);
+  }
+
+  // סה"כ מצטבר — האמת המספרית של הרשת
+  const totals = {
+    packages: packages.length,
+    sealed: packages.filter((p) => p.status !== "pending-seal").length,
+    complete: packages.filter((p) => p.status === "complete").length,
+    bytesTotal: packages.reduce((s, p) => s + p.manifest.bytes, 0),
+    charsTotal: packages.reduce((s, p) => s + p.manifest.b64len, 0),
+    charsOnChain: packages.reduce((s, p) => s + (p.chain.chunks ?? []).reduce((x, c) => x + c.chars, 0), 0),
+    inboxWaiting: inbox.length,
+  };
+  totals.charsOnChain = Math.min(totals.charsOnChain, totals.charsTotal);
+  const residencyPct = totals.charsTotal
+    ? Math.round((totals.charsOnChain / totals.charsTotal) * 1000) / 10
+    : 0;
+
   return NextResponse.json({
     ok: true,
     account: WEB_ACCOUNT,
@@ -63,6 +90,8 @@ export async function GET() {
     rc,
     packages,
     inbox,
+    migrations,
+    totals: { ...totals, residencyPct },
     caps: anchorCapabilities(),
   });
 }

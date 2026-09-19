@@ -1,7 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/web/verify/[hash] — מנוע ההוכחות: אימות חי מקיר-לקיר מול
-// ה-RPC הציבורי של Steem, בלי מטמון ובלי אמון בריפו. כל צ׳אנק,
-// כל חשיש, כולל עוגן האינדקס בהיסטוריית החשבון.
+// /api/web/verify/[hash] — מנוע ההוכחות v2: אימות חי מקיר-לקיר מול
+// ה-RPC הציבורי של Steem ו-Hive, בסריקה-עמוקה + קריאות-בלוק ממוקדות.
+// כל צ׳אנק, כל חשיש, כולל עומק-הסריקה שנקרא באמת עד למציאת האמת.
+//
+// R51: ?entries=N שולט בתקציב-הרשומות (ברירת-מחדל 2,000 · תקרה 30,000).
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
@@ -10,7 +12,7 @@ import { verifyPackageOnChain, looksLikeSha256 } from "@/lib/web/netstore";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ hash: string }> }
 ) {
   const { hash } = await ctx.params;
@@ -20,8 +22,10 @@ export async function GET(
       { status: 400 }
     );
   }
+  const entriesRaw = Number(req.nextUrl.searchParams.get("entries") || 0);
+  const entries = Number.isFinite(entriesRaw) && entriesRaw > 0 ? Math.min(Math.floor(entriesRaw), 30_000) : undefined;
   try {
-    const report = await verifyPackageOnChain(hash);
+    const report = await verifyPackageOnChain(hash, entries);
     return NextResponse.json({ ok: true, report });
   } catch (e) {
     return NextResponse.json(

@@ -1,14 +1,18 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/web/publish — העלאת חבילה לרשת-האחסון (פעולת-מפעיל).
+// /api/web/publish — העלאת חבילה לרשת-האחסון (פעולת-מפעיל) v2.
 //
-// הזרימה: הקובץ נבדק (zip תקין/גודל) → נכתב לדואר-הנכנס של הריפו
-// הריבוני (sovereign/web/inbox) → commit+push → הזנקת סוכן הענן
-// (web-publish.yml) שמשדר את הצ׳אנקים ל-Steem בסמכות posting
-// ומחזיר מניפסט מאומת. השרת המקומי לא נוגע במפתח — אפס סודות.
+// הזרימה: הקובץ נבדק (zip תקין/גודל) → זיפים מאורזים-מחדש בדחיסה
+// מקסימלית (כל תו עולה RC — חוסכים בכנות, התוכן זהה) → נכתב לדואר
+// הנכנס של הריפו הריבוני → commit+push → הזנקת סוכן הענן
+// (web-publish.yml) שמשדר את הצ׳אנקים ל-Steem בסמכות posting.
+// השרת המקומי לא נוגע במפתח — אפס סודות.
+//
+// R51: קבלת-קבצי-רשת בודדים (svg/png/json/css/js/md…) בנוסף ל-zip/html,
+// ואומדן-הגירה כן (RC + ימים) בתשובה.
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
-import { mkdir, writeFile, readFile, access } from "fs/promises";
+import { mkdir, writeFile, access } from "fs/promises";
 import { execSync } from "child_process";
 import path from "path";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -16,16 +20,19 @@ import { dispatchWorkflow } from "@/lib/live/cloud";
 import {
   sha256Hex,
   parseZip,
+  repackZipMaxDeflate,
   webRepoPaths,
   mimeOf,
   looksLikeSha256,
+  estimateMigration,
+  UPLOAD_SINGLE_EXTS,
   type WebInboxJob,
 } from "@/lib/web/netstore";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MAX_UPLOAD_BYTES = 400_000; // תקרת מציאות-RC: 400KB לחבילה (עד ~67 צ׳אנקים)
+const MAX_UPLOAD_BYTES = 400_000; // תקרת מציאות-RC: 400KB לחבילה
 
 function sh(cmd: string): string {
   return execSync(cmd, { cwd: process.cwd(), encoding: "utf8", timeout: 45_000, stdio: ["ignore", "pipe", "pipe"] }).toString().trim();
@@ -68,7 +75,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "לא התקבל קובץ (שדה file)" }, { status: 400 });
   }
   const rawName = file.name || "package";
-  const bytes = Buffer.from(await file.arrayBuffer());
+  let bytes = Buffer.from(await file.arrayBuffer());
   if (bytes.length === 0) {
     return NextResponse.json({ ok: false, error: "קובץ ריק" }, { status: 400 });
   }
@@ -87,13 +94,14 @@ export async function POST(req: NextRequest) {
   let mime: string;
   let entry: string | undefined;
   let filesList: string[] = [];
+  let repackNote: string | null = null;
 
   if (ext === "zip") {
     mime = "application/zip";
     try {
-      const entries = parseZip(bytes);
-      filesList = entries.map((e) => e.name);
-      const hasIndex = entries.some((e) => e.name === "index.html" || e.name.endsWith("/index.html"));
+      const first = parseZip(bytes);
+      filesList = first.map((e) => e.name);
+      const hasIndex = first.some((e) => e.name === "index.html" || e.name.endsWith("/index.html"));
       if (!hasIndex) {
         return NextResponse.json(
           { ok: false, error: "ב-zip אין index.html — אין דלת כניסה לחבילה" },
@@ -101,19 +109,26 @@ export async function POST(req: NextRequest) {
         );
       }
       entry = "index.html";
+      // אריזה-מחדש בדחיסה מקסימלית — כל תו שנחסך הוא RC שלא נשרף על השרשרת
+      const repack = repackZipMaxDeflate(bytes);
+      if (repack.repacked && repack.savedPct > 0.5) {
+        repackNote = `אורז מחדש בדחיסה מקסימלית: ${repack.originalBytes}→${repack.bytes.length} בייטים (${repack.savedPct}% חיסכון RC) — התוכן זהה בדיוק`;
+        bytes = repack.bytes;
+      }
     } catch (e) {
       return NextResponse.json(
         { ok: false, error: `ZIP פגום: ${e instanceof Error ? e.message : "לא ניתן לפענוח"}` },
         { status: 400 }
       );
     }
-  } else if (ext === "html" || ext === "htm") {
-    mime = "text/html; charset=utf-8";
+  } else if (UPLOAD_SINGLE_EXTS.has(ext)) {
+    mime = mimeOf(rawName);
+    entry = name;
   } else {
     return NextResponse.json(
       {
         ok: false,
-        error: "פורמט לא נתמך עדיין. קבל: ‎.zip‎ (חבילת אתר/אפליקציה/משחקים) או ‎.html‎ בודד.",
+        error: "פורמט לא נתמך. קבל: ‎.zip‎ (חבילת אתר/אפליקציה/משחקים) או קובץ-רשת בודד (html/svg/png/jpg/gif/webp/ico/json/txt/md/csv/css/js/mjs/pdf).",
       },
       { status: 400 }
     );
@@ -121,6 +136,7 @@ export async function POST(req: NextRequest) {
 
   const hash = sha256Hex(bytes);
   if (!looksLikeSha256(hash)) throw new Error("sha256 לא נוצר");
+  const b64len = Math.ceil((bytes.length * 4) / 3);
 
   const root = process.cwd();
   const paths = webRepoPaths(root);
@@ -180,6 +196,7 @@ export async function POST(req: NextRequest) {
       { status: 502 }
     );
   }
+  const migration = estimateMigration(b64len, 469_500_000);
   try {
     await dispatchWorkflow("Zip", "web-publish.yml");
     dispatched = true;
@@ -191,6 +208,8 @@ export async function POST(req: NextRequest) {
         job,
         pushed,
         dispatched: false,
+        migration,
+        repackNote,
         note: `נדחף לריפו אך הזנקת הענן נכשלה (${e instanceof Error ? e.message.slice(0, 120) : "?"}) — ה-cron המחזורי יאסוף את המשימה.`,
         files: filesList,
       },
@@ -199,7 +218,16 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json(
-    { ok: true, job, pushed, dispatched, note: "המשימה נדחפה וסוכן הענן הוזנק — הצ׳אנקים יעלו ל-Steem כשתקציב ה-RC יאפשר", files: filesList },
+    {
+      ok: true,
+      job,
+      pushed,
+      dispatched,
+      migration,
+      repackNote,
+      note: "המשימה נדחפה וסוכן הענן הוזנק — הצ׳אנקים יעלו ל-Steem כשתקציב ה-RC יאפשר",
+      files: filesList,
+    },
     { status: 200 }
   );
 }
@@ -208,7 +236,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    hint: "POST multipart/form-data עם file=‎.zip‎/‎.html‎ · דורש סשן-מפעיל · תקרה 400KB · השידור ל-Steem מתבצע בענן בלבד",
+    hint: "POST multipart/form-data עם file=‎.zip‎/קובץ-רשת-בודד · דורש סשן-מפעיל · תקרה 400KB · זיפים מאורזים-מחדש בדחיסה מקסימלית · השידור ל-Steem מתבצע בענן בלבד",
     mime: mimeOf("x.zip"),
   });
 }

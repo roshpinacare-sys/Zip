@@ -1,25 +1,33 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// SAOS WEB · תצוגת רשת-האחסון — השרשרת הציבורית כשרת וכדיסק.
+// SAOS WEB · תצוגת רשת-האחסון v2 — השרשרת הציבורית כשרת וכדיסק.
 //
 // פקודת המפעיל (R50): "אני רוצה להפוך את הרשת שלי לשרת ואחסון שאני
 // יוכל להעלות אתרים אפליקציות ותוכן… האמת היא האימות של השרת על
-// הרשת." התצוגה הזו היא הבית של אותה יכולת: מה העוגנים נותנים,
-// מד התקציב החי, העלאת חבילות, כרטיסי חבילות עם אימות-חי מול
-// ה-RPC הציבורי, מגרש משחקים מוטמע שזורם מהשרשרת, וראיות גולמיות.
+// הרשת." פקודת ההמשך (R51): "תפתח את זה למקסימום האפשרי ויותר".
+//
+// v2 מוסיפה: פס-סטטיסטיקות חי (חבילות · באגים · תושבות · RC), בורר
+// חבילות למגרש, דפדוף-קבצים בתוך כל חבילה (?list=1), קישורי-קבע
+// להעתקה, אומדן-הגירה כן (RC + ימים), ואימות-הכל בלחיצה אחת.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Boxes,
+  CheckCircle2,
   CloudUpload,
+  Copy,
   Database,
   ExternalLink,
   FileArchive,
+  FileText,
+  FolderTree,
   Gauge,
   Globe,
   HardDrive,
+  Link2,
+  ListChecks,
   Lock,
   PlayCircle,
   RefreshCw,
@@ -35,6 +43,13 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   CopyButton,
   ErrorBox,
   FadeIn,
@@ -48,6 +63,7 @@ import { useOperator } from "@/components/weave/operator";
 import { cn } from "@/lib/utils";
 import type {
   AnchorCapability,
+  MigrationEstimate,
   RcProbe,
   VerifyReport,
   WebInboxJob,
@@ -56,6 +72,17 @@ import type {
 
 // ── טיפוסי-המצב מה-API ──────────────────────────────────────────────
 
+interface WebTotals {
+  packages: number;
+  sealed: number;
+  complete: number;
+  bytesTotal: number;
+  charsTotal: number;
+  charsOnChain: number;
+  inboxWaiting: number;
+  residencyPct: number;
+}
+
 interface WebState {
   ok: boolean;
   account: string;
@@ -63,7 +90,22 @@ interface WebState {
   rc: RcProbe | null;
   packages: WebManifestRecord[];
   inbox: WebInboxJob[];
+  migrations: Record<string, MigrationEstimate>;
+  totals: WebTotals;
   caps: AnchorCapability[];
+}
+
+interface ZipFileStat {
+  name: string;
+  bytes: number;
+}
+
+interface PackageListing {
+  ok: boolean;
+  hash: string;
+  files: ZipFileStat[];
+  entry?: string;
+  totalBytes: number;
 }
 
 // ── עזרים ────────────────────────────────────────────────────────────
@@ -75,12 +117,86 @@ function fmtBytes(n: number): string {
 }
 
 function fmtRc(n: number): string {
+  if (n >= 1e9) return `${(n / 1e9).toFixed(2)}B`;
   return `${(n / 1e6).toFixed(0)}M`;
+}
+
+function fmtDays(d: number | null): string {
+  if (d === null) return "—";
+  if (d < 1) return `${Math.round(d * 24)} שעות`;
+  if (d < 30) return `${d.toFixed(1)} ימים`;
+  return `${(d / 30).toFixed(1)} חודשים`;
+}
+
+// ── פס-הסטטיסטיקות החי ───────────────────────────────────────────────
+
+function StatsStrip({ state }: { state: WebState | null }) {
+  const t = state?.totals;
+  const rc = state?.rc ?? null;
+  const cards = [
+    {
+      key: "packages",
+      icon: FileArchive,
+      tone: "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+      label: "חבילות על הרשת",
+      value: t ? String(t.packages) : "—",
+      sub: t ? `${t.sealed} חתומות · ${t.complete} שלמות על השרשרת` : "",
+    },
+    {
+      key: "bytes",
+      icon: Database,
+      tone: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+      label: "באגים מאוחסנים",
+      value: t ? fmtBytes(t.bytesTotal) : "—",
+      sub: t && t.inboxWaiting > 0 ? `${t.inboxWaiting} בתור השידור` : "אמת-נצחית ב-sha256",
+    },
+    {
+      key: "residency",
+      icon: HardDrive,
+      tone: "border-violet-500/25 bg-violet-500/10 text-violet-600 dark:text-violet-400",
+      label: "תושבות-שרשרת כוללת",
+      value: t ? `${t.residencyPct}%` : "—",
+      sub: t
+        ? `${t.charsOnChain.toLocaleString("he-IL")}/${t.charsTotal.toLocaleString("he-IL")} תווים על Steem`
+        : "",
+    },
+    {
+      key: "rc",
+      icon: Zap,
+      tone: "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-400",
+      label: "תקציב כתיבה חי (RC)",
+      value: rc ? `${rc.pct}%` : "—",
+      sub: rc ? `${fmtRc(rc.mana)} מתוך ${fmtRc(rc.max)}` : "RPC שקט",
+    },
+  ];
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {cards.map((c, i) => {
+        const Icon = c.icon;
+        return (
+          <FadeIn key={c.key} delay={i * 0.05}>
+            <Card className="h-full p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">{c.label}</p>
+                  <p className="mt-1 text-xl font-bold tabular-nums">{c.value}</p>
+                  <p className="mt-1 truncate text-[11px] text-muted-foreground">{c.sub}</p>
+                </div>
+                <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg border", c.tone)}>
+                  <Icon className="size-4" aria-hidden="true" />
+                </span>
+              </div>
+            </Card>
+          </FadeIn>
+        );
+      })}
+    </div>
+  );
 }
 
 // ── מד התקציב החי ────────────────────────────────────────────────────
 
-function RcMeter({ rc }: { rc: RcProbe | null }) {
+function RcMeter({ rc, active }: { rc: RcProbe | null; active: MigrationEstimate | null }) {
   if (!rc) {
     return (
       <Card className="p-4">
@@ -126,9 +242,28 @@ function RcMeter({ rc }: { rc: RcProbe | null }) {
           זמן שרשרת: <b className="text-foreground">{rc.chainTime ? rc.chainTime.slice(11, 19) : "—"}</b> UTC
         </span>
       </div>
+      {active ? (
+        <div className="mt-4 rounded-xl border border-violet-500/25 bg-violet-500/5 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-violet-700 dark:text-violet-300">הגירה פעילה — החבילה שבדרך</span>
+            <span className="tabular-nums text-muted-foreground">
+              נותרו {active.remainingChars.toLocaleString("he-IL")} תווים · ~{active.chunksLeft} צ׳אנקים
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>
+              נדרש: <b className="text-foreground">{fmtRc(active.rcNeeded)}</b> RC
+            </span>
+            <span>
+              בקצב הרגנרציה הנמדד: <b className="text-foreground">{fmtDays(active.days)}</b> מהמאגר היבש
+            </span>
+            <span>החותם כבר על השרשרת — ההגשה חיה לאורך כל הדרך</span>
+          </div>
+        </div>
+      ) : null}
       <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
         זה הדלק האמיתי של האחסון: כל כתיבה לשרשרת שורפת RC, והוא מתחדש מכוח ה-SP של החשבון. הרשת מפרסמת חבילות
-        רק כשהמאגר מעל רצפת בטיחות — ולכן העלאות גדולות מתגלגלות על פני מספר פעימות. זו האמת הכלכלית של
+        רק כשהמאגר מעל רצפת בטיחות — ולכן עליות גדולות מתגלגלות על פני מספר פעימות. זו האמת הכלכלית של
         שרשרת ציבורית, לא מגבלה שלנו.
       </p>
     </Card>
@@ -192,13 +327,17 @@ function UploadZone({ onDone }: { onDone: () => void }) {
           error?: string;
           job?: WebInboxJob;
           note?: string;
+          repackNote?: string | null;
+          migration?: MigrationEstimate;
           alreadyOnChain?: boolean;
         };
         if (!res.ok || !j.ok) {
           toast.error(j.error || "ההעלאה נדחתה", { description: res.status === 401 ? "נדרשת כניסת מפעיל" : undefined });
         } else {
+          const eta = j.migration?.days != null ? ` · הגירה מלאה בקצב ה-RC: כ-${fmtDays(j.migration.days)}` : "";
           toast.success(`החבילה ${file.name} נכנסה לתור השידור`, {
-            description: j.note || "סוכן הענן יעלה אותה ל-Steem כשתקציב ה-RC יאפשר",
+            description: `${j.repackNote ? j.repackNote + " · " : ""}${j.note || "סוכן הענן יעלה אותה ל-Steem כשתקציב ה-RC יאפשר"}${eta}`,
+            duration: 9000,
           });
           onDone();
         }
@@ -269,7 +408,7 @@ function UploadZone({ onDone }: { onDone: () => void }) {
           <input
             ref={fileRef}
             type="file"
-            accept=".zip,.html,.htm"
+            accept=".zip,.html,.htm,.svg,.png,.jpg,.jpeg,.gif,.webp,.avif,.ico,.json,.txt,.md,.csv,.css,.js,.mjs,.pdf"
             className="hidden"
             id="web-upload-input"
             onChange={(e) => {
@@ -284,7 +423,7 @@ function UploadZone({ onDone }: { onDone: () => void }) {
             className="h-11"
           >
             {busy ? <RefreshCw className="animate-spin" /> : <CloudUpload />}
-            {busy ? "מעלה לתור…" : "בחר קובץ (‎.zip‎ / ‎.html‎)"}
+            {busy ? "מעלה לתור…" : "בחר קובץ (זיפ או קובץ-רשת)"}
           </Button>
           <Badge variant="outline" className="gap-1 border-amber-500/40 text-amber-700 dark:text-amber-400">
             <Zap className="size-3" aria-hidden="true" />
@@ -292,7 +431,8 @@ function UploadZone({ onDone }: { onDone: () => void }) {
           </Badge>
         </div>
         <p className="text-[11px] text-muted-foreground">
-          מחובר כעת: <b>@{op.account}</b> — ההרשאה החיה היא השרשרת עצמה, לא האפליקציה
+          מחובר כעת: <b>@{op.account}</b> — ההרשאה החיה היא השרשרת עצמה, לא האפליקציה · זיפים מאורזים-מחדש
+          בדחיסה מקסימלית לחיסכון RC
         </p>
       </div>
     </Card>
@@ -324,7 +464,7 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
     }
   }, [hash]);
 
-  const curl = `curl -s -X POST https://api.steemit.com -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"condenser_api.get_account_history","params":["${account}",-1,1000],"id":1}'`;
+  const curl = `curl -s -X POST https://api.steemit.com -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"condenser_api.get_account_history","params":["${account}",-1,100],"id":1}'`;
 
   return (
     <div className="mt-3 grid gap-3 rounded-xl border bg-muted/20 p-3 sm:p-4">
@@ -347,7 +487,7 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
             {report.sealOnChain ? (
               <Badge className="gap-1 bg-emerald-600 text-white">
                 <ShieldCheck className="size-3" aria-hidden="true" />
-                חותם על השרשרת · בלוק {report.sealBlock ?? "?"}
+                חותם על {report.sealChain === "hive" ? "Hive" : "Steem"} · בלוק {report.sealBlock ?? "?"}
               </Badge>
             ) : (
               <Badge variant="destructive" className="gap-1">
@@ -357,6 +497,11 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
             <Badge variant="outline">
               תושבות-שרשרת: {report.residencyPct}% ({report.chainChars.toLocaleString("he-IL")}/{report.b64len.toLocaleString("he-IL")} תווים)
             </Badge>
+            {report.blockVerifiedChunks > 0 ? (
+              <Badge variant="outline" className="border-violet-500/40 text-violet-700 dark:text-violet-300">
+                {report.blockVerifiedChunks} צ׳אנקים אומתו מקריאות-בלוק ממוקדות
+              </Badge>
+            ) : null}
             {report.repoCopy?.exists ? (
               <Badge
                 variant="outline"
@@ -377,6 +522,7 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
               <Progress value={report.residencyPct} className="h-2" aria-label={`תושבות שרשרת ${report.residencyPct}%`} />
               <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                 הבייטים נודדים מהמחסן הריבוני אל השרשרת בקצב ה-RC — והחותם שעל השרשרת מחייב שני מקורות לאותו sha256 בדיוק.
+                הצ׳אנק הבא ברצף: מס׳ {report.nextMissingChunk ?? "—"}.
               </p>
             </div>
           ) : null}
@@ -387,9 +533,28 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
             {report.ok ? " — התאמה מלאה ✓" : report.chainChars > 0 ? " — ההרכבה עדיין חלקית" : ""}
           </p>
 
+          <div className="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-2">
+            <span>
+              עומק-סריקה Steem:{" "}
+              <b className="text-foreground">
+                {report.scan.steem
+                  ? `${report.scan.steem.entriesScanned.toLocaleString("he-IL")}/${(report.scan.steem.entriesTotal ?? 0).toLocaleString("he-IL")} רשומות (${report.scan.steem.pagesScanned} עימודים)`
+                  : "—"}
+              </b>
+            </span>
+            <span>
+              עומק-סריקה Hive:{" "}
+              <b className="text-foreground">
+                {report.scan.hive
+                  ? `${report.scan.hive.entriesScanned.toLocaleString("he-IL")}/${(report.scan.hive.entriesTotal ?? 0).toLocaleString("he-IL")} רשומות`
+                  : "לא נדרש"}
+              </b>
+            </span>
+          </div>
+
           <details className="group">
             <summary className="cursor-pointer text-xs font-medium text-muted-foreground hover:text-foreground">
-              הראיה הגולמית — פלט ה-RPC המלא (JSON)
+              הראיה הגולמית — פלט האימות המלא (JSON)
             </summary>
             <pre
               dir="ltr"
@@ -401,9 +566,94 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
         </div>
       ) : (
         <p className="text-xs text-muted-foreground">
-          לחץ ״הרץ אימות״ — השרת יקרא עכשיו, ללא מטמון, כל צ׳אנק מה-RPC הציבורי של Steem וישווה חשיש-מול-חשיש.
+          לחץ ״הרץ אימות״ — השרת יקרא עכשיו, ללא מטמון, כל צ׳אנק מה-RPC הציבורי וישווה חשיש-מול-חשיש.
         </p>
       )}
+    </div>
+  );
+}
+
+// ── דפדוף קבצי החבילה ────────────────────────────────────────────────
+
+function FileBrowser({ hash, entry }: { hash: string; entry?: string }) {
+  const [open, setOpen] = useState(false);
+  const [list, setList] = useState<PackageListing | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || list) return;
+    let alive = true;
+    const t = setTimeout(() => {
+      if (!alive) return;
+      setBusy(true);
+      setErr(null);
+      fetch(`/api/web/c/${hash}?list=1`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j: PackageListing & { error?: string }) => {
+        if (!alive) return;
+        if (j.ok) setList(j);
+        else setErr(j.error || "הרישום נכשל");
+      })
+      .catch((e) => {
+        if (alive) setErr(e instanceof Error ? e.message : "כשל רשת");
+      })
+      .finally(() => {
+        if (alive) setBusy(false);
+      });
+    }, 0);
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [open, hash, list]);
+
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <FolderTree className={cn("size-3.5 transition-transform", open && "rotate-90")} aria-hidden="true" />
+        {open ? "סגוד קבצי חבילה" : "עיין בקבצי החבילה"}
+      </button>
+      {open ? (
+        <div className="mt-2 rounded-xl border bg-muted/20 p-3">
+          {busy ? (
+            <p className="flex items-center gap-2 text-xs text-muted-foreground">
+              <RefreshCw className="size-3.5 animate-spin" aria-hidden="true" />
+              קורא את רשימת הקבצים מהשער המאומת…
+            </p>
+          ) : err ? (
+            <p className="text-xs text-rose-600 dark:text-rose-400">{err}</p>
+          ) : list ? (
+            <ul className={cn("grid gap-1", scrollBoxClass, "max-h-64")}>
+              {list.files.map((f) => (
+                <li key={f.name}>
+                  <a
+                    href={`/api/web/c/${hash}/${f.name}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted"
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <FileText className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <span dir="ltr" className="truncate font-mono text-[11px]">{f.name}</span>
+                      {f.name === entry ? (
+                        <Badge variant="outline" className="h-4 shrink-0 px-1.5 text-[9px] text-emerald-700 dark:text-emerald-400">
+                          כניסה
+                        </Badge>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">{fmtBytes(f.bytes)}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -414,10 +664,12 @@ function PackageCard({
   rec,
   account,
   isFeatured,
+  migration,
 }: {
   rec: WebManifestRecord;
   account: string;
   isFeatured: boolean;
+  migration: MigrationEstimate | null;
 }) {
   const m = rec.manifest;
   const playable = rec.status === "partial" || rec.status === "complete";
@@ -430,6 +682,7 @@ function PackageCard({
     ...chunks.map((c) => c.block),
   ].filter((b): b is number => typeof b === "number" && b > 0);
   const lastBlock = blocks.length ? Math.max(...blocks) : null;
+  const link = `/api/web/c/${m.sha256}`;
 
   return (
     <Card className={cn("h-full p-4 sm:p-5", isFeatured && "border-amber-500/30")}>
@@ -466,14 +719,14 @@ function PackageCard({
               {isFeatured ? (
                 <Badge variant="outline" className="gap-1 border-amber-500/40 text-amber-700 dark:text-amber-400">
                   <Sparkles className="size-3" aria-hidden="true" />
-                  חבילת ההדגמה
+                  במגרש
                 </Badge>
               ) : null}
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {fmtBytes(m.bytes)} · {m.mime === "application/zip" ? "ארכיון zip" : "קובץ יחיד"} ·{" "}
               {fmtDateTime(m.at)}
-              {lastBlock ? ` · בלוק Steem ${lastBlock.toLocaleString("he-IL")}` : ""}
+              {lastBlock ? ` · בלוק ${lastBlock.toLocaleString("he-IL")}` : ""}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <HashChip value={m.sha256} label="sha256" head={10} tail={8} />
@@ -490,19 +743,33 @@ function PackageCard({
                   </span>
                 </div>
                 <Progress value={residencyPct} className="mt-1 h-1.5" aria-label={`תושבות שרשרת ${residencyPct}%`} />
+                {migration && residencyPct < 100 ? (
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    נותרו להגירה: {fmtRc(migration.rcNeeded)} RC ≈ {fmtDays(migration.days)} רגנרציה — החותם כבר
+                    על השרשרת, וההגשה חיה לכל אורך הדרך
+                  </p>
+                ) : null}
               </div>
             ) : null}
+            <FileBrowser hash={m.sha256} entry={m.entry} />
           </div>
         </div>
         <div className="flex flex-col gap-2">
           {playable ? (
             <Button asChild size="sm" className="h-9">
-              <a href={`/api/web/c/${m.sha256}/`} target="_blank" rel="noopener noreferrer">
+              <a href={`${link}/`} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="size-3.5" aria-hidden="true" />
                 פתח
               </a>
             </Button>
           ) : null}
+          <Button asChild variant="outline" size="sm" className="h-9">
+            <a href={`${link}?raw=1`} target="_blank" rel="noopener noreferrer">
+              <FileArchive className="size-3.5" aria-hidden="true" />
+              הורד (raw)
+            </a>
+          </Button>
+          <CopyButton value={link} label="העתק קישור-קבע" className="h-9" />
         </div>
       </div>
 
@@ -513,7 +780,15 @@ function PackageCard({
 
 // ── מגרש המשחקים (iframe מהשרשרת) ───────────────────────────────────
 
-function Playground({ rec }: { rec: WebManifestRecord }) {
+function Playground({
+  rec,
+  others,
+  onPick,
+}: {
+  rec: WebManifestRecord;
+  others: WebManifestRecord[];
+  onPick: (hash: string) => void;
+}) {
   const [key, setKey] = useState(0);
   const [state, setState] = useState<"loading" | "ok" | "err">("loading");
   const src = `/api/web/c/${rec.manifest.sha256}/index.html`;
@@ -522,6 +797,7 @@ function Playground({ rec }: { rec: WebManifestRecord }) {
     let alive = true;
     const t = setTimeout(() => {
       if (!alive) return;
+      setState("loading");
       fetch(`/api/web/c/${rec.manifest.sha256}/index.html`, { cache: "no-store" })
         .then((r) => {
           if (!alive) return;
@@ -542,9 +818,23 @@ function Playground({ rec }: { rec: WebManifestRecord }) {
       <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-4 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold">
           <PlayCircle className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-          מגרש המשחקים — מוגש תחת חותם-השרשרת
+          מגרש הרשת — מוגש תחת חותם-השרשרת
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {others.length > 1 ? (
+            <Select value={rec.manifest.sha256} onValueChange={onPick}>
+              <SelectTrigger className="h-8 w-48 text-xs" aria-label="בחר חבילה">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {others.map((p) => (
+                  <SelectItem key={p.manifest.sha256} value={p.manifest.sha256} className="text-xs">
+                    {p.manifest.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
           <Button variant="outline" size="sm" className="h-8" onClick={() => setKey((k) => k + 1)}>
             <RefreshCw className="size-3.5" />
             טען מחדש
@@ -576,16 +866,16 @@ function Playground({ rec }: { rec: WebManifestRecord }) {
         <iframe
           key={key}
           src={state === "ok" ? src : "about:blank"}
-          title={`מגרש המשחקים ${rec.manifest.name}`}
+          title={`מגרש הרשת ${rec.manifest.name}`}
           className={cn("h-full w-full border-0", state !== "ok" && "invisible")}
           onLoad={() => {
-            /* המשחק חי */
+            /* החבילה חיה */
           }}
         />
       </div>
       <div className="border-t bg-muted/20 px-4 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
-        כל טעינה של המגרש הזה עוברת את שער <b dir="ltr">/api/web/c/</b> — שמאתר את החותם (sha256) על השרשרת הציבורית,
-        מאמת את הבייטים מולו, ורק אז מגיש. שחקו וידעו שהשרשרת היא השופטת.
+        כל טעינה של המגרש הזה עוברת את שער <b dir="ltr">/api/web/c/</b> — שמאתר את החותם (sha256) על השרשרת הציבורית
+        (סריקה-עמוקה + קריאות-בלוק ממוקדות), מאמת את הבייטים מולו, ורק אז מגיש. שחקו וידעו שהשרשרת היא השופטת.
       </div>
     </Card>
   );
@@ -597,6 +887,13 @@ export function WebNetView() {
   const [state, setState] = useState<WebState | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pickedHash, setPickedHash] = useState<string | null>(null);
+  const [verifyAll, setVerifyAll] = useState<{ running: boolean; done: number; total: number; pass: number }>({
+    running: false,
+    done: 0,
+    total: 0,
+    pass: 0,
+  });
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -622,10 +919,39 @@ export function WebNetView() {
     return () => clearInterval(t);
   }, [load]);
 
-  const featured = useMemo(
-    () => state?.packages.find((p) => p.status === "partial" || p.status === "complete") ?? null,
+  const playable = useMemo(
+    () => (state?.packages ?? []).filter((p) => p.status === "partial" || p.status === "complete"),
     [state]
   );
+  const active = useMemo(() => playable.find((p) => p.manifest.sha256 === pickedHash) ?? playable[0] ?? null, [playable, pickedHash]);
+  const activeMigration = useMemo(
+    () =>
+      active && state?.migrations
+        ? state.migrations[active.manifest.sha256] ?? null
+        : null,
+    [active, state]
+  );
+
+  const runVerifyAll = useCallback(async () => {
+    if (!state?.packages.length) return;
+    const hashes = state.packages.map((p) => p.manifest.sha256);
+    setVerifyAll({ running: true, done: 0, total: hashes.length, pass: 0 });
+    let pass = 0;
+    for (let i = 0; i < hashes.length; i++) {
+      try {
+        const res = await fetch(`/api/web/verify/${hashes[i]}`, { cache: "no-store" });
+        const j = (await res.json()) as { ok: boolean; report?: VerifyReport };
+        if (j.ok && j.report?.sealOnChain) pass++;
+      } catch {
+        /* ספירת-כשל כנה */
+      }
+      setVerifyAll({ running: true, done: i + 1, total: hashes.length, pass });
+    }
+    setVerifyAll({ running: false, done: hashes.length, total: hashes.length, pass });
+    toast.success(`אימות-הכל הושלם: ${pass}/${hashes.length} חותמים על השרשרת`, {
+      description: "כל אימות קרא את השרשרת הציבורית בסריקה-עמוקה — בלי מטמון, בלי אמון.",
+    });
+  }, [state]);
 
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6">
@@ -634,32 +960,40 @@ export function WebNetView() {
         <div className="grid gap-4">
           <div className="flex items-center gap-2 text-xs font-semibold tracking-widest text-amber-600 dark:text-amber-400">
             <Globe className="size-3.5" aria-hidden="true" />
-            R50 · רשת-האחסון הריבונית
+            R51 · רשת-האחסון הריבונית — דור שני
           </div>
           <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">
             הרשת היא השרת. השרשרת היא הדיסק.
           </h1>
           <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            כל אתר, אפליקציה ומשחק שמועלה לכאן נחתם ב-sha256 על שרשרת Steem הציבורית (custom_json בסמכות posting), והבייטים עצמם נודדים מהמחסן הריבוני אל השרשרת בקצב ה-RC האמיתי. השער שמגיש אותם לא סומך על שום עותק: כל הגשה מאומתת מול החותם שעל השרשרת. <b>האמת היא האימות של השרת על הרשת.</b>
+            כל אתר, אפליקציה ומשחק שמועלה לכאן נחתם ב-sha256 על שרשרת ציבורית (custom_json בסמכות posting), והבייטים
+            עצמם נודדים מהמחסן הריבוני אל השרשרת בקצב ה-RC האמיתי. השער שמגיש אותם לא סומך על שום עותק: כל הגשה
+            מאומתת מול החותם שעל השרשרת — בסריקה-עמוקה שמכירה את כל ההיסטוריה, ובקריאות-בלוק ממוקדות לכל צ׳אנק.
+            <b> האמת היא האימות של השרת על הרשת.</b>
           </p>
         </div>
       </FadeIn>
 
       {err ? <ErrorBox message={err} onRetry={load} retrying={busy} /> : null}
 
+      {/* פס-סטטיסטיקות */}
+      <FadeIn delay={0.04}>
+        <StatsStrip state={state} />
+      </FadeIn>
+
       {/* מד RC */}
-      <FadeIn delay={0.05}>
+      <FadeIn delay={0.08}>
         <Section
           title="כוח הכתיבה של הרשת — מד חי"
           description="Resource Credits של חשבון העוגן: הדלק האמיתי שמזיז תוכן לשרשרת"
           icon={<Gauge />}
         >
-          <RcMeter rc={state?.rc ?? null} />
+          <RcMeter rc={state?.rc ?? null} active={activeMigration} />
         </Section>
       </FadeIn>
 
       {/* מה העוגנים נותנים */}
-      <FadeIn delay={0.1}>
+      <FadeIn delay={0.12}>
         <Section
           title="מה העוגנים נותנים לנו"
           description="ארבע אבני-היסוד שהרשת כבר מחזיקה — עליהן נבנה תשתית האחסון"
@@ -670,10 +1004,10 @@ export function WebNetView() {
       </FadeIn>
 
       {/* העלאה */}
-      <FadeIn delay={0.15}>
+      <FadeIn delay={0.16}>
         <Section
           title="העלאת חבילה לרשת"
-          description="אתר · אפליקציה · משחקים — קובץ zip עם index.html"
+          description="אתר · אפליקציה · משחקים — קובץ zip עם index.html, או קובץ-רשת בודד"
           icon={<CloudUpload />}
         >
           <UploadZone
@@ -684,34 +1018,56 @@ export function WebNetView() {
         </Section>
       </FadeIn>
 
-      {/* מגרש המשחקים */}
-      {featured ? (
+      {/* מגרש הרשת */}
+      {active ? (
         <FadeIn delay={0.2}>
           <Section
-            title="מגרש המשחקים — מוגש תחת חותם-השרשרת"
-            description={`חבילת ${featured.manifest.name}: ארבעה משחקים שה-sha256 שלהם חתום על שרשרת ציבורית — כל טעינה עוברת אימות מול החותם`}
+            title="מגרש הרשת — מוגש תחת חותם-השרשרת"
+            description={`חבילת ${active.manifest.name}: ה-sha256 שלה חתום על שרשרת ציבורית — כל טעינה עוברת אימות מול החותם`}
             icon={<PlayCircle />}
           >
-            <Playground rec={featured} />
+            <Playground rec={active} others={playable} onPick={setPickedHash} />
           </Section>
         </FadeIn>
       ) : null}
 
       {/* חבילות */}
-      <FadeIn delay={0.25}>
+      <FadeIn delay={0.24}>
         <Section
           title="חבילות על הרשת"
           description={
             state?.packages.length
-              ? `${state.packages.length} חבילות · אימות חי בלחיצה — כל צ׳אנק, כל חשיש`
+              ? `${state.packages.length} חבילות · אימות חי בלחיצה — כל צ׳אנק, כל חשיש, בכל עומק ההיסטוריה`
               : "אין חבילות עדיין — הראשונה בדרך"
           }
           icon={<HardDrive />}
           action={
-            <Button variant="outline" size="sm" onClick={load} disabled={busy} className="h-9">
-              <RefreshCw className={cn(busy && "animate-spin")} />
-              רענן
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {state?.packages.length ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={runVerifyAll}
+                  disabled={verifyAll.running || busy}
+                  className="h-9"
+                >
+                  {verifyAll.running ? (
+                    <RefreshCw className="animate-spin" />
+                  ) : (
+                    <ListChecks />
+                  )}
+                  {verifyAll.running
+                    ? `מאמת ${verifyAll.done}/${verifyAll.total}…`
+                    : verifyAll.total > 0 && !verifyAll.running
+                      ? `אמת הכל (${verifyAll.pass}/${verifyAll.total} ✓)`
+                      : "אמת את כל החבילות"}
+                </Button>
+              ) : null}
+              <Button variant="outline" size="sm" onClick={load} disabled={busy} className="h-9">
+                <RefreshCw className={cn(busy && "animate-spin")} />
+                רענן
+              </Button>
+            </div>
           }
         >
           {state?.packages.length ? (
@@ -721,7 +1077,8 @@ export function WebNetView() {
                   key={p.manifest.sha256}
                   rec={p}
                   account={state.account}
-                  isFeatured={featured?.manifest.sha256 === p.manifest.sha256}
+                  isFeatured={active?.manifest.sha256 === p.manifest.sha256}
+                  migration={state.migrations[p.manifest.sha256] ?? null}
                 />
               ))}
             </div>
@@ -738,7 +1095,7 @@ export function WebNetView() {
 
       {/* דואר נכנס */}
       {state?.inbox.length ? (
-        <FadeIn delay={0.3}>
+        <FadeIn delay={0.28}>
           <Section
             title="דואר נכנס — ממתין לשידור"
             description="סוכן הענן מנסה כל 20 דקות; קווי העוגן מדלגים בכנות כל עוד התור לא ריק (עדיפות להעלאה)"

@@ -20,6 +20,14 @@ export async function GET() {
         checkpoints: "/api/live/checkpoints — נקודות-הביקורת-והשורשים",
         dex: "/api/live/dex — השרשרת-הקנונית (world.json)",
       },
+      web: {
+        state: "/api/web/state — מצב-רשת-האחסון (חבילות · RC חי · סהכ-מצטבר)",
+        serve: "/api/web/c/<sha256>/<path> — שער-ההגשה המאומת-חותם (ETag · CORS)",
+        listing: "/api/web/c/<sha256>?list=1 — רישום-קבצי-החבילה",
+        raw: "/api/web/c/<sha256>?raw=1 — הורדת-החבילה כולה (מאומת sha256 מול החותם)",
+        verify: "/api/web/verify/<sha256> — מנוע-ההוכחות (סריקה-עמוקה · קריאות-בלוק)",
+        publish: "/api/web/publish — העלאה (פעולת-מפעיל בלבד)",
+      },
     },
     publicTruth: {
       console: "https://roshpinacare-sys.github.io/Console/",
