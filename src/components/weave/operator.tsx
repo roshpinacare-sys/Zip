@@ -287,6 +287,20 @@ export function OperatorLoginCard({
 
 export function OperatorPill() {
   const { status, account, logout } = useOperator();
+  // אנטי-hydration לפי-פרוטוקול: הרינדור הראשון (שרת + הידרציה) מפיק
+  // שלד-דטרמיניסטי ניטרלי בלבד — מצב ביניים ("בודק סשן…") לעולם לא
+  // נכנס למקור ה-HTML הראשוני; הוא מוצג רק אחרי mount, בלקוח בלבד.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted)
+    return (
+      <span
+        aria-hidden="true"
+        className="inline-block h-[26px] min-w-[86px] animate-pulse rounded-full border border-zinc-800 bg-zinc-900/60"
+      />
+    );
+
   if (status === "checking")
     return (
       <div className="flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-900/60 px-2.5 py-1 text-[11px] text-zinc-500">
@@ -324,6 +338,18 @@ export function OperatorPill() {
 
 export function AdminGate({ children }: { children: ReactNode }) {
   const { status, account, publicKey, expiresAt, logout } = useOperator();
+  // אותו דפוס-mount כמו ב-OperatorPill: טרם-mount — שלד דטרמיניסטי
+  // ללא טקסט-ביניים; "בודק סשן-מפעיל…" רק אחרי mount, בלקוח בלבד.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6">
+        <div className="mx-auto h-5 w-40 animate-pulse rounded-full bg-zinc-800/60" />
+      </div>
+    );
+  }
 
   if (status === "checking") {
     return (
