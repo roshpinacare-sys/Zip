@@ -29,6 +29,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import {
   STEEM_RPC_NODES,
+  HIVE_RPC,
   rpcV4,
   type DynamicGlobalProperties,
 } from "@/lib/weave/graphene";
@@ -126,6 +127,10 @@ async function steemRpc<T>(method: string, params: unknown, timeoutMs = 20_000):
   return null;
 }
 
+async function hiveRpc<T>(method: string, params: unknown, timeoutMs = 20_000): Promise<T | null> {
+  return rpcV4<T>(HIVE_RPC, method, params, timeoutMs).catch(() => null);
+}
+
 // ── סריקת ההיסטוריה — השרשרת מה יש עליה ──────────────────────────────
 
 interface ChainWebOps {
@@ -133,12 +138,11 @@ interface ChainWebOps {
   chunks: Array<{ i: number; d: string; block?: number; txid?: string }>;
 }
 
-async function scanWebOps(hash: string, account: string = WEB_ACCOUNT): Promise<ChainWebOps> {
+async function scanWebOps(hash: string, chain: "steem" | "hive" = "steem", account: string = WEB_ACCOUNT): Promise<ChainWebOps> {
   const out: ChainWebOps = { manifest: null, chunks: [] };
-  const hist = await steemRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>(
-    "condenser_api.get_account_history",
-    [account, -1, 1000]
-  );
+  const hist = await (chain === "steem"
+    ? steemRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>("condenser_api.get_account_history", [account, -1, 1000])
+    : hiveRpc<Array<[number, { op?: [string, { id?: string; json?: string }]; trx_id?: string; block?: number }]>>("condenser_api.get_account_history", [account, -1, 1000]));
   if (!Array.isArray(hist)) return out;
   for (const [, e] of hist) {
     const op = e.op;
@@ -177,10 +181,13 @@ async function scanWebOps(hash: string, account: string = WEB_ACCOUNT): Promise<
   return out;
 }
 
-/** חותם החבילה מהשרשרת — null אם לא נחתם */
-export async function loadManifestFromChain(hash: string): Promise<WebManifest | null> {
-  const ops = await scanWebOps(hash);
-  return ops.manifest;
+/** חותם החבילה מהשרשרת — Steem ואז Hive (רשת-ביטחון) — null אם לא נחתם */
+export async function loadManifestFromChain(hash: string): Promise<(WebManifest & { chain?: "steem" | "hive"; block?: number; txid?: string }) | null> {
+  const onSteem = await scanWebOps(hash, "steem");
+  if (onSteem.manifest) return { ...onSteem.manifest, chain: "steem" };
+  const onHive = await scanWebOps(hash, "hive");
+  if (onHive.manifest) return { ...onHive.manifest, chain: "hive" };
+  return null;
 }
 
 // ── מטמון תוכן (כתובות-תוכן = בלתי-משתנות) ───────────────────────────
@@ -217,11 +224,12 @@ export async function fetchPackageBytes(hash: string): Promise<PackageBytes> {
   if (running) return running;
 
   const task = (async (): Promise<PackageBytes> => {
-    const ops = await scanWebOps(hash);
-    if (!ops.manifest) {
-      throw new Error("אין חותם על השרשרת עבור חשיש זה — החבילה לא נחתמה על ידי הרשת");
+    const ops = await scanWebOps(hash, "steem");
+    const seal = ops.manifest ?? (await scanWebOps(hash, "hive")).manifest;
+    if (!seal) {
+      throw new Error("אין חותם על השרשרת (Steem/Hive) עבור חשיש זה — החבילה לא נחתמה על ידי הרשת");
     }
-    const m = ops.manifest;
+    const m = seal;
 
     // 1) נסיון שרשרת-מלאה: הרכבה לפי אינדקס
     const joined = ops.chunks.map((c) => c.d).join("");
@@ -413,6 +421,7 @@ export interface VerifyReport {
   name: string;
   bytes: number;
   sealOnChain: boolean;
+  sealChain: "steem" | "hive" | null;
   sealBlock: number | null;
   sealTxid: string | null;
   chainChars: number;
@@ -432,6 +441,7 @@ export async function verifyPackageOnChain(hash: string): Promise<VerifyReport> 
     name: "",
     bytes: 0,
     sealOnChain: false,
+    sealChain: null,
     sealBlock: null,
     sealTxid: null,
     chainChars: 0,
@@ -442,15 +452,18 @@ export async function verifyPackageOnChain(hash: string): Promise<VerifyReport> 
     manifest: null,
     at: new Date().toISOString(),
   };
-  const ops = await scanWebOps(hash);
-  if (!ops.manifest) return report;
+  const ops = await scanWebOps(hash, "steem");
+  const sealHive = ops.manifest ? null : (await scanWebOps(hash, "hive")).manifest;
+  const seal = ops.manifest || sealHive;
+  if (!seal) return report;
   report.sealOnChain = true;
-  report.sealBlock = ops.manifest.block ?? null;
-  report.sealTxid = ops.manifest.txid ?? null;
-  report.manifest = ops.manifest;
-  report.name = ops.manifest.name;
-  report.bytes = ops.manifest.bytes;
-  report.b64len = ops.manifest.b64len;
+  report.sealBlock = seal.block ?? null;
+  report.sealTxid = seal.txid ?? null;
+  report.sealChain = ops.manifest ? "steem" : "hive";
+  report.manifest = seal;
+  report.name = seal.name;
+  report.bytes = seal.bytes;
+  report.b64len = seal.b64len;
 
   const joined = ops.chunks.map((c) => c.d).join("");
   report.chainChars = joined.length;
