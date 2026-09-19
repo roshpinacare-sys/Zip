@@ -269,20 +269,22 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
 
 /** הקבצים הכתובים-יד שמקורם בריפו הריבוני - הלב מסנכרן אותם החוצה.
  * (index.html/status.json נולדים בריפו הציבורי עצמו ע"י render.mjs -
- * לא נוגעים בהם.) */
-// R28: index.html removed from this list after it clobbered live edits on
-// 2026-09-17 (the sync restored a stale sovereign copy and erased the
-// training view and roast cards from the public site). Rule: a file that is
-// edited directly in the public repo never appears here. Two sources of
-// truth for one file is a bug, not sovereignty.
+ * לא נוגעים בהם.)
+ *
+ * ריפוי R58 (מרוץ 11:08): דור הממשק הקודם (gate/net/acid/acid-engine/money)
+ * יצא מהמחזור - הם מוגשים כ-stub הפניה שנולד בציבורי ואסור שיהיה להם
+ * מקור ריבוני בכלל (G4). הרשימה כוללת מעתה רק קבצים שהצד הציבורי לעולם
+ * לא כותב בעצמו - עריכה ישירה בציבורי תידרס על-ידי הסנכרון בכוונה
+ * (הקנוני הוא הריבוני; זה בדיוק הלקח של Task 28).
+ * agent/* ו-truth/* נולדים בציבורי (סוכנים/verify/מכונת האמת כותבים
+ * שם) - אינם ברשימה ולעולם לא יידרסו מכאן. */
 const CONSOLE_ASSETS = [
-  "gate.html",
+  "wallet.html",
   "gate-crypto.js",
   "saos-live.js",
-  "net.html",
-  "acid.html",
-  "acid-engine.js",
-  "money.html",
+  "render.mjs",
+  "README.md",
+  "sitemap.xml",
 ];
 
 export interface ConsoleAssetsResult {
@@ -327,7 +329,7 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
       const leak = secretGate(filterKnownHashes(text));
       if (leak) throw new Error(`${file}: ${leak}`);
 
-      const cur = await api("GET", `/repos/${CONSOLE_REPO}/contents/${encodeURIComponent(file)}?ref=main`);
+      const cur = await api("GET", `/repos/${CONSOLE_REPO}/contents/${file.split("/").map(encodeURIComponent).join("/")}?ref=main`);
       if (cur.status === 200 && cur.json && typeof cur.json.content === "string") {
         const curText = Buffer.from(String(cur.json.content), "base64").toString("utf8");
         if (curText.trim() === text.trim()) {
@@ -335,7 +337,7 @@ export async function publishConsoleAssets(): Promise<ConsoleAssetsResult> {
           continue;
         }
       }
-      const put = await api("PUT", `/repos/${CONSOLE_REPO}/contents/${encodeURIComponent(file)}`, {
+      const put = await api("PUT", `/repos/${CONSOLE_REPO}/contents/${file.split("/").map(encodeURIComponent).join("/")}`, {
         message: `weave-console-assets: ${file} - synced from the sovereign repo (console/)`,
         content: Buffer.from(text, "utf8").toString("base64"),
         sha: cur.status === 200 && cur.json ? String(cur.json.sha || "") : undefined,
