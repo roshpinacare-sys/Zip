@@ -43,14 +43,14 @@ function chunkOp(id: string, data: string): GrapheneOperation {
   }];
 }
 
-// Steem — גדלים עולים מהתוכן האמיתי
-await attempt("S1", chunkOp("saos.web.probe2.v1", b64.slice(0, 1000)), "steem");
-await attempt("S2", chunkOp("saos.web.probe2.v1", b64.slice(0, 2000)), "steem");
-await attempt("S4", chunkOp("saos.web.probe2.v1", b64.slice(0, 4000)), "steem");
+// Steem — גדלים עולים מהתוכן האמיתי (העטיפה [op] חובה: מערך-פעולות!)
+await attempt("S1", [chunkOp("saos.web.probe2.v1", b64.slice(0, 1000))], "steem");
+await attempt("S2", [chunkOp("saos.web.probe2.v1", b64.slice(0, 2000))], "steem");
+await attempt("S4", [chunkOp("saos.web.probe2.v1", b64.slice(0, 4000))], "steem");
 
 // Hive — אותם גדלים + comment בסיסי
-await attempt("HV1", chunkOp("saos.web.probe2.v1", b64.slice(0, 1000)), "hive");
-await attempt("HV4", chunkOp("saos.web.probe2.v1", b64.slice(0, 4000)), "hive");
+await attempt("HV1", [chunkOp("saos.web.probe2.v1", b64.slice(0, 1000))], "hive");
+await attempt("HV4", [chunkOp("saos.web.probe2.v1", b64.slice(0, 4000))], "hive");
 await attempt(
   "HC",
   [["comment", {
