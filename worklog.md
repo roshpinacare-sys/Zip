@@ -2272,3 +2272,24 @@ Stage Summary:
 - פני-השרת אחרי R53: כל נקודת-קצה ציבורית מגיבה מידית אחרי הקריאה הראשונה — בטריות מלאה או בשלות-כנה עם רענון-רקע; כישלון-רשת מגיש את האמת הישנה בסימון כן במקום 502; האימות (health, verify) נותר נוקשה וחי ומעולם לא מוגש ממטמון.
 - ההפרדה הארכיטקטונית שנחקקה: מסלול-תצוגה (מהיר, SWR, כנה בגיל) ≠ מסלול-אמת (fresh, חי, חוסם, 12s גג) — התצוגה לעולם לא מתחזה לאימות.
 - קבצים: src/lib/live/swr.ts (חדש) · api/defi · api/treasury · api/live/overview · api/live/dex · api/health · lib/web/netstore.ts (probeStorageRc SWR + deepScanChain SWR) · evidence/r53-*.
+
+---
+Task ID: R54
+Agent: main (Z.ai — lead engineer, v30)
+Task: פרוטוקול 4 הערוצים מהמפעיל: כל טענה [מאומת-כעת] או [טעון-אימות] — הוצאת הוכחות גולמות טריות לכל ערוץ (דף-חי · RPC · Actions · ZIP), סגירת ה-hydration לפי הקריטריון שהוגדר, ועריכת נקודות-קצה עם סף 500ms.
+
+Work Log:
+- ערוץ 1 (דף-חי) — נמצא כשל אמיתי ונסגר: המקור הראשוני הכיל "בודק סשן…" עם ספינר (OperatorPill מאתחל status:"checking" בשרת). תיקון לפי-פרוטוקול: דפוס mounted-guard — הרינדור הראשון מפיק שלד-דטרמיניסטי ניטרלי (animate-pulse, ללא טקסט), "בודק" רק אחרי-mount. ה-linter תפס setState-in-effect ⇒ הומר לתבנית הקנונית useSyncExternalStore(emptySubscribe, ()=>true, ()=>false) — ללא setState כלל. אומת חי: grep 'בודק'=0 · grep 'checking'=0 · השלד במקור · אפס שגיאות-דף/קונסולה/hydration בדפדפן · ה-Pill מתנקה ל"כניסת מפעיל" אחרי-mount.
+- ערוץ 4 (ZIP המשחקים) — נסגר מלא: hash הדיסק הריבוני == hash מהשעת החי ביט-לביט (8a9bff7a…52273) · HTTP 200 · 9,643 bytes · content-type: application/zip · כותרות אמת (repo-sealed · chain-chars 0/12860 · ETag). החותם אומת ב-RPC גולם ללא-מפתח: Hive block 110,034,945 · custom_json saos.web.v1 · sha256 בחותם == hash המוגש. 6/6 קבצים 200 (index 2,949B · snake 3,692B · g2048 4,669B · breakout 4,085B · memory 3,559B · README). משחקיות-חיה הוכחה בדפדפן: 2048 בתוך ה-iframe מהשעת — ניקוד 24, אריחים 4/2/8/4/2, מגיב לחצים.
+- ערוץ 2 (RPC כספים) — המספרים נטענו מחדש מקור-גולם לפני שימוש: world.json קנוני (v33628, 02:32:25Z) — treasuryProfitMu=0 · treasuryProfitEverMu=213,752µ (הראצ׳ט — תואם ל-R46) · poolFeesMu=257,892µ (SAOS/USDS 84,745 + USDS/WSTEEM 173,021 + ENERGY/SAOS 126 + USDS/WTRX 0) · savings: opens=1/savers=1/pot=500,000µ (עמדת-ההדגמה) · watch.json (03:51:37Z): depositsTotal=0 — "0 הפקדות חיצוניות" אומת כעדיין-נכון. כתובות-ההפקדה ב-RPC גולם: EVM=0.0 ETH (hex 0x0) · Steem cashmachine=0.010 STEEM+8,485.68 VESTS · Hive=0.001 HIVE · RC=2.81% (65.9M/2.35B).
+- ערוץ 3 (Actions) — נסגר מלא, 5/5 תפקידים עם ריצות success טריות מהשעה האחרונה: console-publish (03:53Z) · dex-beat (02:31Z, saos-dex) · dex-watch (03:51Z) · weave-heart (03:08Z, Zip) · agents-watch (03:46Z) — ובנוסף web-publish ×3 · weave-anchor-lines · money-watch · dex-grid. שני ריפואים נבדקו (Console public, saos-dex+Zip בטוקן-הריפו).
+- עריכת נקודות-קצה (21 endpoints, curl + זמן): 18 תקינים מיד. שלושה חורגים אובחנו לפי-ראיה: (1) /api/weave/sovereignty 5.6s ראשון · 1.3-1.4s בכל קריאה — שורש-אמת: שלושה probes חיצוניים טוריים (קונסולה→ZERO→ארכיון) ללא מטמון בכלל; (2) /api/health 889ms — מכוון (מסלול-אמת חי; כבר מקבילי; השהיית-רשת של Steem עצמה); (3) /api/web/c קר 837ms — חד-פעמי (חם: 35-85ms).
+- ריפוי sovereignty (0989f8f): ה-route נכתב מחדש — swrGet TTL 60s (cached/stale/cacheAgeSec בגוף + X-SAOS-Cache) + מקבול מלא: 10 שאילתות-DB ∥ probe-קונסולה ∥ probe-ZERO ∥ גזירת-ארכיון ב-Promise.all אחד. מדידות לפני/אחרי (curl חי): 5.6s→2.3s קר (מקבילי) · 1.3s→8ms חם (פי ~170) · 187ms hit-stale אחרי-TTL · כל השדות שלמים (cloud/ledger/seal/steem/zero/archive/console/gaps) · תצוגת הריבונות מרנדרת מלאה בדפדפן עם ה-API החדש.
+- אימות-דפדפן מלא: אפס page-errors · אפס שגיאות-קונסולה · אפס hydration-mismatch · 2048 שוחק מהשעת · מובייל 390px: scrollWidth=390 אפס-גלישה · פוטר בתחתית עמוד-ארוך (atPageEnd=true, footerAtBottom=true) · lint נקי. צילומי-ראיה: r54-home-desktop.png · r54-sovereignty-view.png · r54-mobile-390.png.
+- סנכרון-גיט: תיקון ה-hydration (da04c5c) + R54 (0989f8f) נדחפו לאחר rebase מול קומיטי-סטטוס של סוכן-הענן; 0/0 לפנים/אחור מול origin/main.
+
+Stage Summary:
+- שני כשלים אמיתיים נמצאו ונסגרו בראיה חיה: מצב-ביניים במקור-ה-HTML (hydration פרוטוקולי) ו-sovereignty חסר-מטמון (1.3s בכל קריאה → 8ms). שניהם תוקנו בשורש, אומתו ב-curl גולם + דפדפן, ונדחפו לריפו.
+- מקרה-הבוחן הריבוני סגור בהגדרתו המלאה: הזיפ חתום על שרשרת-ציבורית, מוגש ביט-לביט-זהה, והמשחק משוחק בפועל מהרשת — עם הוכחת-ניקוד ביד.
+- המספרים הכספיים נטענו מחדש והישנים מסווגים מעתה [טעון-אימות] שהופרך חלקית: האמת החיה — רווח-אוצר-עובד $0.00 · מונה-לנצח $0.21 · עמלות-בריכות $0.26 · הפקדות-חוץ 0 (נכון עדיין) · הפקדת-הדגמה פנימית 1.
+- הכשל הפתוח האמיתי של השרת נותר ללא-שינוי ומדווח בכנות: 0 הפקדות חיצוניות — הטבעת (עוגן←הפקדה←אשראי←מסחר←משיכה) טרם נסגרה בעסקה אמיתית אחת.
