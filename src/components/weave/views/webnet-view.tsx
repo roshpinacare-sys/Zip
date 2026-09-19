@@ -688,8 +688,8 @@ export function WebNetView() {
       {featured ? (
         <FadeIn delay={0.2}>
           <Section
-            title="מגרש המשחקים — חיה מהשרשרת"
-            description={`חבילת ${featured.manifest.name}: ארבעה משחקים שכל ביט שלהם מאוחסן על Steem`}
+            title="מגרש המשחקים — מוגש תחת חותם-השרשרת"
+            description={`חבילת ${featured.manifest.name}: ארבעה משחקים שה-sha256 שלהם חתום על שרשרת ציבורית — כל טעינה עוברת אימות מול החותם`}
             icon={<PlayCircle />}
           >
             <Playground rec={featured} />
