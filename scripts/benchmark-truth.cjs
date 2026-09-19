@@ -51,12 +51,16 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
   record("G1-site-up", home.ok ? "PASS" : "FAIL",
     `HTTP ${home.status} · ${homeBytes} bytes`);
 
-  // ── G2: אפס קישורים שבורים בעמוד הבית ────────────────────────────
+  // ── G2: אפס קישורים שבורים בכל העמודים הציבוריים (לקח R57: בדיקת
+  //    הבית בלבד פספסה קישור מת ב-wallet — השער מכסה את הספרייה כולה) ──
+  const PAGES = ["", "wallet.html", "money.html", "net.html", "acid.html", "gate.html", "roast.html", "defi.html", "deposits.html", "readiness.html", "sovereign.html"];
   let broken = [], blocked = [], checked = 0;
-  if (home.ok) {
+  for (const page of PAGES) {
+    const ph = page ? await fetchJson(`${BASE}/${page}`, 15000) : home;
+    if (!ph.ok || !ph.text) { if (page) broken.push(`${page} → HTTP ${ph.status}`); continue; }
     const hrefs = new Set();
     const re = /href="([^"]*)"/g; let m;
-    while ((m = re.exec(home.text)) !== null) hrefs.add(m[1]);
+    while ((m = re.exec(ph.text)) !== null) hrefs.add(m[1]);
     const links = [...hrefs].filter(h =>
       !h.startsWith("#") && !h.startsWith("data:") && !h.startsWith("javascript:") &&
       !h.includes("'") && !h.includes("+") && h.trim().length > 1
@@ -67,12 +71,12 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
       const r = await fetchJson(url, 12000);
       // 404/5xx = שבור בוודאות. 403 מאתר-צד שלישי = חומת-בוטים, לא הוכחת שבירה.
       if (r.status === 403) blocked.push(`${h} → 403 (חומת-בוטים, בלתי-מוכרע)`);
-      else if (!r.ok) broken.push(`${h} → ${r.status}`);
+      else if (!r.ok) broken.push(`${page || "(home)"}: ${h} → ${r.status}`);
     }
   }
   record("G2-zero-broken-links",
     home.ok ? (broken.length === 0 ? "PASS" : "FAIL") : "SKIP",
-    `${checked} קישורים נבדקו · ${broken.length} שבורים · ${blocked.length} בלתי-מוכרעים`,
+    `${PAGES.length} עמודים · ${checked} קישורים נבדקו · ${broken.length} שבורים · ${blocked.length} בלתי-מוכרעים`,
     broken.length ? broken.join(" | ") : "");
 
   // ── G3: טריות קו העדות באתר הפרוס ────────────────────────────────
@@ -85,18 +89,14 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
       `cp#${depStatus.json.witness?.checkpoint} · att ${depStatus.json.witness?.attestations} · גיל ${ageH.toFixed(1)}h (סף ${thr}h)`);
   } else record("G3-witness-freshness", "FAIL", `status.json לא נקרא (HTTP ${depStatus.status})`);
 
-  // ── G4: מראה מקומית לא משקרת (מקומי מול פרוס) ─────────────────────
-  const locStatus = readLocal("console/status.json"); // העותק המקומי שמפורסם בפועל ל-Pages
-  if (depStatus.json && locStatus) {
-    const sameFormat = locStatus.format === depStatus.json.format;
-    const lagH = hoursBetween(locStatus.generatedAt, depStatus.json.generatedAt);
-    const lagging = lagH > (depStatus.json.freshness?.cadenceHours ?? 2);
-    // עותק מקומי קדום זה לא כשל אם הוא לא מוצג לשום אחד כ"עכשווי".
-    // הסנדבוקס ארעי — האמת היחידה היא הפרוס. כאן נמדד הפער ותו לא.
-    record("G4-mirror-lag", lagging ? "WARN" : "PASS",
-      `מקומי ${locStatus.witness?.checkpoint ?? "?"} (מ-${locStatus.generatedAt.slice(0, 10)}) מול פרוס ${depStatus.json.witness?.checkpoint} · פער ${lagH.toFixed(1)}h`,
-      sameFormat ? "" : "פורמט שונה בין העותקים");
-  } else record("G4-mirror-lag", "SKIP", "חסר עותק מקומי או פרוס");
+  // ── G4: אף תאום מזויף — קבצים שנולדים בריפו הציבורי לא מחזיקים עותק
+  //    מקומי (דוקטרינת Task 28 + ריפוי R57: עותק מקומי של קובץ שנולד
+  //    בציבורי = אמת שנייה שמתיישנת בשקט — בדיוק הכשל שנתפס כאן).
+  const PUBLIC_BORN = ["index.html", "status.json"];
+  const forged = PUBLIC_BORN.filter((f) => fs.existsSync(path.join(ROOT, "console", f)));
+  record("G4-no-forged-twins", forged.length === 0 ? "PASS" : "FAIL",
+    forged.length ? `עותקים מקומיים מזויפים: ${forged.join(", ")}` : "אף קובץ שנולד בציבורי לא מחזיק תאום בריבוני ✓",
+    forged.length ? "קובץ שנערך בריפו הציבורי לא מופיע בריבו הריבוני — שתי אמיתות לקובץ אחד הוא באג" : "");
 
   // ── G5: שם שמור — saos-live.json פירושו דבר אחד בלבד ─────────────
   // כלל R57: השם שמור לספר הציבורי המתפרסם ל-Pages. במחשב הריבוני לא
