@@ -1,33 +1,37 @@
 {
-  "at": "2026-09-19T15:08:24.951Z",
+  "at": "2026-09-19T16:09:19.241Z",
   "runner": "github-actions",
-  "mode": "RC-SKIPPED (both chains regenerating — honest skip; ZERO line anchors in $0)",
-  "payload": {
-    "protocol": "saos-weave-core/v1",
-    "action": "checkpoint",
-    "at": "2026-09-19T15:08:24.951Z",
-    "net": "weave-core",
-    "repo": "roshpinacare-sys/Zip",
-    "checkpoint": 247,
-    "root": "0xc9cba3a99cd7711ecf50e9471997c4c328e5073c1ce928c5c35c16278e68ec08",
-    "attFrom": 254,
-    "attTo": 254,
-    "attestations": 254,
-    "headHash": "0xc9cba3a99cd7711ecf50e9471997c4c328e5073c1ce928c5c35c16278e68ec08",
-    "commit": "d9d8614"
+  "mode": "ANCHORED",
+  "checkpoint": {
+    "index": 248,
+    "root": "0x8cea9b27d601bd243dc1be3a4217cde0282755f41e9d4584f22a0236439eb5e3",
+    "attFrom": 255,
+    "attTo": 255
   },
+  "txids": {
+    "steem": "a5723897b5a27f76118542c68752bc8119d1e4d6",
+    "hive": "5ff1b7427a2d761df1d028f8473729d97041fd7e"
+  },
+  "hiveSkipped": null,
   "notes": [
-    "steem: rc-gated (live-mana=1.89e+8 < floor=2.00e+8 — regen budget, honest skip)",
-    "hive: rc-gated (mana=2.88e+8 < floor=3.00e+8 — regen budget, honest skip)"
+    "hive: broadcast-accepted (await history confirm)"
   ],
-  "rcGates": {
-    "steem": "rc-gated (live-mana=1.89e+8 < floor=2.00e+8 — regen budget, honest skip)",
-    "hive": "rc-gated (mana=2.88e+8 < floor=3.00e+8 — regen budget, honest skip)"
+  "attSeq": 256,
+  "nextCheckpoint": {
+    "index": 249,
+    "root": "0xd6a8845b41c7429b5eebd4e3130595616ee9b0dd25bb063b74957f9b864c9217"
   },
+  "market": {
+    "settled": [],
+    "refunded": [],
+    "attSeqs": [],
+    "checkpoint": null
+  },
+  "attestations": 256,
   "context": {
     "runner": "github-actions",
-    "gitHead": "d9d8614",
+    "gitHead": "44f17df",
     "repoSlug": "roshpinacare-sys/Zip",
-    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/35450852383"
+    "runUrl": "https://github.com/roshpinacare-sys/Zip/actions/runs/35454015280"
   }
 }
