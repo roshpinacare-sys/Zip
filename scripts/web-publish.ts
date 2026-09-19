@@ -541,7 +541,23 @@ async function main(): Promise<number> {
       const status = sh("git status --porcelain -- sovereign/web");
       if (status.trim() !== "") {
         sh(`git commit -m "web-publish: ${completed} complete · ${progressed} in-progress · ${new Date().toISOString().slice(0, 16)}Z"`);
-        sh("git push origin main");
+        // דחיפה עמידה למרוצים: pull-rebase ואז push, עד שני ניסיונות
+        let pushedOk = false;
+        let lastPushErr = "";
+        for (let t = 0; t < 2 && !pushedOk; t++) {
+          try {
+            sh("git push origin main");
+            pushedOk = true;
+          } catch (pe) {
+            lastPushErr = String(pe).slice(0, 160);
+            try {
+              sh("git pull --rebase origin main");
+            } catch {
+              /* הניסיון הבא */
+            }
+          }
+        }
+        if (!pushedOk) throw new Error(`push-failed-after-retry: ${lastPushErr}`);
         log("נדחף לריפו הריבוני");
       } else {
         log("אין שינויים לדחיפה");
