@@ -27,7 +27,7 @@ export async function GET() {
         listing: "/api/web/c/<sha256>?list=1 — רישום-קבצי-החבילה",
         raw: "/api/web/c/<sha256>?raw=1 — הורדת-החבילה כולה (מאומת sha256 מול החותם)",
         verify: "/api/web/verify/<sha256> — מנוע-ההוכחות (סריקה-עמוקה · קריאות-בלוק)",
-        publish: "/api/web/publish — העלאה (פעולת-מפעיל בלבד)",
+        publish: "/api/web/publish — העלאה (פעולת-מפעיל בלבד · deliver=local ברירת מחדל: מחסן ריבוני + מניפסט pending-seal, אפס-גיט · deliver=cloud מפורש בלבד)",
       },
     },
     publicTruth: {
