@@ -207,7 +207,7 @@ export function DeployKitCard() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium leading-snug">{item.label}</p>
                 {item.note ? (
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                  <p className="mt-0.5 break-words text-xs leading-relaxed text-muted-foreground">
                     {item.note}
                   </p>
                 ) : null}

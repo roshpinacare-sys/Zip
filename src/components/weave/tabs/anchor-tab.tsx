@@ -263,7 +263,7 @@ export function AnchorTab() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* מפת אמת */}
-        <MotionCard className="p-4 sm:p-6">
+        <MotionCard className="min-w-0 p-4 sm:p-6">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-lg border bg-muted/60 text-muted-foreground">
               <Lock className="size-4" />
@@ -330,7 +330,7 @@ export function AnchorTab() {
         </MotionCard>
 
         {/* החוזה */}
-        <MotionCard className="p-4 sm:p-6">
+        <MotionCard className="min-w-0 p-4 sm:p-6">
           <div className="flex items-center gap-3">
             <span className="flex size-9 items-center justify-center rounded-lg border bg-muted/60 text-muted-foreground">
               <FileCode2 className="size-4" />

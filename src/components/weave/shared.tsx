@@ -68,7 +68,7 @@ export function fmtDateTime(iso: string | null | undefined): string {
 // ── סקרולבר מעוצב לרשימות ארוכות ─────────────────────────────────────
 
 export const scrollBoxClass = cn(
-  "max-h-96 overflow-y-auto overscroll-contain rounded-lg",
+  "max-h-96 overflow-auto overscroll-contain rounded-lg",
   "[scrollbar-width:thin] [scrollbar-color:rgba(113,113,122,0.45)_transparent]",
   "[&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar]:h-2.5",
   "[&::-webkit-scrollbar-track]:bg-transparent",
@@ -452,7 +452,7 @@ export function MotionCard({
     <motion.div
       whileHover={{ scale: 1.008, y: -2 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
-      className="h-full"
+      className="h-full min-w-0"
     >
       <Card className={cn("h-full", className)} {...props}>
         {children}
