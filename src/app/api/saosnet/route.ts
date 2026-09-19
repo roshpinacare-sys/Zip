@@ -3,7 +3,7 @@
 //
 // שלושה מקורות אמת, כל אחד עם חותמת מדידה משלו:
 //  · v0 (SAOS-NET) — replay מתמטי מהארכיון (sovereign/saosnet-snapshot.json)
-//  · v1 (SAOS-LIVE) — הספר החי על Steem (sovereign/saos-live.json, מתעדכן בלב)
+//  · v1 (SAOS-LIVE) — הספר החי על Steem (sovereign/saos-live-state.json למצב הדמון, מתעדכן בלב)
 //  · DEX — הבורסה הריבונית החיה (127.0.0.1:3010, snapshot מיידי)
 // אין כאן דבר מומצא: קובץ לא קיים → null + הסבר כנה.
 // ─────────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ async function readJsonSafe(rel: string): Promise<unknown | null> {
 export async function GET() {
   const [v0, live] = await Promise.all([
     readJsonSafe("sovereign/saosnet-snapshot.json"),
-    readJsonSafe("sovereign/saos-live.json"),
+    readJsonSafe("sovereign/saos-live-state.json"), // R57: מצב הדמון — השם saos-live.json שמור לספר הציבורי
   ]);
 
   // הדקס: snapshot מיידי מהשרת המקומי (לא long-poll — תשובה מהירה)

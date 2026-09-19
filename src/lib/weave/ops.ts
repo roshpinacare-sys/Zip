@@ -30,7 +30,8 @@ export const OPERATOR_ACCOUNT = (process.env.WEAVE_OPERATOR_ACCOUNT || "headcorn
 const WITNESS_ACCOUNT = (process.env.WEAVE_STEEM_ACCOUNT || "cashmachine").toLowerCase();
 const SAOS_LIVE_OP_ID = "saos.weave.live.v1";
 const OPS_LOG_PATH = path.join(process.cwd(), "sovereign", "ops-log.json");
-const SAOS_STATE_PATH = path.join(process.cwd(), "sovereign", "saos-live.json");
+// R57: שם שמור — saos-live.json הוא הספר הציבורי בלבד; מצב הדמון בשם משלו
+const SAOS_STATE_PATH = path.join(process.cwd(), "sovereign", "saos-live-state.json");
 const WINDOW_MS = 48 * 3600 * 1000; // חלון הפקודות
 const MAX_PER_BEAT = 5; // תקרה לפעימה
 const PAGE = 100; // עומק קריאה לעמוד

@@ -41,7 +41,20 @@ const RELAY_ACCOUNTS = [WITNESS_ACCOUNT, OPERATOR_ACCOUNT];
 const OWNER = process.env.WEAVE_OWNER || "roshpinacare-sys";
 const CONSOLE_REPO = `${OWNER}/Console`;
 const ROOT = path.resolve(__dirname, "..", "..", "..");
-const STATE_PATH = path.join(ROOT, "sovereign", "saos-live.json");
+const STATE_PATH = path.join(ROOT, "sovereign", "saos-live-state.json");
+// R57 (אמת-אחת): שם הקובץ "saos-live.json" שמור מעתה לספר הציבורי שמתפרסם
+// ל-Pages בלבד. קובץ המצב הפנימי של הדמון (יומן ג'נזיס + seen) נושא שם
+// משלו — שני תפקידים שונים לא יתחלקו עוד שם זהה (נתפס ב-truth-gate G5).
+const STATE_PATH_LEGACY = path.join(ROOT, "sovereign", "saos-live.json");
+// הגירה חד-פעמית: קובץ ישן בשם השמור מועבר לשם החדש
+if (!fs.existsSync(STATE_PATH) && fs.existsSync(STATE_PATH_LEGACY)) {
+  try {
+    fs.renameSync(STATE_PATH_LEGACY, STATE_PATH);
+    console.log("[saos-live] מצב הדמון הועבר לשם החדש: saos-live-state.json (השם saos-live.json שמור לספר הציבורי)");
+  } catch {
+    /* ההמשך יקרא את הישן — ההגירה תחזור בריצה הבאה */
+  }
+}
 const PAGE = 100;
 const MAX_PAGES = 12;
 

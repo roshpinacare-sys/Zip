@@ -98,15 +98,19 @@ function hoursBetween(a, b) { return Math.abs(new Date(b) - new Date(a)) / 36e5;
       sameFormat ? "" : "פורמט שונה בין העותקים");
   } else record("G4-mirror-lag", "SKIP", "חסר עותק מקומי או פרוס");
 
-  // ── G5: אחידות פורמט saos-live.json (שם זהה = פורמט זהה) ─────────
+  // ── G5: שם שמור — saos-live.json פירושו דבר אחד בלבד ─────────────
+  // כלל R57: השם שמור לספר הציבורי המתפרסם ל-Pages. במחשב הריבוני לא
+  // יהיה עוד קובץ בשם הזה עם פורמט אחר. שני תפקידים = שני שמות.
   const depLive = await fetchJson(BASE + "/saos-live.json");
-  const locLive = readLocal("sovereign/saos-live.json");
-  if (depLive.json && locLive) {
-    const fDep = depLive.json.format, fLoc = locLive.format;
-    record("G5-live-format-consistency", fDep === fLoc ? "PASS" : "FAIL",
-      `פרוס="${fDep}" מול מקומי="${fLoc}"`,
-      fDep === fLoc ? "" : "שני פורמטים שונים תחת אותו שם-קובץ = שתי אמיתות");
-  } else record("G5-live-format-consistency", "SKIP", "צד חסר");
+  const rogueLocal = fs.existsSync(path.join(ROOT, "sovereign", "saos-live.json"));
+  const stateFile = readLocal("sovereign/saos-live-state.json");
+  if (depLive.json) {
+    const pubFormat = depLive.json.format;
+    const ok = pubFormat === "saos-live-v1" && !rogueLocal;
+    record("G5-live-format-consistency", ok ? "PASS" : "FAIL",
+      `ספר ציבורי="${pubFormat}" · קובץ-בשם-שמור מקומי=${rogueLocal ? "קיים (עבירה)" : "אין ✓"}${stateFile ? " · מצב-דמון בנפרד ✓" : ""}`,
+      ok ? "" : "שם saos-live.json מציין יותר מאמת אחת");
+  } else record("G5-live-format-consistency", "FAIL", `saos-live.json לא נקרא (HTTP ${depLive.status})`);
 
   // ── G6: מספור המסירות מסונכרן (bridgehead מול git HEAD) ────────────
   let gitR = null;
