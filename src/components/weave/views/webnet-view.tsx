@@ -14,6 +14,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Activity,
   Boxes,
   CheckCircle2,
   CloudUpload,
@@ -35,6 +36,7 @@ import {
   Signal,
   Sparkles,
   UploadCloud,
+  XCircle,
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -87,12 +89,30 @@ interface WebState {
   ok: boolean;
   account: string;
   at: string;
+  serveMs?: number;
   rc: RcProbe | null;
   packages: WebManifestRecord[];
   inbox: WebInboxJob[];
   migrations: Record<string, MigrationEstimate>;
   totals: WebTotals;
   caps: AnchorCapability[];
+}
+
+interface HealthCheck {
+  name: string;
+  ok: boolean;
+  ms: number;
+  detail: unknown;
+}
+
+interface HealthReport {
+  ok: boolean;
+  service: string;
+  account: string;
+  at: string;
+  totalMs: number;
+  verdict: string;
+  checks: Record<string, HealthCheck>;
 }
 
 interface ZipFileStat {
@@ -881,6 +901,128 @@ function Playground({
   );
 }
 
+// ── פאנל האימות-העצמי של השרת (/api/health) ──────────────────────────
+
+const HEALTH_CHECKS: Array<{ key: string; label: string; desc: string }> = [
+  { key: "db", label: "מסד-הנתונים", desc: "SQLite עונה בפועל — לא ״מחובר״" },
+  { key: "vault", label: "המחסן הריבוני", desc: "מניפסטים + בייטים על הדיסק" },
+  { key: "integrity", label: "שלמות sha256", desc: "הבייטים במחסן מול החותם שנחתם בשרשרת" },
+  { key: "rpc", label: "צומת Steem", desc: "ה-RPC הציבורי עונה עכשיו" },
+  { key: "seals", label: "החותמים", desc: "כתובת-בלוק וצ׳אנקים לכל חבילה" },
+];
+
+function healthDetailLine(key: string, d: unknown): string {
+  if (!d || typeof d !== "object") return "";
+  const o = d as Record<string, unknown>;
+  switch (key) {
+    case "db":
+      return `${o.tables} טבלאות`;
+    case "vault":
+      return typeof o.bytesOnDisk === "number" ? `${o.packages} חבילות · ${fmtBytes(o.bytesOnDisk)}` : "מחסן ריק — תקין";
+    case "integrity":
+      return typeof o.verified === "number" ? `${o.verified} חבילות — חשיש תואם` : String(o.note ?? "");
+    case "rpc": {
+      const pct = typeof o.pct === "number" ? `${o.pct}%` : "?";
+      const blk = typeof o.headBlock === "number" ? `בלוק ${o.headBlock.toLocaleString("en-US")}` : "";
+      const stale = o.stale ? " · דגימה עמומה (הרשת נפלה — מוגשת בכנות)" : "";
+      return `RC ${pct} · ${blk}${stale}`;
+    }
+    case "seals": {
+      const arr = Array.isArray(o.packages) ? (o.packages as Array<Record<string, unknown>>) : [];
+      return arr
+        .map((p) => `${p.sealBlock ? `בלוק ${p.sealBlock}` : "טרם נחתם"} · ${p.residencyPct}% על-השרשרת`)
+        .join(" · ");
+    }
+    default:
+      return "";
+  }
+}
+
+function HealthPanel({ stateServeMs }: { stateServeMs?: number }) {
+  const [rep, setRep] = useState<HealthReport | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const run = useCallback(async () => {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/health", { cache: "no-store" });
+      const j = (await res.json()) as HealthReport;
+      setRep(j);
+      if (j.ok) {
+        toast.success("השרת אומת — כל המרכיבים עובדים", {
+          description: `נמדח עכשיו ב-${j.totalMs} אלפיות-שנייה — לא מונח, לא מובטח.`,
+        });
+      } else {
+        toast.error("יש כשל במרכיבי השרת", {
+          description: "מדווח בכנות בפאנל — כל בדיקה מופרדת.",
+        });
+      }
+    } catch (e) {
+      toast.error("בדיקת-הבריאות עצמה נכשלה", {
+        description: e instanceof Error ? e.message : "כשל רשת",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-muted/20 px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">בדיקה חיה של כל מרכיבי הקונסולה</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            {rep
+              ? `${rep.verdict} · סה״כ ${rep.totalMs}ms`
+              : "עדיין לא נמדד הפעם — לחץ ״אמת את השרת״ וקבל אמת מדודה"}
+            {typeof stateServeMs === "number" ? ` · מצב-הרשת נוצר ב-${stateServeMs}ms` : ""}
+          </p>
+        </div>
+        <Button variant="outline" size="sm" onClick={run} disabled={busy} className="h-9">
+          <RefreshCw className={cn(busy && "animate-spin")} />
+          אמת את השרת
+        </Button>
+      </div>
+      <div className="grid gap-2 p-4 sm:grid-cols-2 xl:grid-cols-3">
+        {HEALTH_CHECKS.map((c) => {
+          const r = rep?.checks[c.key];
+          const line = r ? healthDetailLine(c.key, r.detail) : "";
+          return (
+            <div
+              key={c.key}
+              className={cn(
+                "flex items-start gap-2.5 rounded-lg border p-3",
+                !r && "border-border bg-card",
+                r?.ok && "border-emerald-600/30 bg-emerald-500/5",
+                r && !r.ok && "border-red-600/40 bg-red-500/5",
+              )}
+            >
+              {r?.ok ? (
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-500" aria-hidden="true" />
+              ) : r ? (
+                <XCircle className="mt-0.5 size-4 shrink-0 text-red-500" aria-hidden="true" />
+              ) : (
+                <Activity className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-semibold">{c.label}</p>
+                <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+                  {r ? line || c.desc : c.desc}
+                  {r ? <span className="font-mono"> · {r.ms}ms</span> : null}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="border-t bg-muted/20 px-4 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
+        הבדיקה הזו היא המוצר: <b dir="ltr">/api/health</b> זמין לכל מי שרוצה לאמת את השרת מבחוץ — כל בדיקה נמדדת
+        בנפרד בזמן-אמת, כישלון מדווח ככישלון (HTTP 503), והצלחה נותנת 200 בלבד כשכולם עוברות.
+      </div>
+    </Card>
+  );
+}
+
 // ── התצוגה הראשית ───────────────────────────────────────────────────
 
 export function WebNetView() {
@@ -979,6 +1121,17 @@ export function WebNetView() {
       {/* פס-סטטיסטיקות */}
       <FadeIn delay={0.04}>
         <StatsStrip state={state} />
+      </FadeIn>
+
+      {/* אימות-עצמי של השרת */}
+      <FadeIn delay={0.06}>
+        <Section
+          title="האימות-העצמי של השרת"
+          description="חמש בדיקות חיות — DB · מחסן · שלמות מול החותם · RPC · חותמים — כל אחת נמדדת בנפרד"
+          icon={<Activity />}
+        >
+          <HealthPanel stateServeMs={state?.serveMs} />
+        </Section>
       </FadeIn>
 
       {/* מד RC */}

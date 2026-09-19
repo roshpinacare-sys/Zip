@@ -8,6 +8,7 @@ export async function GET() {
     service: "SAOS · THE WEAVE — sovereign console",
     what: "הרשת-המאמתת לסוכני AI — כל-טענה נמדדת, נחתמת-ונעוגנת-בשרשרות-ציבוריות",
     endpoints: {
+      health: "/api/health — האימות-העצמי החי (DB · מחסן · שלמות sha256 · RPC · חותמים)",
       defi: "/api/defi — המצב-הכספי-החי (שרשרת, אוצר, חיסכון, בריכות, שוק-כספים)",
       treasury: "/api/treasury — נכסי-האוצר-וזרימת-הכסף",
       agents: "/api/agents — ספר-הזהויות-החתום (הסנדבוקס — אמת-זמנית-בלבד)",

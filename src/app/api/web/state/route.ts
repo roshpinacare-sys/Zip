@@ -29,6 +29,7 @@ async function readJsonSafe<T>(p: string): Promise<T | null> {
 }
 
 export async function GET() {
+  const t0 = Date.now();
   const root = process.cwd();
   const paths = webRepoPaths(root);
 
@@ -83,15 +84,22 @@ export async function GET() {
     ? Math.round((totals.charsOnChain / totals.charsTotal) * 1000) / 10
     : 0;
 
-  return NextResponse.json({
-    ok: true,
-    account: WEB_ACCOUNT,
-    at: new Date().toISOString(),
-    rc,
-    packages,
-    inbox,
-    migrations,
-    totals: { ...totals, residencyPct },
-    caps: anchorCapabilities(),
-  });
+  // אמת-מדידה גלויה: כל תשובה מפרסמת כמה זמן לקח לייצר אותה —
+  // ה-header X-SAOS-Serve-Ms ניתן למדידה גם ב-curl -I בלי לפרסר גוף.
+  const serveMs = Date.now() - t0;
+  return NextResponse.json(
+    {
+      ok: true,
+      account: WEB_ACCOUNT,
+      at: new Date().toISOString(),
+      serveMs,
+      rc,
+      packages,
+      inbox,
+      migrations,
+      totals: { ...totals, residencyPct },
+      caps: anchorCapabilities(),
+    },
+    { headers: { "X-SAOS-Serve-Ms": String(serveMs) } },
+  );
 }

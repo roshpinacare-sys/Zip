@@ -1091,40 +1091,83 @@ export interface RcProbe {
   regenPerDay: number;
   headBlock: number | null;
   chainTime: string | null;
+  /** אמת-מטמון: כמה שניות מאז מדידת-הרשת האחרונה (0 = נמדד עכשיו) */
+  measuredAgoSec?: number;
+  /** true = הרשת נפלה וזו דגימה ישנה שממשיכה לשרת בכנות */
+  stale?: boolean;
+}
+
+// ── מטמון-מד RC חכם: מדידת-רשת נדיבה, חישוב-התחדשות מקומי בין לבין ─────
+//
+// התחדשות ה-RC ליניארית לחלוטין (max/432,000 לשנייה — אותה נוסחה
+// שהשרשרת עצמה מחשבת), ולכן דגימה אחת של (current_mana, last_update_time)
+// מספיקה כדי לחשב את המד לכל רגע אחר-כך — עד שמישהו מוציא RC בפועל
+// (שידור צ׳אנק; הסוכן בענן מודד בעצמו לפני שידור, אז התצוגה לעולם
+// לא מקבלת החלטות שידור מהמטמון הזה). מדידת-רשת פעם ב-90 שניות
+// לכל היותר; בין לבין — אפס קריאות רשת, תשובה מיידית. נפילת-רשת
+// ממשיכה לשרת את הדגימה הישנה בכנות (stale=true) במקום null.
+
+interface RcSample {
+  max: number;
+  manaAtLut: number; // current_mana הגולמי ברגע last_update_time
+  lutSec: number;
+  headBlock: number | null;
+  chainTime: string | null;
+}
+
+const RC_SAMPLE_TTL_MS = 90_000;
+let rcSample: { at: number; s: RcSample } | null = null;
+
+function rcProbeFromSample(s: RcSample, atMs: number, measuredAtMs: number, stale: boolean): RcProbe {
+  const nowSec = Math.floor(atMs / 1000);
+  const mana = Math.min(s.max, s.manaAtLut + Math.max(0, nowSec - s.lutSec) * (s.max / 432_000));
+  return {
+    account: WEB_ACCOUNT,
+    mana: Math.round(mana),
+    max: s.max,
+    pct: Math.round((mana / Math.max(1, s.max)) * 1000) / 10,
+    regenPerDay: Math.round((s.max / 432_000) * 86_400),
+    headBlock: s.headBlock,
+    chainTime: s.chainTime,
+    measuredAgoSec: Math.max(0, Math.round((atMs - measuredAtMs) / 1000)),
+    stale,
+  };
 }
 
 export async function probeStorageRc(account: string = WEB_ACCOUNT): Promise<RcProbe | null> {
+  const now = Date.now();
+  if (rcSample && now - rcSample.at < RC_SAMPLE_TTL_MS) {
+    return rcProbeFromSample(rcSample.s, now, rcSample.at, false);
+  }
   try {
-    const res = await steemRpc<{
-      rc_accounts: Array<{
-        max_rc: string | number;
-        rc_manabar: { current_mana: string | number; last_update_time: number };
-      }>;
-    }>("rc_api.find_rc_accounts", { accounts: [account] });
-    const a = res?.rc_accounts?.[0];
-    if (!a) return null;
+    // שתי הקריאות במקביל — במקום בטור (נמדד: ~1.5s → ~0.7s בפעם הראשונה)
+    const [rcRes, dgp] = await Promise.all([
+      steemRpc<{
+        rc_accounts: Array<{
+          max_rc: string | number;
+          rc_manabar: { current_mana: string | number; last_update_time: number };
+        }>;
+      }>("rc_api.find_rc_accounts", { accounts: [account] }),
+      steemRpc<DynamicGlobalProperties>("condenser_api.get_dynamic_global_properties", []).catch(
+        () => null,
+      ),
+    ]);
+    const a = rcRes?.rc_accounts?.[0];
+    if (!a) throw new Error("no-rc-account");
     const max = Number(a.max_rc);
-    let dgp: DynamicGlobalProperties | null = null;
-    try {
-      dgp = await steemRpc<DynamicGlobalProperties>("condenser_api.get_dynamic_global_properties", []);
-    } catch {
-      /* בלי זמן שרשרת נסתפק במנה הקפואה */
-    }
-    const nowSec = dgp
-      ? Math.floor(new Date(dgp.time + "Z").getTime() / 1000)
-      : Math.floor(Date.now() / 1000);
-    const lut = Number(a.rc_manabar.last_update_time);
-    const mana = Math.min(max, Number(a.rc_manabar.current_mana) + Math.max(0, nowSec - lut) * (max / 432_000));
-    return {
-      account,
-      mana: Math.round(mana),
+    const s: RcSample = {
       max,
-      pct: Math.round((mana / Math.max(1, max)) * 1000) / 10,
-      regenPerDay: Math.round((max / 432_000) * 86_400),
+      manaAtLut: Number(a.rc_manabar.current_mana),
+      lutSec: Number(a.rc_manabar.last_update_time),
       headBlock: dgp?.head_block_number ?? null,
       chainTime: dgp?.time ?? null,
     };
+    rcSample = { at: Date.now(), s };
+    return rcProbeFromSample(s, rcSample.at, rcSample.at, false);
   } catch {
+    // נפילת-רשת: הדגימה הקודמת ממשיכה לשרת בכנות — עדיף אמת מעופשת
+    // מאשר null מזייף ("הרשת חיה" כשהיא לא). בלי דגימה כלל — null כנה.
+    if (rcSample) return rcProbeFromSample(rcSample.s, now, rcSample.at, true);
     return null;
   }
 }
