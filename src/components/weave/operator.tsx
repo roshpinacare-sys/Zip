@@ -18,6 +18,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -37,6 +38,21 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const TOKEN_KEY = "saos_operator_token";
+
+// ── איתות-mount ללא setState-באפקט (תבנית קנונית) ─────────────────────
+// useSyncExternalStore: ברינדור השרת וברינדור-ההידרציה הראשון נקרא
+// getServerSnapshot (false — שלד ניטרלי, זהה ביט-לביט לשרת), ואחרי
+// ה-mount נקרא getSnapshot (true). אין מצב-ביניים במקור ה-HTML הראשוני,
+// אין tearing, ואין setState סינכרוני בגוף אפקט.
+const emptySubscribe = () => () => {};
+
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
 
 export interface OperatorState {
   status: "checking" | "out" | "in";
@@ -290,8 +306,7 @@ export function OperatorPill() {
   // אנטי-hydration לפי-פרוטוקול: הרינדור הראשון (שרת + הידרציה) מפיק
   // שלד-דטרמיניסטי ניטרלי בלבד — מצב ביניים ("בודק סשן…") לעולם לא
   // נכנס למקור ה-HTML הראשוני; הוא מוצג רק אחרי mount, בלקוח בלבד.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   if (!mounted)
     return (
@@ -340,8 +355,7 @@ export function AdminGate({ children }: { children: ReactNode }) {
   const { status, account, publicKey, expiresAt, logout } = useOperator();
   // אותו דפוס-mount כמו ב-OperatorPill: טרם-mount — שלד דטרמיניסטי
   // ללא טקסט-ביניים; "בודק סשן-מפעיל…" רק אחרי mount, בלקוח בלבד.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useMounted();
 
   if (!mounted) {
     return (
