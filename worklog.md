@@ -2209,3 +2209,22 @@ Stage Summary:
 - צוואר-הבקבוק האמיתי של ה-polling רופא: 0.45-1.5s → 0.02s לכל קריאת state (פי 20+), בלי לאבד דיוק (חישוב-regen מקומי מדויק מתמטית) ובלי לשקר בנפילת-רשת (stale=true מוגש בכנות).
 - שלמות המחסן הופכת מטענה לבדיקה: sha256 של הבייטים מחושב מחדש בכל בדיקת-health ומושווה לחותם שנחתם בשרשרת — mismatch = 503, מיד.
 - קבצים שהשתנו: src/lib/web/netstore.ts (probeStorageRc v2) · src/app/api/web/state/route.ts (serveMs+header) · src/app/api/health/route.ts (חדש) · src/app/api/route.ts (אינדקס) · src/components/weave/views/webnet-view.tsx (פאנל אימות-עצמי).
+
+---
+Task ID: R52-b
+Agent: main (Z.ai — lead engineer)
+Task: שורש-אמת נוסף שנחשף בסריקה — מטמון-defi שנקרא אך לעולם לא נשמר
+
+Work Log:
+- סריקת-עומק של כל ה-endpoints הציבוריים (curl חי, 10 נקודות) אחרי תיקון-state חשפה: /api/defi ענה 1.1-1.3s בכל קריאה — למרות קוד-מטמון שנראה תקין.
+- אבחון מבוסס-ראיה: התשובה החיה מעולם לא סומנה cached=true (נמדד פעמיים ברצף), בעוד treasury כן (cacheAgeSec: 53). שורש-האמת בקוד: ב-defi המטמון נקרא בפתיחת ה-GET אך שורת השמירה (cache = {...}) חסרה לפני ה-return — כל קריאה ביצעה 5-6 fetches חיים (world.json · money.json · grid.json · watch.json · DefiLlama ×2) במקום לחזור מהזיכרון.
+- ריפוי: הוספת שמירת-המטמון לפני ה-return + סימון cached/cacheAgeSec בתשובה, בדיוק כמו treasury.
+- סריקת-מנע: כל שאר ה-endpoints עם קריאת-מטמון נבדקו (weave/saosnet · treasury · defi) — read=1/saved=1 בכולם עכשיו; הבאג היה רק ב-defi.
+- מדידה לפני/אחרי (curl חי): לפני — 1.1-1.3s בכל קריאה, cached לעולם לא true; אחרי — 1.4s ראשונה (miss), ואז 0.005-0.009s עם cached: true.
+- אימות-דפדפן: תצוגת הגלגל (שצורכת /api/defi) נטענת מלאה עם כל הסעיפים והנתונים החיים, אפס שגיאות; צילום sovereign/evidence/r52-defi-fixed.png.
+- lint נקי.
+
+Stage Summary:
+- באג-ביצועים אמיתי נחשף ורופא בשיטת "ראיה-לפני-טענה": לא האמנו לקוד שנראה תקין — מדדנו את התשובה החיה, גילינו שהמטמון מעולם לא נשמר, ותיקנו. תוצאה: defi מהיר פי ~250 בקריאות חוזרות.
+- נקודת-לקח ארכיטקטונית שנרשמת כאן בכנות: "יש קוד-מטמון" אינה ראיה — רק המדידה החיה (cached=true + זמן-תגובה) היא ראיה. זו בדיוק הדוקטרינה שהרשת מטיפה.
+- קבצים: src/app/api/defi/route.ts (שמירת-מטמון + סימון) · evidence/r52-defi-fixed.png.

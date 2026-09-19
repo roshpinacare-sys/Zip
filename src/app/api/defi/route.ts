@@ -376,7 +376,7 @@ export async function GET() {
     },
   };
 
-  return NextResponse.json({
+  const data = {
     ok: true,
     at: new Date().toISOString(),
     world, money, giants,
@@ -390,5 +390,9 @@ export async function GET() {
     down,
     honesty:
       "כל מספר נמדד חי מהקונסולה הציבורית (world/money/grid/watch.json) ומ-DefiLlama. פרמטרי עקומת-הריבית גלויים ב-full. מקור שנפל מסומן ב-down. אף תשואה אינה מובטחת — זו רשת הוכחות, לא הבטחות.",
-  });
+  };
+  // FIX(R52): המטמון נקרא למעלה אך לא נשמר לעולם — כל קריאה ביצעה
+  // 5-6 fetches חיים במקום לחזור מהזיכרון (נמדד: 1.1-1.3s בכל קריאה).
+  cache = { at: Date.now(), data };
+  return NextResponse.json({ ...data, cached: false, cacheAgeSec: 0 });
 }
