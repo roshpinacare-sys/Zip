@@ -729,34 +729,6 @@ export function GateView() {
         )}
       </motion.div>
 
-      {/* ── R55 · מרכז המשחקים — כניסה בולטת מהנחיתה ── */}
-      <motion.div {...fade(1)}>
-        <a
-          href="#/games"
-          className="group flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#d4af37]/40 bg-[#d4af37]/5 p-4 transition-all hover:border-[#d4af37] hover:bg-[#d4af37]/10"
-        >
-          <span className="flex items-center gap-3">
-            <span
-              className="flex size-11 shrink-0 items-center justify-center rounded-full border border-[#d4af37]/40 bg-[#d4af37]/10 text-2xl"
-              aria-hidden="true"
-            >
-              🎮
-            </span>
-            <span>
-              <span className="block text-sm font-bold text-[#e8cd6e]">
-                מרכז המשחקים — משחקי מזל ומיומנות, בידור בלבד
-              </span>
-              <span className="block text-xs text-zinc-500">
-                מוגש מרשת-האחסון הריבונית · הקוד לא בריפו · נקודות וירטואליות בלבד
-              </span>
-            </span>
-          </span>
-          <span className="rounded-full border border-[#d4af37]/50 px-4 py-1.5 text-xs font-bold text-[#e8cd6e] transition-colors group-hover:bg-[#d4af37] group-hover:text-zinc-950">
-            שחק עכשיו ←
-          </span>
-        </a>
-      </motion.div>
-
       {/* ── הטיפה הראשונה — הוכחה חיה ── */}
       <motion.div {...fade(1)}>
         <FirstDropProof />

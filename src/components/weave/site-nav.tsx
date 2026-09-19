@@ -22,7 +22,6 @@ import {
   Cloud,
   Compass,
   DoorOpen,
-  Gamepad2,
   HardDrive,
   Home,
   Landmark,
@@ -54,7 +53,6 @@ export type SiteView =
   | "array"
   | "flywheel"
   | "money-market"
-  | "games"
   | "browser"
   | "domains"
   | "home"
@@ -79,7 +77,6 @@ export const SECTIONS: Array<{
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
   { view: "money-market", label: "שוק-הכספים", icon: Landmark, subs: [] },
-  { view: "games", label: "משחקים", icon: Gamepad2, subs: [] },
   { view: "browser", label: "דפדפן סוכנים", icon: Compass, subs: [] },
   { view: "domains", label: "דומיינים", icon: Network, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
@@ -284,19 +281,6 @@ export function SiteNav({
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2 lg:flex-none">
-          {/* מרכז המשחקים — כפתור-זהב קבוע, נראה בכל רזולוציה שאינה-זעירה */}
-          <button
-            type="button"
-            onClick={() => go("games")}
-            aria-current={view === "games" ? "page" : undefined}
-            className={cn(
-              "flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#d4af37]/45 bg-[#d4af37]/10 px-3.5 text-sm font-bold text-[#e8cd6e] transition-all hover:bg-[#d4af37]/20 hover:shadow-[0_0_14px_rgba(212,175,55,.25)]",
-              view === "games" && "border-[#d4af37] bg-[#d4af37]/20 shadow-[0_0_14px_rgba(212,175,55,.3)]"
-            )}
-          >
-            <Gamepad2 className="size-4" aria-hidden="true" />
-            משחקים
-          </button>
           <OperatorPill />
           <ModeToggle />
           <HashChip
