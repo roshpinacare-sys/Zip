@@ -61,14 +61,15 @@ jobs:
             fi
             git config user.name "agents-watch"
             git config user.email "agents-watch@users.noreply.github.com"
-            git add agents/registry.json agents/gh-snapshot.json
-            git commit -m "agents-watch: ${SEM_NOW}"
             for attempt in 1 2 3; do
+              git add agents/registry.json agents/gh-snapshot.json
+              git commit -m "agents-watch: ${SEM_NOW}"
               git pull --rebase origin main
               if git push; then echo "registry committed (attempt ${attempt})"; exit 0; fi
-              echo "push failed (attempt ${attempt}); resetting to origin"
+              echo "push failed (attempt ${attempt}); resetting to origin and re-running the watcher"
               git checkout -- .
               git reset --hard origin/main
+              node agents/watch.mjs
             done
             echo "ERROR: could not commit the registry after 3 attempts"
             exit 1

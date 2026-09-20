@@ -88,7 +88,7 @@ const results = [];
 function record(gate, status, measured, note) {
   results.push({ gate, status, measured: String(measured), note: note || "", at: new Date().toISOString() });
   const sym = status === "PASS" ? "PASS" : status === "SKIP" ? "skip" : status;
-  console.log(`[${sym}] ${gate} · ${measured}${note ? " — " + note : ""}`);
+  console.log(`[${sym}] ${gate} · ${measured}${note ? " · " + note : ""}`);
 }
 
 async function fetchUrl(url, timeoutMs) {
@@ -162,9 +162,15 @@ function bucketFor(days, date) {
   let everLive = false;
   try {
     const h = JSON.parse(fs.readFileSync(HISTORY_PATH, "utf8"));
-    everLive = (h.runs || []).some((r) => r && r.verdict && r.verdict !== "PRE-LIVE");
+    // bornAt is written once by the first LIVE run and never erased, so a
+    // long outage that ages a live verdict out of the capped runs array can
+    // never turn a true outage back into a PRE-LIVE amber.
+    everLive = Boolean(h.bornAt) || (h.runs || []).some((r) => r && r.verdict && r.verdict !== "PRE-LIVE");
   } catch { /* first run - no history yet */ }
-  if (!home.ok && !everLive) {
+  // PRE-LIVE fires ONLY on the definitive 404 (GitHub Pages "no site"). Any
+  // other failure before birth (5xx, network error) is measured for real -
+  // the same conservative doctrine the verifier uses.
+  if (home.status === 404 && !everLive) {
     const at = new Date().toISOString();
     const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
       ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
@@ -176,9 +182,9 @@ function bucketFor(days, date) {
       target: BASE,
       verdict: "PRE-LIVE",
       preLive: {
-        reason: "GitHub Pages is not enabled yet - one operator action: Settings > Pages > Deploy from a branch > main > root.",
+        reason: `site unreachable (HTTP ${home.status}) and never measured live - the expected state is GitHub Pages not enabled yet; one operator action: Settings > Pages > Deploy from a branch > main > root`,
         siteStatus: `HTTP ${home.status}`,
-        instruction: "Once Pages serves the site, the next hourly run measures it for real; a 404 after any live run is a true outage (RED).",
+        instruction: "Once Pages serves the site, the next hourly run measures it for real; a failure after any live run is a true outage (RED).",
       },
       counts: { pass: 0, fail: 0, skip: 1 },
       durationMs: Date.now() - startedAt,
@@ -239,7 +245,7 @@ function bucketFor(days, date) {
   for (const page of PAGES) {
     const pageUrl = page ? `${BASE}/${page}` : `${BASE}/`;
     const ph = page ? await fetchUrl(pageUrl) : home;
-    if (!ph.ok || !ph.text) { if (page) broken.push(`${page} page itself → HTTP ${ph.status}`); continue; }
+    if (!ph.ok || !ph.text) { if (page) broken.push(`${page} page itself: HTTP ${ph.status}`); continue; }
     const base = new URL(pageUrl);
     const hrefs = new Set();
     const re = /href="([^"]*)"/g; let m;
@@ -263,7 +269,7 @@ function bucketFor(days, date) {
       // = undetermined (bot walls, origin hiccups) - not proven broken, not blessed.
       const sameOrigin = url.origin === base.origin;
       if (sameOrigin ? !r.ok : (r.ok ? false : !(r.status === 403 || r.status === 0 || r.status >= 500))) {
-        broken.push(`${page || "(home)"}: ${h} → HTTP ${r.status}`);
+        broken.push(`${page || "(home)"}: ${h}: HTTP ${r.status}`);
       } else if (!sameOrigin && !r.ok) {
         blocked.push(`${page || "(home)"}: ${h} (${r.status})`);
       }
@@ -357,7 +363,7 @@ function bucketFor(days, date) {
   // heartbeats (Pages not enabled yet) are machine liveness, not service
   // measurements - the service's birth is its first LIVE measurement.
   const firstLiveRun = history.runs.find((r) => r && r.verdict && r.verdict !== "PRE-LIVE");
-  if (!slo.dataSince) slo.dataSince = firstLiveRun ? firstLiveRun.at : (history.runs.length ? history.runs[0].at : now.toISOString());
+  if (!slo.dataSince) slo.dataSince = firstLiveRun ? firstLiveRun.at : now.toISOString();
   const dataSinceMs = Date.parse(slo.dataSince);
 
   // fresh start: seed the daily buckets from the raw history we still hold.
@@ -496,7 +502,9 @@ function bucketFor(days, date) {
   };
   fs.writeFileSync(LATEST_PATH, JSON.stringify(report, null, 2) + "\n");
 
-  // history: append one line per run, cap the list, prune the oldest
+  // history: append one line per run, cap the list, prune the oldest.
+  // bornAt: set once by the first LIVE run, outside the capped array.
+  if (verdict !== "PRE-LIVE" && !history.bornAt) history.bornAt = report.at;
   history.runs.push({ at: report.at, verdict: finalVerdict, pass: passAll, fail: failAll, skip: skipAll, runUrl });
   if (history.runs.length > HISTORY_CAP) history.runs = history.runs.slice(-HISTORY_CAP);
   fs.writeFileSync(HISTORY_PATH, JSON.stringify(history, null, 2) + "\n");

@@ -481,12 +481,19 @@ async function main() {
   // PRE-LIVE, with the exact operator instruction. Only a definitive
   // 404 qualifies; network errors go through the normal honest path.
   // After any live measurement, a 404 is measured for real: HAS_FAILURES.
+  let prevBornAt = null; // the service's first-LIVE timestamp, persisted across runs
   {
-    const probe = await fetchTarget(loaded.baseUrl, "/");
+    // Probe the BASE itself (empty target resolves to baseUrl, path intact).
+    // NEVER a bare "/" - new URL("/", base) drops the sub-path and probes
+    // the origin root, which is a 404 here even when the site is live.
+    const probe = await fetchTarget(loaded.baseUrl, "");
     let everLive = false;
     try {
       const prev = JSON.parse(readFileSync(RESULTS_PATH, "utf8"));
-      everLive = Boolean(prev?.summary?.verdict) && prev.summary.verdict !== "PRE-LIVE";
+      // bornAt: set once by the first LIVE run, never rewritten - so a deleted
+      // results file can never turn a true outage back into PRE-LIVE amber.
+      prevBornAt = prev?.bornAt ?? null;
+      everLive = Boolean(prevBornAt) || (Boolean(prev?.summary?.verdict) && prev.summary.verdict !== "PRE-LIVE");
     } catch { /* first run - no previous results */ }
     if (probe.status === 404 && !everLive) {
       const preResults = loaded.assertions.map((a) => ({
@@ -532,6 +539,9 @@ async function main() {
     generatedAt: new Date().toISOString(),
     runBy,
     durationMs: Date.now() - startedAt,
+    // bornAt: the service's first LIVE measurement (this run reached here -
+    // the site answered). Persisted from the previous results when present.
+    bornAt: prevBornAt ?? new Date().toISOString(),
     summary: { total, passed, failed, suspended, verdict },
     results,
   };
