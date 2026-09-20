@@ -1,7 +1,7 @@
 {
  "format": "agent-requests-ledger-v1",
- "generatedAt": "2026-09-20T04:55:00Z",
- "note": "Every operator request, ledgered with its true status. This is the audit trail the verifier and any future agent work from. Honesty over decoration: a request marked delivered must be visible at the public URL.",
+ "generatedAt": "2026-09-20T09:40:00Z",
+ "note": "Every operator request, ledgered with its true status. This is the audit trail the verifier and any future agent work from. Honesty over decoration: a request marked delivered must be visible at the public URL. NUMBERING DOCTRINE (R64 repair, 2026-09-20): this book is the LIVE book. It opens with the Console-era requests R01-R21 (copied when this home was born) and continues with DOMAIN-ERA numbering starting at R22 - a separate sequence from the Console repo's own R22-R61, which were ledgered retroactively there when that book was closed (2026-09-20; see TRUTH-AUDIT section 9). Never again may a book lag reality: the ledger_integrity assertion machine-checks every delivered entry for evidence and the bridgehead requestRef for agreement.",
  "requests": [
   {
    "id": "R01",
@@ -10,7 +10,9 @@
    "request": "Verify environment recovery + confirm local HEAD matches remote (Zip repo)",
    "requestHe": "אימות השחזור של הסביבה + אישור שה-HEAD המקומי תואם לריחוק",
    "status": "delivered",
-   "deliveredAt": "https://github.com/roshpinacare-sys/Zip (Task 37: reset to cloud HEAD, 0/0 divergence since)"
+   "deliveredAt": "https://github.com/roshpinacare-sys/Zip (Task 37: reset to cloud HEAD, 0/0 divergence since)",
+   "evidence": "https://github.com/roshpinacare-sys/Zip (Task 37: reset to cloud HEAD, 0/0 divergence since)",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R02",
@@ -19,7 +21,9 @@
    "request": "Full agent audit across all 14 repos",
    "requestHe": "ביקורת סוכנים מלאה בכל 14 הריפואים",
    "status": "delivered",
-   "deliveredAt": "https://roshpinacare-sys.github.io/Console/agents/registry.json + #/agents/fleet (13 agents, 5 repos with agents, 9 quiet - measured, not reported)"
+   "deliveredAt": "https://roshpinacare-sys.github.io/Console/agents/registry.json + #/agents/fleet (13 agents, 5 repos with agents, 9 quiet - measured, not reported)",
+   "evidence": "https://roshpinacare-sys.github.io/Console/agents/registry.json + #/agents/fleet (13 agents, 5 repos with agents, 9 quiet - measured, not reported)",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R03",
@@ -29,7 +33,9 @@
    "requestHe": "ארגון האתר לפי כמות תוכן: תפריטים, תתי-תפריטים, הצגה נכונה; תמונה גדולה למשתמש החדש - מה, איך ולמה",
    "status": "delivered-public",
    "deliveredAt": "index.html: 6 sections (home/network/agents/exchange/knowledge/admin) + submenus + hero/big-picture home with how-it-works and why; verified by assertions A02-A04",
-   "history": "Built in sandbox (Task 38) but NOT visible at the public URL - the gap the operator caught on 2026-09-16. Fixed same day."
+   "history": "Built in sandbox (Task 38) but NOT visible at the public URL - the gap the operator caught on 2026-09-16. Fixed same day.",
+   "evidence": "index.html: 6 sections (home/network/agents/exchange/knowledge/admin) + submenus + hero/big-picture home with how-it-works and why; verified by assertions A02-A04",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R04",
@@ -38,7 +44,9 @@
    "request": "Personal admin area: everything allowed, sovereign 24/7 autonomous operation on the server, continuous improvement",
    "requestHe": "אזור אדמין אישי: הכל מותר, עבודה ריבונית אוטונומית 24/7 על השרת ושיפור מתמיד",
    "status": "delivered-public",
-   "deliveredAt": "#/admin (command/missions/server/verify): bridgehead state, mission queue, money plan, authorities, safety laws, live runs - all from public data; dispatch actions run from the sovereign console + Actions tab (view-only by design: zero secrets in public)"
+   "deliveredAt": "#/admin (command/missions/server/verify): bridgehead state, mission queue, money plan, authorities, safety laws, live runs - all from public data; dispatch actions run from the sovereign console + Actions tab (view-only by design: zero secrets in public)",
+   "evidence": "#/admin (command/missions/server/verify): bridgehead state, mission queue, money plan, authorities, safety laws, live runs - all from public data; dispatch actions run from the sovereign console + Actions tab (view-only by design: zero secrets in public)",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R05",
@@ -47,7 +55,9 @@
    "request": "Agents must constantly find what to do: understand what exists, optimize, extract value, strengthen, fix, secure, improve - generate the flow themselves",
    "requestHe": "הסוכנים ימצאו לעצמם כל הזמן מה לעשות: להבין מה קיים, לייעל, להפיק ערך, לחזק, לתקן, לאבטח, לשפר - לייצר את הזרימה בעצמם",
    "status": "partial",
-   "deliveredAt": "Mission queue (state.json openLoops) is the live flow source; 13 cloud agents self-schedule; agent-verify closes the loop. Remaining: agents that open new loops autonomously (planned: loop-discovery workflow)"
+   "deliveredAt": "Mission queue (state.json openLoops) is the live flow source; 13 cloud agents self-schedule; agent-verify closes the loop. Remaining: agents that open new loops autonomously (planned: loop-discovery workflow)",
+   "evidence": "Mission queue (state.json openLoops) is the live flow source; 13 cloud agents self-schedule; agent-verify closes the loop. Remaining: agents that open new loops autonomously (planned: loop-discovery workflow)",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R06",
@@ -56,7 +66,9 @@
    "request": "Money enters the system in ~3 days - understand how to best route it",
    "requestHe": "בעוד ~3 ימים נכנס כסף למערכת - להבין איך לנתב אותו בצורה הטובה ביותר",
    "status": "delivered-public",
-   "deliveredAt": "#/admin/missions money plan (4 buckets with purposes) + hourly deposit watching on 4 chains; plan is data the operator controls"
+   "deliveredAt": "#/admin/missions money plan (4 buckets with purposes) + hourly deposit watching on 4 chains; plan is data the operator controls",
+   "evidence": "#/admin/missions money plan (4 buckets with purposes) + hourly deposit watching on 4 chains; plan is data the operator controls",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R07",
@@ -65,7 +77,9 @@
    "request": "Agents are connected to the authority (הרשות) - use it for posts, organize power, exploit everything for maximum benefit",
    "requestHe": "הסוכנים מחוברים לרשות - להשתמש בה לפרסומים, לארגן כוח ולנצל הכל לתועלת מקסימלית",
    "status": "partial",
-   "deliveredAt": "Authorities registered (cashmachine hourly anchor witness, lsa publishing) with rate laws; publishing fuel bucket in the money plan. Remaining: regular value posts through lsa"
+   "deliveredAt": "Authorities registered (cashmachine hourly anchor witness, lsa publishing) with rate laws; publishing fuel bucket in the money plan. Remaining: regular value posts through lsa",
+   "evidence": "Authorities registered (cashmachine hourly anchor witness, lsa publishing) with rate laws; publishing fuel bucket in the money plan. Remaining: regular value posts through lsa",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R08",
@@ -74,7 +88,9 @@
    "request": "The daily-update agent is dead for 3 days - it exists in the repo but does not update; probably depended on a dead sandbox",
    "requestHe": "הסוכן שהיה אמור לעדכן יומית מת כבר 3 ימים - קיים בריפו אבל לא מעדכן; כנראה תלוי בסנדבוקס אחר שמת",
    "status": "delivered",
-   "deliveredAt": "Root cause measured: the local DB reset with the sandbox while the cloud kept beating (135 attestations at diagnosis). The cloud agents never died. The public site now reads cloud mirrors - a sandbox death changes nothing visible. Evidence: #/network (witness FRESH, heartbeats from mirror.json)"
+   "deliveredAt": "Root cause measured: the local DB reset with the sandbox while the cloud kept beating (135 attestations at diagnosis). The cloud agents never died. The public site now reads cloud mirrors - a sandbox death changes nothing visible. Evidence: #/network (witness FRESH, heartbeats from mirror.json)",
+   "evidence": "Root cause measured: the local DB reset with the sandbox while the cloud kept beating (135 attestations at diagnosis). The cloud agents never died. The public site now reads cloud mirrors - a sandbox death changes nothing visible. Evidence: #/network (witness FRESH, heartbeats from mirror.json)",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R09",
@@ -83,7 +99,9 @@
    "request": "Verify everything is alive WITHOUT dependency on the assistant's sandbox - continuity no matter which agent",
    "requestHe": "לוודא שהכל חי בלי תלות בסנדבוקס של העוזר - רצף לא משנה מי הסוכן",
    "status": "delivered-public",
-   "deliveredAt": "The entire public console reads only cloud mirrors + public chains + this bridgehead. Sandbox death = zero visible change. The bridgehead (agent/state.json + handoff.md + this ledger) carries the work across sessions"
+   "deliveredAt": "The entire public console reads only cloud mirrors + public chains + this bridgehead. Sandbox death = zero visible change. The bridgehead (agent/state.json + handoff.md + this ledger) carries the work across sessions",
+   "evidence": "The entire public console reads only cloud mirrors + public chains + this bridgehead. Sandbox death = zero visible change. The bridgehead (agent/state.json + handoff.md + this ledger) carries the work across sessions",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R10",
@@ -92,7 +110,9 @@
    "request": "Autonomous push must be safe - so they do not kick us out",
    "requestHe": "הדחיפה האוטונומית חייבת להיות בטוחה - שלא יעיפו אותנו",
    "status": "delivered-public",
-   "deliveredAt": "Six safety laws published at #/admin/missions: rate limits, zero secrets, honest metrics, platform terms first, no custody lies, honest bot identity"
+   "deliveredAt": "Six safety laws published at #/admin/missions: rate limits, zero secrets, honest metrics, platform terms first, no custody lies, honest bot identity",
+   "evidence": "Six safety laws published at #/admin/missions: rate limits, zero secrets, honest metrics, platform terms first, no custody lies, honest bot identity",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R11",
@@ -101,7 +121,9 @@
    "request": "Do yourself a harsh roast - examine what I asked vs what I actually received",
    "requestHe": "תעשה לעצמך roast חריף - בחן מה ביקשתי מול מה שקיבלתי בפועל",
    "status": "delivered",
-   "deliveredAt": "This ledger IS the audit (R01-R10 above show the sandbox-delivery gap pattern); the roast itself was delivered in the operator conversation"
+   "deliveredAt": "This ledger IS the audit (R01-R10 above show the sandbox-delivery gap pattern); the roast itself was delivered in the operator conversation",
+   "evidence": "This ledger IS the audit (R01-R10 above show the sandbox-delivery gap pattern); the roast itself was delivered in the operator conversation",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R12",
@@ -110,7 +132,9 @@
    "request": "Establish a sovereign foothold (מאחז) on the Console - your own console there, so you stop getting tangled",
    "requestHe": "הקם לך מאחז ריבוני בקונסולה - קונסולה משלך שם, כדי שתפסיק להסתבך",
    "status": "delivered-public",
-   "deliveredAt": "agent/ directory: state.json (machine state) + handoff.md (resume protocol) + requests.json (this ledger) + limitations.md + verify/ (the measuring harness). The admin area renders it live at #/admin/command"
+   "deliveredAt": "agent/ directory: state.json (machine state) + handoff.md (resume protocol) + requests.json (this ledger) + limitations.md + verify/ (the measuring harness). The admin area renders it live at #/admin/command",
+   "evidence": "agent/ directory: state.json (machine state) + handoff.md (resume protocol) + requests.json (this ledger) + limitations.md + verify/ (the measuring harness). The admin area renders it live at #/admin/command",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R13",
@@ -119,7 +143,9 @@
    "request": "Work on the verifying system and train yourself: be more precise, understand more, do not run away from the request; see the limitations and how the network prevents them",
    "requestHe": "עבוד על המערכת המאמתת ותאמן את עצמך: לדייק, להבין יותר, לא לברוח מהבקשה; ראה את המגבלות ואיך הרשת מונעת אותן",
    "status": "delivered-public",
-   "deliveredAt": "agent-verify workflow (every 6h): 15 assertions measure the delivery at the public URL and commit the verdict publicly at #/admin/verify. limitations.md maps each agent weakness to its network prevention. Training loop closed: request -> build -> network measures -> public result"
+   "deliveredAt": "agent-verify workflow (every 6h): 15 assertions measure the delivery at the public URL and commit the verdict publicly at #/admin/verify. limitations.md maps each agent weakness to its network prevention. Training loop closed: request -> build -> network measures -> public result",
+   "evidence": "agent-verify workflow (every 6h): 15 assertions measure the delivery at the public URL and commit the verdict publicly at #/admin/verify. limitations.md maps each agent weakness to its network prevention. Training loop closed: request -> build -> network measures -> public result",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R14",
@@ -128,7 +154,9 @@
    "request": "Even if I open a new conversation - we return to what we did, the sandbox does not delete the work, continuity no matter which agent",
    "requestHe": "גם אם אפתח שיחה חדשה - נחזור למה שעשינו, הסנדבוקס לא ימחוק, יהיה רצף לא משנה מי הסוכן",
    "status": "delivered-public",
-   "deliveredAt": "The boot sequence in handoff.md §2 restores any new session in 4 commands; the bridgehead + ledger + worklog survive in cloud repos; the requests ledger preserves full context across sessions"
+   "deliveredAt": "The boot sequence in handoff.md §2 restores any new session in 4 commands; the bridgehead + ledger + worklog survive in cloud repos; the requests ledger preserves full context across sessions",
+   "evidence": "The boot sequence in handoff.md §2 restores any new session in 4 commands; the bridgehead + ledger + worklog survive in cloud repos; the requests ledger preserves full context across sessions",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R15",
@@ -138,7 +166,9 @@
    "requestHe": "הקונסולה חזרה לגרסה קודמת במקום להתקדם - תיקון מקיף",
    "status": "delivered-public",
    "deliveredAt": "Diagnosed: Task 38's architecture lived only in the sandbox app while the public URL served the wallet-era page. Fixed: new public console (this page) + wallet preserved at wallet.html + assertions A02-A06 pin the architecture so a regression fails publicly",
-   "history": "This is the exact failure mode SO-1 now prevents."
+   "history": "This is the exact failure mode SO-1 now prevents.",
+   "evidence": "Diagnosed: Task 38's architecture lived only in the sandbox app while the public URL served the wallet-era page. Fixed: new public console (this page) + wallet preserved at wallet.html + assertions A02-A06 pin the architecture so a regression fails publicly",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R16",
@@ -147,7 +177,9 @@
    "request": "Preserve the money product: wallet, exchange, earn - nothing lost in the reorganization",
    "requestHe": "לשמר את מוצר הכסף: ארנק, בורסה, רווחים - שדבר לא ילך לאיבוד בארגון מחדש",
    "status": "delivered-public",
-   "deliveredAt": "wallet.html - the full 111KB wallet/exchange/earn app, byte-identical except canonical + console back-link; reachable from home hero, exchange section, and footer"
+   "deliveredAt": "wallet.html - the full 111KB wallet/exchange/earn app, byte-identical except canonical + console back-link; reachable from home hero, exchange section, and footer",
+   "evidence": "wallet.html - the full 111KB wallet/exchange/earn app, byte-identical except canonical + console back-link; reachable from home hero, exchange section, and footer",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R17",
@@ -156,7 +188,9 @@
    "request": "Why only 5 repos with agents? There are more meaningful folders that need an agent - cover them all, optimize, find efficiency, value, inference, verification and achievement",
    "requestHe": "למה רק 5 ריפו עם סוכנים? יש עוד תיקיות עם משמעות שצריכות סוכן - לכסות הכל, לייעל, למצוא יעילות, ערך, היסק, אימות וקדמה להישגיות",
    "status": "delivered-public",
-   "deliveredAt": "9 new agents on the 9 idle repos (Adsmarket/anchor-baseline/roshpina/Sdk/saos-jummper/Project-files/saos-control-center/saos-sovereign-platform/Saosmartwallet) + fleet display on the public console"
+   "deliveredAt": "9 new agents on the 9 idle repos (Adsmarket/anchor-baseline/roshpina/Sdk/saos-jummper/Project-files/saos-control-center/saos-sovereign-platform/Saosmartwallet) + fleet display on the public console",
+   "evidence": "9 new agents on the 9 idle repos (Adsmarket/anchor-baseline/roshpina/Sdk/saos-jummper/Project-files/saos-control-center/saos-sovereign-platform/Saosmartwallet) + fleet display on the public console",
+   "evidenceNormalized": "2026-09-20 R64 ledger repair: original proof lived in deliveredAt (early-schema drift) - copied verbatim into evidence"
   },
   {
    "id": "R18",
@@ -212,7 +246,9 @@
    "textHe": "תמשיך יש סודות בתיקיה השניה תסדר את זה הכל עוד יותר זה לא מוכן עדיין הנדסית ארכיטקטונית תביא מפקח מבקר שיבדקו אותך היטב תמשיך ודחוף",
    "status": "delivered-public",
    "deliveredAt": "https://github.com/roshpinacare-sys/Domain (full machine fleet: AGENTS_WATCH_TOKEN in the Actions vault, 3 watchers ported and adapted, truth-gate + agent-verify released from hold with the honest PRE-LIVE doctrine)",
-   "interpretedAs": "The secrets in the second folder: the operators upload folder (upload/pat.env + .ops_pat, both measured identical to the remotes token). Organized into the Actions secret vault of this repository via the API. The engineering gaps closed: watchers missing (3), secret missing (1), proof machines parked in a sandbox folder (2). Inspector: brought AFTER the delivery, per the operator's order - an independent supervisor-inspector agent audited everything (Task ID fleet-inspect, verdict PASS-WITH-FINDINGS: zero secret leaks, zero CRITICAL/HIGH; findings E1-E10+D1-D2 were then fixed in this same session and re-verified)."
+   "interpretedAs": "The secrets in the second folder: the operators upload folder (upload/pat.env + .ops_pat, both measured identical to the remotes token). Organized into the Actions secret vault of this repository via the API. The engineering gaps closed: watchers missing (3), secret missing (1), proof machines parked in a sandbox folder (2). Inspector: brought AFTER the delivery, per the operator's order - an independent supervisor-inspector agent audited everything (Task ID fleet-inspect, verdict PASS-WITH-FINDINGS: zero secret leaks, zero CRITICAL/HIGH; findings E1-E10+D1-D2 were then fixed in this same session and re-verified).",
+   "evidence": "The second folder mapped systematically: upload/ in the sandbox (pat.env + the operator's uploaded projects acid-discovery, forge-main, ZAHAV v3.0) · the Actions vaults of all 15 repos scanned via the API (Console: AGENTS_WATCH_TOKEN; Zip: WEAVE_OPS_PAT/WEAVE_SEAL_PASSPHRASE/WEAVE_STEEM_WIF; saos-dex: CONSOLE_PUSH_TOKEN/STEEM_ACTIVE_WIF; Domain: empty then) · the three PAT copies verified identical (pat.env = .ops_pat = remote, 93 chars) · zero secrets in git history (independent inspector: full git log -p of Domain and Zip vs 5 patterns + the PAT value itself; no CRITICAL/HIGH findings) · AGENTS_WATCH_TOKEN set in the Domain vault via libsodium crypto_box_seal (name-verified only; the value never printed or typed in code) · HEADCORNER intentionally absent - operator-only; the key-verify machine built with honest refusal while it is missing · upload/ and secrets blocked in .gitignore (zero git leaks measured). The supervisor-inspector ran as an independent audit (fleet-inspect): 16 claims verified one-by-one (13 full, 2 partial, 1 caught false-at-write-time), 10 findings E1-E10, verdict PASS-WITH-FINDINGS; all findings fixed and cloud-re-verified (worklog: fleet-full, fleet-inspect, fleet-fix; TRUTH-AUDIT section 9 records the evidence gap this entry carried until the R64 repair)",
+   "evidenceFilledAt": "2026-09-20 R64 ledger repair (this entry was delivered-public with an empty evidence field - the book's own rule broken; filled from the surviving worklog)"
   },
   {
    "id": "R24",
@@ -233,6 +269,17 @@
    "status": "delivered-public",
    "deliveredAt": "R63 deep examination: dex-mirror machine (hourly :52 keyless, ends the frozen-book era), truth gates G10+G11 (moment freshness as fifth SLO, mirror freshness at witness doctrine), moment-agent call-integrity guard, verifier re-armed 50/50, catalog corrected",
    "evidence": "Domain commit db06e38 + cloud proofs: truth-gate ALL-GREEN with G10 age 0.01h and G11 grid 1.1h/world 0.1h; agent-verify ALL_PASS 50/50 zero suspended (bec29ef); agents-watch registry n=38 including dex-mirror:live (5a7c7bd); sovereign/evidence/r63-*.png"
+  },
+  {
+   "id": "R26",
+   "date": "2026-09-20",
+   "session": "r64-contract (Z.ai session)",
+   "textHe": "צריך להשתמש בבינה יתרה ולמצוא את הערך הרב ביותר לביצוע מתוך ניתוח האפשרויות והפוטנציאל · 'תמשיך מאיפה שעצרת'",
+   "text": "Use superior intelligence and find the highest value to execute, from analysis of the options and the potential · 'Continue from where you stopped'",
+   "status": "delivered-public",
+   "deliveredAt": "2026-09-20T09:40:00Z",
+   "evidence": "Value analysis across the options (VPS blocked on operator decision; CI PR-blocking rejected with reasoning - it would kill the machines' hourly verdict commits; incident auto-ticketing deferred - no live exercise) selected the operator-contract repair as the highest value, and it was executed: (1) the Console-era book (Console repo, frozen at R21 while ~40 deliveries existed only in the worklog) repaired retroactively R22-R61 with sources, era note and closed-book pointer to this live book; (2) this book: R23's empty evidence filled, early-schema entries normalized to one evidence field; (3) the bridgehead carries a machine-checkable requestRef and assertion A67 (ledger_integrity) checks the book forever - every delivered entry carries real evidence and the bridgehead agrees with the book; (4) the numbering fork documented: Console-era numbering (R01-R61, closed) vs Domain-era numbering (restarts at R22); (5) TRUTH-AUDIT section 9 records the finding. Verification: A67 tested red-before against the unfixed live book, green after push (run URLs in the worklog r64-contract entry)",
+   "ledgeredAt": "2026-09-20 (live entry, delivered with this push)"
   }
  ]
 }

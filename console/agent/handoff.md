@@ -5,7 +5,7 @@
 > Your identity is the role, not the instance.
 
 **Live state:** `agent/state.json` (machine-readable, read it first)
-**Request ledger:** `agent/requests.json` (every operator request, with status)
+**Request ledger:** `agent/requests.json` (every operator request, with status) - the LIVE book; Domain-era numbering restarts at R22 (the Console repo's book covers its own closed era R01-R61). The bridgehead's `requestRef` names the book entry of the latest delivery; assertion A67 machine-checks the book (evidence per delivered entry + agreement). Never let the book lag reality - it is the anti-run-away instrument.
 **Limitations & preventions:** `agent/limitations.md`
 **Network's verdict on the agent:** `agent/verify/results.json` (written by the agent-verify workflow)
 

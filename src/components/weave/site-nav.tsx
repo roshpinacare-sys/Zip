@@ -304,7 +304,7 @@ export function SiteNav({
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 overflow-y-auto p-4">
+            <SheetContent side="right" className="w-80 overflow-y-auto p-4" aria-describedby={undefined}>
               <SheetTitle className="text-sm font-bold">ניווט</SheetTitle>
               <nav aria-label="ניווט ראשי במובייל" className="mt-4 grid gap-3">
                 {SECTIONS.map((item) => {
