@@ -51,7 +51,9 @@ now is a true outage, never a PRE-LIVE verdict), agent-verify (measures the agen
 hourly at :37, reads all 15 repos through the AGENTS_WATCH_TOKEN secret in the Actions vault),
 money-watch (the money path, every 15 min), moment-watch (market-regime reading, every 30 min at
 :12/:42 - measures its own calls, resolved only), dex-mirror (hourly at :52, keyless - keeps the
-served dex books fresh from the live public Console mirror), key-verify (dormant until the operator
+served dex books fresh from the live public Console mirror), weave-mirror (hourly at :57, keyless -
+keeps the served weave books mirror.json/saos-live.json fresh from the live Console home; gate G12
+measures age and twin-lag), key-verify (dormant until the operator
 adds the HEADCORNER secret; refuses honestly without it), bootstrap-pages (documented 403 evidence
 + retry button). The secret lives only in the vault - never in code, logs or receipts.
 

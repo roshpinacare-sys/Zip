@@ -19,6 +19,7 @@
  *   G1 site-up · G2 zero-broken-links · G3 witness-freshness ·
  *   G5 live-format · G6 bridgehead-sane · G8 complete-map ·
  *   G9 slo-published · G10 moment-freshness · G11 mirror-freshness
+ *   G12 weave-books-freshness
  * Sandbox-only gates (G4 local twins, G7 dev server) are recorded as SKIP
  * with an explicit reason - they belong to the sovereign machine
  * (scripts/benchmark-truth.cjs), not to this CI runner.
@@ -98,6 +99,15 @@ const MOMENT_MAX_AGE_H = 2;
 // The engine mirrors the pages serve (grid/world) carry the same freshness
 // doctrine as the witness line: a beat older than 26h is a dead pipeline.
 const MIRROR_MAX_AGE_H = 26;
+// The weave books (mirror.json, saos-live.json) are served from this home
+// through the weave-mirror machine (hourly :57, keyless) which refreshes
+// them from the live Console home - where the sovereign heart publishes.
+// They may lag their source by one mirror cycle plus routine cron delay;
+// a larger lag means the mirror is broken while the network moved on (the
+// standing defect the founding inspector measured: books frozen at the
+// port, 17h stale, served as current - INS-R65-001 F-2 / OL-13).
+const WEAVE_MIRROR_MAX_LAG_H = 2;
+const TWIN_BASE = "https://roshpinacare-sys.github.io/Console";
 
 const startedAt = Date.now();
 const results = [];
@@ -345,6 +355,45 @@ function bucketFor(days, date) {
     record("G11-mirror-freshness", mirrorOk ? "PASS" : "FAIL",
       `grid ${mirrorAges["grid.json"] != null ? mirrorAges["grid.json"].toFixed(1) + "h" : "?"} · world ${mirrorAges["world.json"] != null ? mirrorAges["world.json"].toFixed(1) + "h" : "?"} (threshold ${MIRROR_MAX_AGE_H}h)`,
       mirrorOk ? "" : mirrorNotes.join(" | ") + " - the dex-mirror machine (hourly :52) keeps these served books honest");
+  }
+
+  // ── G12: the weave books this home serves are fresh and true ──────
+  // (OL-13, found standing by the founding inspector - INS-R65-001 F-2):
+  // mirror.json and saos-live.json were ported once at this home's birth
+  // and then frozen - the home served yesterday's network state as if it
+  // were now, while the Console home served the fresh book. The cure is
+  // twofold, delivered together: the weave-mirror machine (hourly :57,
+  // keyless) refreshes both books from the live Console mirror, and this
+  // gate keeps the served result honest on two axes:
+  //   1. local age - the same 26h dead-pipeline doctrine as G3/G11. A
+  //      dead heart fails this on both homes at once.
+  //   2. twin agreement - the served book may lag the Console home (where
+  //      the sovereign heart publishes) by at most WEAVE_MIRROR_MAX_LAG_H:
+  //      one mirror cycle plus routine cron delay. A larger lag means the
+  //      mirror is broken and this home serves a book the network already
+  //      replaced - red within hours, not within a day.
+  {
+    const weaveAges = {}, weaveLags = {};
+    let weaveOk = true; const weaveNotes = [];
+    for (const wf of ["mirror.json", "saos-live.json"]) {
+      const loc = await fetchJson(`${BASE}/${wf}`);
+      const src = await fetchJson(`${TWIN_BASE}/${wf}`);
+      if (loc.json && loc.json.generatedAt) {
+        const aH = hoursBetween(loc.json.generatedAt, new Date());
+        weaveAges[wf] = aH;
+        if (!(aH <= MIRROR_MAX_AGE_H)) { weaveOk = false; weaveNotes.push(`${wf} age ${aH.toFixed(1)}h > ${MIRROR_MAX_AGE_H}h (dead pipeline)`); }
+      } else if (loc.json) { weaveOk = false; weaveNotes.push(`${wf} served but carries no parseable generatedAt`); }
+      else { weaveOk = false; weaveNotes.push(`${wf} unreadable (HTTP ${loc.status})`); }
+      if (src.json && src.json.generatedAt && loc.json && loc.json.generatedAt) {
+        const lagH = hoursBetween(src.json.generatedAt, loc.json.generatedAt);
+        weaveLags[wf] = lagH;
+        if (!(lagH <= WEAVE_MIRROR_MAX_LAG_H)) { weaveOk = false; weaveNotes.push(`${wf} lags the Console home by ${lagH.toFixed(1)}h > ${WEAVE_MIRROR_MAX_LAG_H}h (broken mirror)`); }
+      } else if (!src.json || !src.json.generatedAt) { weaveOk = false; weaveNotes.push(`${wf} twin carries no parseable generatedAt (HTTP ${src.status}) - freshness cannot be corroborated`); }
+    }
+    const fmt = (m) => (m != null ? m.toFixed(1) + "h" : "?");
+    record("G12-weave-books-freshness", weaveOk ? "PASS" : "FAIL",
+      `mirror ${fmt(weaveAges["mirror.json"])} (lag ${fmt(weaveLags["mirror.json"])}) · saos-live ${fmt(weaveAges["saos-live.json"])} (lag ${fmt(weaveLags["saos-live.json"])}) · thresholds ${MIRROR_MAX_AGE_H}h/${WEAVE_MIRROR_MAX_LAG_H}h`,
+      weaveOk ? "" : weaveNotes.join(" | ") + " - the weave-mirror machine (hourly :57) keeps these served books honest");
   }
 
   // ── G5: the reserved name means exactly one format ────────────────
