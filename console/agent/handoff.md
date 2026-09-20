@@ -43,13 +43,15 @@ The fix is standing order SO-1: **work that is not visible at the public URL doe
 | Steem chain (`cashmachine`) | Anchored checkpoints - outside every server | Chain truth |
 | `/home/z/my-project` | Ephemeral sandbox workbench | Not truth - dies with the session |
 
-Cloud agents on this home (all in GitHub Actions, sandbox-independent):
+Cloud machines on this home (all in GitHub Actions, sandbox-independent):
 console-publish (renders the status from the public chain, hourly at :45), truth-gate (measures the
-live site, hourly at :07; until Pages is enabled it records an honest PRE-LIVE verdict - never a
-false red), agent-verify (measures the agent, every 2h at :55; pre-live: all assertions suspended
-with the operator instruction), dex-watch (deposits on four chains, every 20 min), agents-watch
-(the fleet registry, hourly at :37, reads all 15 repos through the AGENTS_WATCH_TOKEN secret in the
-Actions vault), money-watch (the money path, every 15 min), key-verify (dormant until the operator
+live site, hourly at :07 - the home went LIVE 2026-09-20 ~02:22Z, so it measures for real; a 404
+now is a true outage, never a PRE-LIVE verdict), agent-verify (measures the agent, every 2h at :55,
+53 assertions), dex-watch (deposits on four chains, every 20 min), agents-watch (the fleet registry,
+hourly at :37, reads all 15 repos through the AGENTS_WATCH_TOKEN secret in the Actions vault),
+money-watch (the money path, every 15 min), moment-watch (market-regime reading, every 30 min at
+:12/:42 - measures its own calls, resolved only), dex-mirror (hourly at :52, keyless - keeps the
+served dex books fresh from the live public Console mirror), key-verify (dormant until the operator
 adds the HEADCORNER secret; refuses honestly without it), bootstrap-pages (documented 403 evidence
 + retry button). The secret lives only in the vault - never in code, logs or receipts.
 
@@ -57,10 +59,14 @@ adds the HEADCORNER secret; refuses honestly without it), bootstrap-pages (docum
 
 1. **Pick** the highest-priority open loop from `state.json` (P0 first) or the operator's latest message.
 2. **Build** in the sandbox if needed - but the deliverable must land in a cloud repo (Zip for sources, Domain for the public site).
-3. **Deliver** = pushed + visible at the public URL (SO-1). Update `agent/requests.json` status honestly.
-4. **Update the bridgehead**: bump `state.json` (phase, currentTask, lastHandoff, openLoops) and commit.
-5. **Let the network measure you**: dispatch agent-verify (Actions tab or API) or wait for the :55 cycle; check `results.json`.
-6. **Never** weaken an assertion to make it pass. Fix the site, not the test. (A suspension is not a weakening: it is recorded, reasoned and public - and it must be re-armed the moment the underlying feed lands.)
+3. **Inspect before push** (R65 institution): an independent fresh-context agent audits the delivery
+   (claims re-measured, red-before/green-after proofs, security + professionalism scan, line-by-line
+   diff) and the report lands in `agent/inspections/`. Assertion A69 enforces: a delivered request
+   R27+ without a publicly-served inspection report fails verification. Protocol: `agent/inspections/README.md`.
+4. **Deliver** = inspected + pushed + visible at the public URL (SO-1). Update `agent/requests.json` status honestly.
+5. **Update the bridgehead**: bump `state.json` (phase, currentTask, lastHandoff, openLoops) and commit.
+6. **Let the network measure you**: dispatch agent-verify (Actions tab or API) or wait for the :55 cycle; check `results.json`.
+7. **Never** weaken an assertion to make it pass. Fix the site, not the test. (A suspension is not a weakening: it is recorded, reasoned and public - and it must be re-armed the moment the underlying feed lands.)
 
 ## 5. Money & authorities (operator's standing directives)
 
@@ -88,5 +94,7 @@ Before the session closes (or when context runs low):
 3. Update `agent/requests.json` with any new requests from this session + their true status.
 4. Verify: `curl -s https://roshpinacare-sys.github.io/Domain/agent/state.json | head -3` returns the new state.
 5. If you can, dispatch agent-verify so the next agent sees a fresh verdict.
+6. If you pushed a delivery without an inspection report (breach of the R65 institution), run the
+   post-hoc audit at the first opportunity and label it honestly - never disguise it as pre-push.
 
 The next agent thanks you. The operator sees continuity. The network verifies both.

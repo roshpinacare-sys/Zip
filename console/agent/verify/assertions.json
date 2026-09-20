@@ -2,8 +2,8 @@
  "format": "agent-verify-assertions-v1",
  "baseUrl": "https://roshpinacare-sys.github.io/Domain/",
  "notes": {
-  "en": "The network's machine-checkable contract with the agent. Each assertion is measured against the LIVE site, never against the repo. No claim without measurement. R63: the dex-mirror machine (hourly :52) keeps the served engine books fresh on this home, so the A34/A36/A37 suspensions (frozen-snapshot era, pending OL-12) are lifted - the served book is measured again. R64: the ledger_integrity kind born in the operator-contract repair - the book that defines what was asked vs delivered now proves itself (evidence per delivery + bridgehead agreement).",
-  "he": "החוזה הנבדק-מכונה של הרשת עם הסוכן. כל טענה נמדדת מול האתר החי, לעולם לא מול הריפו. שום טענה בלי מדידה. R63: מכונת dex-mirror (שעתית ב-:52) שומרת על טריות ספרי המנוע המוגשים בבית הזה, ולכן השהיות A34/A36/A37 (עידן הצילום הקפוא, בהמתנה ל-OL-12) הוסרו - הספר המוגש נמדד שוב."
+  "en": "The network's machine-checkable contract with the agent. Each assertion is measured against the LIVE site, never against the repo. No claim without measurement. R63: the dex-mirror machine (hourly :52) keeps the served engine books fresh on this home, so the A34/A36/A37 suspensions (frozen-snapshot era, pending OL-12) are lifted - the served book is measured again. R64: the ledger_integrity kind born in the operator-contract repair - the book that defines what was asked vs delivered now proves itself (evidence per delivery + bridgehead agreement). R65: two new kinds born with the standing-inspector institution - slo_ledger_consistency (a served ledger is part of the site's truth; no dead pre-live residue) and inspection_integrity (no un-inspected delivery can pass verification from R27 on).",
+  "he": "החוזה הנבדק-מכונה של הרשת עם הסוכן. כל טענה נמדדת מול האתר החי, לעולם לא מול הריפו. שום טענה בלי מדידה. R63: מכונת dex-mirror (שעתית ב-:52) שומרת על טריות ספרי המנוע המוגשים בבית הזה, ולכן השהיות A34/A36/A37 (עידן הצילום הקפוא, בהמתנה ל-OL-12) הוסרו - הספר המוגש נמדד שוב. R65: שני סוגים חדשים נולדו עם מוסד המפקח-המבקר - slo_ledger_consistency (ספר מוגש הוא חלק מאמת האתר; אין שריד pre-live מת) ו-inspection_integrity (מסירה שלא נבדקה לא יכולה לעבור אימות מ-R27 ואילך)."
  },
  "assertions": [
   {
@@ -670,6 +670,27 @@
    "kind": "ledger_integrity",
    "bridgehead": "agent/state.json",
    "book": "agent/requests.json"
+  },
+  {
+   "id": "A68",
+   "desc": {
+    "en": "R65: the served SLO ledger is self-consistent - a ledger born live (dataSince set) carries no pre-live residue; an unborn ledger states its honest pre-live reason. Found standing: the dead \"Pages not enabled yet\" block was regenerated hourly in the public file long after birth.",
+    "he": "R65: ספר ה-SLO המוגש עקבי-עצמית - ספר שנולד לחיים (dataSince קיים) לא נושא שריד pre-live; ספר שטרם נולד מצהיר את סיבת ה-pre-live הכנה שלו. נמצא עומד: בלוק ה-\"Pages not enabled yet\" המת נכתב מחדש שעתית בקובץ הציבורי זמן רב אחרי הלידה."
+   },
+   "kind": "slo_ledger_consistency",
+   "ledger": "truth/slo.json"
+  },
+  {
+   "id": "A69",
+   "desc": {
+    "en": "R65: the standing supervisor-inspector, machine-enforced - every delivered request R27 onward must carry an inspection reference whose report is publicly served, and the bridgehead requestRef must agree once it reaches R27. R22-R26 are the pre-institution era, grandfathered and documented.",
+    "he": "R65: המפקח-המבקר הקבוע, באכיפה ממוכנת - כל בקשה שנמסרה מ-R27 ואילך חייבת לשאת הפניה לדוח ביקורת שאכן מוגש בפומבי, וה-requestRef של ה-bridgehead חייב להסכים מרגע שהגיע ל-R27. R22-R26 הם עידן טרום-המוסד - סבים ומתועדים."
+   },
+   "kind": "inspection_integrity",
+   "book": "agent/requests.json",
+   "bridgehead": "agent/state.json",
+   "inspectionsPrefix": "agent/inspections/",
+   "sinceId": "R27"
   }
  ]
 }

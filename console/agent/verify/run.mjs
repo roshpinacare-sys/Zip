@@ -213,6 +213,90 @@ async function evaluate(a, baseUrl) {
     return { id, ok: true, details: `${entries.length} entries · ${deliveredCount} delivered · bridgehead requestRef ${ref} present and delivered` };
   }
 
+  // ── slo_ledger_consistency: R65 ────────────────────────────────────
+  // The served SLO ledger is part of the site's truth. Found standing at
+  // R65: the carry-forward preserved the dead "Pages not enabled yet"
+  // block forever after birth - a false statement about the present,
+  // regenerated hourly in a public file. Invariant: born (dataSince
+  // set) => no preLive block; unborn => an honest preLive reason.
+  if (a.kind === "slo_ledger_consistency") {
+    let slo;
+    try {
+      const r = await fetchTarget(baseUrl, a.ledger ?? "truth/slo.json");
+      slo = JSON.parse(r.body);
+    } catch (err) {
+      return { id, ok: false, details: `cannot read the SLO ledger: ${err?.message ?? err}` };
+    }
+    const born = typeof slo.dataSince === "string" && slo.dataSince.trim() !== "";
+    const residue = slo.preLive ?? null;
+    if (!born) {
+      const reason = typeof residue?.reason === "string" ? residue.reason.trim() : "";
+      if (!residue || reason === "") return { id, ok: false, details: "unborn ledger (no dataSince) carries no honest pre-live reason" };
+      return { id, ok: true, details: `honest pre-live state: ${reason.slice(0, 60)}` };
+    }
+    if (residue) {
+      return { id, ok: false, details: `live ledger (dataSince ${slo.dataSince}) still carries the dead pre-live block: ${String(residue.reason ?? "(no reason)")}` };
+    }
+    return { id, ok: true, details: `live ledger clean: born ${slo.dataSince}, no pre-live residue` };
+  }
+
+  // ── inspection_integrity: R65 ──────────────────────────────────────
+  // The standing supervisor-inspector, machine-enforced: every delivered
+  // request from sinceId on must carry an inspection reference whose
+  // report is actually served publicly; the bridgehead's requestRef must
+  // agree once it reaches sinceId. Pre-institution entries (below
+  // sinceId) are grandfathered by the book's own era note.
+  if (a.kind === "inspection_integrity") {
+    let state, book;
+    try {
+      const r1 = await fetchTarget(baseUrl, a.bridgehead ?? "agent/state.json");
+      state = JSON.parse(r1.body);
+    } catch (err) {
+      return { id, ok: false, details: `cannot read the bridgehead: ${err?.message ?? err}` };
+    }
+    try {
+      const r2 = await fetchTarget(baseUrl, a.book ?? "agent/requests.json");
+      book = JSON.parse(r2.body);
+    } catch (err) {
+      return { id, ok: false, details: `cannot read the requests book: ${err?.message ?? err}` };
+    }
+    const entries = Array.isArray(book?.requests) ? book.requests : null;
+    if (!entries || entries.length === 0) return { id, ok: false, details: "the requests book has no entries" };
+    const sinceNum = Number(String(a.sinceId ?? "R27").replace(/^R/, "")) || 0;
+    const num = (rid) => Number(String(rid).replace(/^R/, "")) || 0;
+    const prefix = a.inspectionsPrefix ?? "agent/inspections/";
+    const problems = [];
+    let inspectedCount = 0;
+    for (const ent of entries) {
+      if (!ent || typeof ent.id !== "string" || !/^R\d+$/.test(ent.id)) continue;
+      if (num(ent.id) < sinceNum) continue; // pre-institution era: grandfathered
+      const delivered = typeof ent.status === "string" && ent.status.startsWith("delivered");
+      const ins = typeof ent.inspection === "string" ? ent.inspection.trim() : "";
+      if (ins === "") {
+        if (delivered) problems.push(`${ent.id}: delivered without an inspection reference`);
+        continue;
+      }
+      if (!ins.startsWith(prefix)) { problems.push(`${ent.id}: inspection reference outside the inspections dir (${ins})`); continue; }
+      const rr = await fetchTarget(baseUrl, ins);
+      if (rr.status !== 200) { problems.push(`${ent.id}: inspection report not served publicly (HTTP ${rr.status}: ${ins})`); continue; }
+      // R65 (inspector F-7): any served JSON is not enough - the report
+      // must BE an inspection report: the right format and a verdict.
+      let rep;
+      try { rep = JSON.parse(rr.body); } catch { problems.push(`${ent.id}: inspection report is not valid JSON (${ins})`); continue; }
+      if (rep?.format !== "agent-inspection-v1") { problems.push(`${ent.id}: inspection report has wrong format (${String(rep?.format)})`); continue; }
+      if (typeof rep?.verdict !== "string" || rep.verdict.trim() === "") { problems.push(`${ent.id}: inspection report carries no verdict`); continue; }
+      inspectedCount++;
+    }
+    const ref = typeof state.requestRef === "string" ? state.requestRef.trim() : "";
+    if (num(ref) >= sinceNum) {
+      const refEntry = entries.find((ent) => ent && ent.id === ref);
+      if (!refEntry) problems.push(`bridgehead requestRef ${ref} does not exist in the book`);
+      else if (!(typeof refEntry.inspection === "string" && refEntry.inspection.trim() !== "")) problems.push(`bridgehead requestRef ${ref} carries no inspection reference`);
+    }
+    if (problems.length) return { id, ok: false, details: problems.slice(0, 5).join(" · ") + (problems.length > 5 ? ` (+${problems.length - 5} more)` : "") };
+    return { id, ok: true, details: `${inspectedCount} inspected entries R${sinceNum}+ · bridgehead requestRef ${ref || "(pre-institution)"} · the institution is machine-enforced` };
+  }
+
   // ── oracle_drift: R28 truth anchor ──────────────────────────────────
   // The DEX oracle claims to track real markets. This detector makes it
   // prove it: reads the live world.json oracle, fetches a public keyless

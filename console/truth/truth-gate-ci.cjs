@@ -517,6 +517,14 @@ function bucketFor(days, date) {
 
   slo.generatedAt = now.toISOString();
   slo.generator = "truth-gate-ci";
+  // R65: a live ledger must carry no pre-live residue. The loadSloLedger
+  // carry-forward preserved the dead "Pages not enabled yet" block forever
+  // after birth - a false statement about the present, regenerated hourly
+  // in a public served file (found standing: dataSince 02:47Z live while
+  // preLive.reason still claimed the site never served). The birth is
+  // recorded where it belongs: dataSince + history.bornAt. Delivered with
+  // assertion A68 (slo_ledger_consistency) so the residue can never return.
+  delete slo.preLive;
   slo.windowDays = SLO_WINDOW_DAYS;
   slo.targets = SLO_TARGETS.map((t) => ({ id: t.id, gate: t.gate || "hourly cadence", target: t.target }));
   slo.window = { daysCounted: w.daysCounted, runs: w.runs, allGreen: w.allGreen,
