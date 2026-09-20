@@ -1,9 +1,9 @@
 {
  "format": "agent-verify-assertions-v1",
- "baseUrl": "https://roshpinacare-sys.github.io/Console/",
+ "baseUrl": "https://roshpinacare-sys.github.io/Domain/",
  "notes": {
-  "en": "The network's machine-checkable contract with the agent. Each assertion is measured against the LIVE site, never against the repo. No claim without measurement.",
-  "he": "החוזה הנבדק-מכונה של הרשת עם הסוכן. כל טענה נמדדת מול האתר החי, לעולם לא מול הריפו. שום טענה בלי מדידה."
+  "en": "The network's machine-checkable contract with the agent. Each assertion is measured against the LIVE site, never against the repo. No claim without measurement. R63: the dex-mirror machine (hourly :52) keeps the served engine books fresh on this home, so the A34/A36/A37 suspensions (frozen-snapshot era, pending OL-12) are lifted - the served book is measured again.",
+  "he": "החוזה הנבדק-מכונה של הרשת עם הסוכן. כל טענה נמדדת מול האתר החי, לעולם לא מול הריפו. שום טענה בלי מדידה. R63: מכונת dex-mirror (שעתית ב-:52) שומרת על טריות ספרי המנוע המוגשים בבית הזה, ולכן השהיות A34/A36/A37 (עידן הצילום הקפוא, בהמתנה ל-OL-12) הוסרו - הספר המוגש נמדד שוב."
  },
  "assertions": [
   {
@@ -293,13 +293,13 @@
   {
    "id": "A34",
    "desc": {
-    "en": "The external grid runner is alive: dex/grid.json published at most 30h ago (daily cadence)",
-    "he": "רץ-הגריד החוץ חי: dex/grid.json פורסם לפני 30 שעות לכל היותר (קצב יומי)"
+    "en": "The engine book this home serves is fresh: dex/grid.json published at most 26h ago (witness doctrine; the dex-mirror machine keeps the served copy honest)",
+    "he": "ספר המנוע שהבית הזה מגיש טרי: dex/grid.json פורסם לפני 26 שעות לכל היותר (דוקטרינת העדות; מכונת dex-mirror שומרת על העותק המוגש)"
    },
    "kind": "json_age",
    "target": "dex/grid.json",
    "field": "publishedAt",
-   "maxHours": 30
+   "maxHours": 26
   },
   {
    "id": "A35",
@@ -507,7 +507,7 @@
     "roast.html"
    ],
    "maxBytes": 2500,
-   "redirectTo": "/Console/"
+   "redirectTo": "truth.html"
   },
   {
    "id": "A54",
@@ -638,6 +638,28 @@
     "hub/docs/reports/",
     "hub/docs/reports/index.html"
    ]
+  },
+  {
+   "id": "A65",
+   "desc": {
+    "en": "R62: the moment agent publishes its reading (moment/moment.json reachable, format moment-watch-v1)",
+    "he": "R62: סוכן הבנת-הרגע מפרסם את קריאתו (moment/moment.json זמין, פורמט moment-watch-v1)"
+   },
+   "kind": "json_field",
+   "target": "moment/moment.json",
+   "field": "format",
+   "value": "moment-watch-v1"
+  },
+  {
+   "id": "A66",
+   "desc": {
+    "en": "R62/R63: the moment reading is alive - moment/moment.json published at most 2h ago (a dead awareness agent must never hide behind a green site)",
+    "he": "R62/R63: קריאת הרגע חיה - moment/moment.json פורסם לפני 2 שעות לכל היותר (סוכן מודעות מת לא יסתתר מאחורי אתר ירוק)"
+   },
+   "kind": "json_age",
+   "target": "moment/moment.json",
+   "field": "publishedAt",
+   "maxHours": 2
   }
  ]
 }

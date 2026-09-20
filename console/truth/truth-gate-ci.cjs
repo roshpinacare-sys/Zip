@@ -18,7 +18,7 @@
  * Gates measured from the public internet (CI-scope):
  *   G1 site-up · G2 zero-broken-links · G3 witness-freshness ·
  *   G5 live-format · G6 bridgehead-sane · G8 complete-map ·
- *   G9 slo-published
+ *   G9 slo-published · G10 moment-freshness · G11 mirror-freshness
  * Sandbox-only gates (G4 local twins, G7 dev server) are recorded as SKIP
  * with an explicit reason - they belong to the sovereign machine
  * (scripts/benchmark-truth.cjs), not to this CI runner.
@@ -80,8 +80,24 @@ const SLO_TARGETS = [
   { id: "availability",   gate: "G1-site-up",            target: 0.99 },
   { id: "link-integrity", gate: "G2-zero-broken-links",  target: 0.99 },
   { id: "freshness",      gate: "G3-witness-freshness",  target: 0.99 },
+  { id: "moment",        gate: "G10-moment-freshness",  target: 0.99 },
   { id: "heartbeat",      gate: null,                     target: 0.90 },
 ];
+// gate → daily-bucket key (the SLO ledger attributes each gate's own
+// PASS/FAIL per run; null = cadence-only targets like the heartbeat)
+const GATE_KEYS = {
+  "G1-site-up": "g1",
+  "G2-zero-broken-links": "g2",
+  "G3-witness-freshness": "g3",
+  "G10-moment-freshness": "moment",
+};
+// A moment reading older than this is a broken cadence promise (the agent
+// publishes every 30 minutes; routine GitHub cron delays of 5-15 minutes
+// are absorbed four times over before this fires).
+const MOMENT_MAX_AGE_H = 2;
+// The engine mirrors the pages serve (grid/world) carry the same freshness
+// doctrine as the witness line: a beat older than 26h is a dead pipeline.
+const MIRROR_MAX_AGE_H = 26;
 
 const startedAt = Date.now();
 const results = [];
@@ -137,11 +153,17 @@ function loadSloLedger() {
 }
 
 function blankDay(date) {
-  return { date, runs: 0, allGreen: 0, g1Pass: 0, g1Runs: 0, g2Pass: 0, g2Runs: 0, g3Pass: 0, g3Runs: 0 };
+  return { date, runs: 0, allGreen: 0, g1Pass: 0, g1Runs: 0, g2Pass: 0, g2Runs: 0, g3Pass: 0, g3Runs: 0, momentPass: 0, momentRuns: 0 };
 }
 function bucketFor(days, date) {
   let b = days.find((x) => x.date === date);
   if (!b) { b = blankDay(date); days.push(b); }
+  // normalize buckets written before a gate existed (old ledgers lack the
+  // newer keys - undefined + 1 would poison the window with NaN)
+  for (const k of Object.values(GATE_KEYS)) {
+    if (typeof b[k + "Pass"] !== "number") b[k + "Pass"] = 0;
+    if (typeof b[k + "Runs"] !== "number") b[k + "Runs"] = 0;
+  }
   return b;
 }
 
@@ -289,6 +311,42 @@ function bucketFor(days, date) {
       `cp#${depStatus.json.witness && depStatus.json.witness.checkpoint} · att ${depStatus.json.witness && depStatus.json.witness.attestations} · age ${ageH.toFixed(1)}h (threshold ${thr}h)`);
   } else record("G3-witness-freshness", "FAIL", `status.json unreadable (HTTP ${depStatus.status})`);
 
+  // ── G10: the moment agent is alive (a fresh read of the market) ────
+  // The moment agent publishes its reading every 30 minutes. A reading
+  // older than MOMENT_MAX_AGE_H means the cadence promise is broken - a
+  // dead agent must never hide behind a green site. (GitHub cron delays
+  // of 5-15 minutes are routine and absorbed.)
+  const momentState = await fetchJson(BASE + "/moment/moment.json");
+  if (momentState.json && momentState.json.publishedAt) {
+    const mAgeH = hoursBetween(momentState.json.publishedAt, new Date());
+    const mOk = mAgeH <= MOMENT_MAX_AGE_H;
+    record("G10-moment-freshness", mOk ? "PASS" : "FAIL",
+      `age ${mAgeH.toFixed(2)}h (threshold ${MOMENT_MAX_AGE_H}h) · regime ${momentState.json.regime && momentState.json.regime.label || "?"} · call ${momentState.json.call || "none"}`,
+      mOk ? "" : `moment-watch cadence broken - the published promise is a fresh reading every 30 minutes (Domain/actions/workflows/moment-watch.yml)`);
+  } else record("G10-moment-freshness", "FAIL", `moment/moment.json unreadable (HTTP ${momentState.status}) - the AWARENESS agent's output is a served file, not a nice-to-have`);
+
+  // ── G11: the engine mirrors the site serves are fresh ─────────────
+  // The money and defi fronts render the engine's book (grid.json) and
+  // world state (world.json) from this repository's dex/ mirror. A frozen
+  // mirror shows visitors yesterday's book as if it were live - the
+  // deepest kind of lie a data site can tell. Same 26h doctrine as the
+  // witness line: a beat older than that is a dead pipeline, not a delay.
+  {
+    const mirrorAges = {};
+    let mirrorOk = true, mirrorNotes = [];
+    for (const mf of ["grid.json", "world.json"]) {
+      const r = await fetchJson(`${BASE}/dex/${mf}`);
+      if (r.json && r.json.publishedAt) {
+        const aH = hoursBetween(r.json.publishedAt, new Date());
+        mirrorAges[mf] = aH;
+        if (!(aH <= MIRROR_MAX_AGE_H)) { mirrorOk = false; mirrorNotes.push(`${mf} age ${aH.toFixed(1)}h > ${MIRROR_MAX_AGE_H}h`); }
+      } else { mirrorOk = false; mirrorNotes.push(`${mf} unreadable (HTTP ${r.status})`); }
+    }
+    record("G11-mirror-freshness", mirrorOk ? "PASS" : "FAIL",
+      `grid ${mirrorAges["grid.json"] != null ? mirrorAges["grid.json"].toFixed(1) + "h" : "?"} · world ${mirrorAges["world.json"] != null ? mirrorAges["world.json"].toFixed(1) + "h" : "?"} (threshold ${MIRROR_MAX_AGE_H}h)`,
+      mirrorOk ? "" : mirrorNotes.join(" | ") + " - the dex-mirror machine (hourly :52) keeps these served books honest");
+  }
+
   // ── G5: the reserved name means exactly one format ────────────────
   const depLive = await fetchJson(BASE + "/saos-live.json");
   if (depLive.json) {
@@ -389,9 +447,10 @@ function bucketFor(days, date) {
     if (verdict === "ALL-GREEN") b.allGreen++;
     for (const t of SLO_TARGETS) {
       if (!t.gate) continue;
+      const k = GATE_KEYS[t.gate];
+      if (!k) continue;
       const g = results.find(r => r.gate === t.gate);
       if (!g) continue;
-      const k = t.gate === "G1-site-up" ? "g1" : t.gate === "G2-zero-broken-links" ? "g2" : "g3";
       if (g.status === "PASS") { b[k + "Pass"]++; b[k + "Runs"]++; }
       else if (g.status === "FAIL") { b[k + "Runs"]++; }
       // SKIP (G2 while the site is down): unattributed for this gate this run
@@ -406,17 +465,19 @@ function bucketFor(days, date) {
     if (dayStartUTC(d) >= dayStartUTC(dayKeyUTC(dataSinceMs))) windowDates.push(d);
   }
   const w = { daysCounted: windowDates.length, runs: 0, allGreen: 0, expected: 0, hbGood: 0,
-              g1Pass: 0, g1Runs: 0, g2Pass: 0, g2Runs: 0, g3Pass: 0, g3Runs: 0 };
+              g1Pass: 0, g1Runs: 0, g2Pass: 0, g2Runs: 0, g3Pass: 0, g3Runs: 0,
+              momentPass: 0, momentRuns: 0 };
   for (const d of windowDates) {
     const b = slo.days.find((x) => x.date === d) || blankDay(d);
     const exp = expectedRunsOn(d, dataSinceMs, now.getTime());
     w.expected += exp;
-    w.runs += b.runs;
-    w.allGreen += b.allGreen;
-    w.hbGood += Math.min(b.runs, exp); // extra runs never inflate the heartbeat
-    w.g1Pass += b.g1Pass; w.g1Runs += b.g1Runs;
-    w.g2Pass += b.g2Pass; w.g2Runs += b.g2Runs;
-    w.g3Pass += b.g3Pass; w.g3Runs += b.g3Runs;
+    w.runs += b.runs || 0;
+    w.allGreen += b.allGreen || 0;
+    w.hbGood += Math.min(b.runs || 0, exp); // extra runs never inflate the heartbeat
+    w.g1Pass += b.g1Pass || 0; w.g1Runs += b.g1Runs || 0;
+    w.g2Pass += b.g2Pass || 0; w.g2Runs += b.g2Runs || 0;
+    w.g3Pass += b.g3Pass || 0; w.g3Runs += b.g3Runs || 0;
+    w.momentPass += b.momentPass || 0; w.momentRuns += b.momentRuns || 0;
   }
 
   const fillPct = Math.min(100, ((now.getTime() - dataSinceMs) / (SLO_WINDOW_DAYS * 86400000)) * 100);
@@ -425,6 +486,7 @@ function bucketFor(days, date) {
     if (t.gate === "G1-site-up") { good = w.g1Pass; total = w.g1Runs; }
     else if (t.gate === "G2-zero-broken-links") { good = w.g2Pass; total = w.g2Runs; }
     else if (t.gate === "G3-witness-freshness") { good = w.g3Pass; total = w.g3Runs; }
+    else if (t.gate === "G10-moment-freshness") { good = w.momentPass; total = w.momentRuns; }
     else { good = w.hbGood; total = w.expected; }
     const measured = total > 0 ? good / total : null;
     const allowed = total * (1 - t.target);
