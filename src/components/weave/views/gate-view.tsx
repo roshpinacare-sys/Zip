@@ -1,14 +1,16 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// GATE VIEW · שער המפעיל — התשובה ל"איפה אני מתחבר ואיך מתחילים להזרים".
+// GATE VIEW · שער המפעיל — התשובה ל"איפה אני מתחבר ומה באמת רץ".
 //
-// ארבעה גופים, כולם ממדידה חיה בלבד (שום טענה לא נטענת מסתם):
+// חמישה גופים, כולם ממדידה חיה בלבד (שום טענה לא נטענת מסתם):
 //   1. מלאי-אמת: כל ארנקי הרשת על כל השרשרות, נקראים מה-RPC הציבורי.
-//   2. הדלת: הזנת ה-active של המפקד — אימות מול השרשרת, חתימה
-//      לסוד-GitHub, אפס אחסון מקומי. זה מה שחוסם את הזרימה החוץ.
+//   2. הדלת: חימוש-מחדש מבוקר של הגריד — אימות מול השרשרת, חתימה
+//      לסוד-GitHub, אפס אחסון מקומי. המפתח הנוכחי כבר חי בכספת המנוע.
 //   3. מה-רץ-בפועל: עמודת אמת — רץ / חסום / מדמם, עם הוכחה לשורה.
-//   4. איך-מתחילים-להזרים: צינור-הערך מה-powerdown ועד חלון-הפדיון.
+//   4. הבנת-הרגע: קריאת-שוק חיה (משטר, קו-זהות, עומקים, תובנות)
+//      מול צליבת סוכן-הענן — לא תוכנית קבועה אלא מה שרלוונטי עכשיו.
+//   5. איך-מתחילים-להזרים: צינור-הערך מה-powerdown ועד חלון-הפדיון.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -31,10 +33,13 @@ import {
   Loader2,
   Lock,
   PlayCircle,
+  Radar,
   RefreshCw,
   ShieldAlert,
   ShieldCheck,
   TrendingDown,
+  TrendingUp,
+  Activity,
   Wallet,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +49,67 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+// ── טיפוסי-הבנת-הרגע (משקפים את /api/moment בדיוק) ────────────────
+
+interface MomentPrice {
+  usd: number | null;
+  chg24h: number | null;
+}
+interface MomentData {
+  ok: boolean;
+  fetchedAt: string;
+  cached?: boolean;
+  stale?: boolean;
+  cacheAgeSec?: number;
+  down?: string[];
+  market: {
+    steem: MomentPrice;
+    sbd: MomentPrice;
+    btc: MomentPrice;
+    eth: MomentPrice;
+    trx: MomentPrice;
+    global: { totalMarketCapUsd: number | null; marketCapChg24hPct: number | null; btcDominance: number | null } | null;
+    fearGreed: { value: number | null; label: string | null } | null;
+  };
+  paritySbdPerSteem: number | null;
+  liveBook: {
+    bestBid: number | null;
+    bestAsk: number | null;
+    bidsDepthSbd: number;
+    asksDepthSteem: number;
+    levels: number;
+    bidSurplusBps: number | null;
+    askPositionBps: number | null;
+  } | null;
+  engineBook: { bestBid: number; bestAsk: number; mid: number; spreadBps: number } | null;
+  grid: { verdict: string | null; armed: boolean | null; blocker: string | null; externalFlowUsd: number | null; publishedAt: string | null } | null;
+  runway: {
+    active: boolean;
+    weeklySp: number;
+    nextPayment: string | null;
+    remainingSp: number;
+    weeklyUsd: number | null;
+    treasuryUsd: number | null;
+  } | null;
+  regime: { label: "RISK_ON" | "RISK_OFF" | "NEUTRAL" | "UNKNOWN"; drivers: string[]; reason?: string };
+  insights: Array<{ kind: string; tone: "good" | "info" | "warn"; text: string }>;
+  fleet: {
+    url: string;
+    publishedAt: string | null;
+    regime: string | null;
+    call: string | null;
+    callStats: { resolved: number; hits: number; hitRatePct: number } | null;
+    fleetFreshMin: number | null;
+  } | null;
+}
+
+const REGIME_HE: Record<string, { label: string; cls: string }> = {
+  RISK_ON: { label: "תיאבון (Risk-On)", cls: "text-emerald-300" },
+  RISK_OFF: { label: "הימנעות (Risk-Off)", cls: "text-rose-300" },
+  NEUTRAL: { label: "ניטרלי", cls: "text-zinc-300" },
+  UNKNOWN: { label: "לא-נמדד", cls: "text-amber-300" },
+};
 
 // ── טיפוסי-המלאי (משקפים את /api/treasury בדיוק) ────────────────────
 
@@ -620,7 +686,245 @@ function ArmDoor({ onArmed }: { onArmed: () => void }) {
   );
 }
 
-// ── התצוגה הראשית ───────────────────────────────────────────────────
+// ── הבנת-הרגע: לא תוכנית קבועה — קריאת-שוק חיה ────────────────────
+
+function MomentSection() {
+  const [m, setM] = useState<MomentData | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const r = await fetch("/api/moment", { cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      setM((await r.json()) as MomentData);
+      setErr(null);
+    } catch (e) {
+      setErr(String((e as Error).message).slice(0, 60));
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    const t = setInterval(() => void load(), 60_000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const regime = m ? (REGIME_HE[m.regime.label] ?? REGIME_HE.UNKNOWN) : null;
+  const bidSurplus = m?.liveBook?.bidSurplusBps ?? null;
+  const steem = m?.market.steem;
+  const sbd = m?.market.sbd;
+  const btc = m?.market.btc;
+  const fg = m?.market.fearGreed;
+  const g = m?.market.global;
+
+  const toneIcon = (tone: "good" | "info" | "warn", cls: string) =>
+    tone === "good" ? (
+      <CheckCircle2 className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", cls)} aria-hidden />
+    ) : tone === "warn" ? (
+      <ShieldAlert className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", cls)} aria-hidden />
+    ) : (
+      <Activity className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", cls)} aria-hidden />
+    );
+
+  return (
+    <GateSection
+      id="moment"
+      icon={Radar}
+      title="הבנת-הרגע — מה השוק אומר עכשיו"
+      sub="לא תוכנית קבועה אלא קריאה חיה: משטר, קו-זהות, עומקים ותובנות — כל מספר נמדד ברגע הזה, ונצלב מול סוכן-הענן."
+    >
+      <div className="space-y-3">
+        {/* כרטיסי-הרגע */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                <Gauge className="h-3.5 w-3.5" aria-hidden /> משטר-השוק
+              </div>
+              {m ? (
+                <>
+                  <p className={cn("mt-1 text-lg font-black", regime?.cls)}>{regime?.label}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                    {m.regime.drivers.join(" · ")}
+                    {g?.marketCapChg24hPct != null &&
+                      ` · שווי-עולמי ${g.marketCapChg24hPct >= 0 ? "+" : ""}${g.marketCapChg24hPct.toFixed(1)}%`}
+                  </p>
+                </>
+              ) : (
+                <Skeleton className="mt-2 h-7 w-24" />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className={cn(bidSurplus != null && bidSurplus < 0 && "border-emerald-500/25")}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                <Coins className="h-3.5 w-3.5" aria-hidden /> קו-הזהות מול הספר החי
+              </div>
+              {m?.liveBook ? (
+                <>
+                  <p className="mt-1 font-mono text-lg font-bold text-zinc-100">
+                    {bidSurplus != null ? (
+                      <span className={bidSurplus < 0 ? "text-emerald-300" : "text-amber-300"}>
+                        {bidSurplus < 0 ? "−" : "+"}
+                        {Math.abs(bidSurplus).toLocaleString()} bps
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">
+                    {bidSurplus != null && bidSurplus < 0
+                      ? "עומק-קנייה מתחת לקו — עודף מדוד לגריד"
+                      : "הספר מעל הקו — הגריד ממתין"}{" "}
+                    · bid {m.liveBook.bestBid?.toFixed(4)} / ask {m.liveBook.bestAsk?.toFixed(4)} · parity{" "}
+                    {m.paritySbdPerSteem?.toFixed(4)}
+                  </p>
+                </>
+              ) : (
+                <Skeleton className="mt-2 h-7 w-24" />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                <TrendingUp className="h-3.5 w-3.5" aria-hidden /> הנכסים שלנו (חי)
+              </div>
+              {steem ? (
+                <>
+                  <p className="mt-1 font-mono text-lg font-bold text-zinc-100">
+                    ${steem.usd?.toFixed(4) ?? "—"}{" "}
+                    <span
+                      className={cn(
+                        "text-xs",
+                        (steem.chg24h ?? 0) >= 0 ? "text-emerald-400" : "text-rose-400",
+                      )}
+                    >
+                      {(steem.chg24h ?? 0) >= 0 ? "+" : ""}
+                      {steem.chg24h?.toFixed(1)}%
+                    </span>
+                  </p>
+                  <p className="mt-1 text-[11px] text-zinc-500">
+                    STEEM · SBD ${sbd?.usd?.toFixed(4) ?? "—"} · BTC{" "}
+                    {(btc?.chg24h ?? 0) >= 0 ? "+" : ""}
+                    {btc?.chg24h?.toFixed(1) ?? "—"}%
+                  </p>
+                </>
+              ) : (
+                <Skeleton className="mt-2 h-7 w-24" />
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-[11px] text-zinc-500">
+                <Banknote className="h-3.5 w-3.5" aria-hidden /> אוצר-המפקד (סימון חי)
+              </div>
+              {m?.runway ? (
+                <>
+                  <p className="mt-1 font-mono text-lg font-bold text-[#e8cd6e]">
+                    {m.runway.treasuryUsd != null ? `$${m.runway.treasuryUsd.toFixed(0)}` : "—"}
+                  </p>
+                  <p className="mt-1 text-[11px] text-zinc-500">
+                    דלק שבועי ≈ ${m.runway.weeklyUsd?.toFixed(1) ?? "—"} · הבא{" "}
+                    {m.runway.nextPayment?.slice(5, 10) ?? "—"}
+                  </p>
+                </>
+              ) : (
+                <Skeleton className="mt-2 h-7 w-24" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* תובנות-הרגע */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
+              <p className="text-sm font-bold text-zinc-200">תובנות-הרגע — מה רלוונטי עכשיו</p>
+              {fg?.value != null && (
+                <span className="font-mono text-[11px] text-zinc-500">
+                  פחד-ותאווה: {fg.value} ({fg.label})
+                </span>
+              )}
+            </div>
+            <ul className="max-h-64 space-y-2.5 overflow-y-auto px-4 py-3 text-xs leading-relaxed text-zinc-300">
+              {err && (
+                <li className="flex gap-2">
+                  <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
+                  <span>קריאת-הרגע נכשלה ({err}) — שום מספר לא הומצא.</span>
+                </li>
+              )}
+              {!err && !m && (
+                <li className="flex gap-2">
+                  <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-zinc-500" aria-hidden />
+                  <span>מודד את הרגע…</span>
+                </li>
+              )}
+              {(m?.insights ?? []).map((ins, i) => (
+                <li key={`${ins.kind}-${i}`} className="flex gap-2">
+                  {toneIcon(
+                    ins.tone,
+                    ins.tone === "good" ? "text-emerald-400" : ins.tone === "warn" ? "text-amber-400" : "text-zinc-400",
+                  )}
+                  <span>{ins.text}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        {/* צליבת-הצי */}
+        <Card className="border-zinc-800">
+          <CardContent className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              {m?.fleet ? (
+                <Eye className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-hidden />
+              ) : (
+                <EyeOff className="mt-0.5 h-4 w-4 shrink-0 text-zinc-500" aria-hidden />
+              )}
+              <div>
+                <p className="text-sm font-bold text-zinc-200">צליבת-הצי — סוכן הבנת-הרגע בענן</p>
+                <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
+                  {m?.fleet?.publishedAt ? (
+                    <>
+                      פרסם לפני {m.fleet.fleetFreshMin ?? "?"} דק\' · משטר שנמדד שם: {m.fleet.regime ?? "—"}
+                      {m.fleet.callStats &&
+                        ` · קריאות-כיוון שהוכרעו: ${m.fleet.callStats.resolved}${m.fleet.callStats.hitRatePct != null ? ` (דיוק ${m.fleet.callStats.hitRatePct}%)` : " — הדיוק יימדד מהקריאה המוכרעת הראשונה"}`}
+                    </>
+                  ) : (
+                    "סוכן moment-watch ממתין לריצתו הראשונה בענן — עד אז עמוד זה הוא המודד היחיד, וזו האמת."
+                  )}
+                </p>
+              </div>
+            </div>
+            <a
+              href="https://github.com/roshpinacare-sys/Domain/actions/workflows/moment-watch.yml"
+              target="_blank"
+              rel="noreferrer"
+              className="shrink-0 text-[11px] text-[#e8cd6e] underline decoration-[#d4af37]/40 underline-offset-2 hover:decoration-[#d4af37]"
+            >
+              ריצות הסוכן בענן ↗
+            </a>
+          </CardContent>
+        </Card>
+
+        <p className="text-[11px] leading-relaxed text-zinc-600">
+          ספי-המדיניות מפורסמים ומוצגים: BTC ±{m?.thresholds ? m.thresholds.btc24hPct : "?"}% · פחד-ותאווה{" "}
+          {m?.thresholds ? `${m.thresholds.fgLow}/${m.thresholds.fgHigh}` : "?"} · STEEM ±
+          {m?.thresholds ? m.thresholds.steemMovePct : "?"}% · ישנות-מראה{" "}
+          {m?.thresholds ? m.thresholds.gridStaleHours : "?"}ש\'. מקורות: CoinGecko · alternative.me · api.steemit.com ·
+          מראות הצי ב-GitHub Pages. אין כאן ניבוי — רק מה שנמדד.
+        </p>
+      </div>
+    </GateSection>
+  );
+}
+
+// ── התצוגה הראשית ────────────────────────────────────────────────────────
 
 export function GateView() {
   const [data, setData] = useState<TreasuryData | null>(null);
@@ -679,8 +983,8 @@ export function GateView() {
         </h1>
         <p className="max-w-3xl text-sm leading-relaxed text-zinc-400">
           כל מספר בעמוד הזה נקרא כרגע מהשרשרות הציבוריות (Steem, Hive, TRON, Ethereum, Solana,
-          Bitcoin) ומהבורסות — לא מהזיכרון, לא מהצהרות. החסם היחיד בין הרשת לבין זרימת-כסף אמת
-          הוא סוד אחד שחסר, ולו בנינו כאן דלת אמיתית.
+          Bitcoin) ומהבורסות — לא מהזיכרון, לא מהצהרות. המפתח כבר חי בכספת המנוע והגריד מניח
+          פקודות אמת; מה שעדיין חסום — כתוב בעמודת "חסום (ולמה)" עם הסיבה המדויקת לכל שורה.
         </p>
         <div className="flex flex-wrap gap-2">
           <StatusPill
@@ -958,8 +1262,8 @@ export function GateView() {
         <GateSection
           id="door"
           icon={DoorOpen}
-          title="הדלת — איפה מכניסים את המפתח"
-          sub="הסוד היחיד שחוסם את כל הזרימה החוץ. בלעדיו הגריד מפורסם כלוחם-בלי-מפתח, בכנות, כבר מהיום הראשון."
+          title="הדלת — חימוש-מחדש מבוקר של הגריד"
+          sub="המפתח הנוכחי כבר חי בכספת המנוע; הדלת נשארת להחלפת-מפתח או חימוש-מחדש — עם אימות מול השרשרת לפני כל נגיעה."
         >
           <ArmDoor
             onArmed={() => {
@@ -1026,27 +1330,38 @@ export function GateView() {
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
-                      הגריד-החוץ מפורסם <span className="font-mono text-rose-300">{data?.network?.gridVerdict ?? "DISARMED-NO-KEY"}</span> —
-                      בריפו-המנוע קיים סוד-Actions יחיד (טוקן-פרסום), מפתח-ה-active מעולם לא הוזן. זו הדלת שלמעלה.
+                      הגריד-החוץ חי ומזוין — אבל צד-הקנייה חסום על מלאי-SBD: ‏0.049 זמין מול 0.15 שנדרש.
+                      המפתח כבר חי בכספת המנוע (STEEM_ACTIVE_WIF, נמדד ב-API) ופקודות אמת מונחות עם txids;
+                      ה-SBD היחיד שזורם מגיע ממכירות-הפרימיה שלנו עצמנו — זהו קצב-הבנייה של הצד השני.
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
                       שידור-ETH/SOL כבוי בשערי-מדיניות (ETH_BROADCAST_ENABLED=false וכן ב-SOL) והמפתחות נמחקו עם
-                      איפוסי-הסנדבוקס — אין ערוץ-חוץ חי מלבד Steem.
+                      איפוסי-הסנדבוקס — אין ערוץ-חוץ חי מלבד Steem, וזה נכון כך: שידור-חוץ אוטומי בלי גוף
+                      מורשה הוא סיכון חוקי וכספי שאנחנו לא לוקחים.
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
-                      משמרת המפתחות של הצי (כספת מוצפנת) חיה בריפו הפרטי — לא במכונה הזו, ואין לה דלת מתועדת עד עכשיו.
+                      משמרת המפתחות של הצי (כספת מוצפנת) חיה בריפו הפרטי — לא במכונה הזו, ובכוונה אין לה דלת
+                      אוטומטית: דלת מתועדת לסוכנים היא דלת מתועדת לכל פורץ. גישה — אדם בלבד, ידנית, מתועדת.
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
                       אפס הפקדות-חוץ מאז פתיחת הדלת לציבור — המעגל האמיתי טרם נסגר אף-פעם בכסף של מישהו אחר.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
+                    <span>
+                      המרת-הטוקנים לנזילות אמת: SAOS/USDS הם יחידות-פנים — אין להם ערך-חוץ, והבטחת המרה לציבור
+                      היא נייר-ערך לא-רשום. נזילות אמת נוצרת רק מעודף-הגריד המדוד ומדלק-ה-powerdown — עד
+                      גוף משפטי מורשה. חסימה שנשארת בכוונה, לא תקלה.
                     </span>
                   </li>
                 </ul>
@@ -1088,8 +1403,13 @@ export function GateView() {
         </GateSection>
       </motion.div>
 
-      {/* ── איך-מתחילים-להזרים ── */}
+      {/* ── הבנת-הרגע ── */}
       <motion.div {...fade(4)}>
+        <MomentSection />
+      </motion.div>
+
+      {/* ── איך-מתחילים-להזרים ── */}
+      <motion.div {...fade(5)}>
         <GateSection
           id="flow"
           icon={Coins}
@@ -1144,7 +1464,7 @@ export function GateView() {
       </motion.div>
 
       {/* ── רענון ── */}
-      <motion.div {...fade(5)} className="flex items-center justify-between border-t border-zinc-900 pt-4">
+      <motion.div {...fade(6)} className="flex items-center justify-between border-t border-zinc-900 pt-4">
         <p className="text-[11px] text-zinc-600">
           מקורות-המדידה: api.steemit.com · api.hive.blog · tronscan · publicnode · blockchain.info · binance ·
           הקונסולה הציבורית. רענון-אוטומטי כל-דקה.
