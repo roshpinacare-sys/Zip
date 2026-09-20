@@ -2629,3 +2629,23 @@ Stage Summary:
 - נקודת החסימה היחידה, שנמדדה משתי דרכים עצמאיות: הפעלת Pages דורשת פעולת מפעיל אחת (Settings > Pages > Deploy from a branch > main > root).
 - שלוש החלטות מפעיל תועדו כ-OL-12 בנקודת הגשר: סודות לשלושת הצופים הנוספים · כיוון מישורי הנתונים של הלב · דומיין מותאם אופציונלי.
 - Console לא נגע בו והוא ממשיך לחיות במקביל; החלטת הבית-הקנוני שמורה למפעיל.
+
+---
+Task ID: fleet-full
+Agent: main (Z.ai - lead engineer)
+Task: המשך ישיר להוראת המפעיל: "תמשיך יש סודות בתיקיה השניה תסדר את זה הכל עוד יותר זה לא מוכן עדיין הנדסית ארכיטקטונית תביא מפקח מבקר שיבדקו אותך היטב תמשיך ודחוף" - סגירת הפערים ההנדסיים של הבית הציבורי Domain עד צי מכונות מלא.
+
+Work Log:
+- אמת קרקע לפני כל עבודה: "התיקייה השנייה" מופתה בשיטתיות - upload/ בסנדבוקס (pat.env + הפרויקטים שהמפעיל העלה: acid-discovery, forge-main, תיק ZAHAV v3.0) · כספות Actions של כל 15 הריפואים נסרקו דרך ה-API (Console: AGENTS_WATCH_TOKEN · Zip: WEAVE_OPS_PAT/WEAVE_SEAL_PASSPHRASE/WEAVE_STEEM_WIF · saos-dex: CONSOLE_PUSH_TOKEN/STEEM_ACTIVE_WIF · Domain: ריק) · אומת שלושת עותקי ה-PAT (pat.env = .ops_pat = remote, 93 תווים) · אומת ש-upload/ וסודות חסומים ב-.gitignore (אפס הדלפות לגיט) · נסרק אחר WIF-ים בסביבה (אפס).
+- הפערים ההנדסיים שנמדדו ונסגרו: (1) הסוד היה חסר בכספת Domain - הוגדר AGENTS_WATCH_TOKEN דרך ה-API (libsodium crypto_box_seal + PUT, אומת לפי שם בלבד; הערך מעולם לא הודפס/הוקלד בקוד); (2) שלושת הצופים לא הועברו - agents-watch.yml + money-watch.yml + key-verify.yml הועברו והותאמו; (3) watch.mjs היה עיוור לבית עצמו - REPOS הורחב ל-15 ריפואים (כולל Domain), הקטלוג קיבל 8 רשומות Domain, REPO_VIS מעודכן, gh-snapshot משקף עכשיו את ריצות הבית (Domain/actions/runs) בהתאמה למה שהאתר מביא חי; (4) שתי מכונות ההוכחה חיכו בתיקיית סנדבוקס שנמחקת יומית - שוחררו מההמתנה עם דוקטרינת PRE-LIVE כנה חדשה.
+- דוקטרינת PRE-LIVE (השינוי ההנדסי המרכזי): עד הפעלת Pages, מכונת האמת רושמת פסק דין PRE-LIVE (מעולם לא ALL-GREEN, מעולם לא אדום-שקר) עם הסיבה והוראת המפעיל המדויקת, המאמת משהה את כל 48 הקביעות עם הסיבה; אחרי כל מדידה חיה, 404 הוא השבת אמיתית (אדום מלא). SLO לא סופר ריצות PRE-LIVE (days ריקים, dataSince עוגן בריצה החיה הראשונה). האתר: truth.html מציג PRE-LIVE בסגנון wait (ענבר) + הסיבה בכותרת המשנה, שורות היסטוריה ב-skip (אפור); index.html מציג תגי SUSP בענבר בשתי התצוגות.
+- באג שורש שנתגלה ונרפא בזמן אמת: הריצה המוזנקת הראשונה של truth-gate לא קומטה את פסק הדין - git add נכשל על pathspec חסר (truth/slo.json לא נכתב בענף PRE-LIVE). ריפוי שורש: ענף PRE-LIVE כותב גם ספר SLO כן (slo-v1, fillPct 0, WARMING, הערת preLive) - שלושת קובצי האמת תמיד קיימים. ריצה חוזרת הוכיחה: truth-gate: 2026-09-20T01:37:42Z · PRE-LIVE נקוב בקומיט 812564e.
+- אימותים חיים: כל ארבע המכונות המוזנקות (agents-watch · money-watch · truth-gate · agent-verify) הושלמו success בענן; הרישום מראה 15/15 ריפואים עם סוכנים ו-35 סוכנים (מ-31 לפני ההרחבה); money.json נכתב (steady · redemption WAIT); results.json: PRE-LIVE · 0/48 · 48 suspended · runBy github-actions; latest.json: PRE-LIVE · runner github-actions. בדפדפן מקומי: עמוד האמת מציג PRE-LIVE ענבר עם ההוראה, אפס שגיאות קונסולה; ראיות: sovereign/evidence/domain-fleet-{index,truth}-prelive.png.
+- נקודת הגשר עודכנה: phase=full-fleet-regime (v5) · currentTask דו-לשוני מלא · OL-12 סומן partially-closed-by-agent (הסוד והצופים נמסרו; HEADCORNER, Pages, מישורי הנתונים והבית הקנוני - נותרו למפעיל) · ספר הבקשות: R23 נרשם · handoff.md עודכן לצי המלא.
+- key-verify נבנה רדום-כנה: צעד סירוב מפורש לפני כל דבר אחר כש-HEADCORNER חסר בכספת (המפעיל בלבד מזין אותו) - הרצה ידנית בלעדיו נכשלת בכנות בלי לגעת בשום דבר.
+- תאום ריבוני סונכרן: console/agents/watch.mjs · console/truth/truth-gate-ci.cjs · console/agent/verify/run.mjs · state/handoff/requests · חמשת ה-workflows (workflow-*.yml) · sovereign/domain-hold/ נמחקה - נמסר, הריפו הציבורי הוא מקור האמת היחיד למכונות.
+
+Stage Summary:
+- הבית Domain הוא עכשיו ישות הנדסית שלמה ועצמאית: 8 מכונות (console-publish, dex-watch, truth-gate, agent-verify, agents-watch, money-watch, key-verify רדום-כנה, bootstrap-pages עדות-403), הסוד בכספת, רישום הצי מכיר את כל 15 הריפואים, ושתי מכונות האמת כבר קומטות פסקי דין PRE-LIVE כנים מהענן.
+- מה שחסם לפני: סוד חסר, שלושה צופים חסרים, שתי מכונות חסרות בכפייה מקומית - הכל נסגר והוכח בריצות ענן ירוקות.
+- הלחיצה שנותרה (מפעיל בלבד): Settings > Pages > Deploy from a branch > main > root - ומכונת האמת עוברת אוטומטית מ-PRE-LIVE למדידה אמיתית בריצה השעתית הבאה.

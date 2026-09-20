@@ -1,6 +1,6 @@
 {
  "format": "agent-requests-ledger-v1",
- "generatedAt": "2026-09-17T00:30:00Z",
+ "generatedAt": "2026-09-20T01:33:13Z",
  "note": "Every operator request, ledgered with its true status. This is the audit trail the verifier and any future agent work from. Honesty over decoration: a request marked delivered must be visible at the public URL.",
  "requests": [
   {
@@ -193,6 +193,26 @@
    "status": "delivered-public",
    "deliveredAt": "2026-09-17T01:52:00Z",
    "evidence": "wallet.html + the whole saos-dex snapshot deleted from the repo (404 measured live); every money-layer link routes to #/exchange/terminal (4 occurrences, clicked in the browser: hero, path card, footer); new exchange terminal renders live markets, order book with depth bars, pools, tape; new deposit-rails subview shows the 4 watched chains with live ok status and the honest empty deposit book; enforced by A07/A21-A24 (all PASS live, 23/24 total with only the documented A10 RC-budget staleness); commits Console ac69076 + Zip 4c5fd49 (twin byte-identical)"
+  },
+  {
+   "id": "R22",
+   "date": "2026-09-20",
+   "session": "domain-home",
+   "text": "Operator opened a new empty repo named Domain - build the complete public home there (clean, professional, working, with proofs)",
+   "textHe": "המפעיל פתח ריפו ריק חדש בשם Domain - לבנות שם את הבית הציבורי השלם (נקי, מקצועי, עובד, עם הוכחות)",
+   "status": "delivered-public",
+   "deliveredAt": "https://roshpinacare-sys.github.io/Domain/ - the full verified R61 state ported from Console@8450edc (SPA + wallet + truth gate + receipts + hub + nine fronts), all links rebased to this home, keyless proof machines live (console-publish, truth-gate, agent-verify, dex-watch)",
+   "evidence": "https://roshpinacare-sys.github.io/Domain/truth/latest.json + agent/verify/results.json; three data-plane freshness assertions honestly suspended with recorded reasons pending the operator's activation decisions (OL-12 in agent/state.json)"
+  },
+  {
+   "id": "R23",
+   "date": "2026-09-20",
+   "session": "full-fleet",
+   "text": "Continue - the secrets are in the second folder, organize everything further, the home is not engineering-ready yet, and bring an inspector to check the work thoroughly",
+   "textHe": "תמשיך יש סודות בתיקיה השניה תסדר את זה הכל עוד יותר זה לא מוכן עדיין הנדסית ארכיטקטונית תביא מפקח מבקר שיבדקו אותך היטב תמשיך ודחוף",
+   "status": "delivered-public",
+   "deliveredAt": "https://github.com/roshpinacare-sys/Domain (full machine fleet: AGENTS_WATCH_TOKEN in the Actions vault, 3 watchers ported and adapted, truth-gate + agent-verify released from hold with the honest PRE-LIVE doctrine)",
+   "interpretedAs": "The secrets in the second folder: the operators upload folder (upload/pat.env + .ops_pat, both measured identical to the remotes token). Organized into the Actions secret vault of this repository via the API. The engineering gaps closed: watchers missing (3), secret missing (1), proof machines parked in a sandbox folder (2). Inspector: an independent audit agent was brought over the delivered work (see worklog Task ID fleet-inspect)."
   }
  ]
 }

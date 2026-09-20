@@ -88,6 +88,22 @@ async function evaluate(a, baseUrl) {
   if (!a || typeof a !== "object") return { id, ok: false, details: "invalid assertion: not an object" };
   if (typeof a.kind !== "string") return { id, ok: false, details: "invalid assertion: kind is missing" };
 
+  // ── suspended: an honestly parked assertion ─────────────────────────
+  // A suspended assertion is recorded, never silently dropped: its reason
+  // is part of the public results. Suspensions do not fail the verdict -
+  // they declare, in the open, what this home cannot yet measure. A
+  // suspension without a reason is a failure, not a suspension.
+  if (a.suspended && typeof a.suspended === "object") {
+    const reason = String(a.suspended.reason ?? "").trim();
+    if (!reason || !a.suspended.since) return { id, ok: false, details: "invalid suspension: reason and since are both mandatory" };
+    return {
+      id,
+      ok: null,
+      suspended: true,
+      details: `SUSPENDED since ${a.suspended.since}: ${reason}`,
+    };
+  }
+
   // ── steem_priority: the R27 priority-inversion detector ──────────────
   // Keyless public-history read from a Steem RPC. If the core anchor op
   // is older than staleHours AND a newer non-core custom_json op from the
@@ -437,12 +453,12 @@ function printTable(payload) {
   console.log(`agent-verify · ${payload.generatedAt} · runBy ${payload.runBy} · ${payload.durationMs} ms`);
   console.log(`${"ID".padEnd(idW)}  RESULT    MS     DETAILS`);
   for (const r of results) {
-    const mark = r.ok ? "PASS" : "FAIL";
+    const mark = r.suspended ? "SUSP" : r.ok ? "PASS" : "FAIL";
     console.log(`${String(r.id).padEnd(idW)}  ${mark.padEnd(8)}  ${String(r.ms).padStart(5)}  ${r.details}`);
   }
   if (payload.note) console.log(`note: ${payload.note}`);
   console.log("");
-  console.log(`VERDICT: ${summary.verdict} · passed ${summary.passed}/${summary.total} · failed ${summary.failed}`);
+  console.log(`VERDICT: ${summary.verdict} · passed ${summary.passed}/${summary.total} · failed ${summary.failed} · suspended ${summary.suspended ?? 0}`);
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────
@@ -456,15 +472,59 @@ async function main() {
   }
 
   const results = [];
+
+  // ── PRE-LIVE: the home is pushed, Pages is not enabled yet ──────────
+  // The same honest doctrine as the truth gate: until the site has once
+  // served a page, assertions against it measure a 404 that no visitor
+  // can reach - an operator-pending state, not an agent failure. Every
+  // assertion is recorded as suspended (never failed) under verdict
+  // PRE-LIVE, with the exact operator instruction. Only a definitive
+  // 404 qualifies; network errors go through the normal honest path.
+  // After any live measurement, a 404 is measured for real: HAS_FAILURES.
+  {
+    const probe = await fetchTarget(loaded.baseUrl, "/");
+    let everLive = false;
+    try {
+      const prev = JSON.parse(readFileSync(RESULTS_PATH, "utf8"));
+      everLive = Boolean(prev?.summary?.verdict) && prev.summary.verdict !== "PRE-LIVE";
+    } catch { /* first run - no previous results */ }
+    if (probe.status === 404 && !everLive) {
+      const preResults = loaded.assertions.map((a) => ({
+        id: a?.id ?? "?",
+        ok: null,
+        suspended: true,
+        ms: 0,
+        details: `SUSPENDED pre-live: GitHub Pages is not enabled yet (Settings > Pages > Deploy from a branch > main > root); the site answered HTTP 404`,
+      }));
+      const payload = {
+        format: "agent-verify-results-v1",
+        generatedAt: new Date().toISOString(),
+        runBy,
+        durationMs: Date.now() - startedAt,
+        summary: { total: preResults.length, passed: 0, failed: 0, suspended: preResults.length, verdict: "PRE-LIVE" },
+        preLive: {
+          reason: "GitHub Pages is not enabled yet - one operator action: Settings > Pages > Deploy from a branch > main > root.",
+          siteStatus: "HTTP 404",
+          instruction: "Once Pages serves the site, the next run measures every assertion for real; a 404 after any live run is a true failure.",
+        },
+        results: preResults,
+      };
+      writeResults(payload);
+      printTable(payload);
+      return;
+    }
+  }
+
   for (const a of loaded.assertions) {
     const t0 = Date.now();
     const r = await evaluate(a, loaded.baseUrl);
-    results.push({ id: r.id, ok: r.ok, details: r.details, ms: Date.now() - t0 });
+    results.push({ id: r.id, ok: r.ok, suspended: r.suspended === true, details: r.details, ms: Date.now() - t0 });
   }
 
   const total = results.length;
-  const passed = results.filter((r) => r.ok).length;
-  const failed = total - passed;
+  const suspended = results.filter((r) => r.suspended === true).length;
+  const passed = results.filter((r) => r.ok === true).length;
+  const failed = results.filter((r) => r.ok === false).length;
   const verdict = total === 0 ? "NO_ASSERTIONS" : failed === 0 ? "ALL_PASS" : "HAS_FAILURES";
 
   const payload = {
@@ -472,7 +532,7 @@ async function main() {
     generatedAt: new Date().toISOString(),
     runBy,
     durationMs: Date.now() - startedAt,
-    summary: { total, passed, failed, verdict },
+    summary: { total, passed, failed, suspended, verdict },
     results,
   };
   writeResults(payload);
