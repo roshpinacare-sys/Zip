@@ -3166,3 +3166,12 @@ Stage Summary:
 - קומיטים: Zip (שלושת התיקונים + הכלי + הראיה + הספרים + המראות + רשומה זו) · Console (sovereign-anchor.html + render.mjs) · Domain (ספרים + הביקורות + התאומים).
 
 **קבלת-סיום (נמדד לאחר הדחיפות):** תועד בהמשך הרשומה מיד לאחר המדידות.
+
+**קבלת-סיום (20:16Z, נמדד לאחר הדחיפות וההזנקות):**
+- **הדחיפות:** Zip 6acb745..57ef073 · Console e58e47f..b0c7e0d · Domain a901de1..1060019 (כל התנאים קוימו: rebase, סדר Zip-לפני-PUT, הספרים באותו מחזור).
+- **הכספת:** WEAVE_STEEM_WIF הונח בכספת Domain (PUT 201, אומת ברשימה, 20:07:01Z; sealed-box, ה-WIF מעולם לא הודפס/נכתב).
+- **הריצה החיה:** weave-anchor-lines ב-Domain, ריצה 35649048980 — **SUCCESS** על דקות ציבוריות, מהסקריפט החדש (head=57ef073): זיהוי החותם מה-WIF → account=@headcorner; 308 אימותים נטענו; החותם נפתח (cloud 0xaB07…); הספר תקין 308/308; **מעגן cp#301 root 0xcfc7657b… בשידור**; steem שודר ✓; hive נכשל בכנות (רשויות שונות — כצפוי וכמדוד); 1/2 שרשראות = ירוק כנה; אימות ANCHOR seq=309; cp#302 נוצר; gitkeeper דחף 57ef073..56c9057; ה-ZERO עגן בעקבות (56c9057..251097c).
+- **ההוכחה מהשרשרת (קריאה חסרת-מפתחות):** custom_json id=saos.weave.core.v1 בהיסטוריית @headcorner — txid 3e7fa2cc6371a5d56a865a0a35ba14242ba8b95d, block 109782276, required_posting_auths=[headcorner], cp#301 root 0xcfc7657b6d3458c8d7…, at 2026-09-21T20:07:20.103Z. השרשרת קיבלה את החתימה — היא לא שופטת מי משדר.
+- **העמוד החי (מהרשת, לא מהסנדבוקס):** https://roshpinacare-sys.github.io/Console/sovereign-anchor.html מגיש את הגרסה החדשה; הסיסמה האמיתית של המפעיל → פסק-דין ירוק "התאמה מלאה לרשות ה-posting של @headcorner", כפתור העיגון נפתח, RC 7431670.3M/7431.7B (100%) בריא. צילום-ראיה: sovereign/evidence/r75-owner-unlocked-LIVE.png (+ המקומי r75-owner-unlocked-local.png).
+- **קו העדות בקונסולה:** console-publish (עם render.mjs מודע-הצי) רץ והצליח (20:10:11Z); status.json החי: **FRESH 0.1h** (היה STALE 34.9ש') · witness=headcorner · cp#301 · txid 3e7fa2cc… · source.accounts=[cashmachine,headcorner,lsa] · הקו הממוזג: headcorner@cp#301 · cashmachine@cp#280 · cashmachine@cp#262… — ממצא F-1 של המפקח נסגר במדידה חיה.
+- agent-verify הוזנק בשני הבתים הציבוריים למחזור הקבלה (A10 אמור להיות ירוק עתה — הקו FRESH; A69 — הספרים תוקנו; A34 נשאר האדום-הכן של הגריד הממתין למכסה, כמתועד).
