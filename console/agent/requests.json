@@ -1,6 +1,6 @@
 {
   "format": "agent-requests-ledger-v1",
-  "generatedAt": "2026-09-21T17:45:00Z",
+  "generatedAt": "2026-09-21T20:02:30Z",
   "note": "Every operator request, ledgered with its true status. This is the audit trail the verifier and any future agent work from. Honesty over decoration: a request marked delivered must be visible at the public URL. NUMBERING DOCTRINE (R64 repair, 2026-09-20): this book is the LIVE book. It opens with the Console-era requests R01-R21 (copied when this home was born) and continues with DOMAIN-ERA numbering starting at R22 - a separate sequence from the Console repo's own R22-R61, which were ledgered retroactively there when that book was closed (2026-09-20; see TRUTH-AUDIT section 9). Never again may a book lag reality: the ledger_integrity assertion machine-checks every delivered entry for evidence and the bridgehead requestRef for agreement.",
   "requests": [
     {
@@ -370,7 +370,48 @@
       "status": "delivered-public",
       "deliveredAt": "2026-09-21T17:45:00Z",
       "evidence": "steem c4940d1 (gitkeeper race fixed at the root: dac4d1e had re-instated the cron 3s after R71 removed it); INS-R73-001 APPROVE-WITH-CONDITIONS (all conditions met); TRUTH-AUDIT 17; race test 12/12 x2 + supervisor adversarial 15/15; post-push: 0 cron lines at HEAD, no new scheduled runs",
-      "inspection": "INS-R73-001"
+      "inspection": "agent/inspections/INS-R73-001.json"
+    },
+    {
+      "id": "R35",
+      "date": "2026-09-21",
+      "session": "r74 sovereign-anchor (Z.ai session)",
+      "textHe": "(רישום מושלם בדיעבד - הטקסט המקורי לא שרד במראה)",
+      "text": "Gap-repair entry (INS-R75-001 F-3): a request slot between R34 and R37 that the r74 session allocated but never registered in the book. The bridgehead carried requestRef R37 with R35-R37 missing. The exact text did not survive the session-chain compression; no separate delivery is attributed to this slot.",
+      "status": "recorded-gap-repair",
+      "note": "honest reconstruction: the slot exists (numbering proves it), its text is not recoverable, nothing was delivered under it separately - the work flowed into the R37 delivery"
+    },
+    {
+      "id": "R36",
+      "date": "2026-09-21",
+      "session": "r74 sovereign-anchor (Z.ai session)",
+      "textHe": "(רישום מושלם בדיעבד - הטקסט המקורי לא שרד במראה)",
+      "text": "Gap-repair entry (INS-R75-001 F-3): second unregistered slot from the r74 session (see R35).",
+      "status": "recorded-gap-repair",
+      "note": "same class as R35 - the slot exists, the text did not survive, no separate delivery"
+    },
+    {
+      "id": "R37",
+      "date": "2026-09-21",
+      "session": "r74 sovereign-anchor (Z.ai session)",
+      "textHe": "אבל הוספתי בסודות כבר מקודם למה אדום תבדוק את זה זה שם בכל התיקיות עוד פתרונות ריבוניים חובה",
+      "text": "But I already added the secrets earlier - why is it still red? Check it, it is there in all the folders. And more sovereign solutions are mandatory",
+      "status": "delivered-public",
+      "deliveredAt": "2026-09-21T19:03:00Z",
+      "evidence": "r74: why-red answered from live measurement - two separate reds (private quota death with the R73 rejection signature; WEAVE_STEEM_WIF delivered to the Zip vault while the anchor machine runs in Domain - secrets never cross repos, vault inventory measured via API). Sovereign solutions: sovereign-anchor.html live on Console f1435ae (200, honest STALE verdict + live RC + refusal path proven on the live page); secret-relay machine in Zip tested end-to-end with a dummy (PUT 201, verified in list, deleted 204). Books: TRUTH-AUDIT 18.",
+      "inspection": "agent/inspections/INS-R74-RETRO-001.json",
+      "note": "delivered by the r74 session WITHOUT a pre-push inspection (institution violation, honestly recorded); post-hoc re-inspection INS-R74-RETRO-001 re-measured the delivery TRUE and its conditions are this R75 cycle"
+    },
+    {
+      "id": "R38",
+      "date": "2026-09-21",
+      "session": "r75 owner-first-class (Z.ai session)",
+      "textHe": "זה הowner שלי והוא לא עובד תסדר את זה תמצא פתרון להכל",
+      "text": "This is my owner and it is not working - fix it, find a solution for everything (delivered with headcorner.txt: the account name + the true Steemit master password)",
+      "status": "delivered-public",
+      "deliveredAt": "2026-09-21T20:30:00Z",
+      "evidence": "R75: the delivered value verified as the true master password of @headcorner - 4/4 live roles (owner/active/posting/memo) match the chain bit-for-bit (scripts/verify-owner-input.mjs, zero secret printing). Root cause of the failure found and fixed: the sovereign page derived master passwords only for @cashmachine, so the operator key was honestly rejected. Fixes: (1) sovereign-anchor.html full fleet identification matrix + dynamic witness account; (2) weave-anchor.ts identifies the signer from the WIF itself; (3) render.mjs fleet-aware (any fleet signer refreshes the line); (4) WEAVE_STEEM_WIF (headcorner posting, sealed) relayed into the Domain vault + weave-anchor-lines dispatched on public minutes.",
+      "inspection": "agent/inspections/INS-R75-001.json"
     }
   ]
 }

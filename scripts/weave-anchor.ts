@@ -23,6 +23,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { execSync } from "child_process";
+import steem from "steem";
 import { db } from "@/lib/db";
 import { exportLedger, importLedger, parseLedgerSnapshot } from "@/lib/weave/ledger-sync";
 import { verifyLedger, ensureCloudAgent, ensureNetworkKeyFromSeal, createCheckpointNow } from "@/lib/weave/beat";
@@ -32,6 +33,7 @@ import { sealOpen } from "./weave-seal";
 import {
   STEEM_RPC_NODES,
   HIVE_RPC,
+  rpcV4,
   buildPostingCustomJson,
   steemBroadcast,
   hiveBroadcast,
@@ -60,6 +62,41 @@ const OP_ID = "saos.weave.core.v1";
 const ANCHORS_RING = 32; // טבעת-64 קטנה — הספר הוא האמת, הקובץ רק מראה
 
 const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
+
+// R75 — המפתח מכריז את חותם הקו: ה-WIF מזוהה מול רשויות ה-posting החיות
+// של חשבונות הצי (קריאה חסרת-מפתחות). השם ב-env (WEAVE_STEEM_ACCOUNT) נשאר
+// ברירת-מחדל בלבד — אם המפתח מזוהה כחשבון אחר, הקו חותם כפי שהמפתח
+// מכריז. השרשרת היא השופטת (אותה מטריצה כמו key-verify והעוגן הריבוני).
+const FLEET_ACCOUNTS = ["cashmachine", "headcorner", "lsa"];
+
+function wifToStmPub(wif: string): string | null {
+  try {
+    return steem.auth.wifToPublic(wif).toString();
+  } catch {
+    return null;
+  }
+}
+
+/** זיהוי חותם הקו מתוך ה-WIF עצמו — null = השרשרת נקראה והמפתח זר. */
+async function identifyWitnessAccount(wif: string): Promise<string | null> {
+  const pub = wifToStmPub(wif);
+  if (!pub) {
+    throw new Error("WEAVE_STEEM_WIF אינו WIF תקין — סירוב כנה, שום דבר לא שודר");
+  }
+  for (const node of STEEM_RPC_NODES) {
+    const accs = await rpcV4<{ name: string; posting?: { key_auths?: [string, number][] } }[]>(
+      node,
+      "condenser_api.get_accounts",
+      [FLEET_ACCOUNTS]
+    ).catch(() => null);
+    if (!accs) continue; // הצומת הבא
+    const signer = accs.find((a) =>
+      ((a.posting && a.posting.key_auths) || []).some((k) => k[0] === pub)
+    );
+    return signer ? String(signer.name).toLowerCase() : null;
+  }
+  throw new Error("קריאת חשבונות הצי נכשלה בכל הצמתים — אין זיהוי בלי השרשרת");
+}
 
 interface AnchorRecord {
   checkpoint: number;
@@ -137,7 +174,20 @@ async function main(): Promise<void> {
     ? `${process.env.GITHUB_SERVER_URL}/${repoSlug}/actions/runs/${process.env.GITHUB_RUN_ID}`
     : undefined;
 
-  console.log(`[weave-anchor] runner=${runner} head=${gitHead} account=@${ACCOUNT} opId=${OP_ID}`);
+  // 0. זיהוי חותם הקו מהמפתח (R75): כל posting-WIF של הצי כשיר. בלי WIF —
+  //    dry-כנה כמקודם. הזיהוי נמדד מול השרשרת החיה, לא מול שם-ה-env.
+  let account = ACCOUNT;
+  if (WIF) {
+    const identified = await identifyWitnessAccount(WIF);
+    if (!identified) {
+      throw new Error(
+        `ה-WIF לא זוהה כרשות posting חיה של אף חשבון צי (${FLEET_ACCOUNTS.join(", ")}) — סירוב כנה, שום דבר לא שודר`
+      );
+    }
+    account = identified;
+  }
+
+  console.log(`[weave-anchor] runner=${runner} head=${gitHead} account=@${account} opId=${OP_ID}`);
 
   // 1. בענן — checkout טרי; מקומית — pull קודם (ה-remote הוא האמת)
   if (runner === "local-primary" && gitOrNull("git remote get-url origin")) {
@@ -188,7 +238,7 @@ async function main(): Promise<void> {
     const last = line.last;
     let stillOnChain: string | null = null;
     if (last && last.txids.steem) {
-      stillOnChain = await findInHistory(STEEM_RPC_NODES[0], ACCOUNT, OP_ID, last.at, 2, 100).catch(() => null);
+      stillOnChain = await findInHistory(STEEM_RPC_NODES[0], account, OP_ID, last.at, 2, 100).catch(() => null);
     }
     const report = {
       at: new Date().toISOString(),
@@ -228,7 +278,7 @@ async function main(): Promise<void> {
     headHash: headRow?.entryHash ?? "0x" + "0".repeat(64),
     commit: gitHead,
   };
-  const op: GrapheneOperation = buildPostingCustomJson(ACCOUNT, OP_ID, payload);
+  const op: GrapheneOperation = buildPostingCustomJson(account, OP_ID, payload);
 
   console.log(
     `[weave-anchor] מעגן cp#${cp.index} · root=${cp.root.slice(0, 18)}… · att ${cp.attFrom}..${cp.attTo} · ${DRY ? "DRY" : WIF ? "שידור" : "אין WIF — DRY כנה"}`
@@ -256,7 +306,7 @@ async function main(): Promise<void> {
 
   // שעת RC ל-Steem (Task 25, נולד ממדידת 14:08Z): דילוג-כנה כשהמנה מתחת לרצפה — המחירות האמיתית של חשבון-חינם במחזור שעתי
   let steemSkipped: string | null = null;
-  const sGate = await steemRcGate(ACCOUNT).catch(() => null);
+  const sGate = await steemRcGate(account).catch(() => null);
   if (sGate && !sGate.ok) {
     steemSkipped = sGate.reason ?? "rc-gated";
     notes.push(`steem: ${steemSkipped}`);
@@ -269,7 +319,7 @@ async function main(): Promise<void> {
   }
 
   let hiveSkipped: string | null = null;
-  const gate = await hiveRcGate(ACCOUNT).catch(() => null);
+  const gate = await hiveRcGate(account).catch(() => null);
   if (gate && !gate.ok) {
     hiveSkipped = gate.reason ?? "rc-gated";
     notes.push(`hive: ${hiveSkipped}`);
@@ -290,14 +340,14 @@ async function main(): Promise<void> {
   for (let i = 0; i < 5 && !txids.steem && !steemSkipped; i++) {
     await sleep(3000);
     for (const node of STEEM_RPC_NODES) {
-      txids.steem = await findInHistory(node, ACCOUNT, OP_ID, at, 1, 100).catch(() => null);
+      txids.steem = await findInHistory(node, account, OP_ID, at, 1, 100).catch(() => null);
       if (txids.steem) break;
     }
   }
   if (!hiveSkipped) {
     for (let i = 0; i < 5 && !txids.hive; i++) {
       await sleep(3000);
-      txids.hive = await findInHistory(HIVE_RPC, ACCOUNT, OP_ID, at, 2, 100).catch(() => null);
+      txids.hive = await findInHistory(HIVE_RPC, account, OP_ID, at, 2, 100).catch(() => null);
     }
   }
 
@@ -357,11 +407,11 @@ async function main(): Promise<void> {
   const explorerHive = txids.hive ? `https://hiveblockexplorer.com/tx/${txids.hive}` : null;
   const claim =
     `קו Steem/Hive: checkpoint #${cp.index} root ${cp.root.slice(0, 18)}… עוגן on-chain ` +
-    `כ-custom_json ${OP_ID} מאת @${ACCOUNT} (סמכות posting) — עד חיצוני ציבורי ובלתי-תלוי בגיטהאב לאמת הספר.`;
+    `כ-custom_json ${OP_ID} מאת @${account} (סמכות posting${account !== ACCOUNT ? `, מזוהה מהמפתח — ברירת המחדל @${ACCOUNT}` : ""}) — עד חיצוני ציבורי ובלתי-תלוי בגיטהאב לאמת הספר.`;
   const evidence = [
     `steemTxid=${txids.steem ?? "null"}`,
     `hiveTxid=${txids.hive ?? "null"}`,
-    `account=${ACCOUNT}`,
+    `account=${account}`,
     `opId=${OP_ID}`,
     `authority=posting`,
     `checkpoint=${cp.index} root=${cp.root} attFrom=${cp.attFrom} attTo=${cp.attTo}`,
@@ -425,7 +475,7 @@ async function main(): Promise<void> {
     attestations,
     at,
     commit: gitHead,
-    account: ACCOUNT,
+    account,
     txids,
     hiveNote: hiveSkipped,
     attSeq: att.seq,

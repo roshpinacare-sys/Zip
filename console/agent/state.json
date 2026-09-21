@@ -1,15 +1,15 @@
 {
  "format": "agent-bridgehead-state-v1",
  "version": 6,
- "generatedAt": "2026-09-21T17:45:00Z",
+ "generatedAt": "2026-09-21T20:30:00Z",
  "agent": "sovereign-agent (any Z.ai session - identity is the role, not the instance)",
  "phase": "standing-inspector-regime",
- "currentTask": "R74 delivered: 'why red' answered from live measurement — two separate reds: (1) private-repo quota death still alive (Zip anchor dispatch 35640722059 died 3s/zero-steps, the R73 signature) — secrets cannot fix billing; (2) the Steem witness line dry (STALE 32.8h) because the operator delivered WEAVE_STEEM_WIF to the Zip vault while the anchor machine runs in Domain — GitHub secrets never cross repos (vault inventory measured via API: Domain has MAIN_KEY, lacks WEAVE_STEEM_WIF). Two sovereign solutions delivered: sovereign-anchor.html live on the public Console (browser-signed custom_json straight to public RPC, zero GitHub dependency, honest key verdict vs live chain authorities) and the one-shot secret-relay machine in Zip (sealed-box PUT, tested end-to-end with a dummy, awaits a quota-clean window or the operator's direct Domain paste).",
- "currentTaskHe": "R74 נמסר: 'למה אדום' נענה ממדידה חיה — שני אדומים נפרדים: מות-המכסה בפרטיים עודו חי, וקו-העדות Steem יבש כי ה-WIF נמסר ל-Zip בעוד המכונה רצה ב-Domain. שני פתרונות ריבוניים סופקו: העוגן הריבוני בדפדפן (חי על הקונסולה) וממסר-הסודות החד-פעמי ב-Zip.",
+ "currentTask": "R75 delivered: the operator delivered the true Steemit master password of @headcorner (upload/headcorner.txt) under the instruction this is my owner and it is not working - fix it, find a solution for everything. The value verified 4/4 live roles (owner/active/posting/memo) bit-for-bit. The failure root cause: the sovereign page derived master passwords only for @cashmachine, so the operator key was honestly rejected (no fleet account identified). Fixed in one cycle: the page now runs the full identification matrix (WIF vs all fleet authorities, else 12 master-password derivations - the key-verify matrix) and signs as the account the key declares; the anchor machine identifies the signer from the WIF itself (any fleet posting WIF is valid); render.mjs scans every fleet account history so any signer refreshes the line; WEAVE_STEEM_WIF (headcorner posting, sealed-box) relayed into the Domain vault and weave-anchor-lines dispatched on public minutes. Honest residuals: the Hive line will honestly fail for headcorner (different authorities, measured); the dex grid waits for quota or a Domain twin (operator decision); the r74 institution violation recorded retroactively (INS-R74-RETRO-001).",
+ "currentTaskHe": "R75 נמסר: המפעיל מסר את סיסמת-האב האמיתית של @headcorner - והוא אומת 4/4 מול כל הרשויות החיות ביט-מול-ביט. שורש הכישלון נמצא ותוקן: העמוד הריבוני גזר סיסמאות-אב רק עבור cashmachine, ולכן המפתח נדחה בכנות. תוקן במחזור אחד: מטריצת זיהוי מלאה בעמוד, זיהוי החותם מתוך ה-WIF במכונה, קורא-הקונסולה מודע-צי, וה-WIF הועבר לכספת Domain + הקו הוזנק על דקות ציבוריות.",
  "lastHandoff": {
-  "at": "2026-09-21T19:02:00Z",
-  "by": "r74 sovereign-anchor session (Z.ai)",
-  "summary": "Why-red answered from measurement; sovereign-anchor.html pushed to Console main (f1435ae); secret-relay machine tested end-to-end (dummy PUT 201, verified, deleted 204); books updated (TRUTH-AUDIT 18)."
+  "at": "2026-09-21T20:30:00Z",
+  "by": "r75 owner-first-class session (Z.ai)",
+  "summary": "Owner key verified 4/4 live roles; the page/machine/render all fleet-aware now; WEAVE_STEEM_WIF in the Domain vault (sealed relay, headcorner posting); weave-anchor-lines dispatched on public minutes; books repaired (R35-R38 registered, R34 field fixed, INS-R74-RETRO-001 honest); render.mjs fleet fix closes the F-1 reader gap."
  },
  "environment": {
   "sandbox": "/home/z/my-project - ephemeral, resets on new sessions; NEVER the source of truth",
@@ -281,5 +281,5 @@
    "he": "זהות כנה: בוטים פועלים כבוטים (weave-console[bot] וחבריו) - אין התחזות לבני אדם."
   }
  ],
- "requestRef": "R37"
+ "requestRef": "R38"
 }
