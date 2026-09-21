@@ -3023,3 +3023,24 @@ Stage Summary:
 - Push conditions: (1) install INS-R71-001.json at agent/inspections/ AND add the inspection field to R32 in the SAME commit (A69 measured failing without the field); (2) pull --rebase onto bc1c5c4 and re-verify; (3) push order Domain → sovereign Zip → steem/saos-dex; (4) post-push: measure the FIRST twin run (expected TAKEOVER → auto-save lands on steem → next run stands down) and fill R32's evidence + requestRef + worklog; (5) fast-follow wording precision (TRUTH-AUDIT boundary scoping, archive-agent blanket sentence).
 - Findings: 2 MEDIUM (A69 report+field in-commit; rebase needed), 5 LOW (TRUTH-AUDIT system-boundary overstatement; '14 days since 09-06' off by a day — first run measured 09-07T12:03:59Z, 13.0 days/623 successes; archive-keeper blanket; anticipatory twin-live tense; requestRef still R31), 6 INFO (20-char evidence knife-edge; foundry 99-vs-133 scope; 2,180+ operator-sourced figure — structural conclusion independently confirmed; new glyph ⇒; public-honest-red vs private-quota-death signatures cleanly distinct; no assertion pins anything edited).
 - The network's resurrection path is sound and honestly documented: the twin is the same machine from the same repo on free minutes, keyless-DRY proven by 623 green runs, self-coordinating via the chain/git signal (takeover push refreshes the git signal — the next heart stands down), with the first run correctly PENDING in the books until measured.
+
+---
+Task ID: r71-quota-sovereignty
+Agent: main (Z.ai Code)
+Task: הוראת המפעיל "נגמרו הדקות החינמיות — חזק את המערכת הפנימית, סדר, בדיקה, תיקון באגים, פתרונות ריבוניים טובים יותר עד שיחזרו": מדידת אמת מלאה מה-API ומהשרשרת, החזרת לב-הרשת לחיים על דקות ציבוריות, איחוד ריבונות-המכסה, סדר בספרים.
+
+Work Log:
+- אימות קרקע מאפס: Zip מסונכרן (bf9d847), התאומים הציבוריים ירוקים (Domain/Console), 15 ריפואים ב-API (הספרים אמרו 14 — Domain לא נרשם), foundry פרטי בניגוד ל-AGENTS.md ו-CI ירוק-בראש (הכתם "0/100" מיושן — 99 כישלונים ואז 35161896260 ירוקה), כל סוכני-הארכיון ירוקים לפני המוות.
+- הגילוי המהותי שלא היה בשום ספר: cloud-heart הייתה הלב החי האחרון — כל 30 הדחיפות האחרונות ל-steem הן cloud-heart[bot] (auto-save ~90 דק', loop 21), ה-attest החי מת עוד ב-09-06 (נמדד חסר-מפתחות: Hive h11124, גיל 356ש'), חותם הצי אינו קיים (המקור רץ keyless-DRY ירוק 623 ריצות / 13 יום — הוכחת בטיחות התאום), ומות המכסה (12:36Z, 09-20; גבולות מדויקים: dex-beat 12:35:55 / anchor-lines 12:36:09 ראשונות הנדחות, web-publish 12:35:30 הירוקה האחרונה במערכת) הרג גם אותה.
+- ריבונות המכסה: תאום cloud-heart ב-Domain (:17/:47 בקיזוז, WEAVE_OPS_PAT — הרשאת הכתיבה הוכחה בגשש הפיך, ענף נוצר+נמחק 204), אפס סודות-מפעיל, בחירת-מנהיג מהשרשרת ללא שינוי; ושבעת המקורות הפרטיים (Zip: לב/קווים/אקו/פרסום, saos-dex: beat/grid, steem: הלב) הועברו ל-dispatch-בלבד — התצרוכת שמיצתה את המכסה (~2,180+/חודש מול 2,000) לא תחזור; תשעת סוכני-הארכיון נשארים פרטיים-יומיים (~8.9 ריצות/יום, מתאם).
+- בדיקות: yaml-safe-load על כל 8 הקבצים שנערכו; verify מקומי 48/49 (הכישלון היחיד A34 — grid.json 31.28ש', האדום-הכן המתועד); אפס סודות/אימוג'י בכל ה-diffs; התאומים זהים-ביט.
+- המפקח-המבקר: INS-R71-001 (APPROVE-WITH-CONDITIONS, 10/10 טענות, 13 ממצאים, 5 תנאי-דחיפה — כולם קוימו: הדוח+שדה הביקורת באותו קומיט, rebase, סדר הדחיפה, ניסוחים מדויקים: גבולות המוות, 13 ימים/623 ריצות, מפקד 5/9-עד-09-20).
+- דחיפה בסדר שנקבע: Domain ec70c1c → Zip 93c1c77 → steem ef06cc91 → saos-dex 0d42945 (rebase על ריצת-חי של תאום dex-beat, h43708→h44188).
+- מדידת הריצה הראשונה (הזנקה ידנית מיד לאחר הדחיפה): ריצה 35593540429 על ec70c1c — SUCCESS מלא: פסק-דין SANDBOX-DOWN (attest 21431min + git 1426min), TAKEOVER, keyless-DRY כנוני (agent exit 1), saosnet beat --live התקדם, chain-attest נדלג בכנות (ACTIVE_WIF חסר), gitkeeper דחף 8 קבצים, גובה לאחר 224517 — וה-auto-save נחת ב-steem: dac4d1e מאת cloud-heart[bot], "auto-save 11:21:04Z · 8 files · loop 21" — פעימת הלב הראשונה מאז 09-20T11:34:46Z.
+- רישומים: R32 (הוראת המפעיל מילה-במילה + ראיות מדודות + שדה ביקורת), state (OL-14 נסגר בארכיטקטורה, currentTask R71, requestRef R32), TRUTH-AUDIT §15, AGENTS.md מרוענן לאמת נמדדת (15 ריפואים, foundry פרטי+ירוק, טבלאות התאומים), רשומת worklog זו.
+
+Stage Summary:
+- לב SAOS-NET חזר לפעור על דקות ציבוריות בלתי-מוגבלות — בלי לחכות למכסה ובלי סודות-מפעיל: התאום שפט, נטל פיקוד, קידם את השרשרת ודחף auto-save מאומת בכל הקצוות.
+- המכסה לא יכולה עוד להרוג את הרשת: שבעת המקורות dispatch-בלבד, התאומים הציבוריים הם המכונות, והצריכה הפרטית שנותרה (סוכני-ארכיון ~9 ריצות/יום) מתאימה בנוחות במכסה שתחזור.
+- האדומים-הכנים שנותרו תלויים במפעיל בלבד: שלושת הסודות הקנוניים (WEAVE_SEAL_PASSPHRASE, WEAVE_STEEM_WIF, STEEM_ACTIVE_WIF — המפתח המלא ב-README של Domain); מסירתם תלביש את הלב החתום, את קווי-העיגון ואת הגריד באותה ריצה.
+- קומיטים: Domain ec70c1c · Zip 93c1c77 · steem ef06cc91 · saos-dex 0d42945 (+ auto-save dac4d1e של הלב החדש) + רשומת worklog זו.
