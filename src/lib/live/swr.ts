@@ -108,6 +108,16 @@ export function swrGet<T>(
   }));
 }
 
+/**
+ * אינוולידציה יזומה: מוחקת את העותק השמור של מפתח. הקריאה הבאה
+ * ל-swrGet תיאלץ לחשב מחדש (קור). נועדה ל-mutations — כשהעולם
+ * השתנה ביוזמתנו (enqueue/broadcast) וה-UI צריך לראות את זה עכשיו,
+ * לא בעוד TTL.
+ */
+export function swrInvalidate(key: string): void {
+  store.delete(key);
+}
+
 /** ערך-עזר ל-header X-SAOS-Cache — ניתן למדידה גולמית ב-curl -sD */
 export function cacheHeader(meta: SwrMeta): string {
   if (!meta.cached) return "miss";

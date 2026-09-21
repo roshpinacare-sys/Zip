@@ -44,6 +44,7 @@ import { DefiRouterView } from "@/components/weave/views/defi-router-view";
 import { HoldingsAuditView } from "@/components/weave/views/holdings-audit-view";
 import { FlywheelView } from "@/components/weave/views/flywheel-view";
 import { MoneyMarketView } from "@/components/weave/views/money-market-view";
+import { PublisherView } from "@/components/weave/views/publisher-view";
 import { WebNetView } from "@/components/weave/views/webnet-view";
 import {
   AdminCommandView,
@@ -94,6 +95,8 @@ function SectionBody({ view, section, query }: Route) {
       return <MoneyMarketView />;
     case "holdings":
       return <HoldingsAuditView section={section} />;
+    case "publish":
+      return <PublisherView section={section} />;
     case "defi":
       return <DefiRouterView section={section} />;
     case "browser":

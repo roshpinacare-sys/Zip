@@ -221,3 +221,29 @@ model SovereignDomain {
 
   @@index([status])
 }
+
+// ── סוכן הפרסום האוטונומי (R79 · VOICE) ──────────────────────────────
+// לב לולאת "הסוכנים הם המשתמשים": מפעל התוכן מייצר טיוטות מנתונים
+// חיים, התור שומר אותן, ומנגנון השידור מפרסם לשרשרת החברתית. כל
+// קבלה (פרמאלינק · txid) נשמרת — האמת במדידה, לא בזיכרון.
+// המפתח לעולם לא נשמר כאן: הוא נגזר בזיכרון-ההרצה מה-upload של
+// המפעיל בלבד, ונאמת מול הרשות החיה לפני כל שידור.
+model PublishTask {
+  id          String    @id @default(cuid())
+  kind        String // TRUTH-REPORT | LIQUIDITY | ARSENAL | CUSTOM
+  lang        String // HE | EN
+  title       String
+  body        String
+  tags        String // רשימה מופרדת בפסיקים — SQLite בלי רשימות פרימיטיביות
+  channel     String    @default("steem")
+  status      String    @default("QUEUED") // QUEUED | PUBLISHING | PUBLISHED | FAILED
+  permlink    String?
+  txid        String?
+  url         String?
+  error       String?
+  queuedAt    DateTime  @default(now())
+  publishedAt DateTime?
+
+  @@index([status])
+  @@index([queuedAt])
+}

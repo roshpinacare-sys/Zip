@@ -27,6 +27,7 @@ import {
   Landmark,
   LayoutDashboard,
   LayoutGrid,
+  Megaphone,
   Menu,
   Network,
   Repeat,
@@ -56,6 +57,7 @@ export type SiteView =
   | "flywheel"
   | "money-market"
   | "holdings"
+  | "publish"
   | "defi"
   | "browser"
   | "domains"
@@ -91,6 +93,18 @@ export const SECTIONS: Array<{
       { key: "gaps", label: "פערים למקסום" },
       { key: "networks", label: "רשתות חברתיות" },
       { key: "systems", label: "מערכים חסרים" },
+    ],
+  },
+  {
+    view: "publish",
+    label: "קול הרשת",
+    icon: Megaphone,
+    subs: [
+      { key: "channels", label: "הערוצים" },
+      { key: "foundry", label: "מפעל התוכן" },
+      { key: "queue", label: "תור הפרסום" },
+      { key: "earnings", label: "הרווחים" },
+      { key: "autonomy", label: "אוטונומיה" },
     ],
   },
   {
