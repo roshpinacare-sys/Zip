@@ -30,6 +30,7 @@ import {
   Menu,
   Network,
   Repeat,
+  Scale,
   ShieldCheck,
   Users,
   Waypoints,
@@ -54,6 +55,7 @@ export type SiteView =
   | "array"
   | "flywheel"
   | "money-market"
+  | "holdings"
   | "defi"
   | "browser"
   | "domains"
@@ -79,6 +81,18 @@ export const SECTIONS: Array<{
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
   { view: "money-market", label: "שוק-הכספים", icon: Landmark, subs: [] },
+  {
+    view: "holdings",
+    label: "מאזן ריבוני",
+    icon: Scale,
+    subs: [
+      { key: "assets", label: "נכסים ביד" },
+      { key: "value", label: "תזרימי-ערך" },
+      { key: "gaps", label: "פערים למקסום" },
+      { key: "networks", label: "רשתות חברתיות" },
+      { key: "systems", label: "מערכים חסרים" },
+    ],
+  },
   {
     view: "defi",
     label: "נתיבי DeFi",
