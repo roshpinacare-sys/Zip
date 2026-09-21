@@ -16,8 +16,7 @@
 name: weave-anchor-lines
 
 on:
-  schedule:
-    - cron: '20 */2 * * *'  # רשת-ביטחון דו-שעתית; ההנעה העיקרית — הלב
+  # R71: הקדנס הוסר — התאום ב-Domain (:33) נושא את הקווים. גיבוי ידני בלבד.
   workflow_dispatch:
     inputs:
       mode:

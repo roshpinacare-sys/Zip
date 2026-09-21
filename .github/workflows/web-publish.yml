@@ -17,8 +17,7 @@
 name: web-publish
 
 on:
-  schedule:
-    - cron: '*/20 * * * *'
+  # R71: הקדנס הוסר — התאום ב-Domain (:03/:23/:43) מפרסם לשרשרת. גיבוי ידני בלבד.
   workflow_dispatch:
 
 permissions:

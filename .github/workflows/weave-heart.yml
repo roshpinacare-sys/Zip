@@ -30,8 +30,9 @@
 name: weave-heart
 
 on:
-  schedule:
-    - cron: '0 * * * *'  # מחזור שעתי (Task 24) — הרשת חיה 24 פעימות ביום
+  # R71 (2026-09-21, ריבונות המכסה): הקדנס המתוזמן הוסר — התאום הציבורי ב-Domain
+  # (weave-heart :13, דקות Actions בלתי-מוגבלות) הוא המכונה. המקור הזה — גיבוי
+  # להזנקה ידנית בלבד (workflow_dispatch); החזרת הקדנס = קומיט אחד.
   workflow_dispatch:
     inputs:
       mode:
