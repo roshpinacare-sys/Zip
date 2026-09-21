@@ -40,6 +40,7 @@ import { HomeView } from "@/components/weave/views/home-view";
 import { GateView } from "@/components/weave/views/gate-view";
 import { AgentsFleetView } from "@/components/weave/views/agents-fleet-view";
 import { ArrayView } from "@/components/weave/views/array-view";
+import { DefiRouterView } from "@/components/weave/views/defi-router-view";
 import { FlywheelView } from "@/components/weave/views/flywheel-view";
 import { MoneyMarketView } from "@/components/weave/views/money-market-view";
 import { WebNetView } from "@/components/weave/views/webnet-view";
@@ -90,6 +91,8 @@ function SectionBody({ view, section, query }: Route) {
       return <FlywheelView />;
     case "money-market":
       return <MoneyMarketView />;
+    case "defi":
+      return <DefiRouterView section={section} />;
     case "browser":
       // key לפי הסלאג — מעבר בין קישוריות שמורות מרענן את התצוגה ומשחזר
       return <BrowserView key={query.s ?? "fresh"} sessionSlug={query.s} />;

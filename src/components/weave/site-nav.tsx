@@ -32,6 +32,7 @@ import {
   Repeat,
   ShieldCheck,
   Users,
+  Waypoints,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -53,6 +54,7 @@ export type SiteView =
   | "array"
   | "flywheel"
   | "money-market"
+  | "defi"
   | "browser"
   | "domains"
   | "home"
@@ -77,6 +79,17 @@ export const SECTIONS: Array<{
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
   { view: "money-market", label: "שוק-הכספים", icon: Landmark, subs: [] },
+  {
+    view: "defi",
+    label: "נתיבי DeFi",
+    icon: Waypoints,
+    subs: [
+      { key: "router", label: "מנוע הניתוב" },
+      { key: "tools", label: "מפת הכלים" },
+      { key: "agents", label: "סוכני-המשתמשים" },
+      { key: "bridges", label: "גשרים לרשתות" },
+    ],
+  },
   { view: "browser", label: "דפדפן סוכנים", icon: Compass, subs: [] },
   { view: "domains", label: "דומיינים", icon: Network, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
