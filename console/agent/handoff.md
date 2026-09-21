@@ -49,13 +49,31 @@ live site, hourly at :07 - the home went LIVE 2026-09-20 ~02:22Z, so it measures
 now is a true outage, never a PRE-LIVE verdict), agent-verify (measures the agent, every 2h at :55,
 53 assertions), dex-watch (deposits on four chains, every 20 min), agents-watch (the fleet registry,
 hourly at :37, reads all 15 repos through the AGENTS_WATCH_TOKEN secret in the Actions vault),
-money-watch (the money path, every 15 min), moment-watch (market-regime reading, every 30 min at
-:12/:42 - measures its own calls, resolved only), dex-mirror (hourly at :52, keyless - keeps the
-served dex books fresh from the live public Console mirror), weave-mirror (hourly at :57, keyless -
-keeps the served weave books mirror.json/saos-live.json fresh from the live Console home; gate G12
-measures age and twin-lag), key-verify (dormant until the operator
-adds the HEADCORNER secret; refuses honestly without it), bootstrap-pages (documented 403 evidence
-+ retry button). The secret lives only in the vault - never in code, logs or receipts.
+money-watch (the money path, every 15 min; on fuel landing it dispatches BOTH the
+sovereign saos-dex grid and the public dex-grid twin - the private dispatch dies with
+the quota, the twin carries the fuel), moment-watch (market-regime reading, every 30
+min at :12/:42 - measures its own calls, resolved only), dex-mirror (hourly at :52,
+keyless - keeps the served dex books fresh from the live public Console mirror),
+weave-mirror (hourly at :57, keyless - keeps the served weave books
+mirror.json/saos-live.json fresh from the live Console home; gate G12 measures age
+and twin-lag), key-verify (dormant until the operator
+adds the HEADCORNER secret; refuses honestly without it), bootstrap-pages (documented
+403 evidence + retry button). The secret lives only in the vault - never in code,
+logs or receipts.
+
+The machine twins (OL-14 healing; r67 + r68, all on free public minutes, each
+checking out its sovereign home via ZIP_PAT and pushing back to the one canonical
+book): weave-heart (hourly :13 - refuses honestly until WEAVE_SEAL_PASSPHRASE),
+weave-anchor-lines (bi-hourly :33 - same seal gate), web-publish (every 20 min at
+:03/:23/:43 - green no-op without mail, honest no-wif skip), weave-ecosystem (daily
+06:30 - verified end-to-end: dup beacon committed to Zip from this twin),
+dex-beat (bi-hourly :53 - SECRETLESS for the operator: revives the dex engine and
+world.json on vault PATs alone; shift-guarded: if the sovereign original succeeded
+within 3h the twin verifies only), dex-grid (daily 03:48 - refuses honestly until
+STEEM_ACTIVE_WIF, because a keyless run would falsely publish DISARMED-NO-KEY while
+the true state is armed in the private vault; shift-guarded on schedule, dispatches
+run immediately). Operator's three pending secrets (README "The machine twin"):
+WEAVE_SEAL_PASSPHRASE, WEAVE_STEEM_WIF, STEEM_ACTIVE_WIF.
 
 ## 4. How to work (the loop)
 
