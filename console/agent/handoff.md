@@ -61,19 +61,23 @@ adds the HEADCORNER secret; refuses honestly without it), bootstrap-pages (docum
 403 evidence + retry button). The secret lives only in the vault - never in code,
 logs or receipts.
 
-The machine twins (OL-14 healing; r67 + r68, all on free public minutes, each
-checking out its sovereign home via ZIP_PAT and pushing back to the one canonical
-book): weave-heart (hourly :13 - refuses honestly until WEAVE_SEAL_PASSPHRASE),
-weave-anchor-lines (bi-hourly :33 - same seal gate), web-publish (every 20 min at
-:03/:23/:43 - green no-op without mail, honest no-wif skip), weave-ecosystem (daily
-06:30 - verified end-to-end: dup beacon committed to Zip from this twin),
-dex-beat (bi-hourly :53 - SECRETLESS for the operator: revives the dex engine and
-world.json on vault PATs alone; shift-guarded: if the sovereign original succeeded
-within 3h the twin verifies only), dex-grid (daily 03:48 - refuses honestly until
-STEEM_ACTIVE_WIF, because a keyless run would falsely publish DISARMED-NO-KEY while
-the true state is armed in the private vault; shift-guarded on schedule, dispatches
-run immediately). Operator's three pending secrets (README "The machine twin"):
-WEAVE_SEAL_PASSPHRASE, WEAVE_STEEM_WIF, STEEM_ACTIVE_WIF.
+The machine twins (OL-14 healing; r67 + r68 + r70, all on free public minutes,
+each checking out its sovereign home via ZIP_PAT and pushing back to the one
+canonical book): weave-heart (hourly :13 - seal-gated; the operator delivered
+the passphrase on 2026-09-21T08:28:30Z under the name MAIN_KEY - both names
+accepted, canonical preferred), weave-anchor-lines (bi-hourly :33 - same seal
+gate via either name; with the seal delivered: Steem line honest-dry until
+WEAVE_STEEM_WIF, ZERO line full - it needs nothing beyond the seal), web-publish
+(every 20 min at :03/:23/:43 - green no-op without mail, honest no-wif skip),
+weave-ecosystem (daily 06:30 - verified end-to-end: dup beacon committed to Zip
+from this twin), dex-beat (bi-hourly :53 - SECRETLESS for the operator: revives
+the dex engine and world.json on vault PATs alone; shift-guarded: if the
+sovereign original succeeded within 3h the twin verifies only), dex-grid
+(daily 03:48 - refuses honestly until STEEM_ACTIVE_WIF, because a keyless run
+would falsely publish DISARMED-NO-KEY while the true state is armed in the
+private vault; shift-guarded on schedule, dispatches run immediately).
+Operator's two remaining secrets (README "Secrets status"): WEAVE_STEEM_WIF,
+STEEM_ACTIVE_WIF.
 
 ## 4. How to work (the loop)
 

@@ -9,6 +9,12 @@
 # קבלה כנה (receipts/key-check.json). בהתאמה מלאה בלבד - הוא מאטם את
 # ה-WIF אל כספת ריפו-המנוע (saos-dex/STEEM_ACTIVE_WIF) ומזניק את הגריד.
 #
+# r70 (2026-09-21): המפעיל מסר מפתח לכספת זו תחת השם MAIN_KEY
+# (08:28:30Z). שני השמות מתקבלים: HEADCORNER הקנוני מועדף אם יימסר,
+# MAIN_KEY ככינוי שהמפעיל בחר. מדידת הלב הוכיחה ש-MAIN_KEY אינו סיסמת
+# החותם (BEAT-ERROR אימות, ריצה 35581200547) - הבדיקה הזו היא שתקבע
+# מה המפתח באמת, בפסק-דין כנה ומפורסם.
+#
 # אפשר להפעיל ידנית בכל רגע (workflow_dispatch). הערך עצמו לעולם לא
 # מופיע בלוג, בדיסק או בקבלה.
 
@@ -31,11 +37,12 @@ jobs:
     steps:
       - name: Refuse honestly when the operator key is absent
         env:
-          HEADCORNER: ${{ secrets.HEADCORNER }}
+          HEADCORNER: ${{ secrets.HEADCORNER || secrets.MAIN_KEY }}
         run: |
           if [ -z "$HEADCORNER" ]; then
-            echo "HEADCORNER is not set in this repository's vault (Settings > Secrets and variables > Actions)."
-            echo "The operator adds it; the machine refuses to run without it - honestly, without touching anything."
+            echo "Neither HEADCORNER nor MAIN_KEY is set in this repository's vault (Settings > Secrets and variables > Actions)."
+            echo "The canonical name is preferred; MAIN_KEY is the operator's delivered alias (2026-09-21, both accepted)."
+            echo "The operator adds the key; the machine refuses to run without it - honestly, without touching anything."
             exit 1
           fi
 
@@ -52,7 +59,7 @@ jobs:
 
       - name: Verify the operator key against the live chain
         env:
-          HEADCORNER: ${{ secrets.HEADCORNER }}
+          HEADCORNER: ${{ secrets.HEADCORNER || secrets.MAIN_KEY }}
           AGENTS_WATCH_TOKEN: ${{ secrets.AGENTS_WATCH_TOKEN }}
           SODIUM_DIR: /tmp/sodium
         run: node agents/key-verify.mjs
@@ -74,9 +81,9 @@ jobs:
               git commit -m "key-verify: ${VERDICT} · $(date -u +%Y-%m-%dT%H:%M:%SZ)"
               git pull --rebase origin main
               if git push; then echo "receipt published (attempt ${attempt})"; exit 0; fi
-              echo "push failed (attempt ${attempt}); resetting to origin"
-              git checkout -- .
-              git reset --hard origin/main
+              echo "push failed (attempt ${attempt}); soft-resetting to origin (the receipt stays staged - r70 F-2 fix, never re-run the verifier in a retry: it has vault side effects)"
+              git fetch origin
+              git reset --soft origin/main
             done
             echo "ERROR: could not publish the receipt after 3 attempts"
             exit 1
