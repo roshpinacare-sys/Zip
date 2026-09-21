@@ -1,26 +1,37 @@
 {
-  "at": "2026-09-21T19:22:05.362Z",
+  "at": "2026-09-21T20:07:20.103Z",
   "runner": "github-actions",
-  "mode": "NO-WIF (honest dry — key not in env)",
-  "payload": {
-    "protocol": "saos-weave-core/v1",
-    "action": "checkpoint",
-    "at": "2026-09-21T19:22:05.362Z",
-    "net": "weave-core",
-    "repo": "roshpinacare-sys/Domain",
-    "checkpoint": 300,
-    "root": "0xec60906348f13c7c0512259f47640a0aea8e76bf140f69788ce4c528101172a5",
-    "attFrom": 307,
-    "attTo": 307,
-    "attestations": 307,
-    "headHash": "0xec60906348f13c7c0512259f47640a0aea8e76bf140f69788ce4c528101172a5",
-    "commit": "ba688bb"
+  "mode": "ANCHORED",
+  "checkpoint": {
+    "index": 301,
+    "root": "0xcfc7657b6d3458c8d7289f27faed34318598f7419e97a18c1fd922b23efb8635",
+    "attFrom": 308,
+    "attTo": 308
   },
-  "note": "לא שודר דבר; לא נכתבה עדות. הוכחה או לא קרה.",
+  "txids": {
+    "steem": "3e7fa2cc6371a5d56a865a0a35ba14242ba8b95d",
+    "hive": null
+  },
+  "hiveSkipped": null,
+  "notes": [
+    "hive: missing required posting authority:s.check_authority( id ): Missing Posting Authority headcornerTransaction failed to validate using both ne"
+  ],
+  "attSeq": 309,
+  "nextCheckpoint": {
+    "index": 302,
+    "root": "0x6c70eddd3399e8dcb2b8ad6b3e744849d35ab51012ae1aa32098551c7fc89395"
+  },
+  "market": {
+    "settled": [],
+    "refunded": [],
+    "attSeqs": [],
+    "checkpoint": null
+  },
+  "attestations": 309,
   "context": {
     "runner": "github-actions",
-    "gitHead": "ba688bb",
+    "gitHead": "57ef073",
     "repoSlug": "roshpinacare-sys/Domain",
-    "runUrl": "https://github.com/roshpinacare-sys/Domain/actions/runs/35644326344"
+    "runUrl": "https://github.com/roshpinacare-sys/Domain/actions/runs/35649048980"
   }
 }
