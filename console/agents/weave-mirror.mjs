@@ -28,8 +28,14 @@
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 
+// R75: status.json joins the mirror set. The witness status is regenerated
+// hourly on the Console home by console-publish (render.mjs, keyless, from
+// the public chain). Until now this home served its founding copy forever -
+// A10 measured STALE here while the live line had already anchored fresh
+// (INS-R75-001 F-1, Domain side). Same doctrine: keyless read, honest age
+// gate, byte-true writes only.
 const SRC = "https://roshpinacare-sys.github.io/Console";
-const FILES = ["mirror.json", "saos-live.json"];
+const FILES = ["mirror.json", "saos-live.json", "status.json"];
 const MAX_SOURCE_AGE_H = 48; // מקור מעופש מזה = צינור מת, לא משקפים אותו
 
 const r2 = (v) => Math.round(v * 100) / 100;
