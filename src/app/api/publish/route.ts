@@ -122,7 +122,7 @@ export interface AutonomyRow {
   id: string;
   name: string;
   does: string;
-  autonomy: "AUTONOMOUS" | "OPERATOR-GATE";
+  autonomy: "AUTONOMOUS" | "POLICY-GATED" | "OPERATOR-GATE";
 }
 
 export interface PublisherState {
@@ -526,9 +526,10 @@ async function composeState(): Promise<PublisherState> {
   };
 
   const autonomy: AutonomyRow[] = [
+    { id: "pulse", name: "הדופק (R80)", does: "שירות עצמאי (פורט 3033) שמחליט מתי לשדר: מקסימום פוסט ליום-UTC, רוטציה דטרמיניסטית, אמת-מועד מהשרשרת — בלי אדם בלולאה", autonomy: "AUTONOMOUS" },
     { id: "foundry", name: "מפעל התוכן", does: "מייצר טיוטות מנתונים חיים — דוח-אמת HE/EN וסיפור-נזילות, מתרעננים בכל קריאה", autonomy: "AUTONOMOUS" },
     { id: "queue", name: "תור הפרסום", does: "שומר כל טיוטה מאושרת ב-DB עם מחזור-חיים מלא וקבלה לכל שידור", autonomy: "AUTONOMOUS" },
-    { id: "broadcast", name: "מנגנון השידור", does: "גוזר את מפתח-ה-posting בזיכרון, מאמת מול הרשות החיה, ומשדר comment חתום ל-api.steemit.com", autonomy: "OPERATOR-GATE" },
+    { id: "broadcast", name: "מנגנון השידור", does: "גוזר את מפתח-ה-posting בזיכרון, מאמת מול הרשות החיה, ומשדר comment חתום ל-api.steemit.com — ההחלטה מתי עברה לדופק", autonomy: "POLICY-GATED" },
     { id: "earnings", name: "מודד הרווחים", does: "קורא יתרות ותגמולים ממתינים מהשרשרת החיה בכל קריאה — אמת, לא תחזית", autonomy: "AUTONOMOUS" },
     { id: "arsenal", name: "ספרן הארסנל", does: "מודד את מלאי Adsmarket מ-GitHub (שמות קבצים בלבד) לקליטה עתידית", autonomy: "AUTONOMOUS" },
   ];

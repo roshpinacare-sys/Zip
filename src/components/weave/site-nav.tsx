@@ -100,6 +100,7 @@ export const SECTIONS: Array<{
     label: "קול הרשת",
     icon: Megaphone,
     subs: [
+      { key: "pulse", label: "הדופק" },
       { key: "channels", label: "הערוצים" },
       { key: "foundry", label: "מפעל התוכן" },
       { key: "queue", label: "תור הפרסום" },

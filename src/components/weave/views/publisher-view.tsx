@@ -20,9 +20,10 @@
 //   · האוטונומיה — מה הסוכן עושה לבד ומה מחכה להחלטת מפעיל.
 // ─────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  Activity,
   AlertTriangle,
   BadgeCheck,
   Bot,
@@ -39,6 +40,7 @@ import {
   RefreshCw,
   Send,
   ShieldCheck,
+  Timer,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -65,7 +67,9 @@ import {
 // ── חוזה הנתונים (משוקף מ-/api/publish) ─────────────────────────────
 
 const API = "/api/publish";
+const AUTONOMY_API = "/api/autonomy";
 const POLL_MS = 90_000;
+const AUTONOMY_POLL_MS = 30_000;
 
 type ChannelState = "LIVE" | "ARMED" | "MISSING";
 
@@ -133,7 +137,65 @@ interface AutonomyRow {
   id: string;
   name: string;
   does: string;
-  autonomy: "AUTONOMOUS" | "OPERATOR-GATE";
+  autonomy: "AUTONOMOUS" | "POLICY-GATED" | "OPERATOR-GATE";
+}
+
+interface PulseHistoryEntry {
+  at: string;
+  utcDay: string;
+  draftId: string;
+  kind: string;
+  title: string;
+  permlink: string;
+  txid: string | null;
+  url: string;
+  attempt: number;
+  canon: { pushed: boolean; path: string; error?: string } | null;
+}
+
+interface PulseStatus {
+  ok: boolean;
+  service: string;
+  version: string;
+  alive: boolean;
+  bootedAt: string;
+  uptimeSec: number;
+  beats: number;
+  checkIntervalSec: number;
+  policy: { maxPerUtcDay: number; rotation: string[]; attemptsBudget: number; truthSource: string };
+  lastPublishUtcDay: string | null;
+  nextDueAt: string | null;
+  msToNext: number | null;
+  attemptsToday: number;
+  broadcasting: boolean;
+  lastDecision: { at: string; kind: string; detail: string };
+  canonLast: { at: string; ok: boolean; path: string; error?: string } | null;
+  history: PulseHistoryEntry[];
+}
+
+interface AutonomyData {
+  ok: boolean;
+  at: string;
+  daemon: PulseStatus | null;
+  daemonDown: boolean;
+  daemonDownHe: string | null;
+  receipts: Array<{
+    id: string;
+    title: string;
+    kind: string;
+    lang: string;
+    permlink: string | null;
+    txid: string | null;
+    url: string | null;
+    publishedAt: string | null;
+    by: string;
+  }>;
+  policy: PulseStatus["policy"];
+  doctrine: string[];
+  cached: boolean;
+  stale: boolean;
+  cacheAgeSec: number;
+  refreshing: boolean;
 }
 
 interface PublisherData {
@@ -161,6 +223,7 @@ const SECTION_ANCHORS: Record<string, string> = {
   queue: "publish-queue",
   earnings: "publish-earnings",
   channels: "publish-channels",
+  pulse: "publish-pulse",
   autonomy: "publish-autonomy",
 };
 
@@ -184,6 +247,26 @@ const KIND_LABEL: Record<string, string> = {
   CUSTOM: "מותאם",
 };
 
+const DRAFT_LABEL: Record<string, string> = {
+  "draft-truth-he": "דוח-אמת HE",
+  "draft-liquidity-he": "סיפור-נזילות",
+  "draft-truth-en": "דוח-אמת EN",
+};
+
+function fmtCountdown(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+function fmtUptime(sec: number): string {
+  if (sec < 60) return `${sec} שנ׳`;
+  if (sec < 3600) return `${Math.floor(sec / 60)} דק׳`;
+  return `${Math.floor(sec / 3600)} שע׳ ${Math.floor((sec % 3600) / 60)} דק׳`;
+}
+
 function fmtTime(iso: string | null): string {
   if (!iso) return "—";
   try {
@@ -203,6 +286,8 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
   const [busyDraft, setBusyDraft] = useState<string | null>(null);
   const [confirmTask, setConfirmTask] = useState<QueueTask | null>(null);
   const [broadcasting, setBroadcasting] = useState(false);
+  const [pulseData, setPulseData] = useState<AutonomyData | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
   const alive = useRef(true);
   const anchors = useRef<Record<string, HTMLElement | null>>({});
   const { toast } = useToast();
@@ -236,6 +321,36 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
       clearInterval(t);
     };
   }, [load]);
+
+  // הדופק — מצב חי מ-/api/autonomy (30 שנ׳) + שעון-ספירה לאחור של שנייה
+  const loadAutonomy = useCallback(async () => {
+    try {
+      const res = await fetch(AUTONOMY_API, { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const j = (await res.json()) as AutonomyData;
+      if (alive.current) setPulseData(j);
+    } catch {
+      /* הדופק לא נמדד — יוצג בכנות כשירות שלא ענה */
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadAutonomy();
+    const t = setInterval(() => void loadAutonomy(), AUTONOMY_POLL_MS);
+    return () => clearInterval(t);
+  }, [loadAutonomy]);
+
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 1_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const pulse = pulseData?.daemon ?? null;
+  const msToNext = useMemo(() => {
+    if (!pulse?.nextDueAt) return null;
+    const due = Date.parse(pulse.nextDueAt);
+    return Number.isNaN(due) ? null : due - nowMs;
+  }, [pulse?.nextDueAt, nowMs]);
 
   useEffect(() => {
     if (loading) return;
@@ -777,6 +892,185 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
             </Section>
           </div>
 
+          {/* ── הדופק — שירות השידור האוטונומי ───────────────────── */}
+          <div
+            id="publish-pulse"
+            ref={(el) => {
+              anchors.current["publish-pulse"] = el;
+            }}
+          >
+            <Section
+              title="הדופק — שירות השידור האוטונומי"
+              icon={<Activity className="size-4" />}
+              className="mt-10 scroll-mt-24"
+              description="מי מחליט מתי משדרים: המדיניות, לא האדם. מקסימום פוסט אחד ליום-UTC — בלי אף לחיצת כפתור"
+            >
+              {pulseData == null ? (
+                <Skeleton className="h-48 w-full rounded-xl" />
+              ) : pulse != null ? (
+                <>
+                  <MotionCard className="p-5">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <span className="relative flex size-3" aria-hidden="true">
+                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/60" />
+                        <span className="relative inline-flex size-3 rounded-full bg-emerald-500" />
+                      </span>
+                      <div className="text-sm font-bold">הדופק חי</div>
+                      <Badge variant="outline" dir="ltr" className="font-mono text-[10px]">
+                        v{pulse.version}
+                      </Badge>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] text-muted-foreground">
+                        <span>פעימות: {pulse.beats}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>פיקוח כל {pulse.checkIntervalSec} שנ׳</span>
+                        <span aria-hidden="true">·</span>
+                        <span>חי {fmtUptime(pulse.uptimeSec)}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>ניסיונות היום {pulse.attemptsToday}/{pulse.policy.attemptsBudget}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                      {pulse.broadcasting ? (
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="size-6 animate-spin text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                          <div>
+                            <div className="text-sm font-bold">משדר כעת לשרשרת…</div>
+                            <div className="text-[12px] text-muted-foreground">הקול גוזר את המפתח בזיכרון ומאמת מול הרשות החיה לפני השידור</div>
+                          </div>
+                        </div>
+                      ) : msToNext != null && msToNext > 0 ? (
+                        <>
+                          <div>
+                            <div className="text-[12px] text-muted-foreground">השידור האוטונומי הבא בעוד (UTC)</div>
+                            <div className="font-mono text-3xl font-bold tabular-nums text-emerald-700 dark:text-emerald-400" dir="ltr">
+                              {fmtCountdown(msToNext)}
+                            </div>
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            חלון: {pulse.nextDueAt ? fmtTime(pulse.nextDueAt) : "—"} · פורסם לאחרונה: {pulse.lastPublishUtcDay ?? "מעולם"}
+                          </div>
+                        </>
+                      ) : msToNext != null && msToNext <= 0 ? (
+                        <div>
+                          <div className="text-sm font-bold text-emerald-700 dark:text-emerald-400">בחלון השידור כעת — הדופק יתפוס אותו בפעימה הקרובה</div>
+                          <div className="text-[12px] text-muted-foreground">ניסיונות היום: {pulse.attemptsToday}/{pulse.policy.attemptsBudget}</div>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">קורא אמת מהשרשרת (last_root_post) — עוד רגע נמדד החלון הבא…</div>
+                      )}
+                      <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                        <Timer className="size-3.5" aria-hidden="true" />
+                        מדיניות 1/יום-UTC
+                      </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {pulse.policy.rotation.map((r) => (
+                        <Badge key={r} variant="outline" className="gap-1 text-[10px]">
+                          <RefreshCw className="size-3" aria-hidden="true" />
+                          {DRAFT_LABEL[r] ?? r}
+                        </Badge>
+                      ))}
+                      <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                        אמת: {pulse.policy.truthSource}
+                      </Badge>
+                    </div>
+
+                    <div className="mt-3 rounded-lg border bg-muted/30 p-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px]",
+                            pulse.lastDecision.kind === "BROADCAST-OK"
+                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                              : pulse.lastDecision.kind === "BROADCAST-FAIL"
+                                ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400"
+                                : pulse.lastDecision.kind.startsWith("WAIT")
+                                  ? "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-400"
+                                  : "",
+                          )}
+                        >
+                          החלטה אחרונה · {pulse.lastDecision.kind}
+                        </Badge>
+                        <span className="font-mono text-[10px] text-muted-foreground">{fmtTime(pulse.lastDecision.at)}</span>
+                      </div>
+                      <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{pulse.lastDecision.detail}</p>
+                    </div>
+                  </MotionCard>
+
+                  {pulse.history.length > 0 ? (
+                    <div className="mt-4 overflow-hidden rounded-xl border">
+                      <div className="border-b bg-muted/40 px-4 py-2.5 text-sm font-bold">שידורי הדופק — קבלות חיות</div>
+                      <div className="max-h-72 overflow-y-auto">
+                        <table className="w-full text-[12px]">
+                          <thead>
+                            <tr className="border-b bg-muted/20 text-muted-foreground">
+                              <th className="px-3 py-2 text-start font-medium">מועד (UTC)</th>
+                              <th className="px-3 py-2 text-start font-medium">טיוטה</th>
+                              <th className="px-3 py-2 text-start font-medium">קבלה</th>
+                              <th className="px-3 py-2 text-start font-medium">קנון</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {pulse.history.map((h) => (
+                              <tr key={h.permlink} className="border-b last:border-b-0">
+                                <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">{fmtTime(h.at)}</td>
+                                <td className="px-3 py-2">{DRAFT_LABEL[h.draftId] ?? h.draftId}</td>
+                                <td className="max-w-56 px-3 py-2">
+                                  <a
+                                    href={h.url}
+                                    target="_blank"
+                                    rel="noreferrer noopener"
+                                    className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-400"
+                                  >
+                                    {h.permlink.length > 34 ? `${h.permlink.slice(0, 34)}…` : h.permlink}
+                                    <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
+                                  </a>
+                                  {h.txid ? <div className="font-mono text-[10px] text-muted-foreground">txid {h.txid.slice(0, 18)}…</div> : null}
+                                </td>
+                                <td className="px-3 py-2">
+                                  {h.canon?.pushed ? (
+                                    <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-700 dark:text-emerald-400">
+                                      נדחף
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-700 dark:text-amber-400">
+                                      לא נדחף
+                                    </Badge>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-[12px] text-muted-foreground">
+                      לדופק עצמו עוד אין שידורים — הפוסט הראשון של הסוכן (R79) שודר בלחיצת כפתור. החל מעכשיו, החלונות הבאים של הדופק.
+                    </p>
+                  )}
+
+                  {pulse.canonLast ? (
+                    <p className="mt-2 font-mono text-[11px] text-muted-foreground">
+                      קנון אחרון: {pulse.canonLast.path} · {pulse.canonLast.ok ? "נדחף" : `נכשל (${pulse.canonLast.error ?? "—"})`} · {fmtTime(pulse.canonLast.at)}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <MotionCard className="flex items-start gap-3 border-amber-500/30 bg-amber-500/5 p-4">
+                  <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                  <div>
+                    <div className="text-sm font-bold">הדופק לא נמדד בסנדבוקס הזה</div>
+                    <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{pulseData.daemonDownHe}</p>
+                  </div>
+                </MotionCard>
+              )}
+            </Section>
+          </div>
+
           {/* ── האוטונומיה ────────────────────────────────────────── */}
           <div
             id="publish-autonomy"
@@ -798,17 +1092,29 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                         "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border",
                         a.autonomy === "AUTONOMOUS"
                           ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+                          : a.autonomy === "POLICY-GATED"
+                            ? "border-teal-500/30 bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                            : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
                       )}
                       aria-hidden="true"
                     >
-                      {a.autonomy === "AUTONOMOUS" ? <Bot className="size-4" /> : <DoorOpen className="size-4" />}
+                      {a.autonomy === "AUTONOMOUS" ? (
+                        <Bot className="size-4" />
+                      ) : a.autonomy === "POLICY-GATED" ? (
+                        <Timer className="size-4" />
+                      ) : (
+                        <DoorOpen className="size-4" />
+                      )}
                     </span>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-bold">{a.name}</h3>
                         <Badge variant="outline" dir="rtl" className="text-[10px]">
-                          {a.autonomy === "AUTONOMOUS" ? "אוטונומי לחלוטין" : "שער-מפעיל"}
+                          {a.autonomy === "AUTONOMOUS"
+                            ? "אוטונומי לחלוטין"
+                            : a.autonomy === "POLICY-GATED"
+                              ? "אוטונומי לפי מדיניות"
+                              : "שער-מפעיל"}
                         </Badge>
                       </div>
                       <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{a.does}</p>
