@@ -340,9 +340,14 @@ async function composeTreasury() {
     }
   }
   let hiveUsd = 0;
+  let hiveVestingUsd = 0;
   if (hive && usd("HIVE")) {
     for (const a of hive.accounts) {
-      hiveUsd += a.hive * (usd("HIVE") ?? 0) + a.hbd * (usd("HBD") ?? 0) + a.hp * (usd("HIVE") ?? 0);
+      // R84 fix: HP is VESTING, not liquid — counting it in liquid made any
+      // HIVE price noise fake "money movement" (measured live: $11.38 → $2.09
+      // with zero on-chain activity; SOL addresses have 0 signatures ever).
+      hiveUsd += a.hive * (usd("HIVE") ?? 0) + a.hbd * (usd("HBD") ?? 0);
+      hiveVestingUsd += a.hp * (usd("HIVE") ?? 0);
     }
   }
   const tronUsd = tron ? tron.reduce((s, t) => s + t.trx * (usd("TRX") ?? 0), 0) : 0;
@@ -356,9 +361,9 @@ async function composeTreasury() {
     fetchedAt: new Date().toISOString(),
     down: down.length ? down : undefined,
     usd: {
-      total: steemVestingUsd + liquidUsd,
+      total: steemVestingUsd + hiveVestingUsd + liquidUsd,
       liquid: liquidUsd,
-      vesting: steemVestingUsd,
+      vesting: steemVestingUsd + hiveVestingUsd,
       missingPrices: ["STEEM", "HIVE", "TRX", "ETH", "SOL", "BTC", "SBD"].filter((k) => usd(k) === null),
     },
     steem: steem ?? undefined,
