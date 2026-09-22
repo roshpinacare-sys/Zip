@@ -826,7 +826,38 @@ export async function POST(req: Request) {
         );
         receipt.placed.push({ orderid, sell, receive, price: Math.round(effPrice * 1e6) / 1e6, txid: res?.id ?? null });
       } catch (e) {
-        noteError(`place level ${i + 1}: ${String((e as Error).message).slice(0, 100)}`);
+        // R87: שידור שעבר את התקרה אינו בהכרח כישלון — השרשרת היא השופטת.
+        // נמדד חי (03:47–03:49Z): הפקודות נוחתות על השרשרת תוך 15–45ש׳
+        // בעוד ה-callback של steem-js מתעכב מעבר לתקרת-ה-45ש׳. לכן אחרי
+        // timeout — סקר-שרשרת קצר לפי orderid: נחתה = מתועדת כהוצבה-ואומתה;
+        // לא נמצאה אחרי 3 סקרים = שגיאה כנה כמקודם. הכסף לא משנה ידיים
+        // בסקר — הוא קריאה בלבד, אותו מקור שה-verify בסוף כבר קורא.
+        let landed = false;
+        for (let poll = 0; poll < 3 && !landed; poll++) {
+          await new Promise((r) => setTimeout(r, 8000));
+          try {
+            const os = await new Promise<any[]>((resolve, reject) =>
+              steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+                err ? reject(err) : resolve(res ?? []),
+              ),
+            );
+            const found = os.find((o: any) => Number(o.orderid) === orderid);
+            if (found) {
+              landed = true;
+              receipt.placed.push({
+                orderid,
+                sell,
+                receive,
+                price: Math.round(effPrice * 1e6) / 1e6,
+                txid: null,
+                confirmedBy: "chain-read",
+              });
+            }
+          } catch {
+            /* סקר שנכשל לא מזיז כלום — השופט הסופי הוא ה-verify בסוף */
+          }
+        }
+        if (!landed) noteError(`place level ${i + 1}: ${String((e as Error).message).slice(0, 100)}`);
       }
       persist(); // קבלה אחרי כל הצבה — לא רק בסוף (לקח הריצה הראשונה)
       await new Promise((r) => setTimeout(r, 400)); // ריווח בין שידורים — נחמד לצומת
