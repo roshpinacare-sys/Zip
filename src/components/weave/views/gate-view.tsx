@@ -126,9 +126,10 @@ interface TreasuryData {
   cached?: boolean;
   cacheAgeSec?: number;
   down?: string[];
-  usd: { total: number; liquid: number; vesting: number; missingPrices: string[] };
+  usd: { total: number; liquid: number; vesting: number; deployed?: number; deployedExit?: number; missingPrices: string[] };
   steem?: {
     accounts: SteemAccountRow[];
+    deployed?: { steem: number; sbd: number; sbdTarget: number; orders: number };
     powerdown: {
       active: boolean;
       weeklySteem: number;
@@ -1059,7 +1060,7 @@ export function GateView() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
                   <CardContent className="p-5">
                     <p className="text-xs text-zinc-500">שווי-כסף אמת (כל השרשרות)</p>
@@ -1067,7 +1068,7 @@ export function GateView() {
                       ${fmtUsd(data?.usd.total)}
                     </p>
                     <p className="mt-1 text-[11px] text-zinc-500">
-                      במחירים חיים מהרגע ({dataAge(data?.fetchedAt ?? new Date().toISOString())})
+                      נזיל + פרוש-בסולם + כלוא — במחירים חיים ({dataAge(data?.fetchedAt ?? new Date().toISOString())})
                     </p>
                   </CardContent>
                 </Card>
@@ -1076,6 +1077,17 @@ export function GateView() {
                     <p className="text-xs text-zinc-500">נזיל כרגע (מימוש מיידי)</p>
                     <p className="mt-1 font-mono text-2xl font-bold text-zinc-100">${fmtUsd(data?.usd.liquid)}</p>
                     <p className="mt-1 text-[11px] text-zinc-500">STEEM, SBD, TRX, אבק-ETH — הכל נזיל</p>
+                  </CardContent>
+                </Card>
+                <Card className="border-emerald-500/25">
+                  <CardContent className="p-5">
+                    <p className="text-xs text-zinc-500">פרוש בסולם-המכירה — עובד עכשיו</p>
+                    <p className="mt-1 font-mono text-2xl font-bold text-emerald-300">${fmtUsd(data?.usd.deployed ?? 0)}</p>
+                    <p className="mt-1 text-[11px] text-zinc-500">
+                      {data?.steem?.deployed?.steem != null && data.steem.deployed.steem > 0
+                        ? `${fmtNum(data.steem.deployed.steem, 3)} STEEM ב-${data.steem.deployed.orders} פקודות · יציאה מלאה ${fmtUsd(data.usd.deployedExit ?? 0)}$`
+                        : "המוביל מחזיק את הסולם על קו-הפאריטה — כל דלק נכנס נפרש מיד"}
+                    </p>
                   </CardContent>
                 </Card>
                 <Card>

@@ -121,9 +121,60 @@ async function steemSide() {
     const received = parseFloat(a.received_vesting_shares) * perVest;
     return { name: a.name, steem, sbd, sp, receivedSp: received };
   });
+  // R85 fix: הכסף הפרוס בסולם-המכירה (פקודות פתוחות) חדל להיות בלתי-נראה.
+  // "דולר בנזיל = דולר אמיתי" — ודולר בפקודה חיה הוא דולר עובד: הוא נספר,
+  // בדלי משלו, לעולם לא ב"נזיל" (ביטול אפשרי אבל הוא לא מזומן עכשיו).
+  const orderLists = await Promise.all(
+    rows.map(async (r) => {
+      if (r.steem <= 0 && r.sbd <= 0) return [];
+      try {
+        const os = await rpcCall(
+          "https://api.steemit.com",
+          "condenser_api.get_open_orders",
+          [r.name],
+        );
+        return (os ?? []).map((o: any) => {
+          const forSale = Number(o.for_sale) / 1000;
+          const base = String(o.sell_price?.base ?? "");
+          const quote = String(o.sell_price?.quote ?? "");
+          const asset = base.endsWith("STEEM") ? "STEEM" : base.endsWith("SBD") ? "SBD" : null;
+          const quoteAsset = quote.endsWith("SBD") ? "SBD" : quote.endsWith("STEEM") ? "STEEM" : null;
+          const quoteAmt = parseFloat(quote) || 0;
+          return {
+            account: r.name,
+            orderid: o.orderid,
+            asset,
+            forSale,
+            quoteAsset,
+            quoteAmt,
+            created: o.created ?? null,
+          };
+        });
+      } catch {
+        return []; // ארנק שלא ענה לא נספר — דוקטרינת האמת
+      }
+    }),
+  );
+  const openOrders = orderLists.flat();
+  const deployedSteem = openOrders
+    .filter((o) => o.asset === "STEEM")
+    .reduce((s, o) => s + o.forSale, 0);
+  const deployedSbd = openOrders
+    .filter((o) => o.asset === "SBD")
+    .reduce((s, o) => s + o.forSale, 0);
+  const sbdTarget = openOrders
+    .filter((o) => o.asset === "STEEM" && o.quoteAsset === "SBD")
+    .reduce((s, o) => s + o.quoteAmt, 0);
   return {
     perVest,
     accounts: rows,
+    deployed: {
+      steem: deployedSteem,
+      sbd: deployedSbd,
+      sbdTarget,
+      orders: openOrders.length,
+      detail: openOrders,
+    },
     powerdown: {
       active: paymentsLeft > 0 && next !== null && next.getTime() > Date.now(),
       weeklySteem: rate * perVest,
@@ -355,14 +406,26 @@ async function composeTreasury() {
   const solUsd = sol ? sol.reduce((s, x) => s + x.sol * (usd("SOL") ?? 0), 0) : 0;
   const btcUsd = btc ? btc.reduce((s, x) => s + x.btc * (usd("BTC") ?? 0), 0) : 0;
 
+  // R85: הכסף הפרוש בסולם — דלי-אמת משלו. שווי-שוק של הנכס הכלוא בפקודות
+  // (ניתן לביטול, לכן שוויו = השוק החי שלו), וכן שווי-היציאה אם כל הסולם ימולא.
+  let steemDeployedUsd = 0;
+  let steemDeployedExitUsd = 0;
+  if (steem?.deployed && steemPrice) {
+    steemDeployedUsd =
+      steem.deployed.steem * steemPrice + steem.deployed.sbd * (usd("SBD") ?? 0);
+    steemDeployedExitUsd = steem.deployed.sbdTarget * (usd("SBD") ?? 0);
+  }
+  const deployedUsd = steemDeployedUsd;
   const liquidUsd = steemLiquidUsd + hiveUsd + tronUsd + evmUsd + solUsd + btcUsd;
   const data = {
     ok: down.length === 0,
     fetchedAt: new Date().toISOString(),
     down: down.length ? down : undefined,
     usd: {
-      total: steemVestingUsd + hiveVestingUsd + liquidUsd,
+      total: steemVestingUsd + hiveVestingUsd + liquidUsd + deployedUsd,
       liquid: liquidUsd,
+      deployed: deployedUsd,
+      deployedExit: steemDeployedExitUsd,
       vesting: steemVestingUsd + hiveVestingUsd,
       missingPrices: ["STEEM", "HIVE", "TRX", "ETH", "SOL", "BTC", "SBD"].filter((k) => usd(k) === null),
     },
