@@ -1,15 +1,15 @@
 {
   "format": "agent-bridgehead-state-v1",
   "version": 3,
-  "generatedAt": "2026-09-22T02:45:00Z",
+  "generatedAt": "2026-09-22T03:20:00Z",
   "agent": "sovereign-agent (any Z.ai session — identity is the role, not the instance)",
   "phase": "full-fleet-coverage",
-  "currentTask": "R83 delivered: GRID-PULSE — the sovereign keyless grid mirror (agents/grid-pulse.mjs + .github/workflows/grid-pulse.yml on the PUBLIC Console repo, where Actions minutes are free forever). Root cause chain, all measured: A34 red (grid.json 45.5h stale) -> original grid-beat engine dead with private-repo minutes (canary run 35677269787: failure, 0 steps) -> the sovereign answer per the operator's law: measure the grid truth keylessly from public RPCs (Steem account/book/orders/fills + 3-layer USD marks: binance->coingecko->money.json) and publish twice daily — signs nothing, needs no secrets, every number recomputable by anyone. Ledger continuity honest: mover placements observed on-chain (txid null, chain is the witness), vanished-without-fill orders marked cancelled-at-detection, counters continue (12 placed / 9 cancelled / 1 filled). Proof: run 35680203063 success · grid.json live 02:38:41Z ARMED-LIVE 3 orders parity 0.118236 · agent-verify 49/49 ALL_PASS (OL-2 closed) · public money.html renders the fresh external-flow card. Money live at delivery: 476.637 STEEM in ladder, 0.000 idle, mover acted 3x today (last drag 02:29-02:31Z, T1 parity drift >50bps), powerdown ~475.5 STEEM landing 09-26 (4 left, 1902 remaining), TRON custody 2.000002 TRX (verified on-chain), outbox 0.193/1.05 WAIT. Canon: Defi reports/r83-grid-pulse-2026-09-22.md (commit fdb8c8c38f).",
-  "currentTaskHe": "פעימת הגריד הריבונית: אמת נמדדת-חסרת-מפתחות על הריפו הציבורי — הדקות של הפרטיים לא רלוונטיות עוד לאמת הגריד",
+  "currentTask": "R84 delivered: THE KEEPER (mini-services/keeper :3036) — fleet supervision closes the last structural hole: the three daemons (pulse :3033, money-mover :3034, hunter :3035) lived with no eye watching; a crashed daemon would have stayed dead silently and the money would sit at yesterday's price again ('very bad' per the operator). Iron laws in code: ACTING-LAW (never kill the money-mover mid-action — reads acting flag, waits BUSY), 3-strike failure threshold, 2min restart cooldown, 90s boot grace, 12 restarts/day/daemon budget then honest GAVE-UP, single-loop guard (R80 lesson), restart-counter continuity across keeper reloads (fixed live after detecting the reset), wedge-kill (SIGTERM then SIGKILL before respawn), canon receipts for every RESTART/RECOVERED/GAVE-UP after the secret gate. Golden test measured twice: hunter killed by hand at 03:06Z → keeper detected 3 strikes → revived pid 11893 at 03:07:44Z → RECOVERED 03:08:14Z — dead-to-alive in 96 seconds, zero human touch. One-command revival for any new session: bun run scripts/daemons-revive.mjs (idempotent — verified 4/4 'already alive, untouched', single listener per port). Canon live: Defi reports/keeper-2026-09-22.md (sha 80fb101188) + reports/r84-keeper-2026-09-22.md (commit 65673ac1fb). UI: #/agents/keeper — keeper pulse, live fleet table, iron laws, revival command, decision trail. Browser-verified desktop 1440x900 + iPhone 14 (no h-scroll, sticky footer 844/844, zero page errors), lint clean, 4 evidence screenshots. Money at delivery: 476.637 STEEM in ladder, 0 idle, mover acted 4x today (incl. a 2.4min action at ~03:0xZ), powerdown ~475.5 STEEM on 09-26, TRON custody 2.000002 TRX. Treasury scan rose to ~$294 (11.38 liquid) from $282 (2.10) at 02:44Z — movement registered for next-session examination.",
+  "currentTaskHe": "השומר (R84): עין-הצי — סיור 30ש', חוק הפעולה, החזרה-לחיים ב-96 שנ', ופקודת-החייאה אחת לכל סשן חדש",
   "lastHandoff": {
-    "at": "2026-09-22T02:45:00Z",
-    "by": "r83-grid-pulse session (Z.ai)",
-    "summary": "R83 GRID-PULSE delivered: A34's red mark (grid.json frozen 45.5h, engine dead with minutes) answered with a sovereign keyless mirror on the public repo — agent-verify now 49/49 ALL_PASS. Money verified live: 476.637 STEEM in the parity ladder, 0 idle, mover autonomous (3 actions today, auto-drag on parity drift, fuel auto-deploy law 4)."
+    "at": "2026-09-22T03:20:00Z",
+    "by": "r84-keeper session (Z.ai)",
+    "summary": "R84 KEEPER delivered and golden-tested: hunter killed by hand, keeper revived it autonomously in 96s (3-strike law, wedge cleanup, boot grace). Fleet now: pulse :3033, money :3034, hunter :3035, keeper :3036 — all UP, supervised, canon receipts live on Defi. New-session protocol: bun run scripts/daemons-revive.mjs (idempotent one-command fleet revival). Money verified live: 476.637 STEEM in parity ladder, 0 idle."
   },
   "environment": {
     "sandbox": "/home/z/my-project — ephemeral, resets on new sessions; NEVER the source of truth",
@@ -17,6 +17,7 @@
     "publicRepo": "roshpinacare-sys/Console (public) — GitHub Pages site + agent bridgehead + this state",
     "publicUrl": "https://roshpinacare-sys.github.io/Console/",
     "recovery": [
+      "bun run scripts/daemons-revive.mjs  # R84: revive the daemon fleet (pulse+money+hunter+keeper) — FIRST, it is idempotent",
       "TOKEN=$(cd /home/z/my-project && git remote get-url origin | sed -E 's|https://x-access-token:([^@]+)@.*|\\1|')",
       "git clone https://x-access-token:${TOKEN}@github.com/roshpinacare-sys/Console.git /tmp/console-repo",
       "cd /home/z/my-project && git pull --rebase origin main  (local Zip may lag the cloud — the cloud is primary)",

@@ -152,6 +152,7 @@ export const SECTIONS: Array<{
     icon: Users,
     subs: [
       { key: "fleet", label: "הצי החי" },
+      { key: "keeper", label: "השומר · הדיבונים" },
       { key: "ledger", label: "זהויות בספר" },
     ],
   },

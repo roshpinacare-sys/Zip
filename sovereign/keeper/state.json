@@ -1,0 +1,93 @@
+{
+  "service": "keeper",
+  "version": "1.0.0",
+  "bootedAt": "2026-09-22T03:06:14.970Z",
+  "beats": 18,
+  "patrolIntervalSec": 30,
+  "alive": true,
+  "patrolling": false,
+  "lastDecision": {
+    "at": "2026-09-22T03:08:14.974Z",
+    "kind": "RECOVERED",
+    "detail": "hunter חזר לחיים (היה RESTARTING, עכשיו UP · beats=1)"
+  },
+  "fleet": [
+    {
+      "name": "pulse",
+      "port": 3033,
+      "roleHe": "הדופק — השידור היומי לשרשרת",
+      "roleEn": "The pulse — daily chain broadcast",
+      "state": "UP",
+      "since": "2026-09-22T03:06:14.972Z",
+      "lastCheckAt": "2026-09-22T03:14:44.972Z",
+      "lastHealthyAt": "2026-09-22T03:14:44.972Z",
+      "consecutiveFails": 0,
+      "lastRestartAt": null,
+      "restartsToday": 0,
+      "restartDay": "2026-09-22",
+      "lastBeats": 378,
+      "bootedAtSeen": "2026-09-22T00:05:47.958Z"
+    },
+    {
+      "name": "money",
+      "port": 3034,
+      "roleHe": "מוביל הכסף — סולם הפאריטה על הקו",
+      "roleEn": "The money mover — parity ladder",
+      "state": "UP",
+      "since": "2026-09-22T03:06:14.972Z",
+      "lastCheckAt": "2026-09-22T03:14:44.973Z",
+      "lastHealthyAt": "2026-09-22T03:14:44.973Z",
+      "consecutiveFails": 0,
+      "lastRestartAt": null,
+      "restartsToday": 0,
+      "restartDay": "2026-09-22",
+      "lastBeats": 146,
+      "bootedAtSeen": "2026-09-22T00:48:44.239Z"
+    },
+    {
+      "name": "hunter",
+      "port": 3035,
+      "roleHe": "הצייד — שער הדקות ולוח ההזדמנויות",
+      "roleEn": "The hunter — minutes gate and opportunities",
+      "state": "UP",
+      "since": "2026-09-22T03:08:14.974Z",
+      "lastCheckAt": "2026-09-22T03:14:44.974Z",
+      "lastHealthyAt": "2026-09-22T03:14:44.974Z",
+      "consecutiveFails": 0,
+      "lastRestartAt": "2026-09-22T03:07:44.974Z",
+      "restartsToday": 1,
+      "restartDay": "2026-09-22",
+      "lastBeats": 1,
+      "bootedAtSeen": "2026-09-22T03:07:45.004Z"
+    }
+  ],
+  "canon": {
+    "pushesToday": 2,
+    "day": "2026-09-22",
+    "lastAt": "2026-09-22T03:08:15.360Z",
+    "lastOk": true,
+    "lastPath": "reports/keeper-2026-09-22.md"
+  },
+  "history": [
+    {
+      "at": "2026-09-22T03:06:14.973Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T03:07:44.974Z",
+      "kind": "RESTARTING",
+      "detail": "hunter (3 פסילות רצופות · הפורט ריק (מת)) — מנקה שאריות ומקים מחדש (הקמה 1/12 היום)"
+    },
+    {
+      "at": "2026-09-22T03:07:44.979Z",
+      "kind": "RESTARTING",
+      "detail": "hunter עלה כתהליך 11893 — 90 שנ' חסד לפני פסילה חדשה"
+    },
+    {
+      "at": "2026-09-22T03:08:14.974Z",
+      "kind": "RECOVERED",
+      "detail": "hunter חזר לחיים (היה RESTARTING, עכשיו UP · beats=1)"
+    }
+  ]
+}
