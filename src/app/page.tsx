@@ -44,6 +44,7 @@ import { DefiRouterView } from "@/components/weave/views/defi-router-view";
 import { HoldingsAuditView } from "@/components/weave/views/holdings-audit-view";
 import { FlywheelView } from "@/components/weave/views/flywheel-view";
 import { MoneyMarketView } from "@/components/weave/views/money-market-view";
+import { MoneyMoverView } from "@/components/weave/views/money-mover-view";
 import { PublisherView } from "@/components/weave/views/publisher-view";
 import { WebNetView } from "@/components/weave/views/webnet-view";
 import {
@@ -92,7 +93,8 @@ function SectionBody({ view, section, query }: Route) {
     case "flywheel":
       return <FlywheelView />;
     case "money-market":
-      return <MoneyMarketView />;
+      // המוביל (R81) הוא תת-הסעיף הראשון — שוק-הכספים הקלאסי מאחוריו
+      return section === "markets" ? <MoneyMarketView /> : <MoneyMoverView />;
     case "holdings":
       return <HoldingsAuditView section={section} />;
     case "publish":

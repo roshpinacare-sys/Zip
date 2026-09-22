@@ -82,7 +82,15 @@ export const SECTIONS: Array<{
   { view: "gate", label: "שער המפעיל", icon: DoorOpen, subs: [] },
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
-  { view: "money-market", label: "שוק-הכספים", icon: Landmark, subs: [] },
+  {
+    view: "money-market",
+    label: "שוק-הכספים",
+    icon: Landmark,
+    subs: [
+      { key: "mover", label: "מוביל הכסף" },
+      { key: "markets", label: "שווקי ההלוואות" },
+    ],
+  },
   {
     view: "holdings",
     label: "מאזן ריבוני",

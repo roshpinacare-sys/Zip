@@ -1,11 +1,11 @@
 {
   "format": "agent-bridgehead-state-v1",
   "version": 3,
-  "generatedAt": "2026-09-21T23:35:00Z",
+  "generatedAt": "2026-09-22T01:08:00Z",
   "agent": "sovereign-agent (any Z.ai session — identity is the role, not the instance)",
   "phase": "full-fleet-coverage",
-  "currentTask": "R80 delivered: PULSE — the autonomous publishing daemon (mini-services/pulse, port 3033). Closes the loop the operator ordered ('גוף ריבוני אוטונומי לא תלוי'): the pulse decides WHEN (hard policy: max 1 post/UTC-day, deterministic rotation, honest 3-attempt budget, truth from the chain last_root_post — not local files), the voice (R79 /api/publish) decides HOW (key derived in run-memory, verified bit-for-bit vs live authority), and the key lives in neither. Status proxied keylessly to the UI via /api/autonomy (2.5s honest down-fallback). Sandbox reset at 23:05Z wiped the local DB — the daemon re-derived its truth from the chain and kept waiting for the 2026-09-22T00:00:00Z window. UI: 'הדופק' live panel with ticking countdown, decision trail, receipts, canon state.",
-  "currentTaskHe": "הדופק: שירות השידור האוטונומי — הלולאה נסגרה. הדופק מחליט מתי, הקול מחליט איך, והמפתח לא נמצא באף אחד מהם",
+  "currentTask": "R81 delivered: MONEY-MOVER — the autonomous fuel engine (mini-services/money port 3034 + /api/money + #/money-market/mover). Answers the operator directly: the money that entered (powerdown 475.5 STEEM on 09-19) sat stuck — 389.958 in 3 stale asks priced 226-322bps BELOW the live parity (placed 09-20, never touched since; the grid engine that placed them died with Actions). The mover now: senses the live book/parity every 60s, enforces the parity floor in code (no sale below external USD value — no live mark, no action), ladders 3 levels on the line, drags the ladder on parity moves >50bps, auto-deploys powerdown landings within one cycle, and writes receipts with txids + on-chain verify. Proven autonomously: at 00:48:45Z the daemon acted alone (trigger: idle fuel) — the chain now holds the full 476.637 STEEM ladder at parity/+1%/+2% (get_open_orders: 2026092201-03), daemon in HOLD.",
+  "currentTaskHe": "מוביל הכסף: הדלק לעולם לא יושב — סולם על קו הפאריטה החי, דיבון צד כל דקה, קבלות מהשרשרת",
   "lastHandoff": {
     "at": "2026-09-21T13:10:00Z",
     "by": "r72-seal-adoption session (Z.ai)",
