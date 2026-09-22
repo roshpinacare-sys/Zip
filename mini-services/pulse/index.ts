@@ -10,6 +10,8 @@
 //   · הטיוטה נולדת מנתונים חיים — לא מטקסט מוכן (דוקטרינת המדידה)
 //   · כנות: broadcast שנכשל נרשם כניסיון שנשחק, לא כ"נניח שהצליח"
 //   · קבלה לקנון אחרי פרסום מוצלח, אחרי שער-סודות
+//   · R91 — עוגן-הצ'רטרים: בדיקת סחף כל 5 דק׳; כשנבנה דבר חדש — הוא
+//     מעוגן על Steem (דרך /api/charter/anchor) בלי לחכות לאף אחד
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -19,15 +21,29 @@ const STATE_FILE = `${HOME}/sovereign/pulse/state.json`;
 const PORT = 3033;
 const CHECK_INTERVAL_SEC = 30;
 const PUBLISH_API = "http://127.0.0.1:3000/api/publish";
+const CHARTER_ANCHOR_API = "http://127.0.0.1:3000/api/charter/anchor";
 
 const POLICY = {
   maxPerUtcDay: 1,
   rotation: ["draft-truth-he", "draft-liquidity-he", "draft-truth-en"] as const,
   attemptsBudget: 3,
   truthSource: "api.steemit.com · last_root_post",
+  // R91 — עוגן-הצ'רטרים: בדיקת סחף כל 10 פעימות (5 דק׳) · תקציב 4/יום בדיבון
+  charterCheckEveryBeats: 10,
+  charterAnchorsPerDay: 4,
 };
 
 type Decision = { at: string; kind: string; detail: string };
+
+type CharterAnchorState = {
+  lastAnchorAt: string | null;
+  anchorsToday: number;
+  anchorDay: string;
+  lastRoot: string | null;
+  lastTxid: string | null;
+  anchoring: boolean;
+  lastDecision: Decision | null; // R91: החלטת הצ'רטר האחרונה — לא נדרסת ע"י ה-WAIT של הפרסום
+};
 
 type PulseState = {
   service: string;
@@ -43,7 +59,12 @@ type PulseState = {
   lastDecision: Decision | null;
   canonLast: { at: string; ok: boolean; path: string } | null;
   historyTail: Array<Record<string, unknown>>;
+  charter: CharterAnchorState;
 };
+
+function freshCharterState(): CharterAnchorState {
+  return { lastAnchorAt: null, anchorsToday: 0, anchorDay: utcDay(), lastRoot: null, lastTxid: null, anchoring: false, lastDecision: null };
+}
 
 function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);
@@ -70,13 +91,25 @@ function readState(): PulseState {
     lastDecision: null,
     canonLast: null,
     historyTail: [],
+    charter: freshCharterState(),
   };
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
     const sameDay = prev.lastPublishUtcDay === utcDay();
+    const pc = prev.charter ?? {};
+    const charterSameDay = pc.anchorDay === utcDay();
     return {
       ...base,
       beats: typeof prev.beats === "number" ? prev.beats : 0,
+      charter: {
+        lastAnchorAt: pc.lastAnchorAt ?? null,
+        anchorsToday: charterSameDay ? (pc.anchorsToday ?? 0) : 0,
+        anchorDay: utcDay(),
+        lastRoot: pc.lastRoot ?? null,
+        lastTxid: pc.lastTxid ?? null,
+        anchoring: false, // הנפשה לעולם לא שורדת אתחול
+        lastDecision: pc.lastDecision ?? null,
+      },
       lastPublishUtcDay: prev.lastPublishUtcDay ?? null,
       nextDueAt: prev.nextDueAt ?? nextUtcMidnight(),
       attemptsToday: sameDay ? (prev.attemptsToday ?? 0) : 0,
@@ -231,13 +264,80 @@ async function tryPublish(): Promise<void> {
   }
 }
 
+// ── R91: עוגן-הצ'רטרים — רק כשיש סחף אמיתי ─────────────────────────
+async function tryCharterAnchor(): Promise<void> {
+  state.charter.anchoring = true;
+  saveState();
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 180_000);
+  const setCharterDecision = (kind: string, detail: string) => {
+    state.charter.lastDecision = { at: new Date().toISOString(), kind, detail };
+  };
+  try {
+    // 1) מצב-אמת חי מהשרת — הסחף נמדד שם, לא כאן
+    const st = await fetch(CHARTER_ANCHOR_API, { signal: ctl.signal, cache: "no-store" });
+    const stJ: any = await st.json();
+    if (!st.ok || !stJ?.ok) throw new Error(String(stJ?.error ?? `status ${st.status}`).slice(0, 120));
+    const drift = stJ?.anchor?.drift ?? {};
+    const newCount = Number(drift.newProjects ?? 0) + Number(drift.newEvents ?? 0);
+    if (newCount === 0) {
+      setCharterDecision("CHARTER-COVERED", `המרשם מכוסה — אין סחף מאז העיגון האחרון (שורש …${String(stJ?.anchor?.root ?? "?").slice(-8)})`);
+      saveState();
+      return;
+    }
+
+    // 2) תקציב הדיבון (השרת מאכף 8/יום; הדופק שומר 4/יום — שולי בטחון)
+    if (state.charter.anchorsToday >= POLICY.charterAnchorsPerDay) {
+      setCharterDecision("CHARTER-WAIT-BUDGET", `תקציב העיגון של הדופק מוצה (${state.charter.anchorsToday}/${POLICY.charterAnchorsPerDay}) — הסחף (${newCount}) יכוסה מחר או ידנית`);
+      saveState();
+      return;
+    }
+
+    // 3) העיגון עצמו — השרת שופט (דה-דופ · צינון · posting · היסטוריה)
+    const res = await fetch(CHARTER_ANCHOR_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "anchor" }),
+      signal: ctl.signal,
+    });
+    const j: any = await res.json();
+    if (!res.ok || !j?.ok) throw new Error(String(j?.error ?? `anchor ${res.status}`).slice(0, 140));
+
+    const r = j.result ?? {};
+    state.charter.lastAnchorAt = new Date().toISOString();
+    state.charter.lastRoot = r.root ?? null;
+    state.charter.lastTxid = r.txid ?? null;
+    if (r.status === "ATTESTED") {
+      state.charter.anchorsToday += 1;
+      setCharterDecision("CHARTER-ANCHORED", `עוגן חוץ: …${String(r.root ?? "?").slice(-8)} על ${r.projects} פרויקטים · txid ${r.txid} · att ${r.attSeq}`);
+    } else {
+      setCharterDecision("CHARTER-" + String(r.status ?? "SKIPPED"), String(r.reason ?? "דילוג כנה").slice(0, 140));
+    }
+    saveState();
+  } catch (e: any) {
+    setCharterDecision("CHARTER-ANCHOR-FAIL", `עיגון הצ'רטרים נכשל בכנות: ${String(e?.message ?? e).slice(0, 120)}`);
+    saveState();
+  } finally {
+    clearTimeout(timer);
+    state.charter.anchoring = false;
+    saveState();
+  }
+}
+
 let ticking = false;
 async function tick() {
-  if (ticking || state.broadcasting) return; // לולאה-יחידה
+  if (ticking || state.broadcasting || state.charter.anchoring) return; // לולאה-יחידה
   ticking = true;
   try {
     state.beats += 1;
     const day = utcDay();
+
+    // R91: בדיקת סחף-צ'רטרים כל 10 פעימות (5 דק׳) — לפני לוגיקת הפרסום.
+    // ההחלטה נשמרת ב-charter.lastDecision — לא נדרסת ע"י ה-WAIT שלהלן.
+    if (state.beats % POLICY.charterCheckEveryBeats === 0) {
+      await tryCharterAnchor();
+    }
+
     const windowOpen = state.lastPublishUtcDay !== day;
     if (windowOpen && state.attemptsToday < POLICY.attemptsBudget) {
       await tryPublish();
@@ -251,7 +351,7 @@ async function tick() {
       state.lastDecision = {
         at: new Date().toISOString(),
         kind: "WAIT",
-        detail: `ממתין לחלון הבא (${state.nextDueAt.slice(0, 10)}) · ניסיונות היום ${state.attemptsToday}/${POLICY.attemptsBudget}`,
+        detail: `ממתין לחלון הבא (${state.nextDueAt.slice(0, 10)}) · ניסיונות היום ${state.attemptsToday}/${POLICY.attemptsBudget} · עיגוני צ'רטר ${state.charter.anchorsToday}/${POLICY.charterAnchorsPerDay}`,
       };
     }
     saveState();

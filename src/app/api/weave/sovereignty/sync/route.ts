@@ -25,6 +25,7 @@ function sh(cmd: string): string {
     cwd: ROOT,
     encoding: "utf8",
     timeout: 60_000,
+    maxBuffer: 32 * 1024 * 1024, // R91: הספר חצה את ה-1MB — בלי תקרה הוא נחנק בשקט (ENOBUFS)
     stdio: ["ignore", "pipe", "pipe"],
   }).toString().trim();
 }
@@ -35,6 +36,7 @@ function gitOrNull(cmd: string): string | null {
       cwd: ROOT,
       encoding: "utf8",
       timeout: 30_000,
+      maxBuffer: 32 * 1024 * 1024, // R91: הספר חצה את ה-1MB — בלי תקרה הוא נחנק בשקט (ENOBUFS)
       stdio: ["ignore", "pipe", "pipe"],
     }).toString().trim();
     return out || null;

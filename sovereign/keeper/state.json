@@ -1,13 +1,13 @@
 {
   "service": "keeper",
   "version": "1.1.0",
-  "bootedAt": "2026-09-22T10:15:19.545Z",
-  "beats": 232,
+  "bootedAt": "2026-09-22T13:43:08.345Z",
+  "beats": 270,
   "patrolIntervalSec": 30,
   "alive": true,
   "patrolling": false,
   "lastDecision": {
-    "at": "2026-09-22T10:22:19.555Z",
+    "at": "2026-09-22T14:01:38.354Z",
     "kind": "PATROL",
     "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
   },
@@ -19,15 +19,17 @@
       "roleEn": "The pulse — daily chain broadcast",
       "state": "UP",
       "since": "2026-09-22T03:06:14.972Z",
-      "lastCheckAt": "2026-09-22T10:22:19.553Z",
-      "lastHealthyAt": "2026-09-22T10:22:19.553Z",
+      "lastCheckAt": "2026-09-22T14:01:38.353Z",
+      "lastHealthyAt": "2026-09-22T14:01:38.353Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-22",
-      "lastBeats": 593,
-      "bootedAtSeen": "2026-09-22T10:15:19.529Z",
-      "acting": false
+      "lastBeats": 646,
+      "bootedAtSeen": "2026-09-22T13:49:02.503Z",
+      "acting": false,
+      "intervalSec": 30,
+      "beatsStalePatrols": 0
     },
     {
       "name": "money",
@@ -36,15 +38,17 @@
       "roleEn": "The money mover — parity ladder",
       "state": "UP",
       "since": "2026-09-22T03:06:14.972Z",
-      "lastCheckAt": "2026-09-22T10:22:19.553Z",
-      "lastHealthyAt": "2026-09-22T10:22:19.553Z",
+      "lastCheckAt": "2026-09-22T14:01:38.353Z",
+      "lastHealthyAt": "2026-09-22T14:01:38.353Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-22",
-      "lastBeats": 254,
-      "bootedAtSeen": "2026-09-22T10:20:13.364Z",
-      "acting": false
+      "lastBeats": 273,
+      "bootedAtSeen": "2026-09-22T13:43:08.306Z",
+      "acting": false,
+      "intervalSec": 60,
+      "beatsStalePatrols": 1
     },
     {
       "name": "hunter",
@@ -53,53 +57,20 @@
       "roleEn": "The hunter — minute-gate & opportunities",
       "state": "UP",
       "since": "2026-09-22T03:08:14.974Z",
-      "lastCheckAt": "2026-09-22T10:22:19.553Z",
-      "lastHealthyAt": "2026-09-22T10:22:19.553Z",
+      "lastCheckAt": "2026-09-22T14:01:38.353Z",
+      "lastHealthyAt": "2026-09-22T14:01:38.353Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-22T03:07:44.974Z",
       "restartsToday": 1,
       "restartDay": "2026-09-22",
-      "lastBeats": 16,
-      "bootedAtSeen": "2026-09-22T10:21:35.157Z",
-      "acting": false
+      "lastBeats": 18,
+      "bootedAtSeen": "2026-09-22T13:43:08.335Z",
+      "acting": false,
+      "intervalSec": 600,
+      "beatsStalePatrols": 16
     }
   ],
   "history": [
-    {
-      "at": "2026-09-22T03:06:14.973Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
-    },
-    {
-      "at": "2026-09-22T03:07:44.974Z",
-      "kind": "RESTARTING",
-      "detail": "hunter (3 פסילות רצופות · הפורט ריק (מת)) — מנקה שאריות ומקים מחדש (הקמה 1/12 היום)"
-    },
-    {
-      "at": "2026-09-22T03:07:44.979Z",
-      "kind": "RESTARTING",
-      "detail": "hunter עלה כתהליך 11893 — 90 שנ' חסד לפני פסילה חדשה"
-    },
-    {
-      "at": "2026-09-22T03:08:14.974Z",
-      "kind": "RECOVERED",
-      "detail": "hunter חזר לחיים (היה RESTARTING, עכשיו UP · beats=1)"
-    },
-    {
-      "at": "2026-09-22T03:16:14.973Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
-    },
-    {
-      "at": "2026-09-22T03:26:14.976Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
-    },
-    {
-      "at": "2026-09-22T03:36:14.976Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
-    },
     {
       "at": "2026-09-22T03:46:14.976Z",
       "kind": "PATROL",
@@ -207,6 +178,196 @@
     },
     {
       "at": "2026-09-22T10:22:19.555Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:43:08.360Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:43:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:44:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:44:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:45:08.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:45:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:46:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:46:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:47:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:47:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:48:08.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:48:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:49:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:49:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:50:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:50:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:51:08.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:51:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:52:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:52:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:53:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:53:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:54:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:54:38.358Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:55:08.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:55:38.353Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:56:08.360Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:56:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:57:08.355Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:57:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:58:08.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:58:38.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:59:08.355Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T13:59:38.357Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T14:00:08.355Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T14:00:38.355Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T14:01:08.354Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
+    },
+    {
+      "at": "2026-09-22T14:01:38.354Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP"
     }

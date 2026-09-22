@@ -27,6 +27,7 @@ import {
   RefreshCw,
   Fingerprint,
   Network,
+  Anchor as AnchorIcon,
 } from "lucide-react";
 
 interface CharterProjectDTO {
@@ -36,6 +37,24 @@ interface CharterProjectDTO {
   attestation: { seq: number; entryHash: string } | null;
   artifacts: number;
   createdAt: string;
+}
+
+interface AnchorDTO {
+  root: string;
+  projects: number;
+  events: number;
+  drift: { newProjects: number; newEvents: number; anchoredAt: string | null };
+  lastAnchor: {
+    attSeq: number;
+    root: string;
+    txid: string | null;
+    block: number | null;
+    at: string;
+    claim: string;
+  } | null;
+  onChain: { txid: string; block: number | null; root: string; at: string } | null;
+  verified: boolean | null;
+  keyPresent: boolean;
 }
 
 const STATUS_STYLE: Record<string, string> = {
@@ -76,6 +95,9 @@ export function CharterView() {
   const [issued, setIssued] = useState<{ token: string; address: string; name: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [manifestUrl, setManifestUrl] = useState("");
+  const [anchor, setAnchor] = useState<AnchorDTO | null>(null);
+  const [anchoring, setAnchoring] = useState(false);
+  const [anchorMsg, setAnchorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     setManifestUrl(window.location.origin + "/api/charter");
@@ -88,6 +110,19 @@ export function CharterView() {
         .catch(() => undefined);
     load();
     const t = setInterval(load, 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const loadAnchor = () =>
+      fetch("/api/charter/anchor")
+        .then((r) => r.json())
+        .then((j) => {
+          if (j.ok) setAnchor(j.anchor);
+        })
+        .catch(() => undefined);
+    loadAnchor();
+    const t = setInterval(loadAnchor, 60_000);
     return () => clearInterval(t);
   }, []);
 
@@ -111,6 +146,39 @@ export function CharterView() {
       setIssuing(false);
     }
   }, [builderName, issuing, op]);
+
+  const runAnchor = useCallback(async () => {
+    if (anchoring) return;
+    setAnchoring(true);
+    setAnchorMsg(null);
+    try {
+      const r = await fetch("/api/charter/anchor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "anchor" }),
+      });
+      const j = await r.json();
+      if (j.ok && j.result) {
+        setAnchorMsg(
+          j.result.status === "ATTESTED"
+            ? `העיגון נחת: txid ${j.result.txid} · att ${j.result.attSeq} · ${j.result.projects} פרויקטים`
+            : String(j.result.reason ?? "דילוג כנה"),
+        );
+        fetch("/api/charter/anchor")
+          .then((r2) => r2.json())
+          .then((j2) => {
+            if (j2.ok) setAnchor(j2.anchor);
+          })
+          .catch(() => undefined);
+      } else {
+        setAnchorMsg(String(j.error ?? "העיגון נכשל"));
+      }
+    } catch {
+      setAnchorMsg("הקריאה נכשלה — נסה שוב");
+    } finally {
+      setAnchoring(false);
+    }
+  }, [anchoring]);
 
   const curlExample = useMemo(
     () =>
@@ -255,6 +323,123 @@ export function CharterView() {
                 </div>
               )}
             </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* העוגן החיצוני — Steem (R91) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex flex-wrap items-center gap-2 text-base">
+            <AnchorIcon className="h-4 w-4 text-teal-600" aria-hidden />
+            העוגן החיצוני — Steem
+            {anchor && (
+              <Badge
+                variant="outline"
+                className={
+                  anchor.verified === true
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                    : anchor.verified === false
+                      ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "border-zinc-500/40 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400"
+                }
+              >
+                {anchor.verified === true ? "אומת מהשרשרת" : anchor.verified === false ? "ממתין לאימות" : "טרם עוגן"}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            מצב המרשם נמדד לשורש Merkle ומעוגן על Steem כ-custom_json (posting בלבד). כל שכתוב-שקט של
+            המרשם — גם שלנו — ייחשף בחישוב-מחדש מול השורש שעל השרשרת.
+          </p>
+
+          {anchor === null ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <RefreshCw className="h-4 w-4 animate-spin" aria-hidden /> מודד את מצב העוגן…
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border p-3">
+                <p className="text-xs font-medium text-muted-foreground">השורש החי (עכשיו)</p>
+                <code className="mt-1 block break-all font-mono text-xs" dir="ltr">
+                  {anchor.root}
+                </code>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  מכסה {anchor.projects} פרויקטים · {anchor.events} אירועים
+                </p>
+              </div>
+              <div className="rounded-lg border p-3">
+                <p className="text-xs font-medium text-muted-foreground">העיגון האחרון</p>
+                {anchor.lastAnchor ? (
+                  <div className="mt-1 space-y-1 text-xs">
+                    <p dir="ltr" className="break-all font-mono">
+                      …{anchor.lastAnchor.root.slice(-16)}
+                    </p>
+                    <p className="text-muted-foreground" dir="ltr">
+                      att {anchor.lastAnchor.attSeq} ·{" "}
+                      {new Date(anchor.lastAnchor.at).toISOString().slice(0, 16).replace("T", " ")}Z
+                    </p>
+                    {anchor.lastAnchor.txid && (
+                      <a
+                        href={`https://steemd.com/tx/${anchor.lastAnchor.txid}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-emerald-600 hover:underline"
+                        dir="ltr"
+                      >
+                        txid {anchor.lastAnchor.txid.slice(0, 12)}…{" "}
+                        <ExternalLink className="h-3 w-3" aria-hidden />
+                      </a>
+                    )}
+                    {anchor.lastAnchor.block != null && (
+                      <p className="text-muted-foreground" dir="ltr">
+                        block #{anchor.lastAnchor.block}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-xs text-muted-foreground">טרם עוגן — ההפעלה הראשונה תעגן את המרשם כולו.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {anchor && (
+            <div className="space-y-2">
+              {anchor.drift.newProjects + anchor.drift.newEvents > 0 ? (
+                <p className="rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
+                  נבנה דבר חדש מאז העיגון האחרון: {anchor.drift.newProjects} פרויקטים · {anchor.drift.newEvents} אירועים
+                  — הדופק יעגן אותו בכוחות עצמו בתוך דקות (בדיקה כל 5 דק׳).
+                </p>
+              ) : anchor.lastAnchor ? (
+                <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm">
+                  המרשם מכוסה — שום דבר לא נבנה מאז העיגון האחרון. הדופק ממשיך לבדוק כל 5 דק׳.
+                </p>
+              ) : null}
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Button onClick={runAnchor} disabled={anchoring || !anchor.keyPresent} size="sm">
+                  {anchoring ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <AnchorIcon className="h-4 w-4" aria-hidden />
+                  )}
+                  עגן עכשיו
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  החוקים בקוד: דה-דופ לפי שורש · צינון 15 דק׳ · 8/יום · posting בלבד · אישור מההיסטוריה
+                  {!anchor.keyPresent && " · חסר מפתח-אב בסנדבוקס — שער סגור בכנות"}
+                </span>
+              </div>
+
+              {anchorMsg && (
+                <p className="rounded-lg border bg-muted/50 p-3 text-xs" role="status">
+                  {anchorMsg}
+                </p>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>

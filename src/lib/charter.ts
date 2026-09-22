@@ -235,17 +235,40 @@ export async function publishCanon(
   }
 }
 
-/** קריאת המרשם מהקנון (לריפוי-עצמי אחרי איפוס-סנדבוקס). */
+/** קריאת המרשם מהקנון (לריפוי-עצמי אחרי איפוס-סנדבוקס).
+ *  R91 (באג חי שנתפס): הריפו פרטי — raw ללא PAT מחזיר 404 והריפוי שתק.
+ *  מעתה: ה-Contents API עם ה-PAT (כמו publishCanon), עם נפילה ל-raw
+ *  הציבורי אם יום יבוא והריפו ייפתח. */
 export async function readCanonRegistry(): Promise<unknown | null> {
-  try {
-    const r = await jfetch(
-      `https://raw.githubusercontent.com/${CHARTER.canonRepo}/main/${CHARTER.registryPath}`,
-      { headers: { Accept: "application/json" } },
-      12_000,
+  const tryFetch = async (url: string, headers: Record<string, string>): Promise<unknown | null> => {
+    try {
+      const r = await jfetch(url, { headers }, 15_000);
+      if (!r.ok) return null;
+      // Contents API מחזיר base64 בעטיפת JSON; raw מחזיר את הקובץ עצמו
+      const text = await r.text();
+      try {
+        const wrapped = JSON.parse(text) as { content?: string; encoding?: string };
+        if (wrapped && typeof wrapped.content === "string" && wrapped.encoding === "base64") {
+          return JSON.parse(Buffer.from(wrapped.content, "base64").toString("utf8"));
+        }
+      } catch {
+        /* לא עטיפת Contents — זה כנראה raw */
+      }
+      return JSON.parse(text);
+    } catch {
+      return null;
+    }
+  };
+  const pat = readPat();
+  if (pat) {
+    const viaApi = await tryFetch(
+      `https://api.github.com/repos/${CHARTER.canonRepo}/contents/${CHARTER.registryPath}?ref=main`,
+      ghHeaders(pat),
     );
-    if (!r.ok) return null;
-    return await r.json();
-  } catch {
-    return null;
+    if (viaApi) return viaApi;
   }
+  return tryFetch(
+    `https://raw.githubusercontent.com/${CHARTER.canonRepo}/main/${CHARTER.registryPath}`,
+    { Accept: "application/json" },
+  );
 }

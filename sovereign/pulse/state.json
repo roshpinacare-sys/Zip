@@ -1,8 +1,8 @@
 {
   "service": "pulse",
   "version": "1.1.0",
-  "bootedAt": "2026-09-22T10:15:19.529Z",
-  "beats": 593,
+  "bootedAt": "2026-09-22T13:49:02.503Z",
+  "beats": 646,
   "checkIntervalSec": 30,
   "policy": {
     "maxPerUtcDay": 1,
@@ -12,16 +12,18 @@
       "draft-truth-en"
     ],
     "attemptsBudget": 3,
-    "truthSource": "api.steemit.com · last_root_post"
+    "truthSource": "api.steemit.com · last_root_post",
+    "charterCheckEveryBeats": 10,
+    "charterAnchorsPerDay": 4
   },
   "lastPublishUtcDay": "2026-09-22",
   "nextDueAt": "2026-09-23T00:00:00.000Z",
   "attemptsToday": 0,
   "broadcasting": false,
   "lastDecision": {
-    "at": "2026-09-22T10:22:19.538Z",
+    "at": "2026-09-22T14:01:32.507Z",
     "kind": "WAIT",
-    "detail": "ממתין לחלון הבא (2026-09-23) · ניסיונות היום 0/3"
+    "detail": "ממתין לחלון הבא (2026-09-23) · ניסיונות היום 0/3 · עיגוני צ'רטר 0/4"
   },
   "canonLast": null,
   "historyTail": [
@@ -41,5 +43,18 @@
         "sha": "8a2d37f47e89c8308fdb9f42558d3f461858b4fc"
       }
     }
-  ]
+  ],
+  "charter": {
+    "lastAnchorAt": null,
+    "anchorsToday": 0,
+    "anchorDay": "2026-09-22",
+    "lastRoot": null,
+    "lastTxid": null,
+    "anchoring": false,
+    "lastDecision": {
+      "at": "2026-09-22T13:58:32.808Z",
+      "kind": "CHARTER-COVERED",
+      "detail": "המרשם מכוסה — אין סחף מאז העיגון האחרון (שורש …18e994d5)"
+    }
+  }
 }

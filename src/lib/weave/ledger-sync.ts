@@ -359,6 +359,11 @@ export async function importLedger(snap: LedgerSnapshot): Promise<ImportResult> 
   const localBrain = await db.brainKey.findMany();
 
   // הריסה — סדר זרים-מפתחות זרים קודם
+  // R91: טבלאות הצ'רטר מוחקות ראשונות — הן מחזיקות FK אל Agent
+  // (הן פיגום מקומי; הקנון מרפא אותן מהמרשם מיד אחרי הייבוא)
+  await db.charterEvent.deleteMany();
+  await db.charterProject.deleteMany();
+  await db.builderToken.deleteMany();
   await db.keyOp.deleteMany();
   await db.attestation.deleteMany();
   await db.localAnchor.deleteMany();

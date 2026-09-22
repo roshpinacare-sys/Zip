@@ -321,8 +321,9 @@ export function KeeperView() {
         <FadeIn>
           <MotionCard>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              {/* R91: min-w מוודא שהגלילה נשארת בתוך הכרטיס — אפס גלילת-עמוד במובייל */}
+              <div className="min-w-0 overflow-x-auto">
+                <table className="w-full min-w-[640px] text-sm">
                   <thead>
                     <tr className="border-b bg-muted/40 text-start text-xs text-muted-foreground">
                       <th className="p-3 text-start font-medium">דיבון</th>

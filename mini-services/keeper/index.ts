@@ -14,6 +14,10 @@
 //   · ניקוי נעילות-פורט: SIGTERM→SIGKILL לפני הקמה
 //   · קבלות RESTART/RECOVERED/GAVE-UP לקנון אחרי שער-סודות (8/יום)
 //   · לולאה-יחידה ב-globalThis (לקח R80)
+//   · R91 — חוק הזומבי: HTTP שעונה אך פעימות קפואות = מת. נולד מתקרית
+//     חיה: bun --hot הקפיא את הטיימרים של כל הצי — כולם "UP" בסיור
+//     בזמן שאף אחד לא תיקתק. מעתה: פעימות שלא התקדמו מעבר ל-3× מחזור
+//     הדיבון + חסד = פסילת-זומבי → אותן 3 פסילות ואותה הקמה.
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -44,6 +48,9 @@ type FleetEntry = {
   lastBeats: number | null;
   bootedAtSeen: string | null;
   acting: boolean;
+  // R91 — חוק הזומבי
+  intervalSec: number; // מחזור הפעימה המוצהר של הדיבון
+  beatsStalePatrols: number; // כמה סיורים ברצף בלי התקדמות פעימות
 };
 
 type KeeperState = {
@@ -67,12 +74,12 @@ function utcDay(d = new Date()): string {
 }
 
 function freshFleet(): FleetEntry[] {
-  const defs: Array<[string, number, string, string]> = [
-    ["pulse", 3033, "הדופק — השידור היומי לשרשרת", "The pulse — daily chain broadcast"],
-    ["money", 3034, "מוביל הכסף — סולם הפאריטה על הקו", "The money mover — parity ladder"],
-    ["hunter", 3035, "הצייד — שער הדקות ולוח ההזדמנויות", "The hunter — minute-gate & opportunities"],
+  const defs: Array<[string, number, string, string, number]> = [
+    ["pulse", 3033, "הדופק — השידור היומי לשרשרת", "The pulse — daily chain broadcast", 30],
+    ["money", 3034, "מוביל הכסף — סולם הפאריטה על הקו", "The money mover — parity ladder", 60],
+    ["hunter", 3035, "הצייד — שער הדקות ולוח ההזדמנויות", "The hunter — minute-gate & opportunities", 600],
   ];
-  return defs.map(([name, port, roleHe, roleEn]) => ({
+  return defs.map(([name, port, roleHe, roleEn, intervalSec]) => ({
     name,
     port,
     roleHe,
@@ -88,6 +95,8 @@ function freshFleet(): FleetEntry[] {
     lastBeats: null,
     bootedAtSeen: null,
     acting: false,
+    intervalSec,
+    beatsStalePatrols: 0,
   }));
 }
 
@@ -301,16 +310,51 @@ async function patrol() {
       d.lastHealthyAt = now.toISOString();
       d.lastBeats = r.body?.beats ?? d.lastBeats;
       d.bootedAtSeen = r.body?.bootedAt ?? d.bootedAtSeen;
+      d.beatsStalePatrols = 0; // בפעולה — הפעימות ממתינות כדין
       parts.push(`${d.name}:BUSY`);
       continue;
     }
 
     if (r.ok) {
       const wasDown = d.state !== "UP";
+      // R91 — חוק הזומבי: האם הפעימות התקדמו מאז הסיור הקודם?
+      const beatsNow = typeof r.body?.beats === "number" ? (r.body.beats as number) : null;
+      const bootChanged = !!r.body?.bootedAt && r.body.bootedAt !== d.bootedAtSeen;
+      if (beatsNow === null || beatsNow > (d.lastBeats ?? -1) || bootChanged) {
+        d.beatsStalePatrols = 0; // חי — הפעימות מתקדמות (או אתחול חדש)
+      } else {
+        d.beatsStalePatrols += 1;
+        // תקרה מכובדת: 3× מחזור הדיבון + חסד, ביחידות סיור (30ש')
+        const allowedStale = Math.ceil((d.intervalSec + 120) / PATROL_INTERVAL_SEC) + 1;
+        if (d.beatsStalePatrols > allowedStale) {
+          // זומבי — HTTP עונה אך הטיימר קפוא (לקח bun --hot החי)
+          d.state = "DOWN";
+          d.consecutiveFails += 1;
+          parts.push(`${d.name}:ZOMBIE-${d.consecutiveFails}`);
+          if (d.consecutiveFails >= FAIL_THRESHOLD) {
+            const sinceRestartMs = d.lastRestartAt ? now.getTime() - Date.parse(d.lastRestartAt) : Infinity;
+            if (d.restartDay !== utcDay()) {
+              d.restartDay = utcDay();
+              d.restartsToday = 0;
+            }
+            if (d.restartsToday < DAILY_RESTART_BUDGET && sinceRestartMs >= RESTART_COOLDOWN_MS) {
+              d.state = "RESTARTING";
+              const okR = restartDaemon(d);
+              d.restartsToday += 1;
+              d.lastRestartAt = now.toISOString();
+              d.consecutiveFails = 0;
+              d.beatsStalePatrols = 0;
+              d.since = now.toISOString();
+              record(okR ? "RESTART" : "RESTART-FAIL", `${d.name} (${d.port}): ${okR ? "הוקם — זומבי: פעימות קפואות (hot-reload)" : "ההקמה נכשלה — זומבי"}`, true);
+            }
+          }
+          continue;
+        }
+      }
       d.state = "UP";
       d.consecutiveFails = 0;
       d.lastHealthyAt = now.toISOString();
-      d.lastBeats = r.body?.beats ?? d.lastBeats;
+      d.lastBeats = beatsNow ?? d.lastBeats;
       d.bootedAtSeen = r.body?.bootedAt ?? d.bootedAtSeen;
       if (wasDown && d.since < state.bootedAt) {
         // UNKNOWN→UP בסיור הראשון אינו "החזרה לחיים" — לא מתעדים (לקח R84)
