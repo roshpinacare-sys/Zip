@@ -87,8 +87,10 @@ function spawnDaemon(d) {
   const logDir = `${HOME}/sovereign/keeper/logs`;
   fs.mkdirSync(logDir, { recursive: true });
   const fd = fs.openSync(`${logDir}/${d.name}-revive.log`, "a");
+  // R90 fix: 'bun' is not always in PATH of the dev-server child env —
+  // process.execPath is the absolute bun binary that is running right now.
   const proc = Bun.spawn({
-    cmd: ["bun", "run", "dev"],
+    cmd: [process.execPath, "--hot", "index.ts"],
     cwd: d.dir,
     stdin: "ignore",
     stdout: fd,

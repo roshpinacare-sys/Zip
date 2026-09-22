@@ -57,7 +57,11 @@ sovereign/evidence/*casino*
 # ── פיגומי סנדבוקס שאינם חלק מהרשת ──
 skills/
 examples/
-mini-services/
+# mini-services — R90: הדיבונים הם חלק מהרשת, לא פיגום. הם חייבים לשרוד
+# איפוס-סנדבוקס (לקח R84: "יקומו מהקנון" היה ריק — הקוד מעולם לא היה בריפו).
+# מה שנשאר מחוץ לריפו: הריצה-החיה (node_modules, מצבי-זמן-ריצה מתים).
+mini-services/*/node_modules/
+mini-services/*/dist/
 tests/
 
 # ── build ותלויות ──
