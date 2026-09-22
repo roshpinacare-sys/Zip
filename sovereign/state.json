@@ -1,15 +1,15 @@
 {
   "format": "agent-bridgehead-state-v1",
   "version": 3,
-  "generatedAt": "2026-09-22T01:08:00Z",
+  "generatedAt": "2026-09-22T02:20:00Z",
   "agent": "sovereign-agent (any Z.ai session — identity is the role, not the instance)",
   "phase": "full-fleet-coverage",
-  "currentTask": "R81 delivered: MONEY-MOVER — the autonomous fuel engine (mini-services/money port 3034 + /api/money + #/money-market/mover). Answers the operator directly: the money that entered (powerdown 475.5 STEEM on 09-19) sat stuck — 389.958 in 3 stale asks priced 226-322bps BELOW the live parity (placed 09-20, never touched since; the grid engine that placed them died with Actions). The mover now: senses the live book/parity every 60s, enforces the parity floor in code (no sale below external USD value — no live mark, no action), ladders 3 levels on the line, drags the ladder on parity moves >50bps, auto-deploys powerdown landings within one cycle, and writes receipts with txids + on-chain verify. Proven autonomously: at 00:48:45Z the daemon acted alone (trigger: idle fuel) — the chain now holds the full 476.637 STEEM ladder at parity/+1%/+2% (get_open_orders: 2026092201-03), daemon in HOLD.",
-  "currentTaskHe": "מוביל הכסף: הדלק לעולם לא יושב — סולם על קו הפאריטה החי, דיבון צד כל דקה, קבלות מהשרשרת",
+  "currentTask": "R82 delivered: THE HUNTER — sovereign opportunity engine (mini-services/hunter port 3035 + /api/hunter + #/hunter). We-are-the-audience doctrine: no external users needed. The hunter scans the whole network every 10 min and NEVER waits passively: (1) MINUTES-GATE CANARY — a 1-step echo job (.github/workflows/canary.yml in Defi, cron every 6h + dispatch) probes whether private-repo Actions minutes were restored; the moment it chirps (succeeds), the hunter immediately dispatches Zip's web-publish — the cloud engine flows again in the same cycle. Proof measured 2026-09-22: canary run 35677269787 = failure · 0 steps · 2s (runner never started) while public repos succeeded the same hour (Console/Domain pages-builds green) — the minutes-exhaustion signature, now monitored autonomously. (2) Ranked opportunity board (8): parity trap at 2,200bps, minutes canary, next powerdown landing (~475.5 STEEM on 09-26, auto-deployed by mover), SBD arming 0.044/0.15, TRX redemption 0.193/1.05, daily pulse broadcast, public cloud mirrors (2/2 live), idle-capital scan (0 STEEM outside ladder). (3) Infra truth: 16 repos (14 private + 2 public), public-vs-private run evidence, secrets distribution by name only, live Pages. Canon: Defi reports/r82-hunter-2026-09-22.md (commit 323754e043) + daily hunter receipts; Zip push 41a4a46.",
+  "currentTaskHe": "הצייד: אפס המתנה פסיבית — קנרית בודקת את שער-הדקות כל 6 שעות וברגע הציוץ מנוע-הענן מופעל מיד; לוח הזדמנויות חי ומדורג",
   "lastHandoff": {
-    "at": "2026-09-21T13:10:00Z",
-    "by": "r72-seal-adoption session (Z.ai)",
-    "summary": "The operator's delivered master key adopted as the seal passphrase (seal-adopt machine, run 35602602107, commit ff3260a); the weave ledger resumed 293 to 297 with the ZERO anchor on-chain; twins run at full seal capability on public minutes."
+    "at": "2026-09-22T02:20:00Z",
+    "by": "r82-hunter session (Z.ai)",
+    "summary": "R82 THE HUNTER delivered: autonomous opportunity engine + minutes-gate canary (probes private-repo Actions every 6h, re-arms web-publish the moment it chirps); live hunter board at #/hunter; canary workflow live in Defi; R81 money-mover ladder verified alive on-chain (476.637 STEEM at parity/+1%/+2%, order age ~1h, daemon HOLD)."
   },
   "environment": {
     "sandbox": "/home/z/my-project — ephemeral, resets on new sessions; NEVER the source of truth",
