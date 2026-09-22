@@ -1,15 +1,15 @@
 {
   "format": "agent-bridgehead-state-v1",
   "version": 3,
-  "generatedAt": "2026-09-22T02:20:00Z",
+  "generatedAt": "2026-09-22T02:45:00Z",
   "agent": "sovereign-agent (any Z.ai session — identity is the role, not the instance)",
   "phase": "full-fleet-coverage",
-  "currentTask": "R82 delivered: THE HUNTER — sovereign opportunity engine (mini-services/hunter port 3035 + /api/hunter + #/hunter). We-are-the-audience doctrine: no external users needed. The hunter scans the whole network every 10 min and NEVER waits passively: (1) MINUTES-GATE CANARY — a 1-step echo job (.github/workflows/canary.yml in Defi, cron every 6h + dispatch) probes whether private-repo Actions minutes were restored; the moment it chirps (succeeds), the hunter immediately dispatches Zip's web-publish — the cloud engine flows again in the same cycle. Proof measured 2026-09-22: canary run 35677269787 = failure · 0 steps · 2s (runner never started) while public repos succeeded the same hour (Console/Domain pages-builds green) — the minutes-exhaustion signature, now monitored autonomously. (2) Ranked opportunity board (8): parity trap at 2,200bps, minutes canary, next powerdown landing (~475.5 STEEM on 09-26, auto-deployed by mover), SBD arming 0.044/0.15, TRX redemption 0.193/1.05, daily pulse broadcast, public cloud mirrors (2/2 live), idle-capital scan (0 STEEM outside ladder). (3) Infra truth: 16 repos (14 private + 2 public), public-vs-private run evidence, secrets distribution by name only, live Pages. Canon: Defi reports/r82-hunter-2026-09-22.md (commit 323754e043) + daily hunter receipts; Zip push 41a4a46.",
-  "currentTaskHe": "הצייד: אפס המתנה פסיבית — קנרית בודקת את שער-הדקות כל 6 שעות וברגע הציוץ מנוע-הענן מופעל מיד; לוח הזדמנויות חי ומדורג",
+  "currentTask": "R83 delivered: GRID-PULSE — the sovereign keyless grid mirror (agents/grid-pulse.mjs + .github/workflows/grid-pulse.yml on the PUBLIC Console repo, where Actions minutes are free forever). Root cause chain, all measured: A34 red (grid.json 45.5h stale) -> original grid-beat engine dead with private-repo minutes (canary run 35677269787: failure, 0 steps) -> the sovereign answer per the operator's law: measure the grid truth keylessly from public RPCs (Steem account/book/orders/fills + 3-layer USD marks: binance->coingecko->money.json) and publish twice daily — signs nothing, needs no secrets, every number recomputable by anyone. Ledger continuity honest: mover placements observed on-chain (txid null, chain is the witness), vanished-without-fill orders marked cancelled-at-detection, counters continue (12 placed / 9 cancelled / 1 filled). Proof: run 35680203063 success · grid.json live 02:38:41Z ARMED-LIVE 3 orders parity 0.118236 · agent-verify 49/49 ALL_PASS (OL-2 closed) · public money.html renders the fresh external-flow card. Money live at delivery: 476.637 STEEM in ladder, 0.000 idle, mover acted 3x today (last drag 02:29-02:31Z, T1 parity drift >50bps), powerdown ~475.5 STEEM landing 09-26 (4 left, 1902 remaining), TRON custody 2.000002 TRX (verified on-chain), outbox 0.193/1.05 WAIT. Canon: Defi reports/r83-grid-pulse-2026-09-22.md (commit fdb8c8c38f).",
+  "currentTaskHe": "פעימת הגריד הריבונית: אמת נמדדת-חסרת-מפתחות על הריפו הציבורי — הדקות של הפרטיים לא רלוונטיות עוד לאמת הגריד",
   "lastHandoff": {
-    "at": "2026-09-22T02:20:00Z",
-    "by": "r82-hunter session (Z.ai)",
-    "summary": "R82 THE HUNTER delivered: autonomous opportunity engine + minutes-gate canary (probes private-repo Actions every 6h, re-arms web-publish the moment it chirps); live hunter board at #/hunter; canary workflow live in Defi; R81 money-mover ladder verified alive on-chain (476.637 STEEM at parity/+1%/+2%, order age ~1h, daemon HOLD)."
+    "at": "2026-09-22T02:45:00Z",
+    "by": "r83-grid-pulse session (Z.ai)",
+    "summary": "R83 GRID-PULSE delivered: A34's red mark (grid.json frozen 45.5h, engine dead with minutes) answered with a sovereign keyless mirror on the public repo — agent-verify now 49/49 ALL_PASS. Money verified live: 476.637 STEEM in the parity ladder, 0 idle, mover autonomous (3 actions today, auto-drag on parity drift, fuel auto-deploy law 4)."
   },
   "environment": {
     "sandbox": "/home/z/my-project — ephemeral, resets on new sessions; NEVER the source of truth",
@@ -70,10 +70,10 @@
     {
       "id": "OL-2",
       "priority": "P1",
-      "title": "First agent-verify cycle must record ALL_PASS 15/15",
-      "titleHe": "מחזור agent-verify הראשון חייב להירשם ALL_PASS 15/15",
-      "detail": "Workflow runs every 6h at :55 (and on dispatch). If any assertion fails, fix the root cause at the public URL — not the assertion.",
-      "detailHe": "ה-workflow רץ כל 6 שעות ב-:55 (וגם בהפעלה ידנית). אם קביעה נכשלת — תוקנו את שורש הבעיה ב-URL הציבורי, לא את הקביעה."
+      "title": "agent-verify cycle — CLOSED at 49/49 ALL_PASS (2026-09-22T02:37:59Z)",
+      "titleHe": "מחזור agent-verify — נסגר ב-49/49 ALL_PASS",
+      "detail": "A34 (stale grid.json) was the last red mark; fixed sovereignly by grid-pulse (R83). The cycle re-runs every 2h — if any assertion fails again, fix the root cause at the public URL, not the assertion.",
+      "detailHe": "A34 (grid.json קפוא) היה הסימן האדום האחרון; תוקן ריבונית על-ידי grid-pulse (R83). המחזור רץ כל שעתיים — אם קביעה תיכשל שוב, תקנו את שורש הבעיה ב-URL הציבורי, לא את הקביעה."
     },
     {
       "id": "OL-3",
