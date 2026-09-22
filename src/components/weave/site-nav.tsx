@@ -21,6 +21,7 @@ import {
   BookOpen,
   Cloud,
   Compass,
+  Crosshair,
   DoorOpen,
   HardDrive,
   Home,
@@ -54,6 +55,7 @@ import { OperatorPill } from "./operator";
 export type SiteView =
   | "gate"
   | "array"
+  | "hunter"
   | "flywheel"
   | "money-market"
   | "holdings"
@@ -81,6 +83,7 @@ export const SECTIONS: Array<{
 }> = [
   { view: "gate", label: "שער המפעיל", icon: DoorOpen, subs: [] },
   { view: "array", label: "מצב המערך", icon: LayoutGrid, subs: [] },
+  { view: "hunter", label: "ציד הזדמנויות", icon: Crosshair, subs: [] },
   { view: "flywheel", label: "דבר גורר דבר", icon: Repeat, subs: [] },
   {
     view: "money-market",

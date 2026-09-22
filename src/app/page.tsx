@@ -38,6 +38,7 @@ import { ExchangeView } from "@/components/weave/views/exchange-view";
 import { HoldingsView } from "@/components/weave/views/holdings-view";
 import { HomeView } from "@/components/weave/views/home-view";
 import { GateView } from "@/components/weave/views/gate-view";
+import { HunterView } from "@/components/weave/views/hunter-view";
 import { AgentsFleetView } from "@/components/weave/views/agents-fleet-view";
 import { ArrayView } from "@/components/weave/views/array-view";
 import { DefiRouterView } from "@/components/weave/views/defi-router-view";
@@ -90,6 +91,8 @@ function SectionBody({ view, section, query }: Route) {
       return <GateView />;
     case "array":
       return <ArrayView />;
+    case "hunter":
+      return <HunterView />;
     case "flywheel":
       return <FlywheelView />;
     case "money-market":

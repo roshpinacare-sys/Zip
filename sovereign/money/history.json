@@ -38,5 +38,31 @@
     ],
     "placed": [],
     "error": "place level 3: broadcast-timeout-25s"
+  },
+  {
+    "at": "2026-09-22T01:20:45.846Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה >50bps מהסולם שהוצב — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.11729720799603503,
+    "cancelled": [
+      {
+        "orderid": 2026092201,
+        "txid": "f83cd6f60c0d871624996f20e9df1f64511b6009"
+      },
+      {
+        "orderid": 2026092202,
+        "txid": "c4a2fd9a5119db36f97aabd6c0ea327efe562a9c"
+      },
+      {
+        "orderid": 2026092203,
+        "txid": "80152c526420dec45b5cc8e618092e7c32196fee"
+      }
+    ],
+    "placed": [],
+    "error": "place level 1: broadcast-timeout-45s | place level 2: broadcast-timeout-45s | place level 3: broadcast-timeout-45s",
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637
+    }
   }
 ]
