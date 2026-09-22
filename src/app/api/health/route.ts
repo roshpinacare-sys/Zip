@@ -27,6 +27,18 @@ import {
 
 export const dynamic = "force-dynamic";
 
+// R86: סנדבוקס מתאפס מדי יום — ספריית המניפסטים לא נוצרה עדיין. ״מחסן
+// ריק״ הוא מצב תקין לפי ההגדרה שלעיל (0 חבילות = תקין); תיקייה-שאינה־קיימת
+// היא אותו מצב בדיוק, לא כשל. זרימת הפרסום יוצרת אותה בכתיבה הראשונה.
+async function readManifestFiles(dir: string): Promise<string[]> {
+  try {
+    return (await readdir(dir)).filter((f) => f.endsWith(".json"));
+  } catch (e) {
+    if (e instanceof Error && (e as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw e;
+  }
+}
+
 async function timed<T>(
   name: string,
   fn: () => Promise<T>,
@@ -60,7 +72,7 @@ export async function GET() {
 
   // ② המחסן — מניפסטים קריאים ולכל אחד בייטים על-הדיסק
   const vaultCheck = timed("vault", async () => {
-    const files = (await readdir(paths.manifests)).filter((f) => f.endsWith(".json"));
+    const files = await readManifestFiles(paths.manifests);
     if (files.length === 0) return { packages: 0, note: "אין חבילות עדיין — מחסן ריק תקין" };
     let bytesOnDisk = 0;
     for (const f of files) {
@@ -74,7 +86,7 @@ export async function GET() {
 
   // ③ שלמות — הבייטים במחסן מוכרחים לחשב לבד לחותם שנחתם בשרשרת
   const integrityCheck = timed("integrity", async () => {
-    const files = (await readdir(paths.manifests)).filter((f) => f.endsWith(".json"));
+    const files = await readManifestFiles(paths.manifests);
     if (files.length === 0) return { verified: 0, note: "אין חבילות לאמת" };
     const results: Array<{ hash: string; match: boolean; bytes: number; status: string }> = [];
     for (const f of files) {
@@ -126,7 +138,7 @@ export async function GET() {
 
   // ⑤ חותמים — לכל חבילה כתובת-בלוק על שרשרת ציבורית + צ׳אנקים
   const sealsCheck = timed("seals", async () => {
-    const files = (await readdir(paths.manifests)).filter((f) => f.endsWith(".json"));
+    const files = await readManifestFiles(paths.manifests);
     const out: Array<{
       name: string;
       status: string;

@@ -61,39 +61,59 @@ const EVM_RPC = "https://ethereum-rpc.publicnode.com";
 const SOL_RPC = "https://solana-rpc.publicnode.com";
 
 // ── עזרי-רשת: טיימאאוט אמת, ניסיון-כפול רק לרשתות-החלושות ────────────
+// R86: הכפול ממומש סוף-סוף. TRON (429 תכוף) ו-Hive (נפילות-רגע) הן
+// הרשתות החלשות שנמדדו בשטח — בלי ניסיון-כפול הן הפילו את האוצר
+// ל-"down" גם כשהרגע-לפני הכול היה תקין (נמדד חי: 03:57Z). השופט
+// נשאר השקף: מקור שלא ענה גם אחרי ניסיון-כפול — לא נספר, בכנות.
 
-async function jget(url: string, ms = 12000): Promise<any> {
-  const ac = new AbortController();
-  const t = setTimeout(() => ac.abort(), ms);
-  try {
-    const r = await fetch(url, { signal: ac.signal, cache: "no-store" });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
-  } finally {
-    clearTimeout(t);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function jget(url: string, ms = 12000, tries = 1): Promise<any> {
+  let lastErr: unknown = null;
+  for (let i = 0; i < tries; i++) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), ms);
+    try {
+      const r = await fetch(url, { signal: ac.signal, cache: "no-store" });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } catch (e) {
+      lastErr = e;
+      if (i < tries - 1) await sleep(1200 + i * 800);
+    } finally {
+      clearTimeout(t);
+    }
   }
+  throw lastErr;
 }
 
-async function jpost(url: string, body: unknown, ms = 12000): Promise<any> {
-  const ac = new AbortController();
-  const t = setTimeout(() => ac.abort(), ms);
-  try {
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: ac.signal,
-      cache: "no-store",
-    });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
-  } finally {
-    clearTimeout(t);
+async function jpost(url: string, body: unknown, ms = 12000, tries = 1): Promise<any> {
+  let lastErr: unknown = null;
+  for (let i = 0; i < tries; i++) {
+    const ac = new AbortController();
+    const t = setTimeout(() => ac.abort(), ms);
+    try {
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: ac.signal,
+        cache: "no-store",
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return await r.json();
+    } catch (e) {
+      lastErr = e;
+      if (i < tries - 1) await sleep(1200 + i * 800);
+    } finally {
+      clearTimeout(t);
+    }
   }
+  throw lastErr;
 }
 
-async function rpcCall(url: string, method: string, params: unknown[]): Promise<any> {
-  const j = await jpost(url, { jsonrpc: "2.0", id: 1, method, params });
+async function rpcCall(url: string, method: string, params: unknown[], tries = 1): Promise<any> {
+  const j = await jpost(url, { jsonrpc: "2.0", id: 1, method, params }, 12000, tries);
   if (j?.error) throw new Error(String(j.error.message ?? "rpc-error"));
   return j.result;
 }
@@ -102,8 +122,8 @@ async function rpcCall(url: string, method: string, params: unknown[]): Promise<
 
 async function steemSide() {
   const [accts, props] = await Promise.all([
-    rpcCall("https://api.steemit.com", "condenser_api.get_accounts", [[...STEEM_FLEET]]),
-    rpcCall("https://api.steemit.com", "condenser_api.get_dynamic_global_properties", []),
+    rpcCall("https://api.steemit.com", "condenser_api.get_accounts", [[...STEEM_FLEET]], 3),
+    rpcCall("https://api.steemit.com", "condenser_api.get_dynamic_global_properties", [], 3),
   ]);
   const fund = parseFloat(props.total_vesting_fund_steem);
   const shares = parseFloat(props.total_vesting_shares);
@@ -132,6 +152,7 @@ async function steemSide() {
           "https://api.steemit.com",
           "condenser_api.get_open_orders",
           [r.name],
+          3,
         );
         return (os ?? []).map((o: any) => {
           const forSale = Number(o.for_sale) / 1000;
@@ -186,9 +207,10 @@ async function steemSide() {
 }
 
 async function hiveSide() {
+  // R86: ניסיון-כפול לרשת-החלשה — api.hive.blog נופל לרגעים קצרים.
   const [accts, props] = await Promise.all([
-    rpcCall("https://api.hive.blog", "condenser_api.get_accounts", [[...STEEM_FLEET]]),
-    rpcCall("https://api.hive.blog", "condenser_api.get_dynamic_global_properties", []),
+    rpcCall("https://api.hive.blog", "condenser_api.get_accounts", [[...STEEM_FLEET]], 3),
+    rpcCall("https://api.hive.blog", "condenser_api.get_dynamic_global_properties", [], 3),
   ]);
   const fund = parseFloat(props.total_vesting_fund_hive);
   const shares = parseFloat(props.total_vesting_shares);
@@ -203,10 +225,16 @@ async function hiveSide() {
 }
 
 async function tronSide() {
+  // R86: TRON apilist מחזיר 429 בעיקר כשסורקים בזה אחר זה — ניסיון-כפול
+  // עם הפסקה קצרה בין הכתובות עובר את הרגע. השופט נשאר השקף: שתי
+  // הכתובות נבדקות מול אותו מקור, בלי מצב מקומי.
   const out = [];
   for (const t of TRON_ADDRS) {
+    if (out.length > 0) await sleep(400); // הפסקה קצרה בין הכתובות — עוברת את ה-429
     const j = await jget(
       `https://apilist.tronscanapi.com/api/account?address=${t.address}`,
+      12000,
+      3,
     );
     out.push({
       label: t.label,
