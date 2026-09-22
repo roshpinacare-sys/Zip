@@ -153,6 +153,7 @@ export const SECTIONS: Array<{
     subs: [
       { key: "fleet", label: "הצי החי" },
       { key: "keeper", label: "השומר · הדיבונים" },
+      { key: "charter", label: "מספנת הצ׳רטרים" },
       { key: "ledger", label: "זהויות בספר" },
     ],
   },

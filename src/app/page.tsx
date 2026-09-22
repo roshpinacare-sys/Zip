@@ -41,6 +41,7 @@ import { GateView } from "@/components/weave/views/gate-view";
 import { HunterView } from "@/components/weave/views/hunter-view";
 import { AgentsFleetView } from "@/components/weave/views/agents-fleet-view";
 import { KeeperView } from "@/components/weave/views/keeper-view";
+import { CharterView } from "@/components/weave/views/charter-view";
 import { ArrayView } from "@/components/weave/views/array-view";
 import { DefiRouterView } from "@/components/weave/views/defi-router-view";
 import { HoldingsAuditView } from "@/components/weave/views/holdings-audit-view";
@@ -128,7 +129,7 @@ function SectionBody({ view, section, query }: Route) {
           return <DashboardTab />;
       }
     case "agents":
-      return section === "ledger" ? <AgentsTab /> : section === "keeper" ? <KeeperView /> : <AgentsFleetView />;
+      return section === "ledger" ? <AgentsTab /> : section === "keeper" ? <KeeperView /> : section === "charter" ? <CharterView /> : <AgentsFleetView />;
     case "exchange":
       switch (section) {
         case "market":

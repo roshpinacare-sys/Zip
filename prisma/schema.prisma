@@ -26,6 +26,8 @@ model Agent {
   createdAt    DateTime      @default(now())
   attestations Attestation[]
   keyOps       KeyOp[]
+  builderToken BuilderToken?  @relation("BuilderToken")
+  charterBuilds CharterProject[] @relation("CharterBuilds")
 
   @@index([status])
 }
@@ -220,6 +222,59 @@ model SovereignDomain {
   updatedAt DateTime @updatedAt
 
   @@index([status])
+}
+
+// ── מספנת הצ'רטרים (R89 · FOUNDRY) ───────────────────────────────────
+// הדלת הפתוחה של הרשת לבונים חיצוניים: סוכן ללא גישת-ריפו מקבל טוקן,
+// מקים פרויקט על הרשת דרך החוזה (רישום BUILD חתום בספר hash-chained)
+// ומפרסם מסמכים לקנון. הטוקן נשמר hash בלבד (SHA-256); הזהות
+// אמיתית — Agent עם כתובת secp256k1; החתימה EIP-191; הראיה בקנון.
+
+// טוקן-בונה — פתח-ברירה: מי שמחזיק בו פועל בשם ה-Agent שלו.
+// נפיק ע"י המפעיל בלבד (שער /api/charter/builders או סקריפט).
+model BuilderToken {
+  id         String   @id @default(cuid())
+  agentId    String   @unique
+  agent      Agent    @relation("BuilderToken", fields: [agentId], references: [id])
+  tokenHash  String   @unique // sha256(token) hex — הטוקן עצמו לעולם לא נשמר
+  prefix     String // 10 התווים הראשונים — לזיהוי בכנות בלי הסוד
+  issuedBy   String   @default("operator")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime?
+}
+
+// פרויקט-צ'רטר — ישות על הרשת שהוקמה דרך החוזה.
+model CharterProject {
+  id             String          @id @default(cuid())
+  slug           String          @unique // קבוע ובלתי-ניתן-לשינוי מרגע ההקמה
+  name           String
+  purpose        String
+  status         String          @default("CHARTERED") // CHARTERED | BUILDING | COMPLETE | ARCHIVED
+  builderId      String
+  builder        Agent           @relation("CharterBuilds", fields: [builderId], references: [id])
+  attSeq         Int? // seq האימות החתום שהקים את הפרויקט בספר
+  attEntryHash   String? // entryHash של אימות ההקמה — הקישור לשרשרת
+  artifactsCount Int             @default(0)
+  meta           String          @default("{}") // JSON חופשי של הבונה (חסום-סודות)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  events         CharterEvent[]
+
+  @@index([builderId])
+  @@index([status])
+}
+
+// ספר-אירועים של הפרויקט — append-only, כל שינוי נרשם עם ראיה.
+model CharterEvent {
+  id        String         @id @default(cuid())
+  projectId String
+  project   CharterProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  kind      String // CHARTER | ARTIFACT | STATUS
+  detail    String // JSON קנוני — מה נעשה ומה הראיה
+  createdAt DateTime       @default(now())
+
+  @@index([projectId])
 }
 
 // ── סוכן הפרסום האוטונומי (R79 · VOICE) ──────────────────────────────
