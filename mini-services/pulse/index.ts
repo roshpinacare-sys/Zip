@@ -269,7 +269,9 @@ async function tryCharterAnchor(): Promise<void> {
   state.charter.anchoring = true;
   saveState();
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 180_000);
+  // R92 (שיעור משידור חי): זרימת העיגון של השרת — שידור + אימות מההיסטוריה
+  // המדופדפת — אורכת עד ~6 דקות; 180ש׳ גזרו "כשל" על עיגון שהצליח.
+  const timer = setTimeout(() => ctl.abort(), 600_000);
   const setCharterDecision = (kind: string, detail: string) => {
     state.charter.lastDecision = { at: new Date().toISOString(), kind, detail };
   };
@@ -315,7 +317,16 @@ async function tryCharterAnchor(): Promise<void> {
     }
     saveState();
   } catch (e: any) {
-    setCharterDecision("CHARTER-ANCHOR-FAIL", `עיגון הצ'רטרים נכשל בכנות: ${String(e?.message ?? e).slice(0, 120)}`);
+    // R92: timeout אינו כישלון — השידור יצא; השרת ממשיך לאמת מההיסטוריה
+    // והבדיקה הבאה תראה את האמת (שורש מעוגן ⇒ COVERED). לקח R87 בשכבת הדיבון.
+    if (e?.name === "AbortError") {
+      setCharterDecision(
+        "CHARTER-ANCHOR-WAIT",
+        "העיגון יצא לדרך אך האישור מההיסטוריה חרג מהחלון — הבדיקה הבאה (5 דק׳) תגלה אם השורש מעוגן",
+      );
+    } else {
+      setCharterDecision("CHARTER-ANCHOR-FAIL", `עיגון הצ'רטרים נכשל בכנות: ${String(e?.message ?? e).slice(0, 120)}`);
+    }
     saveState();
   } finally {
     clearTimeout(timer);

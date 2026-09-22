@@ -21,8 +21,14 @@ import {
   budgetLeft,
   publishCanon,
   readCanonRegistry,
+  readCanonEvents,
+  appendCanonEvents,
+  canonEventId,
+  publishRegistryFromDB,
+  type CanonEvent,
 } from "@/lib/charter";
 import { appendAttestation } from "@/lib/weave/ledger";
+import { ensureDaemonAgent } from "@/lib/weave/daemons";
 
 export const dynamic = "force-dynamic";
 
@@ -107,21 +113,164 @@ async function selfHeal(): Promise<void> {
   }
 }
 
+// ── R92: ריפוי האירועים מיומן הקנון ───────────────────────────────────
+//
+// המרשם הוא התמונה; יומן האירועים הוא הסרט. אחרי איפוס-סנדבוקס
+// ה-DB מקבל בחזרה את ההיסטוריה מ-charter/events.jsonl — אידמפוטנטי
+// לפי eventId (דה-דופ), עם זמנים היסטוריים אמיתיים.
+
+let canonEventsCache: { at: number; events: CanonEvent[] } | null = null;
+
+async function canonEventsFresh(): Promise<CanonEvent[]> {
+  if (canonEventsCache && Date.now() - canonEventsCache.at < 5 * 60_000) {
+    return canonEventsCache.events;
+  }
+  const events = await readCanonEvents();
+  canonEventsCache = { at: Date.now(), events };
+  return events;
+}
+
+async function healEventsFromCanon(): Promise<number> {
+  const events = await canonEventsFresh();
+  if (events.length === 0) return 0;
+  let imported = 0;
+  for (const e of events) {
+    const project = await db.charterProject.findUnique({ where: { slug: e.slug } });
+    if (!project) continue; // אירוע של פרויקט שנוקה — נשאר בקנון, אין לו בית
+    const marker = `"eventId":"${e.id}"`;
+    const dup = await db.charterEvent.findFirst({
+      where: { kind: e.kind, detail: { contains: marker } },
+    });
+    if (dup) continue;
+    // ה-provenance נכנס ל-detail עצמו — מה ששוחזר מסומן בכנות גם ב-DB
+    const detail = {
+      ...(e.detail ?? {}),
+      eventId: e.id,
+      ...(e.restored ? { restored: true } : {}),
+      ...(e.restoredFrom ? { restoredFrom: e.restoredFrom } : {}),
+    };
+    const at = new Date(e.at);
+    if (Number.isNaN(at.getTime())) continue; // זמן שבור — לא מייבאים רפאים
+    await db.charterEvent.create({
+      data: {
+        projectId: project.id,
+        kind: e.kind,
+        detail: JSON.stringify(detail),
+        createdAt: at,
+      },
+    }).catch(() => undefined);
+    imported++;
+  }
+  if (imported > 0) {
+    // האירועים הם מקור-האמת של המונה אחרי ריפוי — מה שנספר הוא מה שקיים
+    const groups = await db.charterEvent.groupBy({
+      by: ["projectId"],
+      where: { kind: "ARTIFACT" },
+      _count: { _all: true },
+    });
+    for (const g of groups) {
+      await db.charterProject.update({
+        where: { id: g.projectId },
+        data: { artifactsCount: g._count._all },
+      }).catch(() => undefined);
+    }
+  }
+  return imported;
+}
+
+// ── R92: שלמות הפניות ספר↔מרשם ────────────────────────────────────────
+//
+// כל פרויקט מפנה לאימות חתום (attSeq + entryHash). אם ההפניה לא
+// מתרצה מול הספר — האימות המקורי חי בשושלת שאבדה — נכתבת עדות
+// RESTORE חתומה (זהות DAEMON נגזרת-רשת) שמתעדת את הפער בכנות
+// והופכת להפניה החדשה. שום דבר לא נמחק; האמת הישנה מתועדת בתוך
+// העדות החדשה.
+
+const RESTORE_WITNESS = "weave-charter-restore";
+
+async function verifyAndRepairRefs(): Promise<string[]> {
+  const projects = await db.charterProject.findMany();
+  const repaired: string[] = [];
+  for (const p of projects) {
+    if (p.attSeq == null || !p.attEntryHash) continue;
+    const att = await db.attestation.findUnique({ where: { seq: p.attSeq } });
+    if (att && att.entryHash === p.attEntryHash) continue; // ההפניה מתרצת — תקין
+    const daemon = await ensureDaemonAgent(RESTORE_WITNESS, "DAEMON");
+    const evidence = JSON.stringify(
+      {
+        kind: "charter-reference-restore",
+        slug: p.slug,
+        dangling: { attSeq: p.attSeq, attEntryHash: p.attEntryHash },
+        reason:
+          "האימות המקורי נכתב לשושלת-ספר של הסנדבוקס ולא הוספק לשושלת ששרדה (איפוס/חוסר-סנכרון) — ההפניה תלתה באוויר",
+        replacedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    );
+    const att2 = await appendAttestation({
+      agentId: daemon.id,
+      claim: `charter-restore: ${p.slug} — הפניית אימות תלויה (seq ${p.attSeq}, hash ${p.attEntryHash.slice(0, 10)}…) הוחלפה בעדות זו`,
+      claimType: "RESTORE",
+      evidence,
+    });
+    const eventId = canonEventId(p.slug, "RESTORE", att2.createdAt.toISOString(), `restore-${att2.seq}`);
+    const detail = {
+      eventId,
+      originalAtt: { seq: p.attSeq, entryHash: p.attEntryHash, dangling: true },
+      restoredAtt: { seq: att2.seq, entryHash: att2.entryHash },
+      witness: RESTORE_WITNESS,
+      reason: "איפוס-סנדבוקס — האימות המקורי לא היה בשושלת הספר ששרדה",
+    };
+    await db.charterProject.update({
+      where: { slug: p.slug },
+      data: {
+        attSeq: att2.seq,
+        attEntryHash: att2.entryHash,
+        events: {
+          create: { kind: "RESTORE", detail: JSON.stringify(detail), createdAt: att2.createdAt },
+        },
+      },
+    });
+    await appendCanonEvents([
+      {
+        id: eventId,
+        at: att2.createdAt.toISOString(),
+        slug: p.slug,
+        kind: "RESTORE",
+        detail,
+        attSeq: att2.seq,
+        attEntryHash: att2.entryHash,
+      },
+    ]).catch(() => undefined);
+    repaired.push(p.slug);
+  }
+  if (repaired.length > 0) {
+    await publishRegistryFromDB({ restoredAt: new Date().toISOString() });
+  }
+  return repaired;
+}
+
 export async function GET() {
   await selfHeal();
+  const eventsImported = await healEventsFromCanon();
+  const refsRepaired = await verifyAndRepairRefs();
   const projects = await db.charterProject.findMany({
     orderBy: { createdAt: "desc" },
     take: 100,
+    include: { _count: { select: { events: true } } },
   });
   return NextResponse.json({
     ok: true,
     count: projects.length,
+    healed: { eventsImported, refsRepaired },
     projects: projects.map((p) => ({
       slug: p.slug,
       name: p.name,
       status: p.status,
       attestation: p.attSeq != null ? { seq: p.attSeq, entryHash: p.attEntryHash } : null,
       artifacts: p.artifactsCount,
+      events: p._count.events,
       createdAt: p.createdAt.toISOString(),
     })),
   });
@@ -225,6 +374,7 @@ export async function POST(req: Request) {
   });
 
   // ── סעיף 6: הפרויקט + האירוע ──
+  const eventId = canonEventId(slug, "CHARTER", att.createdAt.toISOString(), att.entryHash);
   const project = await db.charterProject.create({
     data: {
       slug,
@@ -239,6 +389,7 @@ export async function POST(req: Request) {
         create: {
           kind: "CHARTER",
           detail: JSON.stringify({
+            eventId,
             attSeq: att.seq,
             entryHash: att.entryHash,
             signer: att.signerAddr,
@@ -250,7 +401,7 @@ export async function POST(req: Request) {
     include: { builder: true },
   });
 
-  // ── סעיף 7: הקנון — registry.json + כרטיס הפרויקט ──
+  // ── סעיף 7: הקנון — registry.json + כרטיס הפרויקט + יומן האירועים ──
   const canonCard = [
     `# ${project.name}`,
     ``,
@@ -270,39 +421,29 @@ export async function POST(req: Request) {
     `---`,
     `צ'רטר זה נחתם EIP-191 בספר האימותים של THE WEAVE ומפורסם לקנון.`,
   ].join("\n");
-  const [canonCardRes, canonRegRes] = await Promise.all([
+  const [canonCardRes, canonRegRes, canonEvRes] = await Promise.all([
     publishCanon(
       `${CHARTER.projectDir}/${slug}/README.md`,
       canonCard,
       `charter: project "${name}" chartered by ${builder.name} (att seq ${att.seq})`,
     ),
-    (async () => {
-      // המרשם נבנה מה-DB החי — מקור-אמת אחד
-      const all = await db.charterProject.findMany({
-        orderBy: { createdAt: "asc" },
-        include: { builder: true },
-      });
-      const registry = {
-        publishedAt: new Date().toISOString(),
-        projects: all.map((p) => ({
-          slug: p.slug,
-          name: p.name,
-          purpose: p.purpose,
-          status: p.status,
-          builderName: p.builder.name,
-          builderAddress: p.builder.ethAddress,
-          attSeq: p.attSeq,
-          attEntryHash: p.attEntryHash,
-          artifacts: p.artifactsCount,
-          charterAt: p.createdAt.toISOString(),
-        })),
-      };
-      return publishCanon(
-        CHARTER.registryPath,
-        JSON.stringify(registry, null, 2) + "\n",
-        `charter: registry updated (${all.length} projects)`,
-      );
-    })(),
+    publishRegistryFromDB(),
+    appendCanonEvents([
+      {
+        id: eventId,
+        at: att.createdAt.toISOString(),
+        slug,
+        kind: "CHARTER",
+        detail: {
+          attSeq: att.seq,
+          entryHash: att.entryHash,
+          signer: att.signerAddr,
+          builder: builder.name,
+        },
+        attSeq: att.seq,
+        attEntryHash: att.entryHash,
+      },
+    ]),
   ]);
 
   return NextResponse.json(
@@ -322,6 +463,7 @@ export async function POST(req: Request) {
       canon: {
         card: canonCardRes,
         registry: canonRegRes,
+        eventsLog: canonEvRes,
       },
       budgetLeft: { projects: budget.projects - 1, artifacts: budget.artifacts },
     },

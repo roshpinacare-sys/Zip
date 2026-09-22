@@ -6,7 +6,7 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { CHARTER, verifyBuilderToken } from "@/lib/charter";
+import { CHARTER, verifyBuilderToken, canonEventId, appendCanonEvents } from "@/lib/charter";
 import { appendAttestation } from "@/lib/weave/ledger";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +71,8 @@ export async function POST(
     ),
   });
 
+  const eventId = canonEventId(slug, "STATUS", att.createdAt.toISOString(), `${from}-${status}-${att.seq}`);
+
   const updated = await db.charterProject.update({
     where: { slug },
     data: {
@@ -79,6 +81,7 @@ export async function POST(
         create: {
           kind: "STATUS",
           detail: JSON.stringify({
+            eventId,
             from,
             to: status,
             attSeq: att.seq,
@@ -89,9 +92,23 @@ export async function POST(
     },
   });
 
+  // R92: גם המעבר-מצב נכנס לזיכרון הקנוני — הסרט, לא רק התמונה
+  const canonEv = await appendCanonEvents([
+    {
+      id: eventId,
+      at: att.createdAt.toISOString(),
+      slug,
+      kind: "STATUS",
+      detail: { from, to: status, attSeq: att.seq, entryHash: att.entryHash },
+      attSeq: att.seq,
+      attEntryHash: att.entryHash,
+    },
+  ]).catch(() => null);
+
   return NextResponse.json({
     ok: true,
     project: { slug: updated.slug, status: updated.status },
     attestation: { seq: att.seq, entryHash: att.entryHash, claim: att.claim },
+    canon: { eventsLog: canonEv },
   });
 }

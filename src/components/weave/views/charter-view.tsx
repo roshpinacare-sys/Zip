@@ -10,7 +10,7 @@
 //   • כל צופה: המרשם הציבורי — מה נבנה על הרשת ומי חתם.
 // ─────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,14 @@ interface CharterProjectDTO {
   status: string;
   attestation: { seq: number; entryHash: string } | null;
   artifacts: number;
+  events: number;
   createdAt: string;
+}
+
+interface CharterEventDTO {
+  kind: string;
+  detail: Record<string, unknown> | null;
+  at: string;
 }
 
 interface AnchorDTO {
@@ -62,6 +69,13 @@ const STATUS_STYLE: Record<string, string> = {
   BUILDING: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30",
   COMPLETE: "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-500/30",
   ARCHIVED: "bg-zinc-500/10 text-zinc-600 dark:text-zinc-400 border-zinc-500/30",
+};
+
+const EVENT_STYLE: Record<string, { label: string; cls: string }> = {
+  CHARTER: { label: "הקמה", cls: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30" },
+  STATUS: { label: "מצב", cls: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30" },
+  ARTIFACT: { label: "מסמך", cls: "bg-teal-500/10 text-teal-700 dark:text-teal-400 border-teal-500/30" },
+  RESTORE: { label: "ריפוי", cls: "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30" },
 };
 
 const CONTRACT_RULES: Array<{ icon: React.ReactNode; title: string; body: string }> = [
@@ -98,6 +112,9 @@ export function CharterView() {
   const [anchor, setAnchor] = useState<AnchorDTO | null>(null);
   const [anchoring, setAnchoring] = useState(false);
   const [anchorMsg, setAnchorMsg] = useState<string | null>(null);
+  // R92: ציר-הזמן — שורה נפתחת בטבלת המרשם
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [timeline, setTimeline] = useState<Record<string, CharterEventDTO[] | "loading">>({});
 
   useEffect(() => {
     setManifestUrl(window.location.origin + "/api/charter");
@@ -124,6 +141,24 @@ export function CharterView() {
     loadAnchor();
     const t = setInterval(loadAnchor, 60_000);
     return () => clearInterval(t);
+  }, []);
+
+  const toggleTimeline = useCallback((slug: string) => {
+    setExpanded((cur) => (cur === slug ? null : slug));
+    setTimeline((prev) => {
+      if (prev[slug]) return prev;
+      fetch(`/api/charter/projects/${slug}`)
+        .then((r) => r.json())
+        .then((j) => {
+          if (j.ok) {
+            setTimeline((p2) => ({ ...p2, [slug]: j.events ?? [] }));
+          }
+        })
+        .catch(() =>
+          setTimeline((p2) => ({ ...p2, [slug]: [] }))
+        );
+      return { ...prev, [slug]: "loading" };
+    });
   }, []);
 
   const issue = useCallback(async () => {
@@ -472,48 +507,62 @@ export function CharterView() {
                     <th className="py-2 text-start font-medium">מצב</th>
                     <th className="py-2 text-start font-medium">אימות</th>
                     <th className="py-2 text-start font-medium">מסמכים</th>
+                    <th className="py-2 text-start font-medium">אירועים</th>
                     <th className="py-2 text-start font-medium">הוקם</th>
                     <th className="py-2 text-start font-medium sr-only">קישור</th>
                   </tr>
                 </thead>
                 <tbody>
                   {projects.map((p) => (
-                    <tr key={p.slug} className="border-b last:border-0">
-                      <td className="py-2">
-                        <a
-                          href={`/api/charter/projects/${p.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-medium hover:underline"
-                          dir="ltr"
-                        >
-                          {p.slug}
-                        </a>
-                      </td>
-                      <td className="py-2">
-                        <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs ${STATUS_STYLE[p.status] ?? ""}`}>
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="py-2 font-mono text-xs" dir="ltr">
-                        {p.attestation ? `seq ${p.attestation.seq}` : "—"}
-                      </td>
-                      <td className="py-2">{p.artifacts}</td>
-                      <td className="py-2 text-xs text-muted-foreground" dir="ltr">
-                        {new Date(p.createdAt).toISOString().slice(0, 16).replace("T", " ")}Z
-                      </td>
-                      <td className="py-2">
-                        <a
-                          href={`https://github.com/roshpinacare-sys/Defi/tree/main/charter/projects/${p.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-foreground"
-                          aria-label={`קנון הפרויקט ${p.slug}`}
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
-                        </a>
-                      </td>
-                    </tr>
+                    <Fragment key={p.slug}>
+                      <tr
+                        className="border-b cursor-pointer hover:bg-muted/40"
+                        onClick={() => toggleTimeline(p.slug)}
+                        aria-expanded={expanded === p.slug}
+                      >
+                        <td className="py-2">
+                          <span className="font-medium" dir="ltr">
+                            {expanded === p.slug ? "▾ " : "▸ "}
+                            {p.slug}
+                          </span>
+                        </td>
+                        <td className="py-2">
+                          <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs ${STATUS_STYLE[p.status] ?? ""}`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="py-2 font-mono text-xs" dir="ltr">
+                          {p.attestation ? `seq ${p.attestation.seq}` : "—"}
+                        </td>
+                        <td className="py-2">{p.artifacts}</td>
+                        <td className="py-2">{p.events}</td>
+                        <td className="py-2 text-xs text-muted-foreground" dir="ltr">
+                          {new Date(p.createdAt).toISOString().slice(0, 16).replace("T", " ")}Z
+                        </td>
+                        <td className="py-2">
+                          <a
+                            href={`https://github.com/roshpinacare-sys/Defi/tree/main/charter/projects/${p.slug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-foreground"
+                            aria-label={`קנון הפרויקט ${p.slug}`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+                          </a>
+                        </td>
+                      </tr>
+                      {expanded === p.slug && (
+                        <tr>
+                          <td colSpan={7} className="pb-3">
+                            <TimelinePanel
+                              slug={p.slug}
+                              data={timeline[p.slug]}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
@@ -529,10 +578,102 @@ export function CharterView() {
             >
               charter/registry.json
             </a>{" "}
-            · תקציב: 6 הקמות + 20 מסמכים ליום-UTC לבונה · שער-סודות מוכן תמיד.
+            ·{" "}
+            <a
+              href="https://github.com/roshpinacare-sys/Defi/blob/main/charter/events.jsonl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-emerald-600 hover:underline"
+            >
+              charter/events.jsonl
+            </a>{" "}
+            — יומן האירועים ה-append-only (R92) · תקציב: 6 הקמות + 20 מסמכים ליום-UTC לבונה · שער-סודות מוכן תמיד.
           </p>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// ── R92: ציר-הזמן של פרויקט — הסרט, לא רק התמונה ──────────────────────
+
+function eventText(e: CharterEventDTO): string {
+  const d = (e.detail ?? {}) as Record<string, unknown>;
+  switch (e.kind) {
+    case "CHARTER":
+      return `הוקם על הרשת · אימות seq ${String(d.attSeq ?? "—")}`;
+    case "STATUS":
+      return `${String(d.from ?? "?")} → ${String(d.to ?? "?")} · אימות seq ${String(d.attSeq ?? "—")}`;
+    case "ARTIFACT": {
+      const bytes = typeof d.bytes === "number" ? ` (${d.bytes} בתים)` : "";
+      return `המסמך ${String(d.filename ?? "")}${bytes}${d.canonOk === false ? " · פרסום הקנון נכשל בזמנו" : ""}`;
+    }
+    case "RESTORE": {
+      const orig = (d.originalAtt ?? {}) as Record<string, unknown>;
+      const rest = (d.restoredAtt ?? {}) as Record<string, unknown>;
+      return `הפניית אימות תלויה (seq ${String(orig.seq ?? "?")}) הוחלפה בעדות seq ${String(rest.seq ?? "?")} — הספר שופט, לא הזיכרון`;
+    }
+    default:
+      return "";
+  }
+}
+
+function TimelinePanel({
+  slug,
+  data,
+}: {
+  slug: string;
+  data: CharterEventDTO[] | "loading" | undefined;
+}) {
+  if (data === undefined || data === "loading") {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
+        <RefreshCw className="h-3.5 w-3.5 animate-spin" aria-hidden /> טוען ציר-זמן…
+      </div>
+    );
+  }
+  if (data.length === 0) {
+    return (
+      <div className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
+        אין אירועים ל-{slug} — ההיסטוריה תיבנה עם הפעולה הראשונה.
+      </div>
+    );
+  }
+  const sorted = [...data].sort((a, b) => (a.at < b.at ? 1 : -1));
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3">
+      <ol className="relative space-y-2 border-s border-border ps-4">
+        {sorted.map((e, i) => {
+          const style = EVENT_STYLE[e.kind] ?? { label: e.kind, cls: "border-border bg-muted text-muted-foreground" };
+          const d = (e.detail ?? {}) as Record<string, unknown>;
+          const restoredFrom = typeof d.restoredFrom === "string" ? d.restoredFrom : null;
+          return (
+            <li key={`${e.at}-${e.kind}-${i}`} className="relative">
+              <span
+                className="absolute -start-[21px] top-1.5 h-2 w-2 rounded-full bg-border"
+                aria-hidden
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs ${style.cls}`}>
+                  {style.label}
+                </span>
+                <time className="font-mono text-xs text-muted-foreground" dir="ltr" dateTime={e.at}>
+                  {e.at.slice(0, 19).replace("T", " ")}Z
+                </time>
+                {restoredFrom && (
+                  <Badge variant="outline" className="font-normal text-[10px]">
+                    שוחזר: {restoredFrom}
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-0.5 text-xs text-foreground/90">{eventText(e)}</p>
+            </li>
+          );
+        })}
+      </ol>
+      <p className="mt-2 text-[10px] text-muted-foreground">
+        מקור: ה-DB החי · גיבוי: charter/events.jsonl בקנון · אירועי RESTORE חתומים בספר hash-chained
+      </p>
     </div>
   );
 }

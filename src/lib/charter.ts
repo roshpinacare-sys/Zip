@@ -138,6 +138,8 @@ export async function budgetLeft(
 
 // ── קנון: פרסום לריפו Defi דרך ה-Contents API ────────────────────────
 
+export const EVENTS_LOG_PATH = "charter/events.jsonl";
+
 function resolvePatPath(): string {
   const candidates = [
     process.env.CHARTER_PAT,
@@ -270,5 +272,137 @@ export async function readCanonRegistry(): Promise<unknown | null> {
   return tryFetch(
     `https://raw.githubusercontent.com/${CHARTER.canonRepo}/main/${CHARTER.registryPath}`,
     { Accept: "application/json" },
+  );
+}
+
+// ── יומן האירועים בקנון (R92) ─────────────────────────────────────────
+//
+// לקח איפוס-הסנדבוקס: מרשם בלי יומן-אירועים הוא תמונה בלי סרט —
+// אחרי האיפוס נותרו "פרויקטים בלי עבר". מעתה כל אירוע (CHARTER /
+// STATUS / ARTIFACT / RESTORE) נכתב גם לשורת-JSON אחת בקנון,
+// append-only, והריפוי מייבא ממנו. ה-id הדטרמיניסטי מבטיח
+// שהריפוי אידמפוטנטי — אותו אירוע לא יובא פעמיים.
+
+export interface CanonEvent {
+  id: string; // זיהוי דטרמיניסטי (דה-דופ בריפוי)
+  at: string; // ISO — זמן האירוע; מדויק כשנצפה חי, מסומן restored כששוחזר
+  slug: string;
+  kind: string; // CHARTER | STATUS | ARTIFACT | RESTORE
+  detail: Record<string, unknown>;
+  attSeq?: number | null;
+  attEntryHash?: string | null;
+  restored?: boolean; // אמת = שוחזר מהיסטוריית-הקנון, לא נצפה חי בזמן אמת
+  restoredFrom?: string; // מקור השחזור — commit sha / registry@sha
+}
+
+/** ה-id הקנוני של אירוע — פונקציה של התוכן בלבד (slug|kind|at|detail). */
+export function canonEventId(
+  slug: string,
+  kind: string,
+  at: string,
+  detailJson: string,
+): string {
+  return createHash("sha256").update(`${slug}|${kind}|${at}|${detailJson}`).digest("hex").slice(0, 16);
+}
+
+/** קריאת קובץ-טקסט מהקנון — Contents API עם PAT, נפילה ל-raw הציבורי. */
+export async function readCanonText(path: string): Promise<string | null> {
+  const viaApi = async (): Promise<string | null> => {
+    const pat = readPat();
+    if (!pat) return null;
+    try {
+      const r = await jfetch(
+        `https://api.github.com/repos/${CHARTER.canonRepo}/contents/${encodeURIComponent(path)}?ref=main`,
+        { headers: ghHeaders(pat) },
+        15_000,
+      );
+      if (!r.ok) return null;
+      const wrapped = (await r.json()) as { content?: string; encoding?: string };
+      if (typeof wrapped.content === "string" && wrapped.encoding === "base64") {
+        return Buffer.from(wrapped.content, "base64").toString("utf8");
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+  const api = await viaApi();
+  if (api !== null) return api;
+  try {
+    const r = await jfetch(
+      `https://raw.githubusercontent.com/${CHARTER.canonRepo}/main/${path}`,
+      { Accept: "text/plain" },
+      15_000,
+    );
+    if (!r.ok) return null;
+    return await r.text();
+  } catch {
+    return null;
+  }
+}
+
+/** יומן האירועים מהקנון — שורות JSON תקפות בלבד (שורה שבורה לא מפילה את הזיכרון). */
+export async function readCanonEvents(): Promise<CanonEvent[]> {
+  const text = await readCanonText(EVENTS_LOG_PATH);
+  if (!text) return [];
+  const out: CanonEvent[] = [];
+  for (const line of text.split("\n")) {
+    const s = line.trim();
+    if (!s) continue;
+    try {
+      const e = JSON.parse(s) as CanonEvent;
+      if (e && typeof e.id === "string" && typeof e.slug === "string" && typeof e.kind === "string") {
+        out.push(e);
+      }
+    } catch {
+      /* שורה שבורה — היומן ממשיך */
+    }
+  }
+  return out;
+}
+
+/** הוספת אירועים ליומן הקנון (append-only + דה-דופ לפי id). */
+export async function appendCanonEvents(events: CanonEvent[]): Promise<CanonResult> {
+  if (events.length === 0) return { ok: true, path: EVENTS_LOG_PATH };
+  const existing = await readCanonEvents();
+  const have = new Set(existing.map((e) => e.id));
+  const fresh = events.filter((e) => !have.has(e.id));
+  if (fresh.length === 0) return { ok: true, path: EVENTS_LOG_PATH };
+  const merged = [...existing, ...fresh];
+  return publishCanon(
+    EVENTS_LOG_PATH,
+    merged.map((e) => JSON.stringify(e)).join("\n") + "\n",
+    `charter: events log +${fresh.length} (${merged.length} total)`,
+  );
+}
+
+/** פרסום המרשם מה-DB החי — מקור-אמת אחד, בשימוש ההקמה והריפוי גם יחד. */
+export async function publishRegistryFromDB(extra?: {
+  restoredAt?: string;
+}): Promise<CanonResult> {
+  const all = await db.charterProject.findMany({
+    orderBy: { createdAt: "asc" },
+    include: { builder: true },
+  });
+  const registry: Record<string, unknown> = {
+    publishedAt: new Date().toISOString(),
+    projects: all.map((p) => ({
+      slug: p.slug,
+      name: p.name,
+      purpose: p.purpose,
+      status: p.status,
+      builderName: p.builder.name,
+      builderAddress: p.builder.ethAddress,
+      attSeq: p.attSeq,
+      attEntryHash: p.attEntryHash,
+      artifacts: p.artifactsCount,
+      charterAt: p.createdAt.toISOString(),
+    })),
+  };
+  if (extra?.restoredAt) registry.restoredAt = extra.restoredAt;
+  return publishCanon(
+    CHARTER.registryPath,
+    JSON.stringify(registry, null, 2) + "\n",
+    `charter: registry updated (${all.length} projects)`,
   );
 }

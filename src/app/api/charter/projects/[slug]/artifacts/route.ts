@@ -8,7 +8,7 @@
 
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { CHARTER, secretGate, verifyBuilderToken, budgetLeft, publishCanon } from "@/lib/charter";
+import { CHARTER, secretGate, verifyBuilderToken, budgetLeft, publishCanon, canonEventId, appendCanonEvents } from "@/lib/charter";
 import { appendAttestation } from "@/lib/weave/ledger";
 
 export const dynamic = "force-dynamic";
@@ -106,6 +106,8 @@ export async function POST(
     `charter: artifact "${filename}" → ${slug} (by ${builder.name})`,
   );
 
+  const eventId = canonEventId(slug, "ARTIFACT", new Date().toISOString(), canonPath);
+
   const updated = await db.charterProject.update({
     where: { slug },
     data: {
@@ -114,6 +116,7 @@ export async function POST(
         create: {
           kind: "ARTIFACT",
           detail: JSON.stringify({
+            eventId,
             filename,
             canonPath,
             bytes: Buffer.byteLength(content, "utf8"),
@@ -125,6 +128,23 @@ export async function POST(
     },
   });
 
+  // R92: המסמך עצמו בקנון — והאירוע שלו ביומן האירועים הקנוני
+  const canonEv = await appendCanonEvents([
+    {
+      id: eventId,
+      at: new Date().toISOString(),
+      slug,
+      kind: "ARTIFACT",
+      detail: {
+        filename,
+        canonPath,
+        bytes: Buffer.byteLength(content, "utf8"),
+        canonOk: res.ok,
+        canonUrl: res.url ?? null,
+      },
+    },
+  ]).catch(() => null);
+
   return NextResponse.json(
     {
       ok: true,
@@ -134,7 +154,7 @@ export async function POST(
         bytes: Buffer.byteLength(content, "utf8"),
         project: slug,
       },
-      canon: res,
+      canon: { ...res, eventsLog: canonEv },
       artifactsTotal: updated.artifactsCount,
     },
     { status: 201 },
