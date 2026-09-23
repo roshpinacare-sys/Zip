@@ -371,20 +371,31 @@ export async function anchorCharterOnSteem(opts?: { dryRun?: boolean }): Promise
 
   let broadcastErr: string | null = null;
   try {
-    await new Promise<void>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error("broadcast-timeout-45s")), 45_000);
-      steem.broadcast.customJson(
-        wif,
-        [],
-        [CHARTER_ANCHOR_ACCOUNT],
-        CHARTER_ANCHOR_OP_ID,
-        JSON.stringify(payload),
-        (err: Error | null) => {
-          clearTimeout(timer);
-          if (err) reject(err);
-          else resolve();
+    // לקח R98 (הוכח במעבדה + 80 מדידות ב-dev.log): מצב-ה-callback של steem-js
+    // מחזיר undefined ובדחיית-הכנה ה-callback אף לא מופעל. הדפוס המוכח של
+    // קו-העוגן (graphene.ts, חי on-chain): sendAsync — ההבטחה היא מקור-האמת.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    await Promise.race([
+      steem.broadcast.sendAsync(
+        {
+          extensions: [],
+          operations: [[
+            "custom_json",
+            {
+              required_auths: [],
+              required_posting_auths: [CHARTER_ANCHOR_ACCOUNT],
+              id: CHARTER_ANCHOR_OP_ID,
+              json: JSON.stringify(payload),
+            },
+          ]],
         },
-      );
+        [wif],
+      ),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("broadcast-timeout-45s")), 45_000);
+      }),
+    ]).finally(() => {
+      if (timer) clearTimeout(timer);
     });
   } catch (e) {
     // לקח R87: callback מתעכב ≠ כישלון — ההיסטוריה היא השופטת

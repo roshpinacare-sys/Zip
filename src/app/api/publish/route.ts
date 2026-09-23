@@ -723,19 +723,36 @@ export async function POST(req: Request) {
         community: "the-weave",
       };
 
-      const result = await new Promise<any>((resolve, reject) =>
-        steem.broadcast.comment(
-          wif,
-          "",
-          parentPermlink,
-          ownerKey.account,
-          permlink,
-          task.title,
-          task.body,
-          jsonMetadata,
-          (err: Error | null, res: any) => (err ? reject(err) : resolve(res)),
+      // לקח R98 (הוכח במעבדה + 80 מדידות ב-dev.log): מצב-ה-callback של steem-js
+      // מחזיר undefined ובדחיית-הכנה ה-callback לא מופעל — כאן זה היה חמור
+      // עוד יותר: בלי תקרת-זמן, בקשה הייתה נתלית לנצח. הדפוס המוכח של
+      // קו-העוגן (graphene.ts): sendAsync — ההבטחה היא מקור-האמת היחיד.
+      let broadcastTimer: ReturnType<typeof setTimeout> | undefined;
+      const result = await Promise.race([
+        steem.broadcast.sendAsync(
+          {
+            extensions: [],
+            operations: [[
+              "comment",
+              {
+                parent_author: "",
+                parent_permlink: parentPermlink,
+                author: ownerKey.account,
+                permlink,
+                title: task.title,
+                body: task.body,
+                json_metadata: JSON.stringify(jsonMetadata),
+              },
+            ]],
+          },
+          [wif],
         ),
-      );
+        new Promise<never>((_, reject) => {
+          broadcastTimer = setTimeout(() => reject(new Error("broadcast-timeout-45s")), 45_000);
+        }),
+      ]).finally(() => {
+        if (broadcastTimer) clearTimeout(broadcastTimer);
+      });
 
       const txid = result?.id ?? null;
       const url = `https://steemit.com/@${ownerKey.account}/${permlink}`;

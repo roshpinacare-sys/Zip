@@ -92,6 +92,7 @@ export const SECTIONS: Array<{
     subs: [
       { key: "mover", label: "מוביל הכסף" },
       { key: "cross", label: "בין-רשתות · גריד" },
+      { key: "flows", label: "זרימות וחסימות" },
       { key: "markets", label: "שווקי ההלוואות" },
     ],
   },

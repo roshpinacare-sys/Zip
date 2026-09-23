@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
-  "version": "1.1.0",
-  "bootedAt": "2026-09-23T00:48:09.501Z",
-  "beats": 785,
+  "version": "1.3.0",
+  "bootedAt": "2026-09-23T05:57:27.403Z",
+  "beats": 853,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -12,20 +12,28 @@
     },
     "cooldownMin": 30,
     "actionsBudgetPerDay": 12,
+    "armBuy": {
+      "minSbd": 0.15,
+      "offsetsBps": [
+        100,
+        200,
+        300
+      ]
+    },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money)"
   },
-  "lastActionAt": "2026-09-23T05:41:59.848Z",
-  "actionsToday": 6,
+  "lastActionAt": "2026-09-23T06:39:27.416Z",
+  "actionsToday": 7,
   "actionDay": "2026-09-23",
   "acting": false,
   "lastDecision": {
-    "at": "2026-09-23T06:10:09.530Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 2 דק'"
+    "at": "2026-09-23T07:14:27.421Z",
+    "kind": "HOLD",
+    "detail": "הסולם על הקו — אין פעולה נדרשת"
   },
   "canonLast": {
-    "at": "2026-09-23T05:42:01.065Z",
-    "ok": true,
+    "at": "2026-09-23T06:42:17.386Z",
+    "ok": false,
     "path": "reports/money-2026-09-23.md"
   }
 }

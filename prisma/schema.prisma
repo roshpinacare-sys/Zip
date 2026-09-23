@@ -303,6 +303,31 @@ model PublishTask {
   @@index([queuedAt])
 }
 
+// ── מרשם החסימות · כלכלה ריבונית (R98) ──────────────────────────────
+// הוראת המפעיל: "לבחון איך לטפל ולפתוח סתימות חסימות דימומים מה שנמצא
+// חסום (ולמה)." — כל חסימה בכלכלה מתועדת כאן במרשם אחד חי: מה חסום,
+// למה, האם היא מכוונת (חוק/ביטחון) או חולפת (מלאי), מה פותח אותה,
+// ומה הנתיב הריבוני. המדידה החיה מוספת בזמן קריאה — ה-DB הוא הקנון,
+// השכבה החיה היא האמת.
+model EconomyBlockage {
+  id            String   @id @default(cuid())
+  code          String   @unique // BLK-SBD-BUYSIDE | BLK-ETH-SOL-CAST | ...
+  kind          String // CLOG (סתימה) | GATE (חסימה-שער) | BLEED (דימום) | MOORING (עגינה מכוונת)
+  title         String
+  what          String
+  why           String
+  class         String // INTENTIONAL-LEGAL | INTENTIONAL-SECURITY | INVENTORY | OPERATOR | INFRA | MEASUREMENT
+  measured      String // המצב המדוד בזריעה (מוחלף בשכבה החיתה כשיש מקור)
+  unlock        String // תנאי הפתיחה — מדידה, לא מילים
+  sovereignPath String // הנתיב הריבוני — איך הרשת מקדמת את זה בלי לסכן את עצמה
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([kind])
+  @@index([class])
+}
+
 // ── שער-העסקאות (R97 · TX-GATE) ──────────────────────────────────────
 // הוראת המפעיל: "מערכת אוטונומית לא צריכה שער מפעיל רק במקרים של
 // עסקאות באמת גדולות 100$ ומעלה." — כל פעולת-כסף מוערכת ב-USD חי

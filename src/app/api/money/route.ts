@@ -883,21 +883,26 @@ export async function POST(req: Request) {
     receipt.error = errors.slice(-3).join(" | ");
   };
 
-  const broadcastOp = <T,>(fn: (cb: (err: Error | null, res: T) => void) => unknown): Promise<T> =>
-    new Promise<T>((resolve, reject) => {
-      // לקח-הריצות (נמדד 00:43–00:50Z): שידור מתקבל בשרשרת ב-~7-9 שנ׳
-      // אך אישור ה-callback של steem-js חוזר אחרי 20-30 שנ׳. תקרת-זמן
-      // לכל שידור: 45 שנ׳ — והשופט הסופי הוא השרשרת עצמה (ה-verify
-      // בסוף הקבלה מודד מה באמת פתוח שם, לא מה שהאישורים אמרו).
-      const timer = setTimeout(() => reject(new Error("broadcast-timeout-45s")), 45_000);
-      quiet(
-        fn((err, res) => {
-          clearTimeout(timer);
-          if (err) reject(err);
-          else resolve(res);
+  // לקח R98 (הוכח במעבדה מבודדת scripts/lab-broadcast-rejection.cjs + 80 מדידות
+  // ב-dev.log): מצב-ה-callback של steem-js נכשל פעמיים — ההבטחה המוחזרת
+  // היא undefined (אין מה לתפוס) ובדחיית-הכנה ה-callback אף לא מופעל.
+  // הדפוס המוכח של קו-העוגן (graphene.ts, חי on-chain): broadcast.sendAsync —
+  // ההבטחה היא מקור-האמת היחיד. תקרת-45ש' נשארת: שידור מתקבל בשרשרת
+  // ב-~7-9 שנ׳ אך אישור steem-js מתעכב מעבר לזה — והשופט הסופי הוא
+  // השרשרת (ה-verify בסוף הקבלה מודד מה באמת פתוח שם, לא מה שהאישורים אמרו).
+  const broadcastOp = async <T,>(p: Promise<T>): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        p,
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("broadcast-timeout-45s")), 45_000);
         }),
-      );
-    });
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
 
   // לקח-הריצה-הראשונה (נמדד 00:38–00:40Z): קבלה שנכתבת רק בסוף מתאפסת אם
   // ה-handler נקטע. מעתה — הקבלה מתעדכנת בקובץ אחרי כל פעולה בודדת:
@@ -913,8 +918,12 @@ export async function POST(req: Request) {
       // לא במחיר ההצעה; השרשרת היא השופטת.
       const bidCancelResults = await Promise.allSettled(
         bidOpen.map((o) =>
-          broadcastOp<any>((cb) => steem.broadcast.limitOrderCancel(wif, ownerKey.account, o.orderid, cb))
-            .then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
+          broadcastOp<any>(
+            steem.broadcast.sendAsync(
+              { extensions: [], operations: [["limit_order_cancel", { owner: ownerKey.account, orderid: o.orderid }]] },
+              [wif],
+            ),
+          ).then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
         ),
       );
       bidOpen.forEach((o, i) => {
@@ -962,17 +971,23 @@ export async function POST(req: Request) {
         }
         const orderid = Number(`${orderDay}9${i + 1}`);
         try {
-          const res = await broadcastOp<any>((cb) =>
-            steem.broadcast.limitOrderCreate(
-              wif,
-              ownerKey.account,
-              orderid,
-              `${sbd.toFixed(3)} SBD`,
-              `${steemOut.toFixed(3)} STEEM`,
-              false,
-              expiration,
-              [],
-              cb,
+          const res = await broadcastOp<any>(
+            steem.broadcast.sendAsync(
+              {
+                extensions: [],
+                operations: [[
+                  "limit_order_create",
+                  {
+                    owner: ownerKey.account,
+                    orderid,
+                    amount_to_sell: `${sbd.toFixed(3)} SBD`,
+                    min_to_receive: `${steemOut.toFixed(3)} STEEM`,
+                    fill_or_kill: false,
+                    expiration,
+                  },
+                ]],
+              },
+              [wif],
             ),
           );
           receipt.placed.push({ orderid, sell: sbd, receive: steemOut, price: Math.round(effPrice * 1e6) / 1e6, txid: res?.id ?? null });
@@ -1048,8 +1063,12 @@ export async function POST(req: Request) {
     // א. ביטול פקודות המכירה הקיימות — במקביל (עצמאיות; הכסף חוזר לנזיל)
     const cancelResults = await Promise.allSettled(
       sellOpen.map((o) =>
-        broadcastOp<any>((cb) => steem.broadcast.limitOrderCancel(wif, ownerKey.account, o.orderid, cb))
-          .then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
+        broadcastOp<any>(
+          steem.broadcast.sendAsync(
+            { extensions: [], operations: [["limit_order_cancel", { owner: ownerKey.account, orderid: o.orderid }]] },
+            [wif],
+          ),
+        ).then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
       ),
     );
     sellOpen.forEach((o, i) => {
@@ -1102,17 +1121,23 @@ export async function POST(req: Request) {
       }
       const orderid = Number(`${orderDay}${String(i + 1).padStart(2, "0")}`);
       try {
-        const res = await broadcastOp<any>((cb) =>
-          steem.broadcast.limitOrderCreate(
-            wif,
-            ownerKey.account,
-            orderid,
-            `${sell.toFixed(3)} STEEM`,
-            `${receive.toFixed(3)} SBD`,
-            false,
-            expiration,
-            [],
-            cb,
+        const res = await broadcastOp<any>(
+          steem.broadcast.sendAsync(
+            {
+              extensions: [],
+              operations: [[
+                "limit_order_create",
+                {
+                  owner: ownerKey.account,
+                  orderid,
+                  amount_to_sell: `${sell.toFixed(3)} STEEM`,
+                  min_to_receive: `${receive.toFixed(3)} SBD`,
+                  fill_or_kill: false,
+                  expiration,
+                },
+              ]],
+            },
+            [wif],
           ),
         );
         receipt.placed.push({ orderid, sell, receive, price: Math.round(effPrice * 1e6) / 1e6, txid: res?.id ?? null });
