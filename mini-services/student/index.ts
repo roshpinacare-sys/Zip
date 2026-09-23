@@ -44,7 +44,7 @@ const REPO_ROLES: Record<string, string> = {
   "saos-dex": "מנוע הדקס",
   Defi: "ריפו-קנון — דוחות וקבלות",
   Domain: "מראה ציבורית — המכונה (20 זרימות)",
-  "saos-sovereign-foundry": "CI חוזים (אדום מתועד 0/100)",
+  "saos-sovereign-foundry": "CI חוזים — האמת לפי הריצה האחרונה (לא הזיכרון)",
   Adsmarket: "שמירת-טענות שיווק",
   "anchor-baseline": "שלמות בסיס-קו",
   roshpina: "ביקורת בקרות",
@@ -81,10 +81,11 @@ interface Finding {
   id: string;
   title: string;
   detail: string;
-  state: "OPEN" | "WORKING" | "GATED" | "DONE";
+  state: "OPEN" | "WORKING" | "GATED" | "DONE" | "DISPROVEN";
   addedAt: string;
   updatedAt: string;
   source: "seeded" | "live";
+  verify?: VerifyEvidence;
 }
 
 interface HealReceipt {
@@ -183,7 +184,7 @@ function seedFindings(): Finding[] {
 function freshState(): StudentState {
   return {
     service: "student",
-    version: "1.0.0",
+    version: "1.1.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     cycleSec: CYCLE_SEC,
@@ -309,6 +310,70 @@ function learnRecurrence(probes: ProbeResult[]): string[] {
 
 // ── 3. מפת-כיסוי הרשת (GitHub, קריאה בלבד) ─────────────────────────
 
+// ── 3ב. מאמת-האמת (R95 — מפקד האמת) ──────────────────────────────
+// לקח-המקור: P3 נזרע מזיכרון (OL-3, 2026-09-14) בעוד הריצה האחרונה
+// של foundry כבר הייתה ירוקה (2026-09-16, נסגר ב-Task 43). הקנון ידע —
+// התלמיד לא, כי הוא זכר במקום למדוד. מעתה: כל טענה שניתנת לאימות
+// נמדדת מול המקור החי לפני שהיא נשארת פתוחה. הזיכרון מפגר — המדידה לא.
+
+interface VerifyEvidence {
+  at: string;
+  claim: string;
+  verdict: "DISPROVEN" | "CONFIRMED" | "INCONCLUSIVE";
+  evidence: string;
+}
+
+async function ghJson(pat: string, path: string): Promise<any | null> {
+  try {
+    const res = await fetch(`${GH}${path}`, {
+      headers: { Authorization: `token ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "student-daemon" },
+      cache: "no-store",
+    });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+// מאמת P3: "Foundry CI אדום 0/100" — האמת היא הריצה האחרונה, לא הזיכרון
+async function verifyFoundryCiClaim(pat: string): Promise<Omit<VerifyEvidence, "at" | "claim"> | null> {
+  const j = await ghJson(pat, "/repos/roshpinacare-sys/saos-sovereign-foundry/actions/runs?per_page=1");
+  const last = j?.workflow_runs?.[0];
+  if (!last || !last.conclusion) return null; // רץ כרגע / לא-נמדד — טרם ניתן לשיפוט
+  const short = `ריצה #${last.run_number} · ${String(last.head_sha ?? "").slice(0, 7)} · ${last.created_at} · ${last.html_url}`;
+  if (last.conclusion === "success") {
+    return { verdict: "DISPROVEN", evidence: `CI ירוק בריצה האחרונה — ${short}` };
+  }
+  if (last.conclusion === "failure" || last.conclusion === "timed_out") {
+    return { verdict: "CONFIRMED", evidence: `CI אדום בפועל — ${short}` };
+  }
+  return null;
+}
+
+async function verifyFindings(): Promise<string[]> {
+  const notes: string[] = [];
+  const pat = readPat();
+  const now = new Date().toISOString();
+  const p3 = state.findings.find((f) => f.id === "P3");
+  if (p3 && p3.state === "OPEN" && pat) {
+    const v = await verifyFoundryCiClaim(pat);
+    if (v) {
+      p3.verify = { at: now, claim: "Foundry CI אדום 0/100", ...v };
+      p3.updatedAt = now;
+      p3.source = "live";
+      if (v.verdict === "DISPROVEN") {
+        p3.state = "DISPROVEN";
+        p3.title = "Foundry CI — הטענה הופרכה במדידה";
+        p3.detail = `האמונה "אדום 0/100" הופרכה במדידה חיה: ${v.evidence}. האדום ההיסטורי (99 כישלונים) נסגר ב-Task 43; מקור הזרע (OL-3, 2026-09-14) הקדים את התיקון — הזיכרון מפגר אחרי המציאות (TRUTH-AUDIT §15.5).`;
+        notes.push("VERIFY: P3 הופרך במדידה חיה — foundry CI ירוק. האמונה השקרית נסגרה בראיה, לא בזיכרון");
+      } else {
+        notes.push(`VERIFY: P3 אומת כאדום בפועל — ${v.evidence}`);
+      }
+    }
+  }
+  return notes;
+}
+
 async function measureCoverage(): Promise<void> {
   const pat = readPat();
   if (!pat) {
@@ -382,6 +447,7 @@ function learnFromWorklog(): Lessons {
         `${liveBugsCaught} אזכורי "באג חי" — באגים שנתפסו בשידור חי ותוקנו בשורש, לא טואטאו`,
         "לקח-הדורות (נלמד מהספר): ההיסטוריה מפגרת אחרי השרשרת — אימות שידור דורש חלון + דה-דופ (R87/R91)",
         "לקח-הדורות: bun --hot מקפיא טיימרים — בריאות דיבון נמדדת לפי טריות פעימות, לא פורט פתוח (R91)",
+        "לקח-מפקד-האמת (R95): מסמך של ריפו יכול לשקר על הריפו — מפת הדרכים של foundry סימנה 5 סעיפים פתוחים כש-4 כבר נסגרו; אמת נמדדת מהקוד והריצות, לא מהזיכרון",
       ],
     };
   } catch {
@@ -447,9 +513,15 @@ async function tick() {
     state.probeHistory = [...state.probeHistory, ...probes].slice(-2000);
     const learnNotes = learnRecurrence(probes);
 
-    // כיסוי — כל שעה (עדינות מול GitHub)
+    // כיסוי — כל שעה (עדינות מול GitHub), ומיד אחריו מאמת-האמת:
+    // כל טענה פתוחה שאפשר למדוד — נמדדת מול המקור החי (R95).
     if (state.beats % COVERAGE_EVERY === 1) {
       await measureCoverage();
+      const verifyNotes = await verifyFindings();
+      state.history = [
+        ...state.history,
+        ...verifyNotes.map((n) => ({ at: new Date().toISOString(), kind: "VERIFY", detail: n })),
+      ].slice(-40);
     }
 
     // למידה מה-worklog — פעם בשעה
@@ -516,6 +588,7 @@ Bun.serve({
       if (!coverageTriggered) {
         coverageTriggered = true;
         void measureCoverage()
+          .then(() => verifyFindings())
           .catch(() => {})
           .finally(() => {
             coverageTriggered = false;

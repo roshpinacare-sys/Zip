@@ -38,7 +38,16 @@ interface StudentStatus {
     verdict: "AGENTED" | "STALE" | "IDLE" | "UNKNOWN";
   }>;
   coverageAt: string | null;
-  findings: Array<{ id: string; title: string; detail: string; state: string; addedAt: string; updatedAt: string; source: string }>;
+  findings: Array<{
+    id: string;
+    title: string;
+    detail: string;
+    state: string;
+    addedAt: string;
+    updatedAt: string;
+    source: string;
+    verify?: { at: string; claim: string; verdict: string; evidence: string };
+  }>;
   lessons: {
     rounds: number;
     liveBugsCaught: number;
@@ -90,6 +99,7 @@ async function composeState() {
             working: daemon.findings.filter((f) => f.state === "WORKING").length,
             open: daemon.findings.filter((f) => f.state === "OPEN").length,
             gated: daemon.findings.filter((f) => f.state === "GATED").length,
+            disproven: daemon.findings.filter((f) => f.state === "DISPROVEN").length,
           }
         : null,
     },
@@ -97,6 +107,7 @@ async function composeState() {
       "התלמיד בוחן את עצמו כל 10 דקות — מערכות, צי, וכיסוי הרשת. כישלון נרשם כ'לא נמדד', לא מוסתר.",
       "למידה מהיסטוריה: כשל חוזר מסומן RECURRING עד ריפוי — וההתאוששות עצמה נלמדת.",
       "ריפוי-בטוח בלבד: סנכרון ספר וריפוי צ'רטרים — הפעולות האידמפוטנטיות המתועדות, בתקציב 3 ליום.",
+      "מפקד האמת (R95): טענה שניתנת למדידה לא נשארת פתוחה מכוח זיכרון — היא נמדדת מול המקור החי, ואמונה שקרית מופרכת בראיה.",
       "לא ריבונות עצלנית: כל מחזור מודד, כל ממצא נשמר, וספר-הפוטנציאל מתעדכן מהשטח.",
     ],
   };

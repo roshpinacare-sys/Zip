@@ -60,7 +60,16 @@ interface StudentData {
       verdict: "AGENTED" | "STALE" | "IDLE" | "UNKNOWN";
     }>;
     coverageAt: string | null;
-    findings: Array<{ id: string; title: string; detail: string; state: string; addedAt: string; updatedAt: string }>;
+    findings: Array<{
+      id: string;
+      title: string;
+      detail: string;
+      state: string;
+      addedAt: string;
+      updatedAt: string;
+      source?: string;
+      verify?: { at: string; claim: string; verdict: string; evidence: string };
+    }>;
     lessons: {
       rounds: number;
       liveBugsCaught: number;
@@ -78,7 +87,7 @@ interface StudentData {
   summary: {
     coverage: { repos: number; agented: number; idle: number; stale: number; at: string | null } | null;
     uptimePct: number | null;
-    findings: { done: number; working: number; open: number; gated: number } | null;
+    findings: { done: number; working: number; open: number; gated: number; disproven: number } | null;
   } | null;
   doctrine: string[];
   cached: boolean;
@@ -92,6 +101,7 @@ const FINDING_STYLE: Record<string, { cls: string; label: string }> = {
   WORKING: { cls: "border-[#d4af37]/40 bg-[#d4af37]/10 text-[#d4af37]", label: "בעבודה" },
   OPEN: { cls: "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "פתוח" },
   GATED: { cls: "border-zinc-600/40 bg-zinc-500/10 text-zinc-400", label: "שער-מפעיל" },
+  DISPROVEN: { cls: "border-rose-600/40 bg-rose-500/10 text-rose-600 dark:text-rose-300", label: "הופרך במדידה" },
 };
 
 const VERDICT_STYLE: Record<string, { cls: string; label: string }> = {
@@ -222,9 +232,20 @@ export function StudentView() {
                   <Sparkles className="size-3.5 text-[#d4af37]" aria-hidden /> ספר-פוטנציאל
                 </div>
                 <div className="mt-1.5 font-mono text-xl font-bold text-zinc-200">
-                  {data?.summary?.findings ? `${data.summary.findings.done}/${data.summary.findings.done + data.summary.findings.working + data.summary.findings.open + data.summary.findings.gated}` : "—"}
+                  {data?.summary?.findings
+                    ? `${data.summary.findings.done}/${
+                        data.summary.findings.done +
+                        data.summary.findings.working +
+                        data.summary.findings.open +
+                        data.summary.findings.gated +
+                        (data.summary.findings.disproven ?? 0)
+                      }`
+                    : "—"}
                 </div>
-                <div className="text-[10px] text-zinc-600">הושלמו מתוך הספר החי</div>
+                <div className="text-[10px] text-zinc-600">
+                  הושלמו מתוך הספר החי
+                  {data?.summary?.findings?.disproven ? ` · ${data.summary.findings.disproven} הופרגו במדידה` : ""}
+                </div>
               </CardContent>
             </Card>
             <Card className="min-w-0 border-zinc-800 bg-zinc-950/40">
@@ -408,6 +429,25 @@ export function StudentView() {
                         <Badge variant="outline" className={cn("ms-auto border", st.cls)}>{st.label}</Badge>
                       </div>
                       <p className="text-xs leading-relaxed text-zinc-500">{f.detail}</p>
+                      {f.verify && (
+                        <div className="mt-2 rounded-lg border border-zinc-800/70 bg-zinc-950/60 p-2.5 text-[11px]" dir="rtl">
+                          <div className="flex items-center gap-1.5">
+                            <ShieldCheck
+                              className={cn(
+                                "size-3.5 shrink-0",
+                                f.verify.verdict === "DISPROVEN" ? "text-rose-500" : "text-emerald-500",
+                              )}
+                              aria-hidden
+                            />
+                            <span className="font-semibold text-zinc-400">ראיית-המדידה (מפקד האמת)</span>
+                            <span className="ms-auto text-zinc-600">{fmtDateTime(f.verify.at)}</span>
+                          </div>
+                          <p className="mt-1 text-zinc-500">הטענה שנבדקה: {f.verify.claim}</p>
+                          <p className={cn("mt-0.5 font-medium", f.verify.verdict === "DISPROVEN" ? "text-rose-400" : "text-emerald-400")}>
+                            {f.verify.verdict === "DISPROVEN" ? "הופרכה" : f.verify.verdict === "CONFIRMED" ? "אומתה" : "לא-הכרעתית"}: {f.verify.evidence}
+                          </p>
+                        </div>
+                      )}
                     </motion.div>
                   );
                 })}
@@ -461,7 +501,13 @@ export function StudentView() {
                         <span
                           className={cn(
                             "font-mono font-semibold",
-                            h.kind === "ERROR" ? "text-rose-400" : h.kind === "HEAL" ? "text-emerald-500" : h.kind === "LEARN" ? "text-[#d4af37]" : "text-zinc-400",
+                            h.kind === "ERROR" || h.kind === "VERIFY-DISPROVEN"
+                              ? "text-rose-400"
+                              : h.kind === "HEAL"
+                                ? "text-emerald-500"
+                                : h.kind === "LEARN" || h.kind === "VERIFY"
+                                  ? "text-[#d4af37]"
+                                  : "text-zinc-400",
                           )}
                         >
                           {h.kind}
