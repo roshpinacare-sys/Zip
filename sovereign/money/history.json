@@ -1,9 +1,64 @@
 [
   {
-    "at": "2026-09-23T07:27:28.448Z",
+    "at": "2026-09-23T09:11:22.968Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "נזיל 476.637 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
+    "parity": 0.11558328645220681,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.364,
+        "price": 0.115585,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.548,
+        "price": 0.116743,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.732,
+        "price": 0.117901,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: unknown key:unknown key: ",
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637,
+      "bidsNow": 0
+    }
+  },
+  {
+    "at": "2026-09-23T09:12:38.679Z",
+    "kind": "REPRICE",
+    "reason": "נזיל 476.637 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
+    "placed": [],
+    "error": null
+  },
+  {
+    "at": "2026-09-23T09:20:28.468Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -18,243 +73,57 @@
         "txid": null
       }
     ],
-    "placed": [
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate"
+  },
+  {
+    "at": "2026-09-23T09:20:28.566Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
+        "txid": null
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
       }
     ],
+    "placed": [],
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:27.872Z",
+    "at": "2026-09-23T09:20:27.707Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
-        "txid": null
+        "txid": "56eb59216ecc107cecd875f52fd378d7ef429e86"
       },
       {
         "orderid": 2026092302,
-        "txid": null
+        "txid": "fde319a83ceecd6aa1f3ffe4f5c6e12806b449ca"
       },
       {
         "orderid": 2026092303,
-        "txid": "ac5d9078a831ed479c28a67c6aa50be8f65aa324"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.136Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.540Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.465Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.130Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:28:03.368Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "f63df8757b99e96b5da2d27281d8da09e93942a2"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "cb26ca3d3feb8536babfab1b58757b4ab722c0b8"
+        "txid": "e46f9bd9b5f081f64b57ee4690ccb40ce243f087"
       }
     ],
     "placed": []
   },
   {
-    "at": "2026-09-23T07:27:28.465Z",
+    "at": "2026-09-23T09:20:28.050Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -269,68 +138,14 @@
         "txid": null
       }
     ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": "6402e5985659e9122dc0c8f39e06b372a9f90701"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 1,
-      "deployedNow": 211.838,
-      "bidsNow": 0
-    }
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:28:10.377Z",
+    "at": "2026-09-23T09:20:28.588Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": "6402e5985659e9122dc0c8f39e06b372a9f90701"
-      }
-    ],
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -343,15 +158,225 @@
       {
         "orderid": 2026092303,
         "txid": null
+      }
+    ],
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.541Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.246Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [],
+    "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.220Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:20:28.535Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.158Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [],
+    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:20:28.050Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": "6b6cc15edb830d2dcccd111267a88b1870a40281"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": "4cbee93648208927c7220c10a60e2ffe64c09943"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.468Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate"
+  },
+  {
+    "at": "2026-09-23T09:20:28.541Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
       }
     ],
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:28.290Z",
+    "at": "2026-09-23T09:20:28.220Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -369,25 +394,70 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:20:27.707Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": "56eb59216ecc107cecd875f52fd378d7ef429e86"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
+        "txid": "fde319a83ceecd6aa1f3ffe4f5c6e12806b449ca"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "txid": "e46f9bd9b5f081f64b57ee4690ccb40ce243f087"
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ]
+  },
+  {
+    "at": "2026-09-23T09:20:28.566Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -395,10 +465,10 @@
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:28.448Z",
+    "at": "2026-09-23T09:20:28.246Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -416,301 +486,9 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.136Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.290Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 2,
-      "deployedNow": 370.717,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:28:13.461Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.448Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 2,
-      "deployedNow": 370.717,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:28:13.643Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.428Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -718,10 +496,10 @@
     "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:28.136Z",
+    "at": "2026-09-23T09:20:28.588Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -734,154 +512,14 @@
       {
         "orderid": 2026092303,
         "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 2,
-      "deployedNow": 370.717,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:28:14.989Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:28:03.368Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "f63df8757b99e96b5da2d27281d8da09e93942a2"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "cb26ca3d3feb8536babfab1b58757b4ab722c0b8"
       }
     ],
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "68bb9672ebdd91b903abd27ef3b3e8f2da910a09"
-      }
-    ]
-  },
-  {
-    "at": "2026-09-23T07:27:28.540Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -889,10 +527,10 @@
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:28.130Z",
+    "at": "2026-09-23T09:20:28.535Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -910,25 +548,9 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -936,10 +558,10 @@
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:28.247Z",
+    "at": "2026-09-23T09:20:28.158Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -947,7 +569,7 @@
       },
       {
         "orderid": 2026092302,
-        "txid": "756a03b0da77882cb1f22fe50c04455dc77013f6"
+        "txid": null
       },
       {
         "orderid": 2026092303,
@@ -957,34 +579,20 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": "d1e7b3db02d6c8ccb9db36e68a076d3d892ef4ef"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": "7169b98021cf48128f3f4b831e1f2014a44c2a28"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
   },
   {
-    "at": "2026-09-23T07:27:28.540Z",
+    "at": "2026-09-23T09:20:28.050Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -1002,63 +610,1085 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": "6b6cc15edb830d2dcccd111267a88b1870a40281"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": "4cbee93648208927c7220c10a60e2ffe64c09943"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": "a421103a6e784b26f71540802390770bc90f4acd"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637,
+      "bidsNow": 0
+    }
+  },
+  {
+    "at": "2026-09-23T09:20:52.222Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": "6b6cc15edb830d2dcccd111267a88b1870a40281"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": "4cbee93648208927c7220c10a60e2ffe64c09943"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": "a421103a6e784b26f71540802390770bc90f4acd"
+      }
+    ],
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.468Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate"
+  },
+  {
+    "at": "2026-09-23T09:20:28.535Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.588Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.566Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.541Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.220Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:20:28.246Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:27.707Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": "56eb59216ecc107cecd875f52fd378d7ef429e86"
+      },
+      {
+        "orderid": 2026092302,
+        "txid": "fde319a83ceecd6aa1f3ffe4f5c6e12806b449ca"
+      },
+      {
+        "orderid": 2026092303,
+        "txid": "e46f9bd9b5f081f64b57ee4690ccb40ce243f087"
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ]
+  },
+  {
+    "at": "2026-09-23T09:20:28.158Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:20:28.468Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate"
+  },
+  {
+    "at": "2026-09-23T09:20:28.541Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.468Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate",
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637,
+      "bidsNow": 0
+    }
+  },
+  {
+    "at": "2026-09-23T09:20:28.220Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:21:11.872Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate"
+  },
+  {
+    "at": "2026-09-23T09:20:28.535Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.588Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.566Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.220Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: ",
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637,
+      "bidsNow": 0
+    }
+  },
+  {
+    "at": "2026-09-23T09:21:12.998Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
+  },
+  {
+    "at": "2026-09-23T09:20:28.541Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637,
+      "bidsNow": 0
+    }
+  },
+  {
+    "at": "2026-09-23T09:21:13.236Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.588Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
     "verify": {
-      "ordersNow": 2,
-      "deployedNow": 370.717,
+      "ordersNow": 3,
+      "deployedNow": 476.637,
       "bidsNow": 0
     }
   },
   {
-    "at": "2026-09-23T07:28:16.315Z",
+    "at": "2026-09-23T09:21:13.449Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -1080,10 +1710,10 @@
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:28.130Z",
+    "at": "2026-09-23T09:20:28.246Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -1101,63 +1731,110 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+  },
+  {
+    "at": "2026-09-23T09:20:28.535Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
     "verify": {
-      "ordersNow": 1,
-      "deployedNow": 158.879,
+      "ordersNow": 3,
+      "deployedNow": 476.637,
       "bidsNow": 0
     }
   },
   {
-    "at": "2026-09-23T07:28:16.818Z",
+    "at": "2026-09-23T09:21:13.544Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -1179,621 +1856,155 @@
     "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:27.934Z",
+    "at": "2026-09-23T09:20:27.707Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
-        "txid": null
+        "txid": "56eb59216ecc107cecd875f52fd378d7ef429e86"
       },
       {
         "orderid": 2026092302,
-        "txid": null
+        "txid": "fde319a83ceecd6aa1f3ffe4f5c6e12806b449ca"
       },
       {
         "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.249,
-        "price": 0.11447,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: unknown key:unknown key:  | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:28:12.545Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092303,
-        "txid": "8102ef05ec9f527c01581cbfa7137302ebe07b0b"
-      }
-    ],
-    "placed": []
-  },
-  {
-    "at": "2026-09-23T07:27:28.247Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "756a03b0da77882cb1f22fe50c04455dc77013f6"
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": "d1e7b3db02d6c8ccb9db36e68a076d3d892ef4ef"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": "7169b98021cf48128f3f4b831e1f2014a44c2a28"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 1,
-      "deployedNow": 158.879,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:28:18.361Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": "d1e7b3db02d6c8ccb9db36e68a076d3d892ef4ef"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": "7169b98021cf48128f3f4b831e1f2014a44c2a28"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "756a03b0da77882cb1f22fe50c04455dc77013f6"
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.428Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": "e184eaa7e60cc3c406e40a8831ab45c09cc90554"
-      }
-    ],
-    "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.074Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "31ec4c345ca8da4e186eab137996b2be6f4090a5"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:04.558Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "41b2c69e6ac366d2b65674aef136bfc20044c20b"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "aca6f9d25c4f3bc118d54182368a34f81fd9e2ff"
-      },
-      {
-        "orderid": 2026092303,
-        "txid": "2de91d870194f73595b0af05ae12b79501d92b20"
+        "txid": "e46f9bd9b5f081f64b57ee4690ccb40ce243f087"
       }
     ],
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.187,
-        "price": 0.114471,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
         "sell": 158.879,
-        "receive": 18.369,
-        "price": 0.115616,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ]
   },
   {
-    "at": "2026-09-23T07:28:03.368Z",
+    "at": "2026-09-23T09:20:28.566Z",
     "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
-        "txid": "f63df8757b99e96b5da2d27281d8da09e93942a2"
+        "txid": null
       },
       {
         "orderid": 2026092302,
-        "txid": "cb26ca3d3feb8536babfab1b58757b4ab722c0b8"
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
       }
     ],
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "68bb9672ebdd91b903abd27ef3b3e8f2da910a09"
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
         "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
         "sell": 158.879,
-        "receive": 18.555,
-        "price": 0.116787,
-        "txid": "09d16c5d150c147dcf09fa4c6fc78dc269645fe8"
-      }
-    ]
-  },
-  {
-    "at": "2026-09-23T07:28:25.335Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 105.920 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "463b997642ed0d536398cf1863053ce23089b42e"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "105eb07165e33d12356432a27e1f9990b7bc4c62"
-      }
-    ],
-    "placed": []
-  },
-  {
-    "at": "2026-09-23T07:28:03.368Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "f63df8757b99e96b5da2d27281d8da09e93942a2"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "cb26ca3d3feb8536babfab1b58757b4ab722c0b8"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "68bb9672ebdd91b903abd27ef3b3e8f2da910a09"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 158.879,
-        "receive": 18.555,
-        "price": 0.116787,
-        "txid": "09d16c5d150c147dcf09fa4c6fc78dc269645fe8"
       }
     ],
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
     "verify": {
-      "ordersNow": 1,
-      "deployedNow": 158.879,
+      "ordersNow": 3,
+      "deployedNow": 476.637,
       "bidsNow": 0
     }
   },
   {
-    "at": "2026-09-23T07:28:34.449Z",
+    "at": "2026-09-23T09:21:13.904Z",
     "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "68bb9672ebdd91b903abd27ef3b3e8f2da910a09"
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
         "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
         "sell": 158.879,
-        "receive": 18.555,
-        "price": 0.116787,
-        "txid": "09d16c5d150c147dcf09fa4c6fc78dc269645fe8"
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
       }
     ],
     "cancelled": [
       {
         "orderid": 2026092301,
-        "txid": "f63df8757b99e96b5da2d27281d8da09e93942a2"
+        "txid": null
       },
       {
         "orderid": 2026092302,
-        "txid": "cb26ca3d3feb8536babfab1b58757b4ab722c0b8"
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
       }
     ],
-    "error": null
+    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:27:27.872Z",
+    "at": "2026-09-23T09:20:28.246Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": "ac5d9078a831ed479c28a67c6aa50be8f65aa324"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 1,
-      "deployedNow": 158.879,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:28:37.816Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": "ac5d9078a831ed479c28a67c6aa50be8f65aa324"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:28:25.335Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 105.920 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "463b997642ed0d536398cf1863053ce23089b42e"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "105eb07165e33d12356432a27e1f9990b7bc4c62"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "8f9e45c6bc852cb04f88c0d44d7fffcd1cb0d2c3"
-      }
-    ]
-  },
-  {
-    "at": "2026-09-23T07:27:04.558Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "41b2c69e6ac366d2b65674aef136bfc20044c20b"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "aca6f9d25c4f3bc118d54182368a34f81fd9e2ff"
-      },
-      {
-        "orderid": 2026092303,
-        "txid": "2de91d870194f73595b0af05ae12b79501d92b20"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 158.879,
-        "receive": 18.187,
-        "price": 0.114471,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 158.879,
-        "receive": 18.369,
-        "price": 0.115616,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 158.879,
-        "receive": 18.551,
-        "price": 0.116762,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "verify": {
-      "ordersNow": 2,
-      "deployedNow": 317.758,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:28:41.661Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 158.879,
-        "receive": 18.187,
-        "price": 0.114471,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 158.879,
-        "receive": 18.369,
-        "price": 0.115616,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 158.879,
-        "receive": 18.551,
-        "price": 0.116762,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "41b2c69e6ac366d2b65674aef136bfc20044c20b"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "aca6f9d25c4f3bc118d54182368a34f81fd9e2ff"
-      },
-      {
-        "orderid": 2026092303,
-        "txid": "2de91d870194f73595b0af05ae12b79501d92b20"
-      }
-    ],
-    "error": null
-  },
-  {
-    "at": "2026-09-23T07:27:28.428Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -1811,61 +2022,63 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": "e184eaa7e60cc3c406e40a8831ab45c09cc90554"
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
     "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
     "verify": {
-      "ordersNow": 2,
-      "deployedNow": 317.758,
+      "ordersNow": 3,
+      "deployedNow": 476.637,
       "bidsNow": 0
     }
   },
   {
-    "at": "2026-09-23T07:28:44.577Z",
+    "at": "2026-09-23T09:21:14.956Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": "e184eaa7e60cc3c406e40a8831ab45c09cc90554"
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -1887,42 +2100,10 @@
     "error": "cancel 2026092301: unknown key:unknown key:  | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
   },
   {
-    "at": "2026-09-23T07:28:25.335Z",
+    "at": "2026-09-23T09:20:28.158Z",
     "kind": "REPRICE",
-    "reason": "נזיל 105.920 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "463b997642ed0d536398cf1863053ce23089b42e"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "105eb07165e33d12356432a27e1f9990b7bc4c62"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "8f9e45c6bc852cb04f88c0d44d7fffcd1cb0d2c3"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
-        "txid": "b20c00be118fc08cadaff31801093350d817fe15"
-      }
-    ]
-  },
-  {
-    "at": "2026-09-23T07:27:27.934Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
         "orderid": 2026092301,
@@ -1940,119 +2121,72 @@
     "placed": [
       {
         "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.249,
-        "price": 0.11447,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.492,
-        "price": 0.115617,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: unknown key:unknown key:  | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
+    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
   },
   {
-    "at": "2026-09-23T07:28:12.545Z",
+    "at": "2026-09-23T09:20:27.707Z",
     "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
+        "orderid": 2026092301,
+        "txid": "56eb59216ecc107cecd875f52fd378d7ef429e86"
+      },
+      {
+        "orderid": 2026092302,
+        "txid": "fde319a83ceecd6aa1f3ffe4f5c6e12806b449ca"
+      },
+      {
         "orderid": 2026092303,
-        "txid": "8102ef05ec9f527c01581cbfa7137302ebe07b0b"
+        "txid": "e46f9bd9b5f081f64b57ee4690ccb40ce243f087"
       }
     ],
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
-      }
-    ]
-  },
-  {
-    "at": "2026-09-23T07:27:28.074Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "31ec4c345ca8da4e186eab137996b2be6f4090a5"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:28:25.335Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 105.920 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "463b997642ed0d536398cf1863053ce23089b42e"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": "105eb07165e33d12356432a27e1f9990b7bc4c62"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
-        "txid": "8f9e45c6bc852cb04f88c0d44d7fffcd1cb0d2c3"
       },
       {
         "orderid": 2026092302,
         "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
-        "txid": "b20c00be118fc08cadaff31801093350d817fe15"
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
         "sell": 158.879,
-        "receive": 18.555,
-        "price": 0.116787,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
@@ -2064,182 +2198,98 @@
     }
   },
   {
-    "at": "2026-09-23T07:28:59.773Z",
+    "at": "2026-09-23T09:21:15.197Z",
     "kind": "REPRICE",
-    "reason": "נזיל 105.920 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "placed": [],
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
+    "placed": [
+      {
+        "orderid": 2026092301,
+        "sell": 158.879,
+        "receive": 18.224,
+        "price": 0.114704,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092302,
+        "sell": 158.879,
+        "receive": 18.406,
+        "price": 0.115849,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      },
+      {
+        "orderid": 2026092303,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
+        "txid": null,
+        "confirmedBy": "chain-read"
+      }
+    ],
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": "56eb59216ecc107cecd875f52fd378d7ef429e86"
+      },
+      {
+        "orderid": 2026092302,
+        "txid": "fde319a83ceecd6aa1f3ffe4f5c6e12806b449ca"
+      },
+      {
+        "orderid": 2026092303,
+        "txid": "e46f9bd9b5f081f64b57ee4690ccb40ce243f087"
+      }
+    ],
     "error": null
   },
   {
-    "at": "2026-09-23T07:28:12.545Z",
+    "at": "2026-09-23T09:20:28.158Z",
     "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "cancelled": [
       {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
         "orderid": 2026092303,
-        "txid": "8102ef05ec9f527c01581cbfa7137302ebe07b0b"
+        "txid": null
       }
     ],
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
         "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ]
-  },
-  {
-    "at": "2026-09-23T07:27:27.934Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.249,
-        "price": 0.11447,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.492,
-        "price": 0.115617,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.734,
-        "price": 0.116759,
+        "sell": 158.879,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: unknown key:unknown key:  | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.074Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "31ec4c345ca8da4e186eab137996b2be6f4090a5"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:27.934Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.249,
-        "price": 0.11447,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.492,
-        "price": 0.115617,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.734,
-        "price": 0.116759,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: unknown key:unknown key:  | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
+    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: ",
     "verify": {
       "ordersNow": 3,
       "deployedNow": 476.637,
@@ -2247,199 +2297,50 @@
     }
   },
   {
-    "at": "2026-09-23T07:29:06.925Z",
+    "at": "2026-09-23T09:21:16.067Z",
     "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11446796260662717,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.249,
-        "price": 0.11447,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.492,
-        "price": 0.115617,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.734,
-        "price": 0.116759,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": null
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "error": "cancel 2026092301: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092302: unknown key:unknown key:  | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:27:28.074Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "31ec4c345ca8da4e186eab137996b2be6f4090a5"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "error": "cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx",
-    "verify": {
-      "ordersNow": 3,
-      "deployedNow": 476.637,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:29:08.328Z",
-    "kind": "REPRICE",
-    "reason": "הפאריטה זזה -60bps מעל הסולם שהוצב (0.115182 → קו 0.114489) — הסולם נגרר אליה (חוק 3)",
-    "parity": 0.11449116406295878,
-    "placed": [
-      {
-        "orderid": 2026092301,
-        "sell": 211.838,
-        "receive": 24.254,
-        "price": 0.114493,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092302,
-        "sell": 211.838,
-        "receive": 24.497,
-        "price": 0.11564,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      },
-      {
-        "orderid": 2026092303,
-        "sell": 211.838,
-        "receive": 24.739,
-        "price": 0.116783,
-        "txid": null,
-        "confirmedBy": "chain-read"
-      }
-    ],
-    "cancelled": [
-      {
-        "orderid": 2026092301,
-        "txid": "31ec4c345ca8da4e186eab137996b2be6f4090a5"
-      },
-      {
-        "orderid": 2026092302,
-        "txid": null
-      },
-      {
-        "orderid": 2026092303,
-        "txid": null
-      }
-    ],
-    "error": "cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx"
-  },
-  {
-    "at": "2026-09-23T07:28:12.545Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.11449116406295878,
-    "cancelled": [
-      {
-        "orderid": 2026092303,
-        "txid": "8102ef05ec9f527c01581cbfa7137302ebe07b0b"
-      }
-    ],
+    "reason": "הפאריטה זזה -69bps מעל הסולם שהוצב (0.115585 → קו 0.114782) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.114697581027069,
     "placed": [
       {
         "orderid": 2026092301,
         "sell": 158.879,
-        "receive": 18.191,
-        "price": 0.114496,
+        "receive": 18.224,
+        "price": 0.114704,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092302,
         "sell": 158.879,
-        "receive": 18.373,
-        "price": 0.115641,
+        "receive": 18.406,
+        "price": 0.115849,
         "txid": null,
         "confirmedBy": "chain-read"
       },
       {
         "orderid": 2026092303,
         "sell": 158.879,
-        "receive": 18.555,
-        "price": 0.116787,
+        "receive": 18.588,
+        "price": 0.116995,
         "txid": null,
         "confirmedBy": "chain-read"
       }
     ],
-    "verify": {
-      "ordersNow": 3,
-      "deployedNow": 476.637,
-      "bidsNow": 0
-    }
-  },
-  {
-    "at": "2026-09-23T07:29:14.697Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 52.961 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "placed": [],
-    "error": null
+    "cancelled": [
+      {
+        "orderid": 2026092301,
+        "txid": null
+      },
+      {
+        "orderid": 2026092302,
+        "txid": null
+      },
+      {
+        "orderid": 2026092303,
+        "txid": null
+      }
+    ],
+    "error": "cancel 2026092301: Assert Exception:_callbacks.find( txid ) == _callbacks.end(): Transaction is a duplicate | cancel 2026092302: Assert Exception:(skip & skip_transaction_dupe_check) || trx_idx.indices().get<by_trx_id>().find(trx | cancel 2026092303: unknown key:unknown key: "
   }
 ]

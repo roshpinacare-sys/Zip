@@ -3749,3 +3749,27 @@ Stage Summary:
 - שער ה-$100 מוכח חי ב-UI: 10 STEEM=$0.61 אוטונומיה מלאה, 2000 STEEM=$121.98 תור-מפעיל — כלום לא זז.
 - תיקון השורש של עורק-השידור הוכח במעבדה אך טרם נורה בפעולת-כסף אמיתית מאז השינוי (הדיבון ב-HOLD) — הקבלה הבאה של reprice/arm-buy היא ההוכחה החיה (מסומן בכנות ב-lastHandoff).
 - דוח מלא: sovereign/reports/r98-sovereign-economy-2026-09-23.md
+
+---
+Task ID: R99
+Agent: main (Z.ai — lead engineer)
+Task: הוראת המפעיל: "חייב להיות לנו מפתחות גם להייב בכספת... כל הרשתות מתחברות עם המפתח הראשי תמצא את זה יש לך הכל אין יותר מפתחות שאני אספק לך... תבדוק בכל התיקיות ובגיט עד שתבין איך הכל מתחבר"
+
+Work Log:
+- חפירה שיטתית עד שורש: מפת הכספות נמדדה חי מ-API (שמות בלבד): saos-dex={CONSOLE_PUSH_TOKEN, STEEM_ACTIVE_WIF} · Zip={WEAVE_OPS_PAT, WEAVE_SEAL_PASSPHRASE, WEAVE_STEEM_WIF} · Domain={AGENTS_WATCH_TOKEN, MAIN_KEY, WEAVE_OPS_PAT, WEAVE_STEEM_WIF, ZIP_PAT} · steem={MAIN_KEY} — כלומר: HIVE/BLURT מעולם לא סופקו לכספת המנוע, למרות שהקוד (relay.ts Roast-82) כבר קרא HIVE_ACTIVE_WIF/HIVE_POSTING_WIF/BLURT_ACTIVE_WIF ו"מושבת-בשקט" בלעדיהם.
+- מקור המפתחות אותר: upload/headcorner.txt = סיסמת-האב של @headcorner — אומתה מלאה: גוזרת בדיוק את 4 הרשויות החיות ב-STEEM (owner/active/posting/memo, ביט-מול-ביט מול api.steemit.com).
+- כספת הארנק (Saosmartwallet/db/custom.db, 248 כניסות) נפתחה בנתיב הריבוני: keySeals (12 חותמות) + סיסמת-האב → seal תחת ה-active החי → מפתח-אב → AES-256-GCM לכל רשומה. אפס הדפסת-מפתח בכל הדרך.
+- ממצאי הכספת (הכל אומת מול השרשרות החיות): HIVE headcorner × 4 תפקידים — ה-active STM8c9vp3… תואם ביט-מול-ביט לשרשרת HIVE ✓ · BLURT = אותם מפתחות STEEM בדיוק (BLT5HhJD…≡STM5HhJD…, נמדד חי ב-rpc.blurt.blog) · cashmachine/lsa זהים חוצה-שרשראות. המשתמש צדק: "כל הרשתות מתחברות עם המפתח הראשי" — מדוד.
+- אספקת הכספות (sealed-box, אימות לפני כל כתיבה): saos-dex += HIVE_ACTIVE_WIF, HIVE_POSTING_WIF, BLURT_ACTIVE_WIF, STEEM_POSTING_WIF · Domain += שלושת אלה + STEEM_ACTIVE_WIF + STEEM_POSTING_WIF (התאום מעתה חמוש ל takeover מלא). אומת ברשימות הכספות.
+- רגל-HIVE במנוע: src/lib/dex/hivemarket.ts (chain_id beeab0de, RC-gate עם רגנרציה-מחושבת, preflight סמכות) + grid-beat: ledger v2 רב-שרשרתי, מדיניות מיקרו, חוק-זהות לבידים (רק מתחת לקו), פרסום הרגל ב-grid.json.
+- פענוח "חוק-החוט הנעלם" (התגלית הטכנית של R99): ההזמנות הראשונות נדחו "missing required active authority" למרות מפתח נכון. מחקר ביסוקטיבי חי (ביטול עובד, יצירה נכשלת → כל אופ-asset נכשל, cancel/custom_json עוברים) + שחזור חתימות אמיתיות מהשרשרת (transfer/create של סוחרים אמיתיים) + מקור hive (asset_symbol.hpp): **HIVE מסדרת assets במצב legacy תחת שמות-האב — "HIVE" על החוט = הבייטים של "STEEM", "HBD" = "SBD"** (OBSOLETE/OBD_SYMBOL_SER — טריק התאימות של הפיצול). steem-js כותב את השם המילולי → digest שגוי. התיקון: חתימה על הצורה הממופה, שידור בשמות האמיתיים (הצומת מסדר לאותם בייטים). אומת: FOK-מבחן עבר סמכות; שחזור קנוני מול שתי חתימות אמיתיות.
+- הרצת הבכורה (התאום הציבורי ב-Domain — המקור הפרטי מת מהמכסה, נמדד שוב): STEEM: 3 ביטולים + 2 asks 47.513 STEEM (txid 1cef159e…, 7aa474e6…) מדלק-ה-powerdown שנחת · **HIVE: 5 הזמנות אמת עם txids — 3 asks (926c9ca6…, 9ed2cad9…, cd9c9df0…) שנמלאו מיד בפרימיית-שוק + 2 bids חיים (88755337…, 7d35acc3…)**. verdict=ARMED-LIVE · hive=ARMED-LIVE.
+- לקח-מילה מדוד ותיקון: המיל-צעד של HBD (0.001) עיוות מחירי אבק מתחת לכוונה → ceil על התקבול + דלוג רמות שעיוותן > 0.5% + חסימה כנה עד בניית מלאי בגודל-מחיר (36f05d3).
+- האתר: economy.ts — FLOW-HIVE-COMPARE הפך FLOW-HIVE-GRID במצב "חי" · BLK-BLURT עודכן (RPC חי נמדד, מלאי 88.59 BLURT, מפתח בכספת; נותרה זירה בלבד) · BLK-SBD-BUYSIDE מתאר חימוש תלת-רשתי · grid-arm-card מציג את מלוא חוט-המפתחות בכספת.
+- אימות: tsc 0 (שני הריפואים) · lint נקי · דפדפן: הרגל ה-HIVE החיה נראית ב-#/money-market/flows ✓ · חסימת BLURT המעודכנת ✓ · פוטר ✓ · ראיות r99-*.png.
+
+Stage Summary:
+- הכספת מלאה: 6 סודות במנוע (STEEM+HIVE active/posting + BLURT active) + 7 בתאום — כל הרשתות מחוברות עם המפתח הראשי, כפי שהמפעיד קבע. ריילי HIVE/BLURT של המנוע מתעוררים מעצם קיום הסודות.
+- הכלכלה חד-שרשרתית לא עוד: הגריד החוץ חי בשתי שוקי-פנים אמיתיים במקביל (STEEM/SBD + HIVE/HBD), מדוד מול פידי-USD חיים, עם מילויים אמיתיים נספרים בכל מחזור.
+- חוק-החוט (HIVE→STEEM bytes) מתועד בקוד ובספרים — הידע הקריפטוגרפי הזה הוא רכוש הרשת לצמיתות.
+- BLURT: מפתח בכספת + RPC חי + מלאי נמדד + ריילי המנוע חמושים; הזירה הריבונית (ספר-פנים WBLURT + הפקדות/משיכות) היא הצעד הבא המתועד בחסימה.

@@ -167,7 +167,7 @@ const BLOCKAGE_SEED: Array<Omit<BlockageRow, "liveMeasured" | "progress" | "live
     code: "BLK-SBD-BUYSIDE",
     kind: "CLOG",
     title: "צד-הקנייה של הגריד חסום על מלאי SBD",
-    what: "הגריד-החוץ חי ומזוין, המפתח חי בכספת המנוע (STEEM_ACTIVE_WIF, נמדד ב-API) ופקודות אמת מונחות עם txids - אבל צד-הקנייה ממתין למלאי: היתרה הזמינה מול הנדרש בסף החימוש.",
+    what: "הגריד-החוץ חי ומזוין בשלוש שרשרות (STEEM_ACTIVE_WIF + HIVE_ACTIVE_WIF + BLURT_ACTIVE_WIF בכספת המנוע, R99 — נמדד ב-API), ופקודות אמת מונחות עם txids - אבל צד-הקנייה של STEEM ממתין למלאי SBD: היתרה הזמינה מול הנדרש בסף החימוש.",
     why: "ה-SBD היחיד שזורם מגיע ממכירות-הפרימיה שלנו עצמנו - זהו קצב-הבנייה של הצד השני. אין מקור SBD חיצוני בלי ערוץ-יציאה, ואנחנו לא קונים SBD במחיר שוק כדי לא לשלם את הפער פעמיים.",
     class: "INVENTORY",
     measured: "נזרע לפי תדרוך המפעיל; השכבה החיה מודדת את הקופה בכל מחזור",
@@ -243,13 +243,13 @@ const BLOCKAGE_SEED: Array<Omit<BlockageRow, "liveMeasured" | "progress" | "live
   {
     code: "BLK-BLURT-NOMEASURE",
     kind: "CLOG",
-    title: "BLURT לא-נמדד מהסנדבוקס",
-    what: "אין טוקן-דולר בשרשרת (אין שוק פנימי מקביל) וצומת ה-RPC לא נענה.",
-    why: "בלי מדידה אין מסחר - חוק הרצפה; מסחר BLURT דורש בורסה חיצונית = שער-מפעיל מפורש.",
+    title: "BLURT - נמדד וחמוש; נותר רק זירת-המסחר",
+    what: "R99: צומת RPC חי ועונה (rpc.blurt.blog — נמדד), מלאי 88.59 BLURT נזיל נמדד בשרשרת, המפתח (BLURT_ACTIVE_WIF) בכספת המנוע. מה שחסר: זירת מסחר - אין שוק-פנימי (אין טוקן-דולר בשרשרת) וצמתי blurt-engine לא נענו (נמדד).",
+    why: "בלי זירת-נזילות אין מסחר-אמת - חוק הרצפה. בורסה חיצונית דורשת שער-מפעיל מפורש (custodial/KYC).",
     class: "MEASUREMENT",
-    measured: "מסומן בכנות לא-נמדד - לא מומר לאפס ולא להערכה",
-    unlock: "ערוץ מדידה חי: צומת RPC שעונה או מקור מחיר ציבורי",
-    sovereignPath: "Hive-Engine (SWAP.HIVE) נמדד חי חסר-מפתחות - מועמד להיות ערוץ המדידה של BLURT דרך swap.blurt; נבדק לפני שיחובר",
+    measured: "RPC חי · מלאי חי · מפתח בכספת · blurt-engine endpoints לא נענו (נמדד 2026-09-23)",
+    unlock: "הרגל הריבונית: רייל-ההפקדה/משיכה שלנו (bridge+settle) עם ספר-פנים WBLURT — הזירה שלנו, העמלות שלנו; או שער-מפעיל לבורסה חיצונית",
+    sovereignPath: "המפתח כבר בכספת (R99) — הריילים של המנוע (bridge/settle/relay) מתעוררים; הזירה הריבונית היא הספר-הפנימי שלנו עם משמרת BLURT: הפקדה→מסחר→משיכה, הכל על השרשרת שלנו",
   },
 ];
 
@@ -610,15 +610,15 @@ function flowMatrix(money: MoneyLite | null, router: RouterLite | null): FlowLeg
   });
 
   legs.push({
-    id: "FLOW-HIVE-COMPARE",
-    title: "שוק HIVE פנימי - לוח ההשוואה",
+    id: "FLOW-HIVE-GRID",
+    title: "רגל HIVE חיה - גריד-מייקר על השוק הפנימי",
     from: "HIVE",
     to: "HBD",
-    status: "MEASUREMENT",
+    status: "LIVE",
     feeAccrual: "NONE",
-    feeNote: "למידה מהצלחות של אחרים: פער ביד-אסק, תנודתיות ומידונים נמדדים חי - בלי בסיס HIVE ביד",
-    measured: "נמדד במנוע הבין-רשתי (R94) בכל מחזור",
-    gate: "פעולה דורשת בסיס HIVE + ערוץ - שער-מפעיל",
+    feeNote: "R99: אותה דוקטרינת-STEEM בדיוק — מכירות רק מעל קו-הזהות החיצוני, קניות רק מתחתיו; מיקרו-סקאלות (היתרון המדוד של הרשת), אפס עמלת-מסחר, יישוב-על-השרשרת",
+    measured: "המפתח חי בכספת (HIVE_ACTIVE_WIF, R99) · המלאי 0.072 HIVE / 0.074 HBD · הספר נקרא חי בכל מחזור",
+    gate: "הדוקטרינה עצמה השער: מייקר-בלבד, לעולם לא מתחת לערך — אין שער-מפעיל נוסף",
   });
 
   return legs;

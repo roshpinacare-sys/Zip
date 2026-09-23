@@ -203,11 +203,12 @@ export function GridArmCard() {
               הגריד חמוש
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              <span className="font-mono">STEEM_ACTIVE_WIF</span> יושב בכספת המוצפנת של{" "}
-              <span className="font-mono">roshpinacare-sys/saos-dex</span>
-              {state?.secretUpdatedAt ? ` (עודכן ${new Date(state.secretUpdatedAt).toLocaleString("he-IL")})` : ""}.
-              הריצה היומית ב-03:17 UTC תחתום מעכשיו על סדרות-אמת על ספר STEEM/SBD — כל מילוי-חוץ נספר
-              בכנות בקונסולה הציבורית. אפשר להזניק ריצה ראשונה עכשיו דרך כפתורי ההזנקה למטה.
+              הכספת המוצפנת של <span className="font-mono">roshpinacare-sys/saos-dex</span> מחזיקה מעתה את מלוא חוט-המפתחות:{" "}
+              <span className="font-mono">STEEM_ACTIVE_WIF + HIVE_ACTIVE_WIF + HIVE_POSTING_WIF + BLURT_ACTIVE_WIF + STEEM_POSTING_WIF</span>{" "}
+              (R99 — נמסרו מכספת-הארנק הריבונית, אומתו ביט-מול-ביט מול הרשויות החיות בשלוש השרשראות לפני האטימה)
+              {state?.secretUpdatedAt ? ` (אומת לאחרונה ${new Date(state.secretUpdatedAt).toLocaleString("he-IL")})` : ""}.
+              המכונה החיה: התאום הציבורי ב-Domain (03:48 UTC, דקות בלתי-מוגבלות) — רגל-STEEM ורגל-HIVE חיות יחד,
+              כל מילוי-חוץ נספר בכנות בקונסולה הציבורית. אפשר להזניק ריצה ראשונה עכשיו דרך כפתורי ההזנקה למטה.
             </p>
           </div>
         ) : (
