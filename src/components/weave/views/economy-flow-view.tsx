@@ -62,7 +62,11 @@ type BlockageClass =
   | "INVENTORY"
   | "OPERATOR"
   | "INFRA"
-  | "MEASUREMENT";
+  | "MEASUREMENT"
+  // R102 — מחלקות-מצב לחסימות שנפתחו לחיים
+  | "ARMED"
+  | "LIVE-INTERNAL"
+  | "PARTIAL-LIVE";
 
 interface BlockageRow {
   code: string;
@@ -194,6 +198,9 @@ const CLASS_META: Record<BlockageClass, { label: string; hint: string }> = {
   OPERATOR: { label: "החלטת מפעיל", hint: "המפעיל הוא השער - נפתחת רק בהחלטה מפורשת" },
   INFRA: { label: "תשתית", hint: "מגבלת סביבה - מוסטת, לא מוסתרת" },
   MEASUREMENT: { label: "מדידה", hint: "בלי מדידה אין מסקנה - מסומן בכנות" },
+  ARMED: { label: "חמושה · מוכחת", hint: "הגישה אומתה והרייל שודר בהצלחה - מה שנותר הוא הון, לא סמכות (R102)" },
+  "LIVE-INTERNAL": { label: "חיה · פנימית", hint: "המנגנון עובד בכסף אמיתי לחברי הרשת - פתיחה ציבורית דורשת גוף מורשה" },
+  "PARTIAL-LIVE": { label: "חיה חלקית", hint: "חלק מהמסלול חי ומוכח; החלק החסר מתועד בכנות עם תנאי פתיחה" },
 };
 
 const FLOW_STATUS_META: Record<FlowStatus, { label: string; badge: string }> = {

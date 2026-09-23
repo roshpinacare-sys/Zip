@@ -37,6 +37,87 @@ export interface VaultKeyResult {
   detail?: string;
 }
 
+/**
+ * R102 — פתיחה גולמית שררשרת-אגנוסטית: אותו נתיב ריבוני
+ * (סיסמת-האב → active-STEEM חי → חותמת → מפתח-אב → AES-256-GCM),
+ * אבל בלי גזירת-פומבי גרפנית — כי evm-key הוא 64-hex ו-sol-key הוא
+ * hex-seed של 32 בייט. הקורא מחויב לאמת את הפומבי הנגזר מול entryPub
+ * (חוק השרשרת-השופט) לפני כל שימוש בשידור.
+ */
+export interface VaultRawResult {
+  ok: boolean;
+  /** חומר-המפתח הגולמי (64-hex ל-EVM · hex-seed 32-byte ל-SOL) — זיכרון-הרצה בלבד */
+  priv?: string;
+  /** הפומבי הרשום בארנק — השופט לאימות הנגזרת */
+  entryPub?: string;
+  status?: string;
+  detail?: string;
+}
+
+export function openVaultEntryRaw(chain: string, account: string, role: string): VaultRawResult {
+  try {
+    let ownerAccount = "";
+    let password = "";
+    try {
+      const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
+      const [first, ...rest] = raw.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+      ownerAccount = first;
+      password = rest[0] ?? "";
+    } catch {
+      return { ok: false, detail: "NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא" };
+    }
+    if (!ownerAccount || !password) {
+      return { ok: false, detail: "NO-OWNER-KEY: קובץ המפתח ריק" };
+    }
+    const nodeRequire = createRequire(path.join(HOME, "package.json"));
+    const steemLib = nodeRequire("steem") as {
+      auth: { toWif(a: string, p: string, r: string): string; wifToPublic(w: string): string };
+    };
+    const controlWif = steemLib.auth.toWif(ownerAccount, password, "active");
+    const controlPub = steemLib.auth.wifToPublic(controlWif);
+    if (!fs.existsSync(WALLET_DB)) {
+      return { ok: false, detail: `NO-WALLET-DB: ${path.basename(WALLET_DB)} לא נמצא` };
+    }
+    const { DatabaseSync } = nodeRequire("node:sqlite") as {
+      DatabaseSync: new (p: string, o?: { readOnly?: boolean }) => {
+        prepare(q: string): { get(...a: unknown[]): Record<string, unknown> | undefined };
+      };
+    };
+    const db = new DatabaseSync(WALLET_DB, { readOnly: true });
+    const cfgRow = db.prepare("SELECT keySeals FROM GateConfig WHERE id = 'gate'").get() as
+      | { keySeals: string }
+      | undefined;
+    if (!cfgRow?.keySeals) {
+      return { ok: false, detail: "NO-SEALS: אין חותמות בכספת" };
+    }
+    const seals = JSON.parse(cfgRow.keySeals) as KeySeal[];
+    const seal = seals.find((s) => s.pub === controlPub);
+    if (!seal) {
+      return { ok: false, detail: `NO-SEAL-FOR-KEY: אין חותמה תחת ה-active החי (${controlPub.slice(0, 12)}…)` };
+    }
+    const kek = crypto.scryptSync(controlWif, Buffer.from(seal.kdfSalt, "hex"), 32, SCRYPT);
+    const masterHexStr = aesGcmOpen(kek, seal.encMaster, seal.sealIv, seal.sealTag).toString("utf8");
+    if (!/^[0-9a-fA-F]{64}$/.test(masterHexStr)) {
+      return { ok: false, detail: "BAD-MASTER: החותמת נפתחה אך תוכנה אינו מפתח-אב תקין" };
+    }
+    const master = Buffer.from(masterHexStr, "hex");
+    const entry = db
+      .prepare(
+        "SELECT pub, encPriv, privIv, privTag, status FROM VaultEntry WHERE chain = ? AND account = ? AND role = ? ORDER BY status = 'verified' DESC, id DESC LIMIT 1",
+      )
+      .get(chain, account, role) as
+      | { pub: string; encPriv: string; privIv: string; privTag: string; status: string }
+      | undefined;
+    if (!entry) {
+      return { ok: false, detail: `NO-ENTRY: אין רשומת ${role} ל-${account} ברשת ${chain}` };
+    }
+    const priv = aesGcmOpen(master, entry.encPriv, entry.privIv, entry.privTag).toString("utf8");
+    return { ok: true, priv, entryPub: entry.pub, status: entry.status, detail: `vault:${chain}/${account}/${role} (${entry.status})` };
+  } catch (e) {
+    return { ok: false, detail: `VAULT-ERROR: ${String((e as Error).message ?? e).slice(0, 140)}` };
+  }
+}
+
 interface KeySeal {
   pub: string;
   chain: string;

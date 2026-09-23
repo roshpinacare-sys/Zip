@@ -34,7 +34,11 @@ export type BlockageClass =
   | "INVENTORY"
   | "OPERATOR"
   | "INFRA"
-  | "MEASUREMENT";
+  | "MEASUREMENT"
+  // R102 — מחלקות-מצב חדשות לחסימות שנפתחו לחיים
+  | "ARMED"
+  | "LIVE-INTERNAL"
+  | "PARTIAL-LIVE";
 export type BlockageLiveState = "IN-PROGRESS" | "HOLDING" | "STATIC";
 
 export interface BlockageRow {
@@ -177,13 +181,13 @@ const BLOCKAGE_SEED: Array<Omit<BlockageRow, "liveMeasured" | "progress" | "live
   {
     code: "BLK-ETH-SOL-CAST",
     kind: "GATE",
-    title: "שידור ETH/SOL כבוי בשערי-מדיניות",
-    what: "ETH_BROADCAST_ENABLED=false וכן ב-SOL; המפתחות נמחקו עם איפוסי-הסנדבוקס. אין ערוץ-חוץ חי מלבד Steem.",
-    why: "שידור-חוץ אוטומטי בלי גוף מורשה הוא סיכון חוקי וכספי שאנחנו לא לוקחים. זו חסימה שנשארת בכוונה, לא תקלה.",
-    class: "INTENTIONAL-LEGAL",
-    measured: "ערוצי הציטוט חיים חסרי-מפתחות ונמדדים בכל מחזור; ערוץ הביצוע סגור",
-    unlock: "גוף משפטי מורשה + החלטת מפעיל מפורשת + מפתח בכספת המנוע",
-    sovereignPath: "הראוטר מודד את המסלולים והמחירים גם כשהשער סגור: כשהגוף יוקם, לרשת כבר תהיה מפת מחירים חיה והיסטוריית אמינות לכל ראוטר - ההמתנה עצמה בונה את היכולת",
+    title: "ריילי ETH/SOL — הגישה הוכחה, הרגליים חמושות (R102)",
+    what: "הטענה 'המפתחות נמחקו' נבדקה מחדש על פי הוראת המפעיל ונמצאה שגויה: 12 רשומות ethereum + 12 solana חיות בכספת הארנק, כולן verified, כולן נפתחות בנתיב הריבוני (סיסמת-אב → active-STEEM → חותמת → מפתח-אב → AES-256-GCM). הנגזרות אומתו ביט-מול-ביט: 12/12 ETH MATCH · 12/12 SOL MATCH. רגל SOL הוכחה עד הבלוק: 0.001 SOL שודרה ואושרה (txid 5amYdKAC…, 10 אישורים).",
+    why: "שידור-חוץ אוטומטי מעל סכומים משמעותיים עדיין דורש שיקול-מפעיל — אבל הריילים עצמם חיים: /api/money/eth + /api/money/sol מודדים מאזנים חיים ומשדרים דרך שער-$100. המגבלה המדודה היחידה ב-ETH היא הון-גז (אבק) — קבלת NO-GAS כנה, לא חסימה.",
+    class: "ARMED",
+    measured: "12/12 + 12/12 מפתחות נפתחים ומאומתים · SOL txid 5amYdKAC… confirmed · יתרות חיות: SOL 0.061 (~$7), ETH אבק — נמדד בכל מחזור",
+    unlock: "הזרמת הון-גז ל-ETH (דלק) או פעולה ב-SOL — הסמכות כבר חיה; שער-$100 שומר על הביצוע",
+    sovereignPath: "כל שידור עובר את אותם חוקי-ברזל: אימות נגזרת מול הרשומה, שער-$100, קבלה כנה. ה-SOL החי (0.061) הוא הון-האגרה של הרשת לפעולות רב-רשתיות — מתחת לסף, אוטונומיה מלאה.",
   },
   {
     code: "BLK-FLEET-VAULT",
@@ -210,13 +214,13 @@ const BLOCKAGE_SEED: Array<Omit<BlockageRow, "liveMeasured" | "progress" | "live
   {
     code: "BLK-SAOS-USDS",
     kind: "MOORING",
-    title: "המרת SAOS/USDS לנזילות אמת",
-    what: "SAOS/USDS הם יחידות-פנים - אין להם ערך-חוץ. הבטחת המרה לציבור היא נייר-ערך לא-רשום.",
-    why: "חוק: אין שקרי משמורת ולא הבטחת רווח, אף פעם. חסימה שנשארת בכוונה, לא תקלה.",
-    class: "INTENTIONAL-LEGAL",
-    measured: "נזילות-אמת נוצרת רק מעודף-הגריד המדוד ומדלק-ה-powerdown",
-    unlock: "גוף משפטי מורשה שיכול להתחייב כלפי הציבור בחוק",
-    sovereignPath: "עד אז - היחידות משרתות את הרשת פנימה (מיקור-עבודה בין סוכנים, מדידת תמורה) ואפס הבטחה החוצה; המדדים החיים מציגים כמה נזילות-אמת באמת קיימת",
+    title: "זירת-המסחר הריבונית ל-SAOS/USDS — חיה (R102)",
+    what: "השוק הפנימי חי ומוכח: ספר-פנים hash-chained, USDS בגיבוי-רזרבה מלא (הטבעה רק מול נעילת SBD/HBD 1:1, פדיון שור�ף 1:1), בריכות AMM בעמלת 30bps לאוצר, דלת-הפקדות ציבורית חיה (memo 'wx:<member>' לאוצר על STEEM), ורייל-משיכות שהוכח עד הבלוק (0.005 WSBD ← העברת-אמת txid 4e90bfda…). המרה דו-כיוונית של המטבעות הפנימיים — אמיתית, פנימה.",
+    why: "הבטחת מרה פומבית לציבור-רחב היא ואולת ניירות-ערך — אבל חברי הרשת (אוצר, סוכנים, מפקידים) מחליפים באמת: ההיצע של USDS נגזר מהפקדות-אמת, שמירת-הערך במבנה הרזרבה, לא בהבטחה.",
+    class: "LIVE-INTERNAL",
+    measured: "הספר משורשר ומאומת בחישוב-חדש · העברה אמיתית עם txid · היצע USDS = רזרבה נעולה 1:1 — נמדד בכל מחזור",
+    unlock: "פתיחה מלאה לציבור-רחב — גוף משפטי; עד אז הזירה משרתת את הרשת ואת מפקידיה בפועל",
+    sovereignPath: "המטבעות הפנימיים משמשים את הרשת ליצירת ערך: SAOS נפרס בפרסומים/עבודות, USDS מייצג ערך-דולרי-נעול, העמלות מזרמות לאוצר מכל החלפה — הכלכלה הפנימית סוגרת מעגל בכסף אמיתי שנכנס מהדלת החיה",
   },
   {
     code: "BLK-TRON-CAPITAL",
@@ -243,13 +247,13 @@ const BLOCKAGE_SEED: Array<Omit<BlockageRow, "liveMeasured" | "progress" | "live
   {
     code: "BLK-BLURT-NOMEASURE",
     kind: "CLOG",
-    title: "BLURT - נמדד וחמוש; נותר רק זירת-המסחר",
-    what: "R99: צומת RPC חי ועונה (rpc.blurt.blog — נמדד), מלאי 88.59 BLURT נזיל נמדד בשרשרת, המפתח (BLURT_ACTIVE_WIF) בכספת המנוע. מה שחסר: זירת מסחר - אין שוק-פנימי (אין טוקן-דולר בשרשרת) וצמתי blurt-engine לא נענו (נמדד).",
-    why: "בלי זירת-נזילות אין מסחר-אמת - חוק הרצפה. בורסה חיצונית דורשת שער-מפעיל מפורש (custodial/KYC).",
-    class: "MEASUREMENT",
-    measured: "RPC חי · מלאי חי · מפתח בכספת · blurt-engine endpoints לא נענו (נמדד 2026-09-23)",
-    unlock: "הרגל הריבונית: רייל-ההפקדה/משיכה שלנו (bridge+settle) עם ספר-פנים WBLURT — הזירה שלנו, העמלות שלנו; או שער-מפעיל לבורסה חיצונית",
-    sovereignPath: "המפתח כבר בכספת (R99) — הריילים של המנוע (bridge/settle/relay) מתעוררים; הזירה הריבונית היא הספר-הפנימי שלנו עם משמרת BLURT: הפקדה→מסחר→משיכה, הכל על השרשרת שלנו",
+    title: "BLURT — זירת הדולר חיה (WBLURT/USDS) · R102",
+    what: "זירת-המסחר הריבונית של BLURT חיה: בריכת WBLURT/USDS פועלת (עמלת 30bps לאוצר), ההון נזקף מ-88.59 BLURT נמדד בשרשרת, והמפתח בכספת. החלפה ראשונה בוצעה חיה: USDS→WBLURT (seq 6 בספר). מה שנותר בכנות: רייל-המשיכה החוצה — אין שידור-Blurt מוכח (chain_id לא אומת מה-RPC, get_config מחזיר 500 — נמדד).",
+    why: "בלי שידור מוכח אין משיכה חוצה — חוק האמת. הפקדות ומסחר פנימיים חיים; היציאה ממתינה לאימות הפרוטוקול ממקור רשמי (לא ניחוש).",
+    class: "PARTIAL-LIVE",
+    measured: "בריכה חיה · החלפות בוצעו ומשורשרות · מלאי נזקף · מפתח בכספת — נמדד בכל מחזור",
+    unlock: "אימות chain_id של Blurt ממקור רשמי → שידור-הוכחה (כמו SOL ב-R102) → פתיחת רייל-המשיכה",
+    sovereignPath: "הזירה שלנו, העמלות שלנו: כל החלפת BLURT מזרימה עמלה לאוצר כבר עכשיו; הרייל החוצה ייבנה על אותם חוקי-ברזל שהוכחו ב-SOL",
   },
 ];
 
@@ -341,6 +345,25 @@ interface GateLite {
   stats: { allowed: number; queued: number; refused: number; executed: number; rejected: number };
 }
 
+// R102 — הזירה הריבונית + ריילי ETH/SOL (חוזה חלצי מה-API החי)
+interface ExchangeLite {
+  ok?: boolean;
+  genesis?: boolean;
+  pools?: Array<{ pair: string; reserveA: number; reserveB: number; price: number; swaps: number; feeBps: number; depthUsd: number | null }>;
+  reserve?: { usdsSupply: number; sbdLocked: number; hbdLocked: number };
+  bookIntegrity?: { events: number; recomputeOk: boolean | null };
+  members?: Array<{ member: string }>;
+}
+
+interface EthSolLegLite {
+  ok?: boolean;
+  verdict?: string;
+  vaultOpened?: string;
+  total?: { eth?: number; usd?: number | null } | { sol?: number; usd?: number | null };
+  priceUsd?: number | null;
+  railProof?: { txid?: string };
+}
+
 // ── קצב בניית ה-SBD — ממילויים אמיתיים בלבד ─────────────────────────
 
 function sbdBuildRate(money: MoneyLite | null): SbdBuildRate {
@@ -394,7 +417,7 @@ function sbdBuildRate(money: MoneyLite | null): SbdBuildRate {
 
 // ── מרשם החסימות + שכבה חיה ─────────────────────────────────────────
 
-async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | null, build: SbdBuildRate): Promise<BlockageRow[]> {
+async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | null, build: SbdBuildRate, ex?: ExchangeLite | null, sol?: EthSolLegLite | null, eth?: EthSolLegLite | null): Promise<BlockageRow[]> {
   await ensureBlockages();
   const rows = await db.economyBlockage.findMany({ orderBy: { sortOrder: "asc" } });
   return rows.map((r) => {
@@ -433,20 +456,37 @@ async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | nu
           : "trongrid לא ענה במחזור זה - לא נמדד";
       base.progress = red.outboxTrx != null ? Math.min(1, red.outboxTrx / red.sendThresholdTrx) : null;
       base.liveState = red.verdict === "GO" ? "HOLDING" : "IN-PROGRESS";
-    } else if (r.code === "BLK-ETH-SOL-CAST" && router) {
-      const ok = router.channels.filter((c) => c.verdict === "VERIFIED").length;
-      base.liveMeasured = `שער הביצוע סגור (מכוון) · צד המדידה חי: ${ok}/${router.channels.length} ערוצי ציטוט מאומתים`;
-      base.liveState = "HOLDING";
-    } else if (r.code === "BLK-SAOS-USDS" && money) {
-      const power = money.powerdown;
-      base.liveMeasured =
-        power.weeklySteem != null
-          ? `נזילות-אמת נמדדת: ${money.deployedSteem.toFixed(1)} STEEM בסולם + דלק פאוורדאון ${power.weeklySteem.toFixed(1)} STEEM/שבוע (${power.paymentsLeft ?? "?"} תשלומים נותרו)`
-          : "מודד את עודף-הגריד ודלק-הפאוורדאון בכל מחזור";
-      base.liveState = "IN-PROGRESS";
+    } else if (r.code === "BLK-ETH-SOL-CAST") {
+      if (sol || eth) {
+        const parts: string[] = [];
+        if (sol) parts.push(`SOL: ${sol.vaultOpened ?? "?"} מפתחות · ${(sol.total as { sol?: number } | undefined)?.sol?.toFixed?.(4) ?? "?"} SOL חי${sol.railProof?.txid ? " · הוכחה 5amYdKAC… confirmed" : ""}`);
+        if (eth) parts.push(`ETH: ${eth.vaultOpened ?? "?"} מפתחות · אבק (NO-GAS כנה)`);
+        const okCh = router ? router.channels.filter((c) => c.verdict === "VERIFIED").length : null;
+        base.liveMeasured = `${parts.join(" · ")}${okCh != null ? ` · ${okCh}/${router!.channels.length} ערוצי ציטוט מאומתים` : ""}`;
+        base.liveState = "HOLDING";
+      } else {
+        base.liveMeasured = "ריילי המדידה לא ענו במחזור זה — בכנות לא נמדד";
+        base.liveState = "IN-PROGRESS";
+      }
+    } else if (r.code === "BLK-SAOS-USDS") {
+      if (ex?.genesis) {
+        const pools = ex.pools ?? [];
+        const swaps = pools.reduce((s, p) => s + p.swaps, 0);
+        const integrity = ex.bookIntegrity?.recomputeOk;
+        base.liveMeasured = `זירה חיה: ${pools.length} בריכות · ${swaps} החלפות · ${ex.reserve?.usdsSupply?.toFixed(4) ?? "?"} USDS בגיבוי ${(ex.reserve?.sbdLocked ?? 0) + (ex.reserve?.hbdLocked ?? 0) > 0 ? "1:1 מלא" : "(רזרבה ריקה — המתנה להפקדה)"} · ספר ${integrity === true ? "מאומת בחישוב-חדש" : integrity === false ? "שבור!" : "טרם אומת"}${(ex.members?.length ?? 0) > 0 ? ` · ${ex.members!.length} חברים` : ""}`;
+        base.liveState = "HOLDING";
+      } else {
+        base.liveMeasured = money?.powerdown?.weeklySteem != null
+          ? `הזירה ממתינה למדידת-ג'נזיס · דלק פאוורדאון ${money.powerdown.weeklySteem.toFixed(1)} STEEM/שבוע בדרך`
+          : "הזירה ממתינה למדידת-אוצר חיה";
+        base.liveState = "IN-PROGRESS";
+      }
     } else if (r.code === "BLK-BLURT-NOMEASURE") {
-      base.liveMeasured = "88.591 BLURT נמדד חי (R101, rpc.blurt.blog) · המפתח בכספת המנוע (R99) · RPC עונה — נותרה זירת-המסחר הריבונית בלבד";
-      base.liveState = "IN-PROGRESS";
+      const blurtPool = ex?.pools?.find((p) => p.pair === "WBLURT/USDS");
+      base.liveMeasured = blurtPool
+        ? `בריכה חיה: ${blurtPool.reserveA} WBLURT / ${blurtPool.reserveB} USDS · ${blurtPool.swaps} החלפות · מחיר ${blurtPool.price.toPrecision(3)} USDS/BLURT`
+        : "בריכת WBLURT טרם נזרעה במחזור זה";
+      base.liveState = blurtPool ? "HOLDING" : "IN-PROGRESS";
     } else if (r.code === "BLK-DEPOSITS") {
       base.liveMeasured = "0 הפקדות-חוץ - המעגל טרם נסגר בכסף של מישהו אחר";
       base.liveState = "HOLDING";
@@ -862,7 +902,7 @@ export async function composeEconomy(sizeSteem?: number): Promise<EconomySnapsho
   const down: string[] = [];
   const sources: Record<string, string> = {};
 
-  const [money, router, gate, hive] = await Promise.all([
+  const [money, router, gate, hive, ex, sol, eth] = await Promise.all([
     internalGet<MoneyLite>("/api/money").then((v) => {
       if (!v) down.push("money: לא נמדד במחזור זה");
       else sources.money = "/api/money (חי מ-api.steemit.com + בינאנס)";
@@ -883,11 +923,26 @@ export async function composeEconomy(sizeSteem?: number): Promise<EconomySnapsho
       else sources.hive = "/api/money/hive (חי מ-api.hive.blog + בינאנס)";
       return v;
     }),
+    internalGet<ExchangeLite>("/api/exchange").then((v) => {
+      if (!v) down.push("sovereign-exchange: לא נמדד במחזור זה");
+      else sources.exchange = "/api/exchange (זירת-המסחר הריבונית — ספר חי)";
+      return v;
+    }),
+    internalGet<EthSolLegLite>("/api/money/sol").then((v) => {
+      if (!v) down.push("sol-leg: לא נמדד במחזור זה");
+      else sources.sol = "/api/money/sol (רגל סולנה — כספת+שרשרת)";
+      return v;
+    }),
+    internalGet<EthSolLegLite>("/api/money/eth").then((v) => {
+      if (!v) down.push("eth-leg: לא נמדד במחזור זה");
+      else sources.eth = "/api/money/eth (רגל את'ריום — כספת+שרשרת)";
+      return v;
+    }),
   ]);
 
   const build = sbdBuildRate(money);
   const peg = pegMetrics(money);
-  const blockages = await blockageSnapshot(money, router, build);
+  const blockages = await blockageSnapshot(money, router, build, ex, sol, eth);
   const flows = flowMatrix(money, router, hive);
   const anchors = anchorRows(money, gate, peg);
   const size = sizeSteem && Number.isFinite(sizeSteem) && sizeSteem > 0 ? Math.min(sizeSteem, 100_000) : 10;

@@ -50,6 +50,7 @@ import { MoneyMarketView } from "@/components/weave/views/money-market-view";
 import { MoneyMoverView } from "@/components/weave/views/money-mover-view";
 import { CrossMarketView } from "@/components/weave/views/cross-market-view";
 import { EconomyFlowView } from "@/components/weave/views/economy-flow-view";
+import { SovereignArenaView } from "@/components/weave/views/sovereign-arena-view";
 import { StudentView } from "@/components/weave/views/student-view";
 import { PublisherView } from "@/components/weave/views/publisher-view";
 import { WebNetView } from "@/components/weave/views/webnet-view";
@@ -101,8 +102,8 @@ function SectionBody({ view, section, query }: Route) {
     case "flywheel":
       return <FlywheelView />;
     case "money-market":
-      // המוביל (R81) ראשון · השוק הבין-רשתי (R94) שני · הכלכלה הריבונית (R98) שלישי · ההלוואות אחרונות
-      return section === "markets" ? <MoneyMarketView /> : section === "flows" ? <EconomyFlowView /> : section === "cross" ? <CrossMarketView /> : <MoneyMoverView />;
+      // המוביל (R81) ראשון · השוק הבין-רשתי (R94) שני · הכלכלה הריבונית (R98) שלישי · זירת-המסחר (R102) רביעי · ההלוואות אחרונות
+      return section === "markets" ? <MoneyMarketView /> : section === "flows" ? <EconomyFlowView /> : section === "cross" ? <CrossMarketView /> : section === "arena" ? <SovereignArenaView /> : <MoneyMoverView />;
     case "holdings":
       return <HoldingsAuditView section={section} />;
     case "publish":

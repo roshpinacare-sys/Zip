@@ -351,3 +351,52 @@ model TxGate {
   @@index([verdict])
   @@index([createdAt])
 }
+
+// ── זירת-המסחר הריבונית (R102 · SOVEREIGN EXCHANGE) ───────────────────
+// הוראת המפעיל: "להפוך את השוק שלנו לחי אמיתי... טיפול ראוי במטבעות
+// הפנימיים כדי לשמור על הערך שלהם ועדיין לייצר יכולת להחליף אותם
+// ולשמש אותם עבור המערכת ליצירת ערך." המנגנון: ספר-פנים hash-chained
+// (כמו ספר האימותים — entryHash = keccak(prevHash‖kind‖member‖payload)),
+// נכסים-עטופים 1:1 מול הון-אוצר אמיתי נמדד, USDS בגיבוי-רזרבה מלא
+// (mint=הפקדה, burn=פדיון), בריכות AMM קבועות-מכפלה בעמלת 30bps
+// לאוצר — "העמלות ייגזרו בבריכות שלנו".
+model ExchangeEvent {
+  id        String   @id @default(cuid())
+  seq       Int      @unique // מונה מונוטוני — שרשור הספר
+  kind      String // GENESIS | DEPOSIT_CREDIT | SWAP | USDS_MINT | USDS_BURN | WITHDRAW_REQUEST | WITHDRAW_EXEC | FEE | LP_SEED
+  member    String // חבר-הזירה (steem-account | treasury | operator | agents)
+  payload   String // JSON קנוני — הפעולה המלאה
+  prevHash  String
+  hash      String   @unique // keccak256(prevHash ‖ seq ‖ kind ‖ member ‖ payload)
+  usdValue  Float? // הערכת-USD חיה בביצוע (null = לא נמדד)
+  createdAt DateTime @default(now())
+
+  @@index([kind])
+  @@index([member])
+  @@index([createdAt])
+}
+
+// מאזני-החברים — JSON לפי-נכס (WSTEEM/WSBD/WHIVE/WHBD/WBLURT/USDS/SAOS)
+model ExchangeAccount {
+  id        String   @id @default(cuid())
+  member    String   @unique
+  balances  String   @default("{}") // { "WSTEEM": 1.234, "SAOS": 100, ... }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// בריכות AMM — מצב חי: רזרבות, נפחים, מוני-החלפות
+model ExchangePool {
+  id        String   @id @default(cuid())
+  pair      String   @unique // "SAOS/USDS" | "WSTEEM/WSBD" | ...
+  assetA    String
+  assetB    String
+  reserveA  Float
+  reserveB  Float
+  feeBps    Int      @default(30) // העמלה שלנו — לאוצר, בבריכה שלנו
+  volumeA   Float    @default(0)
+  volumeB   Float    @default(0)
+  swaps     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
