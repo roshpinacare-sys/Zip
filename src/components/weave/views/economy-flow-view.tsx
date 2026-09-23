@@ -66,7 +66,9 @@ type BlockageClass =
   // R102 — מחלקות-מצב לחסימות שנפתחו לחיים
   | "ARMED"
   | "LIVE-INTERNAL"
-  | "PARTIAL-LIVE";
+  | "PARTIAL-LIVE"
+  // R103 — רייל מוכח בשרשרת מקצה לקצה
+  | "LIVE";
 
 interface BlockageRow {
   code: string;
@@ -201,6 +203,7 @@ const CLASS_META: Record<BlockageClass, { label: string; hint: string }> = {
   ARMED: { label: "חמושה · מוכחת", hint: "הגישה אומתה והרייל שודר בהצלחה - מה שנותר הוא הון, לא סמכות (R102)" },
   "LIVE-INTERNAL": { label: "חיה · פנימית", hint: "המנגנון עובד בכסף אמיתי לחברי הרשת - פתיחה ציבורית דורשת גוף מורשה" },
   "PARTIAL-LIVE": { label: "חיה חלקית", hint: "חלק מהמסלול חי ומוכח; החלק החסר מתועד בכנות עם תנאי פתיחה" },
+  LIVE: { label: "חיה · מוכח בשרשרת", hint: "רייל שלם שהוכח מקצה לקצה עם txids — הצמיחה מעתה מדלק אמיתי בלבד (R103)" },
 };
 
 const FLOW_STATUS_META: Record<FlowStatus, { label: string; badge: string }> = {

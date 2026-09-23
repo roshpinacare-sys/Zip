@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
   "version": "1.5.0",
-  "bootedAt": "2026-09-23T18:21:03.704Z",
-  "beats": 500,
+  "bootedAt": "2026-09-23T22:32:15.173Z",
+  "beats": 538,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -27,19 +27,27 @@
       "premiumCapBps": 200,
       "keepSteem": 0.5
     },
+    "rewards": {
+      "saosPerFill": 2,
+      "member": "money-mover"
+    },
+    "liquidityStream": {
+      "waveSteem": 200,
+      "share": 0.2
+    },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-09-23T17:54:06.391Z",
-  "actionsToday": 3,
+  "lastActionAt": "2026-09-23T22:41:15.194Z",
+  "actionsToday": 5,
   "actionDay": "2026-09-23",
   "acting": false,
   "lastDecision": {
-    "at": "2026-09-23T18:21:03.730Z",
+    "at": "2026-09-23T22:46:15.187Z",
     "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 4 דק' · WAIT-COOLDOWN · עוד 4 דק'"
+    "detail": "WAIT-COOLDOWN · עוד 26 דק' · WAIT-COOLDOWN · עוד 26 דק'"
   },
   "canonLast": {
-    "at": "2026-09-23T15:13:23.776Z",
+    "at": "2026-09-23T22:41:38.361Z",
     "ok": true,
     "path": "reports/money-2026-09-23.md"
   }

@@ -124,9 +124,16 @@ function readState(): KeeperState {
           const p = prev.fleet.find((x: FleetEntry) => x.name === f.name);
           if (!p) return f;
           const sameDay = p.restartDay === utcDay();
+          // R103 — תיקון השורש (נמדד חי: money מת 2.5 שעות עם FAIL-458 בזמן
+          // שהשומר ספר ולא הקים): GAVE-UP היה נצחי — שרד אתחולי-keeper
+          // וחסם כל הקמה לנצח. החוק המתוקן: אתחול-keeper או יום חדש
+          // מאפסים את GAVE-UP ל-DOWN (חסד של מחזור אחד); מונה התקציב
+          // של היום נשמר — דיבון שבאמת שבור יחזור ל-GAVE-UP אחרי
+          // 3 פסילות בלבד. כך החסד כנה והתקציב אמיתי.
+          const freshState = p.state === "GAVE-UP" ? "DOWN" : (p.state ?? "DOWN");
           return {
             ...f,
-            state: p.state ?? "DOWN",
+            state: freshState,
             since: p.since ?? f.since,
             lastCheckAt: p.lastCheckAt ?? null,
             lastHealthyAt: p.lastHealthyAt ?? null,

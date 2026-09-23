@@ -8,8 +8,10 @@
 //      חוק הקידומת: Blurt מציג פומביות בקידומת BLT אך ה-WIF זהה
 //      בבייטים לשורש-המורשת (BLT5HhJD ≡ STM5HhJD — נמדד ב-R99).
 //
-// מה שנשאר מחוץ לכאן בכנות: שידור. העברות/זירת WBLURT הן הצעד הבא
-// המתועד — עד שהן נבנות, הרגל מודדת ומוכיחה סמכות, ולא משדרת.
+// שידור (R103): חוק-החוט של BLURT הוכח במעבדה אמפירית
+// (scripts/lab-blurt-wire-law.cjs): שחזור חתימה אמיתית מהשרשרת עובר רק
+// בצורה המילולית "N.NNN BLURT" — אין מיפוי-מורשת (בניגוד ל-HIVE שמסדרת
+// HIVE=STEEM בייטים). ה-chain_id נמדד חי מ-get_config של הצומת עצמו.
 // ─────────────────────────────────────────────────────────────────────
 
 import { createRequire } from "node:module";
@@ -18,17 +20,22 @@ import path from "node:path";
 const HOME = "/home/z/my-project";
 export const BLURT_RPC = process.env.BLURT_RPC || "https://rpc.blurt.blog";
 
+/** חוק-החוט (R103, נמדד חי מ-get_config של הצומת): זהות השרשרת */
+export const BLURT_CHAIN_ID =
+  "cd8d90f29ae273abec3eaa7731e25934c63eb654d55080caff2ebb7f5df6381f";
+
+const UA_HEADERS = {
+  "Content-Type": "application/json",
+  // ענן-הגנה של rpc.blurt.blog חוסם בקשות ללא UA (נמדד חי ב-R101)
+  "User-Agent": "saos-weave-rail/1.0",
+};
+
 /** RPC-JSON כללי ל-Blurt (condenser_api תואם-Steem בפרוטוקול) */
 async function blurtRpc<T = unknown>(method: string, params: unknown[] = []): Promise<T | null> {
   try {
     const r = await fetch(BLURT_RPC, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // ענן-הגנה של rpc.blurt.blog חוסם בקשות ללא UA (נמדד חי: node-fetch
-        // קיבל דף-אתגר HTML, curl עבר) — UA מפורש פותח את הדלת לכל הלקוחות.
-        "User-Agent": "saos-weave-rail/1.0",
-      },
+      headers: UA_HEADERS,
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
       signal: AbortSignal.timeout(12_000),
       cache: "no-store",
@@ -136,4 +143,113 @@ export async function readBlurtLeg(account = "headcorner"): Promise<BlurtLegStat
           ? `הכספת לא נפתחה: ${vaultDetail}`
           : "הרשות לא אומתה — אין שידור בלי התאמה חיה (סירוב-כנה).",
   };
+}
+
+// ── שידור (R103) — חוק-החוט המילולי, מוכח במעבדה ─────────────────────
+
+export interface BlurtSendResult {
+  accepted: boolean;
+  txid: string | null;
+  note?: string;
+}
+
+/** מאפייני-שרשרת חיים לבניית העסקה (head_block + זמן-שרשרת) */
+async function blurtDgp(): Promise<{ head_block_number: number; head_block_id: string; time: string } | null> {
+  return blurtRpc<{ head_block_number: number; head_block_id: string; time: string }>(
+    "condenser_api.get_dynamic_global_properties",
+    [],
+  );
+}
+
+/**
+ * העברת BLURT אמיתית בשרשרת.
+ *
+ * חוק-החוט (הוכח אמפירית ב-R103): הנכס נסדר בצורתו המילולית —
+ * "N.NNN BLURT". אין מיפוי-מורשת כמו ב-HIVE. החתימה על הצורה
+ * המילולית, השידור כמות שהוא — הצומת מסדר לאותם בייטים.
+ *
+ * הקבלה: ההיסטוריה השופטת — txid נקרא מ-get_account_history אחרי
+ * השידור (ל-broadcast_transaction אין מזהה מוחזר).
+ */
+export async function blurtSendTransfer(params: {
+  from: string;
+  to: string;
+  amount: number; // BLURT
+  memo?: string;
+  wif: string;
+}): Promise<BlurtSendResult> {
+  const { from, to, amount, memo, wif } = params;
+  try {
+    if (!(amount > 0)) return { accepted: false, txid: null, note: "BAD-AMOUNT" };
+    const asset = `${amount.toFixed(3)} BLURT`; // 3 ספרות — חוק השרשרת
+    const dgp = await blurtDgp();
+    if (!dgp) return { accepted: false, txid: null, note: "NO-DGP: השרשרת לא ענתה" };
+
+    const tx = {
+      ref_block_num: dgp.head_block_number & 0xffff,
+      ref_block_prefix: Buffer.from(dgp.head_block_id, "hex").readUInt32LE(4),
+      expiration: new Date(new Date(dgp.time + "Z").getTime() + 60_000)
+        .toISOString()
+        .slice(0, 19),
+      operations: [["transfer", { from, to, amount: asset, memo: memo ?? "" }]],
+      extensions: [] as unknown[],
+    };
+
+    // חתימה מקומית עם chain_id של BLURT — הדפוס המוכח של HIVE (R101)
+    const nodeRequire = createRequire(path.join(HOME, "package.json"));
+    const steem = nodeRequire("steem") as {
+      auth: { signTransaction(tx: unknown, keys: string[]): unknown };
+      config: { get(k: string): unknown; set(k: string, v: unknown): void };
+    };
+    const prev = steem.config.get("chain_id");
+    steem.config.set("chain_id", BLURT_CHAIN_ID);
+    let signed: Record<string, unknown>;
+    try {
+      signed = steem.auth.signTransaction(tx, [wif]) as Record<string, unknown>;
+    } finally {
+      steem.config.set("chain_id", prev);
+    }
+
+    // שידור — הצומת מסדר לאותם בייטים שחתמנו
+    const r = await fetch(BLURT_RPC, {
+      method: "POST",
+      headers: UA_HEADERS,
+      body: JSON.stringify({
+        jsonrpc: "2.0", id: 1,
+        method: "condenser_api.broadcast_transaction",
+        params: [signed],
+      }),
+      signal: AbortSignal.timeout(20_000),
+      cache: "no-store",
+    });
+    const j = (await r.json()) as { result?: unknown; error?: { message?: string } };
+    if (j.error) {
+      return { accepted: false, txid: null, note: String(j.error.message ?? "rpc error").slice(0, 160) };
+    }
+
+    // הקבלה — ההיסטוריה השופטת: איתור ההעברה בהיסטוריה של המקבל/השולח
+    let txid: string | null = null;
+    for (let attempt = 0; attempt < 6 && !txid; attempt++) {
+      await new Promise((res) => setTimeout(res, 2500));
+      const hist = await blurtRpc<Array<[number, { op?: [string, Record<string, unknown>]; trx_id?: string }]>>(
+        "condenser_api.get_account_history", [to, -1, 20],
+      );
+      if (hist) {
+        for (const [, e] of hist) {
+          const [kind, data] = e.op ?? [];
+          if (kind === "transfer" && (data as { amount?: string })?.amount === asset) {
+            txid = String(e.trx_id ?? "") || null;
+            break;
+          }
+        }
+      }
+    }
+    return {
+      accepted: true,
+      txid,
+      note: txid ? "broadcast-accepted · txid מההיסטוריה" : "broadcast-accepted (ההיסטוריה עוד לא שיקפה — הקבלה בהמשך)",
+    };
+  } catch (e) {
+    return { accepted: false, txid: null, note: String((e as Error).message ?? e).slice(0, 160) };
+  }
 }

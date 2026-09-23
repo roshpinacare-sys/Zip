@@ -3,7 +3,8 @@
 //
 // GET  — תמונת-זירה חיה: בריכות, רזרבת-USDS, חברים, ספר, דלת-ההפקדות.
 // POST — פעולות החברים: swap | usds-mint | usds-burn | withdraw |
-//        deposit-scan | quote — הכל דרך החוקים (שער-$100, hash-chain,
+//        deposit-scan | quote | reward-pay | add-liquidity |
+//        liquidity-stream — הכל דרך החוקים (שער-$100, hash-chain,
 //        קבלה-כנה, אימות-סמכות ביט-מול-ביט בכל שידור).
 // ─────────────────────────────────────────────────────────────────────
 
@@ -11,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   ensureExchange, exchangeSnapshot, quoteSwap, swap,
   usdsMint, usdsBurn, withdraw, depositScan,
+  rewardPay, addLiquidity, liquidityStream,
   type ExchangeAsset,
 } from "@/lib/weave/sovereign-exchange";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -46,6 +48,10 @@ export async function POST(req: NextRequest) {
       stable?: "WSBD" | "WHBD";
       amount?: number;
       toAccount?: string;
+      note?: string;
+      maxA?: number;
+      maxB?: number;
+      share?: number;
     };
     await ensureExchange();
     const session = operatorFromRequest(req);
@@ -92,6 +98,31 @@ export async function POST(req: NextRequest) {
       }
       case "deposit-scan": {
         const r = await depositScan();
+        return NextResponse.json({ ...r, at });
+      }
+      case "reward-pay": {
+        const r = await rewardPay({
+          member: String(body.member ?? "money-mover"),
+          amount: Number(body.amount ?? 0),
+          note: String(body.note ?? "עבודה"),
+          issuedBy,
+        });
+        return NextResponse.json({ ...r, at });
+      }
+      case "add-liquidity": {
+        const r = await addLiquidity({
+          member,
+          pair: String(body.pair ?? ""),
+          maxA: Number(body.maxA ?? 0),
+          maxB: Number(body.maxB ?? 0),
+        });
+        return NextResponse.json({ ...r, at });
+      }
+      case "liquidity-stream": {
+        const r = await liquidityStream({
+          share: body.share != null ? Number(body.share) : undefined,
+          issuedBy,
+        });
         return NextResponse.json({ ...r, at });
       }
       default:

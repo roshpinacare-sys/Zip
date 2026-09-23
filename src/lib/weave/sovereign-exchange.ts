@@ -29,6 +29,7 @@ import { db } from "@/lib/db";
 import { hashText } from "@/lib/weave/chain";
 import { steemBroadcast, rpcV4, STEEM_RPC_NODES, HIVE_RPC, HIVE_CHAIN_ID, signGrapheneTx } from "@/lib/weave/graphene";
 import { openVaultKey } from "@/lib/dex/wallet-vault";
+import { blurtSendTransfer, BLURT_RPC } from "@/lib/dex/blurt-wire";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
 
 const HOME = "/home/z/my-project";
@@ -415,7 +416,7 @@ export async function usdsBurn(member: string, stable: "WSBD" | "WHBD", amount: 
   }
 }
 
-// ── רייל-ההפקדות — דלת הציבור על STEEM (memo: wx:<member>) ────────────
+// ── רייל-ההפקדות — דלת הציבור על שלוש רשתות (memo: wx:<member>) ────────
 
 const DEPOSIT_MEMO = /^wx:([a-z0-9.-]{3,16})$/;
 
@@ -430,12 +431,55 @@ export interface DepositScanResult {
 export async function depositScan(limit = 60): Promise<DepositScanResult> {
   const details: string[] = [];
   let credited = 0;
-  try {
-    const hist = await rpcV4<Array<[number, { op?: [string, Record<string, unknown>]; trx_id?: string }]>>(
-      STEEM_RPC_NODES[0], "condenser_api.get_account_history", [TREASURY, -1, limit],
-    );
-    if (!Array.isArray(hist)) return { ok: false, scanned: 0, credited: 0, details, detail: "RPC-DOWN" };
-    for (const [, entry] of hist) {
+  let scanned = 0;
+
+  // האוצר הוא headcorner בכל שלוש הרשתות (חוק המפתח-הראשי — R99):
+  // STEEM (api.steemit.com) · HIVE (api.hive.blog) · BLURT (rpc.blurt.blog, UA!)
+  type HistEntry = [number, { op?: [string, Record<string, unknown>]; trx_id?: string }];
+  const legs: Array<{
+    chain: string;
+    hist: HistEntry[] | null;
+    mapAsset: (amount: string) => ExchangeAsset | null;
+  }> = [];
+
+  const steemHist = await rpcV4<HistEntry[]>(
+    STEEM_RPC_NODES[0], "condenser_api.get_account_history", [TREASURY, -1, limit],
+  ).catch(() => null);
+  legs.push({
+    chain: "steem",
+    hist: Array.isArray(steemHist) ? steemHist : null,
+    mapAsset: (amt) => (/STEEM/i.test(amt) ? "WSTEEM" : /SBD/i.test(amt) ? "WSBD" : null),
+  });
+
+  const hiveHist = await rpcV4<HistEntry[]>(
+    HIVE_RPC, "condenser_api.get_account_history", [TREASURY, -1, limit],
+  ).catch(() => null);
+  legs.push({
+    chain: "hive",
+    hist: Array.isArray(hiveHist) ? hiveHist : null,
+    mapAsset: (amt) => (/HIVE/i.test(amt) ? "WHIVE" : /HBD/i.test(amt) ? "WHBD" : null),
+  });
+
+  // BLURT — UA מפורש (ענן-הגנה של הצומת, לקח R101)
+  const blurtHist = await fetch(BLURT_RPC, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "User-Agent": "saos-weave-rail/1.0" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "condenser_api.get_account_history", params: [TREASURY, -1, limit] }),
+    signal: AbortSignal.timeout(12_000),
+  }).then((r) => r.json() as Promise<{ result?: HistEntry[] }>).catch(() => null);
+  legs.push({
+    chain: "blurt",
+    hist: blurtHist?.result ?? null,
+    mapAsset: (amt) => (/BLURT/i.test(amt) ? "WBLURT" : null),
+  });
+
+  for (const leg of legs) {
+    if (!Array.isArray(leg.hist)) {
+      details.push(`${leg.chain}: RPC-DOWN — הרגל נדלגה בכנות`);
+      continue;
+    }
+    scanned += leg.hist.length;
+    for (const [, entry] of leg.hist) {
       const op = entry.op;
       if (!op || op[0] !== "transfer") continue;
       const t = op[1] as { from?: string; to?: string; amount?: string; memo?: string };
@@ -448,20 +492,24 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
       if (!(num > 0)) continue;
       const txid = String(entry.trx_id ?? "");
       if (await eventExists("DEPOSIT_CREDIT", txid)) continue;
-      const asset: ExchangeAsset | null = /STEEM/i.test(amt) ? "WSTEEM" : /SBD/i.test(amt) ? "WSBD" : null;
+      const asset = leg.mapAsset(amt);
       if (!asset) continue;
       await adjust(member, asset, num);
       await chainEvent("DEPOSIT_CREDIT", member, {
-        txid, from: t.from, asset, amount: num, memo: t.memo,
-        evidence: `steem:get_account_history(${TREASURY}) trx_id=${txid}`,
+        txid, from: t.from, asset, amount: num, memo: t.memo, chain: leg.chain,
+        evidence: `${leg.chain}:get_account_history(${TREASURY}) trx_id=${txid}`,
       }, null);
       credited++;
-      details.push(`${t.from} → ${member}: ${num} ${asset} (txid ${txid.slice(0, 10)}…)`);
+      details.push(`${leg.chain}: ${t.from} → ${member}: ${num} ${asset} (txid ${txid.slice(0, 10)}…)`);
     }
-    return { ok: true, scanned: hist.length, credited, details, detail: credited > 0 ? `${credited} הפקדות נזקפו` : "אין הפקדות חדשות בחלון" };
-  } catch (e) {
-    return { ok: false, scanned: 0, credited: 0, details, detail: "SCAN-ERROR: " + String((e as Error).message ?? e).slice(0, 100) };
   }
+  return {
+    ok: true,
+    scanned,
+    credited,
+    details,
+    detail: credited > 0 ? `${credited} הפקדות נזקפו (3 רשתות)` : "אין הפקדות חדשות בחלון (3 רשתות)",
+  };
 }
 
 // ── רייל-המשיכות — שריפת עטיפה → העברה אמיתית בשרשרת ──────────────────
@@ -506,7 +554,6 @@ export async function withdraw(params: {
     // נכסים שאינם ניתנים למשיכה ישירה — בכנות
     if (asset === "USDS") return { ok: false, detail: "USDS נפדה בשריפה (usds-burn) ל-WSBD/WHBD — ואז מושך" };
     if (asset === "SAOS") return { ok: false, detail: "SAOS נשלף דרך רייל SAOS-LIVE החי — שלב מתועד הבא; בזירה הוא תביעה-פנימית מגובה-אוצר" };
-    if (asset === "WBLURT") return { ok: false, detail: "משיכת BLURT — NOT-YET בכנות: אין שידור-Blurt מוכח (chain_id לא אומת מה-RPC); הרייל מתועד כצעד הבא" };
 
     if (usdValue == null) {
       return { ok: false, detail: "NO-PRICE: USD לא נמדד חי — אין שער, אין מסחר" };
@@ -550,6 +597,15 @@ export async function withdraw(params: {
       const signed = await signGrapheneTx(HIVE_RPC, HIVE_CHAIN_ID, mapped, v.wif);
       await rpcV4(HIVE_RPC, "condenser_api.broadcast_transaction", [signed]);
       send = { txid: null, accepted: true, note: "hive broadcast-accepted" };
+    } else if (asset === "WBLURT") {
+      // רייל BLURT (R103) — חוק-החוט המילולי הוכח במעבדה + בשרשרת:
+      // הנכס נסדר כ-"N.NNN BLURT" (בלי מיפוי-מורשת), chain_id מ-get_config.
+      const v = openVaultKey("blurt", TREASURY, "active");
+      if (!v.ok || !v.wif) { await adjust(member, asset, amount); return { ok: false, detail: `NO-KEY: ${v.detail}` }; }
+      const r = await blurtSendTransfer({
+        from: TREASURY, to: toAccount, amount, memo: "wx-out (sovereign-exchange)", wif: v.wif,
+      });
+      send = { txid: r.txid, accepted: r.accepted, note: r.note };
     }
     const okSend = asset === "WSTEEM" || asset === "WSBD" ? !!send.txid : !!send.accepted;
     if (!okSend) {
@@ -564,6 +620,226 @@ export async function withdraw(params: {
     return { ok: true, detail: `נמשכו ${amount} ${asset} ל-${toAccount} — העטיפה נשרפה, ההעברה שודרה`, gate: { verdict: "EXECUTED", id: gate.id, usdValue }, txid: send.txid ?? null, event: ev };
   } catch (e) {
     return { ok: false, detail: "WITHDRAW-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
+  }
+}
+
+// ── רייל-התגמול: עבודה → מטבע → נזילות (R103) ─────────────────────────
+
+/** מחיר SAOS חי מהבריכה שלנו — השוק הפנימי הוא המקור */
+async function saosUsdPrice(): Promise<number | null> {
+  const pool = await db.exchangePool.findUnique({ where: { pair: "SAOS/USDS" } });
+  if (!pool || pool.reserveA <= 0) return null;
+  return pool.reserveB / pool.reserveA;
+}
+
+/**
+ * חלוקת SAOS לסוכן — ישירות למאזן הזירה (R103).
+ *
+ * סגירת המעגל: הסוכן עובד (מילויי-גריד אמיתיים) ← מקבל SAOS כתביעה
+ * פנימית ← מחליף אותה ב-USDS בבריכה שלנו ← נזילות אמיתית. התגמול
+ * יוצא ממאזן האוצר (הגיבוי החי), והוא מתועד בספר ה-hash-chained.
+ */
+export async function rewardPay(params: {
+  member: string;
+  amount: number;
+  note: string;
+  issuedBy: "operator" | "daemon";
+}): Promise<SwapResult> {
+  try {
+    const { member, amount, note, issuedBy } = params;
+    if (!/^[a-z0-9.-]{3,16}$/.test(member)) return { ok: false, detail: "BAD-MEMBER" };
+    if (!(amount > 0)) return { ok: false, detail: "BAD-AMOUNT" };
+    const price = await saosUsdPrice();
+    if (price == null || price <= 0) return { ok: false, detail: "NO-PRICE: אין בריכת SAOS/USDS — אין שער" };
+    const usdValue = amount * price;
+    const gate = await evaluateGate({
+      source: "sovereign-exchange",
+      action: "reward-pay",
+      title: `תגמול ${amount} SAOS ל-${member} (${usdValue.toFixed(2)}$)`,
+      payload: { member, amount, note },
+      usdValue,
+      usdBasis: `saos/usds-pool ${price.toPrecision(4)}`,
+      issuedBy,
+      reason: `עבודה→מטבע→נזילות: ${note}`,
+    });
+    if (gate.verdict !== "ALLOWED") {
+      return {
+        ok: false,
+        detail: gate.verdict === "QUEUED" ? `התגמול ${usdValue.toFixed(2)}$ ≥ 100$ — תור המפעיל` : "השער סירב",
+      };
+    }
+    // האוצר משלם — הספר מתעד
+    await adjust("treasury", "SAOS", -amount);
+    await adjust(member, "SAOS", amount);
+    const ev = await chainEvent("REWARD_PAY", member, {
+      amount, note, usdValue, gateId: gate.id,
+      rail: "treasury→member (arena balance) — תביעה פנימית מגובה-אוצר",
+    }, usdValue);
+    await settleGate(gate.id, "EXECUTED", "sovereign-exchange:live", { eventHash: ev.hash });
+    return {
+      ok: true,
+      detail: `שולם ${amount} SAOS ל-${member} מהאוצר — התביעה חיה בזירה (מחליף ב-USDS בבריכה)`,
+      event: ev,
+    };
+  } catch (e) {
+    return { ok: false, detail: "REWARD-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
+  }
+}
+
+// ── רייל-הנזילות: דלק → עומק בריכות אמיתי (R103) ─────────────────────
+
+/**
+ * הוספת נזילות דו-צדדית לבריכה קיימת (ביחס הנוכחי) או זריעת בריכה
+ * חדשה במחיר מוכרז. העמלות נשארות בבריכה — ערך ה-LP של האוצר צומח.
+ */
+export async function addLiquidity(params: {
+  member: string;
+  pair: string;
+  maxA: number;
+  maxB: number;
+}): Promise<SwapResult> {
+  try {
+    const { member, pair, maxA, maxB } = params;
+    if (!(maxA > 0) || !(maxB > 0)) return { ok: false, detail: "BAD-AMOUNTS" };
+    let pool = await db.exchangePool.findUnique({ where: { pair } });
+    if (!pool) {
+      // בריכה חדשה — המחיר המוכרז = maxB/maxA, מכאן השוק יכריע
+      const [assetA, assetB] = pair.split("/") as [ExchangeAsset, ExchangeAsset];
+      if (!assetA || !assetB || !(EXCHANGE_ASSETS as readonly string[]).includes(assetA) || !(EXCHANGE_ASSETS as readonly string[]).includes(assetB) || assetA === assetB) {
+        return { ok: false, detail: "BAD-PAIR" };
+      }
+      await adjust(member, assetA, -maxA);
+      await adjust(member, assetB, -maxB);
+      pool = await db.exchangePool.create({
+        data: { pair, assetA, assetB, reserveA: maxA, reserveB: maxB, feeBps: FEE_BPS },
+      });
+      const ev = await chainEvent("LP_SEED", member, { pair, assetA, assetB, reserveA: maxA, reserveB: maxB, note: "זריעת בריכה חדשה — המחיר המוכרז, השוק יכריע מכאן" }, null);
+      return { ok: true, detail: `נזרעה בריכה חדשה ${pair}: ${maxA} × ${maxB} — עומק חי`, event: ev };
+    }
+    if (pool.reserveA <= 0 || pool.reserveB <= 0) {
+      // בריכה ריקה — זריעה מחדש במחיר המוצע
+      await adjust(member, pool.assetA as ExchangeAsset, -maxA);
+      await adjust(member, pool.assetB as ExchangeAsset, -maxB);
+      await db.exchangePool.update({ where: { pair }, data: { reserveA: maxA, reserveB: maxB } });
+      const ev = await chainEvent("LP_SEED", member, { pair, reserveA: maxA, reserveB: maxB, note: "זריעה מחדש לבריכה ריקה" }, null);
+      return { ok: true, detail: `הבריכה ${pair} נזרעה מחדש: ${maxA} × ${maxB}`, event: ev };
+    }
+    // בריכה חיה — הוספה ביחס הקיים (הצד הקטן קובע)
+    const ratio = pool.reserveB / pool.reserveA;
+    let amtA = maxA;
+    let amtB = amtA * ratio;
+    if (amtB > maxB) { amtB = maxB; amtA = amtB / ratio; }
+    amtA = Math.floor(amtA * 1e9) / 1e9;
+    amtB = Math.floor(amtB * 1e9) / 1e9;
+    if (amtA <= 0 || amtB <= 0) return { ok: false, detail: "DUST: סכומים מתחת לרצפה" };
+    await adjust(member, pool.assetA as ExchangeAsset, -amtA);
+    await adjust(member, pool.assetB as ExchangeAsset, -amtB);
+    await db.exchangePool.update({
+      where: { pair },
+      data: { reserveA: { increment: amtA }, reserveB: { increment: amtB } },
+    });
+    const ev = await chainEvent("LP_ADD", member, {
+      pair, addedA: amtA, addedB: amtB,
+      reservesAfter: { a: pool.reserveA + amtA, b: pool.reserveB + amtB },
+      note: "עומק אמיתי גדל — העמלות נשארות בבריכה",
+    }, null);
+    return { ok: true, detail: `נוסף עומק ל${pair}: ${amtA} × ${amtB} (ביחס השוק החי)`, event: ev };
+  } catch (e) {
+    return { ok: false, detail: "LP-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
+  }
+}
+
+/**
+ * הזרמת דלק-שרשרת לבריכות (R103) — הפאוורדאון השבועי הופך לעומק.
+ *
+ * החוק: הכסף החי על השרשרת שטרם נצרף (הדלתא מעל האירוע-WRAP האחרון)
+ * מתגלגל בחלקו לעטיפה (W*) ומזווג ל-USDS במחיר השוק החי. מה שאין
+ * לו זיווג נשאר במאזן האוצר — כנות: העומק גדל רק מכסף אמיתי.
+ */
+export async function liquidityStream(params: {
+  share?: number; // חלק הדלתא שיוזרם (ברירת מחדל 0.2)
+  issuedBy: "operator" | "daemon";
+}): Promise<{ ok: boolean; detail: string; events: string[] }> {
+  try {
+    const share = Math.min(1, Math.max(0, params.share ?? 0.2));
+    const m = await measureTreasury();
+    if (!m) return { ok: false, detail: "NO-MEASURE: השרשרת לא ענתה — אין הזרמה", events: [] };
+    const events: string[] = [];
+
+    // הדלתא: המאזן החי מעל מה שכבר נצרף (אירועי WRAP מתועדים)
+    const wrapped = new Map<string, number>();
+    const wrapEvents = await db.exchangeEvent.findMany({ where: { kind: "TREASURY_WRAP" }, orderBy: { seq: "asc" } });
+    for (const e of wrapEvents) {
+      try {
+        const pl = JSON.parse(e.payload) as { asset?: string; measuredBalance?: number };
+        if (pl.asset && typeof pl.measuredBalance === "number") {
+          wrapped.set(pl.asset, Math.max(wrapped.get(pl.asset) ?? 0, pl.measuredBalance));
+        }
+      } catch { /* ספר ישן — דלתא מהג'נזיס */ }
+    }
+    // ג'נזיס: המאזן שנמדד אז הוא קו הבסיס
+    const genesis = await db.exchangeEvent.findFirst({ where: { kind: "GENESIS" } });
+    if (genesis) {
+      try {
+        const pl = JSON.parse(genesis.payload) as { measured?: Record<string, number> };
+        const base = pl.measured ?? {};
+        for (const [k, v] of Object.entries(base)) {
+          if (typeof v === "number" && !wrapped.has(k)) wrapped.set(k, v);
+        }
+      } catch { /* כנות */ }
+    }
+
+    // נכסי ההזרמה: STEEM (פאוורדאון) · HIVE · BLURT — כולם בעלי דלתא-דלק חוצה-רשתות
+    const streamAssets: Array<{ live: number; key: string; wrap: ExchangeAsset; priceKey: string }> = [
+      { live: m.steem, key: "steem", wrap: "WSTEEM", priceKey: "steem" },
+      { live: m.hive, key: "hive", wrap: "WHIVE", priceKey: "hive" },
+      { live: m.blurt, key: "blurt", wrap: "WBLURT", priceKey: "blurt" },
+    ];
+    const prices = await pricesUsd();
+    let totalWrapped = 0;
+
+    for (const a of streamAssets) {
+      const baseline = wrapped.get(a.key) ?? 0;
+      const delta = a.live - baseline;
+      if (delta < 1) continue; // אין דלק חדש — כנות
+      const toWrap = Math.floor(delta * share * 1000) / 1000;
+      if (toWrap < 0.001) continue;
+      const price = prices[a.priceKey];
+      if (price == null) { events.push(`${a.key}: אין מחיר חי — הדלתא (${delta.toFixed(3)}) ממתינה בכנות`); continue; }
+      // עטיפה — האוצר מקבל W* מול ההון החי שנמדד
+      await adjust("treasury", a.wrap, toWrap);
+      const ev = await chainEvent("TREASURY_WRAP", "treasury", {
+        asset: a.wrap, amount: toWrap, measuredBalance: a.live, baseline, delta,
+        share, evidence: `chain-balance(${a.key})=${a.live}`,
+      }, null);
+      events.push(`עוטף ${toWrap} ${a.wrap} מדלתא ${delta.toFixed(3)} ${a.key} (חלק ${Math.round(share * 100)}%)`);
+
+      // זיווג ל-USDS: בריכת W*/USDS — נבנית אם איננה (במחיר השוק החי)
+      const pair = `${a.wrap}/USDS`;
+      const pool = await db.exchangePool.findUnique({ where: { pair } });
+      const usdsNeed = toWrap * price; // כמה USDS שווה הצד שלנו
+      const treasuryBal = await readBalances("treasury");
+      const usdsAvail = treasuryBal.USDS ?? 0;
+      if (usdsAvail <= 0) { events.push(`${pair}: אין USDS לזיווג — ה-W* ממתין במאזן האוצר (כנות)`); continue; }
+      if (!pool || pool.reserveA <= 0) {
+        // בריכה חדשה במחיר השוק החי
+        let amtA = toWrap, amtB = Math.min(usdsAvail, usdsNeed);
+        if (amtB < usdsNeed) amtA = amtB / price; // מה שיש — לא הבטחה
+        if (amtA < 0.001 || amtB < 0.000001) { events.push(`${pair}: אבק — דלג בכנות`); continue; }
+        await addLiquidity({ member: "treasury", pair, maxA: amtA, maxB: amtB });
+        events.push(`נזרעה ${pair}: ${amtA.toFixed(3)} × ${amtB.toFixed(6)} (מחיר פתיחה ${price.toPrecision(4)}$)`);
+      } else {
+        await addLiquidity({ member: "treasury", pair, maxA: toWrap, maxB: usdsAvail });
+        events.push(`עומק ${pair} גדל (${toWrap.toFixed(3)} ${a.wrap} + זיווג USDS)`);
+      }
+      totalWrapped += 1;
+    }
+    if (totalWrapped === 0 && events.length === 0) {
+      return { ok: true, detail: "אין דלק חדש מעל קו-הבסיס — אין מה להזרים (כנות)", events };
+    }
+    return { ok: true, detail: `הוזרם עומק אמיתי: ${totalWrapped} נכסים · ${events.length} פעולות`, events };
+  } catch (e) {
+    return { ok: false, detail: "STREAM-ERROR: " + String((e as Error).message ?? e).slice(0, 120), events: [] };
   }
 }
 

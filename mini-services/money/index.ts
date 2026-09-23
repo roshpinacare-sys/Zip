@@ -14,6 +14,13 @@
 // רגליים: STEEM (הסולם הגדול) + HIVE (המיקרו-גריד הצמוד) — אותו
 // צינון, אותו תקציב, אותו שער-$100. חוק-החוט ב-hive-wire.
 //
+// R103: שני ריילים חדשים למעגל הכלכלה החיה:
+//   · reward-pay — מילויי-גריד אמיתיים (עבודה) ← SAOS למאזן הזירה
+//     של הסוכן (מטבע) ← ניתן להחלפה ב-USDS בבריכה (נזילות).
+//     סגירת המעגל עבודה→מטבע→נזילות — הוראת המפעיל.
+//   · liquidity-stream — גל-דלק (פאוורדאון שבועי ~475 STEEM) ←
+//     20% ממנו הופך לעומק בריכות הזירה לפני פריסת הסולם.
+//
 // חוקי-ברזל (מהקנון):
 //   · טריגרים: סטיית-פאריטה >50bps מהמדרגה · נזיל ≥1 STEEM
 //   · צינון 30 דק' בין פעולות · תקציב 12 פעולות/יום
@@ -31,6 +38,7 @@ const PORT = 3034;
 const CHECK_INTERVAL_SEC = 60;
 const API = "http://127.0.0.1:3000/api/money";
 const HIVE_API = "http://127.0.0.1:3000/api/money/hive";
+const EXCHANGE_API = "http://127.0.0.1:3000/api/exchange";
 
 const POLICY = {
   triggers: { parityDriftBps: 50, floorBps: -50, idleTriggerSteem: 1 },
@@ -39,6 +47,8 @@ const POLICY = {
   armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300] }, // R97 — צד הקנייה של המיקרו-גריד
   hive: { driftBps: 50 },
   stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
+  rewards: { saosPerFill: 2, member: "money-mover" }, // R103 — עבודה→מטבע→נזילות
+  liquidityStream: { waveSteem: 200, share: 0.2 }, // R103 — גל-פאוורדאון → 20% עומק בריכות
   truthSource: "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)",
 };
 
@@ -56,6 +66,8 @@ type MoneyState = {
   actionDay: string;
   acting: boolean;
   lastDecision: Decision | null;
+  fillsSeen?: number; // R103 — סימן-מים לתגמול מילויים חדשים
+  lastStreamDay?: string; // R103 — הזרמת-נזילות אחת לכל היום ביותר
   canonLast: { at: string; ok: boolean; path: string } | null;
   history?: Array<Record<string, unknown>>;
 };
@@ -179,7 +191,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
 }
 
 // ── החלטה ───────────────────────────────────────────────────────────
-async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" }> {
+async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream" }> {
   const now = new Date();
   // day roll
   if (state.actionDay !== utcDay(now)) {
@@ -196,6 +208,21 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   // תקציב
   if (state.actionsToday >= POLICY.actionsBudgetPerDay) {
     return { act: false, reason: "WAIT-BUDGET · 12/12 פעולות היום — התקציב נאכל" };
+  }
+  // R103 — LIQUIDITY-STREAM: גל-דלק (חתימת פאוורדאון: נזיל ≥ 200 STEEM
+  // בבת אחת) ← 20% ממנו הופך לעומק בבריכות הזירה לפני שהסולם פורש
+  // את השאר. הזרמה אחת ליום בלבד — חוק התקציב.
+  const idleNow = Number(meas?.idleSteem ?? 0);
+  const today = utcDay();
+  if (
+    idleNow >= POLICY.liquidityStream.waveSteem &&
+    state.lastStreamDay !== today
+  ) {
+    return {
+      act: true,
+      action: "arena-stream",
+      reason: `גל דלק נזיל ${idleNow.toFixed(0)} STEEM (חתימת פאוורדאון) — ${Math.round(POLICY.liquidityStream.share * 100)}% הופכים לעומק בריכות הזירה לפני פריסת הסולם`,
+    };
   }
   // R101b - STOCK-SBD (before the idle trigger - order is the deal):
   // if the arming inventory is short and idle fuel can close the gap,
@@ -311,7 +338,7 @@ async function measure(): Promise<any | null> {
 
 async function act(
   reason: string,
-  action: "reprice" | "arm-buy" | "stock-sbd" = "reprice",
+  action: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream" = "reprice",
   target: "steem" | "hive" = "steem",
 ): Promise<void> {
   state.acting = true;
@@ -328,6 +355,17 @@ async function act(
   const t = setTimeout(() => ctl.abort(), 180_000); // פעולת-כסף: חלון רחב (3 דק'), שידור Steem איטי
   let result: Record<string, unknown> = {};
   try {
+    if (action === "arena-stream") {
+      // R103 — ההזרמה הולכת לזירת-המסחר, לא למוח הכסף
+      const res = await fetch(EXCHANGE_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "liquidity-stream", share: POLICY.liquidityStream.share }),
+        signal: ctl.signal,
+      });
+      result = (await res.json()) as Record<string, unknown>;
+      state.lastStreamDay = utcDay();
+    } else {
     const res = await fetch(target === "hive" ? HIVE_API : API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -335,6 +373,7 @@ async function act(
       signal: ctl.signal,
     });
     result = (await res.json()) as Record<string, unknown>;
+    }
   } catch (e: any) {
     result = { ok: false, error: String(e?.message ?? e).slice(0, 200) };
   } finally {
@@ -359,14 +398,16 @@ async function act(
   // R97: קבלה מבחינה סוג-פעולה; GATE-QUEUED היא הכרעה, לא כישלון —
   // הפעולה מעל סף האוטונומיה וממתינה למפעיל בשער-העסקאות.
   const actionKind = r.ok
-    ? String(r.receipt?.kind ?? r.kind ?? (action === "arm-buy" ? "ARM-BUY" : target === "hive" ? "HIVE-REPRICE" : "REPRICE"))
+    ? String(r.receipt?.kind ?? r.kind ?? (action === "arm-buy" ? "ARM-BUY" : action === "arena-stream" ? "ARENA-STREAM" : target === "hive" ? "HIVE-REPRICE" : "REPRICE"))
     : r.code === "GATE-QUEUED"
       ? "GATE-QUEUED"
       : action === "arm-buy"
         ? "ARM-BUY-FAIL"
-        : target === "hive"
-          ? "HIVE-REPRICE-FAIL"
-          : "REPRICE-FAIL";
+        : action === "arena-stream"
+          ? "ARENA-STREAM-FAIL"
+          : target === "hive"
+            ? "HIVE-REPRICE-FAIL"
+            : "REPRICE-FAIL";
   state.lastDecision = {
     at: finishedAt,
     kind: actionKind,
@@ -418,6 +459,34 @@ async function tick() {
       saveState();
       return;
     }
+    // R103 — רייל התגמול: מילויים חדשים בחלון = עבודה אמיתית = SAOS לזירה.
+    // הספירה היא סימן-מים עולה: ירידת החלון לא מתגמלת פעמיים.
+    try {
+      const fillsNow = Number(meas?.fills?.window24h);
+      if (Number.isFinite(fillsNow)) {
+        const seen = state.fillsSeen ?? 0;
+        if (fillsNow > seen) {
+          const newFills = fillsNow - seen;
+          state.fillsSeen = fillsNow;
+          const rew = await fetch(EXCHANGE_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "reward-pay",
+              member: POLICY.rewards.member,
+              amount: Math.max(1, newFills * POLICY.rewards.saosPerFill),
+              note: `grid-fills ×${newFills} (window 24h) — עבודה→מטבע→נזילות`,
+            }),
+            signal: AbortSignal.timeout(30_000),
+          }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
+          if (rew?.ok) {
+            appendHistory({ kind: "SAOS-REWARD", reason: `מילויים ×${newFills}`, saos: newFills * POLICY.rewards.saosPerFill });
+          }
+        } else if (fillsNow < seen) {
+          state.fillsSeen = fillsNow; // החלון התנקה — סימן-המים בעקבות האמת
+        }
+      }
+    } catch { /* התגמול לעולם לא מפיל את המדידה */ }
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {
@@ -484,7 +553,7 @@ Bun.serve({
       const target = body?.target === "hive" ? "hive" : "steem";
       await act(
         String(body?.reason ?? "manual operator command").slice(0, 200),
-        body?.action === "arm-buy" ? "arm-buy" : body?.action === "stock-sbd" ? "stock-sbd" : "reprice",
+        body?.action === "arm-buy" ? "arm-buy" : body?.action === "stock-sbd" ? "stock-sbd" : body?.action === "arena-stream" ? "arena-stream" : "reprice",
         target,
       );
       return Response.json({ ok: true, lastDecision: state.lastDecision });
