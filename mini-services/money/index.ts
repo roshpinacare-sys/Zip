@@ -188,19 +188,24 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string }> {
   if (idle >= POLICY.triggers.idleTriggerSteem) {
     return { act: true, reason: `נזיל ${idle.toFixed(3)} STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)` };
   }
-  // טריגר: סטיית פאריטה מהמדרגה שהוצבה
+  // טריגר: סטיית פאריטה מהמדרגה שהוצבה בפועל (R93).
+  // לקח-הבאג החי (נמדד 00:19Z): ה-ladder מה-API הוא הסולם *המומלץ* —
+  // מחושב מהפאריטה עצמה, ולכן השוואת פאריטה מול ladder[1] היא השוואת
+  // הפאריטה אל עצמה: drift=0 תמידי, והטריגר היה קוד-מת במשך 20 שעות
+  // בזמן שהקו זז +240bps. האמת היא הפקודות הפתוחות על השרשרת
+  // (get_open_orders): המדרגה התחתונה — הראשונה להיפגע — היא הבסיס.
   const parity = Number(meas?.marks?.parity);
-  const ladder: Array<{ level: number; premiumBps: number; price: number }> = meas?.ladder ?? [];
-  if (typeof parity === "number" && parity > 0 && ladder.length > 0) {
-    const base = ladder.find((l) => l.level === 1)?.price ?? ladder[0]?.price;
-    if (base > 0) {
-      const driftBps = Math.round(((parity - base) / base) * 10_000);
-      if (Math.abs(driftBps) > POLICY.triggers.parityDriftBps) {
-        return {
-          act: true,
-          reason: `הפאריטה זזה ${driftBps > 0 ? "+" : ""}${driftBps}bps מהסולם שהוצב — הסולם נגרר אליה (חוק 3)`,
-        };
-      }
+  const placedPrices: number[] = (Array.isArray(meas?.orders) ? meas.orders : [])
+    .map((o: { price?: number | string }) => Number(o?.price))
+    .filter((p: number) => Number.isFinite(p) && p > 0);
+  if (typeof parity === "number" && parity > 0 && placedPrices.length > 0) {
+    const base = Math.min(...placedPrices); // המדרגה התחתונה — הראשונה למכירה
+    const driftBps = Math.round(((parity - base) / base) * 10_000);
+    if (Math.abs(driftBps) > POLICY.triggers.parityDriftBps) {
+      return {
+        act: true,
+        reason: `הפאריטה זזה ${driftBps > 0 ? "+" : ""}${driftBps}bps מעל הסולם שהוצב (${base.toFixed(6)} → קו ${parity.toFixed(6)}) — הסולם נגרר אליה (חוק 3)`,
+      };
     }
   }
   // שקט כנה
@@ -224,7 +229,14 @@ async function measure(): Promise<any | null> {
 
 async function act(reason: string): Promise<void> {
   state.acting = true;
-  state.lastDecision = { at: new Date().toISOString(), kind: "ACTING", detail: reason };
+  // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
+  // מסופה. נולד מתקרית חיה (00:34:52Z): restart של הדיבון באמצע act()
+  // איפס את הדגלים הזכרוניים (acting/ticking) — וההרצה החדשה לא ראתה
+  // פעולה בטיסה כי lastActionAt עודכן רק בסוף. התוצאה: שני POSTs
+  // back-to-back (00:34:29 + 00:34:54). מעתה: lastActionAt נכתב בהתחלה —
+  // restart באמצע פעולה נתקל בצינון כנה במקום בירי כפול.
+  state.lastActionAt = new Date().toISOString();
+  state.lastDecision = { at: state.lastActionAt, kind: "ACTING", detail: reason };
   saveState();
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 180_000); // פעולת-כסף: חלון רחב (3 דק'), שידור Steem איטי
@@ -243,38 +255,50 @@ async function act(reason: string): Promise<void> {
     clearTimeout(t);
   }
   state.actionsToday += 1;
-  state.lastActionAt = new Date().toISOString();
+  const finishedAt = new Date().toISOString();
   state.acting = false;
-  const placed = (result as any)?.placed ?? [];
+  // R93 — תיקון קבלה: ה-API מחזיר {ok, receipt:{placed,cancelled,...}, verify}
+  // ולא placed ברמה העליונה. הקבלה תעדוק את האמת מעכשיו (לקח R87 —
+  // "הוצבו 0" שקרי — הפעם בצד הדיבון).
+  const r = (result as any) ?? {};
+  const placed: unknown[] = Array.isArray(r.placed)
+    ? r.placed
+    : Array.isArray(r.receipt?.placed)
+      ? r.receipt.placed
+      : [];
+  const cancelled: unknown[] = Array.isArray(r.cancelled)
+    ? r.cancelled
+    : Array.isArray(r.receipt?.cancelled)
+      ? r.receipt.cancelled
+      : [];
+  const parityAt = r.parity ?? r.receipt?.parity ?? null;
   state.lastDecision = {
-    at: new Date().toISOString(),
-    kind: (result as any)?.ok ? "REPRICE" : "REPRICE-FAIL",
-    detail:
-      (result as any)?.ok
-        ? `הוצבו ${Array.isArray(placed) ? placed.length : 0} · ${reason}`
-        : `כישלון כנה: ${String((result as any)?.error ?? "לא ידוע").slice(0, 120)}`,
+    at: finishedAt,
+    kind: r.ok ? "REPRICE" : "REPRICE-FAIL",
+    detail: r.ok
+      ? `הוצבו ${placed.length} · בוטלו ${cancelled.length} · ${reason}`
+      : `כישלון כנה: ${String(r.error ?? r.receipt?.error ?? "לא ידוע").slice(0, 120)}`,
   };
   saveState();
   appendHistory({
     kind: state.lastDecision.kind,
     reason,
-    parity: (result as any)?.parity,
+    parity: parityAt,
     placed,
-    cancelled: (result as any)?.cancelled,
-    error: (result as any)?.error ?? null,
+    cancelled,
+    error: r.error ?? r.receipt?.error ?? null,
   });
   // קבלה לקנון אחרי כל פעולה (שער-סודות בפנים)
-  const placedN = Array.isArray(placed) ? placed.length : 0;
   const receipt = [
-    `# קבלת מוביל-הכסף · ${new Date().toISOString()}`,
+    `# קבלת מוביל-הכסף · ${finishedAt}`,
     "",
     `- **סיבה**: ${reason}`,
-    `- **תוצאה**: ${state.lastDecision.kind} · הוצבו ${placedN}`,
-    `- **פאריטה בזמן הפעולה**: ${(result as any)?.parity ?? "לא נמדד"}`,
+    `- **תוצאה**: ${state.lastDecision.kind} · הוצבו ${placed.length} · בוטלו ${cancelled.length}`,
+    `- **פאריטה בזמן הפעולה**: ${parityAt ?? "לא נמדד"}`,
     `- **פעולות היום**: ${state.actionsToday}/${POLICY.actionsBudgetPerDay}`,
-    `- **כנות**: ${(result as any)?.error ? `שגיאה: ${String((result as any).error).slice(0, 200)}` : "אין"}`,
+    `- **כנות**: ${r.error ?? r.receipt?.error ? `שגיאה: ${String(r.error ?? r.receipt?.error).slice(0, 200)}` : "אין"}`,
     "",
-    `_מופק אוטונומית על-ידי money-mover v1.1 (R90 rebuild)._`,
+    `_מופק אוטונומית על-ידי money-mover v1.2 (R90 rebuild · R93 קבלה+ירי-יחיד)._`,
   ].join("\n");
   await canonPush(`reports/money-${utcDay()}.md`, receipt);
 }

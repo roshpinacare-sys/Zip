@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-23T00:42:18.552Z",
-  "chainCount": 402,
-  "headHash": "0x31708a29b513182430db4f6402ea523ea4720d4fc8eea6ac4adaff73a57e7ee5",
+  "exportedAt": "2026-09-23T00:49:09.195Z",
+  "chainCount": 406,
+  "headHash": "0x4d4b9272d26d9903d757d47e2dfb963b25261ba37aadaa277d150cc7e171b355",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -102,6 +102,50 @@
       "nonce": 0,
       "rotatedAt": null,
       "createdAt": "2026-09-14T23:41:53.507Z"
+    },
+    {
+      "id": "cmuddtves000ugqxrxsazhbaz",
+      "name": "glm-53-builder",
+      "role": "BUILDER",
+      "ethAddress": "0xa04A13940724159096e7183366Bc720994Ce58B2",
+      "pubKeyHex": "(healed-from-canon)",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-23T00:46:09.220Z"
+    },
+    {
+      "id": "cmuddtvey000xgqxrewktv340",
+      "name": "glm-53-ui-builder",
+      "role": "BUILDER",
+      "ethAddress": "0x0dEFE1D429fb643731D3942AC028d2E025e42256",
+      "pubKeyHex": "(healed-from-canon)",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-23T00:46:09.226Z"
+    },
+    {
+      "id": "cmuddtvp2001ggqxr03g04uc4",
+      "name": "weave-charter-restore",
+      "role": "DAEMON",
+      "ethAddress": "0x68E2Bbf06800f3E81E23d17F3e476d41b8bC450B",
+      "pubKeyHex": "0x04da44ffab8448ded6549d82f85750498feb50ae3b8acc2ff1a38bdd7e84b43731800f17245e30b78ab35643de5cf484a680a85fae69345c9922db7e410c8cef79",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-23T00:46:09.591Z"
+    },
+    {
+      "id": "cmuddu3u7001ngqxrgwtmfqe0",
+      "name": "weave-charter-anchor",
+      "role": "DAEMON",
+      "ethAddress": "0x77Ffc7BeB627B220956BC34fDD1B988604531196",
+      "pubKeyHex": "0x0426eb299df9c883ee52707e08015b16b6349ee998ea011fcdbb7de8e309ea30902f96f19bf3add0bf6c4915b2c57815e052134d93727daa244f1008aed623100d",
+      "status": "ACTIVE",
+      "nonce": 0,
+      "rotatedAt": null,
+      "createdAt": "2026-09-23T00:46:20.144Z"
     }
   ],
   "attestations": [
@@ -6134,6 +6178,66 @@
       "sig": "0x92b80982ed6622f1e7985bbda98c08693747a4f3a663c837fee88d973b341dd607d28a693bf634c73586fc85064cb15247bc5c50e97603fb8b6635e5096188ce1b",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-23T00:42:18.476Z"
+    },
+    {
+      "id": "cmuddtvpc001igqxry0m17iob",
+      "seq": 403,
+      "agentId": "cmuddtvp2001ggqxr03g04uc4",
+      "claim": "charter-restore: first-external-build — הפניית אימות תלויה (seq 399, hash 0xe89ddf24…) הוחלפה בעדות זו",
+      "claimType": "RESTORE",
+      "evidence": "{\n  \"kind\": \"charter-reference-restore\",\n  \"slug\": \"first-external-build\",\n  \"dangling\": {\n    \"attSeq\": 399,\n    \"attEntryHash\": \"0xe89ddf24596bc8ddc44cf01d4576c2c636bb62bc06999f8ab195ab5b8c3433aa\"\n  },\n  \"reason\": \"האימות המקורי נכתב לשושלת-ספר של הסנדבוקס ולא הוספק לשושלת ששרדה (איפוס/חוסר-סנכרון) — ההפניה תלתה באוויר\",\n  \"replacedAt\": \"2026-09-23T00:46:09.592Z\"\n}",
+      "evidenceHash": "0x69ae104c91b0d29b2b88b95e4ec639c63930980824c690962843bc1365565b4c",
+      "status": "VERIFIED",
+      "prevHash": "0x31708a29b513182430db4f6402ea523ea4720d4fc8eea6ac4adaff73a57e7ee5",
+      "entryHash": "0xef7d1c0758605809aa0dfec2c9032842a79e6f619d402fd24b0b61420a34eb31",
+      "sig": "0x330c3db53017f5ba46d60a009f2dad737b2759366bc181a5df4527be0857061b4a5a4bb9867f16f0f3bd49f8377a8c5bfc793e83a0d46382048ef527b61b15421c",
+      "signerAddr": "0x68E2Bbf06800f3E81E23d17F3e476d41b8bC450B",
+      "createdAt": "2026-09-23T00:46:09.594Z"
+    },
+    {
+      "id": "cmuddtwxe001lgqxrtgh17fej",
+      "seq": 404,
+      "agentId": "cmuddtvp2001ggqxr03g04uc4",
+      "claim": "charter-restore: ui-issued-lifecycle — הפניית אימות תלויה (seq 400, hash 0xf82947e3…) הוחלפה בעדות זו",
+      "claimType": "RESTORE",
+      "evidence": "{\n  \"kind\": \"charter-reference-restore\",\n  \"slug\": \"ui-issued-lifecycle\",\n  \"dangling\": {\n    \"attSeq\": 400,\n    \"attEntryHash\": \"0xf82947e321887b3c23d75381f501161476df7be407dabe44b122bca822449bfb\"\n  },\n  \"reason\": \"האימות המקורי נכתב לשושלת-ספר של הסנדבוקס ולא הוספק לשושלת ששרדה (איפוס/חוסר-סנכרון) — ההפניה תלתה באוויר\",\n  \"replacedAt\": \"2026-09-23T00:46:11.179Z\"\n}",
+      "evidenceHash": "0xc5f753a5e05e5a90435f39b0caba42e730993522ee1d38339f0bfd8d8d6a6983",
+      "status": "VERIFIED",
+      "prevHash": "0xef7d1c0758605809aa0dfec2c9032842a79e6f619d402fd24b0b61420a34eb31",
+      "entryHash": "0x59520fd7afd00f709321ed16f48205df6bb6211f8d0f0d06ff2e0c1e54c7bbba",
+      "sig": "0xd80cc581965fabbba160f97a2c031c0bdc71f999009dcbe52c722e83c67c94693fefdfba53d6fffe66aa4b0570ca9ffd5f553f9f52dd7d9ba98765813a5806741c",
+      "signerAddr": "0x68E2Bbf06800f3E81E23d17F3e476d41b8bC450B",
+      "createdAt": "2026-09-23T00:46:11.181Z"
+    },
+    {
+      "id": "cmuddvmvz001pgqxrg1fnar7k",
+      "seq": 405,
+      "agentId": "cmuddu3u7001ngqxrgwtmfqe0",
+      "claim": "עוגן-חוץ למספנת הצ'רטרים: מצב 2 הפרויקטים ו-10 האירועים נמדד לשורש …8e1fd1a8 והועגן על Steem כ-custom_json בסמכות posting — כל שכתוב-שקט של המרשם ייחשף בחישוב-מחדש.",
+      "claimType": "ANCHOR",
+      "evidence": "op=saos.weave.charter.v1 · chain=steem · account=headcorner · root=0xd39d5f7a97dfb10de96017bdd8e569728d407af913fa0d43437f45e68e1fd1a8 · txid=38281b76732a3c3e26392189e0754880e4229989 · block=109816532 · projects=2 · events=10 · confirmedBy=chain-read (existing) · leaves=first-external-build:…470493,ui-issued-lifecycle:…928af0 · measuredBy=charter-anchor (live DB → keccak256 merkle) · at=2026-09-23T00:47:31.479Z",
+      "evidenceHash": "0x234661284dd4bf14cba4769200969737cebb86a56582deec07471152c60c5b08",
+      "status": "VERIFIED",
+      "prevHash": "0x59520fd7afd00f709321ed16f48205df6bb6211f8d0f0d06ff2e0c1e54c7bbba",
+      "entryHash": "0xd354fbb389ab9dbf3ae1518bc7387642456c7897db38b977f0a2dbbf5bb20c0b",
+      "sig": "0xa1ed6ee47e768117b611c3d29ed5cc6a4850f533c98614d441e898d7e29a08a447c38738bb6bbc033ea1efaa8e219bb792a405d321b6a29f1eb9d97cbb244c691c",
+      "signerAddr": "0x77Ffc7BeB627B220956BC34fDD1B988604531196",
+      "createdAt": "2026-09-23T00:47:31.482Z"
+    },
+    {
+      "id": "cmuddvuce001sgqxr9mi6th0i",
+      "seq": 406,
+      "agentId": "cmuddu3u7001ngqxrgwtmfqe0",
+      "claim": "עוגן-חוץ למספנת הצ'רטרים: מצב 2 הפרויקטים ו-10 האירועים נמדד לשורש …8e1fd1a8 והועגן על Steem כ-custom_json בסמכות posting — כל שכתוב-שקט של המרשם ייחשף בחישוב-מחדש.",
+      "claimType": "ANCHOR",
+      "evidence": "op=saos.weave.charter.v1 · chain=steem · account=headcorner · root=0xd39d5f7a97dfb10de96017bdd8e569728d407af913fa0d43437f45e68e1fd1a8 · txid=38281b76732a3c3e26392189e0754880e4229989 · block=109816532 · projects=2 · events=10 · confirmedBy=chain-read · leaves=first-external-build:…470493,ui-issued-lifecycle:…928af0 · measuredBy=charter-anchor (live DB → keccak256 merkle) · at=2026-09-23T00:47:41.142Z",
+      "evidenceHash": "0xf44237bf4140693cae524efc77e0e9585494a1c6ace0131664b45f939bf78a7c",
+      "status": "VERIFIED",
+      "prevHash": "0xd354fbb389ab9dbf3ae1518bc7387642456c7897db38b977f0a2dbbf5bb20c0b",
+      "entryHash": "0x4d4b9272d26d9903d757d47e2dfb963b25261ba37aadaa277d150cc7e171b355",
+      "sig": "0x95a01250b46d8f08b0a6b4cd56b4048c156bf92a970e4f629643f2b1c453a80b52ae7efdd0fe0bc34114adcb8e82d6a9b76f94b340c38351f788d2cfe8ff345d1b",
+      "signerAddr": "0x77Ffc7BeB627B220956BC34fDD1B988604531196",
+      "createdAt": "2026-09-23T00:47:41.145Z"
     }
   ],
   "checkpoints": [
@@ -12851,6 +12955,40 @@
       "anchorTx": null,
       "calldata": "0xeecdf92731708a29b513182430db4f6402ea523ea4720d4fc8eea6ac4adaff73a57e7ee5",
       "createdAt": "2026-09-23T00:42:18.494Z"
+    },
+    {
+      "id": "cmuddvmwd001qgqxrawp9dzsr",
+      "index": 396,
+      "attFrom": 403,
+      "attTo": 405,
+      "leafCount": 3,
+      "root": "0x17f64d8d5c646eef3e4ad5174bd4a61659c443285ae708b060e8c545090fe5c4",
+      "prevRoot": "0x31708a29b513182430db4f6402ea523ea4720d4fc8eea6ac4adaff73a57e7ee5",
+      "entryHash": "0x11d3ac29b23039c4f70b468d6908703d41ee01377367306793c3be31f7465b21",
+      "sig": "0x8e439048216723504ee5ebab00cfd13effce56f403fe691de4c1230e34529d402d25af3136b2ec1c8e24c20b5d23a8db0830c2a6000409d6d9b1facc4c74d12f1c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf92717f64d8d5c646eef3e4ad5174bd4a61659c443285ae708b060e8c545090fe5c4",
+      "createdAt": "2026-09-23T00:47:31.502Z"
+    },
+    {
+      "id": "cmuddvucp001tgqxrm7kiydkj",
+      "index": 397,
+      "attFrom": 406,
+      "attTo": 406,
+      "leafCount": 1,
+      "root": "0x4d4b9272d26d9903d757d47e2dfb963b25261ba37aadaa277d150cc7e171b355",
+      "prevRoot": "0x17f64d8d5c646eef3e4ad5174bd4a61659c443285ae708b060e8c545090fe5c4",
+      "entryHash": "0xd5bab263b9306d5e45fa3f6e94ded5f3132476881e029fd7c0ecf021eca0a771",
+      "sig": "0x74eeb53658eb3c88e19a2bdefcb10350f30fbe9d65c4293d26ddc5fd05c3567841be7affcf597f10c86504cb11a2080a3afa644d548c7a405b8837f0656074a91c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9274d4b9272d26d9903d757d47e2dfb963b25261ba37aadaa277d150cc7e171b355",
+      "createdAt": "2026-09-23T00:47:41.162Z"
     }
   ],
   "networkKey": {
