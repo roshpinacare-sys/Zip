@@ -1,0 +1,140 @@
+// ─────────────────────────────────────────────────────────────────────
+// THE WALLET-VAULT — נתיב-המפתח הריבוני שמחבר את כל הרשתות (R101c)
+//
+// החוק (הוראת המפעיל, הוכח חי ב-R99 ושוב כאן): "כל הרשתות מתחברות
+// עם המפתח הראשי". המפתח-הראשי = סיסמת-האב של המפעיל (upload/headcorner.txt).
+// היא גוזרת את ה-active החי של STEEM (שורש המורשת — אומת ביט-מול-ביט
+// מול השרשרת בכל פתיחה), וה-WIF הזה פותח את חותמת-הכספת בארנק
+// (Saosmartwallet, scrypt KEK) — וממנה את המפתח-האב הפנימי (32 בייט),
+// שפותח ב-AES-256-GCM כל רשומת-מפתח לפי (רשת, חשבון, תפקיד).
+//
+// חוקי-ברזל (מארכיטקטורת הארנק, 2026-09-08):
+//   · ה-WIF חי בזיכרון-ההרצה בלבד — לא נכתב, לא מודפס, לא נכנס ללוג.
+//   · השרשרת היא השופט: הקורא מחויב לאמת את הפומבי מול הרשות החיה
+//     לפני כל שידור (המודול מחזיר pub לצורך האימות הזה בלבד).
+//   · ה-DB מוצפן במנוחה; המפתח-הראשי הפנימי חתום תחת 12 חותמות —
+//     כל מפתח ששולט בשרשרת יכול לפתוח (אין נקודת-כשל יחידה).
+// ─────────────────────────────────────────────────────────────────────
+
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import { createRequire } from "node:module";
+
+const HOME = "/home/z/my-project";
+const OWNER_FILE = path.join(HOME, "upload", "headcorner.txt");
+const WALLET_DB = process.env.WALLET_DB || path.join(HOME, "db", "wallet-vault.db");
+
+export type VaultChain = "steem" | "hive" | "blurt";
+
+export interface VaultKeyResult {
+  ok: boolean;
+  wif?: string;
+  /** הפומבי הנגזר מה-WIF (קידומת STM תמיד) — לאימות מול השרשרת החיה */
+  pub?: string;
+  /** הפומבי כפי שנשמר ברשומת הארנק (עלול קידומת רשת: HIVE…/BLT…) */
+  entryPub?: string;
+  detail?: string;
+}
+
+interface KeySeal {
+  pub: string;
+  chain: string;
+  account: string;
+  role: string;
+  kdfSalt: string;
+  encMaster: string;
+  sealIv: string;
+  sealTag: string;
+}
+
+const SCRYPT = { N: 1 << 15, r: 8, p: 1, maxmem: 96 * 1024 * 1024 };
+
+function aesGcmOpen(key: Buffer, ctHex: string, ivHex: string, tagHex: string): Buffer {
+  const d = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
+  d.setAuthTag(Buffer.from(tagHex, "hex"));
+  return Buffer.concat([d.update(Buffer.from(ctHex, "hex")), d.final()]);
+}
+
+/**
+ * פתיחת רשומת-מפתח מהארנק בנתיב הריבוני.
+ * זורם: סיסמת-האב → WIF-ה-active החי של STEEM → חותמת → מפתח-אב → AES-GCM → WIF.
+ */
+export function openVaultKey(chain: VaultChain, account: string, role: string): VaultKeyResult {
+  try {
+    // 1) סיסמת-האב מהמקור הריבוני
+    let ownerAccount = "";
+    let password = "";
+    try {
+      const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
+      const [first, ...rest] = raw.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+      ownerAccount = first;
+      password = rest[0] ?? "";
+    } catch {
+      return { ok: false, detail: "NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא" };
+    }
+    if (!ownerAccount || !password) {
+      return { ok: false, detail: "NO-OWNER-KEY: קובץ המפתח ריק" };
+    }
+
+    // 2) ה-active החי של STEEM (שורש המורשת) — מפתח-הפתיחה של החותמת
+    const nodeRequire = createRequire(path.join(HOME, "package.json"));
+    const steemLib = nodeRequire("steem") as {
+      auth: { toWif(a: string, p: string, r: string): string; wifToPublic(w: string): string };
+    };
+    const controlWif = steemLib.auth.toWif(ownerAccount, password, "active");
+    const controlPub = steemLib.auth.wifToPublic(controlWif);
+
+    // 3) פתיחת הארנק (קריאה-בלבד)
+    if (!fs.existsSync(WALLET_DB)) {
+      return { ok: false, detail: `NO-WALLET-DB: ${path.basename(WALLET_DB)} לא נמצא — הארנק המוצפן חסר` };
+    }
+    const { DatabaseSync } = nodeRequire("node:sqlite") as {
+      DatabaseSync: new (p: string, o?: { readOnly?: boolean }) => {
+        prepare(q: string): { get(...a: unknown[]): Record<string, unknown> | undefined };
+      };
+    };
+    const db = new DatabaseSync(WALLET_DB, { readOnly: true });
+
+    // 4) החותמת תחת ה-active החי
+    const cfgRow = db.prepare("SELECT keySeals FROM GateConfig WHERE id = 'gate'").get() as
+      | { keySeals: string }
+      | undefined;
+    if (!cfgRow?.keySeals) {
+      return { ok: false, detail: "NO-SEALS: אין חותמות בכספת" };
+    }
+    const seals = JSON.parse(cfgRow.keySeals) as KeySeal[];
+    const seal = seals.find((s) => s.pub === controlPub);
+    if (!seal) {
+      return { ok: false, detail: `NO-SEAL-FOR-KEY: אין חותמה תחת ה-active החי (${controlPub.slice(0, 12)}…)` };
+    }
+
+    // 5) KEK = scrypt(controlWif, seal.salt) → פתיחת מפתח-האב
+    const kek = crypto.scryptSync(controlWif, Buffer.from(seal.kdfSalt, "hex"), 32, SCRYPT);
+    const masterHexStr = aesGcmOpen(kek, seal.encMaster, seal.sealIv, seal.sealTag).toString("utf8");
+    if (!/^[0-9a-fA-F]{64}$/.test(masterHexStr)) {
+      return { ok: false, detail: "BAD-MASTER: החותמת נפתחה אך תוכנה אינו מפתח-אב תקין" };
+    }
+    const master = Buffer.from(masterHexStr, "hex");
+
+    // 6) רשומת המפתח המבוקשת
+    const entry = db
+      .prepare(
+        "SELECT pub, encPriv, privIv, privTag, status FROM VaultEntry WHERE chain = ? AND account = ? AND role = ? ORDER BY status = 'verified' DESC, id DESC LIMIT 1",
+      )
+      .get(chain, account, role) as
+      | { pub: string; encPriv: string; privIv: string; privTag: string; status: string }
+      | undefined;
+    if (!entry) {
+      return { ok: false, detail: `NO-ENTRY: אין רשומת ${role} ל-${account} ברשת ${chain}` };
+    }
+
+    // 7) פתיחת ה-WIF והפקת הפומבי
+    const wif = aesGcmOpen(master, entry.encPriv, entry.privIv, entry.privTag).toString("utf8");
+    const pub = steemLib.auth.wifToPublic(wif);
+    return { ok: true, wif, pub, entryPub: entry.pub, detail: `vault:${chain}/${account}/${role} (${entry.status})` };
+  } catch (e) {
+    // תג GCM שגוי / DB פגום / כל דבר אחר — סירוב כנה, אף בייט לא דולף
+    return { ok: false, detail: `VAULT-ERROR: ${String((e as Error).message ?? e).slice(0, 140)}` };
+  }
+}

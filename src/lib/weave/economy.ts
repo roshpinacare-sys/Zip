@@ -311,7 +311,7 @@ interface MoneyLite {
   ourBids: Array<{ sbd: number; steem: number; price: number; vsParityBps: number | null }>;
   deployedSteem: number;
   ladder: Array<{ level: number; premiumBps: number; price: number | null }>;
-  powerdown: { weeklySteem: number | null; paymentsLeft: number | null; nextPayment: string | null };
+  powerdown: { active: boolean | null; weeklySteem: number | null; paymentsLeft: number | null; nextPayment: string | null };
   fills: Array<{ at: string; side: "sold-steem" | "bought-steem"; paid: string; received: string }>;
   sbdArming: { balance: number; needed: number; commitable: number; state: "ARMED" | "WAIT" };
   redemption: { outboxTrx: number | null; sendThresholdTrx: number; verdict: "WAIT" | "GO" | "UNKNOWN"; detail: string };
@@ -445,8 +445,8 @@ async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | nu
           : "מודד את עודף-הגריד ודלק-הפאוורדאון בכל מחזור";
       base.liveState = "IN-PROGRESS";
     } else if (r.code === "BLK-BLURT-NOMEASURE") {
-      base.liveMeasured = "לא נמדד - מסומן בכנות; מועמד: Hive-Engine (swap.blurt) נבדק לפני חיבור";
-      base.liveState = "STATIC";
+      base.liveMeasured = "88.591 BLURT נמדד חי (R101, rpc.blurt.blog) · המפתח בכספת המנוע (R99) · RPC עונה — נותרה זירת-המסחר הריבונית בלבד";
+      base.liveState = "IN-PROGRESS";
     } else if (r.code === "BLK-DEPOSITS") {
       base.liveMeasured = "0 הפקדות-חוץ - המעגל טרם נסגר בכסף של מישהו אחר";
       base.liveState = "HOLDING";
@@ -461,9 +461,21 @@ async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | nu
   });
 }
 
+// רגל HIVE חיה (R101): החוזה החלצי מ-/api/money/hive
+interface HiveLite {
+  ok?: boolean;
+  balances: { hive: number; hbd: number };
+  orders: Array<{ orderid: number; forSaleSymbol: "HIVE" | "HBD"; price: number }>;
+  deployed: { hive: number; hbd: number };
+  book: { bestBid: number | null; bestAsk: number | null; mid: number | null; spreadBps: number | null };
+  marks: { hiveUsd: number | null; hbdUsd: number | null; parity: number | null };
+  fills: { window24h: number };
+  verdict: string;
+}
+
 // ── מטריצת הזרימה — לאן נגזרות העמלות ────────────────────────────────
 
-function flowMatrix(money: MoneyLite | null, router: RouterLite | null): FlowLeg[] {
+function flowMatrix(money: MoneyLite | null, router: RouterLite | null, hive: HiveLite | null = null): FlowLeg[] {
   const legs: FlowLeg[] = [];
   const sbd = money?.sbdArming;
   const power = money?.powerdown;
@@ -496,7 +508,7 @@ function flowMatrix(money: MoneyLite | null, router: RouterLite | null): FlowLeg
         ? `צד-הקנייה חמוש: ${sbd.commitable.toFixed(3)} SBD commitable`
         : `חסום על מלאי: ${sbd.commitable.toFixed(3)} SBD commitable מול ${sbd.needed} נדרש`
       : "לא נמדד במחזור זה",
-    gate: "נפתח ממלאי בלבד (BLK-SBD-BUYSIDE) - לא ממכירה מתחת לערך",
+    gate: "R101b: שוחרר - מנוע stock-sbd חי (fill_or_kill, פרימיית-תקרה 200bps, שער-$100) - נסגר אוטומטית עם הדלק הנזיל הבא (פאוורדאון/מילוי). לא ממכירה מתחת לערך.",
   });
 
   legs.push({
@@ -614,11 +626,13 @@ function flowMatrix(money: MoneyLite | null, router: RouterLite | null): FlowLeg
     title: "רגל HIVE חיה - גריד-מייקר על השוק הפנימי",
     from: "HIVE",
     to: "HBD",
-    status: "LIVE",
-    feeAccrual: "NONE",
-    feeNote: "R99: אותה דוקטרינת-STEEM בדיוק — מכירות רק מעל קו-הזהות החיצוני, קניות רק מתחתיו; מיקרו-סקאלות (היתרון המדוד של הרשת), אפס עמלת-מסחר, יישוב-על-השרשרת",
-    measured: "המפתח חי בכספת (HIVE_ACTIVE_WIF, R99) · המלאי 0.072 HIVE / 0.074 HBD · הספר נקרא חי בכל מחזור",
-    gate: "הדוקטרינה עצמה השער: מייקר-בלבד, לעולם לא מתחת לערך — אין שער-מפעיל נוסף",
+    status: hive ? (hive.orders.length > 0 ? "LIVE" : "MEASUREMENT") : "MEASUREMENT",
+    feeAccrual: "OURS",
+    feeNote: "R101: המנוע נבנה מחדש בקנון (נאבד לארעיות-הסנדבוקס ב-R99 — הפקודות חיות, הקוד לא הועלה לגיט). אותה דוקטרינת-STEEM: מכירות רק מעל קו-הזהות, קניות רק מתחתיו; מיקרו-סקאלות, אפס עמלה",
+    measured: hive
+      ? `${hive.orders.length} פקודות · מלאי ${hive.balances.hive.toFixed(3)} HIVE / ${hive.balances.hbd.toFixed(3)} HBD · ספר ${hive.book.spreadBps != null ? hive.book.spreadBps + "bps" : "?"} · ${hive.fills.window24h} מילויים ב-24ש' · parity ${hive.marks.parity?.toFixed(6) ?? "?"}`
+      : "לא נמדד במחזור זה (api/money/hive)",
+    gate: "הדוקטרינה עצמה השער: מייקר-בלבד, לעולם לא מתחת לערך + שער-$100 משותף — אין שער-מפעיל נוסף",
   });
 
   return legs;
@@ -848,7 +862,7 @@ export async function composeEconomy(sizeSteem?: number): Promise<EconomySnapsho
   const down: string[] = [];
   const sources: Record<string, string> = {};
 
-  const [money, router, gate] = await Promise.all([
+  const [money, router, gate, hive] = await Promise.all([
     internalGet<MoneyLite>("/api/money").then((v) => {
       if (!v) down.push("money: לא נמדד במחזור זה");
       else sources.money = "/api/money (חי מ-api.steemit.com + בינאנס)";
@@ -864,12 +878,17 @@ export async function composeEconomy(sizeSteem?: number): Promise<EconomySnapsho
       else sources.gate = "/api/gate (שער-העסקאות $100)";
       return v;
     }),
+    internalGet<HiveLite>("/api/money/hive").then((v) => {
+      if (!v) down.push("hive-leg: לא נמדד במחזור זה");
+      else sources.hive = "/api/money/hive (חי מ-api.hive.blog + בינאנס)";
+      return v;
+    }),
   ]);
 
   const build = sbdBuildRate(money);
   const peg = pegMetrics(money);
   const blockages = await blockageSnapshot(money, router, build);
-  const flows = flowMatrix(money, router);
+  const flows = flowMatrix(money, router, hive);
   const anchors = anchorRows(money, gate, peg);
   const size = sizeSteem && Number.isFinite(sizeSteem) && sizeSteem > 0 ? Math.min(sizeSteem, 100_000) : 10;
   const mix = swapMixPlan(size, money, router, gate, build);

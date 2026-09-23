@@ -126,13 +126,16 @@ export interface Opportunity {
 
 export interface MoverReceipt {
   at: string;
-  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY";
+  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY" | "STOCK-SBD";
   reason: string;
   parity: number | null;
   cancelled: Array<{ orderid: number; txid: string | null }>;
   placed: Array<{ orderid: number; sell: number; receive: number; price: number; txid: string | null; confirmedBy?: string }>;
   /** אימות-סוף מהשרשרת — השופט: מה באמת פתוח שם אחרי הפעולה */
-  verify?: { ordersNow: number; deployedNow: number; bidsNow?: number } | null;
+  verify?:
+    | { ordersNow: number; deployedNow: number; bidsNow?: number }
+    | { sbdNow: number; gapClosed: boolean; premiumPaidBps: number | null }
+    | null;
   error?: string;
 }
 
@@ -713,17 +716,39 @@ function appendReceipt(receipt: MoverReceipt): void {
 
 const ceil3 = (x: number) => Math.ceil(x * 1000) / 1000;
 
+// R101c - single-flight per process (same law as the HIVE leg).
+let steemMoneyInFlight = false;
+
 export async function POST(req: Request) {
+  if (steemMoneyInFlight) {
+    return bad("another money action is executing - single-flight per process", 409, { code: "IN-FLIGHT" });
+  }
+  steemMoneyInFlight = true;
+  try {
+    return await POST_core(req);
+  } finally {
+    steemMoneyInFlight = false;
+  }
+}
+
+async function POST_core(req: Request) {
   let payload: any;
   try {
     payload = await req.json();
   } catch {
     return bad("גוף הבקשה אינו JSON");
   }
-  // R97: reprice (סולם המכירה) · arm-buy (סולם הקנייה — המיקרו-גריד נעשה דו-צדדי)
-  const action = payload?.action === "arm-buy" ? "arm-buy" : payload?.action === "reprice" ? "reprice" : null;
+  // R97: reprice (סולם המכירה) · arm-buy (סולם הקנייה) · stock-sbd (R101: מילוי מלאי חימוש)
+  const action =
+    payload?.action === "arm-buy"
+      ? "arm-buy"
+      : payload?.action === "reprice"
+        ? "reprice"
+        : payload?.action === "stock-sbd"
+          ? "stock-sbd"
+          : null;
   if (!action) {
-    return bad("פעולה לא מוכרת — נתמכות: reprice · arm-buy");
+    return bad("פעולה לא מוכרת — נתמכות: reprice · arm-buy · stock-sbd");
   }
   const reason = typeof payload.reason === "string" ? payload.reason.slice(0, 200) : "manual";
 
@@ -820,32 +845,87 @@ export async function POST(req: Request) {
     return bad("רמת קנייה קטנה מ-0.05 SBD — אין פעולה", 409, { code: "TOO-SMALL" });
   }
 
+  // ── R101 · stock-sbd: רכישת-מלאי לחימוש צד-הקנייה ────────────────────
+  // החסימה המדודה: 0.049/0.15 SBD — צד הקנייה ממתין בזמן שהמלאי נבנה
+  // רק ממילוי פרימיות. השחרור הריבוני: כשדלק נזיל מגיע (פאוורדאון/מילוי),
+  // הדיבון סוגר את הפער במחיר-השאלה — פעולת-לוגיסטיקה מתוחמת, לא גריד:
+  //   · כמות: רק הפער לחימוש (0.15), לעולם לא מעבר
+  //   · פרימיית-תקרה: עד +200bps מעל קו-הזהות — מעבר לזה סירוב-כנה
+  //   · fill_or_kill: פקודת-מילוי-מיידי או-בטל — לא נשארת בספר
+  //   · שארת-דלק מינימלית נשמרת תמיד (0.5 STEEM)
+  const stockGap = Math.ceil((0.15 - sbdCommitable) * 1000) / 1000;
+  let stockAsk: number | null = null;
+  let stockSteemSell = 0;
+  if (action === "stock-sbd") {
+    if (stockGap <= 0.005) {
+      return bad(`החימוש כבר שלם (${sbdCommitable.toFixed(3)}/0.15) — אין מה למלא`, 409, { code: "ALREADY-ARMED" });
+    }
+    const book = await new Promise<any>((resolve, reject) =>
+      quiet(
+        steem.api.getOrderBook(10, (err: Error | null, res: any) =>
+          err ? reject(err) : resolve(res),
+        ),
+      ),
+    ).catch(() => null);
+    const askRow = book?.asks?.[0];
+    stockAsk = askRow ? Number(askRow.real_price) : null;
+    if (stockAsk == null || !(stockAsk > 0)) {
+      return bad("הספר לא נקרא — אין מחיר-שאלה, אין פעולה. סירוב-כנה.", 502, { code: "NO-BOOK" });
+    }
+    const premiumBps = Math.round((stockAsk / parity - 1) * 10_000);
+    if (premiumBps > 200) {
+      return bad(
+        `מחיר-השאלה ${stockAsk.toFixed(6)} רחוק ${premiumBps}bps מעל קו-הזהות ${parity.toFixed(6)} (תקרה 200bps) — לא ממלאים מלאי במחיר מנופח. סירוב-כנה.`,
+        409,
+        { code: "PREMIUM-TOO-HIGH", ask: stockAsk, parity, premiumBps },
+      );
+    }
+    stockSteemSell = Math.ceil((stockGap / stockAsk + 0.001) * 1000) / 1000;
+    if (liquid < stockSteemSell + 0.5) {
+      return bad(
+        `דלק נזיל לא מספיק למילוי (${liquid.toFixed(3)} STEEM < ${stockSteemSell.toFixed(3)} + שארה 0.5) — המלאי ייבנה עם הפאוורדאון/מילוי הבא`,
+        409,
+        { code: "NO-FUEL", liquid, need: stockSteemSell },
+      );
+    }
+  }
+
   // ── שער-העסקאות (R97): הערכת-USD חיה בזמן ההחלטה, לפני כל נגיעה בכסף ──
   const gateUsd =
     action === "arm-buy"
       ? marks.sbdUsd != null && marks.sbdUsd > 0
         ? Math.round(sbdCommitable * marks.sbdUsd * 100) / 100
         : null
-      : marks.steemUsd != null && marks.steemUsd > 0
-        ? Math.round(totalFuel * marks.steemUsd * 100) / 100
-        : null;
+      : action === "stock-sbd"
+        ? marks.steemUsd != null && marks.steemUsd > 0
+          ? Math.round(stockSteemSell * marks.steemUsd * 100) / 100
+          : null
+        : marks.steemUsd != null && marks.steemUsd > 0
+          ? Math.round(totalFuel * marks.steemUsd * 100) / 100
+          : null;
   const gate = await evaluateGate({
     source: "money-mover",
     action,
     title:
       action === "arm-buy"
         ? `arm-buy — סולם קנייה מתחת לפאריטה · ${sbdCommitable} SBD`
-        : `reprice — סולם 3 רמות מעל הפאריטה · ${totalFuel} STEEM`,
+        : action === "stock-sbd"
+          ? `stock-sbd — מילוי מלאי חימוש · ${stockSteemSell} STEEM → ${stockGap} SBD במחיר-שאלה`
+          : `reprice — סולם 3 רמות מעל הפאריטה · ${totalFuel} STEEM`,
     payload:
       action === "arm-buy"
         ? { sbdCommitable, parity, offsetsBps: BID_OFFSETS_BPS, reason }
-        : { liquid, inOrders, totalFuel, parity, premiums, reason },
+        : action === "stock-sbd"
+          ? { gap: stockGap, ask: stockAsk, steemSell: stockSteemSell, parity, premiumCapBps: 200, reason }
+          : { liquid, inOrders, totalFuel, parity, premiums, reason },
     usdValue: gateUsd,
     usdBasis:
       gateUsd != null
         ? action === "arm-buy"
           ? `${sbdCommitable} SBD × $${marks.sbdUsd} (${marks.sources.sbd ?? "sbd-mark"})`
-          : `${totalFuel} STEEM × $${marks.steemUsd} (${marks.sources.steem ?? "steem-mark"})`
+          : action === "stock-sbd"
+            ? `${stockSteemSell} STEEM × $${marks.steemUsd} (${marks.sources.steem ?? "steem-mark"})`
+            : `${totalFuel} STEEM × $${marks.steemUsd} (${marks.sources.steem ?? "steem-mark"})`
         : "usd-mark לא נמדד חי",
     issuedBy,
     reason,
@@ -871,7 +951,7 @@ export async function POST(req: Request) {
   const expiration = new Date(Date.now() + 27 * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "");
   const receipt: MoverReceipt = {
     at: new Date().toISOString(),
-    kind: action === "arm-buy" ? "ARM-BUY" : inOrders === 0 ? "FUEL-IN" : "REPRICE",
+    kind: action === "arm-buy" ? "ARM-BUY" : action === "stock-sbd" ? "STOCK-SBD" : inOrders === 0 ? "FUEL-IN" : "REPRICE",
     reason,
     parity,
     cancelled: [],
@@ -1056,6 +1136,78 @@ export async function POST(req: Request) {
         he: bidsOk
           ? `סולם הקנייה חי בשרשרת (נמדד): ${bidVerify?.bidsNow} הצעות · ${sbdCommitable} SBD מחויבות מתחת לקו ${parity.toFixed(4)} · בוטלו ${receipt.cancelled.length}`
           : `הוצבו ${receipt.placed.length} הצעות קנייה · בוטלו ${receipt.cancelled.length} · אימות שרשרת לא נקרא`,
+      });
+    }
+
+    // ═ STOCK-SBD — מילוי מלאי חימוש צד-הקנייה (R101 · שחרור החסימה המדודה) ═
+    // פקודת fill_or_kill: מילוי-מיידי במחיר העומד או ביטול — לעולם לא נשארת
+    // בספר כמייקר. הפרימייה ששולמה מעל קו-הזהות נמדדת ומתועדת בכנות:
+    // זו עלות-לוגיסטיקה של חימוש, לא רווח-גריד.
+    if (action === "stock-sbd") {
+      const orderDayStock = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const orderid = Number(`${orderDayStock}7`); // 7 = stock (מכירות 01-03 · קניות 91-93)
+      const iocExpiration = new Date(Date.now() + 5 * 60_000).toISOString().replace(/\.\d{3}Z$/, "");
+      try {
+        const res = await broadcastOp<any>(
+          steem.broadcast.sendAsync(
+            {
+              extensions: [],
+              operations: [[
+                "limit_order_create",
+                {
+                  owner: ownerKey.account,
+                  orderid,
+                  amount_to_sell: `${stockSteemSell.toFixed(3)} STEEM`,
+                  min_to_receive: `${stockGap.toFixed(3)} SBD`,
+                  fill_or_kill: true,
+                  expiration: iocExpiration,
+                },
+              ]],
+            },
+            [wif],
+          ),
+        );
+        receipt.placed.push({ orderid, sell: stockSteemSell, receive: stockGap, price: stockAsk ?? 0, txid: res?.id ?? null, confirmedBy: "fill-or-kill" });
+      } catch (e) {
+        noteError(`stock order: ${String((e as Error).message).slice(0, 120)}`);
+      }
+      persist();
+
+      // אימות-סוף — השרשרת השופטת: מה באמת נצבר
+      let stockVerify: { sbdNow: number; gapClosed: boolean; premiumPaidBps: number | null } | null = null;
+      try {
+        const after = await new Promise<any[]>((resolve, reject) =>
+          quiet(
+            steem.api.getAccounts([ownerKey.account], (err: Error | null, res: any[]) =>
+              err || !res?.length ? reject(err ?? new Error("empty")) : resolve(res),
+            ),
+          ),
+        );
+        const sbdNow = Math.floor(parseFloat(after[0].sbd_balance) * 1000) / 1000;
+        stockVerify = {
+          sbdNow,
+          gapClosed: sbdNow >= 0.15,
+          premiumPaidBps: stockAsk != null ? Math.round((stockAsk / parity - 1) * 10_000) : null,
+        };
+      } catch {
+        /* השרשרת תישאר השופט בקריאה הבאה */
+      }
+      receipt.verify = stockVerify;
+      persist();
+      swrInvalidate(SWR_KEY);
+      await settleGate(
+        gate.id,
+        "EXECUTED",
+        issuedBy === "operator" ? "operator" : "policy:autonomous",
+        { placed: receipt.placed.length, stock: stockVerify, gateUsd },
+      );
+      return NextResponse.json({
+        ok: receipt.placed.length > 0,
+        receipt,
+        verify: stockVerify,
+        he: stockVerify?.gapClosed
+          ? `מלאי החימוש נסגר: ${stockVerify.sbdNow} SBD — סולם הקנייה יחומש במחזור הבא`
+          : `פקודת המילוי שודרה (${receipt.placed.length}) · SBD נוכחי ${stockVerify?.sbdNow ?? "?"} — השרשרת השופטת`,
       });
     }
 

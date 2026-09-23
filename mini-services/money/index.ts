@@ -9,6 +9,11 @@
 // עוברת את שער-העסקאות ב-/api/money: מתחת ל-$100 — אוטונומיה;
 // מעל — GATE-QUEUED, כלום לא זז עד אישור המפעיל (הוראת המפעיל).
 //
+// R101: רגל HIVE חוזרת לקנון — המנוע שנבנה ב-R99 אבד לארעיות-הסנדבוקס
+// (הפקודות חיות על השרשרת; הקוד לא הועלה לגיט). הדיבון מעתה מנהל שתי
+// רגליים: STEEM (הסולם הגדול) + HIVE (המיקרו-גריד הצמוד) — אותו
+// צינון, אותו תקציב, אותו שער-$100. חוק-החוט ב-hive-wire.
+//
 // חוקי-ברזל (מהקנון):
 //   · טריגרים: סטיית-פאריטה >50bps מהמדרגה · נזיל ≥1 STEEM
 //   · צינון 30 דק' בין פעולות · תקציב 12 פעולות/יום
@@ -25,13 +30,16 @@ const HISTORY_FILE = `${HOME}/sovereign/money/history.json`;
 const PORT = 3034;
 const CHECK_INTERVAL_SEC = 60;
 const API = "http://127.0.0.1:3000/api/money";
+const HIVE_API = "http://127.0.0.1:3000/api/money/hive";
 
 const POLICY = {
   triggers: { parityDriftBps: 50, floorBps: -50, idleTriggerSteem: 1 },
   cooldownMin: 30,
   actionsBudgetPerDay: 12,
   armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300] }, // R97 — צד הקנייה של המיקרו-גריד
-  truthSource: "api.steemit.com · get_open_orders/get_accounts (via /api/money)",
+  hive: { driftBps: 50 },
+  stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
+  truthSource: "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)",
 };
 
 type Decision = { at: string; kind: string; detail: string };
@@ -59,7 +67,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.3.0",
+    version: "1.5.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -171,7 +179,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
 }
 
 // ── החלטה ───────────────────────────────────────────────────────────
-async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" }> {
+async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" }> {
   const now = new Date();
   // day roll
   if (state.actionDay !== utcDay(now)) {
@@ -188,6 +196,22 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   // תקציב
   if (state.actionsToday >= POLICY.actionsBudgetPerDay) {
     return { act: false, reason: "WAIT-BUDGET · 12/12 פעולות היום — התקציב נאכל" };
+  }
+  // R101b - STOCK-SBD (before the idle trigger - order is the deal):
+  // if the arming inventory is short and idle fuel can close the gap,
+  // close it at the ask first; only then spread the rest into the ladder.
+  const armStock = meas?.sbdArming;
+  const parityStock = Number(meas?.marks?.parity);
+  if (armStock?.state === "WAIT" && Number.isFinite(parityStock) && parityStock > 0) {
+    const gapStock = Math.max(0, Number(armStock.needed ?? 0.15) - Number(armStock.commitable ?? 0));
+    const steemNeedStock = (gapStock / parityStock) * 1.5 + POLICY.stockSbd.keepSteem;
+    if (gapStock > 0.005 && Number(meas?.idleSteem ?? 0) >= steemNeedStock) {
+      return {
+        act: true,
+        action: "stock-sbd",
+        reason: `SBD arming gap ${Number(armStock.commitable).toFixed(3)}/${armStock.needed} - idle STEEM covers it - closing at the ask (bounded stock, premium cap ${POLICY.stockSbd.premiumCapBps}bps)`,
+      };
+    }
   }
   // טריגר: נזיל
   const idle = Number(meas?.idleSteem ?? 0);
@@ -230,6 +254,46 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   return { act: false, reason: "הסולם על הקו — אין פעולה נדרשת" };
 }
 
+// ── רגל HIVE (R101): מדידה, החלטה, פעולה — אותם חוקים ────────────────
+
+async function measureHive(): Promise<any | null> {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 20_000);
+  try {
+    const res = await fetch(`${HIVE_API}`, { signal: ctl.signal, cache: "no-store" });
+    if (!res.ok) return null;
+    const j = await res.json();
+    return j?.ok ? j : null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+async function decideHive(hive: any): Promise<{ act: boolean; reason: string }> {
+  if (!hive || typeof hive !== "object") return { act: false, reason: "HIVE לא נמדדה — לא מתיירים על נתוני-רפא" };
+  const drift = Number(hive?.maxDriftBps);
+  const orders = Array.isArray(hive?.orders) ? hive.orders.length : 0;
+  const hiveBal = Number(hive?.balances?.hive ?? 0);
+  const hbdBal = Number(hive?.balances?.hbd ?? 0);
+  // טריגר 1: דלק יושב מחוץ לסולם
+  if (orders === 0 && (hiveBal >= 0.02 || hbdBal >= 0.001)) {
+    return {
+      act: true,
+      reason: `רגל HIVE: דלק יושב מחוץ לסולם (${hiveBal.toFixed(3)} HIVE / ${hbdBal.toFixed(3)} HBD) — נפרס לעבודה`,
+    };
+  }
+  // טריגר 2: סטיית הפקודות מהקו (אותו סף-50bps של STEEM)
+  if (orders > 0 && Number.isFinite(drift) && Math.abs(drift) > POLICY.hive.driftBps) {
+    return {
+      act: true,
+      reason: `רגל HIVE: הקו זז ${drift > 0 ? "+" : ""}${drift}bps מהסולם — הסולם נגרר אליו`,
+    };
+  }
+  return { act: false, reason: `רגל HIVE על הקו (${orders} פקודות · drift ${Number.isFinite(drift) ? drift : "?"}bps) — אין פעולה` };
+}
+
 async function measure(): Promise<any | null> {
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 20_000);
@@ -245,7 +309,11 @@ async function measure(): Promise<any | null> {
   }
 }
 
-async function act(reason: string, action: "reprice" | "arm-buy" = "reprice"): Promise<void> {
+async function act(
+  reason: string,
+  action: "reprice" | "arm-buy" | "stock-sbd" = "reprice",
+  target: "steem" | "hive" = "steem",
+): Promise<void> {
   state.acting = true;
   // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
   // מסופה. נולד מתקרית חיה (00:34:52Z): restart של הדיבון באמצע act()
@@ -260,7 +328,7 @@ async function act(reason: string, action: "reprice" | "arm-buy" = "reprice"): P
   const t = setTimeout(() => ctl.abort(), 180_000); // פעולת-כסף: חלון רחב (3 דק'), שידור Steem איטי
   let result: Record<string, unknown> = {};
   try {
-    const res = await fetch(API, {
+    const res = await fetch(target === "hive" ? HIVE_API : API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, reason }),
@@ -279,26 +347,26 @@ async function act(reason: string, action: "reprice" | "arm-buy" = "reprice"): P
   // ולא placed ברמה העליונה. הקבלה תעדוק את האמת מעכשיו (לקח R87 —
   // "הוצבו 0" שקרי — הפעם בצד הדיבון).
   const r = (result as any) ?? {};
-  const placed: unknown[] = Array.isArray(r.placed)
-    ? r.placed
-    : Array.isArray(r.receipt?.placed)
-      ? r.receipt.placed
-      : [];
-  const cancelled: unknown[] = Array.isArray(r.cancelled)
-    ? r.cancelled
-    : Array.isArray(r.receipt?.cancelled)
-      ? r.receipt.cancelled
-      : [];
+  // נרמול קבלה: STEEM מחזיר מערכים; HIVE (R101) מחזיר מונים — אחת לכל צורה
+  const normList = (v: unknown): unknown[] => (Array.isArray(v) ? v : typeof v === "number" ? Array.from({ length: v }) : []);
+  const placed: unknown[] = normList(r.placed).length
+    ? normList(r.placed)
+    : normList(r.receipt?.placed);
+  const cancelled: unknown[] = normList(r.cancelled).length
+    ? normList(r.cancelled)
+    : normList(r.receipt?.cancelled);
   const parityAt = r.parity ?? r.receipt?.parity ?? null;
   // R97: קבלה מבחינה סוג-פעולה; GATE-QUEUED היא הכרעה, לא כישלון —
   // הפעולה מעל סף האוטונומיה וממתינה למפעיל בשער-העסקאות.
   const actionKind = r.ok
-    ? String(r.receipt?.kind ?? (action === "arm-buy" ? "ARM-BUY" : "REPRICE"))
+    ? String(r.receipt?.kind ?? r.kind ?? (action === "arm-buy" ? "ARM-BUY" : target === "hive" ? "HIVE-REPRICE" : "REPRICE"))
     : r.code === "GATE-QUEUED"
       ? "GATE-QUEUED"
       : action === "arm-buy"
         ? "ARM-BUY-FAIL"
-        : "REPRICE-FAIL";
+        : target === "hive"
+          ? "HIVE-REPRICE-FAIL"
+          : "REPRICE-FAIL";
   state.lastDecision = {
     at: finishedAt,
     kind: actionKind,
@@ -313,8 +381,8 @@ async function act(reason: string, action: "reprice" | "arm-buy" = "reprice"): P
     kind: state.lastDecision.kind,
     reason,
     parity: parityAt,
-    placed,
-    cancelled,
+    placed: placed.length, // counts only - no fake arrays (R101c receipt-honesty fix)
+    cancelled: cancelled.length,
     error: r.error ?? r.receipt?.error ?? null,
   });
   // קבלה לקנון אחרי כל פעולה (שער-סודות בפנים)
@@ -327,7 +395,7 @@ async function act(reason: string, action: "reprice" | "arm-buy" = "reprice"): P
     `- **פעולות היום**: ${state.actionsToday}/${POLICY.actionsBudgetPerDay}`,
     `- **כנות**: ${r.error ?? r.receipt?.error ? `שגיאה: ${String(r.error ?? r.receipt?.error).slice(0, 200)}` : "אין"}`,
     "",
-    `_מופק אוטונומית על-ידי money-mover v1.3 (R97 · arm-buy + שער-עסקאות)._`,
+    `_מופק אוטונומית על-ידי money-mover v1.5 (R101 · HIVE leg + stock-sbd + vault)._`,
   ].join("\n");
   await canonPush(`reports/money-${utcDay()}.md`, receipt);
 }
@@ -351,11 +419,47 @@ async function tick() {
       return;
     }
     const d = await decide(meas);
+    const now = new Date();
     if (d.act) {
       await act(d.reason, d.action ?? "reprice");
     } else {
-      state.lastDecision = { at: new Date().toISOString(), kind: d.reason.startsWith("WAIT") ? d.reason.split(" ·")[0] : "HOLD", detail: d.reason };
-      saveState();
+      // R101c — חוק-הברזל לשתי הרגליים: צינון + תקציב חלים גם על HIVE.
+      // (נלמד מתקרית חיה: ללא השערות האלה הרגל שרפה 28 פעולות ביום —
+      // כל פעימה עם סטייה>50bps שידרה מחדש. אותם חוקים, אותו מוח.)
+      const sinceMin = state.lastActionAt
+        ? (now.getTime() - new Date(state.lastActionAt).getTime()) / 60_000
+        : null;
+      const cooldownBlock =
+        sinceMin != null && sinceMin < POLICY.cooldownMin
+          ? `WAIT-COOLDOWN · עוד ${Math.ceil(POLICY.cooldownMin - sinceMin)} דק'`
+          : null;
+      const budgetBlock =
+        state.actionsToday >= POLICY.actionsBudgetPerDay
+          ? `WAIT-BUDGET · ${state.actionsToday}/${POLICY.actionsBudgetPerDay} פעולות היום — התקציב נאכל`
+          : null;
+      if (cooldownBlock ?? budgetBlock) {
+        state.lastDecision = {
+          at: new Date().toISOString(),
+          kind: (cooldownBlock ?? budgetBlock ?? "").split(" ·")[0],
+          detail: `${d.reason} · ${cooldownBlock ?? budgetBlock}`,
+        };
+        saveState();
+      } else {
+        // R101 — רגל HIVE: נבדקת רק כשאין פעות-STEEM בפעימה זו (צינון-יחידה).
+        // אותם חוקים: צינון, תקציב, שער-$100 — במוח שלה (api/money/hive).
+        const hive = await measureHive();
+        const dh = await decideHive(hive);
+        if (dh.act) {
+          await act(dh.reason, "reprice", "hive");
+        } else {
+          state.lastDecision = {
+            at: new Date().toISOString(),
+            kind: d.reason.startsWith("WAIT") ? d.reason.split(" ·")[0] : "HOLD",
+            detail: `${d.reason} · ${dh.reason}`,
+          };
+          saveState();
+        }
+      }
     }
   } catch (e: any) {
     state.lastDecision = { at: new Date().toISOString(), kind: "ERROR", detail: String(e?.message ?? e).slice(0, 160) };
@@ -377,9 +481,11 @@ Bun.serve({
       // פקודת-מפעיל ידנית (דרך שער המפעיל) — אותן פעולות, אותם חוקים
       if (state.acting) return Response.json({ ok: false, error: "already-acting" }, { status: 409 });
       const body = await req.json().catch(() => ({}));
+      const target = body?.target === "hive" ? "hive" : "steem";
       await act(
         String(body?.reason ?? "manual operator command").slice(0, 200),
-        body?.action === "arm-buy" ? "arm-buy" : "reprice",
+        body?.action === "arm-buy" ? "arm-buy" : body?.action === "stock-sbd" ? "stock-sbd" : "reprice",
+        target,
       );
       return Response.json({ ok: true, lastDecision: state.lastDecision });
     }
