@@ -302,3 +302,27 @@ model PublishTask {
   @@index([status])
   @@index([queuedAt])
 }
+
+// ── שער-העסקאות (R97 · TX-GATE) ──────────────────────────────────────
+// הוראת המפעיל: "מערכת אוטונומית לא צריכה שער מפעיל רק במקרים של
+// עסקאות באמת גדולות 100$ ומעלה." — כל פעולת-כסף מוערכת ב-USD חי
+// בזמן ההחלטה: מתחת לסף — אוטונומיה מלאה; מהסף ומעלה — תור אישור
+// למפעיל. כל הכרעה נשמרת עם קבלה — האמת במדידה, לא בזיכרון.
+model TxGate {
+  id        String    @id @default(cuid())
+  source    String // money-mover | liquidity | exchange | operator
+  action    String // reprice | arm-buy | swap | bridge | ...
+  title     String
+  payload   String // JSON קנוני — מה הייתה הפעולה
+  usdValue  Float
+  usdBasis  String // איך הוערך ה-USD — מקור חי, לא הנחה
+  verdict   String // ALLOWED | QUEUED | REFUSED | APPROVED | REJECTED | EXECUTED
+  decidedBy String // policy:<threshold | operator | policy:no-usd-mark
+  reason    String
+  receipt   String? // JSON — קבלת ביצוע (מונים, אימות שרשרת)
+  createdAt DateTime  @default(now())
+  decidedAt DateTime?
+
+  @@index([verdict])
+  @@index([createdAt])
+}

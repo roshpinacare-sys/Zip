@@ -55,7 +55,7 @@ interface QuoteChannel {
   refLabel: string;
   devBps: number | null;
   latencyMs: number | null;
-  kind: "v2" | "v3";
+  kind: "v2" | "v3" | "rest";
   contract: string;
   verdict: QuoteVerdict;
   note: string;
@@ -86,7 +86,7 @@ interface ExchangeData {
   at: string;
   chains: Array<{ name: string; chainId: number; rpc: string; height: number | null; ok: boolean }>;
   channels: QuoteChannel[];
-  reference: { ethUsdt: number | null; bnbUsdt: number | null; at: string | null; down: string[] };
+  reference: { ethUsdt: number | null; bnbUsdt: number | null; solUsdt: number | null; at: string | null; down: string[] };
   competition: CompetitionGroup[];
   challenge: { verified: number; deviant: number; down: number; summary: string; notes: string[] };
   yields: { at: string | null; pools: YieldPool[]; down?: string };

@@ -47,6 +47,8 @@ import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import { swrGet, cacheHeader, swrInvalidate } from "@/lib/live/swr";
+import { operatorFromRequest } from "@/lib/operator-auth";
+import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -88,6 +90,18 @@ export interface OpenAsk {
   usdIfFilled: number | null;
 }
 
+// הצעת קנייה פתוחה שלנו — צד ה-SBD של המיקרו-גריד (R97)
+export interface OpenBid {
+  orderid: number;
+  sbd: number; // כמה SBD מוצע
+  steem: number; // כמה STEEM מתקבל
+  price: number; // SBD per STEEM
+  created: string;
+  expiration: string;
+  vsParityBps: number | null;
+  usdIfFilled: number | null;
+}
+
 export interface FillReceipt {
   at: string;
   side: "sold-steem" | "bought-steem";
@@ -112,13 +126,13 @@ export interface Opportunity {
 
 export interface MoverReceipt {
   at: string;
-  kind: "REPRICE" | "DEPLOY" | "FUEL-IN";
+  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY";
   reason: string;
   parity: number | null;
   cancelled: Array<{ orderid: number; txid: string | null }>;
-  placed: Array<{ orderid: number; sell: number; receive: number; price: number; txid: string | null }>;
+  placed: Array<{ orderid: number; sell: number; receive: number; price: number; txid: string | null; confirmedBy?: string }>;
   /** אימות-סוף מהשרשרת — השופט: מה באמת פתוח שם אחרי הפעולה */
-  verify?: { ordersNow: number; deployedNow: number } | null;
+  verify?: { ordersNow: number; deployedNow: number; bidsNow?: number } | null;
   error?: string;
 }
 
@@ -149,6 +163,7 @@ export interface MoneySense {
     spreadBps: number | null;
   };
   orders: OpenAsk[];
+  ourBids: OpenBid[];
   deployedSteem: number;
   idleSteem: number;
   ladder: LadderLevel[];
@@ -424,8 +439,12 @@ async function sense(): Promise<MoneySense> {
     sbd: a ? parseFloat(a.sbd_balance) : null,
   };
 
-  // פקודות פתוחות שלנו
-  const orders: OpenAsk[] = (steemRes?.openOrders ?? []).map((o: any) => {
+  // פקודות פתוחות שלנו — הפרדת צדדים (R97): base=STEEM → מכירה; base=SBD → קנייה.
+  // עד R97 היו רק מכירות; מעתה סולם-הקנייה חי — ולכן כל מנה נספרת בנכס שלה.
+  const allOpen = (steemRes?.openOrders ?? []) as any[];
+  const sellOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
+  const bidOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"));
+  const orders: OpenAsk[] = sellOpen.map((o: any) => {
     const amount = Number(o.for_sale) / 1000;
     const baseN = parseFloat(String(o.sell_price?.base ?? "")) || 0;
     const quoteN = parseFloat(String(o.sell_price?.quote ?? "")) || 0;
@@ -441,6 +460,22 @@ async function sense(): Promise<MoneySense> {
       vsParityBps: parity != null && price > 0 ? Math.round((price / parity - 1) * 10_000) : null,
       sbdIfFilled: receive,
       usdIfFilled: marks?.sbdUsd != null ? Math.round(receive * marks.sbdUsd * 1000) / 1000 : null,
+    };
+  });
+  // הצעות הקנייה שלנו — מוצגות בנפרד מסולם המכירה (R97)
+  const ourBids: OpenBid[] = bidOpen.map((o: any) => {
+    const bidBaseN = parseFloat(String(o.sell_price?.base ?? "")) || 0; // SBD שאנחנו מציעים
+    const bidQuoteN = parseFloat(String(o.sell_price?.quote ?? "")) || 0; // STEEM שנקבל
+    const bidPrice = bidQuoteN > 0 ? bidBaseN / bidQuoteN : 0; // SBD per STEEM
+    return {
+      orderid: o.orderid,
+      sbd: Math.round(bidBaseN * 1000) / 1000,
+      steem: Math.round(bidQuoteN * 1000) / 1000,
+      price: Math.round(bidPrice * 1e6) / 1e6,
+      created: String(o.created ?? ""),
+      expiration: String(o.expiration ?? ""),
+      vsParityBps: parity != null && bidPrice > 0 ? Math.round((bidPrice / parity - 1) * 10_000) : null,
+      usdIfFilled: marks?.sbdUsd != null ? Math.round(bidBaseN * marks.sbdUsd * 1000) / 1000 : null,
     };
   });
 
@@ -609,6 +644,7 @@ async function sense(): Promise<MoneySense> {
     balances,
     book: { bids, asks, bestBid, bestAsk, mid, spreadBps },
     orders,
+    ourBids,
     deployedSteem,
     idleSteem,
     ladder,
@@ -625,6 +661,7 @@ async function sense(): Promise<MoneySense> {
       "דינמיות = מעקב, לא המתנה: הפאריטה נמדדת כל מחזור; זזה >50bps — הסולם נגרר אליה; נחיתת דלק — מוצבת בתוך דקה.",
       "כל פעולה עם קבלה: txid לכל cancel ולכל create; הספר הפתוח של השרשרת הוא השופט.",
       "המפתח בזיכרון-ההרצה בלבד, מאומת ביט-מול-ביט מול הרשות החיה — ואף פעם לא נכתב.",
+      "שער-העסקאות (R97): אוטונומיה מלאה מתחת ל-$100 — מעליו, שום פעולה לא רצה בלי אישור המפעיל; ה-USD נמדד חי בזמן ההחלטה.",
     ],
     down: down.length ? down : undefined,
   };
@@ -683,8 +720,10 @@ export async function POST(req: Request) {
   } catch {
     return bad("גוף הבקשה אינו JSON");
   }
-  if (payload?.action !== "reprice") {
-    return bad("פעולה לא מוכרת — נתמכת: reprice");
+  // R97: reprice (סולם המכירה) · arm-buy (סולם הקנייה — המיקרו-גריד נעשה דו-צדדי)
+  const action = payload?.action === "arm-buy" ? "arm-buy" : payload?.action === "reprice" ? "reprice" : null;
+  if (!action) {
+    return bad("פעולה לא מוכרת — נתמכות: reprice · arm-buy");
   }
   const reason = typeof payload.reason === "string" ? payload.reason.slice(0, 200) : "manual";
 
@@ -744,24 +783,95 @@ export async function POST(req: Request) {
   }
 
   const account = accts[0];
+
+  // R97 — הפרדת צדדים בספר הפתוח: base=STEEM → מכירה; base=SBD → קנייה.
+  // עד R97 היו רק מכירות ולכן סכום for_sale היה תמיד STEEM; מעתה כל מנה
+  // נספרת בנכס שלה — אחרת דלק המכירה היה מונה SBD כ-STEEM (באג מבני מונע).
+  const allOpen = openOrders as any[];
+  const sellOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
+  const bidOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"));
+
+  // R97 — שער-העסקאות: מפעיל שהוציא את הפעולה = השער עצמו; הדיבון אוטונומי
+  // רק מתחת לסף (הוראת המפעיל: "רק במקרים של עסקאות באמת גדולות $100 ומעלה")
+  const session = operatorFromRequest(req);
+  const issuedBy: "operator" | "daemon" = session ? "operator" : "daemon";
+
   const liquid = parseFloat(account.balance);
-  const inOrders = (openOrders as any[]).reduce((s, o) => s + Number(o.for_sale) / 1000, 0);
+  const inOrders = sellOpen.reduce((s, o) => s + Number(o.for_sale) / 1000, 0); // מכירות בלבד (R97)
   const totalFuel = Math.round((liquid + inOrders) * 1000) / 1000;
-  if (totalFuel < 0.004) {
+  const sbdLiquid = parseFloat(account.sbd_balance);
+  const sbdCommitable = Math.floor(sbdLiquid * 0.9 * 1000) / 1000; // 0.9 — אותו פקטור-מחויבות כמו sbdArming
+  const premiums = [0, 100, 200]; // סולם המכירה: parity, +1%, +2% (חוק 2)
+  const perLevel = Math.floor(totalFuel * 1000 / 3) / 1000;
+  const perBid = Math.floor(sbdCommitable * 1000 / 3) / 1000;
+  const BID_OFFSETS_BPS = [100, 200, 300]; // סולם הקנייה: ‎-1%/-2%/-3% מתחת לקו (O1)
+
+  // בדיקות-חוץ לפי פעולה — לפני השער, כדי שלא לייצר רעש בספר ההכרעות
+  if (action === "reprice" && totalFuel < 0.004) {
     return bad(`אין דלק לפריסה (נזיל ${liquid.toFixed(3)} + בפקודות ${inOrders.toFixed(3)}) — אין פעולה`, 409, { code: "NO-FUEL" });
   }
-
-  // הסולם: שלוש רמות על הקו — parity, +1%, +2% (חוק 2)
-  const premiums = [0, 100, 200];
-  const perLevel = Math.floor(totalFuel * 1000 / 3) / 1000;
-  if (perLevel < 0.001) {
+  if (action === "reprice" && perLevel < 0.001) {
     return bad("הדלק קטן מרמה אחת — אין פעולה", 409, { code: "TOO-SMALL" });
+  }
+  if (action === "arm-buy" && sbdCommitable < 0.15) {
+    return bad(`אין SBD חמוש לסולם קנייה (${sbdCommitable.toFixed(3)} < 0.15) — החימוש נפתח רק ממילוי אמיתי`, 409, { code: "NO-SBD" });
+  }
+  if (action === "arm-buy" && perBid < 0.05) {
+    return bad("רמת קנייה קטנה מ-0.05 SBD — אין פעולה", 409, { code: "TOO-SMALL" });
+  }
+
+  // ── שער-העסקאות (R97): הערכת-USD חיה בזמן ההחלטה, לפני כל נגיעה בכסף ──
+  const gateUsd =
+    action === "arm-buy"
+      ? marks.sbdUsd != null && marks.sbdUsd > 0
+        ? Math.round(sbdCommitable * marks.sbdUsd * 100) / 100
+        : null
+      : marks.steemUsd != null && marks.steemUsd > 0
+        ? Math.round(totalFuel * marks.steemUsd * 100) / 100
+        : null;
+  const gate = await evaluateGate({
+    source: "money-mover",
+    action,
+    title:
+      action === "arm-buy"
+        ? `arm-buy — סולם קנייה מתחת לפאריטה · ${sbdCommitable} SBD`
+        : `reprice — סולם 3 רמות מעל הפאריטה · ${totalFuel} STEEM`,
+    payload:
+      action === "arm-buy"
+        ? { sbdCommitable, parity, offsetsBps: BID_OFFSETS_BPS, reason }
+        : { liquid, inOrders, totalFuel, parity, premiums, reason },
+    usdValue: gateUsd,
+    usdBasis:
+      gateUsd != null
+        ? action === "arm-buy"
+          ? `${sbdCommitable} SBD × $${marks.sbdUsd} (${marks.sources.sbd ?? "sbd-mark"})`
+          : `${totalFuel} STEEM × $${marks.steemUsd} (${marks.sources.steem ?? "steem-mark"})`
+        : "usd-mark לא נמדד חי",
+    issuedBy,
+    reason,
+  });
+  if (gate.verdict === "REFUSED") {
+    return bad("USD לא נמדד חי — שער-העסקאות מסרב בכנות: אין הערכת-ערך, אין פעולה (אין שער, אין מסחר)", 409, { code: "NO-USD-MARK" });
+  }
+  if (gate.verdict === "QUEUED") {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "GATE-QUEUED",
+        gateId: gate.id,
+        usdValue: gate.usdValue,
+        threshold: gate.threshold,
+        error: "GATE-QUEUED",
+        he: `הפעולה (${gate.usdValue?.toFixed(2)}$) מעל סף האוטונומיה $${gate.threshold} — הועברה לתור אישור המפעיל בשער העסקאות. שום כסף לא זז.`,
+      },
+      { status: 403 },
+    );
   }
 
   const expiration = new Date(Date.now() + 27 * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "");
   const receipt: MoverReceipt = {
     at: new Date().toISOString(),
-    kind: inOrders === 0 ? "FUEL-IN" : "REPRICE",
+    kind: action === "arm-buy" ? "ARM-BUY" : inOrders === 0 ? "FUEL-IN" : "REPRICE",
     reason,
     parity,
     cancelled: [],
@@ -795,14 +905,154 @@ export async function POST(req: Request) {
   const persist = () => appendReceipt(receipt);
 
   try {
-    // א. ביטול כל הפקודות הקיימות — במקביל (עצמאיות; הכסף חוזר לנזיל)
+    if (action === "arm-buy") {
+      // ═ ARM-BUY — צד הקנייה של המיקרו-גריד (R97 · הזדמנות O1) ═══════
+      // סולם שלוש רמות מתחת לפאריטה (‎-1%/-2%/-3%): כל קנייה מתחת לקו היא
+      // עודף נמדד מול ערך-חוץ. הגג נאכף בקוד: לעולם לא קונים מעל פאריטה.
+      // שוק פנימי שנסחר מתחת לקו ימלא את ההצעות מיד — במחיר העומד,
+      // לא במחיר ההצעה; השרשרת היא השופטת.
+      const bidCancelResults = await Promise.allSettled(
+        bidOpen.map((o) =>
+          broadcastOp<any>((cb) => steem.broadcast.limitOrderCancel(wif, ownerKey.account, o.orderid, cb))
+            .then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
+        ),
+      );
+      bidOpen.forEach((o, i) => {
+        const r = bidCancelResults[i];
+        if (r.status === "fulfilled") {
+          receipt.cancelled.push(r.value);
+        } else {
+          receipt.cancelled.push({ orderid: o.orderid, txid: null });
+          noteError(`cancel-bid ${o.orderid}: ${String((r.reason as Error)?.message ?? r.reason).slice(0, 100)}`);
+        }
+      });
+      persist();
+
+      // המתנה שהביטולים ייעלמו מהספר (לקח R94 — ביטול ששודר ≠ ביטול שנכלל)
+      const bidCancelledIds = new Set(bidOpen.map((o) => Number(o.orderid)));
+      if (bidCancelledIds.size > 0) {
+        for (let poll = 0; poll < 4; poll++) {
+          try {
+            const os = await new Promise<any[]>((resolve, reject) =>
+              quiet(
+                steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+                  err ? reject(err) : resolve(res ?? []),
+                ),
+              ),
+            );
+            const stillThere = os.some((o: any) => bidCancelledIds.has(Number(o.orderid)));
+            if (!stillThere) break;
+          } catch {
+            /* סקר שנכשל לא עוצר — השופט הסופי הוא ה-verify בסוף */
+          }
+          await new Promise((r) => setTimeout(r, 5000));
+        }
+      }
+
+      // הצבת סולם הקנייה — orderid ברווח 9X (מכירות = 01/02/03)
+      const orderDay = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      for (let i = 0; i < BID_OFFSETS_BPS.length; i++) {
+        const price = parity * (1 - BID_OFFSETS_BPS[i] / 10_000);
+        const sbd = perBid;
+        const steemOut = Math.floor((sbd / price) * 1000) / 1000; // עיגול-מטה: אף פעם לא מעל המחיר
+        const effPrice = steemOut > 0 ? sbd / steemOut : 0;
+        if (effPrice >= parity) {
+          noteError(`bid ${i + 1}: מחיר יעיל ${effPrice.toFixed(6)} אינו מתחת לפאריטה — לא הוצב (חוק הגג)`);
+          continue;
+        }
+        const orderid = Number(`${orderDay}9${i + 1}`);
+        try {
+          const res = await broadcastOp<any>((cb) =>
+            steem.broadcast.limitOrderCreate(
+              wif,
+              ownerKey.account,
+              orderid,
+              `${sbd.toFixed(3)} SBD`,
+              `${steemOut.toFixed(3)} STEEM`,
+              false,
+              expiration,
+              [],
+              cb,
+            ),
+          );
+          receipt.placed.push({ orderid, sell: sbd, receive: steemOut, price: Math.round(effPrice * 1e6) / 1e6, txid: res?.id ?? null });
+        } catch (e) {
+          // לקח R87: timeout ≠ כישלון — השרשרת היא השופטת. סקר לפי orderid.
+          let landed = false;
+          for (let poll = 0; poll < 3 && !landed; poll++) {
+            await new Promise((r) => setTimeout(r, 8000));
+            try {
+              const os = await new Promise<any[]>((resolve, reject) =>
+                quiet(
+                  steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+                    err ? reject(err) : resolve(res ?? []),
+                  ),
+                ),
+              );
+              const found = os.find((o: any) => Number(o.orderid) === orderid);
+              if (found) {
+                landed = true;
+                receipt.placed.push({ orderid, sell: sbd, receive: steemOut, price: Math.round(effPrice * 1e6) / 1e6, txid: null, confirmedBy: "chain-read" });
+              }
+            } catch {
+              /* סקר שנכשל לא מזיז כלום — השופט הסופי הוא ה-verify בסוף */
+            }
+          }
+          if (!landed) noteError(`place bid ${i + 1}: ${String((e as Error).message).slice(0, 100)}`);
+        }
+        persist();
+        await new Promise((r) => setTimeout(r, 400)); // ריווח בין שידורים — נחמד לצומת
+      }
+
+      // אימות-סוף מהשרשרת — השופט
+      let bidVerify: { ordersNow: number; deployedNow: number; bidsNow?: number } | null = null;
+      try {
+        const after = await new Promise<any[]>((resolve, reject) =>
+          quiet(
+            steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+              err ? reject(err) : resolve(res ?? []),
+            ),
+          ),
+        );
+        const sells = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
+        const bids = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"));
+        bidVerify = {
+          ordersNow: after.length,
+          deployedNow: Math.round(sells.reduce((s: number, o: any) => s + Number(o.for_sale) / 1000, 0) * 1000) / 1000,
+          bidsNow: bids.length,
+        };
+      } catch {
+        /* אימות הוא שכבת-עדות — כשלו אינו מזים את הקבלה */
+      }
+      receipt.verify = bidVerify ?? undefined;
+      persist();
+      swrInvalidate(SWR_KEY);
+      await settleGate(
+        gate.id,
+        "EXECUTED",
+        issuedBy === "operator" ? "operator" : "policy:autonomous",
+        { placed: receipt.placed.length, cancelled: receipt.cancelled.length, verify: bidVerify, gateUsd },
+      );
+      const bidsOk = (bidVerify?.bidsNow ?? 0) > 0;
+      return NextResponse.json({
+        ok: bidsOk || receipt.placed.length > 0,
+        receipt,
+        verify: bidVerify,
+        he: bidsOk
+          ? `סולם הקנייה חי בשרשרת (נמדד): ${bidVerify?.bidsNow} הצעות · ${sbdCommitable} SBD מחויבות מתחת לקו ${parity.toFixed(4)} · בוטלו ${receipt.cancelled.length}`
+          : `הוצבו ${receipt.placed.length} הצעות קנייה · בוטלו ${receipt.cancelled.length} · אימות שרשרת לא נקרא`,
+      });
+    }
+
+    // ═ REPRICE — סולם המכירה (R81; R97: ביטול מכירות בלבד — הקניות לא נפגעות) ═
+    // א. ביטול פקודות המכירה הקיימות — במקביל (עצמאיות; הכסף חוזר לנזיל)
     const cancelResults = await Promise.allSettled(
-      (openOrders as any[]).map((o) =>
+      sellOpen.map((o) =>
         broadcastOp<any>((cb) => steem.broadcast.limitOrderCancel(wif, ownerKey.account, o.orderid, cb))
           .then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
       ),
     );
-    (openOrders as any[]).forEach((o, i) => {
+    sellOpen.forEach((o, i) => {
       const r = cancelResults[i];
       if (r.status === "fulfilled") {
         receipt.cancelled.push(r.value);
@@ -818,7 +1068,7 @@ export async function POST(req: Request) {
     // עוד הכסף נעול בפקודות הישנות. תנאי-המתנה: ה-orderid שבוטלו
     // נעלמים מ-getOpenOrders (עד 4 סקרים × 5ש׳, קריאה בלבד) — ורק
     // אז מוצב הסולם. סקר שנכשל לא עוצר — הסקר הבא יגיד את האמת.
-    const cancelledIds = new Set((openOrders as any[]).map((o) => Number(o.orderid)));
+    const cancelledIds = new Set(sellOpen.map((o) => Number(o.orderid)));
     if (cancelledIds.size > 0) {
       for (let poll = 0; poll < 4; poll++) {
         try {
@@ -909,7 +1159,7 @@ export async function POST(req: Request) {
     // אימות-סוף מהשרשרת — השופט. אישורי-שידור יכולים להתעכב מעבר לתקרה
     // בזמן שהשרשרת כבר קיבלה את הפקודה (נמדד) — לכן קריטריון ההצלחה
     // הוא מה שפתוח שם באמת, לא מונה האישורים.
-    let verify: { ordersNow: number; deployedNow: number } | null = null;
+    let verify: { ordersNow: number; deployedNow: number; bidsNow?: number } | null = null;
     try {
       const after = await new Promise<any[]>((resolve, reject) =>
         quiet(
@@ -918,9 +1168,12 @@ export async function POST(req: Request) {
           ),
         ),
       );
+      // R97: deployedNow סופר מכירות בלבד (STEEM); הצעות הקנייה נספרות בנפרד
+      const sells = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
       verify = {
         ordersNow: after.length,
-        deployedNow: Math.round(after.reduce((s: number, o: any) => s + Number(o.for_sale) / 1000, 0) * 1000) / 1000,
+        deployedNow: Math.round(sells.reduce((s: number, o: any) => s + Number(o.for_sale) / 1000, 0) * 1000) / 1000,
+        bidsNow: after.length - sells.length,
       };
     } catch {
       /* אימות הוא שכבת-עדות — כשלו אינו מזים את הקבלה */
@@ -928,6 +1181,12 @@ export async function POST(req: Request) {
     receipt.verify = verify ?? undefined;
     persist();
     swrInvalidate(SWR_KEY);
+    await settleGate(
+      gate.id,
+      "EXECUTED",
+      issuedBy === "operator" ? "operator" : "policy:autonomous",
+      { placed: receipt.placed.length, cancelled: receipt.cancelled.length, verify, gateUsd },
+    );
     const chainOk = (verify?.deployedNow ?? 0) > 0;
     return NextResponse.json({
       ok: chainOk || receipt.placed.length > 0,

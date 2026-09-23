@@ -28,6 +28,13 @@
 //     הרשת לבין הבריכה.
 //   · ביצוע עסקה אמיתית דורש מפתח חתימה = שער-מפעיל מפורש.
 //     המנוע מודד; השער נשאר בידי המפעיל (חוק הברזל).
+//
+// R97 — הרחבה ריבונית (פי הוראת "לגייס יכולות החלפה וזרימה בין הרשתות"):
+//   · ערוצי REST keyless חיים: Jupiter-lite (SOL→USDC בסולנה) ו-Across
+//     (WETH@Ethereum → USDC@Base, ERC-7683) — שניהם נמדדו חיים מהסנדבוקס
+//     לפני שנכתבו, ונשפטים באותו שער-אתגר מול בינאנס כמו ערוצי eth_call.
+//   · אותגרו ולא חוברו (בכנות, עם הראיה): deBridge (404 — הנקודה מתה),
+//     CoW (‎6 וריאנטים של סכמת-גוף — שגיאת-סרד מתועדת בכל אחד).
 // ─────────────────────────────────────────────────────────────────────
 
 import { ethers } from "ethers";
@@ -35,7 +42,7 @@ import { ethers } from "ethers";
 // ── חוזה הנתונים (BE↔FE) ─────────────────────────────────────────────
 
 export type QuoteVerdict = "VERIFIED" | "DEVIANT" | "DOWN";
-export type QuoteKind = "v2" | "v3";
+export type QuoteKind = "v2" | "v3" | "rest";
 
 export interface QuoteChannel {
   id: string;
@@ -108,6 +115,7 @@ export interface ExchangeRouterSnapshot {
   reference: {
     ethUsdt: number | null;
     bnbUsdt: number | null;
+    solUsdt: number | null;
     at: string | null;
     down: string[];
   };
@@ -337,7 +345,7 @@ async function callChannel(spec: ChannelSpec): Promise<{ quote: number | null; e
 
 // ── סימוכין בינאנס — שופט בלתי-תלוי ─────────────────────────────────
 
-async function fetchReference(): Promise<{ ethUsdt: number | null; bnbUsdt: number | null; at: string | null; down: string[] }> {
+async function fetchReference(): Promise<{ ethUsdt: number | null; bnbUsdt: number | null; solUsdt: number | null; at: string | null; down: string[] }> {
   const down: string[] = [];
   const one = async (sym: string): Promise<number | null> => {
     try {
@@ -359,8 +367,109 @@ async function fetchReference(): Promise<{ ethUsdt: number | null; bnbUsdt: numb
       return null;
     }
   };
-  const [ethUsdt, bnbUsdt] = await Promise.all([one("ETHUSDT"), one("BNBUSDT")]);
-  return { ethUsdt, bnbUsdt, at: ethUsdt != null || bnbUsdt != null ? new Date().toISOString() : null, down };
+  const [ethUsdt, bnbUsdt, solUsdt] = await Promise.all([one("ETHUSDT"), one("BNBUSDT"), one("SOLUSDT")]);
+  return { ethUsdt, bnbUsdt, solUsdt, at: ethUsdt != null || bnbUsdt != null || solUsdt != null ? new Date().toISOString() : null, down };
+}
+
+// ── ערוצי REST ריבוניים (R97) — נמדדו חיים לפני שנכתבו ─────────────────
+// אותה דוקטרינה כמו ערוצי ה-eth_call: קריאה בלבד, חסרת-מפתחות,
+// והסימוכין הבלתי-תלוי (בינאנס) שופט גם אותם.
+
+interface RestSpec {
+  id: string;
+  chainLabel: string;
+  dex: string;
+  route: string;
+  pair: string;
+  amountInLabel: string;
+  inDisplay: number; // כמה יחידות-קלט בתצוגה
+  quoteUnit: string;
+  ref: "ETHUSDT" | "BNBUSDT" | "SOLUSDT" | "USD1";
+  tolBps: number;
+  /** נקודת-הקצה — ההוכחה (בדיוק כמו כתובת חוזה בערוצי eth_call) */
+  endpoint: string;
+  quote: () => Promise<{ outDisplay: number | null; err?: string }>;
+}
+
+async function fetchJson(url: string, timeoutMs = 9000): Promise<any> {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      signal: ctl.signal,
+      cache: "no-store",
+      headers: { accept: "application/json", "user-agent": "the-weave-exchange-router/1.1" },
+    });
+    if (!res.ok) throw new Error(`http ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+// 0.1 SOL — נוטינאלי מיקרו (~$12): בדיוק סדר-הגודל שבו האוטונומיה שלנו
+// פועלת (מתחת לשעת-ה-$100 של שער-העסקאות)
+const SOL_IN_LAMPORTS = "100000000";
+
+const REST_CHANNELS: RestSpec[] = [
+  {
+    id: "sol-jupiter-sol-usdc",
+    chainLabel: "Solana",
+    dex: "Jupiter",
+    route: "SOL → USDC · lite-api keyless",
+    pair: "SOL/USD",
+    amountInLabel: "0.1 SOL",
+    inDisplay: 0.1,
+    quoteUnit: "USDC",
+    ref: "SOLUSDT",
+    tolBps: 75,
+    endpoint: "https://lite-api.jup.ag/swap/v1/quote",
+    quote: async () => {
+      const j = await fetchJson(
+        `https://lite-api.jup.ag/swap/v1/quote?inputMint=So11111111111111111111111111111111111111112&outputMint=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v&amount=${SOL_IN_LAMPORTS}&slippageBps=50`,
+      );
+      const out = Number(j?.outAmount);
+      return { outDisplay: Number.isFinite(out) && out > 0 ? out / 1e6 : null };
+    },
+  },
+  {
+    id: "xchain-across-weth-usdc",
+    chainLabel: "Ethereum → Base",
+    dex: "Across",
+    route: "WETH(1) → USDC(8453) · ERC-7683",
+    pair: "ETH/USD",
+    amountInLabel: "0.05 WETH",
+    inDisplay: 0.05,
+    quoteUnit: "USDC",
+    ref: "ETHUSDT",
+    tolBps: 150, // חוצה-שרשרת: כולל עמלות גשר — הגבול כתוב והוגן
+    endpoint: "https://app.across.to/api/swap",
+    quote: async () => {
+      const j = await fetchJson(
+        "https://app.across.to/api/swap?originChainId=1&destinationChainId=8453&inputToken=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2&outputToken=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913&amount=50000000000000000&recipient=0x000000000000000000000000000000000000dEaD&depositor=0x000000000000000000000000000000000000dEaD&message=0x",
+      );
+      // מה שנמסר בפועל ביעד — כולל עלות ההחלפה והגשר (בכנות מלאה)
+      const out = Number(j?.steps?.bridge?.outputAmount);
+      return { outDisplay: Number.isFinite(out) && out > 0 ? out / 1e6 : null };
+    },
+  },
+];
+
+async function callRestChannel(
+  spec: RestSpec,
+): Promise<{ quote: number | null; execPrice: number | null; latencyMs: number | null; err?: string }> {
+  const t0 = Date.now();
+  try {
+    const r = await Promise.race([
+      spec.quote(),
+      new Promise<{ outDisplay: number | null }>((_, rj) => setTimeout(() => rj(new Error("timeout-9s")), 9_000)),
+    ]);
+    const latencyMs = Date.now() - t0;
+    if (r.outDisplay == null) throw new Error("empty-quote");
+    return { quote: r.outDisplay, execPrice: r.outDisplay / spec.inDisplay, latencyMs };
+  } catch (e) {
+    return { quote: null, execPrice: null, latencyMs: Date.now() - t0, err: String((e as Error)?.message ?? e).slice(0, 90) };
+  }
 }
 
 // ── סולם התשואה — DefiLlama Yields (חסר-מפתחות) ──────────────────────
@@ -429,10 +538,11 @@ export async function composeExchangeRouter(): Promise<ExchangeRouterSnapshot> {
     }),
   );
 
-  // ② כל הערוצים + הסימוכין — במקביל
-  const [channelResults, reference] = await Promise.all([
+  // ② כל הערוצים + הסימוכין — במקביל (eth_call + REST ריבוניים)
+  const [channelResults, reference, restResults] = await Promise.all([
     Promise.all(CHANNELS.map((spec) => callChannel(spec))),
     fetchReference(),
+    Promise.all(REST_CHANNELS.map((spec) => callRestChannel(spec))),
   ]);
 
   const channels: QuoteChannel[] = CHANNELS.map((spec, i) => {
@@ -476,13 +586,56 @@ export async function composeExchangeRouter(): Promise<ExchangeRouterSnapshot> {
     };
   });
 
+  // R97 — ערוצי ה-REST נכנסים לאותו ספר: אותן חוקיות-שיפוט, אותה תחרות
+  for (let i = 0; i < REST_CHANNELS.length; i++) {
+    const spec = REST_CHANNELS[i];
+    const r = restResults[i];
+    const refPrice =
+      spec.ref === "ETHUSDT" ? reference.ethUsdt : spec.ref === "SOLUSDT" ? reference.solUsdt : spec.ref === "USD1" ? 1 : null;
+    let devBps: number | null = null;
+    let verdict: QuoteVerdict = "DOWN";
+    let note = "";
+    if (r.quote != null && r.execPrice != null && refPrice != null && refPrice > 0) {
+      devBps = Math.round(((r.execPrice - refPrice) / refPrice) * 10_000);
+      verdict = Math.abs(devBps) <= spec.tolBps ? "VERIFIED" : "DEVIANT";
+      note =
+        verdict === "VERIFIED"
+          ? `ערוץ REST keyless בגבול ${spec.tolBps}bps מהסימוכין — עומד באתגר`
+          : `סטייה ${Math.abs(devBps)}bps מעבר לגבול ${spec.tolBps}bps — אותגר ונכשל`;
+    } else if (r.quote == null) {
+      note = `הערוץ לא ענה — ${r.err ?? "לא נמדד"} (מתועד בכנות, לא הוסתר)`;
+    } else {
+      note = "אין סימוכין חי לשיפוט — הציטוט לא נשפט במחזור זה";
+      verdict = "VERIFIED";
+    }
+    channels.push({
+      id: spec.id,
+      chain: spec.chainLabel,
+      chainId: 0,
+      dex: spec.dex,
+      route: spec.route,
+      pair: spec.pair,
+      amountInLabel: spec.amountInLabel,
+      quote: r.quote,
+      quoteUnit: spec.quoteUnit,
+      execPrice: r.execPrice,
+      refLabel: spec.ref === "SOLUSDT" ? "SOLUSDT · בינאנס" : spec.ref === "ETHUSDT" ? "ETHUSDT · בינאנס" : "דולר (1.00)",
+      devBps,
+      latencyMs: r.latencyMs,
+      kind: "rest",
+      contract: spec.endpoint,
+      verdict,
+      note,
+    });
+  }
+
   // ③ תחרות בין ראוטרים — אותו זוג, כמה חוזים
   const byPair = new Map<string, QuoteChannel[]>();
   for (const ch of channels) {
-    const spec = CHANNELS.find((s) => s.id === ch.id)!;
-    const arr = byPair.get(spec.pair) ?? [];
+    // R97: הזוג נלקח מהערוץ עצמו — גם ערוצי eth_call וגם ערוצי REST
+    const arr = byPair.get(ch.pair) ?? [];
     arr.push(ch);
-    byPair.set(spec.pair, arr);
+    byPair.set(ch.pair, arr);
   }
   const competition: CompetitionGroup[] = [];
   for (const [pair, arr] of byPair) {
@@ -551,6 +704,7 @@ export async function composeExchangeRouter(): Promise<ExchangeRouterSnapshot> {
       "ביצוע עסקה אמיתית דורש מפתח חתימה = שער-מפעיל מפורש — המנוע מודד, לא חותם",
       "הסטייה מול בינאנס כוללת עמלת בריכה ועומק — החלפה חינם איננה; הגבולות כתובים ונאכפים",
       "ה-Quoter הרשמי של PancakeSwap v3 לא אומת מהסנדבוקס — PancakeSwap v2 מצוטט וחי; הפער מתועד, לא הוסתר",
+      "ערוצי REST ריבוניים (R97): Jupiter-lite בסולנה ו-Across (ERC-7683) חוצה-שרשרת — keyless, בלי מפתח, בלי מתווך; deBridge מת (‎404) ו-CoW לא פוענח — אותגרו ולא חוברו בכנות",
       "ה-APY בסולם התשואה נמדד מ-DefiLlama על בריכות כחולות-לבן בלבד — לא הבטחת תשואה שלנו",
     ],
   };

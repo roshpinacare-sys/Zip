@@ -4,6 +4,11 @@
 // החוזה: המוח הפיננסי חי ב-/api/money (Next.js) — הדיבון הוא לב-פעימה
 // בלבד: מודד כל 60ש', מפעיל REPRICE כשהקו זז, וכותב את המצב לספרים.
 //
+// R97: טריגר שלישי — ARM-BUY: SBD חמוש (≥0.15 מחויב) → סולם קנייה
+// מתחת לפאריטה (המיקרו-גריד נעשה דו-צדדי · הזדמנות O1). כל פעולה
+// עוברת את שער-העסקאות ב-/api/money: מתחת ל-$100 — אוטונומיה;
+// מעל — GATE-QUEUED, כלום לא זז עד אישור המפעיל (הוראת המפעיל).
+//
 // חוקי-ברזל (מהקנון):
 //   · טריגרים: סטיית-פאריטה >50bps מהמדרגה · נזיל ≥1 STEEM
 //   · צינון 30 דק' בין פעולות · תקציב 12 פעולות/יום
@@ -25,6 +30,7 @@ const POLICY = {
   triggers: { parityDriftBps: 50, floorBps: -50, idleTriggerSteem: 1 },
   cooldownMin: 30,
   actionsBudgetPerDay: 12,
+  armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300] }, // R97 — צד הקנייה של המיקרו-גריד
   truthSource: "api.steemit.com · get_open_orders/get_accounts (via /api/money)",
 };
 
@@ -53,7 +59,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.1.0",
+    version: "1.3.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -165,7 +171,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
 }
 
 // ── החלטה ───────────────────────────────────────────────────────────
-async function decide(meas: any): Promise<{ act: boolean; reason: string }> {
+async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" }> {
   const now = new Date();
   // day roll
   if (state.actionDay !== utcDay(now)) {
@@ -208,6 +214,18 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string }> {
       };
     }
   }
+  // טריגר R97 — ARM-BUY: SBD חמוש → סולם קנייה מתחת לפאריטה (O1).
+  // הגריד נעשה דו-צדדי: המכירות מעל הקו צדות ערך; הקניות מתחתיו
+  // תופסות את הפער הפנימי המדוד (VALUE-TRAP ההפוך). החימוש נפתח
+  // רק ממילוי אמיתי — לא ממכירה מתחת לערך.
+  const arm = meas?.sbdArming;
+  if (arm?.state === "ARMED" && Number(arm?.commitable ?? 0) >= POLICY.armBuy.minSbd) {
+    return {
+      act: true,
+      action: "arm-buy",
+      reason: `SBD חמוש ${Number(arm.commitable).toFixed(3)} — סולם קנייה מתחת לפאריטה (מיקרו-גריד דו-צדדי · O1)`,
+    };
+  }
   // שקט כנה
   return { act: false, reason: "הסולם על הקו — אין פעולה נדרשת" };
 }
@@ -227,7 +245,7 @@ async function measure(): Promise<any | null> {
   }
 }
 
-async function act(reason: string): Promise<void> {
+async function act(reason: string, action: "reprice" | "arm-buy" = "reprice"): Promise<void> {
   state.acting = true;
   // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
   // מסופה. נולד מתקרית חיה (00:34:52Z): restart של הדיבון באמצע act()
@@ -245,7 +263,7 @@ async function act(reason: string): Promise<void> {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "reprice", reason }),
+      body: JSON.stringify({ action, reason }),
       signal: ctl.signal,
     });
     result = (await res.json()) as Record<string, unknown>;
@@ -272,12 +290,23 @@ async function act(reason: string): Promise<void> {
       ? r.receipt.cancelled
       : [];
   const parityAt = r.parity ?? r.receipt?.parity ?? null;
+  // R97: קבלה מבחינה סוג-פעולה; GATE-QUEUED היא הכרעה, לא כישלון —
+  // הפעולה מעל סף האוטונומיה וממתינה למפעיל בשער-העסקאות.
+  const actionKind = r.ok
+    ? String(r.receipt?.kind ?? (action === "arm-buy" ? "ARM-BUY" : "REPRICE"))
+    : r.code === "GATE-QUEUED"
+      ? "GATE-QUEUED"
+      : action === "arm-buy"
+        ? "ARM-BUY-FAIL"
+        : "REPRICE-FAIL";
   state.lastDecision = {
     at: finishedAt,
-    kind: r.ok ? "REPRICE" : "REPRICE-FAIL",
+    kind: actionKind,
     detail: r.ok
       ? `הוצבו ${placed.length} · בוטלו ${cancelled.length} · ${reason}`
-      : `כישלון כנה: ${String(r.error ?? r.receipt?.error ?? "לא ידוע").slice(0, 120)}`,
+      : r.code === "GATE-QUEUED"
+        ? `הפעולה (${typeof r.usdValue === "number" ? r.usdValue.toFixed(2) : "?"}$) ≥ סף $${r.threshold} — ממתינה לאישור המפעיל בשער העסקאות. שום כסף לא זז.`
+        : `כישלון כנה: ${String(r.error ?? r.receipt?.error ?? "לא ידוע").slice(0, 120)}`,
   };
   saveState();
   appendHistory({
@@ -298,7 +327,7 @@ async function act(reason: string): Promise<void> {
     `- **פעולות היום**: ${state.actionsToday}/${POLICY.actionsBudgetPerDay}`,
     `- **כנות**: ${r.error ?? r.receipt?.error ? `שגיאה: ${String(r.error ?? r.receipt?.error).slice(0, 200)}` : "אין"}`,
     "",
-    `_מופק אוטונומית על-ידי money-mover v1.2 (R90 rebuild · R93 קבלה+ירי-יחיד)._`,
+    `_מופק אוטונומית על-ידי money-mover v1.3 (R97 · arm-buy + שער-עסקאות)._`,
   ].join("\n");
   await canonPush(`reports/money-${utcDay()}.md`, receipt);
 }
@@ -323,7 +352,7 @@ async function tick() {
     }
     const d = await decide(meas);
     if (d.act) {
-      await act(d.reason);
+      await act(d.reason, d.action ?? "reprice");
     } else {
       state.lastDecision = { at: new Date().toISOString(), kind: d.reason.startsWith("WAIT") ? d.reason.split(" ·")[0] : "HOLD", detail: d.reason };
       saveState();
@@ -345,10 +374,13 @@ Bun.serve({
       return Response.json({ ...state, ok: true, alive: true, now: new Date().toISOString() });
     }
     if (url.pathname === "/act" && req.method === "POST") {
-      // פקודת-מפעיל ידנית (דרך שער המפעיל) — אותה פעולה, אותו חוק
+      // פקודת-מפעיל ידנית (דרך שער המפעיל) — אותן פעולות, אותם חוקים
       if (state.acting) return Response.json({ ok: false, error: "already-acting" }, { status: 409 });
       const body = await req.json().catch(() => ({}));
-      await act(String(body?.reason ?? "manual operator command").slice(0, 200));
+      await act(
+        String(body?.reason ?? "manual operator command").slice(0, 200),
+        body?.action === "arm-buy" ? "arm-buy" : "reprice",
+      );
       return Response.json({ ok: true, lastDecision: state.lastDecision });
     }
     return new Response("not found", { status: 404 });

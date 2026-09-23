@@ -3655,3 +3655,76 @@ Stage Summary:
 - השילוב החכם עם הרשת נולד: סולם תשואה פנים-מול-חוץ במספרים נמדדים (קרן החיסכון והגריד שלנו מול Sky 3.60%/Maple 5.16%) + ארבע רגלי זרימת נזילות עם הסטטוס האמיתי של כל רגל — כששער-המפעיל ייפתח, לרשת כבר יש מפת מחירים חיה והיסטוריית אמינות לכל ראוטר.
 - לולאת ההבנה-העצמית התרחבה להחלפות: התלמיד בוחן את ראוטרי ה-DEX של הרשת כל 30 דק' ומתעד נפילות, התאוששויות ושינויי פסק-דין — SNAPSHOT חי כבר נמדד.
 - כנות שארית: PancakeV3-Quoter לא אומת (v2 חי) · Polygon RPC 401 · Jupiter חסר-קצה-חסר-מפתחות פעיל · ה-APY החיצוני הוא נתון-עבר נמדד, לא הבטחה — הכל כתוב בדוקטרינה ומוצג ב-UI.
+---
+Task ID: 1-a
+Agent: explore-network-state
+Task: Map current network state, doctrine, operator gate, limitations
+
+Work Log:
+- Read worklog.md tail (R80-R96) and root doctrine docs: AGENTS.md, README.md, SOVEREIGNTY.md, CONSOLE-POLICY.md, NETWORK-EVOLUTION.md, ECOSYSTEM-ROADMAP.md, VERIFY.md, BENCHMARK.md, TRUTH-AUDIT.md, SAOS.md.
+- Read bridgehead: console/agent/limitations.md, handoff.md, state.json, requests.json (R01-R38 ledger, openLoops OL-1..OL-14, moneyPlan, safetyLaws).
+- Read reports: sovereign/reports/systems-inventory.md (14-repo inventory), professional-benchmark.md; skimmed scan-results/* page extracts.
+- Verified operator gate mechanics in code: src/lib/operator-auth.ts (HMAC session 12h, chain-verified @headcorner active), /api/auth/login, /api/arm (sealed WIF to vault), /api/admin/{dispatch,arm-grid}, /api/charter/builders, /api/money POST (daemon-driven, no per-transaction approval).
+- Mapped sandbox daemon fleet (mini-services: pulse 3033, money 3034, hunter 3035, keeper 3036, student 3037) and cloud machine twins per AGENTS.md R71.
+- Research only — zero code or file changes besides this record.
+
+Stage Summary:
+- Fleet: 16 repos (14 private + Console/Domain public), ~30 autonomous flows: 7 production twins on public minutes, 9 archive agents (quota-deferred), controllers/mirrors, plus 5 sandbox daemons rebuilt from canon after each reset.
+- Operator gate = chain-truth only (bit-for-bit vs live @headcorner active key); NO transaction-approval threshold exists — autonomy bounded by budgets (12/day), cooldowns, parity floor and acting-law instead.
+- Self-improvement loops live: truth-gate, agent-verify (53 assertions), R65 inspector institution (A69), Student daemon (8-system self-exam, worklog learning, verifyFindings), keeper zombie-law.
+- Open items: OL-9/10 (time-based), OL-11 VPS + OL-12 data-planes (operator), Privacy/Terms pages, 5 stalled repos, no root-domain repo.
+- Recent arc R88-R96: charter foundry + Steem anchoring, session-death recovery, cross-market engine, grid P&L (VALUE-TRAP), exchange-router (9 channels, 4 networks).
+---
+Task ID: 1-b
+Agent: explore-money-exchange
+Task: Map money/exchange/grid/liquidity code
+
+Work Log:
+- נקרו 8 מודולי lib: exchange-router, crosschain, market, market-canon, grid-pnl, crossmarket, evm, ledger, vitality + swr/grid-arm
+- נקרו 12 API routes: exchange/router, defi, defi/router, market/cross, money (GET+POST), money/pnl, treasury, sovereign/holdings, arm, admin/arm-grid, autonomy, live/dex
+- נקרו UI views: money-mover, exchange, defi-router+exchange-router-section, cross-market, money-market, flywheel, holdings + tabs + page.tsx wiring
+- נקרו state/daemons: sovereign/money/{state,pnl-scan,history}.json, grid-pulse yml+agent, mini-services/money, lib/live/grid-arm
+- נקרו דוחות: money-path-research, liquidity-inflow-plan, r96, r83, r84 + prisma MarketEvent
+- מופה זרימת נתונים מלאה: state→API→UI, אמת מול סימולציה, ושערי-מפעיל קיימים
+
+Stage Summary:
+- מסחר אמיתי קיים רק בשוק הפנימי של Steem (STEEM/SBD): /api/money POST reprice חותם limit_order_cancel/create עם מפתח active מוגזר בזיכרון; הדיבון (פורט 3034) אוטונומי לחלוטין (50bps drift, cooldown 30ד׳, תקציב 12/יום)
+- הגריד: sell-ladder 3 רמות (פאריטה/+1%/+2%) חי; buy-side חסום בסף 0.15 SBD; HIVE רק מדידה+סימולציה; BLURT NOT-MEASURABLE; PnL אמיתי מ-fill_order עם checkpoint (5 מילויים אי-פעם, שקט 10 ימים)
+- exchange-router (R96): 9 ערוצי ציטוט קריאה-בלבד מ-7 ראוטרים ב-4 רשתות + אתגר מול בינאנס + DefiLlama yields — אין שום נתיב ביצוע; TRON (SunSwap→JustLend) מתוכנן, חסום בהון <3 TRX
+- אין שום שער-דולרים: לא קיים סף $100; השערים הקיימים הם נוכחות-מפתח (upload/headcorner.txt) וחימום-סוד (arm-grid→GitHub secrets)
+- פערים מרכזיים ליעדי המפעיל: אין execute ל-EVM swaps, אין tx-gate כללי בסכום, אין חיבור בין אותות grid-pnl/crossmarket לפעולה, buy-side אינו אוטונומי
+---
+Task ID: 2-a
+Agent: research-dex-routers
+Task: Research leading DEX router connection options
+
+Work Log:
+- Read r96-exchange-router, money-path-research, liquidity-inflow-plan (avoid duplication)
+- 28 web searches (web-search skill CLI): 1inch Fusion+, LiFi, THORChain/Maya, Uniswap v4, PancakeSwap Infinity, Socket/Bungee, 0x/Matcha, deBridge, Across ERC-7683, Relay, Rango, Chainflip, Velora, Jupiter, Osmosis, SwapKit, Hive-Engine/TribalDex/LeoDex, BlockTrades, Blurt/Cexius, SBD peg, rate limits
+- ~12 live endpoint checks from sandbox (2026-09-23): hive/steem internal market orderbooks OK; maya midgard inSync; lite-api.jup.ag keyless quote OK; api.dln.trade keyless quote OK; app.across.to suggested-fees OK; li.quest/v1/chains OK; api.hive-engine.com/rpc/contracts OK; THORChain nodes + BlockTrades + Osmosis unreachable/404 from sandbox
+- Composed comparison table (18 rows), top-4 recommendations, risks/rate-limits, delta vs r96
+
+Stage Summary:
+- Sovereignty-fit ranking for keyless autonomous micro-flows: CoW (no key, gasless EIP-712 intents, 1500req/5min/IP), Across (ERC-7683, keyless quote API, sub-$ fees), deBridge DLN (keyless, ~2s, 4bps), direct on-chain v4/Infinity quotes — all verified live keyless
+- Graphene reality: HIVE/STEEM internal markets + Hive-Engine API alive keyless (SWAP.HIVE, swap.blurt); SBD DEPEGGED ~$0.48 (r96 assumed $1.00 for stables); no non-custodial programmatic SBD->USDT rail exists — instant exchangers are custodial, CEXes are keyed/KYC
+- Cross-chain native DEXs took heavy 2026 hits: THORChain $10.7M hack + 5wk halt (May), Maya $1.7M hack CACAO -88.7% (Aug, chain resumed ~Sep 20) — grade MED sovereignty, hard-cap exposure
+- NEW vs r96: Jupiter lite-api.jup.ag works keyless (was dead); CoW/deBridge/Across keyless APIs now documented+verified; 0x Cross-Chain API beta (Feb 2026); LiFi 100rpm/12k-per-2h; Socket/1inch/0x all keyed
+- Recommended next: build quote channels over CoW+deBridge+Across into existing r96 engine, add SBD true-price benchmark (depeg), Hive-Engine deposit-leg integration
+
+---
+Task ID: R97
+Agent: zai-main (orchestrator + implementer)
+Task: שער-העסקאות $100 + מיקרו-גריד דו-צדדי + ערוצי שוק ריבוניים (הוראת המפעיל: אוטונומיה מתחת ל-$100, שער רק מעליו; להטיב מיקרו-גריד, לנתב נזילות, לחבר לשוק, לאתגר עוגנים, לחזק ריבונות)
+
+Work Log:
+- ברר (3 תתי-סוכנים במקביל): 1-a מיפוי רשת+דוקטרינה (אין שום שער-דולרים כיום); 1-b מיפוי קוד כספים (20 ממצאים); 2-a מחקר DEX (28 חיפושים — CoW/Across/deBridge/Jupiter keyless, THORChain/Maya נפרצו 2026)
+- הסקה: חבילת R97 = tx-gate + arm-buy + ערוצי REST + grid-pulse שעתי
+- מימוש: מודל TxGate ב-Prisma (db:push) · lib/weave/tx-gate.ts (סף $100 יחיד) · /api/gate (GET ציבורי, POST למפעיל בלבד) · שילוב השער ב-/api/money POST לפני כל נגיעה בכסף · arm-buy (סולם קנייה מתחת לפאריטה, חוק גג נאכף, orderid 9X) · הפרדת צדדים מלאה בספר (מנע באג דלק) · ourBids ב-GET · דיבון v1.3.0 (טריגר arm-buy + GATE-QUEUED כהכרעה כנה) · exchange-router: ערוצי REST Jupiter-lite+Across (ERC-7683), סימוכין SOLUSDT, תחרות לפי ch.pair · FE: kind "rest", כרטיס שער-עסקאות בשער המפעיל · grid-pulse cron שעתי
+- נפילה חיה ותיקון: ייבוא @lib→@/lib ב-money route (הדיבון דפק על הדלת כל 60ש' ותיעד HONEST-FAIL עד לתיקון — הוכחה חיה של שער שלמות-המדידה)
+- אימות: lint נקי · dev.log נקי · /api/gate 200 · Across VERIFIED ×2 (-53/-54bps) · Jupiter 429 (מתועד בכנות) · deBridge 404 · CoW לא פוענח (6 וריאנטים, מתועד) · סולם $28.91<$100 → אוטונומיה זורמת · דפדפן: שער+בורסה+כסף+מובייל+פוטר · ראיות r97-*.png ×3
+
+Stage Summary:
+- שער-העסקאות חי ונאכף בעורק הכסף האמיתי: מתחת ל-$100 אוטונומיה, מעל — תור אישור מפעיל (403 GATE-QUEUED, כלום לא זז), אין מדידה — סירוב
+- המיקרו-גריד נעשה דו-צדדי: arm-buy מתחת לפאריטה (O1) עם חוק גג; הדיבון v1.3.0 חי על bun --hot עם הטריגר
+- 11 ערוצי ציטוט (9 eth_call + Across VERIFIED + Jupiter מתועד-429); סולנה וחוצה-שרשרת נכנסו לאותו ספר-אתגר מול בינאנס
+- דוח מלא: sovereign/reports/r97-tx-gate-and-sovereign-channels-2026-09-23.md

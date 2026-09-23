@@ -35,6 +35,7 @@ import {
   PlayCircle,
   Radar,
   RefreshCw,
+  Scale,
   ShieldAlert,
   ShieldCheck,
   TrendingDown,
@@ -49,6 +50,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { TxGateCard } from "@/components/weave/views/tx-gate-card";
 
 // ── טיפוסי-הבנת-הרגע (משקפים את /api/moment בדיוק) ────────────────
 
@@ -1283,6 +1285,18 @@ export function GateView() {
               setTimeout(load, 90_000);
             }}
           />
+        </GateSection>
+      </motion.div>
+
+      {/* ── שער-העסקאות (R97) ── */}
+      <motion.div {...fade(3)}>
+        <GateSection
+          id="tx-gate"
+          icon={Scale}
+          title="שער-העסקאות — אוטונומיה עד $100, אישור-מפעיל מעליו"
+          sub="הוראת המפעיל: המערכת פועלת לבד; רק עסקאות באמת גדולות ($100+) ממתינות להחלטת המפעיל. כל הכרעה — עם ערך-USD חי וקבלה."
+        >
+          <TxGateCard />
         </GateSection>
       </motion.div>
 
