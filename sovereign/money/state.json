@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
-  "version": "1.1.0",
-  "bootedAt": "2026-09-23T00:49:03.015Z",
-  "beats": 966,
+  "version": "1.3.0",
+  "bootedAt": "2026-09-23T15:03:44.125Z",
+  "beats": 487,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -12,19 +12,27 @@
     },
     "cooldownMin": 30,
     "actionsBudgetPerDay": 12,
+    "armBuy": {
+      "minSbd": 0.15,
+      "offsetsBps": [
+        100,
+        200,
+        300
+      ]
+    },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money)"
   },
-  "lastActionAt": "2026-09-23T08:34:03.084Z",
-  "actionsToday": 12,
+  "lastActionAt": "2026-09-23T15:12:57.355Z",
+  "actionsToday": 2,
   "actionDay": "2026-09-23",
   "acting": false,
   "lastDecision": {
-    "at": "2026-09-23T09:23:03.087Z",
-    "kind": "WAIT-BUDGET",
-    "detail": "WAIT-BUDGET · 12/12 פעולות היום — התקציב נאכל"
+    "at": "2026-09-23T15:20:44.148Z",
+    "kind": "WAIT-COOLDOWN",
+    "detail": "WAIT-COOLDOWN · עוד 23 דק'"
   },
   "canonLast": {
-    "at": "2026-09-23T08:34:24.232Z",
+    "at": "2026-09-23T15:13:23.776Z",
     "ok": true,
     "path": "reports/money-2026-09-23.md"
   }
