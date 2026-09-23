@@ -31,6 +31,7 @@ import { steemBroadcast, rpcV4, STEEM_RPC_NODES, HIVE_RPC, HIVE_CHAIN_ID, signGr
 import { openVaultKey } from "@/lib/dex/wallet-vault";
 import { blurtSendTransfer, BLURT_RPC } from "@/lib/dex/blurt-wire";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
+import { saosLiveTransferOut, foldLiveState } from "@/lib/weave/saos-rail";
 
 const HOME = "/home/z/my-project";
 const nodeRequire = createRequire(path.join(HOME, "package.json"));
@@ -536,6 +537,70 @@ export interface WithdrawResult {
   event?: ChainedEvent;
 }
 
+/** R104 — רייל-משיכת SAOS-LIVE: שריפת תביעה פנימית ← העברה חתומה
+ *  מהאוצר על שרשרת SAOS-LIVE החיה (custom_json ב-STEEM). השרשרת היא
+ *  השופט: הכתובת חייבת להיות רשומה, מאזן האוצר נמדד בקיפול, ושער-$100
+ *  מכסה — מחיר ה-SAOS נגזר מהבריכה הפנימית החיה (השוק שלנו הוא המקור). */
+async function saosWithdrawRail(params: {
+  member: string;
+  amount: number;
+  toAddress: string;
+  issuedBy: "operator" | "daemon";
+}): Promise<WithdrawResult> {
+  const { member, amount, toAddress, issuedBy } = params;
+  // מחיר SAOS — מהבריכה הפנימית בלבד (נתיב ריבוני; אין ל-SAOS מחיר חיצוני)
+  const poolPrice = await saosUsdPrice();
+  const usdValue = poolPrice != null ? amount * poolPrice : null;
+  // אין שער-מחיר? אין עסקה (חוק המדידה) — כלום לא זז
+  if (usdValue == null) {
+    return { ok: false, detail: "NO-PRICE: מחיר SAOS לא נמדד מהבריכה הפנימית — אין שער, אין משיכה" };
+  }
+  // 1) שער-$100 קודם — תור-מפעיל פירושו שכלום לא זז עדיין
+  const gate = await evaluateGate({
+    source: "sovereign-exchange",
+    action: "withdraw",
+    title: `משיכה ${amount} SAOS ל-${toAddress.slice(0, 18)}… (${usdValue.toFixed(2)}$)`,
+    payload: { member, asset: "SAOS", amount, toAddress },
+    usdValue,
+    usdBasis: `internal pool SAOS/USDS ${poolPrice?.toPrecision(4) ?? "?"}`,
+    issuedBy,
+    reason: "משיכת SAOS — שריפת תביעה פנימית והעברה חתומה על SAOS-LIVE",
+  });
+  if (gate.verdict !== "ALLOWED") {
+    return {
+      ok: false,
+      detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : "השער סירב",
+      gate: { verdict: gate.verdict, id: gate.id, usdValue },
+    };
+  }
+  // 2) שריפת התביעה הפנימית — עכשיו, לפני השידור (סדר הפעולות עסקה)
+  await adjust(member, "SAOS", -amount);
+  // 3) הרייל: חתימת אוצר + שידור custom_json על STEEM — השרשרת היא השופט
+  const rail = await saosLiveTransferOut({ toAddress, amount });
+  if (!rail.ok) {
+    // שידור נכשל — התביעה מוחזרת במלואה (אותו חוק כמו ריילי HIVE/BLURT)
+    await adjust(member, "SAOS", amount);
+    return { ok: false, detail: rail.note, gate: { verdict: "ALLOWED", id: gate.id, usdValue } };
+  }
+  // 4) הספר — אירוע משורשר עם ה-txid האמיתי
+  const ev = await chainEvent("WITHDRAW_EXEC", member, {
+    asset: "SAOS",
+    amount,
+    toAddress,
+    txid: rail.txid ?? null,
+    envelopeId: rail.envelopeId ?? null,
+    treasury: rail.treasuryAddr ?? null,
+    note: "rail SAOS-LIVE — token.transfer on-chain (custom_json saos.weave.live.v1)",
+  }, usdValue);
+  return {
+    ok: true,
+    detail: `SAOS נמשך דרך שרשרת SAOS-LIVE — txid ${rail.txid?.slice(0, 14) ?? "?"}… · הקיפול יזקוף בבלוק הבא`,
+    txid: rail.txid ?? null,
+    event: ev,
+    gate: { verdict: "ALLOWED", id: gate.id, usdValue },
+  };
+}
+
 export async function withdraw(params: {
   member: string;
   asset: ExchangeAsset;
@@ -546,6 +611,10 @@ export async function withdraw(params: {
   try {
     const { member, asset, amount, toAccount, issuedBy } = params;
     if (!(amount > 0)) return { ok: false, detail: "BAD-AMOUNT" };
+    // R104 — רייל SAOS-LIVE: היעד הוא כתובת שרשרת-חיה (saos1…), לא שם-חשבון גרפן
+    if (asset === "SAOS") {
+      return await saosWithdrawRail({ member, amount, toAddress: toAccount, issuedBy });
+    }
     if (!/^[a-z0-9.-]{3,16}$/.test(toAccount)) return { ok: false, detail: "BAD-ACCOUNT: יעד שרשרת שגוי" };
     const prices = await pricesUsd();
     const priceKey = asset === "WSTEEM" ? "steem" : asset === "WSBD" ? "sbd" : asset === "WHIVE" ? "hive" : asset === "WHBD" ? "hbd" : asset === "WBLURT" ? "blurt" : null;
@@ -553,7 +622,6 @@ export async function withdraw(params: {
 
     // נכסים שאינם ניתנים למשיכה ישירה — בכנות
     if (asset === "USDS") return { ok: false, detail: "USDS נפדה בשריפה (usds-burn) ל-WSBD/WHBD — ואז מושך" };
-    if (asset === "SAOS") return { ok: false, detail: "SAOS נשלף דרך רייל SAOS-LIVE החי — שלב מתועד הבא; בזירה הוא תביעה-פנימית מגובה-אוצר" };
 
     if (usdValue == null) {
       return { ok: false, detail: "NO-PRICE: USD לא נמדד חי — אין שער, אין מסחר" };

@@ -16,6 +16,7 @@ import {
   type ExchangeAsset,
 } from "@/lib/weave/sovereign-exchange";
 import { operatorFromRequest } from "@/lib/operator-auth";
+import { saosLiveRegisterWallet, saosAddressOf, foldLiveState, treasuryIdentity } from "@/lib/weave/saos-rail";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -124,6 +125,33 @@ export async function POST(req: NextRequest) {
           issuedBy,
         });
         return NextResponse.json({ ...r, at });
+      }
+      case "saos-register": {
+        // R104 — הרשמת ארנק SAOS-LIVE לחשבון שבכספת (self-certifying מהמפתח).
+        // רישום זהות בלבד — אין תנועת כסף; השרשרת היא השופט.
+        const account = String(body.toAccount || "headcorner").toLowerCase();
+        if (!/^[a-z0-9.-]{3,16}$/.test(account)) {
+          return NextResponse.json({ ok: false, at, error: "BAD-ACCOUNT" }, { status: 400 });
+        }
+        const r = await saosLiveRegisterWallet({ account, nick: account });
+        return NextResponse.json({ ...r, at });
+      }
+      case "saos-live": {
+        // מצב שרשרת-החי לתצוגה — קיפול נטול-מפתח, הצומת הוא השופט
+        const id = await treasuryIdentity();
+        const live = await foldLiveState(id.ok ? id.treasuryAddr : undefined);
+        const operator = await saosAddressOf("headcorner");
+        return NextResponse.json({
+          ok: live.ok,
+          at,
+          node: live.node,
+          envelopes: live.envelopes,
+          stateRoot: live.stateRoot,
+          wallets: Object.keys(live.wallets),
+          treasuryBalSaos: live.treasuryBalSaos,
+          operatorSaosAddr: operator.ok ? operator.addr : null,
+          detail: live.detail,
+        });
       }
       default:
         return NextResponse.json({ ok: false, at, error: "BAD-ACTION" }, { status: 400 });

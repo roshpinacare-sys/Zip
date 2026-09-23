@@ -68,7 +68,9 @@ type BlockageClass =
   | "LIVE-INTERNAL"
   | "PARTIAL-LIVE"
   // R103 — רייל מוכח בשרשרת מקצה לקצה
-  | "LIVE";
+  | "LIVE"
+  // R104 — המטבע יוצא לשרשרת-החי במשיכה
+  | "LIVE-RAIL";
 
 interface BlockageRow {
   code: string;
@@ -204,6 +206,7 @@ const CLASS_META: Record<BlockageClass, { label: string; hint: string }> = {
   "LIVE-INTERNAL": { label: "חיה · פנימית", hint: "המנגנון עובד בכסף אמיתי לחברי הרשת - פתיחה ציבורית דורשת גוף מורשה" },
   "PARTIAL-LIVE": { label: "חיה חלקית", hint: "חלק מהמסלול חי ומוכח; החלק החסר מתועד בכנות עם תנאי פתיחה" },
   LIVE: { label: "חיה · מוכח בשרשרת", hint: "רייל שלם שהוכח מקצה לקצה עם txids — הצמיחה מעתה מדלק אמיתי בלבד (R103)" },
+  "LIVE-RAIL": { label: "חיה · רייל-יציאה לשרשרת", hint: "המטבע הפנימי יוצא לשרשרת החיה: התביעה נשרפת בזירה והעברה חתומה מהאוצר מקופלת על ידי כל צומת (R104)" },
 };
 
 const FLOW_STATUS_META: Record<FlowStatus, { label: string; badge: string }> = {

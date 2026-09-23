@@ -100,12 +100,38 @@ export async function readLiveEnvelopes(): Promise<{ envelopes: LiveEnvelope[]; 
     try {
       const out: LiveEnvelope[] = [];
       for (const account of RELAY_ACCOUNTS) {
+        // R104 — חוק-הגילוי: שאילתות-העוגן (start=-1) בצומת הציבורי נצפו
+        // מוגשות מעותק-קאש מיושן לפי מפתח-מדויק (start,limit): אופ ממשי על
+        // השרשרת נעלם מהתשובה בעודו כלול בבלוק — נמדד חי 2026-09-23, שוב
+        // ושוב, על מפתחות שונים. לכן: גישוש כפול בגבולות-אקראיים (מקסימום
+        // אינדקס מנצח — שני עותקים מיושנים שונים בבת-אחת זה נדירות-מדידה)
+        // ועימוד בגבולות מרוצדים — אף מפתח-קאש לא נשאר רעיל לאורך זמן.
+        // השרשרת היא השופט; הקאש הוא תחבורה בלבד.
         let start = -1;
+        {
+          const lim1 = 2 + Math.floor(Math.random() * 7); // 2..8
+          const lim2 = 2 + Math.floor(Math.random() * 7); // 2..8 — מפתח שונה תמיד
+          let newest = -1;
+          for (const lim of new Set([lim1, lim2])) {
+            const probe = await rpcV4<Array<[number, unknown]>>(
+              node, "condenser_api.get_account_history", [account, -1, lim],
+            );
+            if (Array.isArray(probe) && probe.length) {
+              const n = probe[probe.length - 1][0];
+              if (typeof n === "number" && n > newest) newest = n;
+            }
+          }
+          if (newest >= 0) start = newest;
+        }
+        if (start < 0) continue; // אין היסטוריה כלל — רגל שקטה בכנות
         for (let p = 0; p < MAX_PAGES; p++) {
+          // עימוד מרוצד: 95..100 — מפתחות-קאש מתפזרים, עותק-מיושן אחד
+          // לא מסוגל להרעיל את כל הסריקה
+          const pageLim = PAGE - Math.floor(Math.random() * 6);
           const hist = await rpcV4<Array<[number, { trx_id: string; block: number; trx_in_block: number; op?: [string, Record<string, unknown>] }]>>(
             node,
             "condenser_api.get_account_history",
-            [account, start, PAGE],
+            [account, start, pageLim],
           );
           if (!Array.isArray(hist) || !hist.length) break;
           let oldest = Infinity;
@@ -152,10 +178,18 @@ export async function readCoreAnchorAge(): Promise<{ ok: boolean; ageHours?: num
   let lastErr: unknown = null;
   for (const node of STEEM_RPC_NODES) {
     try {
+      // R104 — חוק-הגילוי (אותו תיקון כמו readLiveEnvelopes): גילוי-אינדקס
+      // בשאילתה זעירה ואז start מפורש — עמידות לעותקי-קאש מיושנים של
+      // שאילתת-העוגן (-1, 100) בצמתים הציבוריים.
+      const probe = await rpcV4<Array<[number, unknown]>>(
+        node, "condenser_api.get_account_history", [WITNESS_ACCOUNT, -1, 1],
+      );
+      const newest = Array.isArray(probe) && probe.length ? probe[probe.length - 1][0] : -1;
+      if (typeof newest !== "number" || newest < 0) continue;
       const hist = await rpcV4<Array<[number, { timestamp?: string; op?: [string, Record<string, unknown>] }]>>(
         node,
         "condenser_api.get_account_history",
-        [WITNESS_ACCOUNT, -1, 100],
+        [WITNESS_ACCOUNT, newest, 100],
       );
       if (!Array.isArray(hist)) continue;
       let lastAt = "";

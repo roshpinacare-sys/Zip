@@ -95,6 +95,8 @@ const KIND_LABEL: Record<string, string> = {
   WITHDRAW_EXEC: "משיכה בוצעה",
   WITHDRAW_REQUEST: "בקשת משיכה",
   LP_SEED: "זריעת בריכה",
+  LP_ADD: "הוספת נזילות",
+  REWARD_PAY: "תגמול עבודה",
   FEE: "עמלה",
 };
 
@@ -115,6 +117,11 @@ export function SovereignArenaView() {
   const [quoting, setQuoting] = useState(false);
   const [swapResult, setSwapResult] = useState<string | null>(null);
   const [swapping, setSwapping] = useState(false);
+  // R104 — רייל משיכת SAOS-LIVE: הכתובת העצמאית של המפעיל מה-API
+  const [saosLive, setSaosLive] = useState<{ operatorSaosAddr: string | null; treasuryBalSaos: number | null; envelopes: number | null; wallets: string[] | null } | null>(null);
+  const [wxAmount, setWxAmount] = useState("2");
+  const [wxResult, setWxResult] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async (withSpin = true) => {
@@ -136,6 +143,27 @@ export function SovereignArenaView() {
     timerRef.current = setInterval(() => void load(false), 60_000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [load]);
+
+  // מצב שרשרת-החי — קיפול נטול-מפתח מה-API (הצומת הוא השופט)
+  useEffect(() => {
+    let alive = true;
+    const loadLive = async () => {
+      try {
+        const res = await fetch("/api/exchange", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ action: "saos-live" }),
+        });
+        const j = (await res.json()) as typeof saosLive & { ok?: boolean };
+        if (alive) setSaosLive(j);
+      } catch {
+        /* הריענון הבא */
+      }
+    };
+    void loadLive();
+    const t = setInterval(() => void loadLive(), 120_000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   const runQuote = useCallback(async () => {
     const amt = Number(quoteAmount);
@@ -176,6 +204,30 @@ export function SovereignArenaView() {
       setSwapping(false);
     }
   }, [quoteAmount, quotePair, quoteSide, load]);
+
+  // R104 — משיכת SAOS דרך רייל SAOS-LIVE: שריפת תביעה פנימית ← העברה
+  // חתומה מהאוצר על השרשרת החיה. השער מכסה; הקיפול הוא השופט.
+  const runSaosWithdraw = useCallback(async () => {
+    const amt = Number(wxAmount);
+    const to = saosLive?.operatorSaosAddr;
+    if (!Number.isFinite(amt) || amt <= 0 || !to) return;
+    setWithdrawing(true);
+    setWxResult(null);
+    try {
+      const res = await fetch("/api/exchange", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "withdraw", asset: "SAOS", amount: amt, toAccount: to }),
+      });
+      const j = (await res.json()) as { ok?: boolean; detail?: string; txid?: string };
+      setWxResult(j.ok ? `${j.detail ?? "נמשך"}${j.txid ? ` (txid ${j.txid.slice(0, 14)}…)` : ""}` : (j.detail ?? "נכשל"));
+      await load(false);
+    } catch {
+      setWxResult("הפעולה לא נענתה");
+    } finally {
+      setWithdrawing(false);
+    }
+  }, [wxAmount, saosLive, load]);
 
   const activePool = useMemo(
     () => snap?.pools.find((p) => p.pair === quotePair) ?? null,
@@ -427,6 +479,78 @@ export function SovereignArenaView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ── R104 — רייל משיכת SAOS-LIVE: השרשרת החיה כיציאה ── */}
+      <Card className="border-amber-700/30">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Sparkles className="size-4 text-amber-500" aria-hidden />
+                משיכת SAOS — רייל שרשרת-חיה (SAOS-LIVE)
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
+                התביעה הפנימית נשרפת בזירה, והעברה חתומה מהאוצר משודרת כ-custom_json על STEEM —
+                שם היא מקופלת על ידי כל צומת. הכתובת self-certifying: מי שמחזיק במפתח — שלו ה-SAOS.
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground space-y-0.5 text-left">
+              {saosLive && (
+                <>
+                  <div>אופס שרשרת: <span className="font-mono">{saosLive.envelopes ?? "—"}</span></div>
+                  <div>ארנקים רשומים: <span className="font-mono">{saosLive.wallets?.length ?? "—"}</span></div>
+                  <div>אוצר על השרשרת: <span className="font-mono">{fmt(saosLive.treasuryBalSaos, 0)} SAOS</span></div>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <div className="space-y-1 min-w-40">
+              <label htmlFor="wx-amount" className="text-xs text-muted-foreground">כמות SAOS למשיכה</label>
+              <Input
+                id="wx-amount"
+                type="number"
+                min="0.001"
+                step="any"
+                value={wxAmount}
+                onChange={(e) => setWxAmount(e.target.value)}
+                className="font-mono w-32"
+              />
+            </div>
+            <div className="min-w-56 flex-1">
+              <label htmlFor="wx-addr" className="text-xs text-muted-foreground">כתובת יעד (המפעיל, מהכספת)</label>
+              <div id="wx-addr" className="mt-1 h-9 rounded-md border bg-muted/40 px-3 py-2 font-mono text-xs truncate" title={saosLive?.operatorSaosAddr ?? ""}>
+                {saosLive?.operatorSaosAddr ?? "…"}
+              </div>
+            </div>
+            <Button size="sm" onClick={() => void runSaosWithdraw()} disabled={withdrawing || !saosLive?.operatorSaosAddr}>
+              {withdrawing ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Coins className="size-4" aria-hidden />}
+              משוך דרך השרשרת החיה
+            </Button>
+          </div>
+          {wxResult && (
+            <p className="mt-2 text-xs leading-relaxed border-t pt-2" aria-live="polite">{wxResult}</p>
+          )}
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <a
+              href="https://steemit.com/tx/bbc7031a1496d36d6ef2154e16d92a6a16012eb4"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 font-mono text-xs text-primary hover:underline"
+            >
+              הוכחת הרשמה: bbc7031a… <ExternalLink className="size-3" aria-hidden />
+            </a>
+            <a
+              href="https://steemit.com/tx/7eef6c5ed8027df6afed064a26704d8574c2d3bf"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 font-mono text-xs text-primary hover:underline"
+            >
+              הוכחת משיכה: 7eef6c5e… (2 SAOS) <ExternalLink className="size-3" aria-hidden />
+            </a>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── ספר הזירה + מאזני חברים ── */}
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
