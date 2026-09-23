@@ -48,6 +48,8 @@ import { HoldingsAuditView } from "@/components/weave/views/holdings-audit-view"
 import { FlywheelView } from "@/components/weave/views/flywheel-view";
 import { MoneyMarketView } from "@/components/weave/views/money-market-view";
 import { MoneyMoverView } from "@/components/weave/views/money-mover-view";
+import { CrossMarketView } from "@/components/weave/views/cross-market-view";
+import { StudentView } from "@/components/weave/views/student-view";
 import { PublisherView } from "@/components/weave/views/publisher-view";
 import { WebNetView } from "@/components/weave/views/webnet-view";
 import {
@@ -98,8 +100,8 @@ function SectionBody({ view, section, query }: Route) {
     case "flywheel":
       return <FlywheelView />;
     case "money-market":
-      // המוביל (R81) הוא תת-הסעיף הראשון — שוק-הכספים הקלאסי מאחוריו
-      return section === "markets" ? <MoneyMarketView /> : <MoneyMoverView />;
+      // המוביל (R81) ראשון · השוק הבין-רשתי (R94) שני · ההלוואות אחרונות
+      return section === "markets" ? <MoneyMarketView /> : section === "cross" ? <CrossMarketView /> : <MoneyMoverView />;
     case "holdings":
       return <HoldingsAuditView section={section} />;
     case "publish":
@@ -129,7 +131,7 @@ function SectionBody({ view, section, query }: Route) {
           return <DashboardTab />;
       }
     case "agents":
-      return section === "ledger" ? <AgentsTab /> : section === "keeper" ? <KeeperView /> : section === "charter" ? <CharterView /> : <AgentsFleetView />;
+      return section === "ledger" ? <AgentsTab /> : section === "keeper" ? <KeeperView /> : section === "charter" ? <CharterView /> : section === "student" ? <StudentView /> : <AgentsFleetView />;
     case "exchange":
       switch (section) {
         case "market":

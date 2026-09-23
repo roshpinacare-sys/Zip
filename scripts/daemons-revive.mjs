@@ -26,6 +26,7 @@ const DAEMONS = [
   { name: "money", port: 3034, dir: `${HOME}/mini-services/money` },
   { name: "hunter", port: 3035, dir: `${HOME}/mini-services/hunter` },
   { name: "keeper", port: 3036, dir: `${HOME}/mini-services/keeper` },
+  { name: "student", port: 3037, dir: `${HOME}/mini-services/student` },
 ];
 
 function httpOk(port, timeoutMs = 2500) {
@@ -141,7 +142,7 @@ async function main() {
   }
   console.log(
     allUp
-      ? "── הצי שלם: 4/4 דיבונים חיים · השומר על הצי מעכשיו ──"
+      ? `── הצי שלם: ${DAEMONS.length}/${DAEMONS.length} דיבונים חיים · השומר על הצי מעכשיו ──`
       : "── אזהרה כנה: לא כל הצי עלה — ראה שורות ✗ למעלה ──",
   );
   process.exit(allUp ? 0 : 1);

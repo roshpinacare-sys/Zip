@@ -698,16 +698,30 @@ export async function POST(req: Request) {
   const steem = nodeRequire("steem");
   steem.api.setOptions({ url: "https://api.steemit.com" });
 
+  // תיקון R94 (נתפס חי ב-dev.log כ-unhandledRejection ×6): steem-js מחזיר
+  // promise פנימי גם במצב-callback — דחייתו (אותה שגיאת-RPC שכבר מטופלת
+  // ב-callback שלנו) נותרת ללא מטפל ומפיצה unhandledRejection. ה-callback
+  // הוא מקור-האמת — מה שמוחזר מהקריאה נבלע במפורש.
+  const quiet = (ret: unknown): void => {
+    if (ret && typeof (ret as { catch?: unknown }).catch === "function") {
+      (ret as Promise<unknown>).catch(() => {});
+    }
+  };
+
   // מדידה חיה טרייה — לא מהמטמון: הפעולה מחליטה על סולם עכשיו
   const [accts, openOrders, marks] = await Promise.all([
     new Promise<any[]>((resolve, reject) =>
-      steem.api.getAccounts([ownerKey.account], (err: Error | null, res: any[]) =>
-        err || !res?.length ? reject(err ?? new Error("empty")) : resolve(res),
+      quiet(
+        steem.api.getAccounts([ownerKey.account], (err: Error | null, res: any[]) =>
+          err || !res?.length ? reject(err ?? new Error("empty")) : resolve(res),
+        ),
       ),
     ),
     new Promise<any[]>((resolve, reject) =>
-      steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
-        err ? reject(err) : resolve(res ?? []),
+      quiet(
+        steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+          err ? reject(err) : resolve(res ?? []),
+        ),
       ),
     ),
     marksSide(),
@@ -759,18 +773,20 @@ export async function POST(req: Request) {
     receipt.error = errors.slice(-3).join(" | ");
   };
 
-  const broadcastOp = <T,>(fn: (cb: (err: Error | null, res: T) => void) => void): Promise<T> =>
+  const broadcastOp = <T,>(fn: (cb: (err: Error | null, res: T) => void) => unknown): Promise<T> =>
     new Promise<T>((resolve, reject) => {
       // לקח-הריצות (נמדד 00:43–00:50Z): שידור מתקבל בשרשרת ב-~7-9 שנ׳
       // אך אישור ה-callback של steem-js חוזר אחרי 20-30 שנ׳. תקרת-זמן
       // לכל שידור: 45 שנ׳ — והשופט הסופי הוא השרשרת עצמה (ה-verify
       // בסוף הקבלה מודד מה באמת פתוח שם, לא מה שהאישורים אמרו).
       const timer = setTimeout(() => reject(new Error("broadcast-timeout-45s")), 45_000);
-      fn((err, res) => {
-        clearTimeout(timer);
-        if (err) reject(err);
-        else resolve(res);
-      });
+      quiet(
+        fn((err, res) => {
+          clearTimeout(timer);
+          if (err) reject(err);
+          else resolve(res);
+        }),
+      );
     });
 
   // לקח-הריצה-הראשונה (נמדד 00:38–00:40Z): קבלה שנכתבת רק בסוף מתאפסת אם
@@ -796,6 +812,31 @@ export async function POST(req: Request) {
       }
     });
     persist();
+
+    // תיקון R94 — שורש מחלקת "אין די כספים" שנמדדה ב-dev.log (6 דחיות):
+    // ביטול ששודר אינו ביטול שנכלל בבלוק. השרשרת דוחה הצבה חדשה כל
+    // עוד הכסף נעול בפקודות הישנות. תנאי-המתנה: ה-orderid שבוטלו
+    // נעלמים מ-getOpenOrders (עד 4 סקרים × 5ש׳, קריאה בלבד) — ורק
+    // אז מוצב הסולם. סקר שנכשל לא עוצר — הסקר הבא יגיד את האמת.
+    const cancelledIds = new Set((openOrders as any[]).map((o) => Number(o.orderid)));
+    if (cancelledIds.size > 0) {
+      for (let poll = 0; poll < 4; poll++) {
+        try {
+          const os = await new Promise<any[]>((resolve, reject) =>
+            quiet(
+              steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+                err ? reject(err) : resolve(res ?? []),
+              ),
+            ),
+          );
+          const stillThere = os.some((o: any) => cancelledIds.has(Number(o.orderid)));
+          if (!stillThere) break;
+        } catch {
+          /* סקר שנכשל לא עוצר — השופט הסופי הוא ה-verify בסוף */
+        }
+        await new Promise((r) => setTimeout(r, 5000));
+      }
+    }
 
     // ב. הצבת הסולם החדש — רצפה נאכפת: כל מחיר ≥ פאריטה
     const orderDay = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -837,8 +878,10 @@ export async function POST(req: Request) {
           await new Promise((r) => setTimeout(r, 8000));
           try {
             const os = await new Promise<any[]>((resolve, reject) =>
-              steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
-                err ? reject(err) : resolve(res ?? []),
+              quiet(
+                steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+                  err ? reject(err) : resolve(res ?? []),
+                ),
               ),
             );
             const found = os.find((o: any) => Number(o.orderid) === orderid);
@@ -869,8 +912,10 @@ export async function POST(req: Request) {
     let verify: { ordersNow: number; deployedNow: number } | null = null;
     try {
       const after = await new Promise<any[]>((resolve, reject) =>
-        steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
-          err ? reject(err) : resolve(res ?? []),
+        quiet(
+          steem.api.getOpenOrders(ownerKey.account, (err: Error | null, res: any[]) =>
+            err ? reject(err) : resolve(res ?? []),
+          ),
         ),
       );
       verify = {

@@ -91,6 +91,7 @@ export const SECTIONS: Array<{
     icon: Landmark,
     subs: [
       { key: "mover", label: "מוביל הכסף" },
+      { key: "cross", label: "בין-רשתות · גריד" },
       { key: "markets", label: "שווקי ההלוואות" },
     ],
   },
@@ -152,6 +153,7 @@ export const SECTIONS: Array<{
     icon: Users,
     subs: [
       { key: "fleet", label: "הצי החי" },
+      { key: "student", label: "התלמיד · התפתחות" },
       { key: "keeper", label: "השומר · הדיבונים" },
       { key: "charter", label: "מספנת הצ׳רטרים" },
       { key: "ledger", label: "זהויות בספר" },
