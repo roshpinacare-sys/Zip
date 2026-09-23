@@ -103,6 +103,62 @@ interface CrossData {
   stale: boolean;
 }
 
+// ── כלכלת הגריד — חוזה /api/money/pnl (R95) ───────────────────────
+
+interface PnlData {
+  ok: boolean;
+  at: string;
+  account: string;
+  scan: { pagesThisRun: number; entriesScanned: number; downToIndex: number | null; maxIndex: number | null; fullScan: boolean };
+  fills: Array<{
+    idx: number;
+    at: string;
+    side: "bought-steem" | "sold-steem";
+    price: number | null;
+    steem: number;
+    sbd: number;
+    maker: boolean;
+  }>;
+  stats: {
+    fillsTotal: number;
+    bought: { count: number; steem: number; sbd: number; avgPrice: number | null };
+    sold: { count: number; steem: number; sbd: number; avgPrice: number | null };
+    netSteem: number;
+    netSbd: number;
+    roundTrips: number;
+    capturedSbd: number;
+    openLongSteem: number;
+    firstFillAt: string | null;
+    lastFillAt: string | null;
+    quietDays: number | null;
+  };
+  market: {
+    bestBid: number | null;
+    bestAsk: number | null;
+    internalMid: number | null;
+    spreadBps: number | null;
+    parity: number | null;
+    midVsParityBps: number | null;
+    sbdUsd: number | null;
+    steemUsd: number | null;
+    sbdSource: string | null;
+  };
+  ladder: {
+    orders: number;
+    deployedSteem: number;
+    lowestAsk: number | null;
+    highestAsk: number | null;
+    lowestAskVsMidBps: number | null;
+  };
+  regime: { verdict: "VALUE-TRAP" | "CAPTURE" | "UNKNOWN"; detail: string };
+  opportunities: Array<{ id: string; title: string; state: "GATED" | "ARMED" | "WAIT"; detail: string }>;
+  doctrine: string[];
+  down: string[];
+  cached: boolean;
+  cacheAgeSec: number;
+  stale: boolean;
+}
+
 // ── עזרים ────────────────────────────────────────────────────────────
 
 const fmtNum = (v: number | null | undefined, digits = 5): string =>
@@ -127,6 +183,12 @@ const VERDICT_STYLE: Record<string, { cls: string; label: string }> = {
   WAIT: { cls: "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "המתנה" },
   GATED: { cls: "border-zinc-600/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300", label: "שער-מפעיל" },
   "NOT-MEASURABLE": { cls: "border-zinc-600/40 bg-zinc-500/10 text-zinc-500", label: "לא נמדד כאן" },
+};
+
+const REGIME_STYLE: Record<string, { cls: string; label: string }> = {
+  "VALUE-TRAP": { cls: "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "מלכודת-ערך · המתנה" },
+  CAPTURE: { cls: "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "לכידה · הסולם ממלא" },
+  UNKNOWN: { cls: "border-zinc-600/40 bg-zinc-500/10 text-zinc-500", label: "לא נמדד" },
 };
 
 // ── כרטיס שוק-שרשרת ──────────────────────────────────────────────────
@@ -254,6 +316,129 @@ function GridSimCard({ title, g, quote }: { title: string; g: GridSimResult; quo
   );
 }
 
+// ── כרטיס כלכלת הגריד — ה-P&L הכנה (R95) ─────────────────────────────
+
+function GridPnlCard({ p }: { p: PnlData }) {
+  const rs = REGIME_STYLE[p.regime.verdict] ?? REGIME_STYLE.UNKNOWN;
+  return (
+    <Card className="border-[#d4af37]/30 bg-zinc-950/40">
+      <CardContent className="p-4 sm:p-5">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <Coins className="size-4 text-[#d4af37]" aria-hidden />
+          <h3 className="text-sm font-bold">כלכלת הגריד · P&L כנה</h3>
+          <Badge variant="outline" className={cn("border", rs.cls)}>{rs.label}</Badge>
+          <span className="ms-auto text-[11px] text-zinc-600">
+            חשבון {p.account} · סריקה {p.scan.entriesScanned.toLocaleString("he-IL")} רשומות{p.scan.downToIndex != null ? ` עד אינדקס ${p.scan.downToIndex.toLocaleString("he-IL")}` : ""} · {dataAge(p.at)}
+          </span>
+        </div>
+
+        {/* שורת האמת: מילויים וסבבים */}
+        <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+            <div className="text-zinc-500">מילויים אי-פעם</div>
+            <div className="mt-1 font-mono text-sm font-bold text-zinc-200">{fmtInt(p.stats.fillsTotal)}</div>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+            <div className="text-zinc-500">סבבים שנסגרו</div>
+            <div className="mt-1 font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">{fmtInt(p.stats.roundTrips)}</div>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+            <div className="text-zinc-500">נלכד (SBD)</div>
+            <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">{p.stats.capturedSbd.toFixed(4)}</div>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+            <div className="text-zinc-500">עמדה פתוחה</div>
+            <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">{p.stats.openLongSteem.toFixed(3)} STEEM</div>
+            <div className="text-[10px] text-zinc-600">נקנה וטרם נמכר — לא רווח</div>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+            <div className="text-zinc-500">מילוי אחרון</div>
+            <div className="mt-1 font-mono text-sm text-zinc-200">
+              {p.stats.lastFillAt ? p.stats.lastFillAt.slice(0, 10) : "—"}
+              {p.stats.quietDays != null && p.stats.quietDays > 0 ? <span className="text-[10px] text-amber-600 dark:text-amber-400"> · לפני {p.stats.quietDays} ימים</span> : null}
+            </div>
+          </div>
+          <div className="rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+            <div className="text-zinc-500">הסולם מעל השוק</div>
+            <div className="mt-1 font-mono text-sm font-bold text-amber-600 dark:text-amber-400" dir="ltr">
+              {p.ladder.lowestAskVsMidBps != null ? `${p.ladder.lowestAskVsMidBps.toLocaleString("he-IL")} bps` : "—"}
+            </div>
+            <div className="text-[10px] text-zinc-600">{fmtInt(p.ladder.orders)} פקודות · {fmtInt(p.ladder.deployedSteem)} STEEM</div>
+          </div>
+        </div>
+
+        {/* פסק-דין המשטר — לב ההבנה */}
+        <div className={cn(
+          "mt-2 rounded-lg border px-3 py-2.5 text-xs leading-relaxed",
+          p.regime.verdict === "VALUE-TRAP"
+            ? "border-amber-900/30 bg-amber-950/10 text-amber-700 dark:text-amber-400"
+            : p.regime.verdict === "CAPTURE"
+              ? "border-emerald-900/30 bg-emerald-950/10 text-emerald-700 dark:text-emerald-300"
+              : "border-zinc-800/70 bg-zinc-900/40 text-zinc-500"
+        )}>
+          <span className="font-semibold">פסק-דין המשטר הנמדד: </span>
+          {p.regime.detail}
+        </div>
+
+        {/* ההזדמנויות השעודות */}
+        {p.opportunities.length > 0 && (
+          <div className="mt-2 grid gap-2">
+            {p.opportunities.map((o) => {
+              const st = VERDICT_STYLE[o.state] ?? VERDICT_STYLE.WAIT;
+              return (
+                <div key={o.id} className="rounded-xl border border-zinc-800/70 bg-zinc-900/40 p-3">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold text-zinc-200">{o.title}</span>
+                    <Badge variant="outline" className={cn("ms-auto border", st.cls)}>{st.label}</Badge>
+                  </div>
+                  <p className="text-[11px] leading-relaxed text-zinc-500">{o.detail}</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* המילויים עצמם — קבלה מהשרשרת */}
+        {p.fills.length > 0 && (
+          <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2">
+            <table className="w-full text-[11px]">
+              <thead>
+                <tr className="text-zinc-600">
+                  <th className="pb-1 text-start font-normal">מועד</th>
+                  <th className="pb-1 text-start font-normal">כיוון</th>
+                  <th className="pb-1 text-end font-normal">STEEM</th>
+                  <th className="pb-1 text-end font-normal">SBD</th>
+                  <th className="pb-1 text-end font-normal">מחיר</th>
+                </tr>
+              </thead>
+              <tbody>
+                {p.fills.map((f) => (
+                  <tr key={f.idx} className="border-t border-zinc-800/40">
+                    <td className="py-1 text-zinc-400" dir="ltr">{f.at.slice(0, 16).replace("T", " ")}</td>
+                    <td className={cn("py-1 font-medium", f.side === "bought-steem" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
+                      {f.side === "bought-steem" ? "קנייה" : "מכירה"}
+                      <span className="ms-1 text-[9px] text-zinc-600">{f.maker ? "maker" : "taker"}</span>
+                    </td>
+                    <td className="py-1 text-end font-mono text-zinc-300" dir="ltr">{f.steem.toFixed(3)}</td>
+                    <td className="py-1 text-end font-mono text-zinc-300" dir="ltr">{f.sbd.toFixed(3)}</td>
+                    <td className="py-1 text-end font-mono text-zinc-300" dir="ltr">{fmtNum(f.price, 6)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
+          {p.doctrine[0]} · {p.doctrine[1]}
+          {p.market.sbdSource ? ` · שער SBD: ${p.market.sbdSource}` : ""}
+          {p.down.length ? ` · לא נמדד: ${p.down.join(" · ")}` : ""}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── התצוגה ───────────────────────────────────────────────────────────
 
 export function CrossMarketView() {
@@ -261,6 +446,7 @@ export function CrossMarketView() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [pnl, setPnl] = useState<PnlData | null>(null);
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -274,6 +460,29 @@ export function CrossMarketView() {
       setLoading(false);
       setRefreshing(false);
     }
+  }, []);
+
+  // כלכלת הגריד — מדידה נפרדת (SWR 10 דק', הסריקה העמוקה כבדה)
+  useEffect(() => {
+    let alive = true;
+    void apiFetch<PnlData>("/api/money/pnl")
+      .then((j) => {
+        if (alive) setPnl(j);
+      })
+      .catch(() => {
+        /* כלכלה לא נמדדה — הכרטיס לא יוצג; הכנות מלאה */
+      });
+    const t = setInterval(() => {
+      void apiFetch<PnlData>("/api/money/pnl")
+        .then((j) => {
+          if (alive) setPnl(j);
+        })
+        .catch(() => {});
+    }, 5 * 60_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
   }, []);
 
   useEffect(() => {
@@ -330,6 +539,9 @@ export function CrossMarketView() {
             <ChainMarketCard m={data.steem} />
             <ChainMarketCard m={data.hive} />
           </div>
+
+          {/* כלכלת הגריד — ה-P&L הכנה מהשרשרת (R95) */}
+          {pnl && <GridPnlCard p={pnl} />}
 
           {/* הדולרים הנגזרים — לב הניתוח הצולב */}
           <Card className="border-zinc-800 bg-zinc-950/40">

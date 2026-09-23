@@ -104,6 +104,30 @@ interface Lessons {
   note: string[];
 }
 
+// ── כלכלת הרשת (R95): התלמיד לומד להבין את הכסף של עצמו ─────────
+// "לומדת את עצמה טוב יותר" — לא רק האם המערכות עונות ל-HTTP, אלא
+// מה הרשת מרוויחה בפועל: מילויים, סבבים, משטר, ומרחק הסולם
+// מהשוק. מדידה מ-/api/money/pnl (השרשרת היא הסמכות).
+
+interface Economics {
+  at: string;
+  fillsTotal: number;
+  roundTrips: number;
+  capturedSbd: number;
+  openLongSteem: number;
+  regime: string;
+  midVsParityBps: number | null;
+  ladderVsMidBps: number | null;
+  deployedSteem: number | null;
+  sbdBalance: number | null;
+}
+
+interface EconomicsEvent {
+  at: string;
+  kind: "FILL" | "REGIME" | "SNAPSHOT";
+  detail: string;
+}
+
 interface StudentState {
   service: string;
   version: string;
@@ -120,6 +144,8 @@ interface StudentState {
   coverageAt: string | null;
   findings: Finding[];
   lessons: Lessons | null;
+  economics: Economics | null;
+  economicsHistory: EconomicsEvent[];
   heal: { receipts: HealReceipt[]; today: number; day: string };
   history: Decision[];
 }
@@ -184,7 +210,7 @@ function seedFindings(): Finding[] {
 function freshState(): StudentState {
   return {
     service: "student",
-    version: "1.1.0",
+    version: "1.2.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     cycleSec: CYCLE_SEC,
@@ -198,6 +224,8 @@ function freshState(): StudentState {
     coverageAt: null,
     findings: seedFindings(),
     lessons: null,
+    economics: null,
+    economicsHistory: [],
     heal: { receipts: [], today: 0, day: utcDay() },
     history: [],
   };
@@ -220,6 +248,8 @@ function readState(): StudentState {
       // ספר-הפוטנציאל: זרעים חיים רק פעם אחת — אחר-כך המצב נשמר (למידה אמיתית = היסטוריה)
       findings: Array.isArray(prev.findings) && prev.findings.length ? prev.findings : base.findings,
       lessons: prev.lessons ?? null,
+      economics: prev.economics ?? null,
+      economicsHistory: Array.isArray(prev.economicsHistory) ? prev.economicsHistory.slice(-60) : [],
       heal: {
         receipts: Array.isArray(prev.heal?.receipts) ? prev.heal.receipts.slice(-40) : [],
         today: sameDay ? (prev.heal?.today ?? 0) : 0,
@@ -462,7 +492,59 @@ function learnFromWorklog(): Lessons {
   }
 }
 
-// ── 5. ריפוי-בטוח (אידמפוטנטי, מתועד, בתקציב) ────────────────────────
+// ── 5. כלכלת הרשת — למידה מה-P&L החי (R95) ──────────────────────────
+
+async function learnEconomics(): Promise<string[]> {
+  const notes: string[] = [];
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 45_000);
+  try {
+    const res = await fetch("http://127.0.0.1:3000/api/money/pnl", { signal: ctl.signal, cache: "no-store" });
+    if (!res.ok) return notes;
+    const j = await res.json();
+    if (!j?.ok || j?.stats?.fillsTotal == null) return notes; // לא נמדד — לא מומצא
+    const econ: Economics = {
+      at: new Date().toISOString(),
+      fillsTotal: Number(j.stats.fillsTotal),
+      roundTrips: Number(j.stats.roundTrips ?? 0),
+      capturedSbd: Number(j.stats.capturedSbd ?? 0),
+      openLongSteem: Number(j.stats.openLongSteem ?? 0),
+      regime: String(j.regime?.verdict ?? "UNKNOWN"),
+      midVsParityBps: j.market?.midVsParityBps ?? null,
+      ladderVsMidBps: j.ladder?.lowestAskVsMidBps ?? null,
+      deployedSteem: j.ladder?.deployedSteem ?? null,
+      sbdBalance: j.balances?.sbd ?? null,
+    };
+    const prev = state.economics;
+    // זיהוי שינויים — הלמידה האמיתית: מה השתנה מאז המדידה הקודמת
+    if (prev) {
+      if (econ.fillsTotal > prev.fillsTotal) {
+        notes.push(
+          `FILL: מילוי חדש בגריד! ${prev.fillsTotal}→${econ.fillsTotal} מילויים · סבבים ${prev.roundTrips}→${econ.roundTrips} · נלכד ${prev.capturedSbd.toFixed(4)}→${econ.capturedSbd.toFixed(4)} SBD`,
+        );
+        state.economicsHistory.push({ at: econ.at, kind: "FILL", detail: notes[notes.length - 1] });
+      }
+      if (econ.regime !== prev.regime) {
+        const d = `REGIME: המשטר הכלכלי השתנה ${prev.regime} → ${econ.regime}`;
+        notes.push(d);
+        state.economicsHistory.push({ at: econ.at, kind: "REGIME", detail: d });
+      }
+    } else {
+      const d = `SNAPSHOT: בסיס הכלכלה נמדד — ${econ.fillsTotal} מילויים · ${econ.roundTrips} סבבים · נלכד ${econ.capturedSbd.toFixed(4)} SBD · משטר ${econ.regime}`;
+      notes.push(d);
+      state.economicsHistory.push({ at: econ.at, kind: "SNAPSHOT", detail: d });
+    }
+    state.economics = econ;
+    state.economicsHistory = state.economicsHistory.slice(-60);
+  } catch {
+    // הכלכלה לא נמדדה במחזור זה — נשמר הקודם, בכנות
+  } finally {
+    clearTimeout(t);
+  }
+  return notes;
+}
+
+// ── 6. ריפוי-בטוח (אידמפוטנטי, מתועד, בתקציב) ────────────────────────
 
 async function safeHeal(): Promise<string[]> {
   const notes: string[] = [];
@@ -527,6 +609,18 @@ async function tick() {
     // למידה מה-worklog — פעם בשעה
     if (state.beats % COVERAGE_EVERY === 2) {
       state.lessons = learnFromWorklog();
+    }
+
+    // למידת כלכלה — כל שני מחזורים (20 דק'): ה-SWR של ה-P&L מטמון 10 דק',
+    // והסריקה העמוקה מצ'קפוינטת — העלות נמוכה, ההבנה גבוהה (R95).
+    if (state.beats % 2 === 0) {
+      const econNotes = await learnEconomics();
+      if (econNotes.length) {
+        state.history = [
+          ...state.history,
+          ...econNotes.map((n) => ({ at: new Date().toISOString(), kind: "ECONOMY", detail: n })),
+        ].slice(-40);
+      }
     }
 
     // ריפוי-בטוח — פעם בשעה (פרוטוקול הסשן, אידמפוטנטי)

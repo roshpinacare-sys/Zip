@@ -78,6 +78,19 @@ interface StudentData {
       parsedAt: string;
       note: string[];
     } | null;
+    economics: {
+      at: string;
+      fillsTotal: number;
+      roundTrips: number;
+      capturedSbd: number;
+      openLongSteem: number;
+      regime: string;
+      midVsParityBps: number | null;
+      ladderVsMidBps: number | null;
+      deployedSteem: number | null;
+      sbdBalance: number | null;
+    } | null;
+    economicsHistory: Array<{ at: string; kind: string; detail: string }>;
     heal: { receipts: Array<{ at: string; action: string; ok: boolean; detail: string }>; today: number; day: string };
     history: Array<{ at: string; kind: string; detail: string }>;
     uptimePct: number | null;
@@ -87,6 +100,7 @@ interface StudentData {
   summary: {
     coverage: { repos: number; agented: number; idle: number; stale: number; at: string | null } | null;
     uptimePct: number | null;
+    economics: { fillsTotal: number; roundTrips: number; capturedSbd: number; regime: string; at: string } | null;
     findings: { done: number; working: number; open: number; gated: number; disproven: number } | null;
   } | null;
   doctrine: string[];
@@ -108,6 +122,12 @@ const VERDICT_STYLE: Record<string, { cls: string; label: string }> = {
   AGENTED: { cls: "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "סוכן חי" },
   STALE: { cls: "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "עצור 3+ ימים" },
   IDLE: { cls: "border-rose-600/40 bg-rose-500/10 text-rose-600", label: "ללא סוכן" },
+  UNKNOWN: { cls: "border-zinc-600/40 bg-zinc-500/10 text-zinc-500", label: "לא נמדד" },
+};
+
+const ECON_REGIME_STYLE: Record<string, { cls: string; label: string }> = {
+  "VALUE-TRAP": { cls: "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "מלכודת-ערך" },
+  CAPTURE: { cls: "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "לכידה" },
   UNKNOWN: { cls: "border-zinc-600/40 bg-zinc-500/10 text-zinc-500", label: "לא נמדד" },
 };
 
@@ -405,6 +425,81 @@ export function StudentView() {
               </CardContent>
             </Card>
           </div>
+
+          {/* למידת כלכלה — התלמיד מבין את הכסף של עצמו (R95) */}
+          <Card className="min-w-0 border-[#d4af37]/30 bg-zinc-950/40">
+            <CardContent className="p-4 sm:p-5">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <Bot className="size-4 text-[#d4af37]" aria-hidden />
+                <h3 className="text-sm font-bold">למידת כלכלה — הכסף של עצמי</h3>
+                {d?.economics ? (
+                  <Badge variant="outline" className={cn("border", (ECON_REGIME_STYLE[d.economics.regime] ?? ECON_REGIME_STYLE.UNKNOWN).cls)}>
+                    משטר: {(ECON_REGIME_STYLE[d.economics.regime] ?? ECON_REGIME_STYLE.UNKNOWN).label}
+                  </Badge>
+                ) : null}
+                <span className="ms-auto text-[11px] text-zinc-600">
+                  נמדד כל 20 דק׳{d?.economics ? ` · לאחרונה ${fmtDateTime(d.economics.at)}` : ""}
+                </span>
+              </div>
+              {d?.economics ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-6">
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">מילויים אי-פעם</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-200">{d.economics.fillsTotal}</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">סבבים שנסגרו</div>
+                      <div className="mt-1 font-mono text-sm text-emerald-600 dark:text-emerald-400">{d.economics.roundTrips}</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">נלכד (SBD)</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">{d.economics.capturedSbd.toFixed(4)}</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">שוק מול פאריטה</div>
+                      <div className="mt-1 font-mono text-sm text-amber-600 dark:text-amber-400" dir="ltr">
+                        {d.economics.midVsParityBps != null ? `${d.economics.midVsParityBps} bps` : "—"}
+                      </div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">סולם מעל השוק</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">
+                        {d.economics.ladderVsMidBps != null ? `${d.economics.ladderVsMidBps} bps` : "—"}
+                      </div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">SBD נזיל</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">{d.economics.sbdBalance ?? "—"}</div>
+                    </div>
+                  </div>
+                  {(d.economicsHistory ?? []).length > 0 && (
+                    <div className="mt-2 max-h-32 overflow-y-auto rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2 text-[11px]">
+                      {d.economicsHistory.slice().reverse().map((e, i) => (
+                        <div key={i} className="flex items-start gap-2 border-b border-zinc-800/30 py-1 last:border-0">
+                          <span className="shrink-0 font-mono text-zinc-600" dir="ltr">{e.at.slice(11, 19)}</span>
+                          <span
+                            className={cn(
+                              "shrink-0 font-bold",
+                              e.kind === "FILL" ? "text-emerald-600 dark:text-emerald-400" : e.kind === "REGIME" ? "text-amber-600 dark:text-amber-400" : "text-zinc-500"
+                            )}
+                          >
+                            {e.kind}
+                          </span>
+                          <span className="text-zinc-400">{e.detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
+                    התלמיד לומד את כלכלת הגריד שלו — מילוי חדש או שינוי משטר יירשמו כאן בזמן אמת, מהשרשרת. מלאי פתוח ({d.economics.openLongSteem.toFixed(3)} STEEM) הוא עמדה, לא רווח.
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-zinc-600">הכלכלה טרם נמדדה — ה-SNAPSHOT הראשון יתועד במחזור הבא</p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* ספר-פוטנציאל */}
           <Card className="min-w-0 border-zinc-800 bg-zinc-950/40">

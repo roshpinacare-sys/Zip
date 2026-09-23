@@ -56,6 +56,19 @@ interface StudentStatus {
     parsedAt: string;
     note: string[];
   } | null;
+  economics: {
+    at: string;
+    fillsTotal: number;
+    roundTrips: number;
+    capturedSbd: number;
+    openLongSteem: number;
+    regime: string;
+    midVsParityBps: number | null;
+    ladderVsMidBps: number | null;
+    deployedSteem: number | null;
+    sbdBalance: number | null;
+  } | null;
+  economicsHistory: Array<{ at: string; kind: string; detail: string }>;
   heal: { receipts: Array<{ at: string; action: string; ok: boolean; detail: string }>; today: number; day: string };
   history: Array<{ at: string; kind: string; detail: string }>;
   uptimePct: number | null;
@@ -93,6 +106,15 @@ async function composeState() {
     summary: {
       coverage: coverage.length ? { repos: coverage.length, agented, idle, stale, at: daemon?.coverageAt ?? null } : null,
       uptimePct: daemon?.uptimePct ?? null,
+      economics: daemon?.economics
+        ? {
+            fillsTotal: daemon.economics.fillsTotal,
+            roundTrips: daemon.economics.roundTrips,
+            capturedSbd: daemon.economics.capturedSbd,
+            regime: daemon.economics.regime,
+            at: daemon.economics.at,
+          }
+        : null,
       findings: daemon
         ? {
             done: daemon.findings.filter((f) => f.state === "DONE").length,
@@ -108,6 +130,7 @@ async function composeState() {
       "למידה מהיסטוריה: כשל חוזר מסומן RECURRING עד ריפוי — וההתאוששות עצמה נלמדת.",
       "ריפוי-בטוח בלבד: סנכרון ספר וריפוי צ'רטרים — הפעולות האידמפוטנטיות המתועדות, בתקציב 3 ליום.",
       "מפקד האמת (R95): טענה שניתנת למדידה לא נשארת פתוחה מכוח זיכרון — היא נמדדת מול המקור החי, ואמונה שקרית מופרכת בראיה.",
+      "למידת כלכלה (R95): התלמיד מבין את הכסף של עצמו — מילויים, סבבים נסגרים, ומשטר כלכלי נמדדים מהשרשרת כל 20 דק'.",
       "לא ריבונות עצלנית: כל מחזור מודד, כל ממצא נשמר, וספר-הפוטנציאל מתעדכן מהשטח.",
     ],
   };
