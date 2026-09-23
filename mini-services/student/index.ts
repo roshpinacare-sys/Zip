@@ -128,6 +128,28 @@ interface EconomicsEvent {
   detail: string;
 }
 
+// ── 6. למידת ראוטר ההחלפות (R96) — הרשת בוחנת את ערוצי ה-DEX בעצמה.
+// "לאמת לבחון לאתגר": התלמיד מודד את הראוטר מול עצמו לאורך זמן —
+// אילו ערוצים אומתו, אילו אותגרו, מי זול, והאם רשת שלמה נפלה.
+
+interface ExchangeObs {
+  at: string;
+  channels: number;
+  verified: number;
+  deviant: number;
+  down: number;
+  chainsLive: number;
+  bestEthDex: string | null;
+  worstDevBps: number | null;
+  topYield: string | null;
+}
+
+interface ExchangeEvent {
+  at: string;
+  kind: "SNAPSHOT" | "ROUTE-DOWN" | "ROUTE-UP" | "DEVIANT" | "VERDICT-CHANGE";
+  detail: string;
+}
+
 interface StudentState {
   service: string;
   version: string;
@@ -146,6 +168,8 @@ interface StudentState {
   lessons: Lessons | null;
   economics: Economics | null;
   economicsHistory: EconomicsEvent[];
+  exchange: ExchangeObs | null;
+  exchangeHistory: ExchangeEvent[];
   heal: { receipts: HealReceipt[]; today: number; day: string };
   history: Decision[];
 }
@@ -210,7 +234,7 @@ function seedFindings(): Finding[] {
 function freshState(): StudentState {
   return {
     service: "student",
-    version: "1.2.0",
+    version: "1.3.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     cycleSec: CYCLE_SEC,
@@ -226,6 +250,8 @@ function freshState(): StudentState {
     lessons: null,
     economics: null,
     economicsHistory: [],
+    exchange: null,
+    exchangeHistory: [],
     heal: { receipts: [], today: 0, day: utcDay() },
     history: [],
   };
@@ -250,6 +276,8 @@ function readState(): StudentState {
       lessons: prev.lessons ?? null,
       economics: prev.economics ?? null,
       economicsHistory: Array.isArray(prev.economicsHistory) ? prev.economicsHistory.slice(-60) : [],
+      exchange: prev.exchange ?? null,
+      exchangeHistory: Array.isArray(prev.exchangeHistory) ? prev.exchangeHistory.slice(-60) : [],
       heal: {
         receipts: Array.isArray(prev.heal?.receipts) ? prev.heal.receipts.slice(-40) : [],
         today: sameDay ? (prev.heal?.today ?? 0) : 0,
@@ -285,6 +313,7 @@ const HTTP_PROBES: Array<{ name: string; url: string }> = [
   { name: "app:health", url: "http://127.0.0.1:3000/api/health" },
   { name: "app:money", url: "http://127.0.0.1:3000/api/money" },
   { name: "app:crossmarket", url: "http://127.0.0.1:3000/api/market/cross" },
+  { name: "app:exchange-router", url: "http://127.0.0.1:3000/api/exchange/router" },
   { name: "app:charter", url: "http://127.0.0.1:3000/api/charter" },
   { name: "fleet:pulse", url: "http://127.0.0.1:3033/" },
   { name: "fleet:money", url: "http://127.0.0.1:3034/" },
@@ -544,7 +573,76 @@ async function learnEconomics(): Promise<string[]> {
   return notes;
 }
 
-// ── 6. ריפוי-בטוח (אידמפוטנטי, מתועד, בתקציב) ────────────────────────
+// ── 5.5 למידת ראוטר ההחלפות (R96) — בחינת ערוצי ה-DEX לאורך זמן ────
+
+async function learnExchange(): Promise<string[]> {
+  const notes: string[] = [];
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 45_000);
+  try {
+    const res = await fetch("http://127.0.0.1:3000/api/exchange/router", { signal: ctl.signal, cache: "no-store" });
+    if (!res.ok) return notes;
+    const j = await res.json();
+    if (!j?.ok || !Array.isArray(j?.channels)) return notes; // לא נמדד — לא מומצא
+    const prev = state.exchange;
+    const obs: ExchangeObs = {
+      at: new Date().toISOString(),
+      channels: j.channels.length,
+      verified: Number(j.challenge?.verified ?? 0),
+      deviant: Number(j.challenge?.deviant ?? 0),
+      down: Number(j.challenge?.down ?? 0),
+      chainsLive: (j.chains ?? []).filter((c: any) => c?.ok).length,
+      bestEthDex:
+        (j.channels ?? [])
+          .filter((c: any) => c?.pair === "ETH/USD" && typeof c?.execPrice === "number")
+          .sort((a: any, b: any) => b.execPrice - a.execPrice)[0]?.dex ?? null,
+      worstDevBps:
+        (j.channels ?? [])
+          .filter((c: any) => typeof c?.devBps === "number")
+          .reduce((m: number | null, c: any) => (m == null || Math.abs(c.devBps) > Math.abs(m) ? c.devBps : m), null) ?? null,
+      topYield: j.yields?.pools?.[0]
+        ? `${j.yields.pools[0].project} ${j.yields.pools[0].apy?.toFixed?.(2) ?? "?"}%`
+        : null,
+    };
+    if (prev) {
+      // שינויים — הלמידה האמיתית: רשת שנפלה, ראוטר שהתאושש, אתגר חדש
+      if (obs.chainsLive < prev.chainsLive) {
+        const d = `ROUTE-DOWN: רשת-DEX נפלה — ${prev.chainsLive}→${obs.chainsLive} רשתות חיות`;
+        notes.push(d);
+        state.exchangeHistory.push({ at: obs.at, kind: "ROUTE-DOWN", detail: d });
+      } else if (obs.chainsLive > prev.chainsLive) {
+        const d = `ROUTE-UP: רשת-DEX התאוששה — ${prev.chainsLive}→${obs.chainsLive} רשתות חיות`;
+        notes.push(d);
+        state.exchangeHistory.push({ at: obs.at, kind: "ROUTE-UP", detail: d });
+      }
+      if (obs.down > prev.down) {
+        const d = `ROUTE-DOWN: ${prev.down}→${obs.down} ערוצי ציטוט נפלו — נבדק שוב במחזור הבא`;
+        notes.push(d);
+        state.exchangeHistory.push({ at: obs.at, kind: "ROUTE-DOWN", detail: d });
+      }
+      if (obs.deviant !== prev.deviant) {
+        const d = `VERDICT-CHANGE: ערוצים אותגרו ${prev.deviant}→${obs.deviant} · אומתו ${prev.verified}→${obs.verified}`;
+        notes.push(d);
+        state.exchangeHistory.push({ at: obs.at, kind: "VERDICT-CHANGE", detail: d });
+      }
+    } else {
+      const d = `SNAPSHOT: בסיס ראוטר ההחלפות נמדד — ${obs.verified}/${obs.channels} ערוצים אומתו ב-${obs.chainsLive} רשתות · ה-ETH הטוב: ${obs.bestEthDex ?? "—"} · תשואת-חוץ מובילה: ${obs.topYield ?? "—"}`;
+      notes.push(d);
+      state.exchangeHistory.push({ at: obs.at, kind: "SNAPSHOT", detail: d });
+    }
+    state.exchange = obs;
+    state.exchangeHistory = state.exchangeHistory.slice(-60);
+  } catch (e) {
+    // לקח-באג-חי (R96): catch שקט בלע ReferenceError — מעתה כל כשל למידה
+    // נראה ביומן, לא נעלם בשקט. המצב הקודם נשמר — בכנות.
+    console.error("[student] learnExchange failed:", String(e));
+  } finally {
+    clearTimeout(t);
+  }
+  return notes;
+}
+
+// ── 7. ריפוי-בטוח (אידמפוטנטי, מתועד, בתקציב) ────────────────────────
 
 async function safeHeal(): Promise<string[]> {
   const notes: string[] = [];
@@ -619,6 +717,18 @@ async function tick() {
         state.history = [
           ...state.history,
           ...econNotes.map((n) => ({ at: new Date().toISOString(), kind: "ECONOMY", detail: n })),
+        ].slice(-40);
+      }
+    }
+
+    // למידת ראוטר ההחלפות — כל שלושה מחזורים (30 דק'), ובראשונה מיד:
+    // מדידה שעוד לא נעשתה לא ממתינה לקצב (שיעור הבאג החי של R96).
+    if (state.beats % 3 === 0 || !state.exchange) {
+      const exNotes = await learnExchange();
+      if (exNotes.length) {
+        state.history = [
+          ...state.history,
+          ...exNotes.map((n) => ({ at: new Date().toISOString(), kind: "EXCHANGE", detail: n })),
         ].slice(-40);
       }
     }

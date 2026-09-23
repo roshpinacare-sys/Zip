@@ -50,6 +50,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { ExchangeRouterSection } from "@/components/weave/views/exchange-router-section";
 import {
   FadeIn,
   HashChip,
@@ -297,6 +298,9 @@ export function DefiRouterView({ section = "router" }: { section?: string }) {
           ))}
         </div>
       </FadeIn>
+
+      {/* ── שכבה 0: ראוטר ההחלפות — ציטוטים חיים מ-4 רשתות (R96) ── */}
+      <ExchangeRouterSection router={data} />
 
       {/* ── שכבה 1: מנוע הניתוב ──────────────────────────────────── */}
       <div

@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  ArrowLeftRight,
   Bot,
   GraduationCap,
   HeartPulse,
@@ -91,6 +92,18 @@ interface StudentData {
       sbdBalance: number | null;
     } | null;
     economicsHistory: Array<{ at: string; kind: string; detail: string }>;
+    exchange: {
+      at: string;
+      channels: number;
+      verified: number;
+      deviant: number;
+      down: number;
+      chainsLive: number;
+      bestEthDex: string | null;
+      worstDevBps: number | null;
+      topYield: string | null;
+    } | null;
+    exchangeHistory: Array<{ at: string; kind: string; detail: string }>;
     heal: { receipts: Array<{ at: string; action: string; ok: boolean; detail: string }>; today: number; day: string };
     history: Array<{ at: string; kind: string; detail: string }>;
     uptimePct: number | null;
@@ -497,6 +510,85 @@ export function StudentView() {
                 </>
               ) : (
                 <p className="text-xs text-zinc-600">הכלכלה טרם נמדדה — ה-SNAPSHOT הראשון יתועד במחזור הבא</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* למידת ראוטר ההחלפות — בחינת ערוצי ה-DEX לאורך זמן (R96) */}
+          <Card className="min-w-0 border-[#d4af37]/30 bg-zinc-950/40">
+            <CardContent className="p-4 sm:p-5">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <ArrowLeftRight className="size-4 text-[#d4af37]" aria-hidden />
+                <h3 className="text-sm font-bold">למידת ההחלפות — ראוטרי ה-DEX שלי</h3>
+                {d?.exchange ? (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "border",
+                      d.exchange.down > 0
+                        ? "border-amber-600/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                        : "border-emerald-600/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                    )}
+                  >
+                    {d.exchange.verified}/{d.exchange.channels} אומתו
+                  </Badge>
+                ) : null}
+                <span className="ms-auto text-[11px] text-zinc-600">
+                  נמדד כל 30 דק׳{d?.exchange ? ` · לאחרונה ${fmtDateTime(d.exchange.at)}` : ""}
+                </span>
+              </div>
+              {d?.exchange ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3 lg:grid-cols-5">
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">רשתות חיות</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">{d.exchange.chainsLive}/4</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">אותגרו</div>
+                      <div className={cn("mt-1 font-mono text-sm", d.exchange.deviant > 0 ? "text-rose-600 dark:text-rose-400" : "text-zinc-200")} dir="ltr">{d.exchange.deviant}</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">נפלו</div>
+                      <div className={cn("mt-1 font-mono text-sm", d.exchange.down > 0 ? "text-amber-600 dark:text-amber-400" : "text-zinc-200")} dir="ltr">{d.exchange.down}</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">סטייה קיצונית</div>
+                      <div className="mt-1 font-mono text-sm text-zinc-200" dir="ltr">{d.exchange.worstDevBps != null ? `${d.exchange.worstDevBps} bps` : "—"}</div>
+                    </div>
+                    <div className="min-w-0 rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2.5">
+                      <div className="text-zinc-500">תשואת-חוץ מובילה</div>
+                      <div className="mt-1 truncate font-mono text-[12px] text-emerald-600 dark:text-emerald-400" dir="ltr">{d.exchange.topYield ?? "—"}</div>
+                    </div>
+                  </div>
+                  {(d.exchangeHistory ?? []).length > 0 && (
+                    <div className="mt-2 max-h-32 overflow-y-auto rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2 text-[11px]">
+                      {d.exchangeHistory.slice().reverse().map((e, i) => (
+                        <div key={i} className="flex items-start gap-2 border-b border-zinc-800/30 py-1 last:border-0">
+                          <span className="shrink-0 font-mono text-zinc-600" dir="ltr">{e.at.slice(11, 19)}</span>
+                          <span
+                            className={cn(
+                              "shrink-0 font-bold",
+                              e.kind.includes("DOWN")
+                                ? "text-rose-600 dark:text-rose-400"
+                                : e.kind.includes("UP") || e.kind === "SNAPSHOT"
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-amber-600 dark:text-amber-400",
+                            )}
+                          >
+                            {e.kind}
+                          </span>
+                          <span className="text-zinc-400">{e.detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
+                    התלמיד בוחן את ראוטרי ה-DEX של הרשת בעצמו — נפילת רשת, ערוץ שאותגר או התאוששות יירשמו כאן בזמן אמת. ה-ETH הטוב כרגע: {d.exchange.bestEthDex ?? "—"}.
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-zinc-600">ראוטר ההחלפות טרם נמדד — ה-SNAPSHOT הראשון יתועד במחזור הבא</p>
               )}
             </CardContent>
           </Card>
