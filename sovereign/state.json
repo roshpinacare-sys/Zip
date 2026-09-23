@@ -1,188 +1,188 @@
 {
-  "format": "agent-bridgehead-state-v1",
-  "version": 3,
-  "generatedAt": "2026-09-22T15:05:00Z",
-  "agent": "sovereign-agent (any Z.ai session — identity is the role, not the instance)",
-  "phase": "full-fleet-coverage",
-  "currentTask": "R92 delivered: THE CHARTER EVENT MEMORY — the registry was a picture without a film. Three layers, all measured live: (1) canonical append-only events log charter/events.jsonl (deterministic id, tolerant parse, written by all three event routes in real time); (2) one-time canon-archaeology script that restored ONLY verifiable history (CHARTER from registry charterAt, STATUS from first-appearance across canon git commits — found 6113182e @ 04:57:15Z, ARTIFACT from file-header timestamps) with provenance per event, and documented the honest gap (3 artifact events counted, 1 verifiable — 2 published during the R89 PAT-path outage left no trace); (3) selfHeal v2 in GET /api/charter/projects: idempotent event import from canon + reference-integrity verification book<->registry — dangling refs get a signed RESTORE attestation (DAEMON weave-charter-restore, EIP-191, hash-chained) documenting the old ref honestly; registry republished with corrected refs + restoredAt. MEASURED: 0->6 events, dangling seq 6/12 -> resolving seq 370/371 (hash match), artifacts 3->1 (verifiable). AUTONOMOUS LOOP PROVEN AGAIN: root changed -> drift 2 -> pulse anchored by itself (root 0x9d9f7ff4..., txid 3b0d3ffb..., block 109804546, att 372, verified:true from history) -> CHARTER-COVERED honest. LIVE BUG caught: pulse labeled a SUCCESSFUL anchor as FAIL — its 180s window is shorter than the server broadcast+history-verification flow (~5.5 min); fixed to 600s + AbortError -> CHARTER-ANCHOR-WAIT (R87 lesson at the daemon layer). Browser-verified desktop+mobile (timeline UI with provenance badges), lint 0, evidence r92-*.png.",
-  "currentTaskHe": "R92: זיכרון האירועים — יומן קנוני append-only + ארכיאולוגיית-שחזור + עדות RESTORE להפניות תלויות; הלולאה האוטונומית עגנה את המצב המרופא לבד",
-  "lastHandoff": {
-    "at": "2026-09-22T15:05:00Z",
-    "by": "r92-charter-events session (Z.ai)",
-    "summary": "R92 delivered: charter events live in canon (charter/events.jsonl, append-only) + selfHeal v2 imports them and repairs dangling book-refs with signed RESTORE attestations (seq 370/371 resolve, was dangling 6/12). Pulse auto-anchored the healed state (att 372, block 109804546). Report: reports/r92-charter-events-memory-2026-09-22.md. New-session protocol: bun run scripts/daemons-revive.mjs first (idempotent)."
-  },
-  "environment": {
-    "sandbox": "/home/z/my-project — ephemeral, resets on new sessions; NEVER the source of truth",
-    "sovereignRepo": "roshpinacare-sys/Zip (private) — cloud truth, holds console/ sources and the ledger",
-    "publicRepo": "roshpinacare-sys/Console (public) — GitHub Pages site + agent bridgehead + this state",
-    "publicUrl": "https://roshpinacare-sys.github.io/Console/",
-    "recovery": [
-      "bun run scripts/daemons-revive.mjs  # R84: revive the daemon fleet (pulse+money+hunter+keeper) — FIRST, it is idempotent",
-      "TOKEN=$(cd /home/z/my-project && git remote get-url origin | sed -E 's|https://x-access-token:([^@]+)@.*|\\1|')",
-      "git clone https://x-access-token:${TOKEN}@github.com/roshpinacare-sys/Console.git /tmp/console-repo",
-      "cd /home/z/my-project && git pull --rebase origin main  (local Zip may lag the cloud — the cloud is primary)",
-      "Read agent/handoff.md first, then agent/requests.json, then this state"
-    ],
-    "repos": {
-      "Zip": "sovereign home: ledger, scripts, console sources, worklog.md",
-      "Console": "public console: static site, mirrors, workflows, agent bridgehead",
-      "steem": "anchor line authority tooling",
-      "saos-dex": "DEX engine",
-      "saos-sovereign-foundry": "contract CI (currently 0/100 — documented red mark)",
-      "others": "Adsmarket (claims-guard: marketing truth), anchor-baseline (baseline-integrity: history manifest), roshpina (controls-audit), Sdk (sdk-verify), saos-jummper (jumpper-tests: notary suite), Project-files (archive-keeper: zip integrity), saos-control-center (control-center-build), saos-sovereign-platform (platform-selftest: edge engine), Saosmartwallet (wallet-verify) - every repo in the org now has its own agent; the fleet is 14/14"
-    }
-  },
-  "standingOrders": [
-    {
-      "id": "SO-1",
-      "en": "The public URL is the product. Work that is not visible at https://roshpinacare-sys.github.io/Console/ does not count as delivered.",
-      "he": "ה-URL הציבורי הוא המוצר. עבודה שלא נראית ב-https://roshpinacare-sys.github.io/Console/ לא נחשבת כמסופקת."
-    },
-    {
-      "id": "SO-2",
-      "en": "No claim without measurement — every assertion gets a number, a link, or a public verification.",
-      "he": "שום טענה בלי מדידה — כל הצהרה מקבלת מספר, קישור או אימות פומבי."
-    },
-    {
-      "id": "SO-3",
-      "en": "Never depend on the sandbox. Truth: cloud repos, public chains. The sandbox is a workbench, not a home.",
-      "he": "אף פעם לא לתלות בסנדבוקס. האמת: ריפואי הענן והשרשרות הציבוריות. הסנדבוקס הוא שולחן עבודה, לא בית."
-    },
-    {
-      "id": "SO-4",
-      "en": "The operator's requests are ledgered in agent/requests.json — update the ledger when work is delivered, and let the verifier measure it.",
-      "he": "בקשות המפעיל נרשמות בספר agent/requests.json — עדכנו את הספר כשעבודה נמסרת, ותנו למאמת למדוד."
-    },
-    {
-      "id": "SO-5",
-      "en": "Autonomous push stays inside the safety laws — advance the network, never endanger it.",
-      "he": "הדחיפה האוטונומית נשארת בתוך חוקי הבטיחות — לקדם את הרשת, לעולם לא לסכן אותה."
-    }
+ "format": "agent-bridgehead-state-v1",
+ "version": 3,
+ "generatedAt": "2026-09-23T01:02:00Z",
+ "agent": "sovereign-agent (any Z.ai session — identity is the role, not the instance)",
+ "phase": "full-fleet-coverage",
+ "currentTask": "R93 delivered: SESSION-DEATH RECOVERY + THE SPLIT CLOSES. Measured at open: session wipe emptied the DB (0 atts/agents/projects) while the cloud kept beating alone (398 atts, cp#391, last anchor 23:20Z). Recovery, all measured: (1) book imported from origin — 398/398 sigs valid, head proven; (2) network key recovered via scripts/seal-recover-local.ts — the historical blob+passphrase pair from git lineage (r72: keys never changed), gated five ways incl. THE CHAIN AS JUDGE (recoverCheckpointSigner(cp#391) = recovered address), never printed, DB-cache only; (3) charter selfHeal — 2 projects, 8 events, dangling refs repaired with signed RESTORE attestations. Two live bugs caught and fixed: (a) money-mover dead trigger — compared parity against the RECOMMENDED ladder (computed FROM parity): drift structurally always 0bps while the real placed ladder sank +231bps below the line for 20h; fix = base is the placed bottom rung from get_open_orders; proof = the daemon dragged the ladder by itself, chain-verified 3×158.879 STEEM @ 0.121841/0.123106/0.124327; (b) cross-restart double-fire (two POSTs back-to-back 00:34:29+00:34:54) — acting guard is in-memory; new law: lastActionAt stamps at action START; plus honest receipt (receipt.placed shape, was false-zero). STRUCTURAL FINDING: sandbox attestations never flowed up to the canonical book — that is how R91/R92 attestations were lost (the cloud book numbers them differently). The race was measured live (cloud won at 00:41:52, orphaning the first RESTOREs; the idempotent heal rewrote them as 403/404 within 5 min) and then closed: weave-book-push.ts + race-proof worktree push — origin/main = 4e0cf67, 406 atts, head 0x4d4b9272… (406 supersedes 402 wholesale). New charter anchor on Steem block 109816532 (verified-from-history, att 406, cp#397); the earlier orphan at 109816226 was adopted-not-rebroadcast exactly as R91 designed. Report: reports/r93-session-death-recovery-2026-09-23.md.",
+ "currentTaskHe": "R93: התחייה ממוות-סשן — ספר שוחזר מהענן (398/398), מפתח הרשת משושלת הגיט (השופט: checkpoint#391), הצ'רטרים רופאו; הלב המת של הכסף תוקן (231bps נגררו לקו, אומת מהשרשרת); הפיצול נסגר — 406 בספר הקנוני",
+ "lastHandoff": {
+  "at": "2026-09-23T01:02:00Z",
+  "by": "r93 session-death-recovery session (Z.ai)",
+  "summary": "R93 delivered: full recovery after session wipe (book 398/398 + seal-recover-local + charter selfHeal) + two live bug fixes (money dead-trigger chain-verified reprice, cross-restart single-fire law) + THE SPLIT CLOSED: sandbox attestations now flow up via scripts/weave-book-push.ts — origin/main = 4e0cf67 (406 atts, head 0x4d4b9272…, charter anchor block 109816532). Report: reports/r93-session-death-recovery-2026-09-23.md. New-session protocol: bun run scripts/daemons-revive.mjs first, then POST /api/weave/sovereignty/sync, then bun scripts/seal-recover-local.ts (idempotent), then curl /api/charter/projects (selfHeal)."
+ },
+ "environment": {
+  "sandbox": "/home/z/my-project — ephemeral, resets on new sessions; NEVER the source of truth",
+  "sovereignRepo": "roshpinacare-sys/Zip (private) — cloud truth, holds console/ sources and the ledger",
+  "publicRepo": "roshpinacare-sys/Console (public) — GitHub Pages site + agent bridgehead + this state",
+  "publicUrl": "https://roshpinacare-sys.github.io/Console/",
+  "recovery": [
+   "bun run scripts/daemons-revive.mjs  # R84: revive the daemon fleet (pulse+money+hunter+keeper) — FIRST, it is idempotent",
+   "TOKEN=$(cd /home/z/my-project && git remote get-url origin | sed -E 's|https://x-access-token:([^@]+)@.*|\\1|')",
+   "git clone https://x-access-token:${TOKEN}@github.com/roshpinacare-sys/Console.git /tmp/console-repo",
+   "cd /home/z/my-project && git pull --rebase origin main  (local Zip may lag the cloud — the cloud is primary)",
+   "Read agent/handoff.md first, then agent/requests.json, then this state"
   ],
-  "openLoops": [
-    {
-      "id": "OL-1",
-      "priority": "P0",
-      "title": "Money routing readiness — funds enter within days",
-      "titleHe": "מוכנות ניתוב כסף — כספים נכנסים בימים הקרובים",
-      "detail": "dex-watch monitors deposits on tron/ethereum/solana/bitcoin addresses hourly; routing plan recorded in moneyPlan; first inflow triggers the operator's decision loop.",
-      "detailHe": "dex-watch מנטר הפקדות בכתובות tron/ethereum/solana/bitcoin שעתית; תוכנית הניתוב רשומה ב-moneyPlan; כניסת כסף ראשונה מפעילה את לולאת ההחלטה של המפעיל."
-    },
-    {
-      "id": "OL-2",
-      "priority": "P1",
-      "title": "agent-verify cycle — CLOSED at 49/49 ALL_PASS (2026-09-22T02:37:59Z)",
-      "titleHe": "מחזור agent-verify — נסגר ב-49/49 ALL_PASS",
-      "detail": "A34 (stale grid.json) was the last red mark; fixed sovereignly by grid-pulse (R83). The cycle re-runs every 2h — if any assertion fails again, fix the root cause at the public URL, not the assertion.",
-      "detailHe": "A34 (grid.json קפוא) היה הסימן האדום האחרון; תוקן ריבונית על-ידי grid-pulse (R83). המחזור רץ כל שעתיים — אם קביעה תיכשל שוב, תקנו את שורש הבעיה ב-URL הציבורי, לא את הקביעה."
-    },
-    {
-      "id": "OL-3",
-      "priority": "P1",
-      "title": "Foundry CI 0/100 — contract API tests failing since 2026-09-14",
-      "titleHe": "Foundry CI 0/100 — בדיקות API של חוזה נכשלות מאז 2026-09-14",
-      "detail": "Documented red mark. Fix the contract tests or compensate with an honest public note; never paint it green.",
-      "detailHe": "סימן אדום מתועד. תקנו את בדיקות החוזה או פצו בהערה ציבורית כנה; אף פעם לא לצבוע ירוק."
-    },
-    {
-      "id": "OL-4",
-      "priority": "P2",
-      "title": "Publishing through the authorities — posts with measured value only",
-      "titleHe": "פרסום דרך הרשויות — רק פוסטים בעלי ערך נמדד",
-      "detail": "cashmachine anchors hourly (saos.weave.core.v1); use lsa for public posts within rate limits; every post links back to verifiable evidence.",
-      "detailHe": "cashmachine עוגן שעתי (saos.weave.core.v1); השתמשו ב-lsa לפוסטים ציבוריים בתוך מגבלות הקצב; כל פוסט מקשר לראיות שניתנות לאימות."
-    },
-    {
-      "id": "OL-5",
-      "priority": "P2",
-      "title": "Hub search index for the knowledge pages",
-      "titleHe": "אינדקס חיפוש לעמודי הידע"
-    },
-    {
-      "id": "OL-6",
-      "priority": "P3",
-      "title": "grid98 / Saosmartwallet as interface engines",
-      "titleHe": "grid98 / Saosmartwallet כמנועי ממשק"
-    }
-  ],
-  "moneyPlan": {
-    "note": "Funds enter within days. Buckets decided by the operator; recorded here so every agent works from the same plan.",
-    "currency": "SAOS / USDS at network rates",
-    "buckets": [
-      {
-        "name": "EVM seal",
-        "nameHe": "חותם EVM",
-        "share": "35%",
-        "purpose": "Anchoring the ledger on real chains: gas, rotations, contract deployments — the cryptographic spine.",
-        "purposeHe": "עיגון הספר בשרשרות אמיתיות: גז, רוטציות, פריסת חוזים — עמוד השדרה הקריפטוגרפי."
-      },
-      {
-        "name": "Publishing power",
-        "nameHe": "כוח פרסום",
-        "share": "35%",
-        "purpose": "Fuel for the authorities (cashmachine, lsa): posts, anchoring bandwidth, audience growth within rate laws.",
-        "purposeHe": "דלק לרשויות (cashmachine, lsa): פוסטים, רוחב פס לעיגון, צמיחת קהל בתוך חוקי הקצב."
-      },
-      {
-        "name": "Reserve",
-        "nameHe": "עתודה",
-        "share": "20%",
-        "purpose": "Strategic reserve for opportunities and continuity — untouched without an explicit operator decision.",
-        "purposeHe": "עתודה אסטרטגית להזדמנויות ורצף — לא נוגעת בלי החלטה מפורשת של המפעיל."
-      },
-      {
-        "name": "Liquidity",
-        "nameHe": "נזילות",
-        "share": "10%",
-        "purpose": "DEX liquidity for SAOS/USDS: tight spreads, healthy markets, measured fills.",
-        "purposeHe": "נזילות דקס ל-SAOS/USDS: פערים צרים, שווקים בריאים, עסקאות נמדדות."
-      }
-    ]
+  "repos": {
+   "Zip": "sovereign home: ledger, scripts, console sources, worklog.md",
+   "Console": "public console: static site, mirrors, workflows, agent bridgehead",
+   "steem": "anchor line authority tooling",
+   "saos-dex": "DEX engine",
+   "saos-sovereign-foundry": "contract CI (currently 0/100 — documented red mark)",
+   "others": "Adsmarket (claims-guard: marketing truth), anchor-baseline (baseline-integrity: history manifest), roshpina (controls-audit), Sdk (sdk-verify), saos-jummper (jumpper-tests: notary suite), Project-files (archive-keeper: zip integrity), saos-control-center (control-center-build), saos-sovereign-platform (platform-selftest: edge engine), Saosmartwallet (wallet-verify) - every repo in the org now has its own agent; the fleet is 14/14"
+  }
+ },
+ "standingOrders": [
+  {
+   "id": "SO-1",
+   "en": "The public URL is the product. Work that is not visible at https://roshpinacare-sys.github.io/Console/ does not count as delivered.",
+   "he": "ה-URL הציבורי הוא המוצר. עבודה שלא נראית ב-https://roshpinacare-sys.github.io/Console/ לא נחשבת כמסופקת."
   },
-  "authorities": [
-    {
-      "account": "cashmachine",
-      "role": "Anchor authority — hourly witness custom_json on Steem",
-      "roleHe": "רשות העוגן — עד שעתי ב-custom_json על Steem",
-      "opIds": [
-        "saos.weave.core.v1"
-      ],
-      "usage": "Rate: 1 anchor per hour cycle. Never exposed in public repos."
-    },
-    {
-      "account": "lsa",
-      "role": "Publishing authority — public posts for the network's voice",
-      "roleHe": "רשות הפרסום — פוסטים ציבוריים לקול הרשת",
-      "opIds": [
-        "posting"
-      ],
-      "usage": "Posts with measured value only; every claim links to evidence."
-    }
-  ],
-  "safetyLaws": [
-    {
-      "en": "No spam: every public action carries measured value; stay inside platform rate limits.",
-      "he": "אין ספאם: כל פעולה ציבורית נושאת ערך נמדד; הישארו בתוך מגבלות הקצב של הפלטפורמה."
-    },
-    {
-      "en": "Zero secrets in public: tokens and keys never leave the sovereign side; the public repo runs on its own GITHUB_TOKEN only.",
-      "he": "אפס סודות בציבור: טוקנים ומפתחות לא עוזבים את הצד הריבוני; הריפו הציבורי רץ על ה-GITHUB_TOKEN של עצמו בלבד."
-    },
-    {
-      "en": "Honest metrics: red stays red until truly fixed; no painted greens, no invented numbers.",
-      "he": "מדדים כנים: אדום נשאר אדום עד תיקון אמיתי; אין ירוקים צבועים ולא מספרים מומצאים."
-    },
-    {
-      "en": "Platform terms first: autonomy advances the network inside the host's rules — that is how we never get kicked out.",
-      "he": "תנאי הפלטפורמה קודם: האוטונומיה מקדמת את הרשת בתוך הכללים של המארח — כך לעולם לא יעיפו אותנו."
-    },
-    {
-      "en": "No custody lies: keys stay with owners; no promise of profit, ever.",
-      "he": "אין שקרי משמורת: מפתחות נשארים אצל הבעלים; לא הבטחת רווח, אף פעם."
-    },
-    {
-      "en": "Honest identity: bots act as bots (weave-console[bot] and friends) — no impersonation of humans.",
-      "he": "זהות כנה: בוטים פועלים כבוטים (weave-console[bot] וחבריו) — אין התחזות לבני אדם."
-    }
+  {
+   "id": "SO-2",
+   "en": "No claim without measurement — every assertion gets a number, a link, or a public verification.",
+   "he": "שום טענה בלי מדידה — כל הצהרה מקבלת מספר, קישור או אימות פומבי."
+  },
+  {
+   "id": "SO-3",
+   "en": "Never depend on the sandbox. Truth: cloud repos, public chains. The sandbox is a workbench, not a home.",
+   "he": "אף פעם לא לתלות בסנדבוקס. האמת: ריפואי הענן והשרשרות הציבוריות. הסנדבוקס הוא שולחן עבודה, לא בית."
+  },
+  {
+   "id": "SO-4",
+   "en": "The operator's requests are ledgered in agent/requests.json — update the ledger when work is delivered, and let the verifier measure it.",
+   "he": "בקשות המפעיל נרשמות בספר agent/requests.json — עדכנו את הספר כשעבודה נמסרת, ותנו למאמת למדוד."
+  },
+  {
+   "id": "SO-5",
+   "en": "Autonomous push stays inside the safety laws — advance the network, never endanger it.",
+   "he": "הדחיפה האוטונומית נשארת בתוך חוקי הבטיחות — לקדם את הרשת, לעולם לא לסכן אותה."
+  }
+ ],
+ "openLoops": [
+  {
+   "id": "OL-1",
+   "priority": "P0",
+   "title": "Money routing readiness — funds enter within days",
+   "titleHe": "מוכנות ניתוב כסף — כספים נכנסים בימים הקרובים",
+   "detail": "dex-watch monitors deposits on tron/ethereum/solana/bitcoin addresses hourly; routing plan recorded in moneyPlan; first inflow triggers the operator's decision loop.",
+   "detailHe": "dex-watch מנטר הפקדות בכתובות tron/ethereum/solana/bitcoin שעתית; תוכנית הניתוב רשומה ב-moneyPlan; כניסת כסף ראשונה מפעילה את לולאת ההחלטה של המפעיל."
+  },
+  {
+   "id": "OL-2",
+   "priority": "P1",
+   "title": "agent-verify cycle — CLOSED at 49/49 ALL_PASS (2026-09-22T02:37:59Z)",
+   "titleHe": "מחזור agent-verify — נסגר ב-49/49 ALL_PASS",
+   "detail": "A34 (stale grid.json) was the last red mark; fixed sovereignly by grid-pulse (R83). The cycle re-runs every 2h — if any assertion fails again, fix the root cause at the public URL, not the assertion.",
+   "detailHe": "A34 (grid.json קפוא) היה הסימן האדום האחרון; תוקן ריבונית על-ידי grid-pulse (R83). המחזור רץ כל שעתיים — אם קביעה תיכשל שוב, תקנו את שורש הבעיה ב-URL הציבורי, לא את הקביעה."
+  },
+  {
+   "id": "OL-3",
+   "priority": "P1",
+   "title": "Foundry CI 0/100 — contract API tests failing since 2026-09-14",
+   "titleHe": "Foundry CI 0/100 — בדיקות API של חוזה נכשלות מאז 2026-09-14",
+   "detail": "Documented red mark. Fix the contract tests or compensate with an honest public note; never paint it green.",
+   "detailHe": "סימן אדום מתועד. תקנו את בדיקות החוזה או פצו בהערה ציבורית כנה; אף פעם לא לצבוע ירוק."
+  },
+  {
+   "id": "OL-4",
+   "priority": "P2",
+   "title": "Publishing through the authorities — posts with measured value only",
+   "titleHe": "פרסום דרך הרשויות — רק פוסטים בעלי ערך נמדד",
+   "detail": "cashmachine anchors hourly (saos.weave.core.v1); use lsa for public posts within rate limits; every post links back to verifiable evidence.",
+   "detailHe": "cashmachine עוגן שעתי (saos.weave.core.v1); השתמשו ב-lsa לפוסטים ציבוריים בתוך מגבלות הקצב; כל פוסט מקשר לראיות שניתנות לאימות."
+  },
+  {
+   "id": "OL-5",
+   "priority": "P2",
+   "title": "Hub search index for the knowledge pages",
+   "titleHe": "אינדקס חיפוש לעמודי הידע"
+  },
+  {
+   "id": "OL-6",
+   "priority": "P3",
+   "title": "grid98 / Saosmartwallet as interface engines",
+   "titleHe": "grid98 / Saosmartwallet כמנועי ממשק"
+  }
+ ],
+ "moneyPlan": {
+  "note": "Funds enter within days. Buckets decided by the operator; recorded here so every agent works from the same plan.",
+  "currency": "SAOS / USDS at network rates",
+  "buckets": [
+   {
+    "name": "EVM seal",
+    "nameHe": "חותם EVM",
+    "share": "35%",
+    "purpose": "Anchoring the ledger on real chains: gas, rotations, contract deployments — the cryptographic spine.",
+    "purposeHe": "עיגון הספר בשרשרות אמיתיות: גז, רוטציות, פריסת חוזים — עמוד השדרה הקריפטוגרפי."
+   },
+   {
+    "name": "Publishing power",
+    "nameHe": "כוח פרסום",
+    "share": "35%",
+    "purpose": "Fuel for the authorities (cashmachine, lsa): posts, anchoring bandwidth, audience growth within rate laws.",
+    "purposeHe": "דלק לרשויות (cashmachine, lsa): פוסטים, רוחב פס לעיגון, צמיחת קהל בתוך חוקי הקצב."
+   },
+   {
+    "name": "Reserve",
+    "nameHe": "עתודה",
+    "share": "20%",
+    "purpose": "Strategic reserve for opportunities and continuity — untouched without an explicit operator decision.",
+    "purposeHe": "עתודה אסטרטגית להזדמנויות ורצף — לא נוגעת בלי החלטה מפורשת של המפעיל."
+   },
+   {
+    "name": "Liquidity",
+    "nameHe": "נזילות",
+    "share": "10%",
+    "purpose": "DEX liquidity for SAOS/USDS: tight spreads, healthy markets, measured fills.",
+    "purposeHe": "נזילות דקס ל-SAOS/USDS: פערים צרים, שווקים בריאים, עסקאות נמדדות."
+   }
   ]
+ },
+ "authorities": [
+  {
+   "account": "cashmachine",
+   "role": "Anchor authority — hourly witness custom_json on Steem",
+   "roleHe": "רשות העוגן — עד שעתי ב-custom_json על Steem",
+   "opIds": [
+    "saos.weave.core.v1"
+   ],
+   "usage": "Rate: 1 anchor per hour cycle. Never exposed in public repos."
+  },
+  {
+   "account": "lsa",
+   "role": "Publishing authority — public posts for the network's voice",
+   "roleHe": "רשות הפרסום — פוסטים ציבוריים לקול הרשת",
+   "opIds": [
+    "posting"
+   ],
+   "usage": "Posts with measured value only; every claim links to evidence."
+  }
+ ],
+ "safetyLaws": [
+  {
+   "en": "No spam: every public action carries measured value; stay inside platform rate limits.",
+   "he": "אין ספאם: כל פעולה ציבורית נושאת ערך נמדד; הישארו בתוך מגבלות הקצב של הפלטפורמה."
+  },
+  {
+   "en": "Zero secrets in public: tokens and keys never leave the sovereign side; the public repo runs on its own GITHUB_TOKEN only.",
+   "he": "אפס סודות בציבור: טוקנים ומפתחות לא עוזבים את הצד הריבוני; הריפו הציבורי רץ על ה-GITHUB_TOKEN של עצמו בלבד."
+  },
+  {
+   "en": "Honest metrics: red stays red until truly fixed; no painted greens, no invented numbers.",
+   "he": "מדדים כנים: אדום נשאר אדום עד תיקון אמיתי; אין ירוקים צבועים ולא מספרים מומצאים."
+  },
+  {
+   "en": "Platform terms first: autonomy advances the network inside the host's rules — that is how we never get kicked out.",
+   "he": "תנאי הפלטפורמה קודם: האוטונומיה מקדמת את הרשת בתוך הכללים של המארח — כך לעולם לא יעיפו אותנו."
+  },
+  {
+   "en": "No custody lies: keys stay with owners; no promise of profit, ever.",
+   "he": "אין שקרי משמורת: מפתחות נשארים אצל הבעלים; לא הבטחת רווח, אף פעם."
+  },
+  {
+   "en": "Honest identity: bots act as bots (weave-console[bot] and friends) — no impersonation of humans.",
+   "he": "זהות כנה: בוטים פועלים כבוטים (weave-console[bot] וחבריו) — אין התחזות לבני אדם."
+  }
+ ]
 }
