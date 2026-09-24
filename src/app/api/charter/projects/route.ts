@@ -95,6 +95,14 @@ async function selfHeal(): Promise<void> {
       update: {},
     }).catch(() => null);
     if (!builder) continue;
+    // R114 (חוק הסנדבוקס-הנופל): createdAt היסטורי מהמרשם (charterAt) —
+    // בלעדיו כל ריפוי-מחדש מחתים "עכשיו", שורש המצב משתנה בכל ייבוא,
+    // והדופק משדר עיגון חוזר על אותו תוכן בדיוק (סחף-שקר מזמני-ייבוא).
+    const charterAtRaw = String(p.charterAt ?? "");
+    const charterAt =
+      charterAtRaw && !Number.isNaN(Date.parse(charterAtRaw))
+        ? new Date(charterAtRaw)
+        : null;
     await db.charterProject.upsert({
       where: { slug },
       create: {
@@ -106,9 +114,11 @@ async function selfHeal(): Promise<void> {
         attSeq: typeof p.attSeq === "number" ? p.attSeq : null,
         attEntryHash: p.attEntryHash ? String(p.attEntryHash) : null,
         artifactsCount: typeof p.artifacts === "number" ? p.artifacts : 0,
+        ...(charterAt ? { createdAt: charterAt } : {}),
         meta: JSON.stringify({ healedFromCanon: true }),
       },
-      update: {},
+      // גם שורה קיימת מריפוי באגי (זמן-ייבוא) מותקנת לזמן ההיסטורי
+      ...(charterAt ? { update: { createdAt: charterAt } } : { update: {} }),
     }).catch(() => undefined);
   }
 }
