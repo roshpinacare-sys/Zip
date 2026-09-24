@@ -234,7 +234,7 @@ function seedFindings(): Finding[] {
 function freshState(): StudentState {
   return {
     service: "student",
-    version: "1.3.0",
+    version: "1.4.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     cycleSec: CYCLE_SEC,
@@ -409,6 +409,36 @@ async function verifyFoundryCiClaim(pat: string): Promise<Omit<VerifyEvidence, "
   return null;
 }
 
+// מאמת P7: "סחירות BLURT — אין טוקן-דולר/שוק פנימי; צומת RPC לא נענה"
+// (R106): הזרע הזה הופרך עוד ב-R102/R103 — בריכת WBLURT/USDS חיה בזירה,
+// רייל-המשיכה הוכח בשרשרת (txid 06697ae5), ה-XML עונה עם UA. התלמיד לא
+// סומך על הטענה — הוא מודד את הזירה בעצמו, בכל בחינה, עד שהספר ישודע.
+async function verifyBlurtLiquidityClaim(): Promise<Omit<VerifyEvidence, "at" | "claim"> | null> {
+  try {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 10_000);
+    const res = await fetch("http://127.0.0.1:3000/api/exchange", { signal: ctl.signal, cache: "no-store" });
+    clearTimeout(t);
+    if (!res.ok) return null; // הזירה לא נמדדה — אין שיפוט
+    const j: any = await res.json();
+    const pool = (j?.pools ?? []).find((p: any) => p.pair === "WBLURT/USDS");
+    const tre = (j?.treasury ?? {}) as Record<string, number>;
+    const wblurtTreasury = Number(tre.WBLURT ?? 0);
+    if (!pool) return null; // אין בריכה — הטענה עדיין עומדת
+    const ra = Number(pool.reserveA ?? 0);
+    const rb = Number(pool.reserveB ?? 0);
+    if (ra > 0 && rb > 0) {
+      return {
+        verdict: "DISPROVEN",
+        evidence: `בריכת WBLURT/USDS חיה: ${ra.toFixed(3)} WBLURT × ${rb.toFixed(6)} USDS (מחיר ${pool.priceLabel ?? pool.price}) · אוצר מחזיק ${wblurtTreasury.toFixed(3)} WBLURT · רייל-יציאה הוכח בשרשרת (R103, txid 06697ae5) — הטענה "אין שוק פנימי" שקרית`,
+      };
+    }
+    return null;
+  } catch {
+    return null; // שתיקה כנה — לא נמדד
+  }
+}
+
 async function verifyFindings(): Promise<string[]> {
   const notes: string[] = [];
   const pat = readPat();
@@ -427,6 +457,23 @@ async function verifyFindings(): Promise<string[]> {
         notes.push("VERIFY: P3 הופרך במדידה חיה — foundry CI ירוק. האמונה השקרית נסגרה בראיה, לא בזיכרון");
       } else {
         notes.push(`VERIFY: P3 אומת כאדום בפועל — ${v.evidence}`);
+      }
+    }
+  }
+  // R106 — P7: ספר-הפוטנציאל לא סומך על טענות ישנות. הבחינה מודדת את
+  // הזירה החיה; אם הבריכה קיימת עם עומק אמיתי — הזרע מסומן כמופרך.
+  const p7 = state.findings.find((f) => f.id === "P7");
+  if (p7 && p7.state === "GATED") {
+    const v = await verifyBlurtLiquidityClaim();
+    if (v) {
+      p7.verify = { at: now, claim: "סחירות BLURT — אין שוק פנימי, RPC לא נענה", ...v };
+      p7.updatedAt = now;
+      p7.source = "live";
+      if (v.verdict === "DISPROVEN") {
+        p7.state = "DISPROVEN";
+        p7.title = "סחירות BLURT — הטענה הופרכה במדידה";
+        p7.detail = `הזרע טען "אין טוקן-דולר/שוק פנימי; RPC לא נענה". המציאות הנמדדת: ${v.evidence}. הרגל חיה מקצה לקצה — הפקדה → עטיפה → בריכה → משיכה עם txid.`;
+        notes.push("VERIFY: P7 הופרך במדידה חיה — בריכת WBLURT/USDS חיה עם עומק אמיתי. הזרע המיושן נסגר בראיה");
       }
     }
   }

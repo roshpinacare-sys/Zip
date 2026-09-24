@@ -220,24 +220,44 @@ async function jget(url: string, timeoutMs = 9000): Promise<any> {
   }
 }
 
-async function steemRpc(method: string, params: unknown[]): Promise<any> {
+// ── רב-צמתיות (R106): מדידת-הפאריטה היא הרצפה לחוק-1 — צומת בודד שנחנק
+// משאיר את הסולם עיוור (נמדד חי 00:53Z: REPRICE-FAIL "הפאריטה לא נמדדה
+// חי" למשך מחזור שלם). מעתה כל קריאת-מדידה מנסה את רשימת-הצמתים
+// בסדר, עד שאחת עונה. רשימת-הצמתים — מקור אחד לכל המערכת (graphene).
+import { STEEM_RPC_NODES } from "@/lib/weave/graphene";
+
+async function steemRpcOnce(node: string, method: string, params: unknown[], timeoutMs: number): Promise<any> {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 12_000);
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch("https://api.steemit.com", {
+    const res = await fetch(node, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
       signal: ctrl.signal,
       cache: "no-store",
     });
-    if (!res.ok) throw new Error(`http ${res.status}`);
+    if (!res.ok) throw new Error(`http ${res.status} @ ${node}`);
     const j = await res.json();
-    if (j?.error) throw new Error(String(j.error.message ?? "rpc-error"));
+    if (j?.error) throw new Error(String(j.error.message ?? "rpc-error") + ` @ ${node}`);
     return j.result;
   } finally {
     clearTimeout(t);
   }
+}
+
+async function steemRpc(method: string, params: unknown[]): Promise<any> {
+  // סדר הניסיון: הצומת הרשמי ראשון; בכשל — המשך הרשימה. הקבלה כנה:
+  // מקור-ההצלחה לא נרשם כטענה אלא נמדד בהנפקת השגיאה בלבד.
+  let lastErr: unknown = null;
+  for (let i = 0; i < STEEM_RPC_NODES.length; i++) {
+    try {
+      return await steemRpcOnce(STEEM_RPC_NODES[i], method, params, i === 0 ? 12_000 : 10_000);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr instanceof Error ? lastErr : new Error("all-steem-nodes-down");
 }
 
 // ── מדידות חיות ─────────────────────────────────────────────────────

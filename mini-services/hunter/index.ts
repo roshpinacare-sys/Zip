@@ -43,6 +43,9 @@ type HunterState = {
     nextDueAt: string;
     dispatchesToday: number;
     day: string;
+    gate: "OPEN" | "QUOTA-DEAD"; // R106 — השער עצמו נמדח, לא רק הריצה
+    deadStreak: number; // רצף dispatch-ים שהסתיימו בכשל-ריצה (הרץ מעולם לא התחיל)
+    deadSince: string | null; // מתי זוהה מוות-התקציב בפעם הראשונה
   };
   lastDecision: Decision | null;
   history: Array<Decision>;
@@ -58,7 +61,7 @@ function utcDay(d = new Date()): string {
 function readState(): HunterState {
   const base: HunterState = {
     service: "hunter",
-    version: "1.1.0",
+    version: "1.2.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     scanIntervalSec: SCAN_INTERVAL_SEC,
@@ -74,6 +77,9 @@ function readState(): HunterState {
       nextDueAt: new Date().toISOString(),
       dispatchesToday: 0,
       day: utcDay(),
+      gate: "OPEN",
+      deadStreak: 0,
+      deadSince: null,
     },
     lastDecision: null,
     history: [],
@@ -95,6 +101,9 @@ function readState(): HunterState {
         nextDueAt: prev.canary?.nextDueAt ?? new Date().toISOString(),
         dispatchesToday: sameDay ? (prev.canary?.dispatchesToday ?? 0) : 0,
         day: sameDay ? prev.canary.day : utcDay(),
+        gate: prev.canary?.gate === "QUOTA-DEAD" ? "QUOTA-DEAD" : "OPEN",
+        deadStreak: typeof prev.canary?.deadStreak === "number" ? prev.canary.deadStreak : 0,
+        deadSince: prev.canary?.deadSince ?? null,
       },
       lastDecision: prev.lastDecision ?? null,
       history: Array.isArray(prev.history) ? prev.history.slice(-40) : [],
@@ -124,6 +133,11 @@ function readPat(): string | null {
 }
 
 // ── קנרית: הערת שער-הדקות ─────────────────────────────────────────
+// R106 — חוק מוות-התקציב: כשמדידת-הריצה מראה שהרץ מעולם לא התחיל (כשל
+// מיידי, 0 צעדים) שוב ושוב — זו חנקת-Actions של הארגון, לא שער שנפתח
+// בניסיון הבא. הצייד מפסיק להפציץ שער מת (באסה לגשאוש יומי בלבד),
+// מתעד את מצב-השער בכנות, וממשיך לחזור — כי המכסה יכולה לחזור בכל רגע
+// שהמפעיל מחליט. עד אז: הצי המקומי הוא המכונה, הענן גיבוי בלבד.
 async function canaryTick(): Promise<void> {
   const pat = readPat();
   if (!pat) return;
@@ -136,6 +150,8 @@ async function canaryTick(): Promise<void> {
     Accept: "application/vnd.github+json",
     "User-Agent": "hunter-daemon",
   };
+  const dispatchedAt = new Date().toISOString();
+  let dispatchOk = false;
   // dispatch
   try {
     const res = await fetch(`${GH}/repos/${CANARY_REPO}/actions/workflows/${CANARY_WORKFLOW}/dispatches`, {
@@ -144,13 +160,16 @@ async function canaryTick(): Promise<void> {
       body: JSON.stringify({ ref: "main" }),
     });
     if (res.status === 204 || res.ok) {
-      state.canary.lastDispatchAt = new Date().toISOString();
+      dispatchOk = true;
+      state.canary.lastDispatchAt = dispatchedAt;
       state.canary.dispatchesToday += 1;
     }
   } catch {
     // dispatch נכשל — הקנרית תנסה שוב בסריקה הבאה (nextDueAt לא זז)
   }
   // קריאת הריצה האחרונה (גם אם dispatch נכשל — עדיין מודדים את האמת)
+  let runFailedAfterDispatch = false;
+  let runSucceeded = false;
   try {
     const runs = await fetch(`${GH}/repos/${CANARY_REPO}/actions/workflows/${CANARY_WORKFLOW}/runs?per_page=1`, { headers });
     if (runs.ok) {
@@ -164,12 +183,41 @@ async function canaryTick(): Promise<void> {
           createdAt: run.created_at,
           url: run.html_url,
         };
-        if (run.conclusion === "success") state.canary.lastSuccessAt = run.created_at;
+        if (run.conclusion === "success") {
+          state.canary.lastSuccessAt = run.created_at;
+          runSucceeded = true;
+        } else if (
+          dispatchOk &&
+          run.conclusion === "failure" &&
+          Date.parse(run.created_at) >= Date.parse(dispatchedAt) - 60_000
+        ) {
+          // הריצה שיצרנו כרגע נכשלה מיידית — הרץ מעולם לא התחיל
+          runFailedAfterDispatch = true;
+        }
       }
     }
   } catch {}
-  // המועד הבא: 6ש' קדימה — תמיד, גם אם עכשיו נכשל
-  state.canary.nextDueAt = new Date(now + CANARY_EVERY_MS).toISOString();
+  // חוק מוות-התקציב: ספירת-רצף, זיהוי, ובאסה כנה
+  if (runSucceeded) {
+    state.canary.deadStreak = 0;
+    state.canary.gate = "OPEN";
+    state.canary.deadSince = null;
+  } else if (runFailedAfterDispatch) {
+    state.canary.deadStreak += 1;
+    if (state.canary.deadStreak >= 3 && state.canary.gate !== "QUOTA-DEAD") {
+      state.canary.gate = "QUOTA-DEAD";
+      state.canary.deadSince = new Date().toISOString();
+      state.lastDecision = {
+        at: new Date().toISOString(),
+        kind: "GATE-QUOTA-DEAD",
+        detail: `שער-הדקות של הריפואים הפרטיים נמדח: ${state.canary.deadStreak} dispatch-ים רצופים נכשלו מיידית (הרץ מעולם לא התחיל — חנקת-Actions של הארגון). הצייד עובר לבאסה יומית עד שהמכסה תחזור. המכונה החיה: הצי המקומי + התאומים הציבוריים ב-Domain`,
+      };
+      state.history = [...state.history, state.lastDecision].slice(-40);
+    }
+  }
+  // המועד הבא: שער פתוח — 6ש'; שער מת — גשאוש יומי (באסה כנה, לא ויתור)
+  const cadenceMs = state.canary.gate === "QUOTA-DEAD" ? 24 * 60 * 60 * 1000 : CANARY_EVERY_MS;
+  state.canary.nextDueAt = new Date(now + cadenceMs).toISOString();
   state.canary.day = utcDay();
   saveState();
 }
