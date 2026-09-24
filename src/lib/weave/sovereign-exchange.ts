@@ -1425,6 +1425,21 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
     prev = e.hash;
     headHash = e.hash;
   }
+  // R107 — אמת-ההיצע: USDS במחזור = מאזני חברים (למעט סיר-הרזרבה) +
+  // צדדי-הUSDS בבריכות. סיר-הרזרבה (reserve.USDS) איננו כסף במחזור —
+  // הוא קיבולת הפדיון. ההצגה הקודמת קראה לסיר "היצע" והציגה מספר
+  // שקטן ככל שמטביעים יותר — ההפך מהאמת. הספר שופט: מחזור = נעילה.
+  let circulatingUsds = 0;
+  for (const a of accts) {
+    if (a.member === "reserve") continue;
+    try { circulatingUsds += (JSON.parse(a.balances)?.USDS ?? 0) || 0; } catch { /* ספר ישן */ }
+  }
+  for (const p of pools) {
+    if (p.assetB === "USDS") circulatingUsds += p.reserveB;
+    if (p.assetA === "USDS") circulatingUsds += p.reserveA;
+  }
+  const lockedUsds = (reserveBal.WSBD ?? 0) + (reserveBal.WHBD ?? 0);
+  const ratioOk = Math.abs(circulatingUsds - lockedUsds) < 1e-9;
   return {
     ok: true,
     at,
@@ -1432,10 +1447,12 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
     pools: poolRows,
     chains: await chainState(),
     reserve: {
-      usdsSupply: reserveBal.USDS ?? 0,
+      usdsSupply: circulatingUsds,
       sbdLocked: reserveBal.WSBD ?? 0,
       hbdLocked: reserveBal.WHBD ?? 0,
-      ratio: "1:1 (היצע = רזרבה נעולה, תמיד)",
+      ratio: ratioOk
+        ? "1:1 מאומת בספר (מחזור = נעילה, תמיד)"
+        : `פער נמדח ${(circulatingUsds - lockedUsds).toFixed(9)} USDS — הספר שופט, נחקר`,
     },
     treasury: treasuryBal,
     members: accts.map((a) => ({ member: a.member, balances: JSON.parse(a.balances) as Balances })),
