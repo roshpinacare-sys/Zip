@@ -24,6 +24,8 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { db } from "@/lib/db";
+import * as fs from "fs";
+import * as path from "path";
 
 // ── חוזה הנתונים (BE↔FE) ─────────────────────────────────────────────
 
@@ -727,6 +729,42 @@ function pegMetrics(money: MoneyLite | null): PegMetrics {
   };
 }
 
+interface AnchorTruth {
+  /** מספר אימותים חי מהספר (r121: במקום מספרי-עידן R73 קשיחים) */
+  attCount: number | null;
+  lastAttAt: string | null;
+  zero: { checkpoint: number; attestations: number; block: number; at: string } | null;
+}
+
+/** r121 — קריאת אמת-חיה לשורות העוגנים: הספר המיוצא + קו ה-ZERO.
+ * מקור: sovereign/ledger.json ו-sovereign/zero-line.json בדיסק (נכתבים
+ * בכל פעימה). כשל-קריאה = null כנה, לא מספר מהזיכרון. */
+function readAnchorTruth(): AnchorTruth {
+  const truth: AnchorTruth = { attCount: null, lastAttAt: null, zero: null };
+  const ROOT = path.resolve(__dirname, "..", "..", "..");
+  try {
+    const ledger = JSON.parse(fs.readFileSync(path.join(ROOT, "sovereign", "ledger.json"), "utf8")) as {
+      chainCount?: number;
+      attestations?: Array<{ createdAt?: string }>;
+    };
+    if (typeof ledger.chainCount === "number") truth.attCount = ledger.chainCount;
+    const last = ledger.attestations?.[ledger.attestations.length - 1];
+    if (last?.createdAt) truth.lastAttAt = last.createdAt;
+  } catch {
+    /* ספר לא נמצא — null כנה */
+  }
+  try {
+    const zl = JSON.parse(fs.readFileSync(path.join(ROOT, "sovereign", "zero-line.json"), "utf8")) as {
+      anchors?: Array<{ checkpoint: number; attestations: number; block: number; at: string }>;
+    };
+    const last = zl.anchors?.[zl.anchors.length - 1];
+    if (last) truth.zero = { checkpoint: last.checkpoint, attestations: last.attestations, block: last.block, at: last.at };
+  } catch {
+    /* קו לא נמצא — null כנה */
+  }
+  return truth;
+}
+
 function anchorRows(money: MoneyLite | null, gate: GateLite | null, peg: PegMetrics): AnchorRow[] {
   const rows: AnchorRow[] = [];
 
@@ -753,12 +791,17 @@ function anchorRows(money: MoneyLite | null, gate: GateLite | null, peg: PegMetr
     note: "נאכף בעורק הכסף לפני כל נגיעה בכסף; אין מדידה = סירוב",
   });
 
+  const truth = readAnchorTruth();
   rows.push({
     id: "ANCH-WITNESS",
     title: "העד השעתי (Steem custom_json)",
     buys: "רצף-אמת ציבורי: כל פעימה של הרשת מותירה עד על שרשרת חברתית חיצונית - עמידות למחיקה",
-    measured: "קנון: עדות שעתית חיה (weave-heart); 297+ אימותים במסירה (R73)",
-    verdict: "ANCHORED",
+    measured:
+      truth.attCount != null
+        ? `קנון: עדות שעתית חיה (weave-heart) · ${truth.attCount.toLocaleString("he-IL")} אימותים בספר` +
+          (truth.lastAttAt ? ` · אחרון ${new Date(truth.lastAttAt).toISOString().slice(11, 16)}Z` : "")
+        : "הספר לא נמצא בדיסק — לא נספר עיוור",
+    verdict: truth.attCount != null ? "ANCHORED" : "WAIT",
     note: "העוגן הזול ביותר שלנו: חסר-מפתחות בצד הציבורי, קיים בכל דליה",
   });
 
@@ -766,8 +809,10 @@ function anchorRows(money: MoneyLite | null, gate: GateLite | null, peg: PegMetr
     id: "ANCH-ZERO-LINE",
     title: "קו ZERO (עוגן on-chain)",
     buys: "ראיה קריפטוגרפית שהספר לא שובש - merkle root על שרשרת אמיתית",
-    measured: "קנון: חי on-chain (block 35247391) · cp#296 · 304 אימותים במדידת R73",
-    verdict: "ANCHORED",
+    measured: truth.zero
+      ? `קנון: חי on-chain (block ${truth.zero.block.toLocaleString("he-IL")}) · cp#${truth.zero.checkpoint} · ${truth.zero.attestations.toLocaleString("he-IL")} אימותים בספר העוגן`
+      : "קובץ הקו לא נמצא — לא נספר עיוור",
+    verdict: truth.zero ? "ANCHORED" : "WAIT",
     note: "השופט של כל טענת-עבר: חישוב-מחדש מנצח זיכרון",
   });
 

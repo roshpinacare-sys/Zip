@@ -137,7 +137,7 @@ export function DoctrineView() {
               {[
                 { icon: BookOpen, t: "הספר (ledger.json)", d: "האמת הקנונית - בגיט שלנו, ניתן לשחזור מכל עותק" },
                 { icon: KeyRound, t: "מפתח הרשת + זהויות הסוכנים", d: "נגזרים מה-seal; DAEMONs נגזרים דטרמיניסטית - self-heal מוכח" },
-                { icon: BrainCircuitIcon, t: "המוח הריבוני", d: "3 מפתחות NVIDIA אטומים תחת גזירת מפתח-הרשת + רוטציה אוטומטית" },
+                { icon: BrainCircuitIcon, t: "המוח הריבוני", d: "3 מפתחות NVIDIA אטומים תחת גזירת מפתח-הרשת; רוטציה בפקודת מפעיל (לא אוטומטית — נמדחה בכנות)" },
                 { icon: Coins, t: "שוק האמת", d: "ספר אירועים חתום במפתח הרשת; ההון נקודות מוניטין - אפס כסף" },
                 { icon: Database, t: "פעימת הרשת (weave-beat)", d: "ה-runner הראשי: verify -> attest -> checkpoint -> push, בסנדבוקס ובענן כאחד" },
               ].map((r) => (
@@ -165,9 +165,10 @@ export function DoctrineView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {[
-                { icon: Link2, t: "Steem / Hive", d: "קווי עדות ציבוריים - הפעימה כותבת פוסט-עוגן כל 6 שעות" },
+                { icon: Link2, t: "Steem", d: "קו עדות ציבורי חי — הפעימה כותבת פוסט-עוגן עם כל לב (שעתי)" },
+                { icon: Link2, t: "Hive", d: "קו עדות מושהה — מפתחות ה-posting הוסרו מהריפו אחרי תקרית R11 וטרם נאטמו מחדש" },
                 { icon: Layers, t: "ZERO EVM (Z Chain 9369)", d: "עוגן-EVM בגז 0x0 מדוד + השופט-החיצוני של שוק האמת (גובה בלוק חי)" },
-                { icon: GitBranch, t: "GitHub (הלב הענן)", d: "Actions מריץ את הרשת כל 6 שעות - TAKEOVER כשהסנדבוקס ישן" },
+                { icon: GitBranch, t: "GitHub (הלב הענן)", d: "Actions מריץ את הרשת מדי שעה - TAKEOVER כשהסנדבוקס ישן" },
                 { icon: BrainCircuitIcon, t: "NVIDIA NIM - המודל", d: "המשקולות בחוץ; המפתחות, הרוטציה והזיהוי בבית. תווית אמת מוצהרת" },
               ].map((r) => (
                 <div key={r.t} className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3.5">

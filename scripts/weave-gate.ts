@@ -32,9 +32,13 @@ export const SECRET_PATTERNS: Array<{ name: string; re: RegExp }> = [
 // בלי הרשימה הזו hex ארוך של encKey עלול להיתפס חיובי-שקר כ-WIF
 // (5 + 50 תווים ללא אפס — הסתברות נמוכה אך מדידה).
 const KNOWN_HASH_FIELDS =
-  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|payload|zeroTxid|recoveredTxid|sig|calldata|explorer|inputHex|encKey|keyIv|keyTag)"\s*:/i;
+  /"(entryHash|root|prevRoot|prevHash|headHash|digest|recomputedHead|evidenceHash|leaf|sha256|id|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|payload|zeroTxid|recoveredTxid|sig|calldata|explorer|inputHex|encKey|keyIv|keyTag|evidence)"\s*:/i;
 const KNOWN_HASH_KV =
   /(headHash|recomputedHead|root|entryHash|digest|prevHash|payloadHash|txid|anchorTx|stateRoot|genesisHash|lastBlockHash|dataHex|zeroTxid|recoveredTxid|explorer|encKey|keyIv|keyTag)=/i;
+// + r121 · שדה הראיה (evidence): מכולה-ציבורית חתומה — ה-evidenceHash של
+//   הספר מכסה אותה במלואה (hashText(evidence) חייב להתאים); חקירת
+//   charter-restore נתפסה כ-64hex חשוד רק בגלל ציטוט-המילוט של ה-JSON
+//   הפנימי. אותה מחלקת-אמון כמו sig/calldata: תוכן נמדד, לא סוד.
 // קישור סייר ציבורי — ה-txid בתוכו היא בדיוק הראיה הפומבית (zscan לקו
 // ה-ZERO, etherscan לעוגן ה-Ethereum ההיסטורי של הצי — אותה דוקטרינה)
 const KNOWN_EXPLORER_URL = /(zscan\.live\/tx\/|etherscan\.io\/tx\/)0x[0-9a-fA-F]{64}/i;

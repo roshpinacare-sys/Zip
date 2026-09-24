@@ -583,7 +583,11 @@ export function HomeView() {
             <EntryPath
               icon={Users}
               who="אני מפעיל או סוכן"
-              what="אזור האדמין: מרכז פיקוד על 12 הסוכנים בענן, תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת."
+              what={
+                loopCov
+                  ? `אזור האדמין: מרכז פיקוד על ${loopCov.agents} סוכני הצי בענן, תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת.`
+                  : "אזור האדמין: מרכז פיקוד על צי הסוכנים בענן, תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת."
+              }
               cta="לאזור האדמין"
               target="admin/command"
               delay={0.16}
@@ -597,7 +601,7 @@ export function HomeView() {
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("agents/fleet")}>
             <Users className="size-4" aria-hidden="true" />
-            12 הסוכנים החיים
+            {loopCov ? `${loopCov.agents} סוכני הצי` : "צי הסוכנים"}
           </Button>
           <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("knowledge/brain")}>
             <BookOpen className="size-4" aria-hidden="true" />

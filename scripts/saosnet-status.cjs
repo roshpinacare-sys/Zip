@@ -84,6 +84,11 @@ const wallets = st.wallets || null;
 const book = st.book || null;
 const orderCount = book && Array.isArray(book.orders) ? book.orders.length : null;
 
+// r121 — גיל ה-pack בכנות: השעה שעל הבלוק האחרון שבו, לא חותמת-בדיקה
+// טרייה מעל נתונים קפואים. pack מעל 24ש' מתויג FROZEN-PACK בגלוי.
+const packLastTime = st.meta.lastTime ? Date.parse(st.meta.lastTime) : NaN;
+const packAgeHours = Number.isFinite(packLastTime) ? Math.round(((Date.now() - packLastTime) / 3.6e6) * 10) / 10 : null;
+
 const out = {
   ok: true,
   net: {
@@ -161,11 +166,19 @@ const out = {
         last: wallets.recs ? wallets.recs.slice(-5).reverse() : [],
       }
     : { total: 0, agents: 0, last: [] },
-  truthLabel: 'REAL (דטרמיניסטי — replay מתמטי) · ה-pack: DERIVED מריפו הפלטפורמה של הצי',
+  truthLabel: 'REAL (דטרמיניסטי — replay מתמטי) · ה-pack: DERIVED מריפו הפלטפורמה של הצי · גיל ה-pack מתויג בגלוי',
   pack: {
     path: 'saos-verify/',
     kernelOps: Object.keys(K.GAS || K.gas || {}).length || null,
     checkedAt: new Date().toISOString(),
+    lastAdvancedAt: st.meta.lastTime || null,
+    ageHours: packAgeHours,
+    state:
+      packAgeHours == null
+        ? 'UNKNOWN-AGE'
+        : packAgeHours > 24
+          ? 'FROZEN-PACK — replay אמיתי על תמונת-מצב שאינה מתקדמת; אין ריפו שמעדכן את ה-pack מאז שהפלטפורמה הפסיקה לכתוב אליו'
+          : 'LIVE-PACK',
   },
 };
 

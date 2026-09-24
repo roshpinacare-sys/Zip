@@ -8,7 +8,6 @@ import { jsonError, readJsonBody, toCheckpointDTO } from "@/lib/weave/api";
 import { GENESIS_HASH } from "@/lib/weave/chain";
 import {
   checkpointDigest,
-  generateIdentity,
   identityFromKey,
   recoverCheckpointSigner,
   signCheckpoint,
@@ -39,11 +38,13 @@ async function getOrCreateNetworkKey(): Promise<{ address: string; devKeyHex: st
     console.warn("[weave/checkpoint] WEAVE_NETWORK_KEY בפורמט שגוי — נוצר מפתח רשת חדש");
   }
 
-  const identity = generateIdentity();
-  await db.networkKey.create({
-    data: { id: NETWORK_KEY_ID, address: identity.address, devKeyHex: identity.devKeyHex },
-  });
-  return { address: identity.address, devKeyHex: identity.devKeyHex };
+  // r121 · חוק fail-closed: אין מפתח רשת בסביבה ואין כזה ב-DB — לא
+  // ממציאים זהות-מקרית שתחתום על עוגן שהקנון לא מכיר. המפעיל נדרש:
+  // WEAVE_NETWORK_KEY בסביבה או שחזור ה-seal (bun scripts/weave-seal.ts
+  // / --recover). עוגן על שרשרת שקרית גרוע מאין עוגן בכלל.
+  throw new Error(
+    "מפתח הרשת חסר — checkpoint נדחה בכנות (fail-closed). הגדר WEAVE_NETWORK_KEY או שחזר מה-seal; לא נחתום בזהות שנולדה מקרית."
+  );
 }
 
 export async function POST(request: Request) {

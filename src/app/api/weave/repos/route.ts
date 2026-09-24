@@ -21,12 +21,16 @@ const ORG = "roshpinacare-sys";
 const FV_STATE = `${HOME}/sovereign/fleet-verify/state.json`;
 const CACHE_MS = 60_000;
 
-// 13 הריפואים של הארגון — עשרת הרדומים שהושמו ב-R118 + שלושת החיים
-// שמוזנים ישירות מהמערכת (Zip = הבית · Console/Domain = שערי ענן).
+// כל 16 הריפואים של החשבון (r121: הושלם המחסור — Defi, steem ו-saos-dex
+// היו חיים-דוחפים אך הוסתרו מ"הארגון המלא"). עשרת המאומתים מוזנים
+// ממכונת הריפויים; ששת החיים ישירות מהמערכות עצמן.
 const REPOS: Array<{ name: string; roleHe: string; kind: "verified" | "live" }> = [
   { name: "Zip", roleHe: "הבית — שרשרת העדויות, המראה והריבונות", kind: "live" },
   { name: "Console", roleHe: "שער הענן של הקונסולה", kind: "live" },
   { name: "Domain", roleHe: "שער הענן של הדומיין", kind: "live" },
+  { name: "saos-dex", roleHe: "הבורסה — שרשרת-הדקס ומנוע ההחלפות", kind: "live" },
+  { name: "Defi", roleHe: "זירת ההלוואות והפקדות — דוחות הדיבונים החיים", kind: "live" },
+  { name: "steem", roleHe: "מקור שרשרת-העדות החברתית — צומת הצי", kind: "live" },
   { name: "saos-jummper", roleHe: "נוטריון ההוכחות חוצה-השרשרות", kind: "verified" },
   { name: "Sdk", roleHe: "ערכת הכלים והשידורים של הרשת", kind: "verified" },
   { name: "roshpina", roleHe: "בקרת הישות והאימות הפנימי", kind: "verified" },

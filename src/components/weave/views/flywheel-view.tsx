@@ -46,6 +46,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useWeave } from "@/components/weave/store";
 
 // ── טיפוסי ה-API (/api/defi) ────────────────────────────────────────
 
@@ -168,6 +169,13 @@ export function FlywheelView() {
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const reduced = useReducedMotion();
+  // r121: טענות הרשת נמשכות מהמראה החיה — לא מספרים קשיחים שהתיישנו
+  const { live, loadLive } = useWeave();
+  const liveStats = live.data ?? null;
+
+  useEffect(() => {
+    if (!live.data && !live.loading) void loadLive();
+  }, [live.data, live.loading, loadLive]);
 
   const load = useCallback(async () => {
     setBusy(true);
@@ -299,9 +307,19 @@ export function FlywheelView() {
                 <Skeleton className="h-24 w-full" />
               )}
               <p className="mt-2 text-[11px] leading-relaxed text-zinc-500" dir="auto">
-                ומעל הכל: שני קווי-עדות פעילים (Steem/Hive + ZERO EVM בגז-0), לב שעתי ב-Actions
-                (205+ פעימות), 213 צ׳קפוינטים, 221 עדויות חתומות, 23 סוכנים ב-14 ריפואים —
-                כל טענה ניתנת לאימות בדפדפן מהקונסולה הציבורית.
+                ומעל הכל: קווי-העדות החיים מהמראה הציבורית —{" "}
+                {liveStats ? (
+                  <>
+                    Steem ({liveStats.anchorLines?.steem ?? 0} עוגנים) + ZERO EVM בגז-0 ({liveStats.anchorLines?.zero ?? 0} עוגנים),
+                    {" "}{liveStats.stats?.checkpoints?.toLocaleString("he-IL") ?? "—"} צ׳קפוינטים,{" "}
+                    {liveStats.stats?.attestations?.toLocaleString("he-IL") ?? "—"} עדויות חתומות,{" "}
+                    {liveStats.loop?.coverage?.agents?.toLocaleString("he-IL") ?? "—"} סוכנים ב-{" "}
+                    {liveStats.loop?.coverage?.total ?? "—"} ריפואים
+                  </>
+                ) : (
+                  <>ממתין למראה הציבורית…</>
+                )}{" "}
+                — כל טענה ניתנת לאימות בדפדפן מהקונסולה הציבורית.
               </p>
             </CardContent>
           </Card>

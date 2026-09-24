@@ -2,65 +2,65 @@
   "service": "student",
   "version": "1.5.0",
   "bootedAt": "2026-09-24T14:09:34.792Z",
-  "beats": 66,
+  "beats": 67,
   "cycleSec": 600,
   "alive": true,
   "examining": false,
-  "lastExamAt": "2026-09-24T23:09:35.853Z",
+  "lastExamAt": "2026-09-24T23:19:54.209Z",
   "probes": [
     {
       "probe": "app:health",
       "ok": true,
-      "ms": 932,
-      "at": "2026-09-24T23:09:35.788Z"
+      "ms": 1101,
+      "at": "2026-09-24T23:19:35.965Z"
     },
     {
       "probe": "app:money",
       "ok": true,
-      "ms": 18,
-      "at": "2026-09-24T23:09:35.806Z"
+      "ms": 25,
+      "at": "2026-09-24T23:19:35.990Z"
     },
     {
       "probe": "app:crossmarket",
       "ok": true,
-      "ms": 9,
-      "at": "2026-09-24T23:09:35.815Z"
+      "ms": 1233,
+      "at": "2026-09-24T23:19:37.223Z"
     },
     {
       "probe": "app:exchange-router",
       "ok": true,
-      "ms": 7,
-      "at": "2026-09-24T23:09:35.822Z"
+      "ms": 2552,
+      "at": "2026-09-24T23:19:39.775Z"
     },
     {
       "probe": "app:charter",
       "ok": true,
-      "ms": 6,
-      "at": "2026-09-24T23:09:35.828Z"
+      "ms": 102,
+      "at": "2026-09-24T23:19:39.877Z"
     },
     {
       "probe": "fleet:pulse",
       "ok": true,
-      "ms": 1,
-      "at": "2026-09-24T23:09:35.829Z"
+      "ms": 0,
+      "at": "2026-09-24T23:19:39.877Z"
     },
     {
       "probe": "fleet:money",
       "ok": true,
-      "ms": 0,
-      "at": "2026-09-24T23:09:35.829Z"
+      "ms": 1,
+      "at": "2026-09-24T23:19:39.878Z"
     },
     {
       "probe": "fleet:hunter",
       "ok": true,
       "ms": 0,
-      "at": "2026-09-24T23:09:35.829Z"
+      "at": "2026-09-24T23:19:39.878Z"
     },
     {
       "probe": "fleet:keeper",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-24T23:09:35.830Z"
+      "at": "2026-09-24T23:19:39.879Z"
     }
   ],
   "probeHistory": [
@@ -3627,6 +3627,60 @@
       "ok": true,
       "ms": 1,
       "at": "2026-09-24T23:09:35.830Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 1101,
+      "at": "2026-09-24T23:19:35.965Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 25,
+      "at": "2026-09-24T23:19:35.990Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 1233,
+      "at": "2026-09-24T23:19:37.223Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 2552,
+      "at": "2026-09-24T23:19:39.775Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 102,
+      "at": "2026-09-24T23:19:39.877Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-09-24T23:19:39.877Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-09-24T23:19:39.878Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-09-24T23:19:39.878Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-09-24T23:19:39.879Z"
     }
   ],
   "recurring": [],
@@ -3635,7 +3689,7 @@
       "repo": "anchor-baseline",
       "role": "שלמות בסיס-קו",
       "pushedAt": "2026-09-24T20:09:53Z",
-      "pushAgeH": 2.1625952777777777,
+      "pushAgeH": 3.163386666666667,
       "workflows": 1,
       "lastRun": {
         "name": "baseline-integrity",
@@ -3648,7 +3702,7 @@
       "repo": "Sdk",
       "role": "אימות SDK",
       "pushedAt": "2026-09-24T20:10:53Z",
-      "pushAgeH": 2.148998333333333,
+      "pushAgeH": 3.1496827777777776,
       "workflows": 1,
       "lastRun": {
         "name": "sdk-verify",
@@ -3661,7 +3715,7 @@
       "repo": "roshpina",
       "role": "ביקורת בקרות",
       "pushedAt": "2026-09-24T20:11:08Z",
-      "pushAgeH": 2.143018611111111,
+      "pushAgeH": 3.1437713888888887,
       "workflows": 1,
       "lastRun": {
         "name": "controls-audit",
@@ -3674,7 +3728,7 @@
       "repo": "Adsmarket",
       "role": "שמירת-טענות שיווק",
       "pushedAt": "2026-09-24T20:11:04Z",
-      "pushAgeH": 2.142509722222222,
+      "pushAgeH": 3.1434466666666667,
       "workflows": 1,
       "lastRun": {
         "name": "claims-guard",
@@ -3687,7 +3741,7 @@
       "repo": "Project-files",
       "role": "שומר-ארכיון",
       "pushedAt": "2026-09-24T20:11:22Z",
-      "pushAgeH": 2.138892222222222,
+      "pushAgeH": 3.1396633333333335,
       "workflows": 1,
       "lastRun": {
         "name": "archive-keeper",
@@ -3700,7 +3754,7 @@
       "repo": "saos-jummper",
       "role": "סוויטת נוטריון",
       "pushedAt": "2026-09-24T20:11:32Z",
-      "pushAgeH": 2.1371466666666667,
+      "pushAgeH": 3.1378641666666667,
       "workflows": 1,
       "lastRun": {
         "name": "jumpper-tests",
@@ -3713,7 +3767,7 @@
       "repo": "saos-sovereign-platform",
       "role": "מנוע-קצה",
       "pushedAt": "2026-09-24T20:11:39Z",
-      "pushAgeH": 2.1356580555555555,
+      "pushAgeH": 3.136487222222222,
       "workflows": 1,
       "lastRun": {
         "name": "platform-selftest",
@@ -3726,7 +3780,7 @@
       "repo": "Saosmartwallet",
       "role": "אימות ארנק",
       "pushedAt": "2026-09-24T20:12:26Z",
-      "pushAgeH": 2.1229430555555555,
+      "pushAgeH": 3.1236355555555555,
       "workflows": 1,
       "lastRun": {
         "name": "wallet-verify",
@@ -3739,7 +3793,7 @@
       "repo": "saos-control-center",
       "role": "בניית מרכז-בקרה",
       "pushedAt": "2026-09-24T20:12:46Z",
-      "pushAgeH": 2.116146111111111,
+      "pushAgeH": 3.1167641666666666,
       "workflows": 1,
       "lastRun": {
         "name": "control-center-build",
@@ -3752,7 +3806,7 @@
       "repo": "saos-sovereign-foundry",
       "role": "CI חוזים — האמת לפי הריצה האחרונה (לא הזיכרון)",
       "pushedAt": "2026-09-24T20:13:05Z",
-      "pushAgeH": 2.1115466666666665,
+      "pushAgeH": 3.1122508333333334,
       "workflows": 1,
       "lastRun": {
         "name": "CI",
@@ -3762,49 +3816,10 @@
       "verdict": "AGENTED"
     },
     {
-      "repo": "Defi",
-      "role": "ריפו-קנון — דוחות וקבלות",
-      "pushedAt": "2026-09-24T20:16:36Z",
-      "pushAgeH": 2.0511216666666665,
-      "workflows": 1,
-      "lastRun": {
-        "name": "canary",
-        "conclusion": "failure",
-        "createdAt": "2026-09-24T20:09:36Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-dex",
-      "role": "מנוע הדקס",
-      "pushedAt": "2026-09-24T20:59:41Z",
-      "pushAgeH": 1.3344241666666667,
-      "workflows": 2,
-      "lastRun": {
-        "name": "dex-grid",
-        "conclusion": "failure",
-        "createdAt": "2026-09-23T08:30:01Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Zip",
-      "role": "בית ריבוני — ספר, סקריפטים, worklog",
-      "pushedAt": "2026-09-24T21:50:02Z",
-      "pushAgeH": 0.49696083333333335,
-      "workflows": 8,
-      "lastRun": {
-        "name": "weave-anchor-lines",
-        "conclusion": "failure",
-        "createdAt": "2026-09-21T18:47:57Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
       "repo": "steem",
       "role": "כלי רשות העוגן",
       "pushedAt": "2026-09-24T21:52:44Z",
-      "pushAgeH": 0.45172277777777775,
+      "pushAgeH": 1.4523891666666666,
       "workflows": 1,
       "lastRun": {
         "name": "cloud-heart",
@@ -3814,33 +3829,72 @@
       "verdict": "AGENTED"
     },
     {
-      "repo": "Domain",
-      "role": "מראה ציבורית — המכונה (20 זרימות)",
-      "pushedAt": "2026-09-24T22:13:27Z",
-      "pushAgeH": 0.10395611111111111,
-      "workflows": 19,
+      "repo": "saos-dex",
+      "role": "מנוע הדקס",
+      "pushedAt": "2026-09-24T22:58:50Z",
+      "pushAgeH": 0.3493222222222222,
+      "workflows": 2,
       "lastRun": {
-        "name": "web-publish",
-        "conclusion": "success",
-        "createdAt": "2026-09-24T22:16:28Z"
+        "name": "dex-grid",
+        "conclusion": "failure",
+        "createdAt": "2026-09-23T08:30:01Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Defi",
+      "role": "ריפו-קנון — דוחות וקבלות",
+      "pushedAt": "2026-09-24T23:18:28Z",
+      "pushAgeH": 0.020889722222222223,
+      "workflows": 1,
+      "lastRun": {
+        "name": "canary",
+        "conclusion": "failure",
+        "createdAt": "2026-09-24T20:09:36Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Console",
       "role": "קונסולה ציבורית — אתר, זרימות, גשר-סוכנים",
-      "pushedAt": "2026-09-24T22:18:44Z",
-      "pushAgeH": 0.015333888888888888,
+      "pushedAt": "2026-09-24T23:18:30Z",
+      "pushAgeH": 0.02012861111111111,
       "workflows": 8,
       "lastRun": {
         "name": "pages build and deployment",
         "conclusion": "success",
-        "createdAt": "2026-09-24T22:18:45Z"
+        "createdAt": "2026-09-24T23:18:31Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Domain",
+      "role": "מראה ציבורית — המכונה (20 זרימות)",
+      "pushedAt": "2026-09-24T23:19:12Z",
+      "pushAgeH": 0.008886388888888888,
+      "workflows": 19,
+      "lastRun": {
+        "name": "weave-anchor-lines",
+        "conclusion": null,
+        "createdAt": "2026-09-24T23:19:25Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Zip",
+      "role": "בית ריבוני — ספר, סקריפטים, worklog",
+      "pushedAt": "2026-09-24T23:19:22Z",
+      "pushAgeH": 0.008720555555555556,
+      "workflows": 8,
+      "lastRun": {
+        "name": "weave-anchor-lines",
+        "conclusion": "failure",
+        "createdAt": "2026-09-21T18:47:57Z"
       },
       "verdict": "AGENTED"
     }
   ],
-  "coverageAt": "2026-09-24T22:19:51.857Z",
+  "coverageAt": "2026-09-24T23:19:54.198Z",
   "findings": [
     {
       "id": "P1",
@@ -4040,11 +4094,6 @@
   },
   "history": [
     {
-      "at": "2026-09-24T18:09:35.893Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 9/9 מערכות תקינות · כיסוי רשת: 6/16 מתקדמים עם סוכן · 10 עצורים 3+ ימים (פער מתועד)"
-    },
-    {
       "at": "2026-09-24T18:19:50.771Z",
       "kind": "EXAMINE",
       "detail": "בחינה: 9/9 מערכות תקינות · כיסוי רשת: 6/16 מתקדמים עם סוכן · 10 עצורים 3+ ימים (פער מתועד)"
@@ -4238,10 +4287,15 @@
       "at": "2026-09-24T23:09:35.853Z",
       "kind": "EXAMINE",
       "detail": "בחינה: 9/9 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-09-24T23:19:54.209Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 9/9 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
     }
   ],
   "lastDecision": {
-    "at": "2026-09-24T23:09:35.853Z",
+    "at": "2026-09-24T23:19:54.209Z",
     "kind": "EXAMINE",
     "detail": "בחינה: 9/9 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
   }

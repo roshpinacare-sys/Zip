@@ -324,6 +324,15 @@ interface SaosnetDTO {
   harvest: { pot: number; streams: Record<string, number>; count: number; released: number };
   wallets: { total: number; agents: number; last: SaosnetWalletRec[] };
   truthLabel: string;
+  /** r121 — גיל ה-pack בכנות: replay אמיתי על תמונה קפואה אינו "מצב נוכחי" */
+  pack?: {
+    path: string;
+    kernelOps: number | null;
+    checkedAt: string;
+    lastAdvancedAt: string | null;
+    ageHours: number | null;
+    state: string;
+  };
 }
 
 // ── עוגן-עוגנים - ההצלבה של SAOS-NET בספר (מה-API) ──
@@ -1501,6 +1510,21 @@ export function SovereigntyTab() {
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {saosnet.net.blocksInPack} בלוקים ב-pack · snapshot h={saosnet.net.snapshotHeight.toLocaleString("en-US")}
               </span>
+              {saosnet.pack && (
+                <span
+                  className={
+                    "rounded border px-1.5 py-0.5 text-[10px] font-medium " +
+                    (saosnet.pack.state.startsWith("FROZEN")
+                      ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400")
+                  }
+                  dir="auto"
+                >
+                  {saosnet.pack.state.startsWith("FROZEN")
+                    ? `pack קפוא — לא התקדם ${saosnet.pack.ageHours ?? "?"}ש׳ (מ-${saosnet.pack.lastAdvancedAt?.slice(0, 10) ?? "?"})`
+                    : `pack חי · גיל ${saosnet.pack.ageHours ?? "?"}ש׳`}
+                </span>
+              )}
             </div>
 
             <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-3">
@@ -1558,7 +1582,8 @@ export function SovereigntyTab() {
                       <HashChip value={crosschain.stateRoot} label="stateRoot מוצלב" />
                       {crosschain.height === saosnet.net.height ? (
                         <span className="text-[11px] text-emerald-600 dark:text-emerald-400">
-                          תואם ל-replay החי - הספר מעיד על המצב הנוכחי
+                          תואם ל-replay — הספר מעיד על אותה תמונת-מצב
+                          {saosnet.pack?.state.startsWith("FROZEN") ? " (pack קפוא — ראה תג הגיל למעלה)" : ""}
                         </span>
                       ) : (
                         <span className="text-[11px] text-amber-600 dark:text-amber-400">

@@ -53,10 +53,21 @@ function lifeLevel(iso: string | undefined): "live" | "ok" | "slow" | "dead" {
   return "dead";
 }
 
+/** r121 · השלמת חוק ההגדרה-היחידה (r117): הנקודה שעל הכרטיס נגזרת
+ *  מהמצב הרשמי של הרישום (state=live/degraded/dormant) — בדיוק כמו
+ *  כרטיס הסיכום. גיל-ריצה אחרון נשאר רמז-משנה בלבד, לא מקור-חיים:
+ *  סוכן שהריצה לאחרונה אבל מסומן degraded הוא מדורד — לא "חי". */
+function stateLevel(state: string | undefined, iso: string | undefined): "live" | "ok" | "slow" | "dead" {
+  if (state === "live") return "live";
+  if (state === "degraded") return "slow";
+  if (state === "dormant") return "dead";
+  return lifeLevel(iso);
+}
+
 const LIFE_STYLE: Record<ReturnType<typeof lifeLevel>, { dot: string; label: string }> = {
   live: { dot: "bg-emerald-500", label: "חי" },
   ok: { dot: "bg-emerald-400", label: "חי" },
-  slow: { dot: "bg-amber-500", label: "מזדקן" },
+  slow: { dot: "bg-amber-500", label: "מדורד" },
   dead: { dot: "bg-rose-500", label: "דורם" },
 };
 
@@ -79,7 +90,7 @@ function AgentCard({
   agent: NonNullable<ReturnType<typeof useWeave>["registry"]["data"]>["agents"][number];
   delay: number;
 }) {
-  const life = lifeLevel(agent.lastRun?.at);
+  const life = stateLevel(agent.state, agent.lastRun?.at);
   const style = LIFE_STYLE[life];
   const success = agent.stats?.successRate;
   return (
