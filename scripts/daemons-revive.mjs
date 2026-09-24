@@ -27,6 +27,7 @@ const DAEMONS = [
   { name: "hunter", port: 3035, dir: `${HOME}/mini-services/hunter` },
   { name: "keeper", port: 3036, dir: `${HOME}/mini-services/keeper` },
   { name: "student", port: 3037, dir: `${HOME}/mini-services/student` },
+  { name: "fleet-verify", port: 3038, dir: `${HOME}/mini-services/fleet-verify` },
 ];
 
 function httpOk(port, timeoutMs = 2500) {

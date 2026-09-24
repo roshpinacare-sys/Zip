@@ -14,7 +14,10 @@ import {
   AlertTriangle,
   CircleCheck,
   Clock3,
+  Cpu,
+  Loader2,
   RefreshCw,
+  ShieldCheck,
   Users,
   XCircle,
 } from "lucide-react";
@@ -157,11 +160,138 @@ function AgentCard({
   );
 }
 
+// ── מפעל האימות המקומי (R109) — הריבונות מהמכסה ────────────────────
+
+interface VerifyJob {
+  id: string;
+  repo: string;
+  titleHe: string;
+  layer: string;
+  roleHe: string;
+  verdict: "PENDING" | "RUNNING" | "PASS" | "FAIL" | "ERROR" | "TIMEOUT";
+  lastRunAt: string | null;
+  durationMs: number | null;
+  checks: Record<string, unknown> | null;
+  reason: string | null;
+  outputTail: string[];
+  nextDueAt: string;
+  commit: string | null;
+  runs: number;
+}
+
+interface FleetVerifyDTO {
+  ok: boolean;
+  service?: string;
+  version?: string;
+  beats?: number;
+  patAvailable?: boolean;
+  current?: { id: string; startedAt: string } | null;
+  lastDecision?: { at: string; kind: string; detail: string } | null;
+  summary?: { total: number; pass: number; fail: number; pending: number };
+  jobs?: VerifyJob[];
+  error?: string;
+}
+
+const VERIFY_VERDICT_STYLE: Record<string, { badge: string; label: string }> = {
+  PASS: { badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "עבר" },
+  FAIL: { badge: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300", label: "נכשל" },
+  ERROR: { badge: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300", label: "שגיאה" },
+  TIMEOUT: { badge: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "פסק-זמן" },
+  RUNNING: { badge: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300", label: "רץ עכשיו" },
+  PENDING: { badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300", label: "ממתין" },
+};
+
+function VerifyCard({ job, delay }: { job: VerifyJob; delay: number }) {
+  const style = VERIFY_VERDICT_STYLE[job.verdict] ?? VERIFY_VERDICT_STYLE.PENDING;
+  const checks = job.checks ? Object.entries(job.checks) : [];
+  return (
+    <Card
+      className="group relative overflow-hidden transition-colors hover:border-emerald-500/30"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <CardContent className="flex flex-col gap-3 p-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              {job.verdict === "RUNNING" ? (
+                <Loader2 className="size-3.5 shrink-0 animate-spin text-sky-500" aria-hidden="true" />
+              ) : (
+                <span className="size-2 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+              )}
+              <span className="truncate font-mono text-sm font-bold">{job.id}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {job.repo}
+              {job.commit ? ` @ ${job.commit}` : ""} · מקומי
+            </span>
+          </div>
+          <Badge variant="outline" className={cn("shrink-0", style.badge)}>
+            {job.verdict === "RUNNING" && <Loader2 className="ml-1 size-3 animate-spin" aria-hidden="true" />}
+            {style.label}
+          </Badge>
+        </div>
+
+        <p className="line-clamp-2 min-h-[2.5rem] text-xs leading-relaxed text-muted-foreground">{job.roleHe}</p>
+
+        {checks.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {checks.slice(0, 5).map(([k, v]) => (
+              <span
+                key={k}
+                className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground"
+                dir="ltr"
+              >
+                {k}: {String(v)}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 border-t pt-3 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Clock3 className="size-3.5" aria-hidden="true" />
+            {job.lastRunAt ? ageLabel(job.lastRunAt) : "טרם רץ"}
+          </span>
+          <span className="tabular-nums">
+            {job.durationMs != null ? `${(job.durationMs / 1000).toFixed(1)}ש׳` : "-"} · {job.runs} ריצות
+          </span>
+        </div>
+
+        {job.reason && (
+          <p className="rounded-lg bg-muted/40 p-2.5 text-[11px] leading-relaxed" dir="auto">
+            {job.reason}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── העמוד ───────────────────────────────────────────────────────────
 
 export function AgentsFleetView() {
   const { registry, loadRegistry } = useWeave();
   const [tick, setTick] = useState(0);
+  const [verify, setVerify] = useState<FleetVerifyDTO | null>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+
+  const loadVerify = () => {
+    setVerifyLoading(true);
+    fetch("/api/fleet-verify", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: FleetVerifyDTO) => setVerify(d))
+      .catch(() => setVerify({ ok: false, error: "המפעל לא ענה" }))
+      .finally(() => setVerifyLoading(false));
+  };
+
+  useEffect(() => {
+    const t = setTimeout(loadVerify, 0);
+    const iv = setInterval(loadVerify, 60_000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(iv);
+    };
+  }, []);
 
   useEffect(() => {
     loadRegistry();
@@ -266,6 +396,60 @@ export function AgentsFleetView() {
           ))}
         </div>
       )}
+
+      {/* מפעל האימות המקומי — הריבונות מהמכסה (R109) */}
+      <section className="mb-8" aria-label="מפעל האימות המקומי">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight">
+              <Cpu className="size-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              מפעל האימות המקומי
+              <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                {verify?.summary ? `${verify.summary.pass}/${verify.summary.total} עברו` : "טוען"}
+              </Badge>
+            </h2>
+            <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+              תשעת סוכני-האימות של הרשת מתו עם מכסת ה-Actions של הארגון — הרץ הפרטי מעולם לא התחיל.
+              הריבונות: אותן בדיקות בדיוק, רצות כאן, בבית. כל ריצה משכפלת את הריפו החי, מריצה
+              את מלוא שלבי-האימות וכותבת פסק-דין כן. הענן הוא גיבוי — הבית הוא המכונה.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {verify?.lastDecision && (
+              <span className="hidden max-w-xs truncate text-[11px] text-muted-foreground sm:inline" dir="auto">
+                {verify.lastDecision.detail}
+              </span>
+            )}
+            <Button variant="outline" size="sm" className="gap-2" onClick={loadVerify} disabled={verifyLoading}>
+              <RefreshCw className={cn("size-4", verifyLoading && "animate-spin")} aria-hidden="true" />
+              רענן מפעל
+            </Button>
+          </div>
+        </div>
+
+        {verify?.ok ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(verify.jobs ?? []).map((job, i) => (
+              <VerifyCard key={job.id} job={job} delay={i * 50} />
+            ))}
+          </div>
+        ) : verify ? (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
+              <ShieldCheck className="size-7 text-amber-500" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground" dir="auto">
+                {verify.error ?? "המפעל לא כתב עדיין את קובץ-האמת — הדיבון עולה או ממתין לסמכות."}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-56" />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* הכרטיסים */}
       {loading ? (
