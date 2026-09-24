@@ -167,7 +167,11 @@ let state: KeeperState = readState();
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/keeper`, { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  // חוק R107b: כתיבה-אטומית — .tmp ואז rename. רגע-מוות באמצע כתיבה
+  // לא ישאיר ליורש קובץ-מצב חצוי (הלקח שנלמד חי בכסף, עכשיו חוק גם כאן).
+  const tmp = `${STATE_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+  fs.renameSync(tmp, STATE_FILE);
 }
 
 function record(kind: string, detail: string, canon = false) {
@@ -274,15 +278,23 @@ function pidsOnPort(port: number): number[] {
 }
 
 function restartDaemon(d: FleetEntry): boolean {
-  // ניקוי נעילות-פורט: SIGTERM, חכה, אז SIGKILL
-  for (const pid of pidsOnPort(d.port)) {
+  // חוק היילוד (R110, נתפס חי): רשימת-ההרג נתפסת לפני ההקמה —
+  // ה-SIGKILL המושהה חייב לפגוע רק בזקן שסירב למות, לעולם לא ב"מי
+  // שעל הפורט עכשיו": 1.5ש' אחרי ההקמה שם עומד היילוד עצמו. מרוץ-ההרגה
+  // הקודם רצח כל הקמה חדשה תוך שניות (fleet-verify: 8 רציחות ברצף,
+  // כל "החייאה" הרגה את בנה — ספירלת מוות שנראתה כמו דיבון גוסס).
+  const doomed = pidsOnPort(d.port);
+  for (const pid of doomed) {
     try { process.kill(pid, "SIGTERM"); } catch {}
   }
-  setTimeout(() => {
-    for (const pid of pidsOnPort(d.port)) {
-      try { process.kill(pid, "SIGKILL"); } catch {}
-    }
-  }, 1500).unref?.();
+  if (doomed.length > 0) {
+    setTimeout(() => {
+      // רק ה-PI שנתפסו לפני ההקמה — הזקנים שסירבו למות
+      for (const pid of doomed) {
+        try { process.kill(pid, "SIGKILL"); } catch {}
+      }
+    }, 1500).unref?.();
+  }
   // הקמה — process.execPath (הבאג של R90: 'bun' לא תמיד ב-PATH; עכשיו אבסולוטי)
   const dir = `${HOME}/mini-services/${d.name}`;
   if (!fs.existsSync(`${dir}/index.ts`)) return false;

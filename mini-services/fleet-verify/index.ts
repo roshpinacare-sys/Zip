@@ -694,6 +694,10 @@ const G = globalThis as {
   __FV_STATE__?: FleetState;
   __FV_TIMER__?: ReturnType<typeof setInterval>;
   __FV_SERVER__?: unknown;
+  // R110 — פעימת-החיים של הטיימר: טיימר שקיים אך לא פועם הוא מת.
+  // עריכת-קוד חיה (bun --hot) הקפיאה את הטיימר הישן ב-03:54 והשאירה
+  // זומבי — HTTP עונה, פעימות קפואות. השעון נמדד לפי פעימות, לא קיום.
+  __FV_HEARTBEAT__?: number;
 };
 if (G.__FV_STATE__) {
   try {
@@ -929,6 +933,8 @@ async function runJob(def: JobDef): Promise<void> {
 // ── מנוע הלולאה ────────────────────────────────────────────────────
 let running = false;
 async function tick(): Promise<void> {
+  // פעימת-חיים תחילה — גם אם הריצה תיכשל, השעון הזה התקדם (חוק R110)
+  G.__FV_HEARTBEAT__ = Date.now();
   state.beats += 1;
   if (running) return;
   if (!PAT) {
@@ -957,6 +963,9 @@ if (!G.__FV_SERVER__) {
   async fetch(req) {
     const url = new URL(req.url);
     if (url.pathname === "/health") {
+      // חוק פעימת-החיים (R110): השרת-החי הוא המשקה של הטיימר.
+      // השומר שואל כאן כל 30ש' — אם הטיימר קפא, השאלה עצמה מחייה אותו.
+      ensureTimer();
       return Response.json({ ok: true, service: "fleet-verify", alive: true, beats: state.beats });
     }
     if (req.method === "POST" && url.pathname.startsWith("/run/")) {
@@ -999,13 +1008,38 @@ console.log(`[fleet-verify] מפעל האימות המקומי עלה · פור�
 // אך לא מנקה טיימרים ישנים — שני טיימרים עם שני מצבים כתבו זה על זה
 // ומחקו תוצאות אמיתיות מקובץ-האמת). globalThis שורד טעינות-חמות:
 // טיימר אחד, מצב אחד, אמת אחת.
-if (!G.__FV_TIMER__) {
+//
+// R110 — הרחבה נלמדת-חי: השומר-מקורי (if !G.__FV_TIMER__) היה עיוור
+// לטיימר מת: אחרי עריכת-קוד חיה הטיימר הישן קפא, המודול החדש ראה
+// "טיימר קיים" ולא הקים חדש — זומבי מלא. החוק החדש: טיימר נמדד לפי
+// פעימת-החיים שלו. קפוא מעל 3 מחזורים — מוחלף. השרת-החי (שעונה ל-HTTP)
+// הוא המשקה: כל בקשת /health בודקת את השעון ומחייה אם צריך —
+// המצב הזומבי עצמו (HTTP חי, טיימר מת) הופך לטריגר ההחייאה.
+const HEARTBEAT_STALE_MS = 3 * 60_000; // 3 מחזורי-טיימר בלי פעימה = מת
+
+function ensureTimer(): void {
+  const last = G.__FV_HEARTBEAT__ ?? 0;
+  const live = G.__FV_TIMER__ && Date.now() - last < HEARTBEAT_STALE_MS;
+  if (live) return; // טיימר חי — אחד בלבד, אין כפילוּת
+  if (G.__FV_TIMER__) {
+    // טיימר זומבי קיים אך אינו פועם — מוחלף (חוק פעימת-החיים)
+    try { clearInterval(G.__FV_TIMER__); } catch {}
+    G.__FV_TIMER__ = undefined;
+    state.lastDecision = {
+      at: new Date().toISOString(),
+      kind: "TIMER-REVIVED",
+      detail: "טיימר קפוא הוחלף לפי חוק פעימת-החיים (R110) — השעון חוזר לפעום",
+    };
+    saveState();
+  }
   G.__FV_TIMER__ = setInterval(() => {
     tick().catch((e) => {
       state.lastDecision = { at: new Date().toISOString(), kind: "ERROR", detail: sanitize(String(e)).slice(0, 200) };
       saveState();
     });
   }, 60_000);
-  // פעימה ראשונה מיד
+  // פעימה ראשונה מיד — ופעימת-חיים ראשונה נרשמת בתוכה
   tick().catch(() => {});
 }
+
+ensureTimer();
