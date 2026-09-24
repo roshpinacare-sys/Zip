@@ -70,6 +70,7 @@ type MoneyState = {
   lastPoolGuardAt?: string | null;
   lastFleetSweepAt?: string | null; // R108 — סריקת גלגול-צי (כל 5 דק') // R108 — איזון-בריכות אחרון (כל 10 דק')
   lastStreamDay?: string; // R103 — הזרמת-נזילות אחת לכל היום ביותר
+  lastTotalSteem?: number; // R111 — חתימת הון-כולל לטריגר הגל (נזיל+פרוס)
   fleetSeen?: { keeperRestartAt?: string; pulseDay?: string; studentDay?: string }; // R108 — סימני-מים לגוב-הצי
   canonLast: { at: string; ok: boolean; path: string } | null;
   history?: Array<Record<string, unknown>>;
@@ -82,7 +83,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.7.0",
+    version: "1.8.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -110,6 +111,7 @@ function readState(): MoneyState {
       fillsSeen: prev.fillsSeen ?? 0,
       lastDepositScanAt: prev.lastDepositScanAt ?? null,
       lastStreamDay: prev.lastStreamDay ?? null,
+      lastTotalSteem: prev.lastTotalSteem ?? null,
       fleetSeen: prev.fleetSeen ?? {},
       lastPoolGuardAt: prev.lastPoolGuardAt ?? null,
       lastFleetSweepAt: prev.lastFleetSweepAt ?? null,
@@ -222,31 +224,62 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   // R103 — LIQUIDITY-STREAM: גל-דלק (חתימת פאוורדאון: נזיל ≥ 200 STEEM
   // בבת אחת) ← 20% ממנו הופך לעומק בבריכות הזירה לפני שהסולם פורש
   // את השאר. הזרמה אחת ליום בלבד — חוק התקציב.
+  // R111 - law of the total-capital signature: liquid>=200 alone is NOT a
+  // wave. Measured live 04:15: standing ladder capital re-appeared liquid
+  // after order churn and masqueraded as a powerdown wave -> false wrap of
+  // 95.327 WSTEEM from ladder capital. A true wave is a rise in the TOTAL
+  // capital (liquid + deployed in orders) above the previous beat's total.
+  // Cancels and re-deploys never change the total and cannot fire it.
   const idleNow = Number(meas?.idleSteem ?? 0);
+  const totalSteemNow = Math.round((idleNow + Number(meas?.deployedSteem ?? 0)) * 1000) / 1000;
+  const measCredible =
+    !!meas && typeof meas === "object" && typeof meas?.idleSteem === "number" && totalSteemNow > 0;
+  const prevTotal = state.lastTotalSteem ?? null;
+  if (measCredible) state.lastTotalSteem = totalSteemNow; // wave = rise vs previous picture
   const today = utcDay();
+  const waveDelta = prevTotal != null ? Math.round((totalSteemNow - prevTotal) * 1000) / 1000 : 0;
   if (
+    measCredible &&
+    waveDelta >= POLICY.liquidityStream.waveSteem &&
     idleNow >= POLICY.liquidityStream.waveSteem &&
     state.lastStreamDay !== today
   ) {
     return {
       act: true,
       action: "arena-stream",
-      reason: `גל דלק נזיל ${idleNow.toFixed(0)} STEEM (חתימת פאוורדאון) — ${Math.round(POLICY.liquidityStream.share * 100)}% הופכים לעומק בריכות הזירה לפני פריסת הסולם`,
+      reason: `גל דלק אמיתי: ההון-הכולל עלה ${waveDelta.toFixed(3)} STEEM מעל המדידה הקודמת (${totalSteemNow.toFixed(3)} סך · נזיל ${idleNow.toFixed(0)}) — ${Math.round(POLICY.liquidityStream.share * 100)}% הופכים לעומק בבריכות הזירה לפני פריסת הסולם`,
     };
   }
   // R101b - STOCK-SBD (before the idle trigger - order is the deal):
   // if the arming inventory is short and idle fuel can close the gap,
   // close it at the ask first; only then spread the rest into the ladder.
+  // R111 - pre-check law (born from a live starvation loop): the fire is
+  // checked against the executable bid from the measurement itself BEFORE
+  // burning action-budget and cooldown on it. True cost premium:
+  // parity/bid - 1 (how many STEEM above fair one SBD costs when executing
+  // into bids). Above the cap the decision honestly falls through (ladder
+  // deploy, HIVE leg) instead of looping on a guaranteed refusal.
   const armStock = meas?.sbdArming;
   const parityStock = Number(meas?.marks?.parity);
-  if (armStock?.state === "WAIT" && Number.isFinite(parityStock) && parityStock > 0) {
+  const bidPxStock = Number(meas?.book?.bids?.[0]?.price);
+  const premiumBpsStock =
+    Number.isFinite(parityStock) && parityStock > 0 && Number.isFinite(bidPxStock) && bidPxStock > 0
+      ? Math.round((parityStock / bidPxStock - 1) * 10_000)
+      : null;
+  if (
+    armStock?.state === "WAIT" &&
+    Number.isFinite(parityStock) &&
+    parityStock > 0 &&
+    premiumBpsStock != null &&
+    premiumBpsStock <= POLICY.stockSbd.premiumCapBps
+  ) {
     const gapStock = Math.max(0, Number(armStock.needed ?? 0.15) - Number(armStock.commitable ?? 0));
     const steemNeedStock = (gapStock / parityStock) * 1.5 + POLICY.stockSbd.keepSteem;
     if (gapStock > 0.005 && Number(meas?.idleSteem ?? 0) >= steemNeedStock) {
       return {
         act: true,
         action: "stock-sbd",
-        reason: `SBD arming gap ${Number(armStock.commitable).toFixed(3)}/${armStock.needed} - idle STEEM covers it - closing at the ask (bounded stock, premium cap ${POLICY.stockSbd.premiumCapBps}bps)`,
+        reason: `SBD arming gap ${Number(armStock.commitable).toFixed(3)}/${armStock.needed} - executable bid ${bidPxStock.toFixed(6)} within cap (premium ${premiumBpsStock}bps <= ${POLICY.stockSbd.premiumCapBps}) - closing at the bid (bounded stock)`,
       };
     }
   }
@@ -703,4 +736,11 @@ Bun.serve({
 saveState();
 console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R108 fleet-pay + pool-guard`);
 tick();
-setInterval(tick, CHECK_INTERVAL_SEC * 1000);
+// R111 — law of the single timer (R109 lesson, applied to money):
+// bun --hot re-evaluates the module but does NOT clear the old interval —
+// two live closures then double-fire acts (measured live 05:16: old decide()
+// fired stock-sbd with the pre-R111 reason while the new code was already
+// deployed). The singleton guard captures the previous timer and clears it.
+const G = globalThis as unknown as { __MONEY_TIMER__?: ReturnType<typeof setInterval> };
+if (G.__MONEY_TIMER__) clearInterval(G.__MONEY_TIMER__);
+G.__MONEY_TIMER__ = setInterval(tick, CHECK_INTERVAL_SEC * 1000);

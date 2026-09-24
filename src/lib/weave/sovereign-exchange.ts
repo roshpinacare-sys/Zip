@@ -1175,6 +1175,87 @@ export async function addLiquidity(params: {
  * ומחזיר רזרבות ביחס המדויק, כולל העמלות שנצברו מאז ההפקדה —
  * שווי-כל-מניה רק צומח.
  */
+// R111 — רייל היפוך-עטיפה: החזרת עטיפה מוטעית לספר ביושר.
+// נולד מהזרמה כוזבת שנמדדה חי (04:15): גל-שקר עטף 95.327 WSTEEM מהון-סולם
+// עומד שהתחזה לדלתא (קו-בסיס ג'נזיס נמדד כשההון היה נעול בפקודות). הרייל:
+//   · מזהה את אירוע ה-TREASURY_WRAP המקורי לפי seq — לא ממציאים סכומים
+//   · מחלץ קודם את מניות-ה-LP של האוצר מבריכת הזיווג (העומק חוזר)
+//   · מקטין את יתרת האוצר בנכס העטיפה עד לגבול הקיים — בכנות מלאה
+//   · מסרב לעטיפות הטבעה (WSBD/WHBD) — הפוכן דורש שריפת USDS קודם
+//   · כל צעד מתועד בשרשרת-הספר (TREASURY_UNWRAP) עם הפניה למקור
+export async function treasuryUnwrap(params: {
+  seq: number;
+  reason: string;
+  issuedBy: "operator" | "daemon";
+}): Promise<{ ok: boolean; detail: string; events: string[] }> {
+  const events: string[] = [];
+  try {
+    const orig = await db.exchangeEvent.findUnique({ where: { seq: params.seq } });
+    if (!orig || orig.kind !== "TREASURY_WRAP") {
+      return { ok: false, detail: `NO-WRAP: seq#${params.seq} אינו אירוע TREASURY_WRAP`, events };
+    }
+    let pl: { asset?: string; wrap?: string; amount?: number };
+    try {
+      pl = JSON.parse(orig.payload) as typeof pl;
+    } catch {
+      return { ok: false, detail: "BAD-PAYLOAD: אירוע המקור לא ניתן לפענוח", events };
+    }
+    const wrap = pl.wrap as ExchangeAsset | undefined;
+    const amount = Number(pl.amount ?? 0);
+    if (!wrap || !(amount > 0)) {
+      return { ok: false, detail: "BAD-WRAP: חסר נכס או סכום באירוע המקור", events };
+    }
+    if (wrap === "WSBD" || wrap === "WHBD") {
+      return {
+        ok: false,
+        detail: "MINT-WRAP: עטיפת הטבעה (USDS נטבע מולה 1:1) — ההיפוך דורש שריפת ה-USDS קודם (רייל נפרד)",
+        events,
+      };
+    }
+    // שלב א׳ — חילוץ מניות-האוצר מבריכת הזיווג (העומק חוזר למאזן)
+    const pair = `${wrap}/USDS`;
+    const pool = await db.exchangePool.findUnique({ where: { pair } });
+    if (pool) {
+      const shares = await ensureLpShares(pool);
+      const mine = shares["treasury"] ?? 0;
+      if (mine > 0) {
+        const r = await removeLiquidity({ member: "treasury", pair, sharePct: 100 });
+        events.push(r.ok ? `חולצו מניות-LP מ-${pair}` : `חילוץ LP מ-${pair}: ${r.detail}`);
+      }
+    }
+    // שלב ב׳ — הקטנת יתרת האוצר בנכס העטיפה עד הגבול הקיים
+    const balances = await readBalances("treasury");
+    const have = Number(balances[wrap] ?? 0);
+    const toReturn = Math.min(amount, Math.max(0, have));
+    if (toReturn > 0) await adjust("treasury", wrap, -toReturn);
+    const shortfall = Math.max(0, Math.round((amount - toReturn) * 1e9) / 1e9);
+    // שלב ג׳ — תיעוד בשרשרת-הספר
+    await chainEvent("TREASURY_UNWRAP", "treasury", {
+      originalSeq: params.seq,
+      asset: pl.asset ?? wrap.toLowerCase(),
+      wrap,
+      amountRequested: amount,
+      amountReturned: Math.round(toReturn * 1e9) / 1e9,
+      shortfall,
+      reason: params.reason.slice(0, 300),
+      issuedBy: params.issuedBy,
+      evidence: `reversal of wrap seq#${params.seq}`,
+    }, null);
+    events.push(
+      shortfall > 0
+        ? `הופרכו ${toReturn} ${wrap} (חסר ${shortfall} — כבר לא בידי האוצר, בכנות)`
+        : `הופרכו ${toReturn} ${wrap} במלואם`,
+    );
+    return {
+      ok: true,
+      detail: `היפוך עטיפה seq#${params.seq} הושלם: ${toReturn} ${wrap} הוחזרו לספר`,
+      events,
+    };
+  } catch (e) {
+    return { ok: false, detail: `UNWRAP-ERROR: ${String((e as Error).message).slice(0, 120)}`, events };
+  }
+}
+
 export async function removeLiquidity(params: {
   member: string;
   pair: string;
@@ -1413,6 +1494,28 @@ export async function poolGuard(params: {
  * מתגלגל בחלקו לעטיפה (W*) ומזווג ל-USDS במחיר השוק החי. מה שאין
  * לו זיווג נשאר במאזן האוצר — כנות: העומק גדל רק מכסף אמיתי.
  */
+// R111 — היצע עטיפה כולל: מאזני כל החברים בנכס + רזרבות הבריכות בצד שלו.
+// זו התביעה המלאה על ההון החי בשרשרת — הבסיס לשומר-הגיבוי.
+async function wrapSupply(asset: string): Promise<number> {
+  try {
+    const accts = await db.exchangeAccount.findMany();
+    let supply = 0;
+    for (const a of accts) {
+      try {
+        const bal = JSON.parse(a.balances ?? "{}") as Record<string, number>;
+        supply += Number(bal[asset] ?? 0) || 0;
+      } catch { /* ספר ישן */ }
+    }
+    const poolsA = await db.exchangePool.findMany({ where: { assetA: asset } });
+    for (const p of poolsA) supply += Number(p.reserveA) || 0;
+    const poolsB = await db.exchangePool.findMany({ where: { assetB: asset } });
+    for (const p of poolsB) supply += Number(p.reserveB) || 0;
+    return Math.round(supply * 1e9) / 1e9;
+  } catch {
+    return 0;
+  }
+}
+
 export async function liquidityStream(params: {
   share?: number; // חלק הדלתא שיוזרם (ברירת מחדל 0.2)
   issuedBy: "operator" | "daemon";
@@ -1493,6 +1596,15 @@ export async function liquidityStream(params: {
       }
       const price = prices[a.priceKey];
       if (price == null) { events.push(`${a.key}: אין מחיר חי — הדלתא (${delta.toFixed(6)}) ממתינה בכנות`); continue; }
+      // R111 — שומר-הגיבוי: היצע העטיפה כולו (מאזני חברים + רזרבות בבריכות)
+      // חייב להישאר מתחת להון החי על השרשרת גם אחרי העטיפה הזו — אחרת
+      // הבטחת ה-1:1 נשברת ברגע שההון זז (מכירת סולם · משיכה). נולד
+      // מהזרמה כוזבת שנמדדה חי (95.327 WSTEEM מהון סולם עומד שהתחזה לדלתא).
+      const claimBefore = await wrapSupply(a.wrap);
+      if (claimBefore + toWrap > a.live + 1e-9) {
+        events.push(`${a.key}: שומר-הגיבוי סירב — תביעה ${(claimBefore + toWrap).toFixed(3)} מעל הון חי ${a.live.toFixed(3)} — ההבטחה 1:1 קודמת לעומק`);
+        continue;
+      }
       // עטיפה — האוצר מקבל W* מול ההון החי שנמדד
       await adjust("treasury", a.wrap, toWrap);
       // R105 — תיקון-שורש (נתפס לפני שגל-הפאוורדאון הגיע): ה-WRAP נכתב תחת

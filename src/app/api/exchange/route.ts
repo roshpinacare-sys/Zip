@@ -13,6 +13,7 @@ import {
   ensureExchange, exchangeSnapshot, quoteSwap, swap,
   usdsMint, usdsBurn, withdraw, depositScan,
   rewardPay, addLiquidity, removeLiquidity, liquidityStream, agentCompound, poolGuard,
+  treasuryUnwrap,
   type ExchangeAsset,
 } from "@/lib/weave/sovereign-exchange";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
       sharePct?: number;
       share?: number;
       bandBps?: number;
+      seq?: number; // R111 — treasury-unwrap: מזהה אירוע ה-WRAP המקורי
+      reason?: string; // R111 — סיבת-ההיפוך המתועדת בשרשרת-הספר
     };
     await ensureExchange();
     const session = operatorFromRequest(req);
@@ -132,6 +135,21 @@ export async function POST(req: NextRequest) {
           pair: String(body.pair ?? ""),
           maxA: Number(body.maxA ?? 0),
           maxB: Number(body.maxB ?? 0),
+        });
+        return NextResponse.json({ ...r, at });
+      }
+      case "treasury-unwrap": {
+        // R111 — רייל היפוך-עטיפה: מחזיר עטיפה מוטעית לספר ביושר.
+        // מזהה את אירוע ה-WRAP המקורי לפי seq — אין המצאת סכומים,
+        // אין נגיעה בעטיפות הטבעה, וכל צעד בשרשרת-הספר.
+        const seq = Number(body.seq ?? 0);
+        if (!Number.isInteger(seq) || seq <= 0) {
+          return NextResponse.json({ ok: false, detail: "BAD-SEQ: נדרש מזהה אירוע WRAP (seq)" }, { status: 400 });
+        }
+        const r = await treasuryUnwrap({
+          seq,
+          reason: String(body.reason ?? ""),
+          issuedBy,
         });
         return NextResponse.json({ ...r, at });
       }

@@ -843,7 +843,32 @@ async function POST_core(req: Request) {
 
   const liquid = parseFloat(account.balance);
   const inOrders = sellOpen.reduce((s, o) => s + Number(o.for_sale) / 1000, 0); // מכירות בלבד (R97)
-  const totalFuel = Math.round((liquid + inOrders) * 1000) / 1000;
+  // R111 — חוק הגיבוי: הסולם לא מוכר את הגיבוי של הזירה.
+  // הזירה עוטפת STEEM ל-WSTEEM נגד ההון החי באותו חשבון (וכך גם הפקדות
+  // חוץ שנזקפות כ-WSTEEM לחברים) — תביעת הזירה כולה (מאזני חברים +
+  // רזרבות בבריכות) מנוכה מדלק הפריסה, אחרת מכירת סולם שוברת את הבטחת
+  // ה-1:1 של העטיפה. נולד מהזרמה כוזבת שנמדדה חי (95.327 WSTEEM מהון
+  // סולם עומד) — החוק מונע את הנזק הבא, לא רק את האחרון.
+  const arenaClaimWsteem = await (async () => {
+    try {
+      const { db } = await import("@/lib/db");
+      const accts = await db.exchangeAccount.findMany();
+      let claim = 0;
+      for (const a of accts) {
+        try {
+          const bal = JSON.parse(a.balances ?? "{}");
+          claim += Number(bal.WSTEEM ?? 0) || 0;
+        } catch { /* ספר ישן */ }
+      }
+      const pools = await db.exchangePool.findMany({ where: { assetA: "WSTEEM" } });
+      for (const pool of pools) claim += Number(pool.reserveA) || 0;
+      return Math.max(0, Math.round(claim * 1000) / 1000);
+    } catch {
+      return 0; // ספר הזירה לא נקרא — הפעולה תיבדק בנתיב הזירה עצמו
+    }
+  })();
+  const totalFuelRaw = Math.round((liquid + inOrders) * 1000) / 1000;
+  const totalFuel = Math.round(Math.max(0, totalFuelRaw - arenaClaimWsteem) * 1000) / 1000;
   const sbdLiquid = parseFloat(account.sbd_balance);
   const sbdCommitable = Math.floor(sbdLiquid * 0.9 * 1000) / 1000; // 0.9 — אותו פקטור-מחויבות כמו sbdArming
   const premiums = [0, 100, 200]; // סולם המכירה: parity, +1%, +2% (חוק 2)
@@ -865,16 +890,21 @@ async function POST_core(req: Request) {
     return bad("רמת קנייה קטנה מ-0.05 SBD — אין פעולה", 409, { code: "TOO-SMALL" });
   }
 
-  // ── R101 · stock-sbd: רכישת-מלאי לחימוש צד-הקנייה ────────────────────
-  // החסימה המדודה: 0.049/0.15 SBD — צד הקנייה ממתין בזמן שהמלאי נבנה
-  // רק ממילוי פרימיות. השחרור הריבוני: כשדלק נזיל מגיע (פאוורדאון/מילוי),
-  // הדיבון סוגר את הפער במחיר-השאלה — פעולת-לוגיסטיקה מתוחמת, לא גריד:
+  // ── R111 · stock-sbd: רכישת-מלאי לחימוש צד-הקנייה ────────────────────
+  // תיקון-שורש חי (R111, נמדד 04:46): הפקודה מוכרת STEEM לקבלת SBD —
+  // ביצוע taker מתבצע מול צד ה-בידים, לא ה-שאלות. התמחור הישן חישב
+  // את כמות ה-STEEM ממחיר-השאלה (גבוה מהביד) → min_to_receive גבוה
+  // מהצעת הקנייה הטובה → הזמנת fill_or_kill לא מתמלאת אף-פעם בשוק
+  // עם ספרד חיובי ("Cancelling order because it was not filled") —
+  // וכל ניסיון כושל שרף תקציב-פעולות וצינון והרעיב את פריסת הסולם
+  // ואת רגל HIVE (לולאת-הרעב). מעתה: הליכת-ספר אמיתית מול הבידים,
+  // פרימיית-עלות נמדדת מול קו-הזהות בכיוון הנכון (parity/bid - 1 —
+  // כמה STEEM משלמים מעל ההוגן עבור SBD), ותקרה 200bps נאכפת כנה.
   //   · כמות: רק הפער לחימוש (0.15), לעולם לא מעבר
-  //   · פרימיית-תקרה: עד +200bps מעל קו-הזהות — מעבר לזה סירוב-כנה
   //   · fill_or_kill: פקודת-מילוי-מיידי או-בטל — לא נשארת בספר
   //   · שארת-דלק מינימלית נשמרת תמיד (0.5 STEEM)
   const stockGap = Math.ceil((0.15 - sbdCommitable) * 1000) / 1000;
-  let stockAsk: number | null = null;
+  let stockBid: number | null = null; // המחיר הבר-ביצוע (צד הבידים)
   let stockSteemSell = 0;
   if (action === "stock-sbd") {
     if (stockGap <= 0.005) {
@@ -887,20 +917,44 @@ async function POST_core(req: Request) {
         ),
       ),
     ).catch(() => null);
-    const askRow = book?.asks?.[0];
-    stockAsk = askRow ? Number(askRow.real_price) : null;
-    if (stockAsk == null || !(stockAsk > 0)) {
-      return bad("הספר לא נקרא — אין מחיר-שאלה, אין פעולה. סירוב-כנה.", 502, { code: "NO-BOOK" });
+    const bidRows: Array<{ real_price?: string | number; sbd?: string | number }> = book?.bids ?? [];
+    // הליכת-ספר: כמה STEEM צריך למכור דרך הבידים כדי לקבל בדיוק את הפער
+    let remainSbd = stockGap;
+    let walkSteem = 0;
+    let lastBid = 0;
+    for (const b of bidRows) {
+      const px = Number(b.real_price);
+      const sbd = Number(b.sbd) / 1000;
+      if (!(px > 0) || !(sbd > 0)) continue;
+      const take = Math.min(remainSbd, sbd);
+      walkSteem += take / px;
+      remainSbd -= take;
+      lastBid = px;
+      if (remainSbd <= 0.0005) break;
     }
-    const premiumBps = Math.round((stockAsk / parity - 1) * 10_000);
-    if (premiumBps > 200) {
+    if (remainSbd > 0.0005) {
       return bad(
-        `מחיר-השאלה ${stockAsk.toFixed(6)} רחוק ${premiumBps}bps מעל קו-הזהות ${parity.toFixed(6)} (תקרה 200bps) — לא ממלאים מלאי במחיר מנופח. סירוב-כנה.`,
+        `עומק הבידים לא מכסה את הפער (${stockGap.toFixed(3)} SBD, חסר ${remainSbd.toFixed(3)}) — לא מנוורים את הספר. סירוב-כנה.`,
         409,
-        { code: "PREMIUM-TOO-HIGH", ask: stockAsk, parity, premiumBps },
+        { code: "BOOK-TOO-THIN", gap: stockGap, short: Math.round(remainSbd * 1000) / 1000 },
       );
     }
-    stockSteemSell = Math.ceil((stockGap / stockAsk + 0.001) * 1000) / 1000;
+    stockBid = lastBid > 0 ? lastBid : Number(bidRows[0]?.real_price) || null;
+    if (stockBid == null || !(stockBid > 0)) {
+      return bad("הספר לא נקרא — אין מחיר-ביד בר-ביצוע, אין פעולה. סירוב-כנה.", 502, { code: "NO-BOOK" });
+    }
+    // פרימיית-העלות האמיתית: מכירת STEEM בביד b מול קו-הזהות parity
+    // (שניהם SBD-per-STEEM): SBD אחד עולה 1/b STEEM מול הוגן 1/parity.
+    // premium = parity/b - 1 — חיובי = משלמים מעל ההוגן.
+    const premiumBps = Math.round((parity / stockBid - 1) * 10_000);
+    if (premiumBps > 200) {
+      return bad(
+        `הביד הבר-ביצוע ${stockBid.toFixed(6)} רחוק ${premiumBps}bps מתחת לקו-הזהות ${parity.toFixed(6)} (תקרה 200bps) — קניית המלאי תשלם STEEM מעל ההוגן. סירוב-כנה: החימוש ייבנה ממילוי-פרימיה.`,
+        409,
+        { code: "PREMIUM-TOO-HIGH", bid: stockBid, parity, premiumBps },
+      );
+    }
+    stockSteemSell = Math.ceil(walkSteem * 1000) / 1000;
     if (liquid < stockSteemSell + 0.5) {
       return bad(
         `דלק נזיל לא מספיק למילוי (${liquid.toFixed(3)} STEEM < ${stockSteemSell.toFixed(3)} + שארה 0.5) — המלאי ייבנה עם הפאוורדאון/מילוי הבא`,
@@ -936,7 +990,7 @@ async function POST_core(req: Request) {
       action === "arm-buy"
         ? { sbdCommitable, parity, offsetsBps: BID_OFFSETS_BPS, reason }
         : action === "stock-sbd"
-          ? { gap: stockGap, ask: stockAsk, steemSell: stockSteemSell, parity, premiumCapBps: 200, reason }
+          ? { gap: stockGap, bid: stockBid, steemSell: stockSteemSell, parity, premiumCapBps: 200, reason }
           : { liquid, inOrders, totalFuel, parity, premiums, reason },
     usdValue: gateUsd,
     usdBasis:
@@ -1187,7 +1241,7 @@ async function POST_core(req: Request) {
             [wif],
           ),
         );
-        receipt.placed.push({ orderid, sell: stockSteemSell, receive: stockGap, price: stockAsk ?? 0, txid: res?.id ?? null, confirmedBy: "fill-or-kill" });
+        receipt.placed.push({ orderid, sell: stockSteemSell, receive: stockGap, price: stockBid ?? 0, txid: res?.id ?? null, confirmedBy: "fill-or-kill" });
       } catch (e) {
         noteError(`stock order: ${String((e as Error).message).slice(0, 120)}`);
       }
@@ -1207,7 +1261,7 @@ async function POST_core(req: Request) {
         stockVerify = {
           sbdNow,
           gapClosed: sbdNow >= 0.15,
-          premiumPaidBps: stockAsk != null ? Math.round((stockAsk / parity - 1) * 10_000) : null,
+          premiumPaidBps: stockBid != null ? Math.round((parity / stockBid - 1) * 10_000) : null,
         };
       } catch {
         /* השרשרת תישאר השופט בקריאה הבאה */
