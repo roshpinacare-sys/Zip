@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   ensureExchange, exchangeSnapshot, quoteSwap, swap,
   usdsMint, usdsBurn, withdraw, depositScan,
-  rewardPay, addLiquidity, removeLiquidity, liquidityStream, agentCompound,
+  rewardPay, addLiquidity, removeLiquidity, liquidityStream, agentCompound, poolGuard,
   type ExchangeAsset,
 } from "@/lib/weave/sovereign-exchange";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       maxB?: number;
       sharePct?: number;
       share?: number;
+      bandBps?: number;
     };
     await ensureExchange();
     const session = operatorFromRequest(req);
@@ -109,11 +110,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ...r, at });
       }
       case "reward-pay": {
-        // R107 — התגמול האנונימי נעול לסוכן-הכסף בלבד (הדיבון שמזהה
-        // מילויים בשרשרת). תגמול לחבר אחר — סשן-מפעיל.
+        // R108 — רייל-התגמול לצי: חברי-הצי מוגדרים עם תקרות-יום
+        // שהשרת אוכף בעצמו (REWARD_DAILY_CAPS ב-rewardPay) — ההיתר
+        // כאן רק פותח את הדלת למסלול; הכסף מוגן שם. חבר אחר — סשן-מפעיל.
+        const FLEET = ["money-mover", "keeper", "pulse", "student", "hunter"] as const;
         const rewardMember = String(body.member ?? "money-mover");
-        if (!session && rewardMember !== "money-mover") {
-          return NextResponse.json({ ok: false, at, error: "AUTH: תגמול לחברים אחרים מחייב סשן-מפעיל (R107)" }, { status: 401 });
+        if (!session && !(FLEET as readonly string[]).includes(rewardMember)) {
+          return NextResponse.json({ ok: false, at, error: "AUTH: תגמול לחברים מחוץ לצי מחייב סשן-מפעיל (R108)" }, { status: 401 });
         }
         const r = await rewardPay({
           member: rewardMember,
@@ -147,6 +150,35 @@ export async function POST(req: NextRequest) {
           member: String(body.member ?? "money-mover"),
           firedBy: String(body.note ?? "daemon"),
         });
+        return NextResponse.json({ ...r, at });
+      }
+      case "fleet-compound": {
+        // R108 — גלגול-צי: כל חבר מעל רף-הגלגול מגולגל באותה שרשרת-אחת.
+        // הצי כולו הופך בעל-נזילות — לא רק מוביל-הכסף.
+        const results: Array<{ member: string; ok: boolean; detail: string }> = [];
+        const snap = await exchangeSnapshot();
+        for (const m of snap.members) {
+          if (m.member === "treasury" || m.member === "reserve") continue;
+          const saos = m.balances.SAOS ?? 0;
+          if (saos < 4) continue;
+          const r = await agentCompound({ member: m.member, firedBy: "fleet-sweep" });
+          results.push({ member: m.member, ok: r.ok, detail: r.detail.slice(0, 160) });
+        }
+        const rolled = results.filter((r) => r.ok).length;
+        const held = results.length - rolled;
+        return NextResponse.json({
+          ok: true,
+          at,
+          detail: results.length === 0
+            ? "אף חבר מעל רף-הגלגול — מצברים בסבלנות"
+            : `גולגלו ${rolled} חברים${held > 0 ? ` · ${held} מוחזקים (צינון/חסימה)` : ""}`,
+          results,
+        });
+      }
+      case "pool-guard": {
+        // R108 — טריגר איזון-הבריכות: סטייה מהשווי-החיצוני האמיתי ← האוצר
+        // סוגר את הפער. הפרמייה נשארת בבית.
+        const r = await poolGuard({ issuedBy, bandBps: body.bandBps != null ? Number(body.bandBps) : undefined });
         return NextResponse.json({ ...r, at });
       }
       case "remove-liquidity": {

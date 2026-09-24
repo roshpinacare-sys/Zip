@@ -66,6 +66,12 @@ export const CHAINS = {
     cooldownMin: 60,
     budgetPerDay: 8,
   },
+  "pool-guard": {
+    titleHe: "איזון-בריכות",
+    steps: "סטיית בריכה מהשווי-החיצוני האמיתי ← האוצר סוגר את הפער ← הפרמייה נשארת בבית",
+    cooldownMin: 30,
+    budgetPerDay: 8,
+  },
 } as const;
 
 export type ChainName = keyof typeof CHAINS;

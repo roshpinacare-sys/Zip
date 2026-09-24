@@ -178,7 +178,14 @@ async function measureTreasury(): Promise<TreasuryMeasure | null> {
   }
 }
 
-async function pricesUsd(): Promise<Record<string, number | null>> {
+// R108 — מטמון-מחירים מרובה: CoinGecko בתעריף-חינמי חוסם 429 לסירוגין
+// (בדיוק כמו Binance ב-R105). כל טעינת-מראה של הבראוזר שרפה את המנה —
+// עכשיו מטמון 5 דקות מגן על המכסה ומשמר את המדידה האחרונה הטובה
+// מכל מקור (מקור חלקי מקבל שדה שנעלם מהתשובה החדשה).
+const PRICE_CACHE_TTL_MS = 5 * 60_000;
+let priceCache: { at: number; prices: Record<string, number | null> } | null = null;
+
+async function pricesUsdRaw(): Promise<Record<string, number | null>> {
   const out: Record<string, number | null> = { steem: null, sbd: null, hive: null, hbd: null, blurt: null, sol: null, eth: null };
   // R105 — מקורות-מחיר עמידים: Binance ← Gate ← OKX (לקח חי
   // מהשטח: איסור-418 זמני של Binance השתק מדיה). מקור יחיד = חוסק-פעילות מובנה.
@@ -194,6 +201,7 @@ async function pricesUsd(): Promise<Record<string, number | null>> {
   } catch { /* כנות: לא נמדד */ }
   try {
     const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=steem-dollars,hive-backed-dollar,blurt&vs_currencies=usd", {
+      headers: { "User-Agent": "saos-weave-rail/1.0" }, // חוק-הענן (R103): בלי UA חוסם
       signal: AbortSignal.timeout(8000),
     });
     const j = (await r.json()) as Record<string, { usd?: number }>;
@@ -230,6 +238,20 @@ async function pricesUsd(): Promise<Record<string, number | null>> {
     } catch { /* נשאר null — כנות */ }
   }
   return out;
+}
+
+/** מטריצת-המטמון: קריאות מורדות מקבלות את המדידה הטרייה; מקור-מידה אחד לכל 5 דקות. */
+async function pricesUsd(): Promise<Record<string, number | null>> {
+  if (priceCache && Date.now() - priceCache.at < PRICE_CACHE_TTL_MS) return priceCache.prices;
+  const fresh = await pricesUsdRaw();
+  // מיזוג כן: שדה שנעלם במקור הטרי אבל היה חי במטמון — משומר (מדידה טרייה עדיפה על אין-מדידה)
+  if (priceCache) {
+    for (const [k, v] of Object.entries(priceCache.prices)) {
+      if (v != null && fresh[k] == null) fresh[k] = v;
+    }
+  }
+  priceCache = { at: Date.now(), prices: fresh };
+  return fresh;
 }
 
 // ── ג'נזיס — זריעה מהון-אוצר נמדד בלבד ────────────────────────────────
@@ -958,6 +980,19 @@ async function saosUsdPrice(): Promise<number | null> {
  * פנימית ← מחליף אותה ב-USDS בבריכה שלנו ← נזילות אמיתית. התגמול
  * יוצא ממאזן האוצר (הגיבוי החי), והוא מתועד בספר ה-hash-chained.
  */
+// ── תקרות-תגמול יומיות (R108) — השרת אוכף, לא הפונה ───────────────────
+// דיבוני-הצי מזוהים באמת מקובצי-המצב שלהם (מוביל-הכסף קורא ומשלם),
+// אבל שכבת-הרשת חייבת הגנה עצמאית: טענת "אני השומר" מהרשת חסומה
+// בתקרה. התקרות לפי תדירות-העבודה האמיתית של כל סוכן.
+const REWARD_DAILY_CAPS: Record<string, number> = {
+  "money-mover": 48, // מילויי-גריד: פרץ אפשרי, נדיר
+  keeper: 6, // החיית-דיבון: אירוע נדיר ויקר
+  pulse: 4, // שידור-שרשרת יומי
+  student: 2, // סיור-בחינות יומי
+  hunter: 2, // ציד-הזדמנויות יומי
+};
+const REWARD_WINDOW_HOURS = 24;
+
 export async function rewardPay(params: {
   member: string;
   amount: number;
@@ -968,6 +1003,25 @@ export async function rewardPay(params: {
     const { member, amount, note, issuedBy } = params;
     if (!/^[a-z0-9.-]{3,16}$/.test(member)) return { ok: false, detail: "BAD-MEMBER" };
     if (!(amount > 0)) return { ok: false, detail: "BAD-AMOUNT" };
+    // R108 — תקרת-יום לכל חבר: הספר זוכר הכל, השרת אוכף
+    const cap = REWARD_DAILY_CAPS[member];
+    if (cap == null && issuedBy !== "operator") {
+      return { ok: false, detail: `NO-CAP: ל-${member} אין מסלול-תגמול מוגדר — תגמול ידני מחייב מפעיל` };
+    }
+    if (cap != null) {
+      const since = new Date(Date.now() - REWARD_WINDOW_HOURS * 3600_000);
+      const prior = await db.exchangeEvent.findMany({
+        where: { kind: "REWARD_PAY", member, createdAt: { gte: since } },
+        orderBy: { seq: "desc" },
+      });
+      let paid24h = 0;
+      for (const e of prior) {
+        try { paid24h += (JSON.parse(e.payload)?.amount as number) ?? 0; } catch { /* ספר ישן */ }
+      }
+      if (paid24h + amount > cap) {
+        return { ok: false, detail: `CAP: ${member} קיבל ${paid24h}/${cap} SAOS ב-24ש' — התקרה אוכפת (הגנת-דילול)` };
+      }
+    }
     const price = await saosUsdPrice();
     if (price == null || price <= 0) return { ok: false, detail: "NO-PRICE: אין בריכת SAOS/USDS — אין שער" };
     const usdValue = amount * price;
@@ -1225,6 +1279,134 @@ export async function agentCompound(params: {
 }
 
 /**
+ * טריגר איזון-הבריכות (R108 · pool-guard) — הפרמייה נשארת בבית.
+ *
+ * הבעיה שנמדדה: בריכות האוצר נזרעו ב"מחיר מוכרז" — ומאז השוק זז.
+ * סטייה בין מחיר-הבריכה לשווי-החיצוני היא חלון-ערבוב: מי שסוגר
+ * אותו לוקח את הפער. בלי שומר — הפער נלקח על ידי ערבוב-חוץ; עם
+ * שומר — האוצר סוגר אותו בעצמו והערך נשאר בבית.
+ *
+ * העוגן-אמת (חידוש R108): סטיית הבריכה נמדדת במונחי-USD אמיתיים —
+ * כי USDS איננו דולר ולא מתחזה להיות: הוא תביעה על רזרבת-סטייבל
+ * נעולה (SBD/HBD). שווי-הUSDS הכנה = השווי החיצוני של הרזרבה שמאחוריו,
+ * נמדח לפי ההרכב. ברירה שקרנית ("USDS=$1") הייתה מציגה סטייה של +44%
+ * ב-WBLURT/USDS בזמן שהאמת היא ~-7% — הפוכה לגמרי, ומי שהיה בונה
+ * עליה היה מפסיד.
+ *
+ * החוקים:
+ *   · רצפת-USDS-שוק: האוצר לעולם לא מרוקן מתחת לרצפה — השוק הפנימי
+ *     חי מהנזילות הזו.
+ *   · תקרת-נפח: 2% מרזרבת הבריכה לפעולה — הסטייה נסגרת בהדרגה,
+ *     בלי להפיל את המחיר על המשתמשים.
+ *   · רווח נקי: פעולה יורה רק אם מחיר-הביצוע (כולל עמלה+החלקה,
+ *     בנוסחת ה-AMM עצמה) עדיין בצד הנכון של העוגן.
+ *   · אין עוגן → אין מסקנה (SAOS נשפט רק בשוק-הפנים שלו).
+ */
+export async function poolGuard(params: {
+  issuedBy: "operator" | "daemon";
+  bandBps?: number;
+}): Promise<{ ok: boolean; detail: string; pools: Array<{ pair: string; action: string; devBps: number | null; note: string }> }> {
+  const out: Array<{ pair: string; action: string; devBps: number | null; note: string }> = [];
+  try {
+    const guard = await chainGuard("pool-guard");
+    if (!guard.allowed) return { ok: false, detail: guard.reason, pools: out };
+    const bandBps = params.bandBps ?? 500;
+    const prices = await pricesUsd();
+    const reserveBal = await readBalances("reserve");
+    const sbdLocked = reserveBal.WSBD ?? 0;
+    const hbdLocked = reserveBal.WHBD ?? 0;
+    // עוגן-האמת של USDS: שווי-החוץ של הנעילה — לפי ההרכב בפועל
+    let usdsUsd: number | null = null;
+    if (sbdLocked + hbdLocked > 0 && prices.sbd != null) {
+      const hbdP = hbdLocked > 0 ? (prices.hbd ?? prices.sbd) : null;
+      const numerator = sbdLocked * (prices.sbd as number) + hbdLocked * (hbdP ?? 0);
+      usdsUsd = numerator / (sbdLocked + hbdLocked);
+    }
+    if (usdsUsd == null) {
+      return { ok: false, detail: "NO-USDS-MARK: אין עוגן חי לשווי הרזרבה — אין מסקנה, אין פעולה (כנות)", pools: out };
+    }
+
+    const pools = await db.exchangePool.findMany();
+    const USDS_FLOOR = 0.003; // רצפת-השוק: ה-USDS שמשרת את המסחר הפנימי
+    const SIZE_CAP_FRAC = 0.02; // 2% מהבריכה לפעולה — סגירה הדרגתית
+    const wrapToPriceKey: Record<string, keyof typeof prices> = {
+      WSTEEM: "steem", WHIVE: "hive", WBLURT: "blurt", WSOL: "sol", WETH: "eth",
+    };
+
+    for (const p of pools) {
+      if (p.assetB !== "USDS") continue; // שומר-בריכות USDS-צמודות בשלב זה
+      const priceKey = wrapToPriceKey[p.assetA];
+      const extUsd = priceKey ? (prices[priceKey] ?? null) : null;
+      if (!extUsd || p.reserveA <= 0 || p.reserveB <= 0) {
+        out.push({ pair: p.pair, action: "SKIP", devBps: null, note: p.assetA === "SAOS" ? "SAOS נשפט בשוק-הפנים שלו — אין עוגן חיצוני ואין כזה צריך" : "אין מחיר חיצוני חי — אין מסקנה" });
+        continue;
+      }
+      const poolPrice = p.reserveB / p.reserveA; // USDS ליחידת assetA
+      const extInUsds = extUsd / usdsUsd; // העוגן במונחי USDS-אמת
+      const devBps = Math.round((poolPrice / extInUsds - 1) * 10_000);
+      if (Math.abs(devBps) < bandBps) {
+        out.push({ pair: p.pair, action: "HOLD", devBps, note: `בתוך הטווח (±${bandBps}bps)` });
+        continue;
+      }
+      const cheap = devBps < 0; // הבריכה מוכרת את assetA מתחת לשווי
+      const treasuryBal = await readBalances("treasury");
+      const treasUsds = treasuryBal.USDS ?? 0;
+      const treasA = (treasuryBal as Balances)[p.assetA as ExchangeAsset] ?? 0;
+      // תקרת הנפח: 2% מהצד הרלוונטי — הכיוון שנסחר בו
+      const capA = p.reserveA * SIZE_CAP_FRAC;
+
+      if (cheap) {
+        // הבריכה זולה ← האוצר קונה assetA בהנחה מהשוק הפנימי שלו עצמו
+        const budgetUsds = Math.max(0, treasUsds - USDS_FLOOR);
+        if (budgetUsds <= 0) {
+          out.push({ pair: p.pair, action: "HOLD", devBps, note: `הבריכה זולה (${devBps}bps) אבל האוצר ברצפת-USDS — ההנחה נשארת לשוק (כנות)` });
+          continue;
+        }
+        // כמה assetA אפשר לקנות: מוגבל בתקרה ובתקציב (במחיר הבריכה בערך)
+        const wantA = Math.min(capA, budgetUsds / poolPrice);
+        if (wantA <= 0) { out.push({ pair: p.pair, action: "HOLD", devBps, note: "אבק — מתחת לרצפת פעולה" }); continue; }
+        // בדיקת רווח-נקי: מחיר-הביצוע מנוסחת ה-AMM עצמה (עמלה בפנים)
+        const inUsds = wantA * poolPrice;
+        const inWithFee = inUsds * (10000 - p.feeBps) / 10000;
+        const execOutClean = (p.reserveA * inWithFee) / (p.reserveB + inWithFee);
+        if (execOutClean <= 0) { out.push({ pair: p.pair, action: "HOLD", devBps, note: "חישוב-ביצוע נכשל" }); continue; }
+        const execPrice = inUsds / execOutClean;
+        if (execPrice >= extInUsds) {
+          out.push({ pair: p.pair, action: "HOLD", devBps, note: `סטייה ${devBps}bps אך ההחלקה מוחקת את הרווח — ממתינים (ביצוע ${execPrice.toPrecision(4)} ≥ עוגן ${extInUsds.toPrecision(4)})` });
+          continue;
+        }
+        const sw = await swap({ member: "treasury", pair: p.pair, side: "B2A", amountIn: inUsds });
+        if (!sw.ok) { await chainLog("pool-guard", "buy", params.issuedBy, false, `${p.pair}: ${sw.detail}`); out.push({ pair: p.pair, action: "BUY-FAIL", devBps, note: sw.detail }); continue; }
+        await chainLog("pool-guard", "buy", params.issuedBy, true, `${p.pair}: נקנו ${execOutClean.toPrecision(4)} ${p.assetA} ב-${execPrice.toPrecision(4)} USDS מול עוגן ${extInUsds.toPrecision(4)} (${devBps}bps סטייה נסגרה חלקית)`);
+        out.push({ pair: p.pair, action: "BUY", devBps, note: `האוצר קנה ${execOutClean.toPrecision(4)} ${p.assetA} מתחת לעוגן — ההנחה נשארת בבית` });
+      } else {
+        // הבריכה יקרה ← האוצר מוכר assetA בפרימייה — USDS (נדיר) זורם לאוצר
+        const haveA = Math.min(treasA, capA);
+        if (haveA <= 0) { out.push({ pair: p.pair, action: "HOLD", devBps, note: `הבריכה יקרה (${devBps}bps) אבל אין מלאי-אוצר למכירה` }); continue; }
+        // בדיקת רווח-נקי לכיוון מכירה
+        const inWithFee = haveA * (10000 - p.feeBps) / 10000;
+        const execOutUsds = (p.reserveB * inWithFee) / (p.reserveA + inWithFee);
+        if (execOutUsds <= 0) continue;
+        const execPrice = execOutUsds / haveA;
+        if (execPrice <= extInUsds) {
+          out.push({ pair: p.pair, action: "HOLD", devBps, note: `סטייה +${devBps}bps אך ההחלקה מוחקת את הרווח — ממתינים` });
+          continue;
+        }
+        const sw = await swap({ member: "treasury", pair: p.pair, side: "A2B", amountIn: haveA });
+        if (!sw.ok) { await chainLog("pool-guard", "sell", params.issuedBy, false, `${p.pair}: ${sw.detail}`); out.push({ pair: p.pair, action: "SELL-FAIL", devBps, note: sw.detail }); continue; }
+        await chainLog("pool-guard", "sell", params.issuedBy, true, `${p.pair}: נמכרו ${haveA} ${p.assetA} ב-${execPrice.toPrecision(4)} USDS מעל עוגן ${extInUsds.toPrecision(4)} — הפרימייה לאוצר`);
+        out.push({ pair: p.pair, action: "SELL", devBps, note: `האוצר מכר בפרימייה — USDS נדיר נכנס לאוצר` });
+      }
+    }
+    return { ok: true, detail: `איזון-בריכות נמדד · ${out.length} בריכות · USDS-עוגן $${usdsUsd.toFixed(4)}`, pools: out };
+  } catch (e) {
+    const detail = "POOL-GUARD-ERROR: " + String((e as Error).message ?? e).slice(0, 140);
+    await chainLog("pool-guard", "error", params.issuedBy, false, detail);
+    return { ok: false, detail, pools: out };
+  }
+}
+
+/**
  * הזרמת דלק-שרשרת לבריכות (R103) — הפאוורדאון השבועי הופך לעומק.
  *
  * החוק: הכסף החי על השרשרת שטרם נצרף (הדלתא מעל האירוע-WRAP האחרון)
@@ -1375,6 +1557,14 @@ export interface ExchangeSnapshot {
     lpTotal: number;
   }>;
   chains: Awaited<ReturnType<typeof chainState>>;
+  backingMark: {
+    usdsUsd: number | null; // עוגן-האמת: שווי-החוץ של הגיבוי שמאחורי כל USDS
+    sbdUsd: number | null;
+    hbdUsd: number | null;
+    wsbd: number;
+    whbd: number;
+    note: string;
+  };
   reserve: { usdsSupply: number; sbdLocked: number; hbdLocked: number; ratio: string };
   treasury: Balances;
   members: Array<{ member: string; balances: Balances }>;
@@ -1446,6 +1636,27 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
     genesis,
     pools: poolRows,
     chains: await chainState(),
+    backingMark: (() => {
+      const wsbd = reserveBal.WSBD ?? 0;
+      const whbd = reserveBal.WHBD ?? 0;
+      const sbdUsd = prices.sbd ?? null;
+      const hbdUsd = prices.hbd ?? null;
+      let usdsUsd: number | null = null;
+      if (wsbd + whbd > 0 && sbdUsd != null) {
+        const hbdP = whbd > 0 ? (hbdUsd ?? sbdUsd) : 0;
+        usdsUsd = (wsbd * sbdUsd + whbd * hbdP) / (wsbd + whbd);
+      }
+      return {
+        usdsUsd,
+        sbdUsd,
+        hbdUsd,
+        wsbd,
+        whbd,
+        note: usdsUsd == null
+          ? "אין מדידת-חוץ חיה לרזרבה — אין עוגן, אין מסקנה"
+          : `USDS = תביעה על רזרבה נעולה — שוויה-היציאה הכנה $${usdsUsd.toFixed(4)} לפי מדידת-חוץ חיה`,
+      };
+    })(),
     reserve: {
       usdsSupply: circulatingUsds,
       sbdLocked: reserveBal.WSBD ?? 0,

@@ -39,7 +39,6 @@ const CHECK_INTERVAL_SEC = 60;
 const API = "http://127.0.0.1:3000/api/money";
 const HIVE_API = "http://127.0.0.1:3000/api/money/hive";
 const EXCHANGE_API = "http://127.0.0.1:3000/api/exchange";
-
 const POLICY = {
   triggers: { parityDriftBps: 50, floorBps: -50, idleTriggerSteem: 1 },
   cooldownMin: 30,
@@ -68,7 +67,10 @@ type MoneyState = {
   lastDecision: Decision | null;
   fillsSeen?: number; // R103 — סימן-מים לתגמול מילויים חדשים
   lastDepositScanAt?: string | null; // R105 — סריקת הפקדות אחרונה (כל 5 דק')
+  lastPoolGuardAt?: string | null;
+  lastFleetSweepAt?: string | null; // R108 — סריקת גלגול-צי (כל 5 דק') // R108 — איזון-בריכות אחרון (כל 10 דק')
   lastStreamDay?: string; // R103 — הזרמת-נזילות אחת לכל היום ביותר
+  fleetSeen?: { keeperRestartAt?: string; pulseDay?: string; studentDay?: string }; // R108 — סימני-מים לגוב-הצי
   canonLast: { at: string; ok: boolean; path: string } | null;
   history?: Array<Record<string, unknown>>;
 };
@@ -80,7 +82,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.6.0",
+    version: "1.7.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -104,6 +106,13 @@ function readState(): MoneyState {
       acting: false, // אתחול: תהליך חדש — אין פעולה בטיסה. אם פעולה קודמת נתקעה mid-flight, היא הסתיימה עם מות התהליך.
       lastDecision: prev.lastDecision ?? null,
       canonLast: prev.canonLast ?? null,
+      // R108 — שידור-סימני-מים ברילוד: ללא השורות האלה, כל טעינה-חמה של מודול מאפסרת את המאידות של תשלום — והתקרות שערו את הנזק (נתפס חי: שומר שולם 3×2 ברילודים; פרצו-גבול עצרו בדיוק). מתעתה: מי שוחור לצין מי שולח — גם אחרי restart.
+      fillsSeen: prev.fillsSeen ?? 0,
+      lastDepositScanAt: prev.lastDepositScanAt ?? null,
+      lastStreamDay: prev.lastStreamDay ?? null,
+      fleetSeen: prev.fleetSeen ?? {},
+      lastPoolGuardAt: prev.lastPoolGuardAt ?? null,
+      lastFleetSweepAt: prev.lastFleetSweepAt ?? null,
     };
   } catch {
     return base;
@@ -520,6 +529,102 @@ async function tick() {
         }
       }
     } catch { /* הסריקה לעולם לא מפילה את המדידה */ }
+    // R108 — גוב-הצי: עבודה מוכחת מקבצי-המצב של הדיבונים ← SAOS ← זירה.
+    // הזיהוי באמת-מקומית (קריאת המצב, לא טענת-רשת) והתקרות נאכפות בשרת
+    // (REWARD_DAILY_CAPS). שלושה סוגי-עבודה נספרים: החיית-דיבון (שומר)
+    // · שידור-שרשרת יומי (דופק) · סיור-בחינות רציף (תלמיד — פעם ביום,
+    // התדירות היא העבודה). אחר-כך גלגול-צי ואיזון-בריכות.
+    try {
+      const readJson = (p: string): any | null => {
+        try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch { return null; }
+      };
+      const wm = state.fleetSeen ?? {};
+      // (א) שומר — החייה מוכחת בהיסטוריה שלו
+      const ks = readJson(`${HOME}/sovereign/keeper/state.json`);
+      if (ks && Array.isArray(ks.history)) {
+        const restarts = (ks.history as Array<{ at: string; kind: string; detail: string }>)
+          .filter((h) => h.kind === "RESTART")
+          .sort((a, b) => a.at.localeCompare(b.at));
+        const last = restarts[restarts.length - 1];
+        if (last && last.at !== wm.keeperRestartAt) {
+          const isNew = !wm.keeperRestartAt || last.at > wm.keeperRestartAt;
+          if (isNew) {
+            wm.keeperRestartAt = last.at;
+            state.fleetSeen = wm;
+            const rew = await fetch(EXCHANGE_API, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ action: "reward-pay", member: "keeper", amount: 2, note: `החיית דיבון מוכחת: ${last.detail.slice(0, 80)}` }),
+              signal: AbortSignal.timeout(30_000),
+            }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
+            if (rew?.ok) appendHistory({ kind: "FLEET-PAY", reason: `keeper: ${last.detail.slice(0, 100)}`, saos: 2 });
+          }
+        }
+      }
+      // (ב) דופק — שידור-שרשרת יומי מוכח
+      const ps = readJson(`${HOME}/sovereign/pulse/state.json`);
+      if (ps?.lastPublishUtcDay && ps.lastPublishUtcDay !== wm.pulseDay) {
+        wm.pulseDay = ps.lastPublishUtcDay;
+        state.fleetSeen = wm;
+        const rew = await fetch(EXCHANGE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "reward-pay", member: "pulse", amount: 2, note: `שידור יומי לשרשרת ${ps.lastPublishUtcDay}` }),
+          signal: AbortSignal.timeout(30_000),
+        }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
+        if (rew?.ok) appendHistory({ kind: "FLEET-PAY", reason: `pulse: שידור ${ps.lastPublishUtcDay}`, saos: 2 });
+      }
+      // (ג) תלמיד — סיור-בחינות רציף (פעם ביום — התדירות היא העבודה)
+      const ss = readJson(`${HOME}/sovereign/student/state.json`);
+      if (ss?.lastExamAt) {
+        const examDay = String(ss.lastExamAt).slice(0, 10);
+        const fresh = Date.now() - new Date(ss.lastExamAt).getTime() < 2 * 3600_000; // בחינה בשעתיים האחרונות = סיור חי
+        if (fresh && examDay !== wm.studentDay) {
+          wm.studentDay = examDay;
+          state.fleetSeen = wm;
+          const rew = await fetch(EXCHANGE_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "reward-pay", member: "student", amount: 1, note: `סיור-בחינות רציף ${examDay}` }),
+            signal: AbortSignal.timeout(30_000),
+          }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
+          if (rew?.ok) appendHistory({ kind: "FLEET-PAY", reason: `student: סיור ${examDay}`, saos: 1 });
+        }
+      }
+      // (ד) גלגול-צי — כל 5 דקות (סריקת המאזנים כבדה; חלונות במים במקומץ)
+      const lastSweep = state.lastFleetSweepAt ? new Date(state.lastFleetSweepAt).getTime() : 0;
+      if (Date.now() - lastSweep < 5 * 60_000) { state.fleetSeen = wm; } else {
+      state.lastFleetSweepAt = new Date().toISOString();
+      const fleetBal = await fetch(EXCHANGE_API, { signal: AbortSignal.timeout(20_000) })
+        .then((x) => x.json() as Promise<{ members?: Array<{ member: string; balances: Record<string, number> }> }>).catch(() => null);
+      const compoundable = (fleetBal?.members ?? []).filter(
+        (m) => !["treasury", "reserve", "operator"].includes(m.member) && (m.balances?.SAOS ?? 0) >= 4,
+      );
+      if (compoundable.length > 0) {
+        const fc = await fetch(EXCHANGE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "fleet-compound" }),
+          signal: AbortSignal.timeout(60_000),
+        }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
+        if (fc?.ok) appendHistory({ kind: "FLEET-COMPOUND", reason: String(fc.detail ?? "").slice(0, 120) });
+      }
+      } // סוף שער הגלגול-צי
+      // (ה) איזון-בריכות — סטיות נמדדות ונסגרות (R108) — כל 10 דק'
+      const lastGuard = state.lastPoolGuardAt ? new Date(state.lastPoolGuardAt).getTime() : 0;
+      if (Date.now() - lastGuard >= 10 * 60_000) {
+        state.lastPoolGuardAt = new Date().toISOString();
+        const pg = await fetch(EXCHANGE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "pool-guard" }),
+          signal: AbortSignal.timeout(45_000),
+        }).then((x) => x.json() as Promise<{ ok?: boolean; detail?: string }>).catch(() => null);
+        if (pg?.ok && pg.detail) appendHistory({ kind: "POOL-GUARD", reason: String(pg.detail).slice(0, 120) });
+      }
+      state.fleetSeen = wm;
+    } catch { /* גוב-הצי לעולם לא מפיל את המדידה */ }
+
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {
@@ -596,6 +701,6 @@ Bun.serve({
 });
 
 saveState();
-console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R107 domino armed`);
+console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R108 fleet-pay + pool-guard`);
 tick();
 setInterval(tick, CHECK_INTERVAL_SEC * 1000);

@@ -63,6 +63,7 @@ interface ArenaSnapshot {
   genesis: boolean;
   pools: ArenaPool[];
   reserve: { usdsSupply: number; sbdLocked: number; hbdLocked: number; ratio: string };
+  backingMark?: { usdsUsd: number | null; sbdUsd: number | null; hbdUsd: number | null; wsbd: number; whbd: number; note: string };
   treasury: Record<string, number>;
   members: Array<{ member: string; balances: Record<string, number> }>;
   prices: Record<string, number | null>;
@@ -324,6 +325,16 @@ export function SovereignArenaView() {
             <p className="text-xs text-muted-foreground mt-1">
               רזרבה נעולה: {fmt(snap?.reserve.sbdLocked)} WSBD{snap?.reserve.hbdLocked ? ` + ${fmt(snap.reserve.hbdLocked)} WHBD` : ""} · 1:1 תמיד
             </p>
+            {snap?.backingMark?.usdsUsd != null ? (
+              <p className="text-[11px] mt-1.5 leading-relaxed text-amber-700 dark:text-amber-400">
+                עוגן-אמת: שווי-היציאה הכן ${snap.backingMark.usdsUsd.toFixed(4)} ל-USDS
+                {snap.backingMark.sbdUsd != null ? ` (SBD חיצוני $${snap.backingMark.sbdUsd.toFixed(3)}` : ""}
+                {snap.backingMark.hbdUsd != null ? ` · HBD $${snap.backingMark.hbdUsd.toFixed(3)}` : ""}
+                {snap.backingMark.sbdUsd != null ? ")" : ""} — הסטיות נמדדות במונחים האלה, לא בנומינל
+              </p>
+            ) : (
+              <p className="text-[11px] mt-1.5 text-muted-foreground">{snap?.backingMark?.note ?? ""}</p>
+            )}
           </CardContent>
         </Card>
         <Card>
