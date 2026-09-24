@@ -80,7 +80,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.5.0",
+    version: "1.6.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -482,6 +482,20 @@ async function tick() {
           }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
           if (rew?.ok) {
             appendHistory({ kind: "SAOS-REWARD", reason: `מילויים ×${newFills}`, saos: newFills * POLICY.rewards.saosPerFill });
+            // R107 — שרשרת הגלגול: תגמול שולם ← הגלגול נורה מעצמו.
+            // דבר גורר דבר: מילוי ← תגמול ← המרה ל-USDS ← עומק-LP ←
+            // עמלות מנפחות מניות. השומרים (צינון/תקציב) במנוע-השרשרת.
+            try {
+              const comp = await fetch(EXCHANGE_API, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "agent-compound", member: POLICY.rewards.member, note: "grid-fill domino" }),
+                signal: AbortSignal.timeout(45_000),
+              }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
+              if (comp?.ok) {
+                appendHistory({ kind: "CHAIN-COMPOUND", reason: String(comp.detail ?? "").slice(0, 140) });
+              }
+            } catch { /* הגלגול לעולם לא מפיל את המדידה */ }
           }
         } else if (fillsNow < seen) {
           state.fillsSeen = fillsNow; // החלון התנקה — סימן-המים בעקבות האמת
@@ -582,6 +596,6 @@ Bun.serve({
 });
 
 saveState();
-console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday}`);
+console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R107 domino armed`);
 tick();
 setInterval(tick, CHECK_INTERVAL_SEC * 1000);

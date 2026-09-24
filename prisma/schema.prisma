@@ -386,6 +386,9 @@ model ExchangeAccount {
 }
 
 // בריכות AMM — מצב חי: רזרבות, נפחים, מוני-החלפות
+// R107 — מניות-LP: לכל בריכה מונה-מניות; הוספת נזילות טובעת מניות
+// לחבר, חילוץ נזילות שורף מניות ביחס לרזרבות. העמלות שנצברו בבריכה
+// מנפחות את שווי-כל-מניה — הנזילות נשארת נכס ניתן-להחלפה, לא תרומה.
 model ExchangePool {
   id        String   @id @default(cuid())
   pair      String   @unique // "SAOS/USDS" | "WSTEEM/WSBD" | ...
@@ -397,6 +400,24 @@ model ExchangePool {
   volumeA   Float    @default(0)
   volumeB   Float    @default(0)
   swaps     Int      @default(0)
+  lpShares  String   @default("{}") // { "treasury": 2.64, "money-mover": 0.01 } — בעלות פרו-רטה
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ── שרשרת-הטריגרים (R107 · דבר גורר דבר) ─────────────────────────────
+// הוראת המפעיל: "לייצר טריגרים למכשירים שלנו שהכל ירוץ ויפעיל אחד את
+// השני דבר גורר דבר" — כל שרשרת מתועדת כאן עם שומריה (צינון,
+// תקציב, אידמפוטנטיות). הריצות נשמרות למדידה ולתצוגה — השרשרת
+// חיה רק אם היא נמדדת.
+model ChainRun {
+  id        String   @id @default(cuid())
+  chain     String // compound | sbd-mint | stream | deposit | pool-guard
+  step      String // שלב בשרשרת (reward | swap | lp-add | mint ...)
+  firedBy   String // grid-fill | wave | daemon | operator
+  ok        Boolean
+  detail    String
+  createdAt DateTime @default(now())
+
+  @@index([chain, createdAt])
 }

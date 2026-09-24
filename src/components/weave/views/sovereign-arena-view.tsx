@@ -97,6 +97,9 @@ const KIND_LABEL: Record<string, string> = {
   WITHDRAW_REQUEST: "בקשת משיכה",
   LP_SEED: "זריעת בריכה",
   LP_ADD: "הוספת נזילות",
+  LP_MIGRATE: "הגירת בעלות-LP",
+  LP_REMOVE: "חילוץ נזילות",
+  TREASURY_WRAP: "עטיפת אוצר",
   REWARD_PAY: "תגמול עבודה",
   FEE: "עמלה",
 };

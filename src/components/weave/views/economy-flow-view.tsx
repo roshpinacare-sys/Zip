@@ -37,6 +37,7 @@ import {
   ShieldCheck,
   Siren,
   Waypoints,
+  Zap,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -277,6 +278,150 @@ function Kpi({
 
 const SIZE_PRESETS = [1, 10, 50, 100, 500, 2000];
 
+// ── R107: שרשרת-הטריגרים · דבר גורר דבר ──────────────────────────────
+
+interface ChainItem {
+  chain: string;
+  titleHe: string;
+  steps: string;
+  cooldownMin: number;
+  budgetPerDay: number;
+  runsToday: number;
+  free: boolean;
+  lastRun: { step: string; firedBy: string; ok: boolean; detail: string; at: string } | null;
+}
+
+interface ArenaPoolRow {
+  pair: string;
+  assetA: string;
+  assetB: string;
+  reserveA: number;
+  reserveB: number;
+  swaps: number;
+  feeBps: number;
+  lpTotal: number;
+  lpShares: Record<string, number>;
+}
+
+function TriggerChainMap() {
+  const [chains, setChains] = useState<ChainItem[] | null>(null);
+  const [pools, setPools] = useState<ArenaPoolRow[] | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    try {
+      const j = await apiFetch<{ chains: ChainItem[]; pools: ArenaPoolRow[] }>("/api/exchange");
+      setChains(j.chains ?? []);
+      setPools((j.pools ?? []).filter((p) => p.reserveA > 0 || p.reserveB > 0));
+    } catch {
+      /* מצב-השרשרת לעולם לא מפיל את התצוגה */
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const fired = (chains ?? []).filter((c) => c.lastRun).length;
+
+  return (
+    <Section
+      title="שרשרת-הטריגרים · דבר גורר דבר"
+      description="כל אירוע כספי מדליק את הבא אחריו: מילוי ← תגמול ← נזילות ← עומק ← עמלות. כל שרשרת נמדדת — צינון, תקציב וריצה אחרונה בשקיפות מלאה."
+      icon={<Zap className="size-4" aria-hidden="true" />}
+    >
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs text-muted-foreground">
+            {chains
+              ? `${fired}/${chains.length} שרשראות רצו לפחות פעם אחת — מדידה חיה מספר-הזירה ה-hash-chained`
+              : "טוען מצב-שרשרת..."}
+          </p>
+          <Button variant="ghost" size="sm" onClick={() => void load()} disabled={busy} className="gap-1.5">
+            {busy ? <Loader2 className="size-3.5 animate-spin" aria-hidden="true" /> : <RefreshCw className="size-3.5" aria-hidden="true" />}
+            רענון
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {(chains ?? []).map((c) => {
+            const state = !c.free
+              ? c.runsToday >= c.budgetPerDay
+                ? { label: "תקציב נאכל", cls: "border-zinc-500/40 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400" }
+                : { label: "בצינון", cls: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400" }
+              : { label: "חופשית", cls: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" };
+            return (
+              <Card key={c.chain} className="min-w-0">
+                <CardContent className="flex h-full flex-col gap-3 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" dir="ltr" className="font-mono text-[11px]">{c.chain}</Badge>
+                    <Badge variant="outline" className={cn("text-[11px]", state.cls)}>{state.label}</Badge>
+                    <span className="ms-auto font-mono text-[11px] text-muted-foreground" dir="ltr">{c.runsToday}/{c.budgetPerDay} היום</span>
+                  </div>
+                  <p className="text-sm font-semibold">{c.titleHe}</p>
+                  <p className="text-xs leading-relaxed text-muted-foreground">{c.steps}</p>
+                  {c.lastRun ? (
+                    <div className="mt-auto rounded-md border bg-muted/40 p-2.5">
+                      <div className="flex items-center gap-1.5">
+                        {c.lastRun.ok ? (
+                          <CircleDot className="size-3 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                        ) : (
+                          <Siren className="size-3 shrink-0 text-rose-600 dark:text-rose-400" aria-hidden="true" />
+                        )}
+                        <span className="font-mono text-[10px] text-muted-foreground" dir="ltr">{fmtDateTime(c.lastRun.at)}</span>
+                      </div>
+                      <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-foreground/80">{c.lastRun.detail}</p>
+                    </div>
+                  ) : (
+                    <p className="mt-auto text-[11px] text-muted-foreground">עוד לא רצה — ממתינה לטריגר הראשון שלה</p>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+        {/* בעלות-הנזילות (LP) — העומק הוא נכס בעליו, לא תרומה */}
+        <div className="rounded-lg border p-4">
+          <p className="mb-3 text-sm font-semibold">בעלות-הנזילות בבריכות (מניות-LP)</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {(pools ?? []).map((p) => {
+              const owners = Object.entries(p.lpShares ?? {}).filter(([, v]) => v > 0);
+              return (
+                <div key={p.pair} className="rounded-md border bg-muted/30 p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs font-semibold" dir="ltr">{p.pair}</span>
+                    <Badge variant="outline" className="text-[10px]">{p.feeBps}bps</Badge>
+                  </div>
+                  <p className="mt-1.5 font-mono text-[11px] text-muted-foreground" dir="ltr">
+                    {Number(p.reserveA.toPrecision(6))} × {Number(p.reserveB.toPrecision(4))}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">{p.swaps} החלפות</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {owners.length === 0 ? (
+                      <span className="text-[11px] text-muted-foreground">אין בעלים רשומים עדיין</span>
+                    ) : (
+                      owners.map(([m, sh]) => (
+                        <Badge key={m} variant="secondary" className="font-mono text-[10px]" dir="ltr">
+                          {m}: {Number(sh.toPrecision(3))} ({p.lpTotal > 0 ? Math.round((sh / p.lpTotal) * 100) : 0}%)
+                        </Badge>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+            חילוץ פרו-רטה פתוח בכל עת (remove-liquidity) — הנזילות אף פעם לא נלכדת בבריכה. העמלות שנצברו מנפחות את שווי-כל-מניה.
+          </p>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
 export function EconomyFlowView() {
   const [data, setData] = useState<EconomyData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -410,6 +555,8 @@ export function EconomyFlowView() {
           </div>
 
           {/* מרשם החסימות */}
+{/* R107 — domino trigger chains */}
+          <TriggerChainMap />
           <Section
             title="מרשם החסימות והדימומים"
             description={`${b.blockages.length} חסימות רשומות · ${intentionalCount} מכוונות (חוק/ביטחון) · ${inProgressCount} בהתקדמות נמדדת - כל חסימה מסוג עגינה מכוונת נשארת חסומה עד שהחוק מאפשר אחרת`}

@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   ensureExchange, exchangeSnapshot, quoteSwap, swap,
   usdsMint, usdsBurn, withdraw, depositScan,
-  rewardPay, addLiquidity, liquidityStream,
+  rewardPay, addLiquidity, removeLiquidity, liquidityStream, agentCompound,
   type ExchangeAsset,
 } from "@/lib/weave/sovereign-exchange";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
       note?: string;
       maxA?: number;
       maxB?: number;
+      sharePct?: number;
       share?: number;
     };
     await ensureExchange();
@@ -88,6 +89,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ...r, at });
       }
       case "withdraw": {
+        // R107 — חור שנמצא ונסגר: בלי סשן, member=treasury — קריאה אנונימית
+        // הייתה מוציאה כסף אמיתי מהאוצר מתחת לסף $100. משיכה היא
+        // יציאת-כסף — דלת סגורה לאלמונים, סשן-מפעיל בלבד.
+        if (!session) {
+          return NextResponse.json({ ok: false, at, error: "AUTH: משיכה מחייבת סשן-מפעיל — הדלת נעולה לאלמונים (R107)" }, { status: 401 });
+        }
         const r = await withdraw({
           member,
           asset: String(body.asset) as ExchangeAsset,
@@ -102,8 +109,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ...r, at });
       }
       case "reward-pay": {
+        // R107 — התגמול האנונימי נעול לסוכן-הכסף בלבד (הדיבון שמזהה
+        // מילויים בשרשרת). תגמול לחבר אחר — סשן-מפעיל.
+        const rewardMember = String(body.member ?? "money-mover");
+        if (!session && rewardMember !== "money-mover") {
+          return NextResponse.json({ ok: false, at, error: "AUTH: תגמול לחברים אחרים מחייב סשן-מפעיל (R107)" }, { status: 401 });
+        }
         const r = await rewardPay({
-          member: String(body.member ?? "money-mover"),
+          member: rewardMember,
           amount: Number(body.amount ?? 0),
           note: String(body.note ?? "עבודה"),
           issuedBy,
@@ -123,6 +136,26 @@ export async function POST(req: NextRequest) {
         const r = await liquidityStream({
           share: body.share != null ? Number(body.share) : undefined,
           issuedBy,
+        });
+        return NextResponse.json({ ...r, at });
+      }
+      case "agent-compound": {
+        // R107 — שרשרת הגלגול האוטונומית: תגמולי-SAOS ← מחצית ל-USDS
+        // ← שני הצדדים כעומק-LP. הדיבון מפעיל אותה אחרי reward-pay —
+        // דבר גורר דבר, בשומרי-צינון/תקציב של מנוע-השרשרת.
+        const r = await agentCompound({
+          member: String(body.member ?? "money-mover"),
+          firedBy: String(body.note ?? "daemon"),
+        });
+        return NextResponse.json({ ...r, at });
+      }
+      case "remove-liquidity": {
+        // R107 — מסילת-היציאה: מניות-LP ← חילוץ פרו-רטה. הנזילות
+        // אף פעם לא נלכדת בבריכה.
+        const r = await removeLiquidity({
+          member,
+          pair: String(body.pair ?? ""),
+          sharePct: Number(body.sharePct ?? 0),
         });
         return NextResponse.json({ ...r, at });
       }

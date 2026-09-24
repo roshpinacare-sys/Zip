@@ -35,6 +35,7 @@ import { saosLiveTransferOut, foldLiveState } from "@/lib/weave/saos-rail";
 import { solSend, solBalance, solRpc, decodeBase58Utf8, isValidSolPubkey, SOL_TREASURY_PUB } from "@/lib/dex/sol-wire";
 import { ethSend, ethBalanceOf, ETH_TREASURY_ADDR } from "@/lib/dex/evm-wire";
 import { spotUsdAll } from "@/lib/dex/price-feeds";
+import { chainGuard, chainLog, chainState, type ChainName } from "@/lib/weave/trigger-chain";
 
 const HOME = "/home/z/my-project";
 const nodeRequire = createRequire(path.join(HOME, "package.json"));
@@ -47,6 +48,7 @@ const fs = nodeRequire("node:fs") as typeof import("node:fs");
 const TREASURY = "headcorner"; // חשבון-האוצר על השרשרת (המפעיל)
 const FEE_BPS = 30; // 0.3% — העמלה שלנו בבריכה שלנו
 const KEEP_FUEL_RATIO = 0.1; // 10% מהנוזלי נשמר כדלק-שידור (חוק שימור-הון)
+const ARM_KEEP_SBD = 0.15; // R107 — קו-החימוש: SBD מתחת לזה שייך לצד-הקנייה של הגריד, לא להטבעה
 export const EXCHANGE_ASSETS = ["WSTEEM", "WSBD", "WHIVE", "WHBD", "WBLURT", "WSOL", "WETH", "USDS", "SAOS"] as const;
 export type ExchangeAsset = (typeof EXCHANGE_ASSETS)[number];
 
@@ -461,8 +463,13 @@ export async function usdsMint(member: string, stable: "WSBD" | "WHBD", amount: 
     await adjust("reserve", "USDS", -amount); // הרזרבה "מנפיקה" — ההתחייבות שלה
     await adjust(member, "USDS", amount);
     const ev = await chainEvent("USDS_MINT", member, { stable, locked: amount, minted: amount, rate: "1:1" }, null);
+    // R107 — שרשרת מלאי→הטבעה→היצע: ההטבעה היא שלב בדומינו, ולכן
+    // נרשמת במנוע-השרשרת ממקור-אמת אחד (בין אם הגיעה מהזרם, מ-API
+    // או מהסוכן) — מדידה אחת לכל נתיב.
+    await chainLog("sbd-mint", "mint", "usdsMint", true, `${member}: +${amount} USDS מול נעילת ${amount} ${stable} — היצע מהכנסה אמיתית`);
     return { ok: true, detail: `נטבעו ${amount} USDS מול נעילת ${amount} ${stable} — גיבוי-רזרבה מלא`, event: ev };
   } catch (e) {
+    await chainLog("sbd-mint", "mint", "usdsMint", false, `${member}: ${String((e as Error).message ?? e).slice(0, 100)}`).catch(() => {});
     return { ok: false, detail: "MINT-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
   }
 }
@@ -668,6 +675,10 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
     details.push("ethereum: BLOCKSCOUT-DOWN — הרגל נדלגה בכנות");
   }
 
+  if (credited > 0) {
+    // R107 — שרשרת הפקדה→זיכוי: כסף שנגע בשרשרת נזקף מיד — הדומינו נמדד
+    await chainLog("deposit", "credit", "deposit-scan", true, `${credited} הפקדות נזקפו: ${details.slice(0, 2).join(" · ").slice(0, 160)}`);
+  }
   return {
     ok: true,
     scanned,
@@ -996,9 +1007,40 @@ export async function rewardPay(params: {
 
 // ── רייל-הנזילות: דלק → עומק בריכות אמיתי (R103) ─────────────────────
 
+// ── מניות-LP (R107) — הנזילות היא נכס, לא תרומה ─────────────────────
+
+function readLpShares(raw: string | null | undefined): Record<string, number> {
+  try { return JSON.parse(raw ?? "{}") as Record<string, number>; } catch { return {}; }
+}
+
+function totalLpShares(shares: Record<string, number>): number {
+  return Object.values(shares).reduce((s, v) => s + (v > 0 ? v : 0), 0);
+}
+
+/**
+ * הגירה — בריכות שנזרעו לפני מניות-LP מקבלות את מלוא הבעלות לאוצר
+ * (הן נזרעו מהון-אוצר נמדד בג'נזיס). אידמפוטנטי — פועל פעם אחת
+ * לכל בריכה עם רזרבות וללא מניות תקועות.
+ */
+async function ensureLpShares(pool: { pair: string; reserveA: number; reserveB: number; lpShares: string | null }): Promise<Record<string, number>> {
+  const shares = readLpShares(pool.lpShares);
+  const total = totalLpShares(shares);
+  if (total > 0) return shares;
+  if (pool.reserveA <= 0 || pool.reserveB <= 0) return shares; // ריקה — אין בעלים עדיין
+  const genesis: Record<string, number> = { treasury: Math.sqrt(pool.reserveA * pool.reserveB) };
+  await db.exchangePool.update({ where: { pair: pool.pair }, data: { lpShares: JSON.stringify(genesis) } });
+  await chainEvent("LP_MIGRATE", "treasury", {
+    pair: pool.pair, shares: genesis.treasury,
+    note: "זריעה היסטורית מהון-אוצר — הבעלות מתועדת אחורה בכנות",
+  }, null);
+  return genesis;
+}
+
 /**
  * הוספת נזילות דו-צדדית לבריכה קיימת (ביחס הנוכחי) או זריעת בריכה
- * חדשה במחיר מוכרז. העמלות נשארות בבריכה — ערך ה-LP של האוצר צומח.
+ * חדשה במחיר מוכרז. העמלות נשארות בתוך הבריכה — ערך ה-LP צומח
+ * מהעמלות, וכל מניה ניתנת לחילוץ פרו-רטה בכל עת (R107 — מסילת
+ * היציאה: removeLiquidity). הסוכן/האוצר שמוסיף עומק נשאר בעליו.
  */
 export async function addLiquidity(params: {
   member: string;
@@ -1018,20 +1060,24 @@ export async function addLiquidity(params: {
       }
       await adjust(member, assetA, -maxA);
       await adjust(member, assetB, -maxB);
+      const minted = Math.sqrt(maxA * maxB); // המניות הראשונות — שורש המכפלה
       pool = await db.exchangePool.create({
-        data: { pair, assetA, assetB, reserveA: maxA, reserveB: maxB, feeBps: FEE_BPS },
+        data: { pair, assetA, assetB, reserveA: maxA, reserveB: maxB, feeBps: FEE_BPS, lpShares: JSON.stringify({ [member]: minted }) },
       });
-      const ev = await chainEvent("LP_SEED", member, { pair, assetA, assetB, reserveA: maxA, reserveB: maxB, note: "זריעת בריכה חדשה — המחיר המוכרז, השוק יכריע מכאן" }, null);
-      return { ok: true, detail: `נזרעה בריכה חדשה ${pair}: ${maxA} × ${maxB} — עומק חי`, event: ev };
+      const ev = await chainEvent("LP_SEED", member, { pair, assetA, assetB, reserveA: maxA, reserveB: maxB, sharesMinted: minted, note: "זריעת בריכה חדשה — המחיר המוכרז, השוק יכריע מכאן" }, null);
+      return { ok: true, detail: `נזרעה בריכה חדשה ${pair}: ${maxA} × ${maxB} · ${minted.toPrecision(6)} מניות-LP ל-${member}`, event: ev };
     }
     if (pool.reserveA <= 0 || pool.reserveB <= 0) {
       // בריכה ריקה — זריעה מחדש במחיר המוצע
       await adjust(member, pool.assetA as ExchangeAsset, -maxA);
       await adjust(member, pool.assetB as ExchangeAsset, -maxB);
-      await db.exchangePool.update({ where: { pair }, data: { reserveA: maxA, reserveB: maxB } });
-      const ev = await chainEvent("LP_SEED", member, { pair, reserveA: maxA, reserveB: maxB, note: "זריעה מחדש לבריכה ריקה" }, null);
-      return { ok: true, detail: `הבריכה ${pair} נזרעה מחדש: ${maxA} × ${maxB}`, event: ev };
+      const minted = Math.sqrt(maxA * maxB);
+      await db.exchangePool.update({ where: { pair }, data: { reserveA: maxA, reserveB: maxB, lpShares: JSON.stringify({ [member]: minted }) } });
+      const ev = await chainEvent("LP_SEED", member, { pair, reserveA: maxA, reserveB: maxB, sharesMinted: minted, note: "זריעה מחדש לבריכה ריקה" }, null);
+      return { ok: true, detail: `הבריכה ${pair} נזרעה מחדש: ${maxA} × ${maxB} · ${minted.toPrecision(6)} מניות ל-${member}`, event: ev };
     }
+    // הגירה (בריכות טרום-LP) — לפני כל חישוב בעלות
+    const shares = await ensureLpShares(pool);
     // בריכה חיה — הוספה ביחס הקיים (הצד הקטן קובע)
     const ratio = pool.reserveB / pool.reserveA;
     let amtA = maxA;
@@ -1044,16 +1090,137 @@ export async function addLiquidity(params: {
     await adjust(member, pool.assetB as ExchangeAsset, -amtB);
     await db.exchangePool.update({
       where: { pair },
-      data: { reserveA: { increment: amtA }, reserveB: { increment: amtB } },
+      data: {
+        reserveA: { increment: amtA },
+        reserveB: { increment: amtB },
+      },
     });
+    // טביעת מניות פרו-רטה: sharesMinted = total × amtA/reserveA (לפני ההוספה)
+    const totalBefore = totalLpShares(shares);
+    const minted = (totalBefore * amtA) / pool.reserveA;
+    const nextShares = { ...shares, [member]: Math.round(((shares[member] ?? 0) + minted) * 1e9) / 1e9 };
+    await db.exchangePool.update({ where: { pair }, data: { lpShares: JSON.stringify(nextShares) } });
     const ev = await chainEvent("LP_ADD", member, {
-      pair, addedA: amtA, addedB: amtB,
+      pair, addedA: amtA, addedB: amtB, sharesMinted: minted,
+      memberSharesAfter: nextShares[member],
       reservesAfter: { a: pool.reserveA + amtA, b: pool.reserveB + amtB },
-      note: "עומק אמיתי גדל — העמלות נשארות בבריכה",
+      note: "עומק אמיתי גדל — העמלות נשארות בבריכה, המניות ניתנות לחילוץ",
     }, null);
-    return { ok: true, detail: `נוסף עומק ל${pair}: ${amtA} × ${amtB} (ביחס השוק החי)`, event: ev };
+    return { ok: true, detail: `נוסף עומק ל${pair}: ${amtA} × ${amtB} (ביחס השוק החי) · נטבעו ${minted.toPrecision(4)} מניות-LP ל-${member}`, event: ev };
   } catch (e) {
     return { ok: false, detail: "LP-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
+  }
+}
+
+/**
+ * מסילת-היציאה לנזילות (R107) — חילוץ פרו-רטה לפי מניות-LP.
+ *
+ * ההוראה שהנחתה: "טיפול ראוי במטבעות הפנימיים... ועדיין לייצר יכולת
+ * להחליף אותם" — עד R107 ההוספה לבריכה הייתה חד-סטרית: העומק נתרם
+ * לבריכה ללא דרך חזרה. מעתה מניות-LP הן נכס סחיר: חילוץ שורף מניות
+ * ומחזיר רזרבות ביחס המדויק, כולל העמלות שנצברו מאז ההפקדה —
+ * שווי-כל-מניה רק צומח.
+ */
+export async function removeLiquidity(params: {
+  member: string;
+  pair: string;
+  sharePct: number; // 1..100 מהמניות של החבר
+}): Promise<SwapResult> {
+  try {
+    const { member, pair } = params;
+    const sharePct = Math.min(100, Math.max(0.01, params.sharePct));
+    const pool = await db.exchangePool.findUnique({ where: { pair } });
+    if (!pool) return { ok: false, detail: "NO-POOL" };
+    const shares = await ensureLpShares(pool);
+    const mine = shares[member] ?? 0;
+    if (mine <= 0) return { ok: false, detail: `NO-SHARES: ל-${member} אין מניות-LP ב-${pair}` };
+    const total = totalLpShares(shares);
+    if (total <= 0) return { ok: false, detail: "EMPTY-BOOK: ספר המניות ריק" };
+    const burnShares = Math.min(mine, (mine * sharePct) / 100);
+    const frac = burnShares / total;
+    const outA = Math.floor(pool.reserveA * frac * 1e9) / 1e9;
+    const outB = Math.floor(pool.reserveB * frac * 1e9) / 1e9;
+    if (outA <= 0 && outB <= 0) return { ok: false, detail: "DUST: החילוץ מתחת לרצפה — צבר עוד מניות" };
+    await adjust(member, pool.assetA as ExchangeAsset, outA);
+    await adjust(member, pool.assetB as ExchangeAsset, outB);
+    const nextShares = { ...shares, [member]: Math.round((mine - burnShares) * 1e9) / 1e9 };
+    if (nextShares[member] <= 0) delete nextShares[member];
+    await db.exchangePool.update({
+      where: { pair },
+      data: {
+        reserveA: Math.max(0, Math.round((pool.reserveA - outA) * 1e9) / 1e9),
+        reserveB: Math.max(0, Math.round((pool.reserveB - outB) * 1e9) / 1e9),
+        lpShares: JSON.stringify(nextShares),
+      },
+    });
+    const ev = await chainEvent("LP_REMOVE", member, {
+      pair, burnedShares: burnShares, outA, outB,
+      memberSharesAfter: nextShares[member] ?? 0,
+      reservesAfter: { a: pool.reserveA - outA, b: pool.reserveB - outB },
+      note: "חילוץ פרו-רטה — הנזילות חוזרת לבעליה, העמלות שנצברו אצלו",
+    }, null);
+    return { ok: true, detail: `חולצו ${outA} ${pool.assetA} + ${outB} ${pool.assetB} מ-${pair} (שריפת ${burnShares.toPrecision(4)} מניות)`, event: ev };
+  } catch (e) {
+    return { ok: false, detail: "LP-EXIT-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
+  }
+}
+
+/**
+ * שרשרת הגלגול האוטונומית (R107 · compound) — הסוכן שעובד הופך בעל-נזילות.
+ *
+ * הדומינו: תגמולי-SAOS יושבים במאזן הסוכן ← השרשרת ממירה את המחצית
+ * ל-USDS בבריכה (נזילות מיידית, עמלה נשארת בבריכה) ← שני הצדדים
+ * נכנסים כעומק-LP (מניות נטבעות לסוכן) ← ההחלפות הבאות זולות יותר
+ * ← העמלות מנפחות את שווי-מנייתו. עבודה→מטבע→נזילות→בעלות.
+ *
+ * שומרים: צינון 6 שעות · תקציב 4 ביום · מינימום 4 SAOS לגלגול (מתחת
+ * לזה הגלגול שוחק דיוק). כישלון נרשם ככישלון.
+ */
+export async function agentCompound(params: {
+  member: string;
+  firedBy: string;
+}): Promise<{ ok: boolean; detail: string; steps?: string[] }> {
+  const steps: string[] = [];
+  const chain: ChainName = "compound";
+  const guard = await chainGuard(chain);
+  if (!guard.allowed) return { ok: false, detail: guard.reason };
+  try {
+    const { member } = params;
+    const MIN_COMPOUND = 4; // SAOS — מתחת לזה הגלגול שוחק דיוק
+    const bal = await readBalances(member);
+    const saos = bal.SAOS ?? 0;
+    if (saos < MIN_COMPOUND) {
+      await chainLog(chain, "hold", params.firedBy, true, `מחזיק: ${saos} SAOS מתחת לרף ${MIN_COMPOUND} — צוברים בסבלנות`);
+      return { ok: true, detail: `HOLD · ל-${member} יש ${saos} SAOS — מתחת לרף הגלגול (${MIN_COMPOUND}); צוברים`, steps: ["מחזיק מתחת לרף — כנות"] };
+    }
+    // שלב 1: המרת המחצית ל-USDS — נזילות מיידית מהעבודה
+    const swapAmt = Math.floor((saos / 2) * 1e6) / 1e6;
+    const sw = await swap({ member, pair: "SAOS/USDS", side: "A2B", amountIn: swapAmt });
+    if (!sw.ok) {
+      await chainLog(chain, "swap", params.firedBy, false, `המרה נכשלה: ${sw.detail}`);
+      return { ok: false, detail: `SWAP-STEP-FAIL: ${sw.detail}` };
+    }
+    steps.push(`הומרו ${swapAmt} SAOS ← USDS (עמלה נשארה בבריכה)`);
+    // שלב 2: שני הצדדים כעומק — הסוכן הופך בעל-נזילות
+    const bal2 = await readBalances(member);
+    const saosLeft = bal2.SAOS ?? 0;
+    const usdsNow = bal2.USDS ?? 0;
+    const lp = await addLiquidity({ member, pair: "SAOS/USDS", maxA: saosLeft, maxB: usdsNow });
+    if (!lp.ok) {
+      await chainLog(chain, "lp-add", params.firedBy, false, `הוספת-נזילות נכשלה: ${lp.detail} (ההמרה בוצעה — הנזילות במאזן)`);
+      return { ok: false, detail: `LP-STEP-FAIL: ${lp.detail}`, steps };
+    }
+    steps.push(lp.detail);
+    await chainLog(chain, "lp-add", params.firedBy, true, `${member}: ${steps.join(" · ")}`);
+    return {
+      ok: true,
+      detail: `השרשרת הושלמה: ${steps.join(" · ")} — העבודה הפכה בעלות-נזילות מניבה`,
+      steps,
+    };
+  } catch (e) {
+    const detail = "COMPOUND-ERROR: " + String((e as Error).message ?? e).slice(0, 120);
+    await chainLog(chain, "error", params.firedBy, false, detail);
+    return { ok: false, detail };
   }
 }
 
@@ -1099,7 +1266,13 @@ export async function liquidityStream(params: {
 
     // נכסי ההזרמה: STEEM (פאוורדאון) · HIVE · BLURT · SOL · ETH — כולם בעלי דלתא-דלק חוצה-רשתות
     // (R105: SOL/ETH מצטרפים; רצפות-דלתא לפי סדר-גודל היחידה — 1 STEEM ≠ 1 ETH)
-    const streamAssets: Array<{ live: number; key: string; wrap: ExchangeAsset; priceKey: string; minDelta: number; minWrap: number }> = [
+    // R107 — שרשרת מלאי→הטבעה→היצע: SBD/HBD מעל קו-החימוש נעטפים
+    // ומומרים ל-USDS ב-1:1 מול נעילה מלאה. צוואר-ה-USDS-הנדיר נפתר
+    // מהכנסה (מילויי-המכירה מצטברים SBD) — לא מהבטחה. חוק-העדיפות:
+    // קו-החימוש (0.15 SBD) אף פעם לא נשחק — צד-הקנייה של הגריד קודם.
+    const streamAssets: Array<{ live: number; key: string; wrap: ExchangeAsset; priceKey: string; minDelta: number; minWrap: number; keep?: number; mintUsds?: boolean }> = [
+      { live: m.sbd, key: "sbd", wrap: "WSBD", priceKey: "sbd", minDelta: 0.005, minWrap: 0.001, keep: ARM_KEEP_SBD, mintUsds: true },
+      { live: m.hbd, key: "hbd", wrap: "WHBD", priceKey: "hbd", minDelta: 0.005, minWrap: 0.001, mintUsds: true },
       { live: m.steem, key: "steem", wrap: "WSTEEM", priceKey: "steem", minDelta: 1, minWrap: 0.001 },
       { live: m.hive, key: "hive", wrap: "WHIVE", priceKey: "hive", minDelta: 1, minWrap: 0.001 },
       { live: m.blurt, key: "blurt", wrap: "WBLURT", priceKey: "blurt", minDelta: 1, minWrap: 1 },
@@ -1110,11 +1283,32 @@ export async function liquidityStream(params: {
     let totalWrapped = 0;
 
     for (const a of streamAssets) {
-      const baseline = wrapped.get(a.key) ?? 0;
+      const baseline = Math.max(wrapped.get(a.key) ?? 0, a.keep ?? 0);
       const delta = a.live - baseline;
       if (delta < a.minDelta) continue; // אין דלק חדש — כנות
-      const toWrap = Math.floor(delta * share * 1000) / 1000;
+      const shareHere = a.mintUsds ? 1 : share; // SBD/HBD: העודף המלא — כל יחידה נעולה 1:1
+      const toWrap = Math.floor(delta * shareHere * 1000) / 1000;
       if (toWrap < a.minWrap) continue;
+      if (a.mintUsds) {
+        // R107 — שרשרת מלאי→הטבעה→היצע: עטיפה ואז הטבעה 1:1 מול נעילה
+        // מלאה. לא צריך מחיר חיצוני — היחס הוא חוק הרזרבה. הסחירות
+        // נשמרת דו-כיוונית: usdsBurn משחרר את הנעילה בכל עת.
+        const guardMint = await chainGuard("sbd-mint");
+        if (!guardMint.allowed) { events.push(`${a.key}: ${guardMint.reason}`); continue; }
+        await adjust("treasury", a.wrap, toWrap);
+        await chainEvent("TREASURY_WRAP", "treasury", {
+          asset: a.key, wrap: a.wrap, amount: toWrap, measuredBalance: a.live, baseline, delta,
+          share: shareHere, evidence: `chain-balance(${a.key})=${a.live}`,
+        }, null);
+        const mint = await usdsMint("treasury", a.wrap as "WSBD" | "WHBD", toWrap);
+        if (mint.ok) {
+          events.push(`נטבעו ${toWrap} USDS מול נעילת ${toWrap} ${a.wrap} — גיבוי-רזרבה מלא 1:1`);
+        } else {
+          events.push(`הטבעת USDS מ-${a.key} נכשלה: ${mint.detail}`);
+        }
+        totalWrapped += 1;
+        continue;
+      }
       const price = prices[a.priceKey];
       if (price == null) { events.push(`${a.key}: אין מחיר חי — הדלתא (${delta.toFixed(6)}) ממתינה בכנות`); continue; }
       // עטיפה — האוצר מקבל W* מול ההון החי שנמדד
@@ -1177,7 +1371,10 @@ export interface ExchangeSnapshot {
     volumeB: number;
     swaps: number;
     depthUsd: number | null;
+    lpShares: Record<string, number>;
+    lpTotal: number;
   }>;
+  chains: Awaited<ReturnType<typeof chainState>>;
   reserve: { usdsSupply: number; sbdLocked: number; hbdLocked: number; ratio: string };
   treasury: Balances;
   members: Array<{ member: string; balances: Balances }>;
@@ -1203,12 +1400,14 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
     if (usdA != null) depthUsd = p.reserveA * usdA * 2;
     else if (usdB != null) depthUsd = p.reserveB * usdB * 2;
     const price = p.reserveA > 0 ? p.reserveB / p.reserveA : 0;
+    const lpShares = readLpShares(p.lpShares);
     return {
       pair: p.pair, assetA: p.assetA, assetB: p.assetB,
       reserveA: p.reserveA, reserveB: p.reserveB,
       price, priceLabel: `${price.toPrecision(4)} ${p.assetB}/${p.assetA}`,
       feeBps: p.feeBps, volumeA: p.volumeA, volumeB: p.volumeB, swaps: p.swaps,
       depthUsd,
+      lpShares, lpTotal: totalLpShares(lpShares),
     };
   });
   const reserveBal = await readBalances("reserve");
@@ -1231,6 +1430,7 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
     at,
     genesis,
     pools: poolRows,
+    chains: await chainState(),
     reserve: {
       usdsSupply: reserveBal.USDS ?? 0,
       sbdLocked: reserveBal.WSBD ?? 0,
