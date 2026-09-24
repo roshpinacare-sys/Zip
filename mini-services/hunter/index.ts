@@ -324,3 +324,5 @@ saveState();
 console.log(`[hunter] חי על פורט ${PORT} · beats=${state.beats} · קנרית הבאה ${state.canary.nextDueAt}`);
 tick();
 setInterval(tick, SCAN_INTERVAL_SEC * 1000);
+
+// R106-seed: gate-state law active — quota-dead measured 16x, daily probe until quota returns
