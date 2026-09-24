@@ -311,9 +311,13 @@ export function AgentsFleetView() {
   const summary = useMemo(() => {
     if (!data) return null;
     const agents = data.agents;
-    const live = agents.filter((a) => ["live", "ok"].includes(lifeLevel(a.lastRun?.at))).length;
-    const slow = agents.filter((a) => lifeLevel(a.lastRun?.at) === "slow").length;
-    const dead = agents.filter((a) => lifeLevel(a.lastRun?.at) === "dead").length;
+    // R117 — חוק ההגדרה-היחידה: "חי" הוא שדה ה-state הרשמי של הרישום
+    // (agents-watch כותב אותו מדי שעה ממדידת GitHub Actions). בעבר חישבנו
+    // כאן הגדרה מקומית (lastRun<7ש') שסתרה את עמוד המערך (8 מול 10) —
+    // שתי דעות על אותה עובדה. מעתה: מקור אחד, הגדרה אחת, מוצגת בגלוי.
+    const live = agents.filter((a) => a.state === "live").length;
+    const slow = agents.filter((a) => a.state === "degraded").length;
+    const dead = agents.filter((a) => a.state === "dormant").length;
     const avg =
       agents.filter((a) => a.stats).reduce((s, a) => s + (a.stats?.successRate ?? 0), 0) /
       Math.max(1, agents.filter((a) => a.stats).length);
@@ -355,7 +359,9 @@ export function AgentsFleetView() {
                 <div className="text-2xl font-bold tabular-nums leading-none">
                   {summary.live}/{summary.total}
                 </div>
-                <div className="mt-1 text-xs text-muted-foreground">סוכנים חיים</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  חיים (state=live ברישום הרשמי)
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -304,6 +304,9 @@ export function MoneyMarketView(): React.JSX.Element {
             <CardContent className="p-5">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-sm font-bold text-zinc-200">עקומת-הריבית · שוק USDS</h2>
+                <p className="w-full text-[10px] leading-snug text-zinc-600">
+                  USDS = יחידת-פדיון פנימית (הטבעה=נעילה 1:1 ברזרבה, פדיון=שריפה 1:1) — לא מטבע ציבורי
+                </p>
                 <Badge variant="outline" className="border-[#a78bfa]/25 bg-[#a78bfa]/5 text-[#a78bfa] text-[10px]">
                   בסיס 1% + שיפוע 4% עד 80% · +60% מעל
                 </Badge>

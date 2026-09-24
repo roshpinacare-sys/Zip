@@ -173,6 +173,8 @@ interface AgentLite {
   name: string;
   role: string;
   status: string;
+  /** R117 — כנות-יכולת: IDENTITY-ONLY = זהות שוחזרה מהספר בלי מפתח-חתימה בסביבה */
+  capability?: "SEALED-SIGNER" | "IDENTITY-ONLY";
 }
 
 // ── הטאב ─────────────────────────────────────────────────────────────
@@ -1156,6 +1158,7 @@ function NewMarketDialog({
                   {agents.map((a) => (
                     <SelectItem key={a.id} value={a.id}>
                       {a.name}
+                      {a.capability === "IDENTITY-ONLY" ? " · זהות בלבד (ללא מפתח בסביבה)" : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>

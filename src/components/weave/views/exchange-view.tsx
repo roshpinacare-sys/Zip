@@ -89,6 +89,7 @@ interface DexStateResponse {
   ok: boolean;
   version: number;
   tick: number;
+  publishedAt: string;
   state: {
     height: number;
     tps: number;
@@ -403,12 +404,32 @@ export function ExchangeView() {
     versionRef.current = 0;
   }, []);
 
+  // R117 — רענון-גיל חי: המראה מתחדשת כל ~2 שעות, אבל גיל האמת שלה חייב
+  // להתקדם בשעון המשתמש. טיק-דקה גורם ל-render מחדש בלי לגעת בנתונים.
+  const [, setAgeTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setAgeTick((n) => n + 1), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
   const market =
     data?.markets.find((m) => m.key === marketKey) ?? data?.markets[0] ?? null;
   const pool = data?.pools.find((p) => p.key === (market?.key ?? "")) ?? null;
   const seals = data?.proofs.seals ?? [];
   const lastSeal = seals[seals.length - 1] ?? null;
   const treasury = data?.wallets.find((w) => w.name === "treasury") ?? null;
+
+  // R117 — אמת-הגיל של המראה (ראה הערה ב"גיל המראה" למטה)
+  const mirrorAgeMs = data?.publishedAt
+    ? Math.max(0, Date.now() - new Date(data.publishedAt).getTime())
+    : null;
+  const mirrorAgeMin = mirrorAgeMs != null ? mirrorAgeMs / 60_000 : null;
+  const fmtMirrorAge =
+    mirrorAgeMin == null
+      ? "—"
+      : mirrorAgeMin < 60
+        ? `${Math.round(mirrorAgeMin)} דק׳`
+        : `${(mirrorAgeMin / 60).toFixed(1)} ש׳`;
 
   const health = data
     ? [
@@ -426,19 +447,22 @@ export function ExchangeView() {
         },
         {
           icon: HeartPulse,
-          label: "פעימה",
-          value: `${(data.state.lastBlockAgoMs / 1000).toFixed(1)}ש׳`,
-          ok: data.state.lastBlockAgoMs < 8000,
+          label: "גיל המראה",
+          // R117 — אמת-הגיל: המראה מתפרסמת בקצב dex-beat (~כל שעתיים). lastBlockAgoMs
+          // קפוא מזמן הבנייה ולכן שיקר בעבר ("9.6 שניות" על נתונים בני שעה). הגיל
+          // האמיתי נמדד מ-publishedAt מול השעון החי — תמיד.
+          value: fmtMirrorAge,
+          ok: mirrorAgeMs != null && mirrorAgeMs < 2.5 * 3_600_000,
         },
         {
           icon: Activity,
-          label: "עסקאות",
+          label: "עסקאות (מצטבר · אוטונומיות)",
           value: data.state.fills + data.state.swaps > 0 ? `${data.state.fills}מילויים · ${data.state.swaps}סוופים` : "0",
           ok: true,
         },
         {
           icon: ShieldCheck,
-          label: "חותמים",
+          label: "חותמות מפתח (היסטוריות)",
           value: String(seals.length),
           ok: data.state.dbOk,
         },
@@ -469,13 +493,19 @@ export function ExchangeView() {
                 variant="outline"
                 className="border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-700 dark:text-emerald-300"
               >
-                מראת ענן חיה
+                מראת ענן · פועמת כל ~2 שעות
               </Badge>
             </h1>
             <p className="text-xs text-muted-foreground sm:text-sm">
-              שרשרת דטרמיניסטית חיה · בלוק כל 3 שניות · ספר-זמנות בערבות · AMM
-              x·y=k
+              שרשרת פנימית דטרמיניסטית · מנוע-ריפליי בענן (dex-beat, 480 טיקים
+              לפעימה) · אפס משתמשים אנושיים — סוחרים אוטונומיים בלבד ·
+              יחידות פנימיות (USDS = זכות-פדיון מתועדת)
             </p>
+            {data?.publishedAt ? (
+              <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/70">
+                world.json · פורסם {data.publishedAt.slice(11, 16)}Z · גיל אמיתי {fmtMirrorAge}
+              </p>
+            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-2">

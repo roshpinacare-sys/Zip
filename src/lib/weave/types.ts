@@ -42,6 +42,12 @@ export const ATTESTATION_STATUSES: AttestationStatus[] = [
 
 export type TruthLabel = "REAL" | "LOCAL" | "NOT-YET";
 
+export type AgentCapability =
+  /** מפתח-חתימה חי ב-DB — יכול לחתום עדויות חדשות */
+  | "SEALED-SIGNER"
+  /** זהות בלבד — אין devKeyHex בסביבה הזו (שוחזר מהספר/הקנון; חתימה בלתי-אפשרית כאן) */
+  | "IDENTITY-ONLY";
+
 export interface AgentDTO {
   id: string;
   name: string;
@@ -49,6 +55,8 @@ export interface AgentDTO {
   ethAddress: string;
   pubKeyHex: string;
   status: string;
+  /** R117 — כנות-יכולת: מה הסוכן יכול לעשות *בסביבה הזו*, לא מה כתוב בשדה הסטטוס */
+  capability: AgentCapability;
   attCount: number;
   createdAt: string;
 }

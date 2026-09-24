@@ -67,6 +67,9 @@ export function toAgentDTO(agent: Agent, attCount: number): AgentDTO {
     ethAddress: agent.ethAddress,
     pubKeyHex: agent.pubKeyHex,
     status: agent.status,
+    // R117 — כנות-יכולת: הסטטוס "ACTIVE" שיקר כשאין מפתח-חתימה בסביבה.
+    // היכולת נמדדת מנוכחות devKeyHex (לעולם לא נחשף בעצמו), לא מהשדה.
+    capability: agent.devKeyHex ? "SEALED-SIGNER" : "IDENTITY-ONLY",
     attCount,
     createdAt: agent.createdAt.toISOString(),
   };
