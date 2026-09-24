@@ -67,6 +67,7 @@ type MoneyState = {
   acting: boolean;
   lastDecision: Decision | null;
   fillsSeen?: number; // R103 — סימן-מים לתגמול מילויים חדשים
+  lastDepositScanAt?: string | null; // R105 — סריקת הפקדות אחרונה (כל 5 דק')
   lastStreamDay?: string; // R103 — הזרמת-נזילות אחת לכל היום ביותר
   canonLast: { at: string; ok: boolean; path: string } | null;
   history?: Array<Record<string, unknown>>;
@@ -487,6 +488,24 @@ async function tick() {
         }
       }
     } catch { /* התגמול לעולם לא מפיל את המדידה */ }
+    // R105 — סריקת דלת-ההפקדות בפעימה (חוק חיים):
+    // עד R105 הסריקה הייתה ידנית בלבד — הפקדות המתינו בזמן שהמנוע חי.
+    // עכשיו: כל 5 דקות פותחות המפוגה — חמש רשתות, שוקדפות נזקפות מהרגע שהכסף נוגע לשרשרת.
+    try {
+      const lastScan = state.lastDepositScanAt ? new Date(state.lastDepositScanAt).getTime() : 0;
+      if (Date.now() - lastScan >= 5 * 60_000) {
+        state.lastDepositScanAt = new Date().toISOString();
+        const dep = await fetch(EXCHANGE_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "deposit-scan" }),
+          signal: AbortSignal.timeout(45_000),
+        }).then((x) => x.json() as Promise<{ ok?: boolean; credited?: number; detail?: string }>).catch(() => null);
+        if (dep?.credited && dep.credited > 0) {
+          appendHistory({ kind: "DEPOSIT-CREDIT", reason: dep.detail ?? `${dep.credited} deposits credited`, placed: dep.credited });
+        }
+      }
+    } catch { /* הסריקה לעולם לא מפילה את המדידה */ }
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {

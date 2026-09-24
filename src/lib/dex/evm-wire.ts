@@ -21,6 +21,10 @@ import { openVaultEntryRaw } from "@/lib/dex/wallet-vault";
 const ETH_RPC = process.env.ETH_RPC || "https://eth.drpc.org";
 const FALLBACK_RPCS = ["https://eth.drpc.org", "https://rpc.ankr.com/eth", "https://1rpc.io/eth"];
 
+/** R105 — אוצר ה-ETH של הזירה: cashmachine (שם ההון היסטורי, אותו מפתח-אב).
+ * כתובת ציבורית נטולת-סוד; בכל שידור הנגזרת מאומתת מול הכספת בכל מקרה. */
+export const ETH_TREASURY_ADDR = "0x0FB6C1807d8D7945B5E3a14ea3679e19795cb545";
+
 let provider: ethers.JsonRpcProvider | null = null;
 function getProvider(): ethers.JsonRpcProvider {
   if (!provider) provider = new ethers.JsonRpcProvider(ETH_RPC);

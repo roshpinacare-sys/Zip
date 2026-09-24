@@ -24,6 +24,11 @@ const bs58 = nodeRequire("bs58") as {
 
 const SOL_RPC = process.env.SOL_RPC || "https://api.mainnet-beta.solana.com";
 const SYSTEM_PROGRAM = "11111111111111111111111111111111";
+const SPL_MEMO_PROGRAM = "Memo4c2pN8afCj432Lb7RMVKi9PbQnnW7ewFFaV3oAH"; // spl-memo הרשמי — נמדד 32 בייט ואומת מול השרשרת כתוכנית פעילה (מקור: solana-program/memo, clients/js-legacy)
+
+/** R105 — אוצר ה-SOL של הזירה: cashmachine (שם ההון חי, אותו מפתח-אב).
+ * כתובת ציבורית נטולת-סוד; בכל שידור הנגזרת מאומתת מול הכספת בכל מקרה. */
+export const SOL_TREASURY_PUB = "HBBdhpbpFP3BwqcvrxJ44hAyKSid3D6AB4SFvtrN736s";
 
 export interface SolKeypair {
   ok: boolean;
@@ -89,14 +94,18 @@ function compactU16(n: number): Buffer {
   return Buffer.from(out);
 }
 
-/** הודעת legacy: header + accountKeys + blockhash + instructions */
-export function buildLegacyMessage(from: Buffer, to: Buffer, lamports: number, blockhash: Buffer): Buffer {
+/** הודעת legacy: header + accountKeys + blockhash + instructions — עם memo אופציונלי
+ * (R105: הוראת spl-memo נוספת — כך נשלחות הפקדות wx:<member> הנקראות על ידי הסורק) */
+export function buildLegacyMessage(from: Buffer, to: Buffer, lamports: number, blockhash: Buffer, memo?: string): Buffer {
   const fromB58 = bs58.encode(from);
   const toB58 = bs58.encode(to);
   const systemB58 = SYSTEM_PROGRAM;
-  const accountKeys = [fromB58, toB58, systemB58].map((k) => bs58.decode(k));
-  // header: 1 חותם נדרש, 0 קריאה-בלבד-חתום, 1 קריאה-בלבד-לא-חתום (system)
-  const header = Buffer.from([1, 0, 1]);
+  const hasMemo = typeof memo === "string" && memo.length > 0;
+  const accountKeys = hasMemo
+    ? [fromB58, toB58, systemB58, SPL_MEMO_PROGRAM].map((k) => bs58.decode(k))
+    : [fromB58, toB58, systemB58].map((k) => bs58.decode(k));
+  // header: 1 חותם נדרש, 0 קריאה-בלבד-חתום, 1/2 קריאה-בלבד-לא-חתום (system [+ spl-memo])
+  const header = Buffer.from([1, 0, hasMemo ? 2 : 1]);
   const keysLen = compactU16(accountKeys.length);
   const keysBuf = Buffer.concat(accountKeys);
   // הוראת SystemProgram::Transfer: u32=2 (LE) + u64 lamports (LE)
@@ -109,8 +118,19 @@ export function buildLegacyMessage(from: Buffer, to: Buffer, lamports: number, b
     compactU16(data.length),
     data,
   ]);
-  const instrCount = compactU16(1);
-  return Buffer.concat([header, keysLen, keysBuf, blockhash, instrCount, instr]);
+  const instrs: Buffer[] = [instr];
+  if (hasMemo) {
+    const memoBytes = Buffer.from(memo as string, "utf8");
+    // הוראת spl-memo: programIdIndex=3, אפס חשבונות, data=utf8 המזכר
+    instrs.push(Buffer.concat([
+      Buffer.from([3]),
+      compactU16(0),
+      compactU16(memoBytes.length),
+      memoBytes,
+    ]));
+  }
+  const instrCount = compactU16(instrs.length);
+  return Buffer.concat([header, keysLen, keysBuf, blockhash, instrCount, ...instrs]);
 }
 
 /** wire: חתימות + message — מוכן ל-sendTransaction (base64) */
@@ -134,6 +154,23 @@ async function solRpc<T>(method: string, params: unknown[]): Promise<T> {
   return j.result as T;
 }
 
+/** R105 — RPC ציבורי לסורק ההפקדות (נטול-מפתחות; השרשרת שופטת) */
+export { solRpc };
+
+/** פענוח base58 → utf8 (לקריאת הוראות מזכר) */
+export function decodeBase58Utf8(s: string): string {
+  return Buffer.from(bs58.decode(s)).toString("utf8");
+}
+
+/** כתובת סולנה תקפה: base58 שמפענח ל-32 בייט */
+export function isValidSolPubkey(s: string): boolean {
+  try {
+    return Buffer.from(bs58.decode(s)).length === 32;
+  } catch {
+    return false;
+  }
+}
+
 export async function solBalance(pub: string): Promise<{ lamports: number; sol: number; error?: string }> {
   try {
     const r = await solRpc<{ value: number }>("getBalance", [pub, { commitment: "confirmed" }]);
@@ -154,8 +191,9 @@ export interface SolSendResult {
 const LAMPORTS_PER_SOL = 1_000_000_000;
 const FEE_LAMPORTS = 5000; // תעריף הבסיס של סולנה לחתימה
 
-/** שידור SOL אמיתי: מאזן → blockhash → בנייה → חתימה → שליחה */
-export async function solSend(account: string, toPub: string, sol: number): Promise<SolSendResult> {
+/** שידור SOL אמיתי: מאזן → blockhash → בנייה → חתימה → שליחה.
+ * R105: memo אופציונלי — הוראת spl-memo מצורפת להודעה (הפקדות wx:). */
+export async function solSend(account: string, toPub: string, sol: number, opts?: { memo?: string }): Promise<SolSendResult> {
   const kp = openSolVaultKeypair(account);
   if (!kp.ok || !kp.pub || !kp.secret) {
     return { ok: false, detail: `NO-KEY: ${kp.detail ?? "vault-closed"}` };
@@ -189,6 +227,7 @@ export async function solSend(account: string, toPub: string, sol: number): Prom
       toBuf,
       lamports,
       blockhash,
+      opts?.memo,
     );
     const { wireBase64 } = buildSignedTx(kp.secret, message);
     const txid = await solRpc<string>("sendTransaction", [

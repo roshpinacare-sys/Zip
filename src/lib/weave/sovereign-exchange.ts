@@ -32,6 +32,9 @@ import { openVaultKey } from "@/lib/dex/wallet-vault";
 import { blurtSendTransfer, BLURT_RPC } from "@/lib/dex/blurt-wire";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
 import { saosLiveTransferOut, foldLiveState } from "@/lib/weave/saos-rail";
+import { solSend, solBalance, solRpc, decodeBase58Utf8, isValidSolPubkey, SOL_TREASURY_PUB } from "@/lib/dex/sol-wire";
+import { ethSend, ethBalanceOf, ETH_TREASURY_ADDR } from "@/lib/dex/evm-wire";
+import { spotUsdAll } from "@/lib/dex/price-feeds";
 
 const HOME = "/home/z/my-project";
 const nodeRequire = createRequire(path.join(HOME, "package.json"));
@@ -44,7 +47,7 @@ const fs = nodeRequire("node:fs") as typeof import("node:fs");
 const TREASURY = "headcorner"; // חשבון-האוצר על השרשרת (המפעיל)
 const FEE_BPS = 30; // 0.3% — העמלה שלנו בבריכה שלנו
 const KEEP_FUEL_RATIO = 0.1; // 10% מהנוזלי נשמר כדלק-שידור (חוק שימור-הון)
-export const EXCHANGE_ASSETS = ["WSTEEM", "WSBD", "WHIVE", "WHBD", "WBLURT", "USDS", "SAOS"] as const;
+export const EXCHANGE_ASSETS = ["WSTEEM", "WSBD", "WHIVE", "WHBD", "WBLURT", "WSOL", "WETH", "USDS", "SAOS"] as const;
 export type ExchangeAsset = (typeof EXCHANGE_ASSETS)[number];
 
 // ── ספר hash-chained ────────────────────────────────────────────────
@@ -130,7 +133,9 @@ export interface TreasuryMeasure {
   hive: number;
   hbd: number;
   blurt: number;
-  rpc: { steem: boolean; hive: boolean; blurt: boolean };
+  sol: number;
+  eth: number;
+  rpc: { steem: boolean; hive: boolean; blurt: boolean; sol: boolean; eth: boolean };
   at: string;
 }
 
@@ -148,6 +153,12 @@ async function measureTreasury(): Promise<TreasuryMeasure | null> {
       body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "condenser_api.get_accounts", params: [[TREASURY]] }),
       signal: AbortSignal.timeout(10_000),
     }).then((r) => r.json() as Promise<{ result?: Array<{ balance: string }> }>).catch(() => null);
+    // R105 — רגלי העולם הלא-גרפן: אוצר SOL/ETH = cashmachine (שם ההון חי,
+    // אותו מפתח-אב; כתובות ציבוריות — אין בהן סוד)
+    const [solBal, ethBal] = await Promise.all([
+      solBalance(SOL_TREASURY_PUB),
+      ethBalanceOf(ETH_TREASURY_ADDR),
+    ]);
     if (!steemAcct || !steemAcct.length) return null;
     return {
       steem: parseFloat(steemAcct[0].balance) || 0,
@@ -155,7 +166,9 @@ async function measureTreasury(): Promise<TreasuryMeasure | null> {
       hive: hiveAcct?.[0] ? parseFloat(hiveAcct[0].balance) || 0 : 0,
       hbd: hiveAcct?.[0] ? parseFloat(hiveAcct[0].hbd_balance) || 0 : 0,
       blurt: blurtAcct?.result?.[0] ? parseFloat(blurtAcct.result[0].balance) || 0 : 0,
-      rpc: { steem: true, hive: !!hiveAcct, blurt: !!blurtAcct?.result },
+      sol: solBal.error ? 0 : solBal.sol,
+      eth: ethBal.error ? 0 : ethBal.eth,
+      rpc: { steem: true, hive: !!hiveAcct, blurt: !!blurtAcct?.result, sol: !solBal.error, eth: !ethBal.error },
       at: new Date().toISOString(),
     };
   } catch {
@@ -165,18 +178,16 @@ async function measureTreasury(): Promise<TreasuryMeasure | null> {
 
 async function pricesUsd(): Promise<Record<string, number | null>> {
   const out: Record<string, number | null> = { steem: null, sbd: null, hive: null, hbd: null, blurt: null, sol: null, eth: null };
+  // R105 — מקורות-מחיר עמידים: Binance ← Gate ← OKX (לקח חי
+  // מהשטח: איסור-418 זמני של Binance השתק מדיה). מקור יחיד = חוסק-פעילות מובנה.
   try {
-    const r = await fetch("https://api.binance.com/api/v3/ticker/price?symbols=%5B%22STEEMUSDT%22,%22HIVEUSDT%22,%22SOLUSDT%22,%22ETHUSDT%22%5D", {
-      signal: AbortSignal.timeout(8000),
-    });
-    const j = (await r.json()) as Array<{ symbol: string; price: string }>;
-    for (const t of j) {
-      const p = Number(t.price);
-      if (!Number.isFinite(p)) continue;
-      if (t.symbol === "STEEMUSDT") out.steem = p;
-      if (t.symbol === "HIVEUSDT") out.hive = p;
-      if (t.symbol === "SOLUSDT") out.sol = p;
-      if (t.symbol === "ETHUSDT") out.eth = p;
+    const feeds = await spotUsdAll(["STEEMUSDT", "HIVEUSDT", "SOLUSDT", "ETHUSDT"]);
+    const map: Record<string, keyof typeof out> = {
+      STEEMUSDT: "steem", HIVEUSDT: "hive", SOLUSDT: "sol", ETHUSDT: "eth",
+    };
+    for (const [pair, key] of Object.entries(map)) {
+      const f = feeds[pair];
+      if (f?.price != null) out[key] = f.price as number;
     }
   } catch { /* כנות: לא נמדד */ }
   try {
@@ -291,6 +302,59 @@ async function seedPool(pair: string, assetA: string, assetB: string, amtA: numb
     update: { reserveA: amtA, reserveB: amtB },
   });
   await chainEvent("LP_SEED", "treasury", { pair, assetA, assetB, reserveA: amtA, reserveB: amtB, note: "זריעת-פתיחה מהון-אוצר נמדד; ערך ה-LP של האוצר" }, null);
+}
+
+// ── R105 — חיבור העולם הלא-גרפן: WSOL/WETH בזירה ─────────────────────
+
+let networkAddPromise: Promise<boolean> | null = null;
+
+/**
+ * הרחבת-ג'נזיס לרשתות הלא-גרפניות, אידמפוטנטית לנצח (הספר שופט).
+ *
+ * ההון הקיים של cashmachine ב-SOL/ETH (אותו מפתח-אב) נזקף לאוצר
+ * ב-WSOL (90% — 10% דלק-אגרה) וב-WETH (אבק → אפס נזקף, בכנות).
+ * קווי-הבסיס להזרמה נקבעים באותו רגע — רק תזרים עתידי יוזרם לעומק.
+ */
+export async function ensureNetworkAdd(): Promise<boolean> {
+  if (!networkAddPromise) {
+    networkAddPromise = doNetworkAdd().catch(() => false);
+    networkAddPromise.finally(() => {
+      void networkAddPromise?.then((ok) => {
+        if (!ok) networkAddPromise = null; // כישלון מדידה — ניסיון חדש בקריאה הבאה
+      });
+    });
+  }
+  return networkAddPromise;
+}
+
+async function doNetworkAdd(): Promise<boolean> {
+  const existing = await db.exchangeEvent.findFirst({ where: { kind: "NETWORK_ADD" } });
+  if (existing) return true;
+  const m = await measureTreasury();
+  if (!m) return false; // אין מדידה — אין חיבור (כנות; הקריאה הבאה תנסה שוב)
+  const usable = 1 - KEEP_FUEL_RATIO;
+  const wSol = Math.floor(m.sol * usable * 1e9) / 1e9;
+  const wEth = 0; // ETH אבק — הדלת חיה, ההון לא; אפס נזקף בכנות
+  await chainEvent("NETWORK_ADD", "treasury", {
+    what: "העולם הלא-גרפן מתחבר לזירה — WSOL/WETH נכסי-זירה, דלתות הפקדה בחמש רשתות, ריילי משיכה",
+    measured: { sol: m.sol, eth: m.eth },
+    credited: { WSOL: wSol, WETH: wEth },
+    treasurySolAccount: "cashmachine",
+    treasuryEthAccount: "cashmachine",
+    keepFuelRatio: KEEP_FUEL_RATIO,
+    honesty: m.eth > 0 && wEth === 0 ? `ETH=${m.eth.toPrecision(4)} — אבק; נזקף 0 WETH. הדלת חיה, ההון עוד לא הגיע` : undefined,
+  }, null);
+  if (wSol > 0) await adjust("treasury", "WSOL", wSol);
+  // קווי-בסיס להזרמה: ההון הקיים נזקף לעיל — רק תזרים עתידי יוזרם
+  await chainEvent("TREASURY_WRAP", "treasury", {
+    asset: "sol", wrap: "WSOL", amount: 0, measuredBalance: m.sol, baseline: 0, delta: 0, share: 0,
+    note: "קו-בסיס NETWORK_ADD — ההון הקיים נזקף לאוצר; רק תזרים עתידי יוזרם לעומק",
+  }, null);
+  await chainEvent("TREASURY_WRAP", "treasury", {
+    asset: "eth", wrap: "WETH", amount: 0, measuredBalance: m.eth, baseline: 0, delta: 0, share: 0,
+    note: "קו-בסיס NETWORK_ADD",
+  }, null);
+  return true;
 }
 
 // ── AMM ──────────────────────────────────────────────────────────────
@@ -504,12 +568,112 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
       details.push(`${leg.chain}: ${t.from} → ${member}: ${num} ${asset} (txid ${txid.slice(0, 10)}…)`);
     }
   }
+
+  // ── R105 — רגל SOL: סריקת חתימות נטולת-מפתחות (השרשרת שופטת) ───
+  // המזכר נקרא מהוראת spl-memo (base58→utf8); הזיהוי לפי התוכן —
+  // לא לפי תוכנית — חוסן מול כל גרסת memo. העברה מזוהה מהוראת
+  // system-transfer המנותחת. העברה ללא מזכר — אין ייחוס, לא נזקפת.
+  try {
+    const sigs = await solRpc<Array<{ signature: string; err: unknown } | null>>(
+      "getSignaturesForAddress", [SOL_TREASURY_PUB, { limit: Math.min(40, limit) }],
+    );
+    const list = (Array.isArray(sigs) ? sigs : []).filter((s): s is { signature: string; err: unknown } => !!s?.signature);
+    scanned += list.length;
+    for (const s of [...list].reverse()) { // ישן→חדש: סדר קנוני לספר
+      if (s.err != null) continue; // העברה שנכשלה — השרשרת דחתה
+      if (await eventExists("DEPOSIT_CREDIT", s.signature)) continue;
+      const tx = await solRpc<{
+        meta?: { err?: unknown } | null;
+        transaction?: { message?: { instructions?: Array<Record<string, unknown>> } };
+      } | null>("getTransaction", [s.signature, { maxSupportedTransactionVersion: 0, encoding: "jsonParsed" }]).catch(() => null);
+      if (!tx || tx.meta?.err != null) continue; // טרם-finalized או נכשל — הסריקה הבאה תראה
+      const instrs = tx.transaction?.message?.instructions ?? [];
+      let lamportsIn = 0;
+      for (const ins of instrs) {
+        const parsed = ins.parsed as { type?: string; info?: { destination?: unknown; lamports?: number } } | undefined;
+        if (parsed?.type === "transfer" && String(parsed.info?.destination ?? "") === SOL_TREASURY_PUB) {
+          lamportsIn += Number(parsed.info?.lamports ?? 0);
+        }
+      }
+      if (lamportsIn <= 0) continue;
+      let member: string | null = null;
+      for (const ins of instrs) {
+        // נתיב-א (נמדד בשטח, R105): הוראת spl-memo המנותחת מגיעה עם
+        // parsed=מחרוזת-המזכר עצמה (בלי data גולמי).
+        if (typeof ins.parsed === "string") {
+          const mm = DEPOSIT_MEMO.exec(ins.parsed.trim().toLowerCase());
+          if (mm) { member = mm[1]; break; }
+        }
+        // נתיב-ב: הוראה גולמת — המזכר ב-data (base58→utf8)
+        const data = typeof ins.data === "string" ? ins.data : null;
+        if (!data) continue;
+        try {
+          const mm = DEPOSIT_MEMO.exec(decodeBase58Utf8(data).trim().toLowerCase());
+          if (mm) { member = mm[1]; break; }
+        } catch { /* לא bs58 — לא הוראת מזכר */ }
+      }
+      if (!member) continue; // העברה ללא מזכר — אין ייחוס, בכנות לא נזקפת
+      const amt = lamportsIn / 1e9;
+      if (!(amt > 0)) continue;
+      await adjust(member, "WSOL", amt);
+      await chainEvent("DEPOSIT_CREDIT", member, {
+        txid: s.signature, asset: "WSOL", amount: amt, memo: `wx:${member}`, chain: "solana",
+        evidence: `solana:getSignaturesForAddress+getTransaction(${SOL_TREASURY_PUB}) sig=${s.signature}`,
+      }, null);
+      credited++;
+      details.push(`solana: ${amt} SOL → ${member}: WSOL (sig ${s.signature.slice(0, 10)}…)`);
+    }
+  } catch {
+    details.push("solana: RPC-DOWN — הרגל נדלגה בכנות");
+  }
+
+  // ── R105 — רגל ETH: Blockscout (ציבורי, חסר-מפתחות) ──────────
+  // המזכר בשדה input-data (hex→utf8) — הדרך המקובלת להעברת native-ETH
+  // עם נתונים. עסקה מאושרת בלבד; העברה ללא מזכר — אין ייחוס.
+  try {
+    const r = await fetch(`https://eth.blockscout.com/api/v2/addresses/${ETH_TREASURY_ADDR}/transactions`, {
+      signal: AbortSignal.timeout(12_000),
+    });
+    const j = (await r.json()) as {
+      items?: Array<{ hash?: string; to?: { hash?: string } | null; value?: string; status?: string; result?: string; input?: string }>;
+    };
+    const items = j.items ?? [];
+    scanned += items.length;
+    for (const t of items) {
+      const hash = String(t.hash ?? "");
+      if (!hash) continue;
+      if (String(t.to?.hash ?? "").toLowerCase() !== ETH_TREASURY_ADDR.toLowerCase()) continue;
+      if (t.result !== "success" && t.status !== "ok") continue;
+      const ethVal = Number(String(t.value ?? "0")) / 1e18;
+      if (!(ethVal > 0)) continue;
+      if (await eventExists("DEPOSIT_CREDIT", hash)) continue;
+      let member: string | null = null;
+      try {
+        const hex = String(t.input ?? "").replace(/^0x/, "");
+        if (hex.length > 0 && hex.length % 2 === 0) {
+          const mm = DEPOSIT_MEMO.exec(Buffer.from(hex, "hex").toString("utf8").trim().toLowerCase());
+          if (mm) member = mm[1];
+        }
+      } catch { /* אין מזכר */ }
+      if (!member) continue; // העברה ללא מזכר — אין ייחוס, בכנות לא נזקפת
+      await adjust(member, "WETH", ethVal);
+      await chainEvent("DEPOSIT_CREDIT", member, {
+        txid: hash, asset: "WETH", amount: ethVal, memo: `wx:${member}`, chain: "ethereum",
+        evidence: `blockscout:eth address=${ETH_TREASURY_ADDR} hash=${hash}`,
+      }, null);
+      credited++;
+      details.push(`ethereum: ${ethVal} ETH → ${member}: WETH (txid ${hash.slice(0, 10)}…)`);
+    }
+  } catch {
+    details.push("ethereum: BLOCKSCOUT-DOWN — הרגל נדלגה בכנות");
+  }
+
   return {
     ok: true,
     scanned,
     credited,
     details,
-    detail: credited > 0 ? `${credited} הפקדות נזקפו (3 רשתות)` : "אין הפקדות חדשות בחלון (3 רשתות)",
+    detail: credited > 0 ? `${credited} הפקדות נזקפו (5 רשתות)` : "אין הפקדות חדשות בחלון (5 רשתות)",
   };
 }
 
@@ -601,6 +765,78 @@ async function saosWithdrawRail(params: {
   };
 }
 
+/** R105 — רייל משיכה לא-גרפני: שריפת עטיפה ← שידור אמתי
+ * מאוצר cashmachine (אותו מפתח-אב). SOL: legacy-tx חתומה ed25519
+ * (הוכחה חיה 5amYdKAC…). ETH: EIP-1559 בקבלת NO-GAS כנה
+ * עד הגעת הון-גז. סדר הפעולות עסקה: שער ← שריפה ← שידור ←
+ * החזרה מלאה בכל כשל. */
+async function nonGrapheneWithdrawRail(params: {
+  member: string;
+  asset: "WSOL" | "WETH";
+  amount: number;
+  toAccount: string;
+  issuedBy: "operator" | "daemon";
+}): Promise<WithdrawResult> {
+  const { member, asset, amount, toAccount, issuedBy } = params;
+  const prices = await pricesUsd();
+  const priceKey = asset === "WSOL" ? "sol" : "eth";
+  const price = prices[priceKey];
+  if (price == null) {
+    return { ok: false, detail: "NO-PRICE: USD לא נמדד חי — אין שער, אין משיכה" };
+  }
+  // ואלידציה של היעד: SOL = base58 של 32 בייט; ETH = 0x-hex של 40
+  if (asset === "WSOL" && !isValidSolPubkey(toAccount)) {
+    return { ok: false, detail: "BAD-ACCOUNT: כתובת סולנה שגויה" };
+  }
+  if (asset === "WETH" && !/^0x[0-9a-fA-F]{40}$/.test(toAccount)) {
+    return { ok: false, detail: "BAD-ACCOUNT: כתובת EVM שגויה" };
+  }
+  const usdValue = amount * price;
+  const gate = await evaluateGate({
+    source: "sovereign-exchange",
+    action: "withdraw",
+    title: `משיכה ${amount} ${asset} ל-${toAccount.slice(0, 14)}… (${usdValue.toFixed(2)}$)`,
+    payload: { member, asset, amount, toAccount },
+    usdValue,
+    usdBasis: `binance ${priceKey} ${price}`,
+    issuedBy,
+    reason: "משיכת רייל לא-גרפני — שריפת עטיפה ושידור מאוצר cashmachine",
+  });
+  if (gate.verdict !== "ALLOWED") {
+    return {
+      ok: false,
+      detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : "השער סירב",
+      gate: { verdict: gate.verdict, id: gate.id, usdValue },
+    };
+  }
+  // שריפת העטיפה קודם לשידור (סדר הפעולות עסקה — לקח R104)
+  await adjust(member, asset, -amount);
+  const send = asset === "WSOL"
+    ? await solSend("cashmachine", toAccount, amount)
+    : await ethSend("cashmachine", toAccount, amount);
+  if (!send.ok) {
+    await adjust(member, asset, amount); // השידור לא התקבל — העטיפה מוחזרת במלואה
+    return {
+      ok: false,
+      detail: `SEND-FAILED: ${send.detail} — העטיפה הוחזרה, כלום לא נשרף`,
+      gate: { verdict: "SEND-FAILED", id: gate.id, usdValue },
+    };
+  }
+  const ev = await chainEvent("WITHDRAW_EXEC", member, {
+    asset, amount, toAccount, txid: send.txid ?? null,
+    note: `rail ${asset === "WSOL" ? "solana legacy-tx (ed25519)" : "ethereum EIP-1559"} — העטיפה נשרפה, ההעברה שודרה מאוצר cashmachine`,
+    usdValue, gateId: gate.id,
+  }, usdValue);
+  await settleGate(gate.id, "EXECUTED", "sovereign-exchange:live", { txid: send.txid ?? null, eventHash: ev.hash });
+  return {
+    ok: true,
+    detail: `נמשכו ${amount} ${asset} ל-${toAccount.slice(0, 14)}… — העטיפה נשרפה, ההעברה שודרה`,
+    gate: { verdict: "EXECUTED", id: gate.id, usdValue },
+    txid: send.txid ?? null,
+    event: ev,
+  };
+}
+
 export async function withdraw(params: {
   member: string;
   asset: ExchangeAsset;
@@ -614,6 +850,10 @@ export async function withdraw(params: {
     // R104 — רייל SAOS-LIVE: היעד הוא כתובת שרשרת-חיה (saos1…), לא שם-חשבון גרפן
     if (asset === "SAOS") {
       return await saosWithdrawRail({ member, amount, toAddress: toAccount, issuedBy });
+    }
+    // R105 — ריילי העולם הלא-גרףן: WSOL/WETH יוצאים לכתובת שרשרת
+    if (asset === "WSOL" || asset === "WETH") {
+      return await nonGrapheneWithdrawRail({ member, asset, amount, toAccount, issuedBy });
     }
     if (!/^[a-z0-9.-]{3,16}$/.test(toAccount)) return { ok: false, detail: "BAD-ACCOUNT: יעד שרשרת שגוי" };
     const prices = await pricesUsd();
@@ -857,11 +1097,14 @@ export async function liquidityStream(params: {
       } catch { /* כנות */ }
     }
 
-    // נכסי ההזרמה: STEEM (פאוורדאון) · HIVE · BLURT — כולם בעלי דלתא-דלק חוצה-רשתות
-    const streamAssets: Array<{ live: number; key: string; wrap: ExchangeAsset; priceKey: string }> = [
-      { live: m.steem, key: "steem", wrap: "WSTEEM", priceKey: "steem" },
-      { live: m.hive, key: "hive", wrap: "WHIVE", priceKey: "hive" },
-      { live: m.blurt, key: "blurt", wrap: "WBLURT", priceKey: "blurt" },
+    // נכסי ההזרמה: STEEM (פאוורדאון) · HIVE · BLURT · SOL · ETH — כולם בעלי דלתא-דלק חוצה-רשתות
+    // (R105: SOL/ETH מצטרפים; רצפות-דלתא לפי סדר-גודל היחידה — 1 STEEM ≠ 1 ETH)
+    const streamAssets: Array<{ live: number; key: string; wrap: ExchangeAsset; priceKey: string; minDelta: number; minWrap: number }> = [
+      { live: m.steem, key: "steem", wrap: "WSTEEM", priceKey: "steem", minDelta: 1, minWrap: 0.001 },
+      { live: m.hive, key: "hive", wrap: "WHIVE", priceKey: "hive", minDelta: 1, minWrap: 0.001 },
+      { live: m.blurt, key: "blurt", wrap: "WBLURT", priceKey: "blurt", minDelta: 1, minWrap: 1 },
+      { live: m.sol, key: "sol", wrap: "WSOL", priceKey: "sol", minDelta: 0.01, minWrap: 0.001 },
+      { live: m.eth, key: "eth", wrap: "WETH", priceKey: "eth", minDelta: 0.0005, minWrap: 0.00005 },
     ];
     const prices = await pricesUsd();
     let totalWrapped = 0;
@@ -869,15 +1112,19 @@ export async function liquidityStream(params: {
     for (const a of streamAssets) {
       const baseline = wrapped.get(a.key) ?? 0;
       const delta = a.live - baseline;
-      if (delta < 1) continue; // אין דלק חדש — כנות
+      if (delta < a.minDelta) continue; // אין דלק חדש — כנות
       const toWrap = Math.floor(delta * share * 1000) / 1000;
-      if (toWrap < 0.001) continue;
+      if (toWrap < a.minWrap) continue;
       const price = prices[a.priceKey];
-      if (price == null) { events.push(`${a.key}: אין מחיר חי — הדלתא (${delta.toFixed(3)}) ממתינה בכנות`); continue; }
+      if (price == null) { events.push(`${a.key}: אין מחיר חי — הדלתא (${delta.toFixed(6)}) ממתינה בכנות`); continue; }
       // עטיפה — האוצר מקבל W* מול ההון החי שנמדד
       await adjust("treasury", a.wrap, toWrap);
+      // R105 — תיקון-שורש (נתפס לפני שגל-הפאוורדאון הגיע): ה-WRAP נכתב תחת
+      // מפתח-השרשרת (a.key) כמו שהקורא מחפש — לא תחת שם-העטיפה. בלי
+      // התיקון, קו-הבסיס לא התקדם לעולם ואותה דלתא הייתה נעטפת שוב
+      // ושוב — עטיפת-יתר מול הון אמיתי.
       const ev = await chainEvent("TREASURY_WRAP", "treasury", {
-        asset: a.wrap, amount: toWrap, measuredBalance: a.live, baseline, delta,
+        asset: a.key, wrap: a.wrap, amount: toWrap, measuredBalance: a.live, baseline, delta,
         share, evidence: `chain-balance(${a.key})=${a.live}`,
       }, null);
       events.push(`עוטף ${toWrap} ${a.wrap} מדלתא ${delta.toFixed(3)} ${a.key} (חלק ${Math.round(share * 100)}%)`);
@@ -937,13 +1184,14 @@ export interface ExchangeSnapshot {
   prices: Record<string, number | null>;
   recentEvents: Array<ChainedEvent & { usdValue?: number | null; createdAt?: string }>;
   bookIntegrity: { events: number; headHash: string | null; recomputeOk: boolean | null };
-  depositDoor: { memo: string; treasury: string; chain: string };
+  depositDoor: { memo: string; treasury: string; chain: string; doors: Array<{ chain: string; account?: string; address?: string; hint?: string }> };
   note: string;
 }
 
 export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
   const at = new Date().toISOString();
   const genesis = await ensureExchange();
+  await ensureNetworkAdd(); // R105 — חיבור SOL/ETH לזירה (אידמפוטנטי)
   const pools = await db.exchangePool.findMany({ orderBy: { pair: "asc" } });
   const prices = await pricesUsd();
   const poolRows = pools.map((p) => {
@@ -997,7 +1245,18 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
       usdValue: e.usdValue ?? null, createdAt: e.createdAt?.toISOString?.() ?? String(e.createdAt),
     })),
     bookIntegrity: { events: all.length, headHash, recomputeOk: all.length > 0 ? recomputeOk : null },
-    depositDoor: { memo: "wx:<member>", treasury: TREASURY, chain: "STEEM (דלת חיה; HIVE/BLURT מתועדות)" },
+    depositDoor: {
+      memo: "wx:<member>",
+      treasury: TREASURY,
+      chain: "STEEM+HIVE+BLURT (גרפן) · SOL+ETH (לא-גרפניות) — 5 דלתות חיות (R105)",
+      doors: [
+        { chain: "STEEM", account: TREASURY },
+        { chain: "HIVE", account: TREASURY },
+        { chain: "BLURT", account: TREASURY },
+        { chain: "SOL", address: SOL_TREASURY_PUB, hint: "מזכר בהוראת spl-memo" },
+        { chain: "ETH", address: ETH_TREASURY_ADDR, hint: "מזכר בשדה input-data (utf8)" },
+      ],
+    },
     note: genesis
       ? "הזירה חיה: ספר hash-chained, USDS בגיבוי-רזרבה מלא, עמלות בבריכות שלנו. עומק = ההון הריאלי בלבד — לא מציגים נזילות שאיננה."
       : "הג'נזיס ממתין למדידת-אוצר חיה (RPC) — כנות: בלי מדידה אין זריעה",

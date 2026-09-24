@@ -39,6 +39,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useOperator } from "@/components/weave/operator";
 
 // ── חוזה הנתונים (מ-/api/exchange) ───────────────────────────────────
 
@@ -67,7 +68,7 @@ interface ArenaSnapshot {
   prices: Record<string, number | null>;
   recentEvents: Array<{ seq: number; kind: string; member: string; payload: string; hash: string; usdValue?: number | null; createdAt?: string }>;
   bookIntegrity: { events: number; headHash: string | null; recomputeOk: boolean | null };
-  depositDoor: { memo: string; treasury: string; chain: string };
+  depositDoor: { memo: string; treasury: string; chain: string; doors: Array<{ chain: string; account?: string; address?: string; hint?: string }> };
   note: string;
 }
 interface QuoteResult {
@@ -107,6 +108,9 @@ function fmt(n: number | null | undefined, digits = 4): string {
 }
 
 export function SovereignArenaView() {
+  // R105 — פעולות הזירה פועלות בזהות המפעיל כשסשן חי (חברות-אמת בספר,
+  // לא "treasury" אנונימי — תיקון שורש שנתפס בביקורת)
+  const { authedFetch } = useOperator();
   const [snap, setSnap] = useState<ArenaSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -122,6 +126,12 @@ export function SovereignArenaView() {
   const [wxAmount, setWxAmount] = useState("2");
   const [wxResult, setWxResult] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
+  // R105 — רייל משיכה לא-גרפני (WSOL/WETH)
+  const [ngAsset, setNgAsset] = useState<"WSOL" | "WETH">("WSOL");
+  const [ngAmount, setNgAmount] = useState("0.001");
+  const [ngTo, setNgTo] = useState("");
+  const [ngResult, setNgResult] = useState<string | null>(null);
+  const [ngBusy, setNgBusy] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async (withSpin = true) => {
@@ -190,7 +200,7 @@ export function SovereignArenaView() {
     setSwapping(true);
     setSwapResult(null);
     try {
-      const res = await fetch("/api/exchange", {
+      const res = await authedFetch("/api/exchange", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action: "swap", pair: quotePair, side: quoteSide, amountIn: amt }),
@@ -203,7 +213,7 @@ export function SovereignArenaView() {
     } finally {
       setSwapping(false);
     }
-  }, [quoteAmount, quotePair, quoteSide, load]);
+  }, [quoteAmount, quotePair, quoteSide, load, authedFetch]);
 
   // R104 — משיכת SAOS דרך רייל SAOS-LIVE: שריפת תביעה פנימית ← העברה
   // חתומה מהאוצר על השרשרת החיה. השער מכסה; הקיפול הוא השופט.
@@ -214,7 +224,7 @@ export function SovereignArenaView() {
     setWithdrawing(true);
     setWxResult(null);
     try {
-      const res = await fetch("/api/exchange", {
+      const res = await authedFetch("/api/exchange", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ action: "withdraw", asset: "SAOS", amount: amt, toAccount: to }),
@@ -227,7 +237,30 @@ export function SovereignArenaView() {
     } finally {
       setWithdrawing(false);
     }
-  }, [wxAmount, saosLive, load]);
+  }, [wxAmount, saosLive, load, authedFetch]);
+
+  // R105 — משיכת WSOL/WETH: שריפת עטיפה ← שידור אמתי מאוצר cashmachine.
+  // NO-GAS ב-ETH הוא קבלה כנה עד הגעת הון — העטיפה מוחזרת במלואה.
+  const runNgWithdraw = useCallback(async () => {
+    const amt = Number(ngAmount);
+    if (!Number.isFinite(amt) || amt <= 0 || !ngTo) return;
+    setNgBusy(true);
+    setNgResult(null);
+    try {
+      const res = await authedFetch("/api/exchange", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "withdraw", asset: ngAsset, amount: amt, toAccount: ngTo }),
+      });
+      const j = (await res.json()) as { ok?: boolean; detail?: string; txid?: string };
+      setNgResult(j.ok ? `${j.detail ?? "נמשך"}${j.txid ? ` (txid ${j.txid.slice(0, 16)}…)` : ""}` : (j.detail ?? "נכשל"));
+      await load(false);
+    } catch {
+      setNgResult("הפעולה לא נענתה");
+    } finally {
+      setNgBusy(false);
+    }
+  }, [ngAmount, ngAsset, ngTo, load, authedFetch]);
 
   const activePool = useMemo(
     () => snap?.pools.find((p) => p.pair === quotePair) ?? null,
@@ -552,15 +585,81 @@ export function SovereignArenaView() {
         </CardContent>
       </Card>
 
+      {/* ── R105 — רייל משיכה לא-גרפני: WSOL/WETH ── */}
+      <Card className="border-emerald-800/30">
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Sparkles className="size-4 text-emerald-500" aria-hidden />
+                משיכת WSOL/WETH — רייל סולנה/אתריום
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xl leading-relaxed">
+                העטיפה נשרפת בזירה, והעברה אמיתית נחתמת מאוצר cashmachine
+                (אותו מפתח-אב) ומשודרת לכתובת היד שלך. SOL: legacy-tx חתומה ed25519.
+                ETH: EIP-1559 — NO-GAS כנה עד הגעת הון.
+              </p>
+            </div>
+            <div className="text-xs text-muted-foreground text-left">
+              <div>מאזן אוצר: <span className="font-mono">{fmt(snap?.treasury?.WSOL ?? 0, 4)} WSOL</span></div>
+              <div className="mt-0.5">שער SOL: <span className="font-mono">{snap?.prices?.sol ? `$${snap.prices.sol.toFixed(2)}` : "—"}</span></div>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <div className="space-y-1">
+              <label htmlFor="ng-asset" className="text-xs text-muted-foreground">נכס</label>
+              <select
+                id="ng-asset"
+                className="w-24 rounded-md border bg-background px-3 py-2 text-sm"
+                value={ngAsset}
+                onChange={(e) => setNgAsset(e.target.value === "WETH" ? "WETH" : "WSOL")}
+              >
+                <option value="WSOL">WSOL</option>
+                <option value="WETH">WETH</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="ng-amount" className="text-xs text-muted-foreground">כמות</label>
+              <Input
+                id="ng-amount"
+                type="number"
+                min="0"
+                step="any"
+                value={ngAmount}
+                onChange={(e) => setNgAmount(e.target.value)}
+                className="font-mono w-28"
+              />
+            </div>
+            <div className="min-w-56 flex-1">
+              <label htmlFor="ng-to" className="text-xs text-muted-foreground">כתובת יעד (base58 / 0x…)</label>
+              <Input
+                id="ng-to"
+                value={ngTo}
+                onChange={(e) => setNgTo(e.target.value)}
+                placeholder={ngAsset === "WSOL" ? "כתובת סולנה" : "0x…"}
+                className="mt-1 font-mono text-xs"
+              />
+            </div>
+            <Button size="sm" onClick={() => void runNgWithdraw()} disabled={ngBusy || !ngTo}>
+              {ngBusy ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Coins className="size-4" aria-hidden />}
+              משוך לשרשרת
+            </Button>
+          </div>
+          {ngResult && (
+            <p className="mt-2 text-xs leading-relaxed border-t pt-2" aria-live="polite">{ngResult}</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* ── ספר הזירה + מאזני חברים ── */}
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardContent className="p-4">
             <h3 className="text-sm font-semibold text-muted-foreground mb-2 flex items-center gap-2">
               <BookOpen className="size-4" aria-hidden />
               ספר הזירה — hash-chained
             </h3>
-            <div className="max-h-96 overflow-y-auto rounded-md border divide-y text-sm">
+            <div className="max-h-96 overflow-y-auto overflow-x-hidden rounded-md border divide-y text-sm">
               {(snap?.recentEvents ?? []).map((e) => (
                 <div key={e.seq} className="flex items-start gap-3 px-3 py-2">
                   <span className="font-mono text-xs text-muted-foreground pt-0.5 shrink-0">#{e.seq}</span>
@@ -570,7 +669,7 @@ export function SovereignArenaView() {
                       <span className="text-xs text-muted-foreground">{e.member}</span>
                       {e.usdValue != null && <span className="text-xs font-mono text-muted-foreground">${e.usdValue.toFixed(4)}</span>}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate font-mono" dir="ltr">{e.payload}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate font-mono max-w-full" dir="ltr">{e.payload}</p>
                   </div>
                 </div>
               ))}
@@ -620,8 +719,21 @@ export function SovereignArenaView() {
             <span className="font-mono text-foreground">{snap?.depositDoor.treasury}</span> עם המזכר{" "}
             <span className="font-mono text-foreground">wx:&lt;שם-החבר&gt;</span> — סריקת ההיסטוריה מאמת
             את ההפקדה מול השרשרת ומזקפת את העטיפה 1:1 בזירה. ההוכחה: txid בספר, נזקף פעם אחת
-            בלבד (אידמפוטנטי). דלתות HIVE/BLURT מתועדות כצעד הבא.
+            בלבד (אידמפוטנטי). סריקת הדיבון רצה כל 5 דקות על חמש רשתות —
+            מהרגע שהכסף נוגע לשרשרת ועד חתימתו בספר.
           </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {(snap?.depositDoor?.doors ?? []).map((d) => (
+              <div key={d.chain} className="rounded-md border bg-muted/30 p-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold">{d.chain}</span>
+                  <Badge variant="outline" className="text-[10px]">דלת חיה</Badge>
+                </div>
+                <p className="mt-1 font-mono text-[11px] break-all" dir="ltr">{d.address ?? d.account}</p>
+                {d.hint && <p className="mt-0.5 text-[10px] text-muted-foreground">{d.hint}</p>}
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { openSolVaultKeypair, solBalance, solSend } from "@/lib/dex/sol-wire";
+import { spotUsd } from "@/lib/dex/price-feeds";
 import { openVaultEntryRaw } from "@/lib/dex/wallet-vault";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -30,22 +31,14 @@ export const RAIL_PROOF = {
   verdict: "confirmed · 10 confirmations · err:null",
 };
 
-async function solUsd(): Promise<number | null> {
-  try {
-    const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=SOLUSDT", {
-      signal: AbortSignal.timeout(8000),
-    });
-    const j = (await res.json()) as { price?: string };
-    const p = Number(j.price);
-    return Number.isFinite(p) && p > 0 ? p : null;
-  } catch {
-    return null;
-  }
+async function solUsd(): Promise<{ price: number | null; source: string | null }> {
+  const f = await spotUsd("SOLUSDT");
+  return { price: f.price, source: f.source };
 }
 
 export async function GET() {
   const at = new Date().toISOString();
-  const price = await solUsd();
+  const { price, priceSource } = await (async () => { const f = await solUsd(); return { price: f.price, priceSource: f.source }; })();
   const rows: Array<Record<string, unknown>> = [];
   let totalSol = 0;
   let opened = 0;
@@ -74,6 +67,7 @@ export async function GET() {
     chain: "solana",
     rpc: "api.mainnet-beta.solana.com",
     priceUsd: price,
+    priceSource,
     accounts: rows,
     vaultOpened: `${opened}/${VAULT_ACCOUNTS.length}`,
     total: { sol: totalSol, usd: totalUsd },
@@ -99,7 +93,11 @@ export async function POST(req: NextRequest) {
       account?: string;
       to?: string;
       sol?: number;
+      memo?: string; // R105 — הוראת spl-memo (הפקדות מזוויים)
     };
+    const memo = typeof body.memo === "string" && /^wx:[a-z0-9.-]{3,16}$/.test(body.memo.trim().toLowerCase())
+      ? body.memo.trim().toLowerCase()
+      : undefined;
     if (body.action !== "send") {
       return NextResponse.json({ ok: false, error: "BAD-ACTION: send בלבד" }, { status: 400 });
     }
@@ -111,7 +109,7 @@ export async function POST(req: NextRequest) {
     if (!Number.isFinite(sol) || sol <= 0) {
       return NextResponse.json({ ok: false, error: "BAD-VALUE" }, { status: 400 });
     }
-    const price = await solUsd();
+    const price = (await solUsd()).price;
     if (price == null) {
       return NextResponse.json({
         ok: false,
@@ -142,7 +140,7 @@ export async function POST(req: NextRequest) {
           : "השער סירב",
       }, { status: 409 });
     }
-    const result = await solSend(account, String(body.to ?? ""), sol);
+    const result = await solSend(account, String(body.to ?? ""), sol, { memo });
     if (result.ok) {
       await settleGate(gate.id, "EXECUTED", "sol-wire:live", { txid: result.txid ?? null, detail: result.detail });
     }
