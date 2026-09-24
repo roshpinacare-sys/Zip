@@ -2,14 +2,14 @@
   "service": "keeper",
   "version": "1.1.0",
   "bootedAt": "2026-09-23T22:32:15.177Z",
-  "beats": 2111,
+  "beats": 2113,
   "patrolIntervalSec": 30,
   "alive": true,
   "patrolling": false,
   "lastDecision": {
-    "at": "2026-09-24T03:08:15.208Z",
+    "at": "2026-09-24T03:09:15.209Z",
     "kind": "PATROL",
-    "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP"
+    "detail": "סיור תקין — pulse:UP · money:BUSY · hunter:UP · student:UP"
   },
   "fleet": [
     {
@@ -19,13 +19,13 @@
       "roleEn": "The pulse — daily chain broadcast",
       "state": "UP",
       "since": "2026-09-22T03:06:14.972Z",
-      "lastCheckAt": "2026-09-24T03:08:15.204Z",
-      "lastHealthyAt": "2026-09-24T03:08:15.204Z",
+      "lastCheckAt": "2026-09-24T03:09:15.204Z",
+      "lastHealthyAt": "2026-09-24T03:09:15.204Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-23",
-      "lastBeats": 2427,
+      "lastBeats": 2429,
       "bootedAtSeen": "2026-09-23T14:56:03.621Z",
       "acting": false,
       "intervalSec": 30,
@@ -36,17 +36,17 @@
       "port": 3034,
       "roleHe": "מוביל הכסף — סולם הפאריטה על הקו",
       "roleEn": "The money mover — parity ladder",
-      "state": "UP",
+      "state": "BUSY",
       "since": "2026-09-24T02:27:15.203Z",
-      "lastCheckAt": "2026-09-24T03:08:15.204Z",
-      "lastHealthyAt": "2026-09-24T03:08:15.204Z",
+      "lastCheckAt": "2026-09-24T03:09:15.204Z",
+      "lastHealthyAt": "2026-09-24T03:09:15.204Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-24T02:27:15.203Z",
       "restartsToday": 5,
       "restartDay": "2026-09-24",
-      "lastBeats": 786,
-      "bootedAtSeen": "2026-09-24T03:00:09.174Z",
-      "acting": false,
+      "lastBeats": 755,
+      "bootedAtSeen": "2026-09-24T03:08:41.374Z",
+      "acting": true,
       "intervalSec": 60,
       "beatsStalePatrols": 0
     },
@@ -57,8 +57,8 @@
       "roleEn": "The hunter — minute-gate & opportunities",
       "state": "UP",
       "since": "2026-09-22T03:08:14.974Z",
-      "lastCheckAt": "2026-09-24T03:08:15.204Z",
-      "lastHealthyAt": "2026-09-24T03:08:15.204Z",
+      "lastCheckAt": "2026-09-24T03:09:15.204Z",
+      "lastHealthyAt": "2026-09-24T03:09:15.204Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-22T03:07:44.974Z",
       "restartsToday": 0,
@@ -67,7 +67,7 @@
       "bootedAtSeen": "2026-09-24T01:47:13.356Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 2
+      "beatsStalePatrols": 4
     },
     {
       "name": "student",
@@ -76,8 +76,8 @@
       "roleEn": "The student — self-exam, coverage & learning",
       "state": "UP",
       "since": "2026-09-23T22:32:15.177Z",
-      "lastCheckAt": "2026-09-24T03:08:15.204Z",
-      "lastHealthyAt": "2026-09-24T03:08:15.204Z",
+      "lastCheckAt": "2026-09-24T03:09:15.204Z",
+      "lastHealthyAt": "2026-09-24T03:09:15.204Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
@@ -86,20 +86,10 @@
       "bootedAtSeen": "2026-09-24T01:37:25.141Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 1
+      "beatsStalePatrols": 3
     }
   ],
   "history": [
-    {
-      "at": "2026-09-24T02:38:45.208Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP"
-    },
-    {
-      "at": "2026-09-24T02:39:15.207Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP"
-    },
     {
       "at": "2026-09-24T02:39:45.207Z",
       "kind": "PATROL",
@@ -389,6 +379,16 @@
       "at": "2026-09-24T03:08:15.208Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP"
+    },
+    {
+      "at": "2026-09-24T03:08:45.209Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP"
+    },
+    {
+      "at": "2026-09-24T03:09:15.209Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:BUSY · hunter:UP · student:UP"
     }
   ],
   "canonLast": {

@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
-  "version": "1.6.0",
-  "bootedAt": "2026-09-24T02:29:05.674Z",
-  "beats": 785,
+  "version": "1.7.0",
+  "bootedAt": "2026-09-24T03:08:41.374Z",
+  "beats": 755,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -37,19 +37,27 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-09-24T02:44:05.717Z",
+  "lastActionAt": "2026-09-24T03:09:05.723Z",
   "actionsToday": 6,
   "actionDay": "2026-09-24",
   "acting": false,
   "lastDecision": {
-    "at": "2026-09-24T03:08:30.186Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 6 דק' · WAIT-COOLDOWN · עוד 6 דק'"
+    "at": "2026-09-24T03:09:31.210Z",
+    "kind": "REPRICE",
+    "detail": "הוצבו 3 · בוטלו 3 · הפאריטה זזה +553bps מעל הסולם שהוצב (0.123685 → קו 0.130520) — הסולם נגרר אליה (חוק 3)"
   },
   "canonLast": {
-    "at": "2026-09-24T02:44:32.627Z",
+    "at": "2026-09-24T01:44:20.456Z",
     "ok": true,
     "path": "reports/money-2026-09-24.md"
   },
-  "lastDepositScanAt": "2026-09-24T03:08:05.707Z"
+  "fillsSeen": 0,
+  "lastDepositScanAt": "2026-09-24T03:08:41.480Z",
+  "lastStreamDay": null,
+  "fleetSeen": {
+    "pulseDay": "2026-09-24",
+    "studentDay": "2026-09-24"
+  },
+  "lastPoolGuardAt": "2026-09-24T03:09:05.576Z",
+  "lastFleetSweepAt": "2026-09-24T03:09:05.424Z"
 }
