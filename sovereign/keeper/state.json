@@ -2,12 +2,12 @@
   "service": "keeper",
   "version": "1.1.0",
   "bootedAt": "2026-09-24T03:40:10.571Z",
-  "beats": 2202,
+  "beats": 2206,
   "patrolIntervalSec": 30,
   "alive": true,
   "patrolling": false,
   "lastDecision": {
-    "at": "2026-09-24T03:53:40.581Z",
+    "at": "2026-09-24T03:55:40.582Z",
     "kind": "PATROL",
     "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
   },
@@ -19,13 +19,13 @@
       "roleEn": "The pulse — daily chain broadcast",
       "state": "UP",
       "since": "2026-09-22T03:06:14.972Z",
-      "lastCheckAt": "2026-09-24T03:53:40.576Z",
-      "lastHealthyAt": "2026-09-24T03:53:40.576Z",
+      "lastCheckAt": "2026-09-24T03:55:40.576Z",
+      "lastHealthyAt": "2026-09-24T03:55:40.576Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-      "lastBeats": 2512,
+      "lastBeats": 2516,
       "bootedAtSeen": "2026-09-23T14:56:03.621Z",
       "acting": false,
       "intervalSec": 30,
@@ -38,13 +38,13 @@
       "roleEn": "The money mover — parity ladder",
       "state": "UP",
       "since": "2026-09-24T03:46:10.576Z",
-      "lastCheckAt": "2026-09-24T03:53:40.576Z",
-      "lastHealthyAt": "2026-09-24T03:53:40.576Z",
+      "lastCheckAt": "2026-09-24T03:55:40.576Z",
+      "lastHealthyAt": "2026-09-24T03:55:40.576Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-24T03:26:45.206Z",
       "restartsToday": 12,
       "restartDay": "2026-09-24",
-      "lastBeats": 772,
+      "lastBeats": 774,
       "bootedAtSeen": "2026-09-24T03:36:54.052Z",
       "acting": false,
       "intervalSec": 60,
@@ -57,8 +57,8 @@
       "roleEn": "The hunter — minute-gate & opportunities",
       "state": "UP",
       "since": "2026-09-22T03:08:14.974Z",
-      "lastCheckAt": "2026-09-24T03:53:40.576Z",
-      "lastHealthyAt": "2026-09-24T03:53:40.576Z",
+      "lastCheckAt": "2026-09-24T03:55:40.576Z",
+      "lastHealthyAt": "2026-09-24T03:55:40.576Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-22T03:07:44.974Z",
       "restartsToday": 0,
@@ -67,7 +67,7 @@
       "bootedAtSeen": "2026-09-24T01:47:13.356Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 12
+      "beatsStalePatrols": 16
     },
     {
       "name": "student",
@@ -76,8 +76,8 @@
       "roleEn": "The student — self-exam, coverage & learning",
       "state": "UP",
       "since": "2026-09-23T22:32:15.177Z",
-      "lastCheckAt": "2026-09-24T03:53:40.576Z",
-      "lastHealthyAt": "2026-09-24T03:53:40.576Z",
+      "lastCheckAt": "2026-09-24T03:55:40.576Z",
+      "lastHealthyAt": "2026-09-24T03:55:40.576Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
@@ -86,7 +86,7 @@
       "bootedAtSeen": "2026-09-24T01:37:25.141Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 12
+      "beatsStalePatrols": 16
     },
     {
       "name": "fleet-verify",
@@ -95,8 +95,8 @@
       "roleEn": "The local verification plant — nine verifiers reborn",
       "state": "UP",
       "since": "2026-09-24T03:40:10.571Z",
-      "lastCheckAt": "2026-09-24T03:53:40.576Z",
-      "lastHealthyAt": "2026-09-24T03:53:40.576Z",
+      "lastCheckAt": "2026-09-24T03:55:40.576Z",
+      "lastHealthyAt": "2026-09-24T03:55:40.576Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
@@ -105,30 +105,10 @@
       "bootedAtSeen": "2026-09-24T03:48:22.323Z",
       "acting": false,
       "intervalSec": 120,
-      "beatsStalePatrols": 0
+      "beatsStalePatrols": 4
     }
   ],
   "history": [
-    {
-      "at": "2026-09-24T03:25:15.210Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-1 · hunter:UP · student:UP"
-    },
-    {
-      "at": "2026-09-24T03:25:45.211Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-2 · hunter:UP · student:UP"
-    },
-    {
-      "at": "2026-09-24T03:26:15.210Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-3 · hunter:UP · student:UP"
-    },
-    {
-      "at": "2026-09-24T03:26:45.213Z",
-      "kind": "RESTART",
-      "detail": "money (3034): הוקם — פורט ריק (מת)"
-    },
     {
       "at": "2026-09-24T03:26:45.216Z",
       "kind": "PATROL",
@@ -406,6 +386,26 @@
     },
     {
       "at": "2026-09-24T03:53:40.581Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T03:54:10.582Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T03:54:40.581Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T03:55:10.581Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T03:55:40.582Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     }
