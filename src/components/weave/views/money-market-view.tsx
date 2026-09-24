@@ -79,6 +79,8 @@ interface LendDoc {
     };
     treasuryProfit: number;
     vaults?: Record<string, unknown>;
+    // אורקל חי מ-world.json — µ$ לאסימון בודד (r121: המקור הקנוני היחיד למחיר)
+    oracle?: Record<string, { mu: number; atH: number; src: string }>;
   };
 }
 
@@ -218,10 +220,19 @@ export function MoneyMarketView(): React.JSX.Element {
 
   const totals = lend?.totals;
   const suppliesUsd = liveMarkets.reduce((s, m) => s + (m.asset === "USDS" ? m.sMu : 0), 0);
-  const REF_PRICE: Record<string, number> = { WSTEEM: 56, WTRX: 339, SAOS: 1320 };
-  const collateralUsd = liveMarkets.reduce(
-    (s, m) => (m.asset === "USDS" ? s : s + (m.sMu * (REF_PRICE[m.asset] ?? 0)) / 1000),
+  // r121 — מחירים מהאורקל-הקנוני החי של world.json בלבד (µ$ לאסימון);
+  // אספקת-על ב-µ-אסימונים (1000µ = אסימון) ⇒ ערך ב-$ = (sMu/1000)×(mu/1e6).
+  // נכס ללא רישום-אורקל (כגון SAOS) אינו מוערך — אמת, לא המצאה (היה: מחירים קשיחים ×1000 שקר).
+  const oracle = doc?.state?.oracle;
+  const pricedCollateral = liveMarkets
+    .filter((m) => m.asset !== "USDS" && m.sMu > 0 && oracle?.[m.asset]?.mu != null)
+    .map((m) => ({ asset: m.asset, sMu: m.sMu, priceMu: oracle![m.asset]!.mu }));
+  const collateralUsd = pricedCollateral.reduce(
+    (s, m) => s + (m.sMu / 1000) * (m.priceMu / 1e6),
     0,
+  );
+  const unpricedCollateral = liveMarkets.filter(
+    (m) => m.asset !== "USDS" && m.sMu > 0 && oracle?.[m.asset]?.mu == null,
   );
   const debtUsd = usds?.bMu ?? 0;
 
@@ -369,10 +380,27 @@ export function MoneyMarketView(): React.JSX.Element {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
-                בטחונות-WSTEEM מוערכים ב-~{fmtUsd(Math.round(collateralUsd * 1000))} לפי האורקל-הקנוני — הנכסים-העטופים מגובים-1:1
-                בכסף-אמת במשמרות-הצבא.
-              </p>
+              {collateralUsd > 0 ? (
+                <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
+                  בטחונות-על מתומחרים ב-~${collateralUsd.toLocaleString("he-IL", { maximumFractionDigits: 2 })} לפי האורקל-הקנוני החי מ-world.json
+                  ({pricedCollateral.map((m) => `${m.asset}: ${(m.priceMu / 1e6).toLocaleString("he-IL", { maximumFractionDigits: 4 })}$`).join(" · ")}) —
+                  הנכסים-העטופים מגובים-1:1 בכסף-אמת במשמרות-הצבא.
+                  {unpricedCollateral.length > 0 && (
+                    <>
+                      {" "}נכסים ללא מחיר-אורקל (לא מוערכים): {" "}
+                      {unpricedCollateral.map((m) => `${m.asset} ${fmtMu(m.sMu)}µ`).join(" · ")}.
+                    </>
+                  )}
+                </p>
+              ) : (
+                <p className="mt-3 text-[11px] leading-relaxed text-zinc-600">
+                  אין בטחונות מתומחרים באורקל בתמונת-מצב זו
+                  {unpricedCollateral.length > 0 && (
+                    <> — נכסים ללא מחיר-אורקל: {unpricedCollateral.map((m) => `${m.asset} ${fmtMu(m.sMu)}µ`).join(" · ")}</>
+                  )}
+                  . הנכסים-העטופים מגובים-1:1 בכסף-אמת במשמרות-הצבא.
+                </p>
+              )}
             </CardContent>
           </Card>
 

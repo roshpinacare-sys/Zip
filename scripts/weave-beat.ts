@@ -30,7 +30,7 @@ import { witnessArchive, type ArchiveWitnessResult } from "@/lib/weave/archive";
 import { brainProbeAll } from "@/lib/weave/brain";
 import { processOperatorCommands, type OperatorOpsResult } from "@/lib/weave/ops";
 import { processSaosLive, type SaosLiveResult } from "@/lib/weave/saoslite";
-import { publishConsoleMirror, publishConsoleAssets } from "@/lib/weave/mirror";
+import { publishConsoleMirror, publishConsoleAssets, publishConsoleLedger } from "@/lib/weave/mirror";
 import { sealOpen } from "./weave-seal";
 
 const ROOT = path.resolve(__dirname, "..");
@@ -281,6 +281,22 @@ async function main(): Promise<void> {
   } catch (mirrorErr) {
     console.log(
       `[weave-beat] מראה: נדחתה תפעולית - ${mirrorErr instanceof Error ? mirrorErr.message : String(mirrorErr)} (לא מפילה את הלב)`
+    );
+  }
+
+  // 3.68 הספר הציבורי ל-replay (r121 · חוק 13): ה-ledger המיוצא מתפרסם
+  //      בקיצור-ל-replay אל Console (ledger.json) — הנתיב הציבורי
+  //      "הרץ את האמת בעצמך" חי מעתה ב-URL אמיתי, לא בהבטחה 404.
+  try {
+    const ledger = await publishConsoleLedger();
+    if (ledger.published) {
+      console.log(`[weave-beat] ספר-replay ציבורי פורסם לקונסולה (${Math.round((ledger.bytes || 0) / 1024)}KB)`);
+    } else {
+      console.log(`[weave-beat] ספר-replay: ${ledger.reason}`);
+    }
+  } catch (ledgerErr) {
+    console.log(
+      `[weave-beat] ספר-replay: נדחה תפעולית - ${ledgerErr instanceof Error ? ledgerErr.message : String(ledgerErr)} (לא מפילה את הלב)`
     );
   }
 

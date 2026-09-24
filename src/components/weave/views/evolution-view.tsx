@@ -294,14 +294,23 @@ export function EvolutionView() {
             </p>
             <div className="flex items-center gap-2 rounded-lg border bg-muted/40 p-3" dir="ltr">
               <code className="flex-1 overflow-x-auto whitespace-pre font-mono text-xs text-foreground">
-                {"git clone https://github.com/roshpinacare-sys/weave-core.git\ncd weave-core\nbun install && bun run verify:book"}
+                {"git clone https://github.com/roshpinacare-sys/Console.git weave-verify\ncd weave-verify/verify\nbun install && bun run verify:book"}
               </code>
-              <CopyButton value={"git clone https://github.com/roshpinacare-sys/weave-core.git\ncd weave-core\nbun install && bun run verify:book"} label="פקודות ה-replay" />
+              <CopyButton value={"git clone https://github.com/roshpinacare-sys/Console.git weave-verify\ncd weave-verify/verify\nbun install && bun run verify:book"} label="פקודות ה-replay" />
             </div>
             <p className="text-xs text-muted-foreground">
-              הדוקטרינה המלאה - מה ה-replay מוכיח ומה לא, ולמה הוא עובד בלי אמון - ב-{" "}
-              <span className="font-mono text-[11px]" dir="ltr">VERIFY.md</span> בריפו.
-              ה-verifier גם מדפיס בעצמו את מדד החיים מהספר: ה-DAU שלנו נספר על ידי מי שבודק.
+              ה-verifier מושך מעצמו את הספר החי מ-<span dir="ltr" className="font-mono text-[11px]">roshpinacare-sys.github.io/Console/ledger.json</span>{" "}
+              (מתפרסם בכל פעימת לב) — ברירת מחדל בלי הורדות ידניות. הדוקטרינה המלאה - מה ה-replay מוכיח ומה לא - ב-{" "}
+              <a
+                href="https://github.com/roshpinacare-sys/Console/blob/main/verify/VERIFY.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mono text-[11px] underline decoration-dotted underline-offset-4 hover:text-foreground"
+                dir="ltr"
+              >
+                VERIFY.md
+              </a>{" "}
+              בריפו הציבורי. ה-verifier גם מדפיס בעצמו את מדד החיים מהספר: ה-DAU שלנו נספר על ידי מי שבודק.
             </p>
           </CardContent>
         </Card>

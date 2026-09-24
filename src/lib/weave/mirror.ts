@@ -271,6 +271,117 @@ export async function publishConsoleMirror(): Promise<MirrorPublishResult> {
 }
 
 /* ═════════════════════════════════════════════════════════════════════
+ * ספר-הרשת הציבורי ל-replay (r121 · חוק 13 מוחש)
+ *
+ * השקר שנתפס (r121, C2): האתר הבטיח "נתיב replay ציבורי חי" אל
+ * github.com/roshpinacare-sys/weave-core — ריפו שלא קיים (404). דגל-
+ * ה-LIVE התנוסס מעל דרך שאף בודק לא יכול היה ללכת בה.
+ *
+ * הריפוי בשני צעדים, שניהם אמת:
+ *   1. הספר המיוצא (sovereign/ledger.json — חסר-סודות מעיצובו:
+ *      חתימות EIP-191 ניתנות לאימות ציבורי, גושי המוח אטומים-GCM)
+ *      מתפרסם בקיצור-ל-replay ל-Console הציבורי בכל פעימה שבה נשתנה —
+ *      ledger.json חי ב-URL ציבורי, לנצח, בלי סנדבוקס.
+ *   2. ריפו weave-core הציבורי נולד בפועל עם אותו verifier קנוני.
+ *
+ * מה נכנס לקיצור: בדיוק מה ש-verify:book קורא — agents (כתובות
+ * בלבד, בלי pubKeyHex), attestations, marketEvents, networkKey.address,
+ * brain (גושים אטומים לבדיקה מבנית). מה לא נכנס: keyOps,
+ * localAnchors, repoInventory, planStages, checkpoints — פנימיים,
+ * לא נדרשים לחישוב-מחדש.
+ * ═════════════════════════════════════════════════════════════════════ */
+
+export interface LedgerPublishResult {
+  published: boolean;
+  reason: string;
+  bytes?: number;
+}
+
+interface LedgerAgentPublic { id: string; name?: string | null; ethAddress: string }
+interface LedgerBrainPublic { fingerprint: string; encKey: string; keyIv: string; keyTag: string }
+
+export async function publishConsoleLedger(): Promise<LedgerPublishResult> {
+  const src = path.join(ROOT, "sovereign", "ledger.json");
+  if (!fs.existsSync(src)) {
+    return { published: false, reason: "אין sovereign/ledger.json בדיסק - דילוג-כנה (הספר טרם יוּצא)" };
+  }
+  let raw: Record<string, unknown>;
+  try {
+    raw = JSON.parse(fs.readFileSync(src, "utf8")) as Record<string, unknown>;
+  } catch {
+    return { published: false, reason: "ledger.json אינו JSON תקין - לא מפורסם כלום" };
+  }
+  if (raw.format !== "weave-ledger-v1") {
+    return { published: false, reason: `פורמט ספר בלתי מוכר (${String(raw.format)}) - לא מפורסם` };
+  }
+
+  // הקיצור ל-replay: בדיוק שדות האימות, כל השאר נשאר ריבוני
+  const agentsPub: LedgerAgentPublic[] = ((raw.agents as Array<Record<string, unknown>>) ?? []).map((a) => ({
+    id: String(a.id),
+    name: a.name == null ? undefined : String(a.name),
+    ethAddress: String(a.ethAddress ?? ""),
+  }));
+  const brainPub: LedgerBrainPublic[] = ((raw.brain as Array<Record<string, unknown>>) ?? []).map((b) => ({
+    fingerprint: String(b.fingerprint ?? ""),
+    encKey: String(b.encKey ?? ""),
+    keyIv: String(b.keyIv ?? ""),
+    keyTag: String(b.keyTag ?? ""),
+  }));
+  const nk = raw.networkKey as { address?: string; createdAt?: string } | undefined;
+  const pub: Record<string, unknown> = {
+    format: raw.format,
+    exportedAt: raw.exportedAt,
+    chainCount: raw.chainCount,
+    headHash: raw.headHash,
+    agents: agentsPub,
+    attestations: raw.attestations ?? [],
+    marketEvents: raw.marketEvents ?? [],
+    networkKey: nk?.address ? { address: nk.address, createdAt: nk.createdAt } : null,
+    brain: brainPub,
+  };
+  const text = JSON.stringify(pub, null, 2) + "\n";
+  gateMirror(text); // שער-הסודות — אותו ברזל כמו למראה
+
+  const pat = process.env.WEAVE_OPS_PAT || "";
+  if (!pat) {
+    return { published: false, reason: "אין WEAVE_OPS_PAT בסביבה - דילוג-כנה (הספר מתפרסם רק מהענן) - השער עבר" };
+  }
+
+  const api = async (method: string, url: string, body?: unknown) => {
+    const res = await fetch(`https://api.github.com${url}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${pat}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    return { status: res.status, json: (await res.json().catch(() => null)) as Record<string, unknown> | null };
+  };
+
+  const cur = await api("GET", `/repos/${CONSOLE_REPO}/contents/ledger.json?ref=main`);
+  if (cur.status === 200 && cur.json && typeof cur.json.content === "string") {
+    const curText = Buffer.from(cur.json.content, "base64").toString("utf8");
+    if (curText.trim() === text.trim()) {
+      return { published: false, reason: "הספר הציבורי כבר עדכני - אין שינוי לפרסם", bytes: text.length };
+    }
+  }
+
+  const put = await api("PUT", `/repos/${CONSOLE_REPO}/contents/ledger.json`, {
+    message: `ledger-publish: ${String(raw.exportedAt)} · ${String(raw.chainCount)} att · public replay book (law 13)`,
+    content: Buffer.from(text, "utf8").toString("base64"),
+    sha: cur.status === 200 && cur.json ? String(cur.json.sha || "") : undefined,
+    branch: "main",
+  });
+  if (put.status !== 200 && put.status !== 201) {
+    return { published: false, reason: `פרסום הספר נכשל (HTTP ${put.status}) - ${(put.json?.message as string || "").slice(0, 80)}` };
+  }
+  return { published: true, reason: "הספר פורסם ל-replay הציבורי", bytes: text.length };
+}
+
+/* ═════════════════════════════════════════════════════════════════════
  * נכסי הקונסולה - סנכרון ריבוני (Task 28)
  *
  * הבעיה: הקבצים הכתובים-יד (gate.html, acid.html…) חיים בריפו הריבוני
@@ -303,6 +414,16 @@ const CONSOLE_ASSETS = [
   "render.mjs",
   "README.md",
   "sitemap.xml",
+  // r121 · חוק 13 מוחש: ה-verifier הציבורי ל-replay חי בריפו הציבורי
+  // (Console/verify/) — מקורו הקנוני כאן, הלב מסנכרן בכל פעימה.
+  "verify/package.json",
+  "verify/tsconfig.json",
+  "verify/README.md",
+  "verify/VERIFY.md",
+  "verify/scripts/weave-verify-book.ts",
+  "verify/src/lib/weave/chain.ts",
+  "verify/src/lib/weave/evm.ts",
+  "verify/src/lib/weave/market-canon.ts",
 ];
 
 export interface ConsoleAssetsResult {

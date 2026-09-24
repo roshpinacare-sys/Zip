@@ -83,18 +83,33 @@ interface LedgerBrainKey {
 }
 
 const argv = process.argv.slice(2);
-const ledgerPath = path.resolve(
-  argv[0] ?? path.join(process.cwd(), "sovereign", "ledger.json")
-);
+// r121 · חוק 13 מוחש: ברירת-מחדל חדשה — הספר הציבורי החי מ-Console Pages.
+// מעתה הבודק הציבורי לא צריך אף קובץ מקומי: ה-verifier מושך את ה-ledger
+// המפורסם (publishConsoleLedger, בכל פעימת לב) ומאמת אותו כמו שהוא.
+// דגלים: --live (ברירת מחדל בלי ארגומנט) · נתיב קובץ = אימות מקומי.
+const PUBLIC_LEDGER_URL = "https://roshpinacare-sys.github.io/Console/ledger.json";
 
-// ── טעינה ──
-if (!fs.existsSync(ledgerPath)) {
-  console.error(`✗ ה-ledger לא נמצא: ${ledgerPath}`);
-  console.error("  שימוש: bun run scripts/weave-verify-book.ts [path/to/ledger.json]");
-  process.exit(1);
+function loadLedgerSync(p: string): LedgerSnapshot {
+  if (!fs.existsSync(p)) {
+    console.error(`✗ ה-ledger לא נמצא: ${p}`);
+    console.error(`  שימוש: bun run scripts/weave-verify-book.ts [--live | path/to/ledger.json]`);
+    process.exit(1);
+  }
+  return JSON.parse(fs.readFileSync(p, "utf8")) as LedgerSnapshot;
 }
 
-const ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8")) as LedgerSnapshot;
+async function loadLedgerLive(): Promise<LedgerSnapshot> {
+  console.log(`מושך את הספר הציבורי החי: ${PUBLIC_LEDGER_URL}`);
+  const res = await fetch(`${PUBLIC_LEDGER_URL}?t=${Date.now()}`, { headers: { "User-Agent": "weave-verify-book" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return (await res.json()) as LedgerSnapshot;
+}
+
+const wantLive = argv[0] === "--live" || (argv.length === 0 && !fs.existsSync(path.join(process.cwd(), "sovereign", "ledger.json")));
+const ledger = wantLive
+  ? await loadLedgerLive()
+  : loadLedgerSync(path.resolve(argv[0] ?? path.join(process.cwd(), "sovereign", "ledger.json")));
+const ledgerPath = wantLive ? `${PUBLIC_LEDGER_URL} (חי)` : path.resolve(argv[0] ?? path.join(process.cwd(), "sovereign", "ledger.json"));
 
 if (ledger.format !== "weave-ledger-v1") {
   console.error(`✗ פורמט לא מוכר: ${ledger.format} (ציפינו weave-ledger-v1)`);
