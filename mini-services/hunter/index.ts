@@ -61,7 +61,7 @@ function utcDay(d = new Date()): string {
 function readState(): HunterState {
   const base: HunterState = {
     service: "hunter",
-    version: "1.2.0",
+    version: "1.3.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     scanIntervalSec: SCAN_INTERVAL_SEC,
@@ -154,10 +154,12 @@ async function canaryTick(): Promise<void> {
   let dispatchOk = false;
   // dispatch
   try {
+    // R112 — law of the bounded wait: no fetch without a deadline
     const res = await fetch(`${GH}/repos/${CANARY_REPO}/actions/workflows/${CANARY_WORKFLOW}/dispatches`, {
       method: "POST",
       headers: { ...headers, "Content-Type": "application/json" },
       body: JSON.stringify({ ref: "main" }),
+      signal: AbortSignal.timeout(30_000),
     });
     if (res.status === 204 || res.ok) {
       dispatchOk = true;
@@ -171,7 +173,7 @@ async function canaryTick(): Promise<void> {
   let runFailedAfterDispatch = false;
   let runSucceeded = false;
   try {
-    const runs = await fetch(`${GH}/repos/${CANARY_REPO}/actions/workflows/${CANARY_WORKFLOW}/runs?per_page=1`, { headers });
+    const runs = await fetch(`${GH}/repos/${CANARY_REPO}/actions/workflows/${CANARY_WORKFLOW}/runs?per_page=1`, { headers, signal: AbortSignal.timeout(30_000), cache: "no-store" });
     if (runs.ok) {
       const j = await runs.json();
       const run = j?.workflow_runs?.[0];
@@ -323,6 +325,9 @@ Bun.serve({
 saveState();
 console.log(`[hunter] חי על פורט ${PORT} · beats=${state.beats} · קנרית הבאה ${state.canary.nextDueAt}`);
 tick();
-setInterval(tick, SCAN_INTERVAL_SEC * 1000);
+// R112 — law of the single timer (R109/R111 lesson, applied to hunter)
+const G = globalThis as unknown as { __HUNTER_TIMER__?: ReturnType<typeof setInterval> };
+if (G.__HUNTER_TIMER__) clearInterval(G.__HUNTER_TIMER__);
+G.__HUNTER_TIMER__ = setInterval(tick, SCAN_INTERVAL_SEC * 1000);
 
 // R106-seed: gate-state law active — quota-dead measured 16x, daily probe until quota returns

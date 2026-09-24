@@ -30,6 +30,15 @@ const FAIL_THRESHOLD = 3;
 const RESTART_COOLDOWN_MS = 2 * 60 * 1000;
 const BOOT_GRACE_MS = 90 * 1000;
 const DAILY_RESTART_BUDGET = 12;
+// R112 — חוק החלון-הגלילי (נולד ממוות חי): השומר ראה ZOMBIE אמיתי ב-06:14
+// אבל תקציב ה-12 של אותו יום נשרף עד 03:26 (ספירלת R110 לפני שחוקי-היילוד
+// והפעימה נחקקו) — והדיבון נשאר מת עד חצות. החוק הקשיח היחיד מעתה: 4
+// הקמות לכל דיבון בכל חלון-6ש' נע + צינון 2 דק' בין הקמות. המונה היומי
+// נשאר לתצפית בלבד — ספירלות נאסרו מבנית (חוק היילוד R110 + המתנה-הכבולה
+// R112), ומונה שרוף מעידן-קודם לא ירעיב החייאה ל-18 שעות כשהחלון החי
+// ריק. GAVE-UP הוא "הסגר עד שהחלון נפתח", לא "מת עד חצות".
+const ROLLING_WINDOW_MS = 6 * 3_600_000;
+const ROLLING_WINDOW_CAP = 4;
 const CANON_BUDGET_PER_DAY = 8;
 
 type FleetEntry = {
@@ -51,6 +60,7 @@ type FleetEntry = {
   // R91 — חוק הזומבי
   intervalSec: number; // מחזור הפעימה המוצהר של הדיבון
   beatsStalePatrols: number; // כמה סיורים ברצף בלי התקדמות פעימות
+  restartsLog?: string[]; // R112 — חלון-גלילי: חותמות-זמן של ההקמות האחרונות
 };
 
 type KeeperState = {
@@ -105,7 +115,7 @@ function freshFleet(): FleetEntry[] {
 function readState(): KeeperState {
   const base: KeeperState = {
     service: "keeper",
-    version: "1.1.0",
+    version: "1.2.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     patrolIntervalSec: PATROL_INTERVAL_SEC,
@@ -145,6 +155,7 @@ function readState(): KeeperState {
             lastBeats: p.lastBeats ?? null,
             bootedAtSeen: p.bootedAtSeen ?? null,
             acting: false,
+            restartsLog: Array.isArray(p.restartsLog) ? p.restartsLog : [],
           };
         })
       : base.fleet;
@@ -232,7 +243,8 @@ async function flushCanon() {
   };
   try {
     let sha: string | undefined;
-    const cur = await fetch(url, { headers });
+    // R112 — law of the bounded wait: no fetch without a deadline
+    const cur = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
     if (cur.ok) sha = (await cur.json()).sha;
     const res = await fetch(url, {
       method: "PUT",
@@ -242,6 +254,7 @@ async function flushCanon() {
         content: Buffer.from(body, "utf8").toString("base64"),
         ...(sha ? { sha } : {}),
       }),
+      signal: AbortSignal.timeout(30_000),
     });
     state.canonToday += 1;
     state.canonLast = { at: new Date().toISOString(), ok: res.ok, path };
@@ -275,6 +288,15 @@ function pidsOnPort(port: number): number[] {
   } catch {
     return [];
   }
+}
+
+// R112 — החלון-הגלילי: כמה הקמות נעשו לדיבון זה ב-6 השעות האחרונות.
+// הרשימה מתקצרת בכל קריאה — החלון נע, הזיכרון מוגבל לחוק שלו.
+function recentRestarts(d: FleetEntry): number {
+  const cut = Date.now() - ROLLING_WINDOW_MS;
+  const log = (d.restartsLog ?? []).filter((t) => Date.parse(t) > cut);
+  d.restartsLog = log;
+  return log.length;
 }
 
 function restartDaemon(d: FleetEntry): boolean {
@@ -358,10 +380,11 @@ async function patrol() {
               d.restartDay = utcDay();
               d.restartsToday = 0;
             }
-            if (d.restartsToday < DAILY_RESTART_BUDGET && sinceRestartMs >= RESTART_COOLDOWN_MS) {
+            if (recentRestarts(d) < ROLLING_WINDOW_CAP && sinceRestartMs >= RESTART_COOLDOWN_MS) {
               d.state = "RESTARTING";
               const okR = restartDaemon(d);
               d.restartsToday += 1;
+              (d.restartsLog ??= []).push(now.toISOString());
               d.lastRestartAt = now.toISOString();
               d.consecutiveFails = 0;
               d.beatsStalePatrols = 0;
@@ -388,7 +411,14 @@ async function patrol() {
     // פסילה
     d.consecutiveFails += 1;
     parts.push(`${d.name}:FAIL-${d.consecutiveFails}`);
-    if (d.state === "GAVE-UP") continue; // התקציב נאכל — כנות, לא לנצח
+    // R112 — GAVE-UP הוא הסגר עד שהחלון נפתח, לא מוות עד חצות:
+    // ברגע שבגלישת-ה-6ש' יש מקום — הדיבון חוזר לפיקוח מלא.
+    if (d.state === "GAVE-UP") {
+      if (recentRestarts(d) >= ROLLING_WINDOW_CAP) continue; // החלון עוד מלא — הסגר כנה
+      d.state = "DOWN";
+      record("QUARANTINE-END", `${d.name} (${d.port}): חלון-ההחייאות הגלילי נפתח — חוזר לפיקוח מלא`, false);
+      continue; // הסיור הבא מעריך מחדש
+    }
 
     if (d.consecutiveFails < FAIL_THRESHOLD) {
       d.state = "DOWN";
@@ -406,9 +436,9 @@ async function patrol() {
       d.restartDay = utcDay();
       d.restartsToday = 0;
     }
-    if (d.restartsToday >= DAILY_RESTART_BUDGET) {
+    if (recentRestarts(d) >= ROLLING_WINDOW_CAP) {
       d.state = "GAVE-UP";
-      record("GAVE-UP", `${d.name} (${d.port}): תקציב 12 הקמות/יום נאכל — כנות, העין פקוחה בלי יד`, true);
+      record("GAVE-UP", `${d.name} (${d.port}): חלון-ההחייאות הגלילי מלא (${recentRestarts(d)}/${ROLLING_WINDOW_CAP} ב-6ש' · יומי ${d.restartsToday} לתצפית) — הסגר עד שהחלון נפתח`, true);
       continue;
     }
     if (sinceRestartMs < RESTART_COOLDOWN_MS) {

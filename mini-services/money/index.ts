@@ -83,7 +83,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.8.0",
+    version: "1.9.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -163,6 +163,15 @@ function readPat(): string | null {
   }
 }
 
+// R112 — law of the bounded wait (caught live 06:14): canonPush fetches
+// were the ONLY un-timeouted network calls in the daemon. A hung GitHub
+// connection (no RST, no FIN) froze the whole tick: `ticking` stayed true
+// forever, every later beat no-op'd at the guard, and the daemon died
+// silently at beats=813 while its HTTP server kept answering. The keeper
+// saw ZOMBIE but its daily restart budget was already burned (12/12 by
+// 03:26) — so nothing revived it. Two laws born from this:
+//   (1) every fetch in every daemon carries a deadline (this fix);
+//   (2) a wedged tick costs one cycle, not the daemon (watchdog below).
 async function canonPush(path: string, content: string): Promise<boolean> {
   const gate = secretsGate(content);
   if (!gate.ok) {
@@ -179,7 +188,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
   };
   try {
     let sha: string | undefined;
-    const cur = await fetch(url, { headers });
+    const cur = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
     if (cur.ok) {
       const j = await cur.json();
       sha = j.sha;
@@ -192,6 +201,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
         content: Buffer.from(content, "utf8").toString("base64"),
         ...(sha ? { sha } : {}),
       }),
+      signal: AbortSignal.timeout(30_000),
     });
     const ok = res.ok;
     state.canonLast = { at: new Date().toISOString(), ok, path };
@@ -385,6 +395,7 @@ async function act(
   target: "steem" | "hive" = "steem",
 ): Promise<void> {
   state.acting = true;
+  actStartedAt = Date.now();
   // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
   // מסופה. נולד מתקרית חיה (00:34:52Z): restart של הדיבון באמצע act()
   // איפס את הדגלים הזכרוניים (acting/ticking) — וההרצה החדשה לא ראתה
@@ -485,9 +496,20 @@ async function act(
 }
 
 let ticking = false;
+// R112 — tick watchdog (the live-freeze law): the interval itself watches
+// the guard it lives behind. A tick stuck longer than TICK_MAX_MS is
+// force-released with an honest history note — the hung await is orphaned
+// (it can no longer write state; timeouts bound the normal case, the
+// watchdog bounds the pathological one). Caught live: money froze at
+// beats=813 for 20+ minutes while HTTP kept answering.
+let tickStartedAt = 0;
+let actStartedAt = 0;
+const TICK_MAX_MS = 5 * 60_000;
+const ACTING_MAX_MS = 10 * 60_000;
 async function tick() {
   if (ticking || state.acting) return; // לולאה-יחידה (לקח R80)
   ticking = true;
+  tickStartedAt = Date.now();
   try {
     state.beats += 1;
     const meas = await measure();
@@ -734,7 +756,7 @@ Bun.serve({
 });
 
 saveState();
-console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R108 fleet-pay + pool-guard`);
+console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R112 bounded-wait + watchdog`);
 tick();
 // R111 — law of the single timer (R109 lesson, applied to money):
 // bun --hot re-evaluates the module but does NOT clear the old interval —
@@ -743,4 +765,18 @@ tick();
 // deployed). The singleton guard captures the previous timer and clears it.
 const G = globalThis as unknown as { __MONEY_TIMER__?: ReturnType<typeof setInterval> };
 if (G.__MONEY_TIMER__) clearInterval(G.__MONEY_TIMER__);
-G.__MONEY_TIMER__ = setInterval(tick, CHECK_INTERVAL_SEC * 1000);
+G.__MONEY_TIMER__ = setInterval(() => {
+  // R112 — שומר-הפעימה: הפעימה התלויה עולה במחיר מחזור אחד, לא במחיר הדיבון
+  const nowMs = Date.now();
+  if (ticking && tickStartedAt && nowMs - tickStartedAt > TICK_MAX_MS) {
+    ticking = false;
+    appendHistory({ kind: "WATCHDOG-RELEASE", reason: `tick נעול >${Math.round(TICK_MAX_MS / 60000)} דק' — הנעילה שוחררה; ה-await התלוי יתום וחסר-כוח-כתיבה` });
+    saveState();
+  }
+  if (state.acting && actStartedAt && nowMs - actStartedAt > ACTING_MAX_MS) {
+    state.acting = false;
+    state.lastDecision = { at: new Date().toISOString(), kind: "WATCHDOG-ACTING-RELEASE", detail: `acting נעול >${Math.round(ACTING_MAX_MS / 60000)} דק' — שוחרר בכוח בכנות; חוקי הצינון והתקציב עודם שומרים על הכסף` };
+    saveState();
+  }
+  tick();
+}, CHECK_INTERVAL_SEC * 1000);

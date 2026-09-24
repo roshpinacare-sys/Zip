@@ -234,7 +234,7 @@ function seedFindings(): Finding[] {
 function freshState(): StudentState {
   return {
     service: "student",
-    version: "1.4.0",
+    version: "1.5.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     cycleSec: CYCLE_SEC,
@@ -384,9 +384,11 @@ interface VerifyEvidence {
 
 async function ghJson(pat: string, path: string): Promise<any | null> {
   try {
+    // R112 — law of the bounded wait: no fetch without a deadline
     const res = await fetch(`${GH}${path}`, {
       headers: { Authorization: `token ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "student-daemon" },
       cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
     });
     return res.ok ? await res.json() : null;
   } catch {
@@ -493,7 +495,8 @@ async function measureCoverage(): Promise<void> {
   };
   const out: CoverageEntry[] = [];
   try {
-    const res = await fetch(`${GH}/user/repos?per_page=100&affiliation=owner`, { headers });
+    // R112 — law of the bounded wait (fleet-wide)
+    const res = await fetch(`${GH}/user/repos?per_page=100&affiliation=owner`, { headers, signal: AbortSignal.timeout(30_000), cache: "no-store" });
     if (!res.ok) throw new Error(`repos http ${res.status}`);
     const repos = (await res.json()) as Array<{ name: string; pushed_at: string }>;
     for (const r of repos) {
@@ -502,12 +505,12 @@ async function measureCoverage(): Promise<void> {
       let workflows: number | null = null;
       let lastRun: CoverageEntry["lastRun"] = null;
       try {
-        const wfRes = await fetch(`${GH}/repos/roshpinacare-sys/${r.name}/actions/workflows?per_page=100`, { headers });
+        const wfRes = await fetch(`${GH}/repos/roshpinacare-sys/${r.name}/actions/workflows?per_page=100`, { headers, signal: AbortSignal.timeout(30_000), cache: "no-store" });
         if (wfRes.ok) {
           const wf = (await wfRes.json()) as { workflows?: Array<{ state?: string; path?: string }> };
           workflows = (wf.workflows ?? []).filter((w) => w.state === "active" && (w.path ?? "").startsWith(".github/")).length;
         }
-        const runRes = await fetch(`${GH}/repos/roshpinacare-sys/${r.name}/actions/runs?per_page=1`, { headers });
+        const runRes = await fetch(`${GH}/repos/roshpinacare-sys/${r.name}/actions/runs?per_page=1`, { headers, signal: AbortSignal.timeout(30_000), cache: "no-store" });
         if (runRes.ok) {
           const runs = (await runRes.json()) as { workflow_runs?: Array<{ name: string; conclusion: string | null; created_at: string }> };
           const last = runs.workflow_runs?.[0];
@@ -711,13 +714,13 @@ async function safeHeal(): Promise<string[]> {
   };
   // ריפוי הצ'רטרים — קריאה מאושרת אידמפוטנטית (R92: selfHeal)
   await doHeal("charter-selfheal", async () => {
-    const res = await fetch("http://127.0.0.1:3000/api/charter/projects", { cache: "no-store" });
+    const res = await fetch("http://127.0.0.1:3000/api/charter/projects", { cache: "no-store", signal: AbortSignal.timeout(15_000) });
     const j = res.ok ? await res.json().catch(() => null) : null;
     return { ok: !!(j?.ok), detail: j?.count != null ? `${j.count} פרויקטים · אירועים ${j?.healed?.eventsImported ?? 0}` : `http ${res.status}` };
   });
   // סנכרון הספר — פעולת-פרוטוקול הסשן (R93: ה-POST האידמפוטנטי המתועד)
   await doHeal("book-sync", async () => {
-    const res = await fetch("http://127.0.0.1:3000/api/weave/sovereignty/sync", { method: "POST", cache: "no-store" });
+    const res = await fetch("http://127.0.0.1:3000/api/weave/sovereignty/sync", { method: "POST", cache: "no-store", signal: AbortSignal.timeout(15_000) });
     const j = res.ok ? await res.json().catch(() => null) : null;
     return { ok: !!(j?.ok), detail: j?.imported?.attestations != null ? `${j.imported.attestations} אימותים` : `http ${res.status}` };
   });
@@ -855,4 +858,7 @@ Bun.serve({
 saveState();
 console.log(`[student] התלמיד חי על פורט ${PORT} · beats=${state.beats} · מחזור ${CYCLE_SEC}s`);
 tick();
-setInterval(tick, CYCLE_SEC * 1000);
+// R112 — law of the single timer (R109/R111 lesson, applied to student)
+const G = globalThis as unknown as { __STUDENT_TIMER__?: ReturnType<typeof setInterval> };
+if (G.__STUDENT_TIMER__) clearInterval(G.__STUDENT_TIMER__);
+G.__STUDENT_TIMER__ = setInterval(tick, CYCLE_SEC * 1000);

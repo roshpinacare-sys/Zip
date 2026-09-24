@@ -79,7 +79,7 @@ function nextUtcMidnight(): string {
 function readState(): PulseState {
   const base: PulseState = {
     service: "pulse",
-    version: "1.1.0",
+    version: "1.2.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -161,7 +161,10 @@ async function canonPush(path: string, content: string): Promise<boolean> {
   };
   try {
     let sha: string | undefined;
-    const cur = await fetch(url, { headers });
+    // R112 — law of the bounded wait: no fetch without a deadline (born from
+    // the live money-mover freeze: an un-timeouted canonPush hung the whole
+    // tick and the daemon died silently at beats=813 while HTTP kept answering)
+    const cur = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
     if (cur.ok) sha = (await cur.json()).sha;
     const res = await fetch(url, {
       method: "PUT",
@@ -171,6 +174,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
         content: Buffer.from(content, "utf8").toString("base64"),
         ...(sha ? { sha } : {}),
       }),
+      signal: AbortSignal.timeout(30_000),
     });
     state.canonLast = { at: new Date().toISOString(), ok: res.ok, path };
     return res.ok;
@@ -389,4 +393,10 @@ Bun.serve({
 saveState();
 console.log(`[pulse] חי על פורט ${PORT} · beats=${state.beats} · פורסם לאחרונה: ${state.lastPublishUtcDay ?? "מעולם"}`);
 tick();
-setInterval(tick, CHECK_INTERVAL_SEC * 1000);
+// R112 — law of the single timer (R109/R111 lesson, applied to pulse):
+// bun --hot re-evaluates the module but does NOT clear the old interval —
+// every live edit would multiply the tick. The guard captures the previous
+// timer and clears it.
+const G = globalThis as unknown as { __PULSE_TIMER__?: ReturnType<typeof setInterval> };
+if (G.__PULSE_TIMER__) clearInterval(G.__PULSE_TIMER__);
+G.__PULSE_TIMER__ = setInterval(tick, CHECK_INTERVAL_SEC * 1000);
