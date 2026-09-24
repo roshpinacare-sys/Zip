@@ -35,6 +35,7 @@ import { DomainsView } from "@/components/weave/views/domains-view";
 import { DoctrineView } from "@/components/weave/views/doctrine-view";
 import { EvolutionView } from "@/components/weave/views/evolution-view";
 import { ExchangeView } from "@/components/weave/views/exchange-view";
+import { GamesView } from "@/components/weave/views/games-view";
 import { HoldingsView } from "@/components/weave/views/holdings-view";
 import { HomeView } from "@/components/weave/views/home-view";
 import { GateView } from "@/components/weave/views/gate-view";
@@ -115,6 +116,9 @@ function SectionBody({ view, section, query }: Route) {
       return <BrowserView key={query.s ?? "fresh"} sessionSlug={query.s} />;
     case "domains":
       return <DomainsView />;
+    case "games":
+      // R120 · החזרת מרכז המשחקים לניווט — היה מנותק מאז שחזור הסיידבאר
+      return <GamesView />;
     case "home":
       return <HomeView />;
     case "network":

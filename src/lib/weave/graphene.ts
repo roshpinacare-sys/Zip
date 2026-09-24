@@ -16,10 +16,11 @@
 import steem from "steem";
 import type { GrapheneOperation, SignedGrapheneTransaction } from "steem";
 
+// R120: steem.61bts.com מת (דומיין-חניה סיני, תשובת-HTML עם BOM — נמדד חי)
+// — הוסר. שני הצמתים הנותרים אומתו חי בזמן ההסרה.
 export const STEEM_RPC_NODES = [
   "https://api.steemit.com",
   "https://api.justyy.com",
-  "https://steem.61bts.com",
 ] as const;
 
 export const HIVE_RPC = process.env.HIVE_RPC || "https://api.hive.blog";

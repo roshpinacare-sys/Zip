@@ -256,6 +256,14 @@ export function GamesView() {
             השרשרת, או מוגשת מהמחסן הריבוני בסימון כן. הקוד לא בריפו — הוא של הרשת.
           </div>
         </Card>
+      ) : gamePackages.length === 0 && !busy && !err ? (
+        // R120 · כנות-מצב-ריק: אין טעינה-נצחית — אמת גלויה כשאין חבילות
+        <Card className="flex h-40 flex-col items-center justify-center gap-2 p-4 text-center text-sm text-muted-foreground">
+          <span>אין חבילות-משחקים ברשת-האחסון כרגע.</span>
+          <span className="text-xs">
+            חבילות שיפורסמו למחסן הריבוני יופיעו כאן מיד — המרכז אינו מעמיד פני טעינה.
+          </span>
+        </Card>
       ) : (
         <Card className="flex h-40 items-center justify-center text-sm text-muted-foreground">
           בוחר משחק מהחבילות…

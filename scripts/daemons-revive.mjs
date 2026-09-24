@@ -28,6 +28,7 @@ const DAEMONS = [
   { name: "keeper", port: 3036, dir: `${HOME}/mini-services/keeper` },
   { name: "student", port: 3037, dir: `${HOME}/mini-services/student` },
   { name: "fleet-verify", port: 3038, dir: `${HOME}/mini-services/fleet-verify` },
+  { name: "weblift", port: 3039, dir: `${HOME}/mini-services/weblift` }, // R120: מעלה התוכן — המשך הגירת רשת-האחסון לשרשרת
 ];
 
 function httpOk(port, timeoutMs = 2500) {

@@ -57,7 +57,9 @@ function main(): void {
 
   // 4. חשיש — הכתובת שתשמש את השעת
   const hash = sha256Hex(zip);
-  const b64len = Math.ceil((zip.length * 4) / 3);
+  // R120: נוסחת ה-b64 הנכונה — 4×ceil(n/3). הנוסחה הקודמת ceil(4n/3) קיצרה
+  // עד 2 תווים, ובדיקת-השלמות בשעת (joined.length === b64len) לעולם לא הייתה נסגרת.
+  const b64len = Math.ceil(zip.length / 3) * 4;
 
   // 5. כתיבה למחסן הריבוני + מניפסט pending-seal. אפס גיט.
   fs.mkdirSync(PACKAGES, { recursive: true });

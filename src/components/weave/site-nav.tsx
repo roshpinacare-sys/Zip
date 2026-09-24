@@ -23,6 +23,7 @@ import {
   Compass,
   Crosshair,
   DoorOpen,
+  Gamepad2,
   HardDrive,
   Home,
   Landmark,
@@ -63,6 +64,7 @@ export type SiteView =
   | "defi"
   | "browser"
   | "domains"
+  | "games"
   | "home"
   | "network"
   | "agents"
@@ -135,6 +137,8 @@ export const SECTIONS: Array<{
   },
   { view: "browser", label: "דפדפן סוכנים", icon: Compass, subs: [] },
   { view: "domains", label: "דומיינים", icon: Network, subs: [] },
+  // R120 · מרכז המשחקים הוחזר לניווט — היה מנותק מאז שחזור הסיידבאר (R55 בנה, ריפלקטים מאוחרים שכחו)
+  { view: "games", label: "מרכז המשחקים", icon: Gamepad2, subs: [] },
   { view: "home", label: "בית", icon: Home, subs: [] },
   {
     view: "network",

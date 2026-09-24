@@ -114,6 +114,7 @@ function freshFleet(): FleetEntry[] {
     ["hunter", 3035, "הצייד — שער הדקות ולוח ההזדמנויות", "The hunter — minute-gate & opportunities", 600],
     ["student", 3037, "התלמיד — בחינה עצמית, כיסוי ולמידה", "The student — self-exam, coverage & learning", 600],
     ["fleet-verify", 3038, "מפעל האימות המקומי — תשעת המאמתים חוזרים לחיים", "The local verification plant — nine verifiers reborn", 120],
+    ["weblift", 3039, "מעלה התוכן — המשך הגירת רשת-האחסון אל השרשרת", "The web lifter — storage-network migration to the chain", 2700],
   ];
   return defs.map(([name, port, roleHe, roleEn, intervalSec]) => ({
     name,

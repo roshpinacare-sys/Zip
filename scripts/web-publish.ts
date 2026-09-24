@@ -274,10 +274,19 @@ function chunkOp(hash: string, i: number, data: string): { op: GrapheneOperation
 /**
  * גודל צ׳אנק שהמנה החיה מרשה — האומדן כולל את מרווח-הבטיחות
  * (R51: בלי המרווח החישוב הבטיח יותר מהמציאות והריצה דילגה לחינם).
+ *
+ * R120 · תיקון-שורש חי: affordableChars חישבה תקציב לתווי-המטען (d)
+ * בלבד — אבל guardedBroadcast מודד את אורך ה-JSON המלא ({"h":64-hex,
+ * "i":N,"d":…} ≈ 87 תווי עטיפה). הפער (~32M RC אחרי מרווח) גרם לכך
+ * שגם במנה מלאה 100% האומדן עבר את התקציב והסוכן דילג לנצח — זה שורש
+ * "הצ׳אנקים שלא עלו אף-פעם". העטיפה נשמרת עכשיו מראש בתקציב.
  */
+const CHUNK_WRAPPER_CHARS = 96; // {"h":"<64 hex>","i":<n>,"d":""} — במרווח למפתח גדול
+
 function affordableChars(mana: number, remaining: number): number {
   const margin = EST_MARGIN_STEEM;
-  const budget = Math.floor((mana - RC_RESERVE - estBase * margin) / (estPerChar * margin));
+  const wrapperCost = (estBase + estPerChar * CHUNK_WRAPPER_CHARS) * margin;
+  const budget = Math.floor((mana - RC_RESERVE - wrapperCost) / (estPerChar * margin));
   return Math.max(0, Math.min(remaining, Math.min(budget, RC_MODEL.chunkCharsMax)));
 }
 
