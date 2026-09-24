@@ -1,15 +1,15 @@
 {
   "service": "keeper",
-  "version": "1.1.0",
-  "bootedAt": "2026-09-24T04:23:11.437Z",
-  "beats": 2458,
+  "version": "1.2.0",
+  "bootedAt": "2026-09-24T06:38:59.633Z",
+  "beats": 2559,
   "patrolIntervalSec": 30,
   "alive": true,
   "patrolling": false,
   "lastDecision": {
-    "at": "2026-09-24T06:01:41.471Z",
+    "at": "2026-09-24T06:52:59.646Z",
     "kind": "PATROL",
-    "detail": "התערבות — pulse:UP · money:ZOMBIE-11 · hunter:UP · student:UP · fleet-verify:UP"
+    "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
   },
   "fleet": [
     {
@@ -18,37 +18,39 @@
       "roleHe": "הדופק — השידור היומי לשרשרת",
       "roleEn": "The pulse — daily chain broadcast",
       "state": "UP",
-      "since": "2026-09-22T03:06:14.972Z",
-      "lastCheckAt": "2026-09-24T06:01:41.466Z",
-      "lastHealthyAt": "2026-09-24T06:01:41.466Z",
+      "since": "2026-09-24T06:35:25.875Z",
+      "lastCheckAt": "2026-09-24T06:52:59.643Z",
+      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-      "lastBeats": 2768,
-      "bootedAtSeen": "2026-09-23T14:56:03.621Z",
+      "lastBeats": 2771,
+      "bootedAtSeen": "2026-09-24T06:52:02.704Z",
       "acting": false,
       "intervalSec": 30,
-      "beatsStalePatrols": 0
+      "beatsStalePatrols": 0,
+      "restartsLog": []
     },
     {
       "name": "money",
       "port": 3034,
       "roleHe": "מוביל הכסף — סולם הפאריטה על הקו",
       "roleEn": "The money mover — parity ladder",
-      "state": "DOWN",
-      "since": "2026-09-24T05:20:41.465Z",
-      "lastCheckAt": "2026-09-24T06:01:41.466Z",
-      "lastHealthyAt": "2026-09-24T05:56:11.466Z",
-      "consecutiveFails": 11,
+      "state": "UP",
+      "since": "2026-09-24T06:49:29.643Z",
+      "lastCheckAt": "2026-09-24T06:52:59.643Z",
+      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
+      "consecutiveFails": 0,
       "lastRestartAt": "2026-09-24T03:26:45.206Z",
       "restartsToday": 12,
       "restartDay": "2026-09-24",
-      "lastBeats": 813,
-      "bootedAtSeen": "2026-09-24T05:52:17.739Z",
+      "lastBeats": 814,
+      "bootedAtSeen": "2026-09-24T06:52:02.698Z",
       "acting": false,
       "intervalSec": 60,
-      "beatsStalePatrols": 18
+      "beatsStalePatrols": 1,
+      "restartsLog": []
     },
     {
       "name": "hunter",
@@ -56,18 +58,19 @@
       "roleHe": "הצייד — שער הדקות ולוח ההזדמנויות",
       "roleEn": "The hunter — minute-gate & opportunities",
       "state": "UP",
-      "since": "2026-09-22T03:08:14.974Z",
-      "lastCheckAt": "2026-09-24T06:01:41.466Z",
-      "lastHealthyAt": "2026-09-24T06:01:41.466Z",
+      "since": "2026-09-24T06:35:25.875Z",
+      "lastCheckAt": "2026-09-24T06:52:59.643Z",
+      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-22T03:07:44.974Z",
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-      "lastBeats": 136,
-      "bootedAtSeen": "2026-09-24T01:47:13.356Z",
+      "lastBeats": 139,
+      "bootedAtSeen": "2026-09-24T06:52:02.694Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 8
+      "beatsStalePatrols": 1,
+      "restartsLog": []
     },
     {
       "name": "student",
@@ -75,18 +78,19 @@
       "roleHe": "התלמיד — בחינה עצמית, כיסוי ולמידה",
       "roleEn": "The student — self-exam, coverage & learning",
       "state": "UP",
-      "since": "2026-09-23T22:32:15.177Z",
-      "lastCheckAt": "2026-09-24T06:01:41.466Z",
-      "lastHealthyAt": "2026-09-24T06:01:41.466Z",
+      "since": "2026-09-24T06:35:25.875Z",
+      "lastCheckAt": "2026-09-24T06:52:59.643Z",
+      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-      "lastBeats": 145,
-      "bootedAtSeen": "2026-09-24T01:37:25.141Z",
+      "lastBeats": 2,
+      "bootedAtSeen": "2026-09-24T06:52:02.700Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 8
+      "beatsStalePatrols": 1,
+      "restartsLog": []
     },
     {
       "name": "fleet-verify",
@@ -95,319 +99,320 @@
       "roleEn": "The local verification plant — nine verifiers reborn",
       "state": "UP",
       "since": "2026-09-24T04:23:11.443Z",
-      "lastCheckAt": "2026-09-24T06:01:41.466Z",
-      "lastHealthyAt": "2026-09-24T06:01:41.466Z",
+      "lastCheckAt": "2026-09-24T06:52:59.643Z",
+      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
       "consecutiveFails": 0,
       "lastRestartAt": "2026-09-24T04:22:40.577Z",
       "restartsToday": 12,
       "restartDay": "2026-09-24",
-      "lastBeats": 99,
+      "lastBeats": 150,
       "bootedAtSeen": "2026-09-24T04:23:11.444Z",
       "acting": false,
       "intervalSec": 120,
-      "beatsStalePatrols": 1
+      "beatsStalePatrols": 1,
+      "restartsLog": []
     }
   ],
   "history": [
     {
-      "at": "2026-09-24T05:32:11.472Z",
+      "at": "2026-09-24T06:23:11.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:ZOMBIE-54 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:23:41.472Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:ZOMBIE-55 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:24:11.470Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:ZOMBIE-56 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:24:41.472Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:ZOMBIE-57 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:25:11.471Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:32:41.470Z",
+      "at": "2026-09-24T06:25:41.472Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:33:11.470Z",
+      "at": "2026-09-24T06:26:11.471Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:33:41.470Z",
+      "at": "2026-09-24T06:26:41.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-1 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:27:11.470Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-2 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:27:41.467Z",
+      "kind": "GAVE-UP",
+      "detail": "money (3034): תקציב 12 הקמות/יום נאכל — כנות, העין פקוחה בלי יד"
+    },
+    {
+      "at": "2026-09-24T06:27:41.470Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-3 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:28:11.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-4 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:28:41.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-5 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:29:11.470Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-6 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:29:41.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-7 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:30:11.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-8 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:30:41.471Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:UP · money:FAIL-9 · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:31:11.470Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:34:11.470Z",
+      "at": "2026-09-24T06:31:41.471Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:34:41.470Z",
+      "at": "2026-09-24T06:32:11.471Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:35:11.470Z",
+      "at": "2026-09-24T06:32:41.472Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:35:41.470Z",
+      "at": "2026-09-24T06:33:11.470Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:FAIL-1 · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:33:41.468Z",
+      "kind": "PATROL",
+      "detail": "התערבות — pulse:FAIL-2 · money:UP · hunter:FAIL-1 · student:FAIL-1 · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:35:25.901Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:36:11.470Z",
+      "at": "2026-09-24T06:35:55.880Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:36:41.470Z",
+      "at": "2026-09-24T06:36:25.881Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:37:11.469Z",
+      "at": "2026-09-24T06:36:55.881Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:37:41.471Z",
+      "at": "2026-09-24T06:37:25.881Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:38:11.470Z",
+      "at": "2026-09-24T06:37:55.881Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:38:41.471Z",
+      "at": "2026-09-24T06:38:25.882Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:39:11.470Z",
+      "at": "2026-09-24T06:38:55.881Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:39:41.470Z",
+      "at": "2026-09-24T06:38:59.669Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:40:11.471Z",
+      "at": "2026-09-24T06:39:29.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:40:41.470Z",
+      "at": "2026-09-24T06:39:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:41:11.470Z",
+      "at": "2026-09-24T06:40:29.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:41:41.471Z",
+      "at": "2026-09-24T06:40:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:42:11.470Z",
+      "at": "2026-09-24T06:41:29.647Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:42:41.470Z",
+      "at": "2026-09-24T06:41:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:43:11.470Z",
+      "at": "2026-09-24T06:42:29.645Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:43:41.471Z",
+      "at": "2026-09-24T06:42:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:44:11.471Z",
+      "at": "2026-09-24T06:43:29.645Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:44:41.471Z",
+      "at": "2026-09-24T06:43:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:45:11.471Z",
+      "at": "2026-09-24T06:44:29.648Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:45:41.471Z",
+      "at": "2026-09-24T06:44:59.648Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:46:11.471Z",
+      "at": "2026-09-24T06:45:29.648Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:46:41.471Z",
+      "at": "2026-09-24T06:45:59.647Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:47:11.471Z",
+      "at": "2026-09-24T06:46:29.647Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:47:41.471Z",
+      "at": "2026-09-24T06:46:59.647Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:48:11.471Z",
+      "at": "2026-09-24T06:47:29.647Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:47:59.647Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:48:29.648Z",
+      "kind": "PATROL",
+      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
+    },
+    {
+      "at": "2026-09-24T06:48:59.648Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:BUSY · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:48:41.471Z",
+      "at": "2026-09-24T06:49:29.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:49:11.471Z",
+      "at": "2026-09-24T06:49:59.645Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:49:41.471Z",
+      "at": "2026-09-24T06:50:29.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:50:11.471Z",
+      "at": "2026-09-24T06:50:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:50:41.472Z",
+      "at": "2026-09-24T06:51:29.645Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:51:11.471Z",
+      "at": "2026-09-24T06:51:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:51:41.470Z",
+      "at": "2026-09-24T06:52:29.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T05:52:11.471Z",
+      "at": "2026-09-24T06:52:59.646Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:52:41.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:53:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:53:41.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:54:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:54:41.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:55:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:55:41.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:56:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:56:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-1 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:57:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-2 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:57:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-3 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:58:11.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-4 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:58:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-5 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:59:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-6 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T05:59:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-7 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:00:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-8 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:00:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-9 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:01:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-10 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:01:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-11 · hunter:UP · student:UP · fleet-verify:UP"
     }
   ],
   "canonLast": {
