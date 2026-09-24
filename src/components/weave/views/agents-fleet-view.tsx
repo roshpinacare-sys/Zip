@@ -15,9 +15,12 @@ import {
   CircleCheck,
   Clock3,
   Cpu,
+  GitBranch,
+  Globe,
   Loader2,
   RefreshCw,
   ShieldCheck,
+  UploadCloud,
   Users,
   XCircle,
 } from "lucide-react";
@@ -160,7 +163,7 @@ function AgentCard({
   );
 }
 
-// ── מפעל האימות המקומי (R109) — הריבונות מהמכסה ────────────────────
+// ── מפעל האימות המקומי (R109) — הריבונות מהמכסה · R118: האמת חוזרת לגיט ─
 
 interface VerifyJob {
   id: string;
@@ -177,6 +180,8 @@ interface VerifyJob {
   nextDueAt: string;
   commit: string | null;
   runs: number;
+  // R118 — חוק דחיפת פסק-הדין: מה חזר לגיט ומתי
+  push?: { at: string; commit: string | null; verdict: string; detail: string } | null;
 }
 
 interface FleetVerifyDTO {
@@ -204,6 +209,7 @@ const VERIFY_VERDICT_STYLE: Record<string, { badge: string; label: string }> = {
 function VerifyCard({ job, delay }: { job: VerifyJob; delay: number }) {
   const style = VERIFY_VERDICT_STYLE[job.verdict] ?? VERIFY_VERDICT_STYLE.PENDING;
   const checks = job.checks ? Object.entries(job.checks) : [];
+  const pushed = job.push && (job.push.verdict === "PASS" || job.push.verdict === "FAIL");
   return (
     <Card
       className="group relative overflow-hidden transition-colors hover:border-emerald-500/30"
@@ -257,10 +263,182 @@ function VerifyCard({ job, delay }: { job: VerifyJob; delay: number }) {
           </span>
         </div>
 
+        {/* R118 — חוק דחיפת פסק-הדין: מה חזר לגיט */}
+        <div
+          className={cn(
+            "flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-[11px]",
+            pushed
+              ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300"
+              : "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300",
+          )}
+          dir="auto"
+        >
+          <span className="flex items-center gap-1.5">
+            {pushed ? <UploadCloud className="size-3.5 shrink-0" aria-hidden="true" /> : <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />}
+            {pushed && job.push ? (
+              <span className="truncate">
+                נדחף לגיט · <span className="font-mono" dir="ltr">{job.push.commit ?? "—"}</span> · {ageLabel(job.push.at)}
+              </span>
+            ) : job.push ? (
+              <span className="truncate">{job.push.detail}</span>
+            ) : (
+              <span>פסק-דין טרם נדחף לגיט (חוק R118 ממתין לריצה הבאה)</span>
+            )}
+          </span>
+        </div>
+
         {job.reason && (
           <p className="rounded-lg bg-muted/40 p-2.5 text-[11px] leading-relaxed" dir="auto">
             {job.reason}
           </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── מערך הריפואים המלא (R118: השמשת הגיט) ──────────────────────
+
+interface RepoEcosystem {
+  name: string;
+  roleHe: string;
+  kind: "verified" | "live";
+  cloud: {
+    ok: boolean;
+    pushedAt: string | null;
+    ageMinutes: number | null;
+    sizeKb: number | null;
+    lastCommit: { sha: string; message: string; author: string; date: string } | null;
+    error?: string;
+  };
+  factory: {
+    covered: boolean;
+    jobId: string | null;
+    verdict: string | null;
+    lastRunAt: string | null;
+    push: { at: string; commit: string | null; verdict: string; detail: string } | null;
+  };
+}
+
+interface ReposEcosystemDTO {
+  ok: boolean;
+  org?: string;
+  generatedAt?: string;
+  summary?: { total: number; covered: number; pushedByFactory: number; frozenOver24h: number; patAvailable: boolean };
+  repos?: RepoEcosystem[];
+  error?: string;
+}
+
+function repoAgeLabel(min: number | null): string {
+  if (min == null) return "לא נמדד";
+  if (min < 1) return "כרגע";
+  if (min < 60) return `לפני ${min} דק׳`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `לפני ${h} שע׳`;
+  const d = Math.floor(h / 24);
+  return `לפני ${d} ימים`;
+}
+
+function repoLifeLevel(min: number | null): "live" | "ok" | "frozen" {
+  if (min == null) return "frozen";
+  if (min < 120) return "live";
+  if (min < 24 * 60) return "ok";
+  return "frozen";
+}
+
+const REPO_LIFE_STYLE: Record<ReturnType<typeof repoLifeLevel>, { dot: string; label: string; text: string }> = {
+  live: { dot: "bg-emerald-500", label: "חי", text: "text-emerald-600 dark:text-emerald-400" },
+  ok: { dot: "bg-emerald-400", label: "פעיל", text: "text-emerald-600 dark:text-emerald-400" },
+  frozen: { dot: "bg-rose-500", label: "קפוא", text: "text-rose-600 dark:text-rose-400" },
+};
+
+function RepoCard({ repo, delay }: { repo: RepoEcosystem; delay: number }) {
+  const life = repoLifeLevel(repo.cloud.ageMinutes);
+  const style = REPO_LIFE_STYLE[life];
+  const pushed = repo.factory.push && (repo.factory.push.verdict === "PASS" || repo.factory.push.verdict === "FAIL");
+  return (
+    <Card
+      className="group relative overflow-hidden transition-colors hover:border-emerald-500/30"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <CardContent className="flex flex-col gap-3 p-5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span className={cn("size-2 shrink-0 rounded-full", style.dot)} aria-hidden="true" />
+              <span className="truncate font-mono text-sm font-bold">{repo.name}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">{repo.roleHe}</span>
+          </div>
+          <Badge
+            variant="outline"
+            className={cn(
+              "shrink-0",
+              repo.kind === "live" ? "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300" : style.text,
+            )}
+          >
+            {repo.kind === "live" ? "בית · ענן" : style.label}
+          </Badge>
+        </div>
+
+        <div className="flex flex-col gap-1.5 rounded-lg bg-muted/40 p-2.5 text-[11px] leading-relaxed">
+          {repo.cloud.lastCommit ? (
+            <>
+              <span className="flex items-center gap-1.5" dir="ltr">
+                <GitBranch className="size-3 shrink-0" aria-hidden="true" />
+                <span className="font-mono">{repo.cloud.lastCommit.sha}</span>
+                <span className="text-muted-foreground">{repo.cloud.lastCommit.author}</span>
+              </span>
+              <span className="truncate text-muted-foreground" dir="auto" title={repo.cloud.lastCommit.message}>
+                {repo.cloud.lastCommit.message}
+              </span>
+            </>
+          ) : (
+            <span className="text-amber-600 dark:text-amber-400" dir="auto">
+              {repo.cloud.error ?? "הענן לא נענה"}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 border-t pt-3 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Globe className="size-3.5" aria-hidden="true" />
+            עדכון אחרון: {repoAgeLabel(repo.cloud.ageMinutes)}
+          </span>
+          <span className="flex items-center gap-1.5" dir="ltr">
+            {repo.cloud.sizeKb != null ? `${(repo.cloud.sizeKb / 1024).toFixed(1)}MB` : "—"}
+          </span>
+        </div>
+
+        {repo.kind === "verified" && (
+          <div
+            className={cn(
+              "flex items-center justify-between gap-2 rounded-lg border px-2.5 py-1.5 text-[11px]",
+              pushed
+                ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300"
+                : repo.factory.covered
+                  ? "border-amber-500/30 bg-amber-500/5 text-amber-700 dark:text-amber-300"
+                  : "border-rose-500/30 bg-rose-500/5 text-rose-700 dark:text-rose-300",
+            )}
+            dir="auto"
+          >
+            {pushed ? (
+              <span className="flex items-center gap-1.5">
+                <UploadCloud className="size-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{repo.factory.jobId} · {repo.factory.push?.verdict} · נדחף {ageLabel(repo.factory.push!.at)}</span>
+              </span>
+            ) : repo.factory.covered ? (
+              <span className="flex items-center gap-1.5">
+                <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
+                <span className="truncate">{repo.factory.jobId} · מכוסה · טרם נדחף (ממתין לריצה)</span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
+                <span>אין מאמת — מחוץ לכיסוי המפעל</span>
+              </span>
+            )}
+          </div>
         )}
       </CardContent>
     </Card>
@@ -274,6 +452,8 @@ export function AgentsFleetView() {
   const [tick, setTick] = useState(0);
   const [verify, setVerify] = useState<FleetVerifyDTO | null>(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [repos, setRepos] = useState<ReposEcosystemDTO | null>(null);
+  const [reposLoading, setReposLoading] = useState(false);
 
   const loadVerify = () => {
     setVerifyLoading(true);
@@ -284,9 +464,27 @@ export function AgentsFleetView() {
       .finally(() => setVerifyLoading(false));
   };
 
+  const loadRepos = () => {
+    setReposLoading(true);
+    fetch("/api/weave/repos", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: ReposEcosystemDTO) => setRepos(d))
+      .catch(() => setRepos({ ok: false, error: "מערך הריפואים לא נענה" }))
+      .finally(() => setReposLoading(false));
+  };
+
   useEffect(() => {
     const t = setTimeout(loadVerify, 0);
     const iv = setInterval(loadVerify, 60_000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(iv);
+    };
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(loadRepos, 400);
+    const iv = setInterval(loadRepos, 120_000);
     return () => {
       clearTimeout(t);
       clearInterval(iv);
@@ -403,7 +601,7 @@ export function AgentsFleetView() {
         </div>
       )}
 
-      {/* מפעל האימות המקומי — הריבונות מהמכסה (R109) */}
+      {/* מפעל האימות המקומי — הריבונות מהמכסה (R109) · חוק דחיפת פסק-הדין (R118) */}
       <section className="mb-8" aria-label="מפעל האימות המקומי">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -413,11 +611,18 @@ export function AgentsFleetView() {
               <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                 {verify?.summary ? `${verify.summary.pass}/${verify.summary.total} עברו` : "טוען"}
               </Badge>
+              {verify?.jobs?.some((j) => j.push && (j.push.verdict === "PASS" || j.push.verdict === "FAIL")) && (
+                <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                  <UploadCloud className="ml-1 size-3" aria-hidden="true" />
+                  פסקי-דין חוזרים לגיט
+                </Badge>
+              )}
             </h2>
             <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-              תשעת סוכני-האימות של הרשת מתו עם מכסת ה-Actions של הארגון — הרץ הפרטי מעולם לא התחיל.
-              הריבונות: אותן בדיקות בדיוק, רצות כאן, בבית. כל ריצה משכפלת את הריפו החי, מריצה
-              את מלוא שלבי-האימות וכותבת פסק-דין כן. הענן הוא גיבוי — הבית הוא המכונה.
+              עשרת סוכני-האימות של הרשת מתו עם מכסת ה-Actions של הארגון (R109) — הריבונות: אותן בדיקות
+              בדיוק, רצות כאן, בבית. עד R118 האמת נשארה כלואה בקובץ מקומי והריפואים בגיט קפאו למשך
+              שבוע. חוק דחיפת פסק-הדין: כל פסק-דין — PASS או FAIL כאחד — חוזר לגיט בזהות
+              <span className="font-mono" dir="ltr"> &lt;job&gt;[bot]</span> מיד לאחר הבדיקה, באותו חוק שהענן כתב בעצמו.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -484,25 +689,70 @@ export function AgentsFleetView() {
         </Card>
       )}
 
-      {/* הריפואים השקטים */}
-      {data && data.reposIdle.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
-            {data.reposIdle.length} ריפואים שקטים (ארכיונים, כספות ומקורות אמת)
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {data.reposIdle.map((r) => (
-              <Badge key={r} variant="outline" className="font-mono text-xs">
-                {r}
-              </Badge>
+      {/* מערך הריפואים המלא — השמשת הגיט (R118) */}
+      <section className="mt-8" aria-label="מערך הריפואים של הארגון">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight">
+              <GitBranch className="size-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              מערך הריפואים — הארגון המלא
+              {repos?.summary && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    repos.summary.frozenOver24h === 0
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                      : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+                  )}
+                >
+                  {repos.summary.frozenOver24h === 0
+                    ? `${repos.summary.total} ריפואים · אפס קפואים`
+                    : `${repos.summary.frozenOver24h} קפואים מעל יום`}
+                </Badge>
+              )}
+            </h2>
+            <p className="mt-1 max-w-3xl text-xs leading-relaxed text-muted-foreground">
+              אמת חיה מ-GitHub על כל ריפו בארגון — קומיט אחרון, גיל וזהות כותב — ממוזגת עם כיסוי המפעל
+              וחוק דחיפת פסק-הדין. שלושת שערי-הענן (הבית, הקונסולה והדומיין) מוזנים ישירות מהמערכת;
+              עשרת השאר — על-ידי המאמתים שמחזירים את האמת לגיט מדי יום.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {repos?.generatedAt && (
+              <span className="hidden text-[11px] text-muted-foreground sm:inline" dir="auto">
+                נמדד {ageLabel(repos.generatedAt)}
+              </span>
+            )}
+            <Button variant="outline" size="sm" className="gap-2" onClick={loadRepos} disabled={reposLoading}>
+              <RefreshCw className={cn("size-4", reposLoading && "animate-spin")} aria-hidden="true" />
+              רענן מערך
+            </Button>
+          </div>
+        </div>
+
+        {repos?.ok && repos.repos ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {repos.repos.map((repo, i) => (
+              <RepoCard key={repo.name} repo={repo} delay={i * 40} />
             ))}
           </div>
-          <p className="mt-3 text-xs text-muted-foreground">
-            ריפואים אלה אינם מריצים סוכנים בכוונה - הם ארכיון קר, כספות וגיבויים.
-            גלויים ברישום כדי שהתמונה תהיה מלאה וכנה.
-          </p>
-        </div>
-      )}
+        ) : repos ? (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
+              <ShieldCheck className="size-7 text-amber-500" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground" dir="auto">
+                {repos.error ?? "מערך הריפואים לא נקרא — אין סמכות או שהענן לא ענה."}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-52" />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

@@ -13,6 +13,15 @@
 // GIT_ASKPASS — הטוקן לעולם לא נכתב לשום .git/config, לא
 // מודפס ולא נשמר במצב. הענן הוא גיבוי; הבית הוא כאן.
 //
+// R118 — חוק דחיפת פסק-הדין: הבדיקה בלי הפרסום היא חצי אמת. מ-20/09
+// הריפואים בגיט קפואים — המפעל אימת מקומית אבל אגר את האמת
+// בקובץ מקומי בלבד, והמפעיל ראה "אין עדכונים" בענן. מכאן: כל
+// פסק-דין שנכתב (PASS או FAIL כאחד) מוחזר לגיט בזהות
+// <job>[bot] ובהודעה "<job>: <VERDICT> at <ISO>" — בדיוק החוק
+// שהענן עצמו כתב כשה-Actions שלו חיו. כמו-כן נוסף המאמת העשירי:
+// foundry-selftest ל-saos-sovereign-foundry (מרקובת עשרת
+// הריפואים הרדומים).
+//
 // חוקי-ברזל:
 //   · פסק-דין נכתב רק מקובץ agent/status.json שהבדיקה עצמה ייצרה
 //   · כישלון נרשם ככישלון — אין "נניח שהצליח"
@@ -610,6 +619,68 @@ EOF
 echo "verdict: $VERDICT ($REASON)"
 [ "$VERDICT" = "PASS" ] || exit 1`,
   },
+  {
+    id: "foundry-selftest",
+    repo: "saos-sovereign-foundry",
+    titleHe: "בחינה-עצמית של בית-היציקה",
+    layer: "QA",
+    roleHe: "saos-sovereign-foundry הוא בית-היציקה של הרשת — הריפו שממנו נולדו הכלים והעדויות. מ-R109 עד R118 עמד מחוץ לכיסוי המפעל (המאמת העשירי). המאמת מתקין מהנעילה הקפואה, מג'נרט לקוח Prisma ומריץ בדיקת טיפוסים מלאה.",
+    timeoutMin: 18,
+    startOffsetMin: 250,
+    script: `set -u
+NOW="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+VERDICT="FAIL"
+REASON=""
+if [ ! -f package.json ]; then echo "no package.json"; exit 1; fi
+# חוק המטמון: התקנה רק כשהנעילה/המניפסט השתנו מאז ההתקנה המוכחת האחרונה
+NEED_INSTALL=1
+if [ -d node_modules ] && [ -f .fv-install.stamp ]; then
+  NEWER="$(find package.json bun.lock -newer .fv-install.stamp 2>/dev/null | head -1)"
+  [ -z "$NEWER" ] && NEED_INSTALL=0
+fi
+INSTALL="cached"
+if [ "$NEED_INSTALL" = "1" ]; then
+  INSTALL="fail"
+  if [ -f bun.lock ]; then
+    bun install --frozen-lockfile > .fv-install.log 2>&1 && INSTALL="pass" || { tail -8 .fv-install.log; }
+  else
+    bun install > .fv-install.log 2>&1 && INSTALL="pass" || { tail -8 .fv-install.log; }
+  fi
+  [ "$INSTALL" = "pass" ] && touch .fv-install.stamp
+fi
+if [ "$INSTALL" = "fail" ]; then REASON="dependency install failed"; fi
+PRISMA="skipped"
+if { [ "$INSTALL" = "pass" ] || [ "$INSTALL" = "cached" ]; } && [ -f prisma/schema.prisma ]; then
+  bunx prisma generate > .fv-prisma.log 2>&1 && PRISMA="pass" || PRISMA="fail"
+fi
+TSC="skipped"
+if { [ "$INSTALL" = "pass" ] || [ "$INSTALL" = "cached" ]; } && [ -f tsconfig.json ]; then
+  bunx tsc --noEmit > .fv-tsc.log 2>&1 && TSC="pass" || { TSC="fail"; tail -12 .fv-tsc.log; }
+fi
+BUILD="skipped-local"
+if { [ "$INSTALL" = "pass" ] || [ "$INSTALL" = "cached" ]; } && [ "$TSC" != "fail" ] && [ "$PRISMA" != "fail" ]; then
+  VERDICT="PASS"; REASON="install+typecheck pass (local gate: build skipped by sandbox policy)"
+else
+  REASON="install=\$INSTALL prisma=\$PRISMA tsc=\$TSC"
+fi
+mkdir -p agent
+cat > agent/status.json <<EOF
+{
+ "agent": "foundry-selftest",
+ "generatedAt": "$NOW",
+ "verdict": "$VERDICT",
+ "checks": {
+  "install": "$INSTALL",
+  "prismaGenerate": "$PRISMA",
+  "typecheck": "$TSC",
+  "productionBuild": "$BUILD"
+ },
+ "reason": "$REASON"
+}
+EOF
+echo "verdict: $VERDICT ($REASON)"
+[ "$VERDICT" = "PASS" ] || exit 1`,
+  },
 ];
 
 // ── המצב ────────────────────────────────────────────────────────────
@@ -628,6 +699,8 @@ interface JobState {
   nextDueAt: string;
   commit: string | null;
   runs: number;
+  // R118 — חוק דחיפת פסק-הדין: האמת חוזרת לגיט. null = טרם נדחף
+  push: { at: string; commit: string | null; verdict: string; detail: string } | null;
 }
 
 interface FleetState {
@@ -672,11 +745,12 @@ function boot(): FleetState {
         : (old?.nextDueAt ?? new Date(now.getTime() + def.startOffsetMin * 60_000).toISOString()),
       commit: old?.commit ?? null,
       runs: old?.runs ?? 0,
+      push: old?.push ?? null,
     };
   });
   return {
     service: "fleet-verify",
-    version: "1.0.0",
+    version: "2.0.0",
     bootedAt: now.toISOString(),
     beats: 0,
     patAvailable: Boolean(PAT),
@@ -717,6 +791,37 @@ if (G.__FV_STATE__) {
   G.__FV_STATE__ = boot();
 }
 const state: FleetState = G.__FV_STATE__;
+
+// R118 — חוק הכיסוי המלא: המניפסט (JOBS) הוא ההגדרה, המצב עוקב אחריו.
+// נלמד חי ב-R118: טעינה-חמה של bun משאירה את המצב הישן ב-globalThis —
+// מאמת עשירי חדש שהתווסף לקוד לעולם לא ייכנס לסבב הריצות, והריפו
+// שלו יישאר רדום לנצח. התאמה: מוסיפים מאמתים חדשים כ-PENDING,
+// משמרים אמת קיימת, ומנקים מאמתים שהוסרו מהמניפסט.
+{
+  const byId = new Map(state.jobs.map((j) => [j.id, j]));
+  const nowMs = Date.now();
+  state.jobs = JOBS.map((def) => {
+    const old = byId.get(def.id);
+    if (old) return old;
+    return {
+      id: def.id,
+      repo: def.repo,
+      titleHe: def.titleHe,
+      layer: def.layer,
+      roleHe: def.roleHe,
+      verdict: "PENDING" as const,
+      lastRunAt: null,
+      durationMs: null,
+      checks: null,
+      reason: null,
+      outputTail: [],
+      nextDueAt: new Date(nowMs + def.startOffsetMin * 60_000).toISOString(),
+      commit: null,
+      runs: 0,
+      push: null,
+    };
+  });
+}
 
 function saveState(): void {
   fs.mkdirSync(STATE_DIR, { recursive: true });
@@ -776,8 +881,54 @@ function availableMemMb(): number {
   }
 }
 
-const HEAVY_JOBS = new Set(["wallet-verify", "control-center-build", "platform-selftest"]);
+const HEAVY_JOBS = new Set(["wallet-verify", "control-center-build", "platform-selftest", "foundry-selftest"]);
 const MIN_AVAILABLE_MB = 900;
+
+// ── חוק דחיפת פסק-הדין (R118) ─────────────────────────────────────
+// האמת שלא חוזרת לגיט היא אמת שקטה: הריפו קפוא, המפעיל רואה "אין
+// עדכונים" — אף על פי שהאימות רץ ועבר. החוק: אחרי כל פסק-דין
+// (PASS או FAIL כאחד — הכישלון מפורסם באותה מידה), המפעל מחזיר
+// את agent/status.json לגיט בזהות <job>[bot] ובהודעה שהענן עצמו
+// כתב כשה-Actions שלו חיו: "<job>: <VERDICT> at <ISO>".
+// הטוקן עובר רק דרך GIT_ASKPASS — מנוקה מכל פלט ומכל מצב.
+function pushVerdict(
+  def: JobDef,
+  dir: string,
+  verdict: string,
+): { at: string; commit: string | null; verdict: string; detail: string } {
+  const at = new Date().toISOString();
+  const statusFile = path.join(dir, "agent", "status.json");
+  if (!fs.existsSync(statusFile)) {
+    return { at, commit: null, verdict: "NONE", detail: "לא נכתב קובץ-פסק-דין — אין מה לדחוף" };
+  }
+  const g = (args: string[]) => Bun.spawnSync(["git", ...args], { cwd: dir, env: gitEnv() });
+  g(["config", "user.name", `${def.id}[bot]`]);
+  g(["config", "user.email", `${def.id}[bot]@users.noreply.github.com`]);
+  g(["add", "agent/status.json"]);
+  // בלי שינוי מדיד — אין קומיט (אותו חוק של הענן המקורי)
+  const staged = Bun.spawnSync(["git", "diff", "--cached", "--quiet", "--", "agent/status.json"], { cwd: dir, env: gitEnv() });
+  if (staged.exitCode === 0) {
+    const c = g(["rev-parse", "--short", "HEAD"]);
+    return { at, commit: c.stdout?.toString().trim() ?? null, verdict: "UNCHANGED", detail: "פסק-דין זהה לקודם — אין קומיט" };
+  }
+  const stamp = at.replace(/\.\d+Z$/, "Z");
+  const cm = g(["commit", "-m", `${def.id}: ${verdict} at ${stamp}`]);
+  if (cm.exitCode !== 0) {
+    return { at, commit: null, verdict, detail: `קומיט נכשל: ${sanitize(((cm.stderr?.toString() ?? "") + (cm.stdout?.toString() ?? "")).trim()).slice(0, 180)}` };
+  }
+  const pu = g(["push", "origin", "main"]);
+  const sh = g(["rev-parse", "--short", "HEAD"]);
+  const newCommit = sh.stdout?.toString().trim() ?? null;
+  if (pu.exitCode === 0) {
+    return { at, commit: newCommit, verdict, detail: `נדחף לגיט · ${def.repo}@${newCommit}` };
+  }
+  return {
+    at,
+    commit: null,
+    verdict,
+    detail: `דחיפה נכשלה: ${sanitize(((pu.stderr?.toString() ?? "") + (pu.stdout?.toString() ?? "")).trim()).slice(0, 200)}`,
+  };
+}
 
 // ── הרצת מאמת ──────────────────────────────────────────────────────
 async function runJob(def: JobDef): Promise<void> {
@@ -907,6 +1058,19 @@ async function runJob(def: JobDef): Promise<void> {
     reason = reason ?? "status.json לא נכתב — פסק-דין מקוד-היציאה בלבד";
   }
 
+  // 6) חוק דחיפת פסק-הדין (R118): האמת חוזרת לגיט. הבדיקה עברה —
+  //    שהענן ידע. נכשלה — שהענן ידע גם כן. בלי השלב הזה הריפו קופא
+  //    והמפעיל רואה "אין עדכונים" על ריפו שנבדק בכל יום.
+  let push: JobState["push"] = null;
+  if (verdict === "PASS" || verdict === "FAIL") {
+    try {
+      push = pushVerdict(def, dir, verdict);
+    } catch (e) {
+      push = { at: new Date().toISOString(), commit: null, verdict, detail: `חריגה בדחיפה: ${sanitize(String(e)).slice(0, 180)}` };
+    }
+  }
+  job.push = push;
+
   job.verdict = verdict;
   job.lastRunAt = startedAt;
   job.durationMs = durationMs;
@@ -920,12 +1084,12 @@ async function runJob(def: JobDef): Promise<void> {
     at: startedAt,
     id: def.id,
     verdict,
-    detail: `${durationMs}ms · ${(reason ?? "").slice(0, 100)}`,
+    detail: `${durationMs}ms · ${(reason ?? "").slice(0, 100)}${push ? ` · גיט: ${push.verdict === "PASS" || push.verdict === "FAIL" ? "נדחף" : push.verdict}` : ""}`,
   });
   state.lastDecision = {
     at: new Date().toISOString(),
     kind: verdict,
-    detail: `${def.id}: ${verdict} · ${Math.round(durationMs / 1000)}ש' · ${(reason ?? "").slice(0, 120)}`,
+    detail: `${def.id}: ${verdict} · ${Math.round(durationMs / 1000)}ש' · ${(reason ?? "").slice(0, 120)}${push ? ` · ${push.detail.slice(0, 120)}` : ""}`,
   };
   saveState();
 }
@@ -1002,7 +1166,7 @@ if (!G.__FV_SERVER__) {
   });
 }
 
-console.log(`[fleet-verify] מפעל האימות המקומי עלה · פורט ${PORT} · ${JOBS.length} מאמתים · PAT: ${PAT ? "כן" : "לא"}`);
+console.log(`[fleet-verify] מפעל האימות המקומי עלה · פורט ${PORT} · ${JOBS.length} מאמתים · PAT: ${PAT ? "כן" : "לא"} · R118: פסק-דין חוזר לגיט`);
 
 // חוק הטיימר-היחיד (נלמד חי: טעינה-חמה של bun מעריכה את המודול מחדש
 // אך לא מנקה טיימרים ישנים — שני טיימרים עם שני מצבים כתבו זה על זה
