@@ -39,18 +39,34 @@ interface PulseStatus {
   broadcasting: boolean;
   lastDecision: { at: string; kind: string; detail: string };
   canonLast: { at: string; ok: boolean; path: string; error?: string } | null;
+  // R113 — הדיבון v1.2.0 (חוק הטיימר-היחיד) כותב historyTail; ה-API מנרמל ל-history
+  // כדי לשמר את החוזה הפומבי. שדות שידור יכולים להיות null (חלון שטרם שודר).
   history: Array<{
     at: string;
     utcDay: string;
     draftId: string;
     kind: string;
     title: string;
-    permlink: string;
+    permlink: string | null;
     txid: string | null;
-    url: string;
+    url: string | null;
     attempt: number;
     canon: { pushed: boolean; path: string; error?: string } | null;
   }>;
+}
+
+// רשומת-זנב כפי שדיבון pulse v1.2.0 באמת כותב אותה (בלי canon, permlink/url nullables).
+interface PulseTailEntry {
+  at: string;
+  utcDay: string;
+  draftId: string;
+  kind: string;
+  title: string;
+  permlink: string | null;
+  txid: string | null;
+  url: string | null;
+  attempt: number;
+  canon?: { pushed: boolean; path: string; error?: string } | null;
 }
 
 async function fetchPulse(): Promise<PulseStatus | null> {
@@ -59,7 +75,13 @@ async function fetchPulse(): Promise<PulseStatus | null> {
   try {
     const res = await fetch(`${PULSE_URL}/`, { signal: ctl.signal, cache: "no-store" });
     if (!res.ok) return null;
-    return (await res.json()) as PulseStatus;
+    const raw = (await res.json()) as Partial<PulseStatus> & { historyTail?: PulseTailEntry[] };
+    // R113 — נורמליזציה: הדיבון שינה את שם השדה (history → historyTail) בחוק הטיימר-היחיד
+    // (R112). בלי המיפוי הזה השדה היה undefined — והתצוגה קרסה על .length של undefined.
+    const history = Array.isArray(raw.history)
+      ? raw.history
+      : (raw.historyTail ?? []).map((e) => ({ ...e, canon: e.canon ?? null }));
+    return { ...raw, history } as PulseStatus;
   } catch {
     return null;
   } finally {

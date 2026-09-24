@@ -146,9 +146,9 @@ interface PulseHistoryEntry {
   draftId: string;
   kind: string;
   title: string;
-  permlink: string;
+  permlink: string | null;
   txid: string | null;
-  url: string;
+  url: string | null;
   attempt: number;
   canon: { pushed: boolean; path: string; error?: string } | null;
 }
@@ -1000,7 +1000,7 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                     </div>
                   </MotionCard>
 
-                  {pulse.history.length > 0 ? (
+                  {(pulse.history?.length ?? 0) > 0 ? (
                     <div className="mt-4 overflow-hidden rounded-xl border">
                       <div className="border-b bg-muted/40 px-4 py-2.5 text-sm font-bold">שידורי הדופק — קבלות חיות</div>
                       <div className="max-h-72 overflow-y-auto">
@@ -1014,20 +1014,27 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                             </tr>
                           </thead>
                           <tbody>
-                            {pulse.history.map((h) => (
-                              <tr key={h.permlink} className="border-b last:border-b-0">
+                            {(pulse.history ?? []).map((h) => (
+                              <tr key={`${h.at}-${h.draftId}-${h.attempt}`} className="border-b last:border-b-0">
                                 <td className="px-3 py-2 font-mono text-[11px] text-muted-foreground">{fmtTime(h.at)}</td>
                                 <td className="px-3 py-2">{DRAFT_LABEL[h.draftId] ?? h.draftId}</td>
                                 <td className="max-w-56 px-3 py-2">
-                                  <a
-                                    href={h.url}
-                                    target="_blank"
-                                    rel="noreferrer noopener"
-                                    className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-400"
-                                  >
-                                    {h.permlink.length > 34 ? `${h.permlink.slice(0, 34)}…` : h.permlink}
-                                    <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
-                                  </a>
+                                  {h.url ? (
+                                    <a
+                                      href={h.url}
+                                      target="_blank"
+                                      rel="noreferrer noopener"
+                                      className="inline-flex items-center gap-1 font-mono text-[11px] text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-400"
+                                    >
+                                      {h.permlink && h.permlink.length > 34 ? `${h.permlink.slice(0, 34)}…` : (h.permlink ?? h.url)}
+                                      <ExternalLink className="size-3 shrink-0" aria-hidden="true" />
+                                    </a>
+                                  ) : (
+                                    <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                                      <span className="inline-block size-1.5 rounded-full bg-amber-500/70" aria-hidden="true" />
+                                      טרם שודר — ניסיון {h.attempt} בחלון הנוכחי
+                                    </span>
+                                  )}
                                   {h.txid ? <div className="font-mono text-[10px] text-muted-foreground">txid {h.txid.slice(0, 18)}…</div> : null}
                                 </td>
                                 <td className="px-3 py-2">

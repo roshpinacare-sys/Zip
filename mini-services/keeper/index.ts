@@ -5,6 +5,12 @@
 // 3 פסילות → הקמה מחדש. אבל חוק-הפעולה גובר על הכל — לעולם לא הורגים
 // דיבון שנמצא באמצע פעולת-כסף (acting=true → BUSY, ממתינים).
 //
+// R113 — שומר שרת-הרשת: הסריקה האוטונומית תפסה חי את השרת (:3000)
+// מת מ-OOM (הקרנל הרג next-server ב-1.9GB RSS) בלי שאף שומר יקים
+// אותו — הדלת של כל הרשת. מעתה הסיור בודק גם את /api/health: שתי
+// פסילות רצופות → dev-revive (מנותק, בלי לחסום את הסיור) · צינון 3 דק'
+// · תקרה גלילית 4 ב-6ש' (אותו חוק-צי). השרת הוא חלק מהצי שהמשתמש רואה.
+//
 // חוקי-ברזל (מ-R84, נשמרים מלה):
 //   · 3 פסילות רצופות → RESTARTING
 //   · צינון 2 דק' בין הקמות לאותו דיבון
@@ -40,6 +46,12 @@ const DAILY_RESTART_BUDGET = 12;
 const ROLLING_WINDOW_MS = 6 * 3_600_000;
 const ROLLING_WINDOW_CAP = 4;
 const CANON_BUDGET_PER_DAY = 8;
+// R113 — שומר שרת-הרשת
+const WEB_PORT = 3000;
+const WEB_FAIL_THRESHOLD = 2; // שתי בדיקות שכנות (~60ש') לפני החייאה
+const WEB_REVIVE_COOLDOWN_MS = 3 * 60 * 1000;
+const WEB_ROLLING_WINDOW_MS = 6 * 3_600_000;
+const WEB_ROLLING_WINDOW_CAP = 4;
 
 type FleetEntry = {
   name: string;
@@ -77,7 +89,19 @@ type KeeperState = {
   canonLast: { at: string; ok: boolean; path: string } | null;
   canonToday: number;
   canonDay: string;
+  // R113 — שומר שרת-הרשת: חלון גלילי להחייאות (כמו חוק-הצי)
+  web: {
+    lastCheckAt: string | null;
+    lastHealthyAt: string | null;
+    consecutiveFails: number;
+    lastReviveAt: string | null;
+    revivesToday: number;
+    reviveDay: string;
+    revivesLog: string[];
+  };
 };
+
+type WebGuard = KeeperState["web"];
 
 function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);
@@ -112,10 +136,22 @@ function freshFleet(): FleetEntry[] {
   }));
 }
 
+function freshWeb(): WebGuard {
+  return {
+    lastCheckAt: null,
+    lastHealthyAt: null,
+    consecutiveFails: 0,
+    lastReviveAt: null,
+    revivesToday: 0,
+    reviveDay: utcDay(),
+    revivesLog: [],
+  };
+}
+
 function readState(): KeeperState {
   const base: KeeperState = {
     service: "keeper",
-    version: "1.2.0",
+    version: "1.3.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     patrolIntervalSec: PATROL_INTERVAL_SEC,
@@ -127,6 +163,7 @@ function readState(): KeeperState {
     canonLast: null,
     canonToday: 0,
     canonDay: utcDay(),
+    web: freshWeb(),
   };
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
@@ -168,6 +205,15 @@ function readState(): KeeperState {
       canonLast: prev.canonLast ?? null,
       canonToday: prev.canonDay === utcDay() ? (prev.canonToday ?? 0) : 0,
       canonDay: prev.canonDay === utcDay() ? prev.canonDay : utcDay(),
+      // R113 — שומר שרת-הרשת: נשיאת חלון-גלילי בין אתחולים; הספירה מתאפסת (מדידה טרייה)
+      web: {
+        ...freshWeb(),
+        lastHealthyAt: prev.web?.lastHealthyAt ?? null,
+        lastReviveAt: prev.web?.lastReviveAt ?? null,
+        revivesToday: prev.web?.reviveDay === utcDay() ? (prev.web?.revivesToday ?? 0) : 0,
+        reviveDay: prev.web?.reviveDay === utcDay() ? prev.web.reviveDay : utcDay(),
+        revivesLog: Array.isArray(prev.web?.revivesLog) ? prev.web.revivesLog : [],
+      },
     };
   } catch {
     return base;
@@ -337,6 +383,83 @@ function restartDaemon(d: FleetEntry): boolean {
   }
 }
 
+// R113 — שומר שרת-הרשת: כמה החייאות בחלון-ה-6ש' הגולש
+function webRevivesRecent(): number {
+  const cut = Date.now() - WEB_ROLLING_WINDOW_MS;
+  state.web.revivesLog = state.web.revivesLog.filter((t) => Date.parse(t) > cut);
+  return state.web.revivesLog.length;
+}
+
+// R113 — החיית שרת-הרשת: dev-revive מנותק מהסיור (הסקריפט עצמו אידמפוטנטי,
+// ממתין עד 60ש' ומסיים; השרת שהוא מקים הוא יתום-PPID1 עצמאי — לקח R100).
+function reviveWeb(): boolean {
+  try {
+    const logDir = `${HOME}/sovereign/keeper/logs`;
+    fs.mkdirSync(logDir, { recursive: true });
+    const fd = fs.openSync(`${logDir}/web-revive.log`, "a");
+    Bun.spawn({
+      cmd: [process.execPath, "scripts/dev-revive.mjs"],
+      cwd: HOME,
+      stdin: "ignore",
+      stdout: fd,
+      stderr: fd,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// R113 — סיור שרת-הרשת: הדלת של כל הרשת מקבלת שומר משלה
+async function patrolWeb(parts: string[]): Promise<void> {
+  const now = new Date();
+  state.web.lastCheckAt = now.toISOString();
+  let ok = false;
+  try {
+    const res = await fetch(`http://127.0.0.1:${WEB_PORT}/api/health`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(6_000),
+    });
+    ok = res.ok;
+  } catch {
+    ok = false;
+  }
+  if (ok) {
+    const wasDown = state.web.consecutiveFails > 0;
+    state.web.consecutiveFails = 0;
+    state.web.lastHealthyAt = now.toISOString();
+    if (wasDown) {
+      record("WEB-UP", `שרת הרשת (:${WEB_PORT}) חזר לענות — הדלת חיה`, false);
+    }
+    parts.push("web:UP");
+    return;
+  }
+  state.web.consecutiveFails += 1;
+  const failsNow = state.web.consecutiveFails;
+  parts.push(`web:DOWN-${failsNow}`);
+  if (failsNow < WEB_FAIL_THRESHOLD) return; // פסילה בודדת — ממתינים לסיור הבא
+  const sinceReviveMs = state.web.lastReviveAt ? now.getTime() - Date.parse(state.web.lastReviveAt) : Infinity;
+  if (sinceReviveMs < WEB_REVIVE_COOLDOWN_MS) return; // צינון — ההחייאה הקודמת עוד עולה
+  if (webRevivesRecent() >= WEB_ROLLING_WINDOW_CAP) {
+    record("WEB-HOLD", `שרת-הרשת (:${WEB_PORT}) בהסגר-חלון-ההחייאות (${webRevivesRecent()}/${WEB_ROLLING_WINDOW_CAP} ב-6ש' נע) — כנות, לא ספירלה`, true);
+    return;
+  }
+  if (state.web.reviveDay !== utcDay()) {
+    state.web.reviveDay = utcDay();
+    state.web.revivesToday = 0;
+  }
+  const started = reviveWeb();
+  state.web.revivesToday += 1;
+  state.web.lastReviveAt = now.toISOString();
+  state.web.revivesLog.push(now.toISOString());
+  state.web.consecutiveFails = 0; // הספירה מתחדשת — הסיורים הבאים ימדדו את התוצאה
+  record(
+    started ? "WEB-REVIVE" : "WEB-REVIVE-FAIL",
+    `שרת-הרשת (:${WEB_PORT}): ${started ? `dev-revive שוגר (${failsNow} פסילות רצופות · חלון ${webRevivesRecent()}/${WEB_ROLLING_WINDOW_CAP})` : "שיגור dev-revive נכשל"}`,
+    true,
+  );
+}
+
 // ── הסיור ───────────────────────────────────────────────────────────
 async function patrol() {
   const now = new Date();
@@ -457,7 +580,9 @@ async function patrol() {
     d.since = now.toISOString();
     record(ok ? "RESTART" : "RESTART-FAIL", `${d.name} (${d.port}): ${ok ? `הוקם — ${reason}` : `ההקמה נכשלה — ${reason}`}`, true);
   }
-  const allUp = state.fleet.every((d) => d.state === "UP" || d.state === "BUSY");
+  await patrolWeb(parts);
+  // R113 — אמת מלאה במילה: "סיור תקין" רק כשגם שרת-הרשת עונה
+  const allUp = state.fleet.every((d) => d.state === "UP" || d.state === "BUSY") && state.web.consecutiveFails === 0;
   if (state.history.length === 0 || state.history[state.history.length - 1].detail !== parts.join(" · ")) {
     record("PATROL", allUp ? `סיור תקין — ${parts.map((p) => p.replace(/:(FAIL|BUSY)-?\d*/, (m) => (m.includes("BUSY") ? m : "DOWN"))).join(" · ")}` : `התערבות — ${parts.join(" · ")}`, false);
   }
