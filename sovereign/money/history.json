@@ -661,5 +661,67 @@
     "placed": 3,
     "cancelled": 3,
     "error": null
+  },
+  {
+    "at": "2026-09-24T17:03:11.479Z",
+    "kind": "POOL-GUARD",
+    "reason": "איזון-בריכות נמדד · 2 בריכות · USDS-עוגן $0.5599"
+  },
+  {
+    "at": "2026-09-24T17:14:00.589Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -79bps מעל הסולם שהוצב (0.112217 → קו 0.111326) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.11119184878765535,
+    "cancelled": [
+      {
+        "orderid": 2026092401,
+        "txid": "50a8471a1b0ead4cb2940f7ced1ebfab41b8c047"
+      },
+      {
+        "orderid": 2026092402,
+        "txid": "f71fef3e4e953f1ca12d6ccf707ecd24b3533e49"
+      },
+      {
+        "orderid": 2026092403,
+        "txid": "021c20c1b616856a7eb7dcb9998925c9c3983897"
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092401,
+        "sell": 158.879,
+        "receive": 17.667,
+        "price": 0.111198,
+        "txid": "ab8d7a333a77ac0ea20aa63303042c8bce673222"
+      },
+      {
+        "orderid": 2026092402,
+        "sell": 158.879,
+        "receive": 17.843,
+        "price": 0.112306,
+        "txid": "46fad45dbd9e10035fe11135883ea1d3057c7dd8"
+      },
+      {
+        "orderid": 2026092403,
+        "sell": 158.879,
+        "receive": 18.02,
+        "price": 0.11342,
+        "txid": "3b6a07b0d0c4681ebe5f140461c01c0e21c54270"
+      }
+    ],
+    "verify": {
+      "ordersNow": 3,
+      "deployedNow": 476.637,
+      "bidsNow": 0
+    }
+  },
+  {
+    "at": "2026-09-24T17:14:25.415Z",
+    "kind": "REPRICE",
+    "reason": "הפאריטה זזה -79bps מעל הסולם שהוצב (0.112217 → קו 0.111326) — הסולם נגרר אליה (חוק 3)",
+    "parity": 0.11119184878765535,
+    "placed": 3,
+    "cancelled": 3,
+    "error": null
   }
 ]
