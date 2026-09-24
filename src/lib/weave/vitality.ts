@@ -20,12 +20,15 @@ import { db } from "@/lib/db";
 export interface VitalityDTO {
   atts24h: number;
   atts7d: number;
-  signers24h: number;
+  /** R119: null = לא נמדד (מקור חלון-מראה ללא כיסוי) — לעולם לא 0 שקרי */
+  signers24h: number | null;
   checkpoints24h: number;
-  marketEvents24h: number;
+  marketEvents24h: number | null;
   aliveDays: number;
   lastAttAgeMin: number;
   computedAtIso: string;
+  /** R119: true = הוגש מחלון המראה (120 אימותים) — ספירות חלוניות, לא קנון-ספר */
+  windowLimited?: boolean;
 }
 
 function utcDayIndex(date: Date): number {

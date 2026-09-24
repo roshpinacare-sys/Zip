@@ -96,6 +96,20 @@ export interface MirrorStats {
   brainLive: number;
   attByStatus: Record<string, number>;
   headHash: string;
+  // R119 · חיות קנונית — נחשבת מהספר המלא בזמן הפרסום (mirror.ts ← vitality.ts,
+  // חוק ההגדרה-היחידה). החלון (120 אימותים אחרונים) הוא לתצוגה בלבד.
+  vitality?: MirrorVitalityCanon;
+}
+/** החיות כפי שחושבה מהספר המלא בזמן פרסום המראה — אותם שדות כמו VitalityDTO */
+export interface MirrorVitalityCanon {
+  atts24h: number;
+  atts7d: number;
+  signers24h: number;
+  checkpoints24h: number;
+  marketEvents24h: number;
+  aliveDays: number;
+  lastAttAgeMin: number;
+  computedAtIso: string;
 }
 export interface Mirror {
   format: string;
@@ -343,18 +357,46 @@ export async function dispatchWorkflow(repo: string, workflow: string): Promise<
 
 // ── חישוב חיות מהמראה (בלי DB מקומי) ────────────────────────────────
 
-export function computeVitalityFromMirror(mirror: Mirror): {
+export interface MirrorVitalityView {
   atts24h: number;
   atts7d: number;
+  signers24h: number | null;
   checkpoints24h: number;
+  marketEvents24h: number | null;
   lastAttAgeMin: number;
   aliveDays: number;
-} {
+  /** R119: false = מהספר המלא (קנון). true = חלון-מראה ישן בלבד — הספירות
+   * החלוניות מתויגות, לא מוצגות כאילו היו אמת-ספר. */
+  windowLimited: boolean;
+  computedAtIso: string | null;
+}
+
+export function computeVitalityFromMirror(mirror: Mirror): MirrorVitalityView {
+  // R119 · חוק המקור-היחיד: אם המראה פורסמה עם vitality מהספר המלא — היא האמת
+  // (נחשבה בזמן הפרסום על-ידי mirror.ts בדיוק באותה הגדרה קנונית). החלון
+  // (120 האימותים האחרונים) אינו מקור לחיים — הוא מציג את גודלו כאילו היה אמת.
+  const canon = mirror.stats.vitality;
+  if (canon) {
+    return {
+      atts24h: canon.atts24h,
+      atts7d: canon.atts7d,
+      signers24h: canon.signers24h,
+      checkpoints24h: canon.checkpoints24h,
+      marketEvents24h: canon.marketEvents24h,
+      lastAttAgeMin: canon.lastAttAgeMin,
+      aliveDays: canon.aliveDays,
+      windowLimited: false,
+      computedAtIso: canon.computedAtIso ?? null,
+    };
+  }
+  // פאלבק כנה למראה ישנה (טרום-R119): מה שהחלון מסוגל למדוד באמת נמדד
+  // (atts24h/signers24h — החלון מכסה לפחות 24 שעות), והשאר מתויג חלון.
   const now = Date.now();
   const at = (iso: string) => new Date(iso).getTime();
   const atts = mirror.attestations;
   const cps = mirror.checkpoints;
-  const atts24h = atts.filter((a) => now - at(a.at) < 86_400_000).length;
+  const atts24hWindow = atts.filter((a) => now - at(a.at) < 86_400_000);
+  const atts24h = atts24hWindow.length;
   const atts7d = atts.filter((a) => now - at(a.at) < 7 * 86_400_000).length;
   const checkpoints24h = cps.filter((c) => now - at(c.at) < 86_400_000).length;
   const lastAttAgeMin = atts.length
@@ -362,5 +404,16 @@ export function computeVitalityFromMirror(mirror: Mirror): {
     : -1;
   const first = atts.length ? at(atts[atts.length - 1].at) : now;
   const aliveDays = Math.max(1, Math.round((now - first) / 86_400_000));
-  return { atts24h, atts7d, checkpoints24h, lastAttAgeMin, aliveDays };
+  const signers24h = new Set(atts24hWindow.map((a) => a.agentName)).size || null;
+  return {
+    atts24h,
+    atts7d,
+    signers24h,
+    checkpoints24h,
+    marketEvents24h: null,
+    lastAttAgeMin,
+    aliveDays,
+    windowLimited: true,
+    computedAtIso: null,
+  };
 }

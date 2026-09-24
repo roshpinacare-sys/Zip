@@ -431,7 +431,8 @@ export function DashboardTab() {
             checkpoints
           </span>
           <span className="text-xs text-muted-foreground">
-            רצף{" "}
+            {/* R119 · חוק ההגדרה-היחידה: "רצף" הוא רצף-ספר אמיתי; חלון-מראה מתויג בכנות */}
+            {lv.vitality.windowLimited ? "חלון-מראה" : "רצף"}{" "}
             <span dir="ltr" className="font-mono font-bold tabular-nums text-foreground">
               {lv.vitality.aliveDays}
             </span>{" "}

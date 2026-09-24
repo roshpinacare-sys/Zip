@@ -279,7 +279,7 @@ export function HomeView() {
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
               </span>
               {d
-                ? `רשת חיה · ${d.stats.attestations} אימותים · רצף ${vitality?.aliveDays ?? "…"} ימים · ${lastBeat}`
+                ? `רשת חיה · ${d.stats.attestations} אימותים · ${vitality?.windowLimited ? "חלון-מראה" : "רצף"} ${vitality?.aliveDays ?? "…"} ימים · ${lastBeat}`
                 : "מתחבר לענן…"}
             </Badge>
             <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">

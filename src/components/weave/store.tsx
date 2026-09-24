@@ -52,9 +52,14 @@ export interface LiveOverview {
   vitality: {
     atts24h: number;
     atts7d: number;
+    signers24h: number | null;
     checkpoints24h: number;
+    marketEvents24h: number | null;
     lastAttAgeMin: number;
     aliveDays: number;
+    /** R119 · false = קנון מהספר המלא · true = חלון-מראה בלבד (מתויג בתצוגה) */
+    windowLimited: boolean;
+    computedAtIso?: string | null;
   };
   freshness: { verdict: string; ageHours: number; thresholdHours: number; cadence: string } | null;
   witness: {
@@ -211,12 +216,15 @@ function liveStateFromOverview(o: LiveOverview): WeaveStateDTO {
     vitality: {
       atts24h: o.vitality.atts24h,
       atts7d: o.vitality.atts7d,
-      signers24h: 0,
+      // R119 · אפס מומצא מת — ערך לא-ידוע מוצג כ-null ("—"), לא כ-0 שקרי
+      signers24h: o.vitality.signers24h ?? null,
       checkpoints24h: o.vitality.checkpoints24h,
-      marketEvents24h: 0,
+      marketEvents24h: o.vitality.marketEvents24h ?? null,
       aliveDays: o.vitality.aliveDays,
       lastAttAgeMin: o.vitality.lastAttAgeMin,
-      computedAtIso: o.mirrorGeneratedAt,
+      computedAtIso: o.vitality.computedAtIso ?? o.mirrorGeneratedAt,
+      // המשכיות חוק-R119 לצרכן המפושט: התווית זורמת עם הנתונים
+      windowLimited: o.vitality.windowLimited,
     },
   };
 }

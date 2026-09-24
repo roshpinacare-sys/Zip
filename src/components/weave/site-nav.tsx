@@ -420,7 +420,7 @@ export function SiteNav({
                       hour: "2-digit",
                       minute: "2-digit",
                     })}{" "}
-                    · {pulse.stats.attestations} אימותים · רצף {pulse.vitality.aliveDays} ימים
+                    · {pulse.stats.attestations} אימותים · {pulse.vitality.windowLimited ? "חלון-מראה" : "רצף"} {pulse.vitality.aliveDays} ימים
                   </p>
                 )}
               </nav>

@@ -20,6 +20,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { db } from "@/lib/db";
+import { computeVitality } from "@/lib/weave/vitality";
 import { secretGate, filterKnownHashes } from "../../../scripts/weave-gate";
 
 const OWNER = process.env.WEAVE_OWNER || "roshpinacare-sys";
@@ -90,6 +91,13 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
     attByStatus[a.status] = a._count;
   }
 
+  // R119 · סגירת "שקר החלון": המראה נושאת חלון תצוגה בלבד (120 אימותים
+  // · 30 צ'קפוינטים אחרונים) — לקוח שיחשב ממנו "חיים" יציג את גודל
+  // החלון כאילו היה אמת (נמדד: "רצף 2 ימים" במקום 11 · "120 בשבוע"
+  // במקום 357 · "30 checkpoints24h" במקום 76). החיות נחשבת כאן מהספר
+  // המלא, באותה הגדרה קנונית של vitality.ts (חוק ההגדרה-היחידה, r117).
+  const vitality = await computeVitality();
+
   return {
     format: "weave-console-mirror-v1",
     generatedAt: new Date().toISOString(),
@@ -103,6 +111,16 @@ export async function buildConsoleMirror(): Promise<Record<string, unknown>> {
       brainLive: brainKeys.filter((b) => b.status === "verified").length,
       attByStatus,
       headHash: attestations[0]?.entryHash ?? null,
+      vitality: {
+        atts24h: vitality.atts24h,
+        atts7d: vitality.atts7d,
+        signers24h: vitality.signers24h,
+        checkpoints24h: vitality.checkpoints24h,
+        marketEvents24h: vitality.marketEvents24h,
+        aliveDays: vitality.aliveDays,
+        lastAttAgeMin: vitality.lastAttAgeMin,
+        computedAtIso: vitality.computedAtIso,
+      },
     },
     agents: agents.map((a) => {
       const act = agentActivity.get(a.name) || { count: 0, lastSeq: null, lastAt: null };

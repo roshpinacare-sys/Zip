@@ -181,8 +181,15 @@ export function EvolutionView() {
 
   const vitality: Array<{ label: string; value: string | null; hint: string }> = [
     { label: "אימותים ב-24ש׳", value: vit ? String(vit.atts24h) : null, hint: "עבודה שנכתבה בחלון - ה-DAU הרשמי" },
-    { label: "חותמים ייחודיים ב-24ש׳", value: vit ? String(vit.signers24h) : null, hint: "סוכנים שחתמו בפועל - לא רשומים" },
-    { label: "רצף ימים חיים", value: vit ? String(vit.aliveDays) : null, hint: "ימי-UTC רצופים עם ≥1 אימות חתום" },
+    // R119 · אפס מומצא מת: null מוצג כ-"—" — לא כ-0 שקרי; חלון-מראה מתויג בכנות
+    { label: "חותמים ייחודיים ב-24ש׳", value: vit ? (vit.signers24h != null ? String(vit.signers24h) : "—") : null, hint: "סוכנים שחתמו בפועל - לא רשומים" },
+    {
+      label: vit?.windowLimited ? "חלון המראה (ימים)" : "רצף ימים חיים",
+      value: vit ? String(vit.aliveDays) : null,
+      hint: vit?.windowLimited
+        ? "מראה טרום-R119 — החלון בלבד; הרצף האמיתי יגיע עם הפרסום הבא מהספר המלא"
+        : "ימי-UTC רצופים עם ≥1 אימות חתום",
+    },
     { label: "טריות הספר", value: vit ? (vit.lastAttAgeMin >= 0 ? `${vit.lastAttAgeMin} דק׳` : "-") : null, hint: "דקות מהאימות האחרון שנכתב" },
   ];
 
@@ -237,7 +244,7 @@ export function EvolutionView() {
               <p className="text-sm font-semibold">מדד החיים הרשמי - נספר מהספר</p>
               {vit && (
                 <span className="ms-auto font-mono text-[10px] text-muted-foreground" dir="ltr">
-                  atts7d {vit.atts7d} · cps24h {vit.checkpoints24h} · mkt24h {vit.marketEvents24h}
+                  atts7d {vit.atts7d} · cps24h {vit.checkpoints24h} · mkt24h {vit.marketEvents24h ?? "—"}{vit.windowLimited ? " · window" : ""}
                 </span>
               )}
             </div>
