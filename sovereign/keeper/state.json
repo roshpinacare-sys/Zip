@@ -1,37 +1,13 @@
 {
   "service": "keeper",
   "version": "1.2.0",
-  "bootedAt": "2026-09-24T06:38:59.633Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "beats": 2559,
-=======
-  "beats": 2553,
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-  "beats": 2556,
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-  "beats": 2557,
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+  "bootedAt": "2026-09-24T06:54:33.114Z",
+  "beats": 6,
   "patrolIntervalSec": 30,
   "alive": true,
   "patrolling": false,
   "lastDecision": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "at": "2026-09-24T06:52:59.646Z",
-=======
-    "at": "2026-09-24T06:49:59.645Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-    "at": "2026-09-24T06:51:29.645Z",
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-    "at": "2026-09-24T06:51:59.646Z",
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+    "at": "2026-09-24T06:57:03.128Z",
     "kind": "PATROL",
     "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
   },
@@ -42,47 +18,18 @@
       "roleHe": "הדופק — השידור היומי לשרשרת",
       "roleEn": "The pulse — daily chain broadcast",
       "state": "UP",
-      "since": "2026-09-24T06:35:25.875Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastCheckAt": "2026-09-24T06:52:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
-=======
-      "lastCheckAt": "2026-09-24T06:49:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:49:59.643Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-      "lastCheckAt": "2026-09-24T06:51:29.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:29.643Z",
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-      "lastCheckAt": "2026-09-24T06:51:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:59.643Z",
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+      "since": "2026-09-24T06:54:33.114Z",
+      "lastCheckAt": "2026-09-24T06:57:03.125Z",
+      "lastHealthyAt": "2026-09-24T06:57:03.125Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastBeats": 2771,
-      "bootedAtSeen": "2026-09-24T06:52:02.704Z",
-=======
-      "lastBeats": 2772,
-=======
-      "lastBeats": 2775,
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-      "lastBeats": 2776,
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
-      "bootedAtSeen": "2026-09-24T06:49:07.162Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
+      "lastBeats": 6,
+      "bootedAtSeen": "2026-09-24T06:54:33.043Z",
       "acting": false,
       "intervalSec": 30,
-      "beatsStalePatrols": 0,
-      "restartsLog": []
+      "beatsStalePatrols": 0
     },
     {
       "name": "money",
@@ -90,43 +37,18 @@
       "roleHe": "מוביל הכסף — סולם הפאריטה על הקו",
       "roleEn": "The money mover — parity ladder",
       "state": "UP",
-      "since": "2026-09-24T06:49:29.643Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastCheckAt": "2026-09-24T06:52:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
-=======
-      "lastCheckAt": "2026-09-24T06:49:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:49:59.643Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-      "lastCheckAt": "2026-09-24T06:51:29.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:29.643Z",
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-      "lastCheckAt": "2026-09-24T06:51:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:59.643Z",
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+      "since": "2026-09-24T06:54:33.114Z",
+      "lastCheckAt": "2026-09-24T06:57:03.125Z",
+      "lastHealthyAt": "2026-09-24T06:57:03.125Z",
       "consecutiveFails": 0,
-      "lastRestartAt": "2026-09-24T03:26:45.206Z",
-      "restartsToday": 12,
+      "lastRestartAt": null,
+      "restartsToday": 0,
       "restartDay": "2026-09-24",
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastBeats": 814,
-      "bootedAtSeen": "2026-09-24T06:52:02.698Z",
-=======
-      "lastBeats": 1,
-=======
       "lastBeats": 3,
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-      "bootedAtSeen": "2026-09-24T06:49:07.172Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
+      "bootedAtSeen": "2026-09-24T06:54:33.084Z",
       "acting": false,
       "intervalSec": 60,
-      "beatsStalePatrols": 1,
-      "restartsLog": []
+      "beatsStalePatrols": 1
     },
     {
       "name": "hunter",
@@ -134,39 +56,18 @@
       "roleHe": "הצייד — שער הדקות ולוח ההזדמנויות",
       "roleEn": "The hunter — minute-gate & opportunities",
       "state": "UP",
-      "since": "2026-09-24T06:35:25.875Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastCheckAt": "2026-09-24T06:52:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
-=======
-      "lastCheckAt": "2026-09-24T06:49:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:49:59.643Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-      "lastCheckAt": "2026-09-24T06:51:29.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:29.643Z",
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-      "lastCheckAt": "2026-09-24T06:51:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:59.643Z",
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+      "since": "2026-09-24T06:54:33.114Z",
+      "lastCheckAt": "2026-09-24T06:57:03.125Z",
+      "lastHealthyAt": "2026-09-24T06:57:03.125Z",
       "consecutiveFails": 0,
-      "lastRestartAt": "2026-09-22T03:07:44.974Z",
+      "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-<<<<<<< HEAD
-      "lastBeats": 139,
-      "bootedAtSeen": "2026-09-24T06:52:02.694Z",
-=======
-      "lastBeats": 138,
-      "bootedAtSeen": "2026-09-24T06:49:07.156Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
+      "lastBeats": 1,
+      "bootedAtSeen": "2026-09-24T06:54:33.068Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 5,
-      "restartsLog": []
+      "beatsStalePatrols": 5
     },
     {
       "name": "student",
@@ -174,39 +75,18 @@
       "roleHe": "התלמיד — בחינה עצמית, כיסוי ולמידה",
       "roleEn": "The student — self-exam, coverage & learning",
       "state": "UP",
-      "since": "2026-09-24T06:35:25.875Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastCheckAt": "2026-09-24T06:52:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
-=======
-      "lastCheckAt": "2026-09-24T06:49:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:49:59.643Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-      "lastCheckAt": "2026-09-24T06:51:29.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:29.643Z",
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-      "lastCheckAt": "2026-09-24T06:51:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:59.643Z",
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+      "since": "2026-09-24T06:54:33.114Z",
+      "lastCheckAt": "2026-09-24T06:57:03.125Z",
+      "lastHealthyAt": "2026-09-24T06:57:03.125Z",
       "consecutiveFails": 0,
       "lastRestartAt": null,
       "restartsToday": 0,
       "restartDay": "2026-09-24",
-<<<<<<< HEAD
-      "lastBeats": 2,
-      "bootedAtSeen": "2026-09-24T06:52:02.700Z",
-=======
       "lastBeats": 1,
-      "bootedAtSeen": "2026-09-24T06:49:07.173Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
+      "bootedAtSeen": "2026-09-24T06:54:33.118Z",
       "acting": false,
       "intervalSec": 600,
-      "beatsStalePatrols": 5,
-      "restartsLog": []
+      "beatsStalePatrols": 5
     },
     {
       "name": "fleet-verify",
@@ -214,405 +94,53 @@
       "roleHe": "מפעל האימות המקומי — תשעת המאמתים חוזרים לחיים",
       "roleEn": "The local verification plant — nine verifiers reborn",
       "state": "UP",
-      "since": "2026-09-24T04:23:11.443Z",
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastCheckAt": "2026-09-24T06:52:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:52:59.643Z",
-=======
-      "lastCheckAt": "2026-09-24T06:49:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:49:59.643Z",
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-      "lastCheckAt": "2026-09-24T06:51:29.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:29.643Z",
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
-      "lastCheckAt": "2026-09-24T06:51:59.643Z",
-      "lastHealthyAt": "2026-09-24T06:51:59.643Z",
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
+      "since": "2026-09-24T06:54:33.114Z",
+      "lastCheckAt": "2026-09-24T06:57:03.125Z",
+      "lastHealthyAt": "2026-09-24T06:57:03.125Z",
       "consecutiveFails": 0,
-      "lastRestartAt": "2026-09-24T04:22:40.577Z",
-      "restartsToday": 12,
+      "lastRestartAt": null,
+      "restartsToday": 0,
       "restartDay": "2026-09-24",
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "lastBeats": 150,
-=======
-      "lastBeats": 147,
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
-      "lastBeats": 149,
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-      "bootedAtSeen": "2026-09-24T04:23:11.444Z",
+      "lastBeats": 3,
+      "bootedAtSeen": "2026-09-24T06:54:33.178Z",
       "acting": false,
       "intervalSec": 120,
-      "beatsStalePatrols": 1,
-      "restartsLog": []
+      "beatsStalePatrols": 0
     }
   ],
   "history": [
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-      "at": "2026-09-24T06:20:11.471Z",
+      "at": "2026-09-24T06:54:33.169Z",
       "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-48 · hunter:UP · student:UP · fleet-verify:UP"
+      "detail": "התערבות — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:FAIL-1"
     },
     {
-      "at": "2026-09-24T06:20:41.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-49 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:21:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-50 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-=======
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-      "at": "2026-09-24T06:21:41.472Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-51 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-=======
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
-      "at": "2026-09-24T06:22:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-52 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:22:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-53 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-      "at": "2026-09-24T06:23:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-54 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:23:41.472Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-55 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:24:11.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-56 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:24:41.472Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:ZOMBIE-57 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:25:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:25:41.472Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:26:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:26:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-1 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:27:11.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-2 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:27:41.467Z",
-      "kind": "GAVE-UP",
-      "detail": "money (3034): תקציב 12 הקמות/יום נאכל — כנות, העין פקוחה בלי יד"
-    },
-    {
-      "at": "2026-09-24T06:27:41.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-3 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:28:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-4 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:28:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-5 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:29:11.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-6 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:29:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-7 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:30:11.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-8 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:30:41.471Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:UP · money:FAIL-9 · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:31:11.470Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:31:41.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:32:11.471Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:32:41.472Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:33:11.470Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:FAIL-1 · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:33:41.468Z",
-      "kind": "PATROL",
-      "detail": "התערבות — pulse:FAIL-2 · money:UP · hunter:FAIL-1 · student:FAIL-1 · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:35:25.901Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:35:55.880Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:36:25.881Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:36:55.881Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:37:25.881Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:37:55.881Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:38:25.882Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:38:55.881Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:38:59.669Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:39:29.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:39:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:40:29.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:40:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:41:29.647Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:41:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:42:29.645Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:42:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:43:29.645Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:43:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:44:29.648Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:44:59.648Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:45:29.648Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:45:59.647Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:46:29.647Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:46:59.647Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:47:29.647Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:47:59.647Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:48:29.648Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:48:59.648Z",
+      "at": "2026-09-24T06:55:03.136Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:BUSY · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T06:49:29.646Z",
+      "at": "2026-09-24T06:55:33.128Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T06:49:59.645Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-    },
-    {
-      "at": "2026-09-24T06:50:29.646Z",
+      "at": "2026-09-24T06:56:03.128Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T06:50:59.646Z",
+      "at": "2026-09-24T06:56:33.128Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
     },
     {
-      "at": "2026-09-24T06:51:29.645Z",
+      "at": "2026-09-24T06:57:03.128Z",
       "kind": "PATROL",
       "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
-    },
-    {
-      "at": "2026-09-24T06:51:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-<<<<<<< HEAD
-    },
-    {
-      "at": "2026-09-24T06:52:29.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-    },
-    {
-      "at": "2026-09-24T06:52:59.646Z",
-      "kind": "PATROL",
-      "detail": "סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP"
-=======
->>>>>>> c6e8fee (r112 (rebase resolution): conflicts in daemon state files resolved to live daemon-written versions — daemons own their state files; code from 58ffd0b applied cleanly)
-=======
->>>>>>> 6f866e1 (r112: bounded-wait law + rolling-window revival — second silent death of the money engine caught live, root-class eradicated fleet-wide — (1) CAUGHT LIVE 06:14: money-mover frozen at beats=813 since 05:53 while its HTTP server kept answering — the keeper logged ZOMBIE-8→57 in sequence but could not revive: its daily restart budget (12/12) burned at 03:26 by the pre-R110-laws spiral, so the daemon stayed dead until midnight while the fleet's most valuable engine sat unwatched (2) ROOT CAUSE (code-level): canonPush's two GitHub API fetches were the ONLY un-timeouted network calls in the daemon — a hung connection (no RST/FIN) froze the final await of act(), the ticking guard stayed true forever, and every later beat no-op'd at the loop guard. Server alive, timer dead (3) LAW OF THE BOUNDED WAIT (fleet-wide): no fetch without a deadline — 12 un-timeouted call sites fixed across money/pulse/keeper/hunter/student (30s GitHub, 15s localhost; fleet-verify was already clean) (4) LAW OF THE TICK WATCHDOG (money v1.9.0): the interval itself watches the guard it lives behind — a tick stuck >5min is force-released with an honest WATCHDOG-RELEASE history entry; acting stuck >10min likewise. A wedged tick costs ONE cycle, not the daemon; the orphaned await holds no write power past its hang point (verified against the call chain) (5) SINGLE-TIMER LAW COMPLETED FLEET-WIDE: pulse v1.2.0 / hunter v1.3.0 / student v1.5.0 now carry globalThis singleton guards (__PULSE_TIMER__ etc.) like money (R111) and fleet-verify (R109) — a live edit can never multiply intervals again; counter-measurement stayed honest: live sampling proved pulse +2/75s and hunter +0/75s at correct single rates BEFORE any edit (the high historical beats are state carry-over across restarts, not live duplication) (6) LAW OF THE ROLLING WINDOW (keeper v1.2.0): the hard revival law is now 4 restarts per daemon per rolling 6h window + 2min cooldown, tracked in a per-daemon restartsLog; GAVE-UP becomes 'quarantine until the window frees' (QUARANTINE-END documented on re-supervision) instead of 'dead until midnight'; the daily-12 counter drops to observability — it was built to stop spirals, spirals are now structurally impossible (newborn law R110 + bounded wait R112), and a counter burned in a previous era must not starve revival for 18 hours while the live window sits empty — exactly today's proven case (money: 12/12 daily burned, rolling window empty) (7) LIVE LESSON R107b RE-LEARNED: MultiEdit on a live daemon file fired an intermediate-state boot tick (reload 06:24:55 caught partial code) that acted LAWFULLY: measured real +393bps HIVE drift → honest HIVE-REPRICE (6 cancelled, 6 placed, 5 rc-gated: HIVE mana 1.21e+8 < 3.0e+8 floor 'regen budget, honest skip'), actionsToday 9→10 within budget, next beat stopped honestly at WAIT-COOLDOWN. Zero money harm; the exposure was real and is now canon: stop→edit→start only (8) ENVIRONMENT DEATH CAUGHT: nohup spawns from a Bash tool command die when the command completes (sandbox kills the process group) — second silent death inside the session, caught via keeper FAIL-1..6 log. Survivors are PPID-1 orphans with their own session born from a voluntarily-exiting parent. Law: daemons are born ONLY via daemons-revive or the keeper's own spawn (proven live: PID 14032 PPID-1 survives command end, beats advance) (9) LIVE PROOFS: money revived clean through daemons-revive — beats 813→829 at exact 60s cadence; STEEM ladder intact — 3 orders, full 476.637, zero idle (hunter SCAN confirms); keeper patrol 'סיור תקין — pulse:UP · money:UP · hunter:UP · student:UP · fleet-verify:UP' with fresh data; book 489 attestations, sync ok; tsc 119=exact baseline (daemon errors: known TS2867 Bun-globals + 2 pre-existing TS2339 in student verified outside edit zones via git diff); lint clean; browser: keeper view shows live patrol 06:42, money alive in fleet table (beats 827, honest WAIT-COOLDOWN), flows view live (chain #60028, treasury 213.75, savings 77.97), mobile 390=390 no overflow, footer natural (flex pattern verified in source), zero console errors, dev.log all-200; evidence r112-*.png x5; report sovereign/reports/r112-bounded-wait-and-rolling-window-2026-09-24.md)
-=======
->>>>>>> a4bd384 (live state drift — daemons writing while session anchors)
     }
   ],
-  "canonLast": {
-    "at": "2026-09-24T03:18:46.532Z",
-    "ok": true,
-    "path": "reports/keeper-2026-09-24.md"
-  },
-  "canonToday": 8,
+  "canonLast": null,
+  "canonToday": 0,
   "canonDay": "2026-09-24"
 }
