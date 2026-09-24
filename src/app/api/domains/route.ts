@@ -14,8 +14,16 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json({ ok: true, domains });
-  } catch {
-    return NextResponse.json({ ok: true, domains: [] });
+  } catch (err) {
+    // R119 · חוק הכנות: כשל-DB אינו "רשימה ריקה" — הסתרת כישלון תציג אמת-שקר
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `קריאת הדומיינים נכשלה: ${err instanceof Error ? err.message : String(err)}`,
+        domains: [],
+      },
+      { status: 500 },
+    );
   }
 }
 

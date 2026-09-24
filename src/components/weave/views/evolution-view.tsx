@@ -9,6 +9,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect } from "react";
 import {
   ArrowDown,
   ArrowUpRight,
@@ -166,7 +167,12 @@ const ROADMAP = [
 export function EvolutionView() {
   const reduced = useReducedMotion();
   const f = (delay = 0) => (reduced ? {} : fade(delay));
-  const { state, attestations } = useWeave();
+  const { state, attestations, loadState } = useWeave();
+  // R119 · תיקון באג-תצוגה קיים: ה-view הציג תג LIVE מעל עמודת "-" שלמה —
+  // המדדים לא נטענו מעולם (loadLazy לא מופעל אוטומטית; רק ה-dashboard קרא לו).
+  useEffect(() => {
+    loadState();
+  }, [loadState]);
   const live = state.data;
   const attCount = live?.chainCount ?? attestations.data?.length ?? null;
   const verified = live?.stats?.VERIFIED ?? null;

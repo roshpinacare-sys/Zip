@@ -342,9 +342,12 @@ export function WeaveProvider({ children }: { children: ReactNode }) {
 
   // רענון אוטומטי של האמת החיה כל 5 דקות - האתר נושם עם הענן
   useEffect(() => {
+    // R119 · ההערה למעלה אומרת "תמיד נטענת" — עכשיו זה נכון גם בטעינה הראשונה
+    // (לפני: רק אינטרוול 5-דקות או ביקור בעמוד הבית מילאו את השכבה)
+    loadLive();
     const t = setInterval(() => void reloadLiveRaw(), 5 * 60_000);
     return () => clearInterval(t);
-  }, [reloadLiveRaw]);
+  }, [loadLive, reloadLiveRaw]);
 
   // ── פרוסות מודעות-מצב ─────────────────────────────────────────────
   const liveData = live.data;
