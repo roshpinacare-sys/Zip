@@ -4425,3 +4425,23 @@ Stage Summary:
 - ספירת שגיאות ב-src: 67 → 0 (18 קבצים + קובץ הכרזה חדש). tsc מלא עובר; bun run lint נקי; dev.log בריא.
 - עשרות-עשיריות: שני באגי ctrl/ctl אמיתיים (ReferenceError בטיימאאוט — כעת abort תקין), ו-bug המרות market: לקוחות קיבלו undefined. ערכי BigInt זהים (נמדד חי ב-/api/exchange/router: VERIFIED).
 - עשרות-עשיריות: skills/stock-analysis-skill/src/analyzer.ts נותר (יחידת skills, לא שלי).
+---
+Task ID: r123
+Agent: the-weave-lead (סשן המשך) + יחידות r123-a/r123-b/r123-c/r123-d/r123-e
+Task: "תמשיך בעוד דרכים נוספות לדייק לחשוף לתקן לשפר לייעל לבחון עוד לשפר אוטונומיה לשפר ריבונות לוודא עוד דימומים באגים חוסר אמת חוסר כנות חוסר מקצועיות זרימה של הכל והתקדמות ריבונית אוטונומית רציפה לקידום הרשת ומטרותיה"
+
+Work Log:
+- סנכרון ברזל בפתיחה (state קפוא נדחף → זהות) ובסיום (rebase מול עוגן ענן שהגיע בין-כך: cp#560 · att 571) → 0/0 על cea8328.
+- בדיקות על: צי 7/7 UP (pulse·money·hunter·student·keeper·fleet-verify·weblift + web) · 10 הריפואים חיים עם פסקי-דין מאומתים מ-20:09-20:13Z (המחזור הבא 20:11Z) · weblift מזדחל בכנות כלכלית: 4571/41124 תווים על השרשרת, צ'אנקים הבאים ממתינים ל-RC (215M/2348M — מנה מדויקת מול תקציב).
+- r123-a (מסמכי-אמת): 29 ממצאים ב-10 מסמכי שורש — 11 נקודות "כל 6 שעות" מתו · weave-core ככתובת clone מת (VERIFY.md — אותו שקר חוק-13 שנתפס ב-r121, שרד במסמכים) · "Steem+Hive" כקו חי ×5 (Hive מושהה R11) · 14→16 ריפואים · "mini-services ריק" → צי 7 · ג'נזיס SAOS "ממתין" → הונח · סטטוסי AGENTS מיושנים → ירוקים נמדדים · Pages "ממתין" → פעיל (200). TRUTH-AUDIT/BENCHMARK/NETWORK-EVOLUTION נשמרו כהיסטוריה חתומה.
+- r123-c (כנות-דיבונים, הושלם חלקית לפני נפילת-מועד ונבדק מלא ע"י הליד): STATE-RESET גלוי בכל 7 הדיבונים (state בלתי-קריא לא נבלע בשקט) · כתיבה-אטומית (.tmp+rename) בכולם · hostname 127.0.0.1 לכל הדיבונים · hunter: lastRunReadError נרשם (HTTP≠2xx ושגיאות-רשת לא נבלעות) + NaN-guard על גיל פקודות + CANARY-NO-PAT חד-פעמי · student: coverageAt=חותמת-מדידה בלבד (לא חותמת-ניסיון) + COVERAGE-FAIL גלוי · weblift: שרת-חוצה-דורות (EADDRINUSE מת מטעינות-חמות) + שימור nextDueAt + LIFT-ORPHANED כנה · keeper: תקרת pendingCanon 200 (דליפת-זיכרון) · fleet-verify: חיתוך history בזמן-ריצה + GIT_HTTP_LOW_SPEED (המתנה-חסומה גם לגיט) · money: appendHistory אטומי + כישלון-דיסק נרשם.
+- r123-b (views, חלקי): טיפוגרפיה עברית (מבקא→מבקר · זוכנים→סוכנים · מפעיא→מפעיל · שעור→שער-מפעיל) · Eye/EyeOff היפוך · domains-view: מצב-כישלון fail-closed עם "נסה שוב" (חוק r119 יושם ב-view) · קישור מת steemd.com→steemscan.com · קדנס-ענן בדוקטרינה מה-YAML החי · store: capability=IDENTITY-ONLY כנה למראה.
+- הרגרסיה מהנפילה נתפסה ותוקנה: StudentState.lastDecision חסר בטיפוס — נוסף + עדכון freshState/readState.
+- r123-d+r123-e (יחידות איפוס-טיפוסים): tsc 103→0 — הפעם הראשונה אי-פעם. 21 שגיאות BigInt-vs-ES2017 · contract-drift של MotionCard/ErrorBox/StatusBadge · never-narrowing של fail (arrow→declaration) · readonly-vs-ethers ×2. שני באגים אמיתיים חבויים נתפסו: ctrl.abort() ReferenceError בצינורות timeout (exchange-router, crossmarket) ו-openMarket שהחזיר seq במקום marketSeq (לקוחות קיבלו undefined). tsconfig: upload+skills הוסרו מהכללה (קוד זר, לא שלנו).
+- ממצאי חוץ-תחום של r123-a נסגרו ע"י הליד: console/verify/README.md — ה-clone המת weave-core תוקן לנתיב החי (Console/verify) במקור הקנוני שמסונכרן לציבור · הצומת המת steem.61bts.com הוסר מ-5 קבצים (render.mjs, acid.html, sovereign-anchor.html, gate.html, r111-chain-orders.mjs).
+- אימות סוף-לקצה: tsc 0 · לינט נקי · אפס page-errors/קונסולה בבית/שער/דומיינים/סוכנים/מאזן/בורסה · ספי-השער מוצגים חי (BTC ±4% · 25/60 · STEEM ±5% · 26ש') · מובייל 390=390 · צי 7/7 UP אחרי כל הטעינות-החמות · דחיפה 0/0.
+
+Stage Summary:
+- סבב של חמישה צירים: מסמכים (29 שקרי-הווה) · כנות-דיבונים (7 תיקוני-שורש) · איכות-קוד (tsc 103→0 + 2 באגים חבויים) · נכסים-ציבוריים (נתיב חוק-13 + צומת מת) · תשתית (אטומיות, המתנה-חסומה, localhost).
+- החוקים שנחקקו: (1) חותמת-מדידה ≠ חותמת-ניסיון — coverageAt לא מתעדכן בלי מדידה; (2) state בלתי-קריא נרשם כ-STATE-RESET גלוי, לא איפוס-שקט; (3) שרת-HTTP אחד לכל החיים של התהליך — ה-handler קורא מצב-חי דרך ציר-עולם.
+- הראיות: sovereign/evidence/r123-home.png · r123-domains.png · r123-mobile-home.png.
