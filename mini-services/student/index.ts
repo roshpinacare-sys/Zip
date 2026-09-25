@@ -749,13 +749,6 @@ async function learnExchange(): Promise<string[]> {
 
 async function safeHeal(): Promise<string[]> {
   const notes: string[] = [];
-  // r125-c — חוק גלגול-היום של תקציב הריפוי: המונה אוּפס עד כאן רק ב-readState
-  // (עלייה קרה). תהליך ארוך-חיים שחצה חצות-UTC היה נשאר עם 3/3 לנצח —
-  // הריפוי הבטוח גווע אחרי 3 ריפויים בכל חיי התהליך.
-  if (state.heal.day !== utcDay()) {
-    state.heal.day = utcDay();
-    state.heal.today = 0;
-  }
   // תקציב יומי: 3 ריפויים — לא מפציצים
   if (state.heal.today >= 3) return notes;
   const doHeal = async (action: string, run: () => Promise<{ ok: boolean; detail: string }>) => {

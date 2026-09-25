@@ -60,7 +60,6 @@ type PulseState = {
   lastPublishUtcDay: string | null;
   nextDueAt: string;
   attemptsToday: number;
-  attemptsDay: string; // r125-c — היום של תקציב הניסיונות (גלגול גם בזמן-ריצה, לא רק בעלייה קרה)
   broadcasting: boolean;
   lastDecision: Decision | null;
   canonLast: { at: string; ok: boolean; path: string } | null;
@@ -97,7 +96,6 @@ function readState(): PulseState {
     lastPublishUtcDay: null,
     nextDueAt: nextUtcMidnight(),
     attemptsToday: 0,
-    attemptsDay: utcDay(),
     broadcasting: false,
     lastDecision: null,
     canonLast: null,
@@ -127,7 +125,6 @@ function readState(): PulseState {
       lastPublishUtcDay: prev.lastPublishUtcDay ?? null,
       nextDueAt: prev.nextDueAt ?? nextUtcMidnight(),
       attemptsToday: sameDay ? (prev.attemptsToday ?? 0) : 0,
-      attemptsDay: prev.attemptsDay ?? utcDay(),
       historyTail: Array.isArray(prev.historyTail) ? prev.historyTail.slice(-20) : [],
       canonLast: prev.canonLast ?? null,
       windowSeededFromChain: prev.windowSeededFromChain ?? false,
@@ -360,13 +357,6 @@ async function tryPublish(): Promise<void> {
 
 // ── R91: עוגן-הצ'רטרים — רק כשיש סחף אמיתי ─────────────────────────
 async function tryCharterAnchor(): Promise<void> {
-  // r125-c — גלגול תקציב העיגון היומי בזמן-ריצה (אותה משפחה של attemptsToday):
-  // בלי זה, תהליך ארוך-חיים שחצה חצות-UTC נשאר עם anchorsToday של אתמול
-  // לנצח — עיגון הצ'רטרים גועב אחרי 4 עיגונים בכל חיי התהליך.
-  if (state.charter.anchorDay !== utcDay()) {
-    state.charter.anchorDay = utcDay();
-    state.charter.anchorsToday = 0;
-  }
   state.charter.anchoring = true;
   saveState();
   const ctl = new AbortController();
@@ -436,27 +426,13 @@ async function tryCharterAnchor(): Promise<void> {
   }
 }
 
-// r125-c — חוק הנעילה-חוצה-הדורות: הדגל על ציר-העולם, לא משתנה-מודול
-// שמתאפס בכל דור-חם. בלעדיו, דור-חם שנכנס בזמן הזריעה היומית (~20ש'
-// בטיק הראשון של היום, לפני ש-broadcasting נקבע) פותח טיק מקביל —
-// שני tryPublish באותו יום-UTC מול חוק "מקסימום 1" (ל-/api/publish אין
-// דה-דופ יומי: enqueue תמיד יוצר משימה חדשה, והפרמאלינק ייחודי-זמן).
-const G_PULSE_TICK = globalThis as unknown as { __PULSE_TICKING__?: boolean };
+let ticking = false;
 async function tick() {
-  if (G_PULSE_TICK.__PULSE_TICKING__ || state.broadcasting || state.charter.anchoring) return; // לולאה-יחידה (לקח R80 · r125-c: גם בין-דורות)
-  G_PULSE_TICK.__PULSE_TICKING__ = true;
+  if (ticking || state.broadcasting || state.charter.anchoring) return; // לולאה-יחידה
+  ticking = true;
   try {
     state.beats += 1;
     const day = utcDay();
-
-    // r125-c — חוק גלגול-היום של תקציב הניסיונות: המונה אוּפס עד כאן רק
-    // ב-readState (עלייה קרה) ובהצלחת שידור. תהליך שחי יום-נכשלים (3/3)
-    // ואז יום חדש — נשאר עם 3/3 לנצח: "החלון ייפתח מחר" בכל יום מחדש,
-    // והשידור היומי לא יוצא עד restart. הגלגול חייב לקרות גם בזמן-ריצה.
-    if (state.attemptsDay !== day) {
-      state.attemptsDay = day;
-      state.attemptsToday = 0;
-    }
 
     // R91: בדיקת סחף-צ'רטרים כל 10 פעימות (5 דק׳) — לפני לוגיקת הפרסום.
     // ההחלטה נשמרת ב-charter.lastDecision — לא נדרסת ע"י ה-WAIT שלהלן.
@@ -492,7 +468,7 @@ async function tick() {
     state.lastDecision = { at: new Date().toISOString(), kind: "ERROR", detail: String(e?.message ?? e).slice(0, 160) };
     saveState();
   } finally {
-    G_PULSE_TICK.__PULSE_TICKING__ = false;
+    ticking = false;
   }
 }
 
