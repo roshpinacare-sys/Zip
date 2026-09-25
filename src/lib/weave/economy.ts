@@ -783,7 +783,9 @@ interface AnchorTruth {
  * בכל פעימה). כשל-קריאה = null כנה, לא מספר מהזיכרון. */
 function readAnchorTruth(): AnchorTruth {
   const truth: AnchorTruth = { attCount: null, lastAttAt: null, zero: null };
-  const ROOT = path.resolve(__dirname, "..", "..", "..");
+  // r125 — Turbopack מקמפל __dirname לפאתום ("/ROOT/src/lib/weave") והספרים
+  // לעולם לא נמצאים בדיסק; עוגן-הפרויקט הוא ספריית-העבודה (כמו anchor.ts).
+  const ROOT = process.cwd();
   try {
     const ledger = JSON.parse(fs.readFileSync(path.join(ROOT, "sovereign", "ledger.json"), "utf8")) as {
       chainCount?: number;

@@ -361,7 +361,9 @@ async function doNetworkAdd(): Promise<boolean> {
   const wEth = 0; // ETH אבק — הדלת חיה, ההון לא; אפס נזקף בכנות
   await chainEvent("NETWORK_ADD", "treasury", {
     what: "העולם הלא-גרפן מתחבר לזירה — WSOL/WETH נכסי-זירה, דלתות הפקדה בחמש רשתות, ריילי משיכה",
-    measured: { sol: m.sol, eth: m.eth },
+    // r125a · חשיפת דגל ה-rpc: sol/eth=0 עם rpc-down אינו "אפס נמדד" —
+    // הקנון מבחין בין הון-אפס אמיתי לבין רגל שלא נמדדה.
+    measured: { sol: m.sol, eth: m.eth, rpc: { sol: m.rpc.sol, eth: m.rpc.eth } },
     credited: { WSOL: wSol, WETH: wEth },
     treasurySolAccount: "cashmachine",
     treasuryEthAccount: "cashmachine",
@@ -1015,8 +1017,28 @@ export async function rewardPay(params: {
         orderBy: { seq: "desc" },
       });
       let paid24h = 0;
+      // r125a · אמת-התקרה: תשלום קודם שלא נפענח אינו "שולם 0" — ספר שלא
+      // נקרא במלואו מכשיל את אימות התקרה. סירוב-כנה: לא מכסים יתר
+      // (להתעלם מהתשלום) ולא מזייפים חיסכון (לספור 0). חוק r124:
+      // כישלון-קריאה בחישוב-כסף הוא סירוב, לא אפס.
+      let ledgerUnreadable = false;
       for (const e of prior) {
-        try { paid24h += (JSON.parse(e.payload)?.amount as number) ?? 0; } catch { /* ספר ישן */ }
+        try {
+          const pl = JSON.parse(e.payload) as { amount?: unknown } | null;
+          if (pl == null || typeof pl.amount !== "number" || !Number.isFinite(pl.amount)) {
+            ledgerUnreadable = true;
+          } else {
+            paid24h += pl.amount;
+          }
+        } catch {
+          ledgerUnreadable = true; /* ספר ישן שבור — לא נבלע כאפס */
+        }
+      }
+      if (ledgerUnreadable) {
+        return {
+          ok: false,
+          detail: `REWARD-LEDGER-UNREADABLE: ספר-התגמולים של ${member} ב-24ש' לא נקרא במלואו — התקרה ${cap} אינה ניתנת לאימות; התשלום נדחה בכנות`,
+        };
       }
       if (paid24h + amount > cap) {
         return { ok: false, detail: `CAP: ${member} קיבל ${paid24h}/${cap} SAOS ב-24ש' — התקרה אוכפת (הגנת-דילול)` };
@@ -1496,7 +1518,10 @@ export async function poolGuard(params: {
  */
 // R111 — היצע עטיפה כולל: מאזני כל החברים בנכס + רזרבות הבריכות בצד שלו.
 // זו התביעה המלאה על ההון החי בשרשרת — הבסיס לשומר-הגיבוי.
-async function wrapSupply(asset: string): Promise<number> {
+// r125a · כנות: ספר שלא נקרא אינו "0 תביעות" — אי-מדידה (null). השומר
+// מסרב כשאינו יכול למדוד את התביעה — חוק r124: כישלון-קריאה בחישוב-
+// כסף הוא סירוב, לא אפס.
+async function wrapSupply(asset: string): Promise<number | null> {
   try {
     const accts = await db.exchangeAccount.findMany();
     let supply = 0;
@@ -1512,7 +1537,7 @@ async function wrapSupply(asset: string): Promise<number> {
     for (const p of poolsB) supply += Number(p.reserveB) || 0;
     return Math.round(supply * 1e9) / 1e9;
   } catch {
-    return 0;
+    return null;
   }
 }
 
@@ -1525,6 +1550,12 @@ export async function liquidityStream(params: {
     const m = await measureTreasury();
     if (!m) return { ok: false, detail: "NO-MEASURE: השרשרת לא ענתה — אין הזרמה", events: [] };
     const events: string[] = [];
+    // r125a · כנות-מדידה: רגל RPC שנפלה מגיעה כ-0 — אבל 0 שאינו מדידה אינו
+    // "אין הון". הדגל נחשף בפלט (events) כדי שחוסר-המדידה לא ייקרא
+    // עובדה נמדדת; הכיוון שמרני (אין הזרמה על רגל שלא נמדדה).
+    for (const leg of ["sol", "eth"] as const) {
+      if (!m.rpc[leg]) events.push(`מדידת-אוצר חלקית: rpc ${leg} למטה — יתרת ${leg} לא נמדדה (0 שמרני, לא מדידה)`);
+    }
 
     // הדלתא: המאזן החי מעל מה שכבר נצרף (אירועי WRAP מתועדים)
     const wrapped = new Map<string, number>();
@@ -1600,7 +1631,12 @@ export async function liquidityStream(params: {
       // חייב להישאר מתחת להון החי על השרשרת גם אחרי העטיפה הזו — אחרת
       // הבטחת ה-1:1 נשברת ברגע שההון זז (מכירת סולם · משיכה). נולד
       // מהזרמה כוזבת שנמדדה חי (95.327 WSTEEM מהון סולם עומד שהתחזה לדלתא).
+      // r125a: תביעה שלא נמדדה (null) = סירוב-כנה — לא עטיפה בעיוורון.
       const claimBefore = await wrapSupply(a.wrap);
+      if (claimBefore == null) {
+        events.push(`${a.key}: שומר-הגיבוי לא קרא את היצע ${a.wrap} (ספר לא-נקרא) — העטיפה נדחית בכנות: הבטחת 1:1 קודמת לעומק`);
+        continue;
+      }
       if (claimBefore + toWrap > a.live + 1e-9) {
         events.push(`${a.key}: שומר-הגיבוי סירב — תביעה ${(claimBefore + toWrap).toFixed(3)} מעל הון חי ${a.live.toFixed(3)} — ההבטחה 1:1 קודמת לעומק`);
         continue;
@@ -1640,7 +1676,16 @@ export async function liquidityStream(params: {
     if (totalWrapped === 0 && events.length === 0) {
       return { ok: true, detail: "אין דלק חדש מעל קו-הבסיס — אין מה להזרים (כנות)", events };
     }
-    return { ok: true, detail: `הוזרם עומק אמיתי: ${totalWrapped} נכסים · ${events.length} פעולות`, events };
+    // r125a: אפס-הזרמות עם רישומים (גילוי-rpc, סירובי-שומר) אינו "הוזרם
+    // עומק אמיתי: 0" — הכנות נשמרת גם בכותרת הפלט.
+    return {
+      ok: true,
+      detail:
+        totalWrapped === 0
+          ? `אף נכס לא הוזרם במחזור זה · ${events.length} רישומי-כנות/סירובים`
+          : `הוזרם עומק אמיתי: ${totalWrapped} נכסים · ${events.length} פעולות`,
+      events,
+    };
   } catch (e) {
     return { ok: false, detail: "STREAM-ERROR: " + String((e as Error).message ?? e).slice(0, 120), events: [] };
   }

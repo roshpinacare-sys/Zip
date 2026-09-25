@@ -135,7 +135,15 @@ function loadState(): WebliftState {
   return freshState();
 }
 
-let state: WebliftState = loadState();
+// r125-c — ציר-העולם בסדר הנכון (ירושה לפני קריאה): עד כאן כל דור-חם קרא
+// את המצב מהדיסק והחליף את אובייקט-הציר בתמונה קפואה — תוצאות הרמה
+// שהסתיימה בדור הקודם נדרסו ~30ש' אחר-כך בידי הצילום הישן, ו-POST /lift
+// בזמן הרמה פעילה ראה lifting=false מהתמונה והזניק ראנר שני — נגד חוק
+// "הרצה אחת בכל פעם". כעת: דור חם יורש את האובייקט החי (דפוס money/pulse/
+// hunter/student/keeper מ-r124); loadState נשאר לעלייה קרה בלבד — ושם
+// חוק LIFT-ORPHANED עדיין שומר על הרמה-יחידה גם אחרי מוות-תהליך.
+const G_WL_STATE = globalThis as unknown as { __WEBLIFT_STATE__?: WebliftState };
+let state: WebliftState = G_WL_STATE.__WEBLIFT_STATE__ ?? loadState();
 
 function saveState(): void {
   try {

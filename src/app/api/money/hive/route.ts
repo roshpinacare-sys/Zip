@@ -69,7 +69,10 @@ interface HiveReceipt {
   error?: string;
 }
 
-function appendReceipt(r: HiveReceipt): void {
+// r125a · חוק הראיה (אותו חוק כמו רגל ה-STEEM): כשל כתיבת-הקבלה לדיסק אינו
+// מפיל פעולת-שרשרת שכבר בוצעה — אבל גם לא נבלע: התוצאה חוזרת לקורא
+// (receiptPersisted:false) — אובדן-הראיה מתועד בגלוי.
+function appendReceipt(r: HiveReceipt): boolean {
   try {
     let h: Array<Record<string, unknown>> = [];
     try {
@@ -80,8 +83,9 @@ function appendReceipt(r: HiveReceipt): void {
     }
     h.push(r as unknown as Record<string, unknown>);
     fs.writeFileSync(HISTORY_FILE, JSON.stringify(h.slice(-200), null, 2) + "\n");
+    return true;
   } catch {
-    /* הקבלה החיה היא השרשרת */
+    return false;
   }
 }
 
@@ -296,7 +300,12 @@ async function POST_core(req: NextRequest) {
     cancelled: [],
     placed: [],
   };
-  const persist = () => appendReceipt(receipt);
+  // r125a: ה-persist האחרון קובע — אם כתיבת הקבלה נפלה, התשובה מגלה זאת
+  // ולא מסתירה את אובדן-הראיה מאחורי ok:true.
+  let receiptPersisted = true;
+  const persist = () => {
+    receiptPersisted = appendReceipt(receipt);
+  };
 
   // 1) ביטול כל הפקודות הפתוחות שלנו
   for (const o of orders) {
@@ -332,6 +341,18 @@ async function POST_core(req: NextRequest) {
       const receive = Math.floor(perBid / price * 1000) / 1000; // floor על התקבול
       if (receive < 0.02) continue; // רמת-אבק — דילוג כנה (לקח R99)
       const orderid = orderBase + 10 + i + 1;
+      // r125 — חוק הגג מהאח-STEEM (R97): עיגול-מטה על התקבול מעלה את המחיר
+      // היעיל — העיגול יכול לאכול את המרווח ולהציב קנייה מעל הפאריטה. אסור.
+      const effPrice = receive > 0 ? perBid / receive : 0;
+      if (effPrice >= parity) {
+        receipt.placed.push({
+          orderid, side: "bid",
+          sell: fmtAsset(perBid, "HBD"), receive: fmtAsset(receive, "HIVE"), price,
+          accepted: false,
+          note: `מחיר יעיל ${effPrice.toFixed(6)} אינו מתחת לפאריטה ${parity.toFixed(6)} — לא הוצב (חוק הגג, כמו R97 באח-STEEM)`,
+        });
+        continue;
+      }
       const r = await hiveSendMarket(
         [hiveLimitOrder(ownerKey.account, orderid, fmtAsset(perBid, "HBD"), fmtAsset(receive, "HIVE"), expiration)],
         wif,
@@ -369,9 +390,10 @@ async function POST_core(req: NextRequest) {
     cancelled: receipt.cancelled.length,
     placed: receipt.placed.length,
     verify: receipt.verify,
+    receiptPersisted,
     notes: receipt.placed.filter((p) => !p.accepted).map((p) => ({ orderid: p.orderid, note: p.note })),
-    he: ok
+    he: (ok
       ? `רגל HIVE הוצמדה מחדש (נמדד): בוטלו ${cancelAccepted}/${receipt.cancelled.length} · הוצבו ${placedAccepted}/${receipt.placed.length} · בשרשרת ${receipt.verify?.ordersNow ?? "—"} פקודות`
-      : "ה-reprice נכשל בכנות — לפחות ביטול/הצבה אחד נדחה; הקבלה המלאה ב-receipts (שום כסף לא אבד: העטיפה מוחזרת בכל כשל)",
+      : "ה-reprice נכשל בכנות — לפחות ביטול/הצבה אחד נדחה; הקבלה המלאה ב-receipts (שום כסף לא אבד: העטיפה מוחזרת בכל כשל)") + (receiptPersisted ? "" : " · אזהרה: כתיבת הקבלה לדיסק נכשלה — הראיה על השרשרת בלבד"),
   });
 }

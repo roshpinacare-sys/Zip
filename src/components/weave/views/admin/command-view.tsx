@@ -43,6 +43,8 @@ interface CloudData {
       htmlUrl: string;
     }>
   >;
+  // r125a · סמן down פר-ריפו: ריצות שלא נקראו אינן "אין ריצות"
+  runsErrors?: Record<string, string>;
   dispatchable: Array<{ repo: string; workflow: string; label: string; description: string }>;
   canDispatch: boolean;
   servedAt: string;
@@ -227,7 +229,13 @@ export function AdminCommandView() {
                     </span>
                   </div>
                   {runs.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">אין ריצות מתועדות.</p>
+                    data.runsErrors?.[repo] ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400">
+                        קריאת הריצות נכשלה — הריפו מסומן down (לא מדידה של אין-ריצות): {data.runsErrors[repo]}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">אין ריצות מתועדות.</p>
+                    )
                   ) : (
                     <div className="grid gap-1.5">
                       {runs.map((r, i) => (

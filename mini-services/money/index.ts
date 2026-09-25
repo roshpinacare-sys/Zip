@@ -436,7 +436,7 @@ async function act(
   target: "steem" | "hive" = "steem",
 ): Promise<boolean> {
   state.acting = true;
-  actStartedAt = Date.now();
+  tickGuard.actStartedAt = Date.now();
   // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
   // מסופה. נולד מתקרית חיה (00:34:52Z): restart של הדיבון באמצע act()
   // איפס את הדגלים הזכרוניים (acting/ticking) — וההרצה החדשה לא ראתה
@@ -539,7 +539,18 @@ async function act(
   return !!r.ok; // אמת-הפעולה עולה לקורא (גם ל-/act) — לא "הוזנק" בלבד
 }
 
-let ticking = false;
+// r125-c — חוק הנעילה-חוצה-הדורות: ticking/tickStartedAt/actStartedAt עולים
+// לציר-העולם. משתני-מודול מתאפסים בכל דור-חם (bun --hot) — דור חדש שלא
+// רואה טיק באמצע-ריצה של הדור הקודם מפעיל טיק מקביל (פעולות/תגמולי-צי
+// כפולים), והרחבה חמורה יותר: שומר-הפעימה R112 התעוור — actStartedAt=0
+// בדור החדש — חריגה שמשאירה acting=true לעולם לא הייתה משוחררת (הטיימר
+// של הדור הישן, שהכיר את החותמת, כבר נוקה). אובייקט-שמירה אחד לכל
+// חיי התהליך — אותו חוק של אובייקט-המצב עצמו (r124).
+const G_MONEY_TICK = globalThis as unknown as {
+  __MONEY_TICK__?: { ticking: boolean; tickStartedAt: number; actStartedAt: number };
+};
+const tickGuard = G_MONEY_TICK.__MONEY_TICK__ ?? { ticking: false, tickStartedAt: 0, actStartedAt: 0 };
+G_MONEY_TICK.__MONEY_TICK__ = tickGuard;
 // R112 — tick watchdog (the live-freeze law): the interval itself watches
 // the guard it lives behind. A tick stuck longer than TICK_MAX_MS is
 // force-released with an honest history note — the hung await is orphaned
@@ -547,14 +558,12 @@ let ticking = false;
 // bounded, so the exposure window is time-bounded, not power-removed).
 // Caught live: money froze at beats=813 for 20+ minutes while HTTP kept
 // answering.
-let tickStartedAt = 0;
-let actStartedAt = 0;
 const TICK_MAX_MS = 5 * 60_000;
 const ACTING_MAX_MS = 10 * 60_000;
 async function tick() {
-  if (ticking || state.acting) return; // לולאה-יחידה (לקח R80)
-  ticking = true;
-  tickStartedAt = Date.now();
+  if (tickGuard.ticking || state.acting) return; // לולאה-יחידה (לקח R80 · r125-c: גם בין-דורות)
+  tickGuard.ticking = true;
+  tickGuard.tickStartedAt = Date.now();
   try {
     state.beats += 1;
     const meas = await measure();
@@ -777,7 +786,7 @@ async function tick() {
     state.lastDecision = { at: new Date().toISOString(), kind: "ERROR", detail: String(e?.message ?? e).slice(0, 160) };
     saveState();
   } finally {
-    ticking = false;
+    tickGuard.ticking = false;
   }
 }
 
@@ -830,12 +839,12 @@ if (G.__MONEY_TIMER__) clearInterval(G.__MONEY_TIMER__);
 G.__MONEY_TIMER__ = setInterval(() => {
   // R112 — שומר-הפעימה: הפעימה התלויה עולה במחיר מחזור אחד, לא במחיר הדיבון
   const nowMs = Date.now();
-  if (ticking && tickStartedAt && nowMs - tickStartedAt > TICK_MAX_MS) {
-    ticking = false;
+  if (tickGuard.ticking && tickGuard.tickStartedAt && nowMs - tickGuard.tickStartedAt > TICK_MAX_MS) {
+    tickGuard.ticking = false;
     appendHistory({ kind: "WATCHDOG-RELEASE", reason: `tick נעול >${Math.round(TICK_MAX_MS / 60000)} דק' — הנעילה שוחררה; ה-await התלוי יתום: אם יתעורר, יכולת-הכתיבה שלו לא נשללה (כל ה-fetches deadline-bound — חלון הסיכון חסום-זמן בלבד)` });
     saveState();
   }
-  if (state.acting && actStartedAt && nowMs - actStartedAt > ACTING_MAX_MS) {
+  if (state.acting && tickGuard.actStartedAt && nowMs - tickGuard.actStartedAt > ACTING_MAX_MS) {
     state.acting = false;
     state.lastDecision = { at: new Date().toISOString(), kind: "WATCHDOG-ACTING-RELEASE", detail: `acting נעול >${Math.round(ACTING_MAX_MS / 60000)} דק' — שוחרר בכוח בכנות; חוקי הצינון והתקציב עודם שומרים על הכסף` };
     saveState();

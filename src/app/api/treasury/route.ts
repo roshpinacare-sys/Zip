@@ -144,6 +144,10 @@ async function steemSide() {
   // R85 fix: הכסף הפרוס בסולם-המכירה (פקודות פתוחות) חדל להיות בלתי-נראה.
   // "דולר בנזיל = דולר אמיתי" — ודולר בפקודה חיה הוא דולר עובד: הוא נספר,
   // בדלי משלו, לעולם לא ב"נזיל" (ביטול אפשרי אבל הוא לא מזומן עכשיו).
+  // r125a · כנות-חלקיות: ארנק שלא ענה לא נספר — אבל גם לא נעלם: החשבון
+  // נרשם ב-openOrdersUnreadable כדי ש"אין פקודות" לא ייקרא "נמדד
+  // אפס פקודות" (ה-deployed עלול להיות חסר — הסמן מגלה זאת).
+  const openOrdersUnreadable: string[] = [];
   const orderLists = await Promise.all(
     rows.map(async (r) => {
       if (r.steem <= 0 && r.sbd <= 0) return [];
@@ -172,7 +176,8 @@ async function steemSide() {
           };
         });
       } catch {
-        return []; // ארנק שלא ענה לא נספר — דוקטרינת האמת
+        openOrdersUnreadable.push(r.name); // לא נספר — ומסומן בכנות
+        return [];
       }
     }),
   );
@@ -195,6 +200,8 @@ async function steemSide() {
       sbdTarget,
       orders: openOrders.length,
       detail: openOrders,
+      // r125a · סמן חלקיות: חשבונות שקריאת-הפקודות שלהם נפלה (נעדר רק כשהכל נקרא)
+      ...(openOrdersUnreadable.length > 0 ? { openOrdersUnreadable } : {}),
     },
     powerdown: {
       active: paymentsLeft > 0 && next !== null && next.getTime() > Date.now(),
@@ -298,6 +305,7 @@ async function pricesSide(): Promise<{
   p: Record<string, number | null>;
   sbdSource: string | null;
   sbdMarkedAt: string | null;
+  hbdSource: string | null;
 }> {
   const syms = ["STEEMUSDT", "HIVEUSDT", "TRXUSDT", "ETHUSDT", "SOLUSDT", "BTCUSDT"];
   const parts = await Promise.all(
@@ -313,6 +321,7 @@ async function pricesSide(): Promise<{
   // לדעת אם הוא בן-רגע או בן-שעות (חוק: גיל-מקור הוא חלק מהמדידה).
   let sbdSource: string | null = null;
   let sbdMarkedAt: string | null = null;
+  let hbdSource: string | null = null;
   try {
     const g = await jget("https://roshpinacare-sys.github.io/Console/dex/grid.json", 8000);
     if (g?.marks?.sbdUsd) {
@@ -320,11 +329,19 @@ async function pricesSide(): Promise<{
       sbdMarkedAt = typeof g?.publishedAt === "string" ? g.publishedAt : null;
       sbdSource = `console:grid.json@${sbdMarkedAt ?? "?"}`;
     }
+    // r125 — HBD אינו SBD: שני אגדים שונים. עד כאן הוצג במחיר SBD (פער-בסיס
+    // ~44% נגד implied-from-book). כעת סימון-ה-HIVE החי של הגריד (נמדד מהספר);
+    // בהיעדרו — null כנה, לא מחיר-אח שגוי.
+    const hbd = g?.hive?.marks?.hbdUsd;
+    if (typeof hbd === "number" && hbd > 0) {
+      p.HBD = hbd;
+      const hiveAt = typeof g?.hive?.publishedAt === "string" ? g.hive.publishedAt : sbdMarkedAt;
+      hbdSource = `console:grid.json/hive.marks@${hiveAt ?? "?"}`;
+    }
   } catch {
     /* בלי סימון — null */
   }
-  if (p.SBD != null) p.HBD = p.SBD;
-  return { p, sbdSource, sbdMarkedAt };
+  return { p, sbdSource, sbdMarkedAt, hbdSource };
 }
 
 // ── מצב-הרשת מהקונסולה הציבורית (מלאי נאמנות גבוה) ───────────────────
@@ -421,6 +438,7 @@ async function composeTreasury() {
   const p = prices?.p ?? {};
   const sbdSource = prices?.sbdSource ?? null;
   const sbdMarkedAt = prices?.sbdMarkedAt ?? null;
+  const hbdSource = prices?.hbdSource ?? null;
   const usd = (k: string): number | null => {
     const v = p[k];
     return typeof v === "number" && v > 0 ? v : null;
@@ -466,8 +484,15 @@ async function composeTreasury() {
   // R122 · חוק הסכום-הכנה: צד שנפל אינו "0$" — הוא חסר-מדידה. כשצד כלשהו
   // (או עמוד-המחירים כולו) לא נמדד, הסכום-הכולל הוא null — "—" בתצוגה,
   // לא אוצר מוקטן-סתם. ה-down[] מגלה איזה צד.
+  // r125-b · סגירת החוק על השערים עצמם: שער-נכס שנפל הוא חסר-מדידה לא
+  // פחות מצד שנפל — הנוסחה הקודמת דרשה רק צד/עמוד ואז סכמה את ההחזקות
+  // במחיר 0$ (הוכח בחישוב-אימות: בלי סימון-STEEM יחיד ⇒ סך-הכולל
+  // $1.00 במקום $337.73 — 99.7% מהאוצר נבלעו לאפס; בלי סימונים כולם ⇒
+  // "$0 אוצר"). מעתה גם שער חסר מאפס את הסכום-הכולל — אין שער, אין סכום.
+  const missingPrices = ["STEEM", "HIVE", "TRX", "ETH", "SOL", "BTC", "SBD"].filter((k) => usd(k) === null);
   const anySideDown =
-    steem == null || hive == null || tron == null || evm == null || sol == null || btc == null || prices == null;
+    steem == null || hive == null || tron == null || evm == null || sol == null || btc == null || prices == null ||
+    missingPrices.length > 0;
   const data = {
     ok: down.length === 0,
     fetchedAt: new Date().toISOString(),
@@ -478,7 +503,7 @@ async function composeTreasury() {
       deployed: deployedUsd,
       deployedExit: steemDeployedExitUsd,
       vesting: steemVestingUsd + hiveVestingUsd,
-      missingPrices: ["STEEM", "HIVE", "TRX", "ETH", "SOL", "BTC", "SBD"].filter((k) => usd(k) === null),
+      missingPrices,
     },
     steem: steem ?? undefined,
     hive: hive ?? undefined,
@@ -489,6 +514,7 @@ async function composeTreasury() {
     prices: p,
     priceSources: {
       SBD: sbdSource,
+      HBD: hbdSource, // r125 — HBD בסימונו-שלו (הפרדת אגדים), לא במחיר SBD
       sbdMarkedAt,
     },
     network,

@@ -194,8 +194,21 @@ async function composeRouter() {
     "ENERGY/SAOS": "כספת ENERGY/SAOS",
     "USDS/WTRX": "כספת USDS/WTRX",
   };
+  // r125 — חוק הצדדים (כמו defi/route.ts): צד-USDS הוא הציטוט; אין צד-USDS —
+  // תיווך דרך מחיר SAOS/USDS. הון ה-LP = שני הצדדים במחיר הבריכה (x·y=k).
+  const saosPool = pools.find((p: any) => p.a === "SAOS" && p.b === "USDS");
+  const saosMid = saosPool && saosPool.ra > 0 ? saosPool.rb / saosPool.ra : null; // יחס נטול-סקאלה
+  const poolSideUsds = (p: any): number | null => {
+    if (p.a === "USDS") return mu(p.ra);
+    if (p.b === "USDS") return mu(p.rb);
+    if (saosMid != null && p.a === "SAOS") return mu(p.ra * saosMid);
+    if (saosMid != null && p.b === "SAOS") return mu(p.rb * saosMid);
+    return null; // אין נתיב-תמחור — כנות, לא מספר מומצא
+  };
   for (const p of pools) {
     const apr = p.lpYieldBps != null ? p.lpYieldBps / 10000 : null;
+    const usdsSide = poolSideUsds(p);
+    const usdsFull = usdsSide != null ? usdsSide * 2 : null;
     tools.push({
       id: `vault-${p.key.replace("/", "-").toLowerCase()}`,
       name: poolHe[p.key] ?? `כספת ${p.key}`,
@@ -205,10 +218,11 @@ async function composeRouter() {
       primaryNote: "תשואת LP נמדדת (lpYieldBps מהשרשרת)",
       apr,
       apy: aprToApy(apr),
-      tvl: mu(p.ra),
+      // r125 — חוק הצדדים: ערך הבריכה ב-USDS (שני הצדדים), לא צד-a בטעות-יחידה
+      tvl: usdsFull,
       detail:
         (p.ra ?? 0) > 0
-          ? `עומק ${mu(p.ra).toFixed(1)} USDS · עמלה ${p.feeBps ?? "—"} bps · ${p.swaps ?? 0} החלפות · עמלות נאספו ${mu(p.feeAccruedTreasury).toFixed(2)}`
+          ? `עומק ${usdsFull != null ? usdsFull.toFixed(1) : "—"} USDS · עמלה ${p.feeBps ?? "—"} bps · ${p.swaps ?? 0} החלפות · עמלות נאספו ${mu(p.feeAccruedTreasury).toFixed(2)}`
           : "בריכה נבנתה, נזילות אפס — ממתין למילוי",
       operatesBy: "dex-heart",
     });

@@ -395,7 +395,11 @@ async function marketSide(): Promise<{
   }
   if (rawOrders) {
     // דפוס מנוע-הכסף המוכח (R81+): sell_price.base/quote הם מחרוזות "158.879 STEEM"
+    // r125 — חוק R97 מובא למנוע: הפרדת צדדים בספר הפתוח. base=STEEM → מכירה
+    // (for_sale ב-STEEM, price=SBD/STEEM); base=SBD → קנייה — נספרת בנכס שלה,
+    // אחרת דלק-הפריסה היה מונה SBD כ-STEEM והמחיר יוצא הפוך (באג מבני).
     out.orders = (rawOrders as any[])
+      .filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"))
       .map((o: any) => {
         const steem = Number(o.for_sale) / 1000;
         const baseN = parseFloat(String(o.sell_price?.base ?? "")) || 0;

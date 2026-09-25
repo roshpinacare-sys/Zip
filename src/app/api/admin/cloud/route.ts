@@ -25,19 +25,33 @@ export async function GET(req: NextRequest) {
   }
   try {
     const hasToken = (await getGhToken()) !== null;
+    // r125a · כנות פר-ריפו: קריאת-ריצות שנפלה אינה "אין ריצות" — הריפו
+    // מסומן ב-runsErrors (down פר-ריפו); רשימתו נשארת ריקה לצורך
+    // התצוגה בלבד, אבל האמת נחשפת בפלט.
     const [repos, runsEntries] = await Promise.all([
       getRepos(),
       Promise.all(
-        ACTIVE_REPOS.map(async (repo) => [repo, await getRecentRuns(repo, 4).catch(() => [])] as const)
+        ACTIVE_REPOS.map(async (repo) => {
+          try {
+            return [repo, await getRecentRuns(repo, 4), null] as const;
+          } catch (e) {
+            return [repo, [] as Awaited<ReturnType<typeof getRecentRuns>>, `קריאת הריצות נכשלה: ${String((e as Error)?.message ?? e).slice(0, 120)}`] as const;
+          }
+        })
       ),
     ]);
-    const runs: Record<string, Awaited<ReturnType<typeof getRecentRuns>>> =
-      Object.fromEntries(runsEntries);
+    const runs: Record<string, Awaited<ReturnType<typeof getRecentRuns>>> = {};
+    const runsErrors: Record<string, string> = {};
+    for (const [repo, list, err] of runsEntries) {
+      runs[repo] = list;
+      if (err) runsErrors[repo] = err;
+    }
 
     return NextResponse.json({
       ok: true,
       repos: repos.sort((a, b) => b.pushedAt.localeCompare(a.pushedAt)),
       runs,
+      ...(Object.keys(runsErrors).length > 0 ? { runsErrors } : {}),
       dispatchable: DISPATCHABLE,
       canDispatch: hasToken,
       servedAt: new Date().toISOString(),

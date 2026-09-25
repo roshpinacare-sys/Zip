@@ -94,7 +94,7 @@ interface WorldDoc {
     };
   };
   pools?: Array<{
-    key: string; ra: number; rb: number; swaps: number;
+    key: string; a?: string; b?: string; ra: number; rb: number; swaps: number;
     feeAccruedTreasury?: number; feeBps?: number; lpYieldBps?: number;
     polShareBps?: number; derived?: boolean;
   }>;
@@ -181,16 +181,32 @@ async function worldSide() {
     swaps: w.state?.swaps ?? 0,
     liveOrders: w.state?.liveOrders ?? 0,
     opsTotal: w.state?.opsTotal ?? 0,
-    pools: pools.map((p) => ({
-      key: p.key,
-      // ערך הבריכה ב-USDS: הצד ה-USDS הוא הציטוט; אם אין — הצד השני במחיר הביניים
-      ra: mu(p.ra), rb: mu(p.rb),
-      swaps: p.swaps,
-      feeAccruedUsds: mu(p.feeAccruedTreasury),
-      feeBps: p.feeBps ?? null,
-      lpYieldBps: p.lpYieldBps ?? null,
-      derived: p.derived ?? false,
-    })),
+    pools: (() => {
+      // r125 — מימוש החוק שנכתב בהערה ולא בוצע: ra הוא צד-הנכס a (SAOS/USDS/ENERGY),
+      // לא "USDS". ערך-צד ב-USDS: לבריכה עם צד USDS — הצד הזה; לבריכה בלי צד
+      // USDS — תיווך דרך מחיר SAOS/USDS (עוגן-התמחור). ערך-בריכה מלא = שני
+      // הצדדים (x·y=k — שווי הצדדים שווה במחיר הבריכה). אין-נתיב-תמחור = null כנה.
+      const units = pools.map((p) => ({
+        key: p.key, a: p.a ?? "?", b: p.b ?? "?",
+        ra: mu(p.ra), rb: mu(p.rb),
+        swaps: p.swaps,
+        feeAccruedUsds: mu(p.feeAccruedTreasury),
+        feeBps: p.feeBps ?? null,
+        lpYieldBps: p.lpYieldBps ?? null,
+        derived: p.derived ?? false,
+      }));
+      const saosUsds = units.find((p) => p.a === "SAOS" && p.b === "USDS");
+      const saosMid = saosUsds && saosUsds.ra > 0 ? saosUsds.rb / saosUsds.ra : null; // USDS ל-SAOS — יחס-נטול-סקאלה
+      return units.map((p) => {
+        let usdsSide: number | null = null;
+        let usdsBasis: string | null = null;
+        if (p.a === "USDS") { usdsSide = p.ra; usdsBasis = "צד-USDS (a) — הציטוט"; }
+        else if (p.b === "USDS") { usdsSide = p.rb; usdsBasis = "צד-USDS (b) — הציטוט"; }
+        else if (saosMid != null && p.a === "SAOS" && p.ra > 0) { usdsSide = p.ra * saosMid; usdsBasis = "צד-SAOS × מחיר SAOS/USDS (תיווך)"; }
+        else if (saosMid != null && p.b === "SAOS" && p.rb > 0) { usdsSide = p.rb * saosMid; usdsBasis = "צד-SAOS × מחיר SAOS/USDS (תיווך)"; }
+        return { ...p, usdsSide, usdsBasis, usdsFull: usdsSide != null ? usdsSide * 2 : null };
+      });
+    })(),
     market: {
       supplyUsds: realSupply,
       treasuryUsds, operatorUsds, arenaUsds,
@@ -331,7 +347,9 @@ async function composeDefi() {
         key: p.key,
         apr,
         apy: aprToApy(apr, 365),
-        tvlUsds: p.ra,
+        // r125 — חוק הצדדים: הון ה-LP = שני צדי הבריכה במחירה, לא צד-a שסומן USDS בטעות
+        tvlUsds: p.usdsFull,
+        tvlBasis: p.usdsBasis,
         feesAccruedUsds: p.feeAccruedUsds,
         swaps: p.swaps,
         feeBps: p.feeBps,
@@ -366,10 +384,13 @@ async function composeDefi() {
     },
     liquidity: {
       label: "נזילות הבורסה",
-      value: world?.pools.reduce((s: number, p: any) => s + (p.ra ?? 0), 0) ?? null,
+      // r125 — חוק הצדדים: סך-הון בבריכות (שני הצדדים במחיר כל בריכה), לא Σ צד-a מעורבב
+      value: world?.pools.some((p: any) => p.usdsFull != null)
+        ? world.pools.reduce((s: number, p: any) => s + (p.usdsFull ?? 0), 0)
+        : null,
       unit: "USDS",
       detail: world
-        ? `${world.pools.length} בריכות · ${world.swaps ?? 0} החלפות · ${world.fills ?? 0} מילויים`
+        ? `${world.pools.length} בריכות · ${world.swaps ?? 0} החלפות · ${world.fills ?? 0} מילויים · ערך שני הצדדים במחיר הבריכה${world.pools.some((p: any) => p.usdsFull == null) ? " · חלקי: בריכה ללא נתיב-תמחור לא נספרה" : ""}`
         : null,
     },
     fees: {

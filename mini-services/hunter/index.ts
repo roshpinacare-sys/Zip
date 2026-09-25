@@ -52,6 +52,7 @@ type HunterState = {
     deadStreak: number; // רצף dispatch-ים שהסתיימו בכשל-ריצה (הרץ מעולם לא התחיל)
     deadSince: string | null; // מתי זוהה מוות-התקציב בפעם הראשונה
     lastRunReadError?: string | null; // R123 — כישלון קריאת מצב-הריצה — נרשם, לא נבלע
+    recheckAt?: string | null; // r125 — ריצה שנקראה ב"queued" נבדקת-שוב בלי dispatch חדש (עיוורון-המכסה)
   };
   lastDecision: Decision | null;
   history: Array<Decision>;
@@ -110,6 +111,7 @@ function readState(): HunterState {
         gate: prev.canary?.gate === "QUOTA-DEAD" ? "QUOTA-DEAD" : "OPEN",
         deadStreak: typeof prev.canary?.deadStreak === "number" ? prev.canary.deadStreak : 0,
         deadSince: prev.canary?.deadSince ?? null,
+        recheckAt: prev.canary?.recheckAt ?? null,
       },
       lastDecision: prev.lastDecision ?? null,
       history: Array.isArray(prev.history) ? prev.history.slice(-40) : [],
@@ -183,8 +185,86 @@ async function canaryTick(): Promise<void> {
     return;
   }
   canaryNoPatNoted = false; // הסמכות חזרה — הדגל מתאפס
+  // r125-c — חוק גלגול-היום של תקציב הקנרית: המונה היומי אוּפס עד כאן רק
+  // ב-readState (עלייה קרה). תהליך שחוצה חצות-UTC בחיים אחד (נמדד חי:
+  // weblift חי מ-22:21 אתמול ועד עכשיו) היה נשאר עם dispatchesToday
+  // של אתמול לנצח — הקנרית גוועת אחרי 4 שיגורים בכל חיי התהליך.
+  // הגלגול חייב לקרות גם בזמן-ריצה.
+  if (state.canary.day !== utcDay()) {
+    state.canary.day = utcDay();
+    state.canary.dispatchesToday = 0;
+  }
   const now = Date.now();
+  // r125 — הבראת "queued" תקוע: ריצה שנקראה בתור ומעולם לא נקראה שוב
+  // (נמדד חי: 02:25Z run 36086167091 — completed/failure ב-GitHub, "queued"
+  // במצב במשך שעות) מזרימה בדיקה-חוזרת מיידית — פעם אחת לכל run-id,
+  // כדי שריצה תקועה-באמת לא תיצור לולאת-טיפול.
+  const lr = state.canary.lastRun as { id?: number; status?: string; conclusion?: string | null; createdAt?: string } | null;
+  if (
+    lr && lr.id != null && lr.status && lr.status !== "completed" && lr.conclusion == null &&
+    lr.createdAt && Date.now() - Date.parse(lr.createdAt) > 15 * 60 * 1000 &&
+    !state.canary.recheckAt && (state.canary as any).lastRehealId !== lr.id
+  ) {
+    (state.canary as any).lastRehealId = lr.id;
+    state.canary.recheckAt = new Date().toISOString();
+    state.canary.nextDueAt = new Date().toISOString(); // טיק טיפול מיידי
+    saveState();
+  }
   if (now < Date.parse(state.canary.nextDueAt)) return;
+
+  // r125 — בדיקה-חוזרת של ריצה תלויה: "queued" אינו פסק-דין. בלי זה
+  // הקריאה שאחרי-dispatch תופסת את הריצה בדיוק ברגע-התור, הכישלון
+  // לעולם לא נקרא, השער נשאר "OPEN" מול מכסה-מתה-נמדדת, והקנרית ממשיכה
+  // לשגר לחינם 4×/יום לנצח (עיוורון-כפול שנתפס חי ב-r125-d).
+  if (state.canary.recheckAt) {
+    state.canary.recheckAt = null;
+    const rid = (state.canary.lastRun as any)?.id;
+    if (rid) {
+      try {
+        const rr = await fetch(`${GH}/repos/${CANARY_REPO}/actions/runs/${rid}`, { headers: {
+          Authorization: `token ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "hunter-daemon",
+        }, signal: AbortSignal.timeout(30_000), cache: "no-store" });
+        if (rr.ok) {
+          const run = await rr.json();
+          state.canary.lastRun = {
+            id: run.id, status: run.status, conclusion: run.conclusion,
+            createdAt: run.created_at, url: run.html_url,
+          };
+          if (run.conclusion === "success") {
+            state.canary.deadStreak = 0;
+            state.canary.gate = "OPEN";
+            state.canary.deadSince = null;
+          } else if (
+            run.conclusion === "failure" &&
+            state.canary.lastDispatchAt &&
+            Date.parse(run.created_at) >= Date.parse(state.canary.lastDispatchAt) - 60_000
+          ) {
+            state.canary.deadStreak += 1;
+            if (state.canary.deadStreak >= 3 && state.canary.gate !== "QUOTA-DEAD") {
+              state.canary.gate = "QUOTA-DEAD";
+              state.canary.deadSince = new Date().toISOString();
+              state.lastDecision = {
+                at: new Date().toISOString(),
+                kind: "GATE-QUOTA-DEAD",
+                detail: `שער-הדקות של הריפואים הפרטיים נמדד (בדיקה-חוזרת): ${state.canary.deadStreak} dispatch-ים רצופים נכשלו מיידית (הרץ מעולם לא התחיל — חנקת-Actions של הארגון). הצייד עובר לבאסה יומית עד שהמכסה תחזור. המכונה החיה: הצי המקומי + התאומים הציבוריים ב-Domain`,
+              };
+              state.history = [...state.history, state.lastDecision].slice(-40);
+            }
+          }
+        } else {
+          state.canary.lastRunReadError = `HTTP ${rr.status}`;
+        }
+      } catch (e: any) {
+        state.canary.lastRunReadError = String(e?.message ?? e).slice(0, 100);
+      }
+    }
+    // קדנס על-פי התוצאה — בלי dispatch חדש בטיק הזה (חיסכון-תקציב כנה)
+    const cadenceMs = state.canary.gate === "QUOTA-DEAD" ? 24 * 60 * 60 * 1000 : CANARY_EVERY_MS;
+    state.canary.nextDueAt = new Date(Date.now() + cadenceMs).toISOString();
+    state.canary.day = utcDay();
+    saveState();
+    return;
+  }
   if (state.canary.dispatchesToday >= 4) return; // תקציב יומי כנה
 
   const headers = {
@@ -240,6 +320,11 @@ async function canaryTick(): Promise<void> {
           createdAt: run.created_at,
           url: run.html_url,
         };
+        // r125 — הריצה עדיין בתור/בביצוע: לא פסק-דין. בדיקה-חוזרת בעוד
+        // 10 דק' בלי dispatch נוסף — הכישלון המיידי של מכסה-מתה ייקרא סוף סוף.
+        if (run.status && run.status !== "completed") {
+          state.canary.recheckAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+        }
         if (run.conclusion === "success") {
           state.canary.lastSuccessAt = run.created_at;
           runSucceeded = true;
@@ -280,11 +365,13 @@ async function canaryTick(): Promise<void> {
   }
   // המועד הבא: הצלחה — שער פתוח 6ש' / שער מת — גשאוש יומי (באסה כנה, לא ויתור).
   // כישלון שליחה — ניסיון חוזר קצר (15 דק') במקום דילוג-שקט של 6ש'.
-  const cadenceMs = !dispatchOk
-    ? 15 * 60 * 1000
-    : state.canary.gate === "QUOTA-DEAD"
-      ? 24 * 60 * 60 * 1000
-      : CANARY_EVERY_MS;
+  const cadenceMs = state.canary.recheckAt
+    ? 10 * 60 * 1000 // r125 — בדיקה-חוזרת קרובה, לא קדנס מלא
+    : !dispatchOk
+      ? 15 * 60 * 1000
+      : state.canary.gate === "QUOTA-DEAD"
+        ? 24 * 60 * 60 * 1000
+        : CANARY_EVERY_MS;
   state.canary.nextDueAt = new Date(now + cadenceMs).toISOString();
   state.canary.day = utcDay();
   saveState();
@@ -362,18 +449,25 @@ async function scan(): Promise<void> {
     state.lastDecision = { at: new Date().toISOString(), kind: "SCAN", detail };
     state.history = [...state.history, state.lastDecision].slice(-40);
     state.lastScanAt = new Date().toISOString();
+    // r125-c — גלגול יומי גם בזמן-ריצה (אמת-תצוגה: "סריקות היום")
+    if (state.scanDay !== utcDay()) {
+      state.scanDay = utcDay();
+      state.scansToday = 0;
+    }
     state.scansToday += 1;
-    state.scanDay = utcDay();
   } finally {
     state.scanning = false;
     saveState();
   }
 }
 
-let ticking = false;
+// r125-c — חוק הנעילה-חוצה-הדורות (כמו ב-money/pulse): משתנה-מודול מתאפס
+// בכל דור-חם — דור חדש לא רואה טיק באמצע-ריצה ומזניק קנרית/סריקה מקבילה
+// (כפילות dispatch-ים ל-GitHub Actions). הדגל על ציר-העולם.
+const G_HUNTER_TICK = globalThis as unknown as { __HUNTER_TICKING__?: boolean };
 async function tick() {
-  if (ticking || state.scanning) return;
-  ticking = true;
+  if (G_HUNTER_TICK.__HUNTER_TICKING__ || state.scanning) return;
+  G_HUNTER_TICK.__HUNTER_TICKING__ = true;
   try {
     state.beats += 1;
     await canaryTick();
@@ -382,7 +476,7 @@ async function tick() {
     state.lastDecision = { at: new Date().toISOString(), kind: "ERROR", detail: String(e?.message ?? e).slice(0, 160) };
     saveState();
   } finally {
-    ticking = false;
+    G_HUNTER_TICK.__HUNTER_TICKING__ = false;
   }
 }
 

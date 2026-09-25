@@ -92,7 +92,11 @@ export async function POST(
     },
   });
 
-  // R92: גם המעבר-מצב נכנס לזיכרון הקנוני — הסרט, לא רק התמונה
+  // R92: גם המעבר-מצב נכנס לזיכרון הקנוני — הסרט, לא רק התמונה.
+  // r125a · חוק הכנות: המעבר-מצב עצמו בוצע (DB + אימות) — זו האמת
+  // שמדווחת. כתיבת הקנון היא ראיה; כשלה או נפלה — אובדן-הראיה מתועד
+  // בגלוי בתשובה (canonError), לא נעלם בשקט מאחורי ok:true.
+  let canonError: string | null = null;
   const canonEv = await appendCanonEvents([
     {
       id: eventId,
@@ -103,12 +107,19 @@ export async function POST(
       attSeq: att.seq,
       attEntryHash: att.entryHash,
     },
-  ]).catch(() => null);
+  ]).catch((e) => {
+    canonError = "CANON-ERROR: " + String((e as Error)?.message ?? e).slice(0, 120);
+    return null;
+  });
+  if (!canonError && canonEv && !canonEv.ok) {
+    canonError = canonEv.error ?? "כתיבת יומן הקנון נכשלה";
+  }
 
   return NextResponse.json({
     ok: true,
     project: { slug: updated.slug, status: updated.status },
     attestation: { seq: att.seq, entryHash: att.entryHash, claim: att.claim },
     canon: { eventsLog: canonEv },
+    ...(canonError ? { canonError } : {}),
   });
 }

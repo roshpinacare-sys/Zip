@@ -128,7 +128,11 @@ export async function POST(
     },
   });
 
-  // R92: המסמך עצמו בקנון — והאירוע שלו ביומן האירועים הקנוני
+  // R92: המסמך עצמו בקנון — והאירוע שלו ביומן האירועים הקנוני.
+  // r125a · חוק הכנות: הפרסום עצמו כבר מדווח ב-canon (res.ok) — אבל כתיבת
+  // יומן-האירועים שנפלה/נדחתה לא נבלעת עוד מאחורי ok:true: canonError
+  // מתעד בגלוי את אובדן הראייה (הפעולה — הפרסום — מדווחת אמת).
+  let canonError: string | null = null;
   const canonEv = await appendCanonEvents([
     {
       id: eventId,
@@ -143,7 +147,13 @@ export async function POST(
         canonUrl: res.url ?? null,
       },
     },
-  ]).catch(() => null);
+  ]).catch((e) => {
+    canonError = "CANON-ERROR: " + String((e as Error)?.message ?? e).slice(0, 120);
+    return null;
+  });
+  if (!canonError && canonEv && !canonEv.ok) {
+    canonError = canonEv.error ?? "כתיבת יומן הקנון נכשלה";
+  }
 
   return NextResponse.json(
     {
@@ -155,6 +165,7 @@ export async function POST(
         project: slug,
       },
       canon: { ...res, eventsLog: canonEv },
+      ...(canonError ? { canonError } : {}),
       artifactsTotal: updated.artifactsCount,
     },
     { status: 201 },

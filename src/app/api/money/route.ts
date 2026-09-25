@@ -716,7 +716,11 @@ function readOwnerKey(): { account: string; password: string } | null {
   }
 }
 
-function appendReceipt(receipt: MoverReceipt): void {
+// r125a · חוק הראיה: הקבלה החיה היא השרשרת — כשל כתיבה אינו מפיל פעולת-
+// שרשרת שכבר בוצעה (הקבלה היא ראיה, לא הפעולה). אבל הוא גם לא נבלע:
+// התוצאה חוזרת לקורא ומתועדת בתשובה (receiptPersisted:false) — אובדן-
+// הראיה מתועד בגלוי, הפעולה האמיתית מדווחת אמת.
+function appendReceipt(receipt: MoverReceipt): boolean {
   try {
     fs.mkdirSync(STATE_DIR, { recursive: true });
     const history = readHistory();
@@ -738,8 +742,9 @@ function appendReceipt(receipt: MoverReceipt): void {
     }
     state.lastReceipt = receipt;
     fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + "\n");
+    return true;
   } catch {
-    /* הקבלה החיה היא השרשרת — כשל כתיבה אינו עוצר תשובה */
+    return false;
   }
 }
 
@@ -1082,7 +1087,12 @@ async function POST_core(req: Request) {
   // לקח-הריצה-הראשונה (נמדד 00:38–00:40Z): קבלה שנכתבת רק בסוף מתאפסת אם
   // ה-handler נקטע. מעתה — הקבלה מתעדכנת בקובץ אחרי כל פעולה בודדת:
   // גם אם העולם ייפול באמצע, מה שקרה על השרשרת מתועד.
-  const persist = () => appendReceipt(receipt);
+  // r125a: ה-persist האחרון קובע — מה שנמצא על הדיסק הוא הראיה; אם נפל,
+  // התשובה מגלה זאת (receiptPersisted:false) ולא מסתירה את אובדן-הראיה.
+  let receiptPersisted = true;
+  const persist = () => {
+    receiptPersisted = appendReceipt(receipt);
+  };
 
   try {
     if (action === "arm-buy") {
@@ -1228,9 +1238,10 @@ async function POST_core(req: Request) {
         ok: bidsOk || receipt.placed.length > 0,
         receipt,
         verify: bidVerify,
-        he: bidsOk
+        receiptPersisted,
+        he: (bidsOk
           ? `סולם הקנייה חי בשרשרת (נמדד): ${bidVerify?.bidsNow} הצעות · ${sbdCommitable} SBD מחויבות מתחת לקו ${parity.toFixed(4)} · בוטלו ${receipt.cancelled.length}`
-          : `הוצבו ${receipt.placed.length} הצעות קנייה · בוטלו ${receipt.cancelled.length} · אימות שרשרת לא נקרא`,
+          : `הוצבו ${receipt.placed.length} הצעות קנייה · בוטלו ${receipt.cancelled.length} · אימות שרשרת לא נקרא`) + (receiptPersisted ? "" : " · אזהרה: כתיבת הקבלה לדיסק נכשלה — הראיה על השרשרת בלבד"),
       });
     }
 
@@ -1300,9 +1311,10 @@ async function POST_core(req: Request) {
         ok: receipt.placed.length > 0,
         receipt,
         verify: stockVerify,
-        he: stockVerify?.gapClosed
+        receiptPersisted,
+        he: (stockVerify?.gapClosed
           ? `מלאי החימוש נסגר: ${stockVerify.sbdNow} SBD — סולם הקנייה יחומש במחזור הבא`
-          : `פקודת המילוי שודרה (${receipt.placed.length}) · SBD נוכחי ${stockVerify?.sbdNow ?? "?"} — השרשרת השופטת`,
+          : `פקודת המילוי שודרה (${receipt.placed.length}) · SBD נוכחי ${stockVerify?.sbdNow ?? "?"} — השרשרת השופטת`) + (receiptPersisted ? "" : " · אזהרה: כתיבת הקבלה לדיסק נכשלה — הראיה על השרשרת בלבד"),
       });
     }
 
@@ -1464,13 +1476,14 @@ async function POST_core(req: Request) {
       ok: chainOk || receipt.placed.length > 0,
       receipt,
       verify,
-      he: chainOk
+      receiptPersisted,
+      he: (chainOk
         ? `הסולם חי בשרשרת (נמדד): ${verify?.ordersNow} פקודות / ${verify?.deployedNow} STEEM · פאריטה ${parity.toFixed(4)}–${(parity * 1.02).toFixed(4)} · בוטלו ${receipt.cancelled.length}`
-        : `הוצבו ${receipt.placed.length} רמות · בוטלו ${receipt.cancelled.length} · אימוש שרשרת לא נקרא`,
+        : `הוצבו ${receipt.placed.length} רמות · בוטלו ${receipt.cancelled.length} · אימוש שרשרת לא נקרא`) + (receiptPersisted ? "" : " · אזהרה: כתיבת הקבלה לדיסק נכשלה — הראיה על השרשרת בלבד"),
     });
   } catch (e) {
     receipt.error = String((e as Error).message).slice(0, 300);
-    appendReceipt(receipt);
-    return bad(`הפעולה נכשלה בכנות: ${receipt.error.slice(0, 160)}`, 502, { code: "EXECUTE-FAILED", receipt });
+    const persisted = appendReceipt(receipt);
+    return bad(`הפעולה נכשלה בכנות: ${receipt.error.slice(0, 160)}`, 502, { code: "EXECUTE-FAILED", receipt, receiptPersisted: persisted });
   }
 }
