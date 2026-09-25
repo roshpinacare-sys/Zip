@@ -294,7 +294,11 @@ async function btcSide() {
   }));
 }
 
-async function pricesSide() {
+async function pricesSide(): Promise<{
+  p: Record<string, number | null>;
+  sbdSource: string | null;
+  sbdMarkedAt: string | null;
+}> {
   const syms = ["STEEMUSDT", "HIVEUSDT", "TRXUSDT", "ETHUSDT", "SOLUSDT", "BTCUSDT"];
   const parts = await Promise.all(
     syms.map((s) =>
@@ -304,15 +308,23 @@ async function pricesSide() {
     ),
   );
   const p: Record<string, number | null> = Object.fromEntries(parts);
-  // SBD/HBD לא נסחרים בביננס — הסימון החי האחרון של הגריד שלנו, עם נפילה-כנה
+  // SBD/HBD לא נסחרים בביננס — הסימון החי האחרון של הגריד שלנו, עם נפילה-כנה.
+  // r124: הגיל נחשף — שער מגובה-קונסולה מוכפל במאזנים אמיתיים, וצרכן חייב
+  // לדעת אם הוא בן-רגע או בן-שעות (חוק: גיל-מקור הוא חלק מהמדידה).
+  let sbdSource: string | null = null;
+  let sbdMarkedAt: string | null = null;
   try {
     const g = await jget("https://roshpinacare-sys.github.io/Console/dex/grid.json", 8000);
-    if (g?.marks?.sbdUsd) p.SBD = Number(g.marks.sbdUsd);
+    if (g?.marks?.sbdUsd) {
+      p.SBD = Number(g.marks.sbdUsd);
+      sbdMarkedAt = typeof g?.publishedAt === "string" ? g.publishedAt : null;
+      sbdSource = `console:grid.json@${sbdMarkedAt ?? "?"}`;
+    }
   } catch {
     /* בלי סימון — null */
   }
   if (p.SBD != null) p.HBD = p.SBD;
-  return p;
+  return { p, sbdSource, sbdMarkedAt };
 }
 
 // ── מצב-הרשת מהקונסולה הציבורית (מלאי נאמנות גבוה) ───────────────────
@@ -323,7 +335,8 @@ async function networkSide() {
     const w = await jget("https://roshpinacare-sys.github.io/Console/dex/world.json", 8000);
     out.height = w?.state?.height ?? null;
     // סולם-המנוע: 1 יחידת-נכס = 1000µ (kernel.ts:8) — treasuryProfit במילי-USDS
-    out.treasuryProfitUsds = (w?.state?.treasuryProfit ?? 0) / 1e3;
+    // r124 · כנות: היעדר שדה (סחיבת-סכימה) אינו רווח-אפס נמדד — null.
+    out.treasuryProfitUsds = w?.state?.treasuryProfit != null ? w.state.treasuryProfit / 1e3 : null;
     out.backingWsteem = w?.state?.backing?.WSTEEM != null ? w.state.backing.WSTEEM / 1e3 : null;
     out.publishedAt = w?.publishedAt ?? null;
     out.halted = w?.state?.halted ?? null;
@@ -398,11 +411,16 @@ async function composeTreasury() {
       down.push(`btc: ${String(e.message).slice(0, 40)}`);
       return null;
     }),
-    pricesSide().catch(() => null),
+    pricesSide().catch((e) => {
+      down.push(`prices: ${String(e.message).slice(0, 40)}`);
+      return null;
+    }),
     networkSide().catch(() => ({})),
   ]);
 
-  const p = prices ?? {};
+  const p = prices?.p ?? {};
+  const sbdSource = prices?.sbdSource ?? null;
+  const sbdMarkedAt = prices?.sbdMarkedAt ?? null;
   const usd = (k: string): number | null => {
     const v = p[k];
     return typeof v === "number" && v > 0 ? v : null;
@@ -469,6 +487,10 @@ async function composeTreasury() {
     sol: sol ?? undefined,
     btc: btc ?? undefined,
     prices: p,
+    priceSources: {
+      SBD: sbdSource,
+      sbdMarkedAt,
+    },
     network,
   };
   return data;

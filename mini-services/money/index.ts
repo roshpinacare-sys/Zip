@@ -139,7 +139,15 @@ function readState(): MoneyState {
   }
 }
 
-let state: MoneyState = readState();
+// R124 — ציר-עולם למצב הדיבון (דפוס weblift): bun --hot מעריך את המודול מחדש
+// בכל עריכה; קריאה-מחדש מהדיסק בכל דור גרמה ל-last-writer-wins בין דורות
+// — דור שנטען מקובץ קפוא שכתב את lastActionAt של הדור החי והפר את הצינון
+// (נמדד חי: שתי פעולות REPRICE במרווח 44 שניות מול מדיניות 30 דק').
+// החוק: אובייקט-מצב אחד לכל חיי התהליך; דור חם יורש את האובייקט החי
+// מציר-העולם, ורק עלייה קרה (תהליך חדש) קוראת מהדיסק.
+const G_MONEY = globalThis as unknown as { __MONEY_STATE__?: MoneyState };
+let state: MoneyState = G_MONEY.__MONEY_STATE__ ?? readState();
+G_MONEY.__MONEY_STATE__ = state;
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/money`, { recursive: true });
@@ -774,7 +782,15 @@ async function tick() {
 }
 
 // ── שרת-בריאות (השומר קורא את זה כל 30ש') ─────────────────────────
-Bun.serve({
+// R124 — שרת-היחיד חוצה-דורות (חוק weblift מ-r123): bun --hot שמעריך את
+// המודול מחדש נתקל ב-EADDRINUSE מול השרת של הדור הקודם וההערכה נעצרת
+// לפני שהטיימר חומש. שרת אחד לכל חיי התהליך; ה-handler קורא את המצב החי
+// מציר-העולם (G_MONEY.__MONEY_STATE__) — זהה לאובייקט של הדור החי.
+const G_MONEY_SRV = globalThis as unknown as { __MONEY_SERVER__?: unknown };
+if (G_MONEY_SRV.__MONEY_SERVER__) {
+  // שרת חי מדור קודם — ממשיך להגיש; המצב שלו הוא אובייקט ציר-העולם.
+} else {
+  G_MONEY_SRV.__MONEY_SERVER__ = Bun.serve({
   port: PORT,
   hostname: "127.0.0.1", // R123 — פקודות-כסף (/act) נשלחות מ-localhost בלבד — לא נחשפות לרשת החוץ
   async fetch(req) {
@@ -798,7 +814,8 @@ Bun.serve({
     }
     return new Response("not found", { status: 404 });
   },
-});
+  });
+}
 
 saveState();
 console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R112 bounded-wait + watchdog`);

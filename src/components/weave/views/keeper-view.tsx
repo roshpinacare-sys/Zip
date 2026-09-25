@@ -524,7 +524,7 @@ ${d.revival.command}
 #   · דיבון שעונה — לא נוגעים (אין כפילויות)
 #   · דיבון שמת — מוקם מחדש
 #   · דיבון נעול — מנוקה ואז מוקם
-#   · בסוף: דוח בריאות 4/4`}
+#   · בסוף: דוח בריאות ${d.fleet.length}/${d.fleet.length}`}
                 </pre>
                 <p className="text-xs leading-relaxed text-muted-foreground">{d.revival.noteHe}</p>
                 {d.revival.canonPath && (

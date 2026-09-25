@@ -86,6 +86,8 @@ export interface GridSimResult {
   spacingBps: number;
   rungBase: number; // גודל כל מדרגה בנכס הבסיס
   tradesAnalyzed: number;
+  /** r124: null = עסקאות לא נקראו (RPC נפל ואין מטמון) — לא “שוק שקט” */
+  tradesRead: boolean;
   windowHours: number | null;
   buyFills: number;
   sellFills: number;
@@ -299,17 +301,23 @@ async function fetchChainMarket(chain: ChainKind): Promise<ChainMarket> {
 // עמלה וההסתייגות מוצהרת בכל פלט (חוק הכנות).
 //
 export function simulateGrid(
-  trades: ChainTrade[],
+  trades: ChainTrade[] | null,
   opts: { spacingBps: number; rungBase: number }
 ): GridSimResult {
   const notes: string[] = [
     "סימולציה על עסקאות אמיתיות שפורסמו בשוק הפנימי — לפני-עמלה (העמלה לא נמדדת מה-API הציבורי)",
     "מילוי מדרגה מניח עדיפות-תור מלאה; בפועל עומדים בתור לפי זמן ההצבה",
   ];
+  // r124 · חוק: כישלון-קריאה אינו אפס — עסקאות שלא נקראו מסומנות
+  // tradesRead:false, ולא מוצגות כ“שוק שקט / אין מספיק עסקאות”.
+  if (trades == null) {
+    notes.unshift("עסקאות לא נקראו — RPC לא ענה ואין מטמון; זהו לא-נמדד, לא שוק שקט");
+  }
   const res: GridSimResult = {
     spacingBps: opts.spacingBps,
     rungBase: opts.rungBase,
-    tradesAnalyzed: trades.length,
+    tradesAnalyzed: trades?.length ?? 0,
+    tradesRead: trades != null,
     windowHours: null,
     buyFills: 0,
     sellFills: 0,
@@ -319,6 +327,7 @@ export function simulateGrid(
     inventoryEndQuote: 0,
     note: notes,
   };
+  if (trades == null) return res; // לא-נמדד — לא “שוק שקט”
   if (trades.length < 2) {
     res.note.push("אין מספיק עסקאות לסימולציה");
     return res;
@@ -472,7 +481,8 @@ export async function composeCrossMarket(): Promise<CrossAnalysis> {
     if (s.trades.count > 0) parts.push(`${s.trades.count} עסקאות בחלון ${s.trades.windowHours?.toFixed(1) ?? "?"}ש'`);
     if (s.trades.volBps != null) parts.push(`תנודתיות בין-עסקאות ${s.trades.volBps}bps`);
     if (s.trades.reversals != null) parts.push(`${s.trades.reversals} מידונים — הדלק של הגריד`);
-    parts.push(`סימולציה (100bps/מדרגה 100 STEEM): ${g.roundTrips} סבבים לכדו ${g.capturedQuote.toFixed(3)} SBD ב${g.windowHours?.toFixed(1) ?? "?"}ש' — לפני עמלות`);
+    if (!g.tradesRead) parts.push("סימולציית הגריד לא רצה — עסקאות לא נקראו (RPC), לא שוק שקט");
+    else parts.push(`סימולציה (100bps/מדרגה 100 STEEM): ${g.roundTrips} סבבים לכדו ${g.capturedQuote.toFixed(3)} SBD ב${g.windowHours?.toFixed(1) ?? "?"}ש' — לפני עמלות`);
     verdicts.push({
       id: "steem-grid",
       title: "גריד מרקט-מייקינג דו-צדדי — שוק Steem הפנימי",
@@ -515,7 +525,8 @@ export async function composeCrossMarket(): Promise<CrossAnalysis> {
     if (h.book.spreadBps != null) parts.push(`פער ${h.book.spreadBps}bps (צר יותר = תחרות מרקט-מייקרים חיה)`);
     if (h.trades.count > 0) parts.push(`${h.trades.count} עסקאות ב${h.trades.windowHours?.toFixed(1) ?? "?"}ש' — שוק פעיל`);
     const g = grids.hive;
-    parts.push(`סימולציה (50bps): ${g.roundTrips} סבבים לכדו ${g.capturedQuote.toFixed(3)} HBD`);
+    if (!g.tradesRead) parts.push("סימולציית הגריד לא רצה — עסקאות לא נקראו (RPC), לא שוק שקט");
+    else parts.push(`סימולציה (50bps): ${g.roundTrips} סבבים לכדו ${g.capturedQuote.toFixed(3)} HBD`);
     parts.push("בסיס HIVE לסחר בשוק הפנימי שלהם לא נמצא ברשותנו — השוואה בלבד, שער-מפעיל לכל פעולה");
     verdicts.push({
       id: "hive-compare",
@@ -569,7 +580,7 @@ export async function composeCrossMarket(): Promise<CrossAnalysis> {
 
 const simTradesCache = new Map<ChainKind, { at: number; trades: ChainTrade[] }>();
 
-async function fetchTradesForSim(chain: ChainKind): Promise<ChainTrade[]> {
+async function fetchTradesForSim(chain: ChainKind): Promise<ChainTrade[] | null> {
   const cached = simTradesCache.get(chain);
   if (cached && Date.now() - cached.at < 120_000) return cached.trades;
   const cfg = CHAIN_CFG[chain];
@@ -596,6 +607,13 @@ async function fetchTradesForSim(chain: ChainKind): Promise<ChainTrade[]> {
     simTradesCache.set(chain, { at: Date.now(), trades });
     return trades;
   } catch {
-    return cached?.trades ?? [];
+    // r124 · חוק: כישלון-קריאה אינו אפס. מטמון-ישן הוא עדיין נתון-אמת
+    // היסטורי (חלון העסקאות בפלט מתוארך ממילא), אבל בלי מטמון — null:
+    // לא “שוק שקט”, אלא לא-נמדד.
+    if (cached) {
+      cached.at = 0; // המטמון כבר לא “טרי” — אבל הוא עדיין המדידה האחרונה
+      return cached.trades;
+    }
+    return null;
   }
 }

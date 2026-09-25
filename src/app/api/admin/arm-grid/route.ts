@@ -59,16 +59,19 @@ export async function GET(req: NextRequest) {
       { status: 401 },
     );
   }
-  const [secrets, grid] = await Promise.all([
+  const [secrets, grid, gridSchedule] = await Promise.all([
     listRepoSecrets(DEX_REPO).catch(() => null),
     getGridState(),
+    remoteWorkflowScheduleDesc(DEX_REPO, "dex-grid.yml"),
   ]);
   const secret = secrets?.find((s) => s.name === SECRET_NAME) ?? null;
   return NextResponse.json({
     ok: true,
     repo: DEX_REPO,
-    secretPresent: Boolean(secret),
+    // r124 · חוק: כישלון-קריאה אינו “הסוד לא קיים” — null = לא נקרא, לא false
+    secretPresent: secrets == null ? null : Boolean(secret),
     secretUpdatedAt: secret?.updatedAt ?? null,
+    nextScheduledRun: gridSchedule != null ? `dex-grid · ${gridSchedule}` : null,
     grid: grid
       ? {
           armed: grid.armed,

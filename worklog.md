@@ -4445,3 +4445,113 @@ Stage Summary:
 - סבב של חמישה צירים: מסמכים (29 שקרי-הווה) · כנות-דיבונים (7 תיקוני-שורש) · איכות-קוד (tsc 103→0 + 2 באגים חבויים) · נכסים-ציבוריים (נתיב חוק-13 + צומת מת) · תשתית (אטומיות, המתנה-חסומה, localhost).
 - החוקים שנחקקו: (1) חותמת-מדידה ≠ חותמת-ניסיון — coverageAt לא מתעדכן בלי מדידה; (2) state בלתי-קריא נרשם כ-STATE-RESET גלוי, לא איפוס-שקט; (3) שרת-HTTP אחד לכל החיים של התהליך — ה-handler קורא מצב-חי דרך ציר-עולם.
 - הראיות: sovereign/evidence/r123-home.png · r123-domains.png · r123-mobile-home.png.
+
+---
+Task ID: r124-b
+Agent: r124-b (UI claims vs reality)
+Task: ציד שקרי-UI — טענות המוצגות למשתמש שאינן תואמות את אמת הזמן-ריצה (מחרוזות סטטוס קשיחות, מספרים סטטיים כמדדים חיים, טריות מזויפת, מד-התקדמות קשיח, כפתורי הצלחה מזויקת). סבב מחקרי בלבד — אפס עריכות קוד.
+
+Work Log:
+- נקרא היומן עד סופו (r119-r123) למניעת דיווח-חוזר: מוות ה-6ש'/3שנ'/weave-core/$417,802/213-221-23/"12 סוכנים"/"23 סוכנים"/95% ב-holdings/0 WSOL/965 WSTEEM/SBD 0.049 — כולם תוקנו ואומתו שאינם חוזרים.
+- נסרקו page.tsx + כל 27 קבצי ה-views + ה-tabs + footer/operator/site-nav: חיפוש ממוקד אחר "מאומת/חי/פעיל/תקין/UP/בריא/לפני רגע/כרגע/כל N דק'", אחר מספרים קשיחים המוצגים כמדדים, Progress קשיח, ו-toast הצלחה ללא אימות שרת.
+- אומתו ככנים מול קוד הדיבונים: "בדיקה כל 5 דק׳" של עוגן-הצ׳רטר (pulse: 30ש׳×10=5ד׳), "סיור כל 30 שניות" (keeper PATROL_INTERVAL_SEC=30), "צד הזדמנויות כל דקה" (money CHECK_INTERVAL_SEC=60), "סריקת הדיבון כל 5 דקות על חמש רשתות" (money deposit-scan 5ד׳), "פועם כל-שעתיים" (dex-beat), "סשן 12 שעות" (SESSION_TTL_MS), "שער-העסקאות $100" (GATE_THRESHOLD_USD=100), "צי ה-13" (STEEM_FLEET=13 בדיוק), "צינון 15 דק׳ · 8/יום" (minIntervalMin=15, maxPerDay=8).
+- 12 ממצאים נתפסו (2 HIGH · 5 MED · 5 LOW): (1) home-view:500 "הכל רץ בענן ציבורי… מוות של סביבת עבודה לא מפיל כלום" — שריד של השקר ש-r122 הרג ב-agents-fleet-view; הצי מת עם הסשן (daemons-revive קיים בדיוק בגלל זה). (2) keeper-view:527 "דוח בריאות 4/4" — הסקריפט מדפיס 7/7 (DAEMONS.length=7). (3) gate-view:505 וי-אינווריאנטה "סכום = גיבוי ✓" מוצג בלי להשוות בפועל. (4) home-view:373 "סבב בריאות שעתי" — אין סבב שעתי; brainProbeAll ידני בלבד. (5) gate-view:1425 "ההון (95%)" קשיח מול האחוז החי המחושב 11 שורות מעליו. (6) grid-arm-card:211 "(03:48 UTC)" קדנס זיכרון קשיח — nextScheduledRun החי מ-r122 קיים ב-API אבל ה-view מתעלם ממנו. (7) flywheel-view:341 "מזער הפקדה $5" — אין אכיפת מינימום בשום קוד; ההפקדה החיצונית הראשונה שתועדה הייתה 2 TRX (~חצי דולר) וזוכתה במלואה. (8) gate-view:1370 "חסום על מלאי-SBD" נטען ללא השוואת מלאי-מול-סף. (9) games-view:212 סטטוס partial נספר כ"חתומות על שרשרת". (10) grid-arm-card:219 טווח "+18%–29% חיה" — מדידה מתוארכת מוצגת כחיה (gate-view מתייג את אותה מדידה בתאריך; כאן לא). (11) domains-view:259 "מוגש עכשיו דרך שעת-סנדבוקס" ללא תלות ב-origin בפועל. (12) money-market-view:329 "משיחה מובטחת" — הבטחת-יתר מעל רצפת-קוד.
+- אומתו תיקוני r123 שלא נפגעו: טיפוגרפיה (מבקא/זוכנים/מפעיא = אפס שאריות), Eye/EyeOff, domains-view fail-closed + "נסה שוב", קישור steemd.com מת — הכל במקום.
+- נדגמו ~40 נקודות טענה מחייבות-נתונים ב-20 קבצי תצוגה: 30+ כנות (LiveCard/LoopGate, FirstDropProof, MomentSection, מלאי-האוצר, פיקוד/שרת/גריד, מרכז-המשחקים, מד-RC, HealthPanel, דפדפן-הסוכנים, keeper, dashboard, דומיינים, מוביל, שוק-הכספים, זירה, צייד, בורסה, צ׳רטר, כלכלה) — כולן bind ל-fetched state עם fail-closed/טעינה/אמת-גיל כנה.
+
+Stage Summary:
+- הבית נקי ברובו אחרי ארבעה סבבי טיהר (r119-r123), אבל נותרו 12 שקרי-UI: הכבד מהם שניים — "הכל בענן" ששרד בעמוד הבית (ההפך הגמור מהתיקון שהוחל ב-agents-fleet) ו"דוח 4/4" מול צי של 7.
+- דפוס-השורש החוזר: ה-API תוקן אבל ה-view לא מימש אותו (grid-arm מקבל nextScheduledRun ומציג 03:48 קשיח) — תיקון-backend שלא מגיע למסך אינו תיקון.
+- כלל אצבע לסבב הבא: כל מספר/קדנס/סטטוס ב-JSX חייב להיות נגזר מ-DTO, מסומן כ"קבוע בקוד", או מתויג בתאריך מדידה — וי-אימות מוצג רק אחרי השוואה בפועל.
+- המלצות התיקון המינימליות פורטו בדוח (לרבות הצעה לגזור 7/7 מ-d.fleet.length ולחשב את אחוז-ההון החי גם בשורת "מדמם").
+
+---
+Task ID: r124-a
+Agent: r124-a (error-swallowing audit)
+Task: ביקורת בליעת-שגיאות (research-only, אפס תיקוני קוד) — ציד התבנית "catch בלתי-כנה": מקום שבו כישלון (catch, fetch שנפל, תוצאה ריקה) מומר לתשובה שנראית מוצלחת/בריאה בלי סמן שגיאה/קדחות/null. היקף: כל 81 קבצי route תחת src/app/api/** + src/lib/weave/** + src/lib/dex/**.
+
+Work Log:
+- סונכרן מול r119-r123 (קריאת 150 השורות האחרונות): לא דווח מחדש על הכשל-הסגור של r119 (domains/agent-browser 500-כנה), תיקוני r122 (treasury usd.total=null כשצד נפל · reprice-HIVE ok נגזר מקבלות · 400/5xx מסווגים · seedWindowFromChain · canon-push דיבונים), r123 (tsc 103→0 · STATE-RESET גלוי · appendHistory אטומי בדיבון).
+- נסרכו 266 מופעי catch ב-API + 188 ב-lib; ~220 אתרי catch נבדקו לעומק (קריאה מלאה של money · treasury · money/hive · money/eth · money/sol · admin/* · live/* · moment · health · exchange · economy · defi · publish · sovereign/holdings · saosnet · keeper · hunter · charter/* · agent-browser/* · domains · web/* · gate · arm, ו-lib/weave: sovereign-exchange · crossmarket · grid-pnl · economy · mirror · saoslite · ops · graphene · zero · market · brain · saos-rail · hive-wire · evm-wire · sol-wire · price-feeds · wallet-vault · tx-gate).
+- תשובת שאלת usd()/קדחות: דגלי stale קיימים ברמת SWR בכל המובילים (cached/stale/cacheAgeSec/refreshing + X-SAOS-Cache) · price-feeds מתייג מקור-נפילה ("gate (fallback: binance חסום)") · moment מתייג priceSource=fleet-fallback + fleetFreshMin ≤35ד' · grid-pnl ו-money מתייגים "console:money.json@<חותמת>" במקור · hive-wire מתייג "implied-from-book". החריג היחיד: נפילת SBD של treasury (ממצא MED).
+- HIGH #1 — src/app/api/money/route.ts:869: arenaClaimWsteem `catch { return 0 }` עם הערה שקרית ("ספר הזירה לא נקרא — הפעולה תיבדק בנתיב הזירה עצמו" — אין בדיקה כזו בשום נתיב). כישלון DB → תביעת WSTEEM=0 → totalFuel מלא → reprice פורש STEEM שמגבה את חברי הזירה — שבירת חוק 1:1 (R111) עם קבלה שנראית מוצלחת. נמדר ב-DB החי: כרגע 0 תביעות (בריכת WSTEEM/WSBD ריקה, אין WSTEEM במאזני חברים) — פצצה רדומה, לא נזק חי. הצעה: סירוב-כנה 503 ARENA-LEDGER-UNREADABLE (אותו חוק כמו NO-PARITY).
+- HIGH #2 — money/eth/route.ts:39-83 ו-money/sol/route.ts:42-88 (GET): ethBalanceOf/solBalance מחזירים {eth:0,error:"RPC-DOWN"} אחרי כל הצמתים; ה-GET מקשיח ok:true, מסכם ל-total:{eth:0/sol:0}, verdict ARMED-LIVE והערה "יתרה חיה 0.00000000 ETH" — אפס מומצא מוצג כמאזן נמדד (שורות-המשנה כן נושאות error, אבל הכותרת מזייפת).
+- MED #3 — treasury/route.ts:308-314: נפילת מחיר SBD/HBD ל-grid.json של הקונסולה בלי לכידת publishedAt ובלי סמן קדחות — המחיר (עד שעות) מוכפל במאזנים אמיתיים לתוך usd.liquid/total כאילו נמדד עכשיו (בניגוד ל-money/grid-pnl שמתייגים את החותמת).
+- MED #4 — money/route.ts:456-457: marksSide/tronSide לא רושמים down[] (steemSide/fillsSide/vesting כן) — השערות כולם ריקים אבל ok:true ובלי באנר "מקורות שנפלו"; הפאריטה מוצגת "—" (כן ברמת השדה) אך הצבירה מזייפת בריאות.
+- MED #5 — crossmarket.ts:598-599: fetchTradesForSim catch → cached ?? [] — RPC שנפל עם מטמון קר מחזיר ריק → simulateGrid מדווח "אין מספיק עסקאות לסימולציה" ואפס-מילויים כאילו שוק שקט (מוצג ב-/api/market/cross) — בלי סמן down.
+- LOW (10): wrapSupply catch→0 בשומר-הגיבוי (כמעט בלתי-נגיש — findMany קודם באותו זרם) · measureTreasury sol/eth=0 עם דגל rpc שלא נחשף ב-snapshot (כיוון שמרני) · arm-grid GET secretPresent:false על כישלון רישום-סודות · admin/cloud ריצות=[] לריפו שנפל · appendReceipt (money+hive) בולע כשל-כתיבה לדיסק (הדיבון תוקן ב-r123, ה-route לא) · treasury treasuryProfit ?? 0 (סחף-סכמה → $0 מומצא) · treasury per-account get_open_orders catch→[] בלי גילוי-חלקיות · stock-sbd: ספר שלא נקרא מדווח כ"עומק לא מכסה" (BOOK-TOO-THIN במקום NO-BOOK) · charter status/artifacts: appendCanonEvents catch→null (קנון נעלם בשקט מתשובה ok:true) · rewardPay: cap-24ש' מתחשבן נמוך על payload שלא נפענח.
+- נבדקו ונמצאו כנים (~205 אתרים): שער-העסקאות (NO-PARITY/NO-USD-MARK/KEY-MISMATCH) · steemRpc מרובה-צמתים (rethrow) · broadcast+סקר-שרשרת לפי orderid (R87/R94) · publish (FAILED + BROADCAST-FAILED) · domains/agent-browser (r119) · live/* (502 רק בקור-אמיתי) · moment (priceSource מסומן) · defi live:false · weave/* jsonError · saosnet null+הסבר · keeper/hunter/student/autonomy null→כניעה לתצוגה · wallet-vault סירוב-כנה · ops/saoslite (rethrow בכל הצמתים) · graphite honest-skip · beat "0xinvalid" (נספר ככישלון חתימה).
+
+Stage Summary:
+- 15 ממצאים דורגו: 2 HIGH · 3 MED · 10 LOW. הרשת כנה ברובה המכריע — התבניות ששרדו את r119-r123 מרוכזות ב"אפס/ריק מומצא על כישלון קריאה בנתיב-כסף" וב"נפילת שער בלי חותמת-זמן".
+- החוק המוצע לחקיקה: "כישלון קריאה בשרשרת-חישוב של כסף הוא סירוב, לא אפס" — catch שמחזיר 0/[] שנכנס לחישוב פריסה/מאזן חייב להיכשל-סגור, כמו שנחקק לפאריטה ("אין שער — אין מסחר").
+- הערת-כנות על הביקורת עצמה: ממצא HIGH #1 נמדד כרדום (0 תביעות WSTEEM ב-DB החי); ממצא HIGH #2 דורש נפילת כל צמתי RPC של ETH/SOL בבת-אחת — שניהם מפצצות-טמפר לא נזק מתמשך, אך בדיוק התבנית שהסבב הזה נשלח לצוד.
+- אפס שינויי קוד (ביקורת בלבד); לכל ממצא הוצע תיקון-מינימום בדוח לתיאום עם הליד.
+
+---
+Task ID: r124-c
+Agent: r124-c (subfolder docs & scripts honesty)
+Task: ציד שקרים במקומות ש-r123 לא כיסה: מסמכי תת--תיקיות (console/*, sovereign/*, mini-services — אין מסמכים), כנות סקריפטים (saosnet-status, benchmark-truth, dev-revive, daemons-revive), סקריפטים ב-package.json, וקבצי החזית הציבוריים. מחקר-בלבד, אפס שינויי קוד.
+
+Work Log:
+- נקרא worklog עד סופו (r119-r123); סרקוּ כל קבצי ה-.md בתת-תיקיות: console/ (README, verify/README+VERIFY, agent/handoff+limitations+inspections+verify), sovereign/ (defi-seed, charter/CONTRACT, דוחות מתוארכים), mini-services (אפס מסמכים), skills (אפס טענות ריפו-ספציפיות בכישורים הזרים).
+- אומתו מול אמת חיה: clone של הריפואים הציבוריים Console ו-Domain (מלא, לא שטוח), GitHub API מאומת (16 ריפואים · Defi private:true · charter/registry.json קיים ב-Defi בלבד), קדנסי cron בפועל מה-YAML הציבורי, ריצות אחרונות (weave-anchor-lines הצלחה 02:38Z · key-verify failure 09-21), API מקומי חי (/api/defi/router: 22 כלים · 6 מסלולים · 7 סוכנים — תואם ל-README), צמתים (steemit/justyy/llama/steemscan — 200; steemit.com חוסם curl בלבד).
+- סקריפטים: benchmark-truth.cjs, dev-revive.mjs, daemons-revive.mjs — כנים לחלוטין (מדידה חיה, פסקי-דין מותנים, קודי יציאה אמיתיים; daemons-revive תואם לצי 7 הנוכחי בפורטים נכונים). package.json — כל הסקריפטים תקפים (build/start עקביים עם output:standalone). ממצא אחד: saosnet-status.cjs ok:true ללא-תנאי גם ב-ROOT-MISMATCH.
+- 11 ממצאים דורגו (3 HIGH · 5 MED · 3 MED-LOW/LOW), כולל שני שקרי-ציבור חמורים שרדו את r123: console/README.md ("כל 6 שעות" + "שום דבר לא דוחף מבחוץ" — הלב דוחף mirror/ledger/assets כל פעימה, והמשואה שעתית :45) ו-CONTRACT.md ("קנון ציבורי" — Defi פרטי, אנונימי מקבל 404).
+- הפצה שלא הושלמה נתפסה בזמן אמת: נכון ל-02:46Z הריפו הציבורי Console עדיין מגיש את שקר ה-clone המת weave-core ב-verify/README.md ואת הצומת המת steem.61bts.com ב-render.mjs (התיקונים המקומיים של r123 נדחפו ל-Zip אך הסנכרון השעתי טרם רץ אחריהם); ואילו ב-acid.html/gate.html/sovereign-anchor.html הציבוריים הצומת המת יישאר לנצח — הם אינם ב-CONSOLE_ASSETS והעותקים המקומיים הם "תאומים מזויפים" שהסנכרון לא נוגע בהם מעולם (הפרת G4 של הריפו עצמו: 7 תאומים ב-console/ המקומי).
+- הגשר (handoff.md) — מסמך הפתיחה של כל סשן חדש — נושא 3 טענות-עבר: "שני סודות נותרו" (נמסרו R72-R75), "קו Steem honest-dry עד WEAVE_STEEM_WIF" (הקו חי ומפרסם), "קורא את כל 15 הריפואים" (16; Defi חסר ב-REPOS של watch.mjs).
+
+Stage Summary:
+- שקרי ה-6-שעות לא מתו עד הסוף: הם שרדו ב-4 קבצי תת-תיקייה (console/README.md — מסונכרן בית-בית ל-README הציבורי של המשואה; agent/verify/README.md — "15 טענות" מול 53 בפועל; agent/limitations.md ×2) — אותה משפחה ש-r123-a הרג ב-11 נקודות בשורש.
+- "ציבורי" שאינו ציבורי: קנון הצ'רטר חי בריפו Defi פרטי — הבונה החיצוני (שמעצטברותו "בלי גישת-ריפו") והציבור נתקלים ב-404; ל-CONTRACT.md אין עותק מקומי של המרשם בכלל.
+- כלל חדש שנלמד: תיקון ב"תאום מזויף" אינו תיקון — קובץ שנולד בציבורי ואינו ברשימת הסנכרון לעולם לא יירפא מהעותק המקומי; מדידת "הוסר מ-5 קבצים" חייבת להיעשות בריפו המוגש, לא במקור הריבוני.
+- כנות התשתית אומתה מעבר לחשד: כלי ההחייאה ומכונת האמת מודדים באמת; נתיבי ה-API והמספרים ב-defi-seed/README (22/6/7) תואמים לחי; תשע החזיתות הציבוריות כולן 200.
+- הממצאים הוגשו לתיאום תיקונים (טבלה ממוספרת, 11 שורות, דרגות HIGH/MED/LOW + תיקון מינימלי מוצע לכל אחד).
+
+---
+Task ID: r124-d
+Agent: r124-d (daemon verdict truth)
+Task: ביקורת אמת-פסקי-דין של 7 הדיבונים — האם העבודה המוצהרת ב-state.json תואמת חפצי-אמת אמיתיים (קבלות, שרשרת, גיט, קבצי-עבודה); בדיקת טענת 16 הריפואים עם פסקי-דין; ציד "תיאטרון-תוצאות" מעבר לתיקוני r123.
+
+Work Log:
+- נקראו state.json של כל 7 הדיבונים + קוד המקור המלא של כולם (mini-services/*/index.ts) + היסטוריות, יומני שומר, קבלות קנון ב-Defi (via GitHub API מאומת), סריקות שרשרת חיות (/api/money · /api/web/state · /api/publish · /api/treasury · /api/weave/repos) וספריית-העבודה של מפעל-האימות.
+- כנות שנותחה לעומק: כל פסק-דין נגזר ממדידה אמיתית — אפס זיוף נמצא. פערי-ראיה נמצאו ותועדו.
+- hunter: אומת חי — 476.637 STEEM בסולם תואם /api/money החי · אוצר $335/1.09 נוגד כנגד מדידה חיה חוזרת ($331.78/1.10 — סחף מחירים) · "דופק: חי" מבדיקת 3033 בקוד · קנרית אמיתית: run 36086167091 אומת ב-GitHub API (created 02:25:06, conclusion=failure נרשם בכנות בשער-המכסה).
+- keeper: אומת חי — הסיור מתאים לבדיקות פורט בפועל (7/7 דיבונים ענו now) · קבלת הקנון reports/keeper-2026-09-25.md קיימת ב-Defi הציבורי ותואמת מילה-במילה ל-WEB-HOLD 4/4 במצב · חוק הזומבי עבד חי (weblift ZOMBIE-1..3 → RESTART 02:20:27).
+- fleet-verify: אומת חי — 4 פסקי-דין נבדקו מול חפצים (jumpper 673 מבחנים · archive-keeper 10/10 ארכיונים · claims-guard · sdk-verify): agent/status.json בספריית-העבודה תואם ל-state, git log נושא את קומיטי הפסקים (a2b9bbc · 2bae447 · 95f5104 · 5ba4338) ו-HEAD ≡ origin/main — הדחיפה אמיתית.
+- weblift: אומת חי — "4571/41124 תווים על השרשרת" תואם בדיוק לקריאת-שרשרת חיה: games-v1 צ׳אנק 1 (4571/12860, txid 4dc8f012, בלוק 110034945) · luck-v1 0/28264 בכנות · דילוגי-RC נרשמים בכנות.
+- money: הפעולות אמיתיות — txids בקבלות (ביטול+הצבה), 3 פקודות פתוחות נמדדו חי על השרשרת (orderid 2026092501-03), קבלת Defi תואמת. אבל נתפס פער: שתי פעולות REPRICE במרווח 44 שניות (02:24:53.954 ו-02:25:37.397) מול צינון מוצהר של 30 דק' — מנגנון מצב-הדורות של bun --hot (כל דור מחזיק מצב-זיכרון משלו; last-writer-wins מוחק) עוקף צינון/תקציב; actionsToday סופר פחות (2/12 בקובץ מול ≥4 פעולות בפועל היום לפי קווי-העלייה ביומן). הכסף מוגן עדיין בשער-$100 בשרת.
+- pulse: השידור היומי אמיתי — last_root_post 2026-09-25T00:00:09 נמדד חי דרך /api/publish, וזריעת החלון מהשרשרת עבדה. אבל ראיית הקבלה של אותו ריצה מדולדלת: reports/pulse-2026-09-25.md נכתב "שודר" עם txid null (צורת-קבלה טרום-תיקון r122 — הקוד כבר מתוקן לעתיד) ורשומת ההצלחה חסרה ב-historyTail של המצב (נמחקה באותו דפוס דורות-חמים) — אובדן-ראיה, לא זיוף.
+- טענת 16 הריפואים אומתה: /api/weave/repos החי — 16 ריפואים · 10 מכוסים · 10 נדחפו-ע"י-המפעל · 0 קפואים; "10 ריפואים עם פסקי-דין 20:09-20:13Z" מ-r123 תואם ל-state במדויק; ECOSYSTEM-ROADMAP §1 תואם (16).
+- ממצאי-משנה: ECOSYSTEM-ROADMAP שורת Defi "LOCAL — ריק" מיושנת (Defi נושא קבלות קנון, DOCTRINE, charter/, canary.yml — נמדד) · array-view.tsx:651 "ב-14 ריפואים" קשיח תחת תביעת "נמדד חי" (נכון כרגע — 14 במראה החיה — אבל קפוא-פוטנציאלי; שורה 754 כבר נגזרת) · תגית AGENTED של התלמיד ל-16/16 בזמן ש-14/16 ריצות-Actions בענן נכשלות (מכסה מתה) — הנתון גלוי ברשומה אבל התגית לבדה מטעה-פוטנציאלית.
+- אפס תיאטרון-תוצאות חדש נמצא: אין בוליאן-לפני-עבודה, אין מונים-בלי-עבודה, אין חותמות-זמן בלי מדידה מעבר למה ש-r123 תיקן.
+
+Stage Summary:
+- שבעת הדיבונים נבדקו מקצה-לקצה וכולם עושים עבודה אמיתית: כל פסק-דין שנבדק הוכרע ממדידה חיה (שרשרת Steem/Hive, GitHub API, פורטים, ספריות-עבודה) והוכח בחפץ-אמת חיצוני. טענת 16 הריפואים ו-10 פסקי-הדין של המפעל אומתו במלואה.
+- שני ממצאי-ביניים (MED) לא-זיוף אבל אמיתיים: (1) צינון/תקציב של מוביל-הכסף ניתן לעקיפה בטלטלת דורות-חמים — נמדד חי: שתי פעולות ב-44 שניות מול 30 דק' מוצהרות; (2) ראיית הפרסום היומית של הדופק מדולדלת באותו דפוס (txid null בקבלה + רשומת הצלחה שנמחקה מהמצב). הריפוי המוצע לשניהם: ציר-עולם יחיד למצב (דפוס G_WL.__WEBLIFT_STATE__ של weblift) גם ב-money וב-pulse.
+- שלושה ממצאי-משנה (LOW): שורת "Defi ריק" המיושנת ב-ECOSYSTEM-ROADMAP · "14 ריפואים" קשיח ב-array-view תחת "נמדד חי" · תגית AGENTED בתלמיד ללא אזכור מצב-ריצת-הענן בקו הפסק.
+- סיכום אמת: הצי מדווח בכנות. איפה שהמספר לא נמדד — כתוב "לא נמדד"; איפה שהשרשרת סותרת את הזיכרון — השרשרת מנצחת; איפה שהקבלה אבדה — האובדן מתועד. השאריות היחידות הן פגיעויות דורות-חמים בכתיבת-המצב — לא שקר, אלא חלון.
+
+---
+Task ID: r124
+Agent: the-weave-lead (סשן המשך)
+Task: "תמשיך יש עוד המון שקרים לחשוף ולתקן ולשפר הכל ולהוכיח ולאמת"
+
+Work Log:
+- סנכרון ברזל בפתיחה: origin מאחור ב-1 (קומיט מצב-דיבונים תקין) · עץ נקי · dev חי 200.
+- 4 יחידות חקירה מקבילות (r124-a/b/c/d) על תחומים שטרם נסרקו: בליעת-שגיאות ב-API (266 catch) · הצהרות UI מול מציאות (~40 נקודות) · מסמכי תת-תיקיות+סקריפטים · אמת פסקי-דין 7 הדיבונים מול חפצים. 44 ממצאים סך-הכל.
+- חוק חדש נחקק והוחל: "כישלון-קריאה בחישוב-כסף הוא סירוב, לא אפס" — 3 חמורים תוקנו: (1) ספר-זירה לא-נקרא היה מחזיר 0 תביעות → דלק-מלא → reprice שובר 1:1 (כעת 503 ARENA-LEDGER-UNREADABLE); (2)+(3) eth/sol סיכמו שורות שלא נמדדו כ"יתרה חיה 0.000000" (כעת unreadableRows, total:null, verdict:DEGRADED, ok שקרי הוסר).
+- תיקוני אמת בינוניים: marks/tron ב-money מדווחים ל-down[] · SBD ב-treasury חושף גיל-סימון (priceSources.SBD=grid.json@<ts>) · crossmarket: fetchTradesForSim מחזיר null ולא "שוק שקט" (tradesRead בפלט, שורת פסק-דין כנה) · stock-sbd: NO-BOOK-READ נפרד מ-BOOK-TOO-THIN · treasuryProfit ?? 0 → null.
+- UI: "הכל רץ בענן" → אמת-שני-הלבבות (ענן+בית ריבוני) · "4/4" קפוא → ${fleet.length}/${fleet.length} נגזר · וי-אינווריאנטה תמידי → השוואה אמיתית עם ✗ ורוד בשבר · "95%" קשיח → מחושב · "סבב בריאות שעתי" → בדיקה-ידנית-אחרונה · "03:48 UTC" קשיח → nextScheduledRun מה-API (הוסף ל-GET) · secretPresent:false בכשל-API → null+"לא נקרא" · "מזער הפקדה $5" → "ללא מינימום בקוד" · games: partial מוצג כ"מניפסט חתום · צ׳אנקים בדרך" · דומיינים: "כולו מוגש עכשיו" → מוגש · "משיחה מובטחת" → "רצפה בקוד, לא הבטחת נזילות חוץ" · +18%-29% מתויג בתאריך מדידה.
+- **תפיסת-חי מהשטח**: הוי האינווריאנטה שהוסר חשף "1,568µ ≠ 2,000µ" — חקירה מלאה: השרשרת תקינה (מפקד: treasury 432 + מפעיל 297 + תיבה 100 + בריכה 1171 = 2000 = גיבוי), הנוסחה במראה שכחה את ארנק האוצר — נוסחה תוקנה, אומת חי בדפדפן: "2,000µ = 2,000µ ✓" (הוי כעת מרווח-באמת).
+- שיפור-אוטונומיה (ציר-עולם): 5 דיבונים (money·pulse·hunter·student·keeper) קיבלו world-axis state — דור-חם יורש את האובייקט החי במקום לקרוא מדיסק קפוא (שורש הפרת-הצינון 44ש' בין REPRICE + היעלמות historyTail). וכן שרת-חוצה-דורות (חוק weblift מ-r123) ל-money·pulse·hunter·student. צי הופעל מחדש מסודר: 7/7 UP.
+- ציבורי (דחיפות ישירות מתועדות): 3 חזיתות (acid/gate/sovereign-anchor) נוקו מהצומת המת steem.61bts.com (קומיטים b633afd/856de2e/a46244e, אומת ב-Pages) · Domain ה-bridgehead החי: handoff (15→16 ריפואים, סודות-נמסרו, honest-dry נסגר) + limitations (6h→2h ×2) + watch.mjs REPOS+Defi · Console: watch.mjs REPOS+Defi+Domain + הוסר "/14" קשיח מהודעת הקומיט.
+- תאומים מזויפים: 7 קבצי console/ נולדו-בציבורי נמחקו (דוקטרינת G4) + sovereign/saos-live.json הסורר (שורד faed28b) — benchmark-truth: ALL-GREEN (G4+G5 עברו מ-FAIL).
+- מסמכים: console/README.md "כל 6 שעות"+"שום דבר לא נדחף מבחוץ" → שעתי :45 + שני-לבבות (ברירת מחדל ב-CONSOLE_ASSETS, יופץ בפעימה) · CONTRACT.md "קנון ציבורי" → קנון Defi פרטי מפורש · handoff מקומי מיושן (הצביע על Console כ-bridgehead חי) → מוחלף לדור הציבורי האמיתי · verify/README "15 assertions"/"6h" → 53/2h בשתי שפות · limitations "6h" ×2 → 2h · ECOSYSTEM-ROADMAP "Defi LOCAL — ריק" → קנון-חי-מפורש · defi-seed/README נתיבים מתים → אמיתיים · array-view "14 ריפואים" קשיח → נגזר מהרישום (כעת 14 כנה; 16 אחרי סריקת :37) · saosnet-status.cjs ok:true ללא-תנאי → ok:verified (נמדד חי: True עם FULLY-VERIFIED).
+
+Stage Summary:
+- 44 ממצאים נחשפו; כל החמורים והבינוניים תוקנו ואומתו חי. חוק חדש: "כישלון-קריאה בחישוב-כסף הוא סירוב, לא אפס" + "גיל-מקור הוא חלק מהמדידה" + "הוי ניתן רק אחרי השוואה".
+- התגלית המרכזית: הסרת וי-מזויף חשפה נוסחה שבורה (ארנק אוצר חסר בסכום) — הוכחה שהכנות המבנית תופסת באגים אמיתיים, לא רק טקסט.
+- אוטונומיה הועמקה: ציר-עולם ל-5 דיבונים + שרת-יחיד ל-4 — הצינון והתקציב של money מוגנים עתה מפני דורות-חמים.
+- אימות: tsc 0 · lint 0 · צי 7/7 UP · benchmark-truth ALL-GREEN · Pages ציבורי נקי · אינווריאנטה 2000=2000 בדפדפן · מובייל 390 ללא גלישה · footer מוצמד.
+- הראיות: sovereign/evidence/r124-home.png · r124-mobile.png · r124-desktop.png.

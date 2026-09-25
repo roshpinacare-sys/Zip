@@ -36,8 +36,9 @@ import { cn } from "@/lib/utils";
 interface ArmGridState {
   ok: boolean;
   repo: string;
-  secretPresent: boolean;
+  secretPresent: boolean | null;
   secretUpdatedAt: string | null;
+  nextScheduledRun: string | null;
   grid: {
     armed: boolean;
     verdict: string;
@@ -136,7 +137,10 @@ export function GridArmCard() {
   }, [authedFetch, keyValue, load]);
 
   const gridVerdict = state?.grid?.verdict ?? null;
+  // r124 · כנות: null = רישום הסודות לא נקרא (כשל-API) — לא “לא קיים”.
+  // במקרה כזה נציג את דלת-החימוש עם הסבר, לא נטען שהסוד נעלם.
   const armedSecret = state?.secretPresent ?? false;
+  const secretListUnread = state != null && state.secretPresent == null;
   const fuel = state?.grid?.fuel ?? null;
 
   return (
@@ -196,6 +200,14 @@ export function GridArmCard() {
           </div>
         </div>
 
+        {secretListUnread && (
+          <div className="flex flex-col gap-1 rounded-lg border border-amber-500/40 bg-amber-500/[0.06] px-4 py-2 text-xs">
+            <span className="font-bold text-amber-700 dark:text-amber-400">רישום הסודות של הריפו לא נקרא (כשל GitHub API)</span>
+            <span className="text-muted-foreground">
+              לא נטען שהמפתח נעלם ולא שהוא קיים — האמת תימדד בקריאה הבאה. אין פעולה אוטומטית על סמך לא-נמדד.
+            </span>
+          </div>
+        )}
         {armedSecret ? (
           /* מצב חמוש */
           <div className="flex flex-col gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.05] px-4 py-3 text-sm">
@@ -208,7 +220,7 @@ export function GridArmCard() {
               <span className="font-mono">STEEM_ACTIVE_WIF + HIVE_ACTIVE_WIF + HIVE_POSTING_WIF + BLURT_ACTIVE_WIF + STEEM_POSTING_WIF</span>{" "}
               (R99 — נמסרו מכספת-הארנק הריבונית, אומתו ביט-מול-ביט מול הרשויות החיות בשלוש השרשראות לפני האטימה)
               {state?.secretUpdatedAt ? ` (אומת לאחרונה ${new Date(state.secretUpdatedAt).toLocaleString("he-IL")})` : ""}.
-              המכונה החיה: התאום הציבורי ב-Domain (03:48 UTC, דקות בלתי-מוגבלות) — רגל-STEEM ורגל-HIVE חיות יחד,
+              המכונה החיה: התאום הציבורי ב-Domain ({state?.nextScheduledRun ?? "לוח-הזמנים לא נקרא מהענן ברגע זה"}) — רגל-STEEM ורגל-HIVE חיות יחד,
               כל מילוי-חוץ נספר בכנות בקונסולה הציבורית. אפשר להזניק ריצה ראשונה עכשיו דרך כפתורי ההזנקה למטה.
             </p>
           </div>
@@ -217,7 +229,7 @@ export function GridArmCard() {
           <div className="flex flex-col gap-3 rounded-lg border border-amber-500/25 bg-amber-500/[0.03] px-4 py-3">
             <p className="text-xs leading-relaxed text-muted-foreground">
               הגריד בנוי, נמדד (פרימיית-SBD חיה של{" "}
-              <span className="font-mono text-amber-600 dark:text-amber-400">+18%–29%</span> מול קו-הזהות) ומתוזמן יומית —
+              <span className="font-mono text-amber-600 dark:text-amber-400">+18%–29%</span> מול קו-הזהות — נמדד 2026-09-24) ומתוזמן יומית —
               אך לא חותם בלי המפתח. הזן כאן את ה-active של @headcorner: השרת מאמת אותו מול השרשרת ואוטם אותו ישר אל
               הכספת המוצפנת של הריפו (GitHub Actions Secrets).{" "}
               <span className="font-semibold">

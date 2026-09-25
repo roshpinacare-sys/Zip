@@ -326,7 +326,7 @@ export function MoneyMarketView(): React.JSX.Element {
               <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-zinc-500 sm:grid-cols-4">
                 <span>מזומן-בבריכה: <b className="text-zinc-300">{fmtUsd(usds?.cashMu)}</b></span>
                 <span>פקטור-רזרבה (קבוע בקוד): <b className="text-zinc-300">10% → אוצר</b></span>
-                <span>רצפת-נזילות (קבוע בקוד): <b className="text-zinc-300">10% (משיכה מובטחת)</b></span>
+                <span>רצפת-נזילות (קבוע בקוד): <b className="text-zinc-300">10% — רצפה בקוד, לא הבטחת נזילות חוץ</b></span>
                 <span>חוצץ-HF בשאילה (קבוע בקוד): <b className="text-zinc-300">1.10</b></span>
               </div>
             </CardContent>

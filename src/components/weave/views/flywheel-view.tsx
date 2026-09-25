@@ -338,7 +338,9 @@ export function FlywheelView() {
                 </div>
                 <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
                   <div className="text-[10px] text-zinc-500">מזער הפקדה</div>
-                  <div className="font-mono text-sm font-semibold text-zinc-100">$5</div>
+                  {/* r124 · כנות: אין אכיפת מינימום בקוד — ההפקדה הראשונה שתועדה הייתה 2 TRX (~$0.5).
+                      לא נציג סף שאינו קיים. */}
+                  <div className="font-mono text-sm font-semibold text-zinc-100">ללא מינימום בקוד</div>
                 </div>
                 <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
                   <div className="text-[10px] text-zinc-500">הפקדות שנכנסו</div>

@@ -149,7 +149,13 @@ function readState(): PulseState {
   }
 }
 
-let state: PulseState = readState();
+// R124 — ציר-עולם למצב הדיבון (דפוס weblift/money): דור-חם יורש את אובייקט-
+// המצב החי מציר-העולם במקום לקרוא מקובץ שעלול להיות קפוא מדור מוקדם —
+// כך חלונות-השידור וההיסטוריה לא נשכתבים בין-דורות (נמדד חי: רשומת
+// השידור היומית של 09-25 נעלמה מ-historyTail בדיוק ברילוד).
+const G_PULSE = globalThis as unknown as { __PULSE_STATE__?: PulseState };
+let state: PulseState = G_PULSE.__PULSE_STATE__ ?? readState();
+G_PULSE.__PULSE_STATE__ = state;
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/pulse`, { recursive: true });
@@ -467,7 +473,13 @@ async function tick() {
 }
 
 // ── שרת-בריאות ─────────────────────────────────────────────────────
-Bun.serve({
+// R124 — שרת-היחיד חוצה-דורות (חוק weblift/money): שרת אחד לכל חיי התהליך;
+// ה-handler הישן ממשיך להגיש את המצב החי מציר-העולם (אותו אובייקט).
+const G_PULSE_SRV = globalThis as unknown as { __PULSE_SERVER__?: unknown };
+if (G_PULSE_SRV.__PULSE_SERVER__) {
+  // שרת חי מדור קודם — ממשיך להגיש.
+} else {
+  G_PULSE_SRV.__PULSE_SERVER__ = Bun.serve({
   port: PORT,
   hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (API/שומר/מפעיל מקומי)
   fetch(req) {
@@ -477,7 +489,8 @@ Bun.serve({
     }
     return new Response("not found", { status: 404 });
   },
-});
+  });
+}
 
 saveState();
 console.log(`[pulse] חי על פורט ${PORT} · beats=${state.beats} · פורסם לאחרונה: ${state.lastPublishUtcDay ?? "מעולם"}`);

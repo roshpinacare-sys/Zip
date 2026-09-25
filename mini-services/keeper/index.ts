@@ -228,7 +228,11 @@ function readState(): KeeperState {
   }
 }
 
-let state: KeeperState = readState();
+// R124 — ציר-עולם למצב הדיבון (דפוס weblift/fleet-verify): דור-חם יורש את
+// אובייקט-המצב החי; קריאה-מדיסק בכל דור חשפה את המצב לשכתוב-מדור-קפוא.
+const G_KEEPER = globalThis as unknown as { __KEEPER_STATE__?: KeeperState };
+let state: KeeperState = G_KEEPER.__KEEPER_STATE__ ?? readState();
+G_KEEPER.__KEEPER_STATE__ = state;
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/keeper`, { recursive: true });

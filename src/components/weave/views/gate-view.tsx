@@ -421,6 +421,7 @@ function FullCycleProof() {
   const wallet = (n: string) => w?.wallets?.find((x) => x.name === n)?.balances ?? null;
   const op = wallet("operator");
   const outbox = wallet("peg-outbox");
+  const treasury = wallet("treasury"); // r124 · מפקד-אמת: לאוצר יש מלאי-מעמלות WTRX משלו
   const oracleMu = w?.state?.oracle?.WTRX?.mu ?? null;
   const midMilli = pool && pool.rb ? Math.floor(((pool.ra ?? 0) * 1000) / pool.rb) : null;
   const oracleMilli = oracleMu != null ? Math.round(oracleMu / 1000) : null;
@@ -430,8 +431,12 @@ function FullCycleProof() {
       : null;
   const verdict =
     spreadBps == null ? null : Math.abs(spreadBps) < 300 ? "CONVERGED" : Math.abs(spreadBps) < 1500 ? "DRIFT" : "DIVERGENT";
+  // r124 · חוק הסכום המלא: ההבטחה הקנונית היא “סך-כל ה-WTRX בעולם = הגיבוי”. הנוסחה
+  // הישנה (מפעיל+תיבת-יציאה+בריכה) שכחה את ארנק האוצר — נתפס חי לאחר שהוי
+  // התמידי הוסר ב-r124: 1,568µ ≠ 2,000µ שקר נגד אמת של 432µ באוצר. האינווריאנטה
+  // בשרשרת תקינה; הנוסחה במראה היא שהייתה שבורה.
   const sumLive =
-    (op?.WTRX ?? 0) + (outbox?.WTRX ?? 0) + (pool?.rb ?? 0);
+    (op?.WTRX ?? 0) + (outbox?.WTRX ?? 0) + (pool?.rb ?? 0) + (treasury?.WTRX ?? 0);
   const backingWtrx = w?.state?.backing?.WTRX ?? null;
   const live = pool != null && op != null && outbox != null;
 
@@ -498,14 +503,29 @@ function FullCycleProof() {
               {op ? `${(op.WTRX ?? 0).toLocaleString()}µ WTRX · ${(op.USDS ?? 0).toLocaleString()}µ USDS` : "…"}
             </div>
           </div>
-          <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+          <div
+            className={
+              live && backingWtrx != null && sumLive !== backingWtrx
+                ? "rounded-lg border border-rose-500/30 bg-rose-500/[0.05] p-3"
+                : "rounded-lg border border-emerald-500/20 bg-emerald-500/[0.04] p-3"
+            }
+          >
             <div className="text-[11px] text-zinc-500">אינווריאנטה חיה (סכום = גיבוי)</div>
-            <div className="mt-0.5 font-mono text-sm font-bold text-emerald-300">
+            <div
+              className={
+                "mt-0.5 font-mono text-sm font-bold " +
+                  (live && backingWtrx != null && sumLive !== backingWtrx
+                    ? "text-rose-300"
+                    : "text-emerald-300")
+              }
+            >
               {live && backingWtrx != null
-                ? `${sumLive.toLocaleString()}µ = ${backingWtrx.toLocaleString()}µ ✓`
+                ? sumLive === backingWtrx
+                  ? `${sumLive.toLocaleString()}µ = ${backingWtrx.toLocaleString()}µ ✓`
+                  : `${sumLive.toLocaleString()}µ ≠ ${backingWtrx.toLocaleString()}µ ✗ שבר-אינווריאנטה`
                 : "…"}
             </div>
-            <div className="mt-1 text-[10px] text-zinc-600">מפעיל + תיבת-יציאה + בריכה = 2.0 TRX במשמרת</div>
+            <div className="mt-1 text-[10px] text-zinc-600">מפעיל + תיבת-יציאה + בריכה + אוצר = 2.0 TRX במשמרת</div>
           </div>
           <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
             <div className="text-[11px] text-zinc-500">מקור-המדידה</div>
@@ -1367,8 +1387,12 @@ export function GateView() {
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
-                      הגריד-החוץ חי ומזוין — אבל צד-הקנייה חסום על מלאי-SBD: ‏{fmtNum(head?.sbd, 3)} נזיל כרגע מול
-                      סף-החימוש שנקבע בקוד (המלאי והסף החיים מוצגים בלוח-הכספים).
+                      הגריד-החוץ חי ומזוין — אבל צד-הקנייה {" "}
+                      {(head?.sbd ?? 0) * 0.9 < 0.15 ? (
+                        <>חסום על מלאי-SBD: ‏{fmtNum(head?.sbd, 3)} נזיל כרגע מול סף-החימוש שנקבע בקוד (0.15 SBD לאחר פקטור-מחויבות 0.9 — המלאי והסף החיים מוצגים בלוח-הכספים).</>
+                      ) : (
+                        <>מחומש: מלאי ה-SBD החי ({fmtNum(head?.sbd, 3)}) מעל סף-החימוש — סולם-הקנייה יכול להיפתח בפעולה הבאה.</>
+                      )}{" "}
                       המפתח כבר חי בכספת המנוע (STEEM_ACTIVE_WIF, נמדד ב-API) ופקודות אמת מונחות עם txids;
                       ה-SBD היחיד שזורם מגיע ממכירות-הפרימיה שלנו עצמנו — זהו קצב-הבנייה של הצד השני.
                     </span>
@@ -1422,7 +1446,11 @@ export function GateView() {
                   <li className="flex gap-2">
                     <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" aria-hidden />
                     <span>
-                      ההון (95%) יושב ב-Steam-Power שלא מייצר כלום מלבד RC — חלון-13-השבועות מונע מימוש מהיר,
+                      ההון ({
+                        data?.usd?.vesting != null && data?.usd?.total != null && data.usd.total > 0
+                          ? Math.round((data.usd.vesting / data.usd.total) * 100)
+                          : "רוב"
+                      }%) יושב ב-Steam-Power שלא מייצר כלום מלבד RC — חלון-13-השבועות מונע מימוש מהיר,
                       ה-powerdown מחלק אותו ב-4 תשלומים ונגמר.
                     </span>
                   </li>

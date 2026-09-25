@@ -256,7 +256,7 @@ export function DomainsView() {
               <li className="flex gap-2">
                 <CheckCircle2 className="mt-1 size-4 shrink-0 text-emerald-500" aria-hidden />
                 <span>
-                  האתר כולו מוגש עכשיו דרך <b className="text-zinc-200">שעת-סנדבוקס</b> —
+                  האתר מוגש דרך <b className="text-zinc-200">שעת-סנדבוקס</b> —
                   כתובת חיצונית אחת שמעבירה לשרת הפנימי. זו הכתובת שפתוחה
                   מולך בחלונית התצוגה.
                 </span>

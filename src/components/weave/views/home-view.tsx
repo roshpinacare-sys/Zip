@@ -370,7 +370,7 @@ export function HomeView() {
             icon={BrainCircuit}
             label="מוח הרשת"
             value={brainLive}
-            context="מפתחות מאומתים · סבב בריאות שעתי"
+            context="מפתחות שאומתו בבדיקה הידנית האחרונה (probe)"
             loading={loading}
           />
         </div>
@@ -497,7 +497,7 @@ export function HomeView() {
               </li>
               <li className="flex items-start gap-2">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
-                הכל רץ בענן ציבורי (GitHub Actions) - מוות של סביבת עבודה לא מפיל כלום
+                הלב והספרים רצים בענן ציבורי (GitHub Actions) · צי הדיבונים בבית הריבוני — מוחזר בפקודה אחת
               </li>
               <li className="flex items-start gap-2">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />

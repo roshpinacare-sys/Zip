@@ -134,7 +134,11 @@ function readState(): HunterState {
   }
 }
 
-let state: HunterState = readState();
+// R124 — ציר-עולם למצב הדיבון (דפוס weblift/fleet-verify): דור-חם יורש את
+// אובייקט-המצב החי; קריאה-מדיסק בכל דור חשפה את המצב לשכתוב-מדור-קפוא.
+const G_HUNTER = globalThis as unknown as { __HUNTER_STATE__?: HunterState };
+let state: HunterState = G_HUNTER.__HUNTER_STATE__ ?? readState();
+G_HUNTER.__HUNTER_STATE__ = state;
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/hunter`, { recursive: true });
@@ -383,7 +387,13 @@ async function tick() {
 }
 
 // ── שרת-בריאות ─────────────────────────────────────────────────────
-Bun.serve({
+// R124 — שרת-היחיד חוצה-דורות (חוק weblift): ה-handler הישן ממשיך להגיש
+// את המצב החי מציר-העולם.
+const G_HUNTER_SRV = globalThis as unknown as { __HUNTER_SERVER__?: unknown };
+if (G_HUNTER_SRV.__HUNTER_SERVER__) {
+  // שרת חי מדור קודם — ממשיך להגיש.
+} else {
+  G_HUNTER_SRV.__HUNTER_SERVER__ = Bun.serve({
   port: PORT,
   hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (שומר/API/מפעיל מקומי)
   fetch(req) {
@@ -393,7 +403,8 @@ Bun.serve({
     }
     return new Response("not found", { status: 404 });
   },
-});
+  });
+}
 
 saveState();
 console.log(`[hunter] חי על פורט ${PORT} · beats=${state.beats} · קנרית הבאה ${state.canary.nextDueAt}`);

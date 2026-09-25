@@ -346,7 +346,15 @@ export function ArrayView() {
     const agents = registry.data?.agents ?? [];
     const byState: Record<string, number> = {};
     for (const a of agents) byState[a.state] = (byState[a.state] ?? 0) + 1;
-    return { total: agents.length, live: byState.live ?? 0, degraded: byState.degraded ?? 0, dormant: byState.dormant ?? 0, auto: byState.auto ?? 0 };
+    return {
+      total: agents.length,
+      live: byState.live ?? 0,
+      degraded: byState.degraded ?? 0,
+      dormant: byState.dormant ?? 0,
+      auto: byState.auto ?? 0,
+      // r124 · כנות: מספר הריפואים נגזר מהרישום החי — לא קבוע ב-JSX
+      repos: registry.data?.reposWithAgents?.length ?? null,
+    };
   }, [registry.data]);
 
   const gridVerdict = grid?.verdict ?? "—";
@@ -648,7 +656,7 @@ export function ArrayView() {
         id="fleet"
         icon={CircuitBoard}
         title="צי הסוכנים — מהרישום הציבורי"
-        sub={`נמדד חי מ-agents/registry.json · ${fleet.total} סוכנים ב-14 ריפואים`}
+        sub={`נמדד חי מ-agents/registry.json · ${fleet.total} סוכנים${fleet.repos != null ? ` ב-${fleet.repos} ריפואים` : ""}`}
       >
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatusPill icon={Activity} label="חיים" value={`${fleet.live}`} tone="emerald" />

@@ -42,12 +42,14 @@ export async function GET() {
   const rows: Array<Record<string, unknown>> = [];
   let totalEth = 0;
   let opened = 0;
+  let unreadable = 0; // r124: שורה שלא נמדדה (RPC/כספת) אינה “אפס נמדד” — היא לא-נמדדה
   for (const acct of VAULT_ACCOUNTS) {
     const vw = openEthVaultWallet(acct);
     const entry = openVaultEntryRaw("ethereum", acct, "wallet");
     const address = vw.address ?? entry.entryPub ?? null;
     const bal = address ? await ethBalanceOf(address) : { wei: BigInt(0), eth: 0, error: "NO-KEY" };
     totalEth += bal.eth;
+    if (bal.error) unreadable++;
     if (vw.ok) opened++;
     rows.push({
       account: acct,
@@ -60,20 +62,30 @@ export async function GET() {
       error: bal.error ?? (vw.ok ? undefined : vw.detail),
     });
   }
-  const totalUsd = price != null ? totalEth * price : null;
+  // r124 · חוק: כישלון-קריאה בחישוב-כסף הוא סירוב, לא אפס — סכום שמכיל
+  // שורות שלא נמדדו מוצג כמדידה, וזה שקר. total=null עד שכל השורות נקראו.
+  const measured = unreadable === 0;
+  const totalUsd = measured && price != null ? totalEth * price : null;
   return NextResponse.json({
-    ok: true,
+    ok: measured,
     at,
     chain: "ethereum",
     rpc: "eth.drpc.org (+2 fallbacks)",
     priceUsd: price,
     accounts: rows,
+    unreadableRows: unreadable,
     vaultOpened: `${opened}/${VAULT_ACCOUNTS.length}`,
-    total: { eth: totalEth, usd: totalUsd },
-    verdict: opened === VAULT_ACCOUNTS.length ? "ARMED-LIVE" : "PARTIAL",
-    note: price == null
-      ? "מחיר ETH לא נמדד במחזור זה (בינאנס לא ענה) — שידור יסורב בכנות עד מדידה (אין שער, אין מסחר)"
-      : `12/12 מפתחות בכספת בנתיב הריבוני · הוכחת-רגל חיה: NO-GAS כנה עד הזרמת את'ר · יתרה חיה ${totalEth.toFixed(8)} ETH`,
+    total: measured ? { eth: totalEth, usd: totalUsd } : null,
+    verdict: !measured
+      ? "DEGRADED"
+      : opened === VAULT_ACCOUNTS.length
+        ? "ARMED-LIVE"
+        : "PARTIAL",
+    note: !measured
+      ? `${unreadable}/${VAULT_ACCOUNTS.length} מאזנים לא נמדדו (RPC/כספת לא ענו) — אין סכום, אין טענת יתרה. שידור יסורב בכנות עד מדידה מלאה.`
+      : price == null
+        ? "מחיר ETH לא נמדד במחזור זה (בינאנס לא ענה) — שידור יסורב בכנות עד מדידה (אין שער, אין מסחר)"
+        : `12/12 מפתחות בכספת בנתיב הריבוני · הוכחת-רגל חיה: NO-GAS כנה עד הזרמת את'ר · יתרה חיה ${totalEth.toFixed(8)} ETH`,
     doctrine: [
       "נתיב-הכספת (R101c+R102): סיסמת-האב → active-STEEM חי → חותמת → מפתח-אב → AES-256-GCM → מפתח EVM — בזיכרון בלבד.",
       "הכתובת הנגזרת חייבת להתאים לרשומת הכספת לפני כל שידור — חוק השרשרת-השופט.",

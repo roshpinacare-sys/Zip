@@ -209,9 +209,12 @@ export function GamesView() {
         </Card>
         <Card className="p-4">
           <p className="text-2xl font-black tabular-nums">
-            {gamePackages.filter((p) => p.status !== "pending-seal").length}/{Math.max(gamePackages.length, 1)}
+            {gamePackages.filter((p) => p.status === "complete").length}/{Math.max(gamePackages.length, 1)}
           </p>
-          <p className="text-xs text-muted-foreground">חתומות על שרשרת</p>
+          {/* r124 · כנות: partial = מניפסט חתום, צ׳אנקים בדרך — לא “חתום על שרשרת” מלא */}
+          <p className="text-xs text-muted-foreground">
+            חתומות על שרשרת{gamePackages.some((p) => p.status === "partial") ? " (כולל חלקיות: מניפסט ✓ · צ׳אנקים בדרך)" : ""}
+          </p>
         </Card>
         <Card className="p-4">
           <p className="text-2xl font-black tabular-nums">
@@ -277,6 +280,7 @@ export function GamesView() {
           .sort((a, b) => a.name.localeCompare(b.name));
         const isLuck = /luck/i.test(p.manifest.name);
         const sealed = p.status !== "pending-seal";
+        const partial = p.status === "partial";
         const block = p.chain?.manifestOp?.block ?? null;
         return (
           <section key={p.manifest.sha256} className="space-y-3" aria-label={`חבילה ${p.manifest.name}`}>
@@ -292,7 +296,7 @@ export function GamesView() {
               {sealed ? (
                 <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                   <ShieldCheck className="me-1 size-3" aria-hidden="true" />
-                  חתום על שרשרת{block ? ` · בלוק ${block.toLocaleString("he-IL")}` : ""}
+                  {partial ? "מניפסט חתום · צ׳אנקים בדרך" : "חתום על שרשרת"}{block ? ` · בלוק ${block.toLocaleString("he-IL")}` : ""}
                 </Badge>
               ) : (
                 <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">

@@ -453,8 +453,14 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
       down.push(`fills: ${String(e.message).slice(0, 50)}`);
       return [] as FillReceipt[];
     }),
-    marksSide().catch(() => null),
-    tronSide().catch(() => ({ outbox: null as number | null, custody: null as number | null })),
+    marksSide().catch((e) => {
+      down.push(`marks: ${String(e.message).slice(0, 50)}`);
+      return null;
+    }),
+    tronSide().catch((e) => {
+      down.push(`tron: ${String(e.message).slice(0, 50)}`);
+      return { outbox: null as number | null, custody: null as number | null };
+    }),
     daemonSide(),
   ]);
 
@@ -852,7 +858,7 @@ async function POST_core(req: Request) {
   // רזרבות בבריכות) מנוכה מדלק הפריסה, אחרת מכירת סולם שוברת את הבטחת
   // ה-1:1 של העטיפה. נולד מהזרמה כוזבת שנמדדה חי (95.327 WSTEEM מהון
   // סולם עומד) — החוק מונע את הנזק הבא, לא רק את האחרון.
-  const arenaClaimWsteem = await (async () => {
+  const arenaClaimWsteem = await (async (): Promise<number | null> => {
     try {
       const { db } = await import("@/lib/db");
       const accts = await db.exchangeAccount.findMany();
@@ -866,10 +872,17 @@ async function POST_core(req: Request) {
       const pools = await db.exchangePool.findMany({ where: { assetA: "WSTEEM" } });
       for (const pool of pools) claim += Number(pool.reserveA) || 0;
       return Math.max(0, Math.round(claim * 1000) / 1000);
-    } catch {
-      return 0; // ספר הזירה לא נקרא — הפעולה תיבדק בנתיב הזירה עצמו
+    } catch (e) {
+      // r124 · חוק: כישלון-קריאה בחישוב-כסף הוא סירוב, לא אפס. ספר-הזירה
+      // שלא נקרא היה מחזיר 0 תביעות → דלק מלא → reprice מפריס גיבוי של
+      // WSTEEM שנתבע (הבטחת 1:1 של R111 נשברת בשקט). אפס מזויף = שקר.
+      void e;
+      return null;
     }
   })();
+  if (arenaClaimWsteem == null) {
+    return bad("ספר הזירה לא נקרא — תביעות ה-WSTEEM לא נמדדו, לכן שום פריסה לא תחושב. סירוב-כנה (חוק r124: כישלון-קריאה אינו אפס).", 503, { code: "ARENA-LEDGER-UNREADABLE" });
+  }
   const totalFuelRaw = Math.round((liquid + inOrders) * 1000) / 1000;
   const totalFuel = Math.round(Math.max(0, totalFuelRaw - arenaClaimWsteem) * 1000) / 1000;
   const sbdLiquid = parseFloat(account.sbd_balance);
@@ -920,6 +933,11 @@ async function POST_core(req: Request) {
         ),
       ),
     ).catch(() => null);
+    // r124 · חוק: כישלון-קריאה אינו "עומק דק" — ספר שלא נקרא הוא לא-נמדד,
+    // ולא טענה על תוכנו. קוד נפרד מ-BOOK-TOO-THIN (שקר הסיבה נתפס ב-r124-a).
+    if (book == null) {
+      return bad("ספר-הבידים לא נקרא (RPC לא ענה) — לא נמדד, לא פעולה. סירוב-כנה.", 502, { code: "NO-BOOK-READ" });
+    }
     const bidRows: Array<{ real_price?: string | number; sbd?: string | number }> = book?.bids ?? [];
     // הליכת-ספר: כמה STEEM צריך למכור דרך הבידים כדי לקבל בדיוק את הפער
     let remainSbd = stockGap;

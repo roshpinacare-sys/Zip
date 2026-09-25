@@ -45,12 +45,14 @@ export async function GET() {
   const rows: Array<Record<string, unknown>> = [];
   let totalSol = 0;
   let opened = 0;
+  let unreadable = 0; // r124: שורה שלא נמדדה (RPC/כספת) אינה “אפס נמדד” — היא לא-נמדדה
   for (const acct of VAULT_ACCOUNTS) {
     const kp = openSolVaultKeypair(acct);
     const entry = openVaultEntryRaw("solana", acct, "wallet");
     const pub = kp.pub ?? entry.entryPub ?? null;
     const bal = pub ? await solBalance(pub) : { lamports: 0, sol: 0, error: "NO-KEY" };
     totalSol += bal.sol;
+    if (bal.error) unreadable++;
     if (kp.ok) opened++;
     rows.push({
       account: acct,
@@ -63,22 +65,32 @@ export async function GET() {
       error: bal.error ?? (kp.ok ? undefined : kp.detail),
     });
   }
-  const totalUsd = price != null ? totalSol * price : null;
+  // r124 · חוק: כישלון-קריאה בחישוב-כסף הוא סירוב, לא אפס — total=null
+  // כששורה כלשהי לא נקראה, כדי שאף צרכן לא יציג “יתרה חיה 0.000000”.
+  const measured = unreadable === 0;
+  const totalUsd = measured && price != null ? totalSol * price : null;
   return NextResponse.json({
-    ok: true,
+    ok: measured,
     at,
     chain: "solana",
     rpc: "api.mainnet-beta.solana.com",
     priceUsd: price,
     priceSource,
     accounts: rows,
+    unreadableRows: unreadable,
     vaultOpened: `${opened}/${VAULT_ACCOUNTS.length}`,
-    total: { sol: totalSol, usd: totalUsd },
-    verdict: opened === VAULT_ACCOUNTS.length ? "ARMED-LIVE" : "PARTIAL",
+    total: measured ? { sol: totalSol, usd: totalUsd } : null,
+    verdict: !measured
+      ? "DEGRADED"
+      : opened === VAULT_ACCOUNTS.length
+        ? "ARMED-LIVE"
+        : "PARTIAL",
     railProof: RAIL_PROOF,
-    note: price == null
-      ? "מחיר SOL לא נמדד במחזור זה — שידור יסורב בכנות עד מדידה (אין שער, אין מסחר)"
-      : `12/12 מפתחות בכספת · רגל מוכחת בשידור אמת מאושר · יתרה חיה ${totalSol.toFixed(6)} SOL (הון-אגרה אמיתי)`,
+    note: !measured
+      ? `${unreadable}/${VAULT_ACCOUNTS.length} מאזנים לא נמדדו (RPC/כספת לא ענו) — אין סכום, אין טענת יתרה. שידור יסורב בכנות עד מדידה מלאה.`
+      : price == null
+        ? "מחיר SOL לא נמדד במחזור זה — שידור יסורב בכנות עד מדידה (אין שער, אין מסחר)"
+        : `12/12 מפתחות בכספת · רגל מוכחת בשידור אמת מאושר · יתרה חיה ${totalSol.toFixed(6)} SOL (הון-אגרה אמיתי)`,
     doctrine: [
       "הרגל נבנתה בלי תלות חדשה: בניית legacy-tx ביד + חתימת ed25519 של node:crypto — הפרוטוקול פשוט וניתן-לאימות.",
       "hex-seed של 32 בייט מהכספת ← ed25519 ← פומבי תואם לרשומה — אוֹ אין שידור (חוק השרשרת-השופט).",

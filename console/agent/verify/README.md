@@ -6,7 +6,7 @@ the result in public.
 
 The flow: **request · build · the network measures · public result.**
 
-- `assertions.json` — the machine-checkable contract: 15 assertions over
+- `assertions.json` — the machine-checkable contract: 53 assertions over
   the live site (HTTP reachability, required page structures, live-data
   minima, the FRESH verdict, the zero-emoji policy). Bilingual, versioned
   with the repo, changed only by explicit edit.
@@ -22,8 +22,8 @@ The flow: **request · build · the network measures · public result.**
 ## How to run
 
 - Manual: GitHub, this repo, tab **Actions**, workflow **agent-verify**,
-  button **Run workflow**. It also runs automatically every 6 hours at :55
-  (schedule) and commits the fresh results.
+  button **Run workflow**. It also runs automatically every 2 hours at :55
+  (schedule, `55 */2 * * *`) and commits the fresh results.
 - Local, from the repo root: `node agent/verify/run.mjs`. It writes
   `agent/verify/results.json`. Local runs are for debugging — do not
   commit their output; the workflow's snapshot is the published truth.
@@ -45,7 +45,7 @@ No secrets, no emojis, no claims without measurement.
 
 הזרימה: **בקשה · בנייה · הרשת מודדת · תוצאה ציבורית.**
 
-- `assertions.json` — החוזה הנבדק-מכונה: 15 טענות על האתר החי (זמינות
+- `assertions.json` — החוזה הנבדק-מכונה: 53 טענות על האתר החי (זמינות
   HTTP, מבני עמוד חובה, מינימום נתונים חיים, פסק הדין FRESH, מדיניות
   האפס-אימוג'י). דו-לשוני, מנוהל בגרסאות בריפו, משתנה רק בעריכה מפורשת.
 - `run.mjs` — המאמת. אפס תלויות, Node 20+ (fetch גלובלי). מוריד את האתר
@@ -60,7 +60,7 @@ No secrets, no emojis, no claims without measurement.
 
 - ידני: גיטהאב, הריפו הזה, לשונית **Actions**, ה-workflow
   **agent-verify**, כפתור **Run workflow**. בנוסף רץ אוטומטית כל
-  6 שעות בדקה :55 (תזמון) ומבצע commit לתוצאות הטריות.
+  2 שעות בדקה :55 (תזמון, `55 */2 * * *`) ומבצע commit לתוצאות הטריות.
 - מקומית, משורש הריפו: `node agent/verify/run.mjs`. הפקודה כותבת את
   `agent/verify/results.json`. ריצות מקומיות הן לניפוי שגיאות — לא
   להעלות את הפלט שלהן; צילום ה-workflow הוא האמת המפורסמת.

@@ -90,7 +90,9 @@ const packLastTime = st.meta.lastTime ? Date.parse(st.meta.lastTime) : NaN;
 const packAgeHours = Number.isFinite(packLastTime) ? Math.round(((Date.now() - packLastTime) / 3.6e6) * 10) / 10 : null;
 
 const out = {
-  ok: true,
+  // r124 · חוק: ok אמיתי — חבילה שלא עברה אימות אינה "ok" בשום קורא.
+  // הצרכן שקורא רק את ok מקבל כעת את פסק-הדין הכנה של האימות.
+  ok: verified,
   net: {
     netVersion: st.netVersion || nodeState.netVersion || 'saos-net/0',
     genesisHash: genesis.genesisHash || null,

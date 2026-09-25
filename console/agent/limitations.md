@@ -45,7 +45,7 @@ advancing."
 **How the network prevents it:**
 - SO-1: work not visible at the public URL does not count as delivered.
 - The requests ledger records status per request; `delivered` requires a public location.
-- agent-verify measures the public URL every 6 hours - a regression (or an unshipped
+- agent-verify measures the public URL every 2 hours - a regression (or an unshipped
   feature) fails assertions A02-A06, A07, A11-A13 in public.
 - This file itself is pinned by assertion A09/A11 so the map cannot silently vanish.
 
@@ -112,7 +112,7 @@ requests.json (ledgered, ID + status)
 build -> ship to cloud -> visible at public URL (SO-1)
       │
       ▼
-agent-verify workflow (independent, every 6h)
+agent-verify workflow (independent, every 2h)
       │
       ▼
 public verdict (results.json -> #/admin/verify)

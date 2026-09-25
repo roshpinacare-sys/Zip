@@ -311,7 +311,11 @@ function readState(): StudentState {
   }
 }
 
-let state: StudentState = readState();
+// R124 — ציר-עולם למצב הדיבון (דפוס weblift/fleet-verify): דור-חם יורש את
+// אובייקט-המצב החי; קריאה-מדיסק בכל דור חשפה את המצב לשכתוב-מדור-קפוא.
+const G_STUDENT = globalThis as unknown as { __STUDENT_STATE__?: StudentState };
+let state: StudentState = G_STUDENT.__STUDENT_STATE__ ?? readState();
+G_STUDENT.__STUDENT_STATE__ = state;
 let coverageTriggered = false;
 let coverageNoPatNoted = false; // R123 — דגל חד-פעמי: היעדר-סמכות נרשם פעם, לא כל מחזור
 
@@ -867,8 +871,13 @@ async function tick() {
 }
 
 // ── שרת-בריאות ─────────────────────────────────────────────────────
-
-Bun.serve({
+// R124 — שרת-היחיד חוצה-דורות (חוק weblift): ה-handler הישן ממשיך להגיש
+// את המצב החי מציר-העולם.
+const G_STUDENT_SRV = globalThis as unknown as { __STUDENT_SERVER__?: unknown };
+if (G_STUDENT_SRV.__STUDENT_SERVER__) {
+  // שרת חי מדור קודם — ממשיך להגיש.
+} else {
+  G_STUDENT_SRV.__STUDENT_SERVER__ = Bun.serve({
   port: PORT,
   hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (API/שומר/מפעיל מקומי)
   fetch(req) {
@@ -903,7 +912,8 @@ Bun.serve({
     }
     return new Response("not found", { status: 404 });
   },
-});
+  });
+}
 
 saveState();
 console.log(`[student] התלמיד חי על פורט ${PORT} · beats=${state.beats} · מחזור ${CYCLE_SEC}s`);
