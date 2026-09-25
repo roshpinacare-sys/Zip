@@ -112,7 +112,7 @@ async function main(): Promise<void> {
     .filter(Boolean) as string[];
 
   let pagesStatus = 0;
-  const pub = await fetch(PAGES_URL, { method: "HEAD" }).catch(() => null);
+  const pub = await fetch(PAGES_URL, { method: "HEAD", signal: AbortSignal.timeout(15_000) }).catch(() => null);
   const pagesLive = !!(pub && pub.ok);
   pagesStatus = pub ? pub.status : 0;
   console.log(`[weave-console] Pages ${PAGES_URL} · ${pagesStatus} ${pagesLive ? "LIVE" : "DOWN"}`);
@@ -121,7 +121,7 @@ async function main(): Promise<void> {
   let consoleWitness: ConsoleStatusPublic["witness"] | undefined;
   let consoleFreshness: string | undefined;
   if (pagesLive) {
-    const st = await fetch(new URL("status.json", PAGES_URL).toString(), { cache: "no-store" }).catch(() => null);
+    const st = await fetch(new URL("status.json", PAGES_URL).toString(), { cache: "no-store", signal: AbortSignal.timeout(15_000) }).catch(() => null);
     if (st && st.ok) {
       const s = (await st.json()) as ConsoleStatusPublic;
       consoleWitness = s.witness;

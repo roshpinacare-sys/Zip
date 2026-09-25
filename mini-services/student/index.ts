@@ -27,6 +27,11 @@
 
 import fs from "node:fs";
 
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+};
+
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/student/state.json`;
 const PORT = 3037;
@@ -171,6 +176,7 @@ interface StudentState {
   exchange: ExchangeObs | null;
   exchangeHistory: ExchangeEvent[];
   heal: { receipts: HealReceipt[]; today: number; day: string };
+  lastDecision: Decision | null; // R123 — החלטה אחרונה גלויה (חוק הדיבונים)
   history: Decision[];
 }
 
@@ -253,6 +259,7 @@ function freshState(): StudentState {
     exchange: null,
     exchangeHistory: [],
     heal: { receipts: [], today: 0, day: utcDay() },
+    lastDecision: null,
     history: [],
   };
 }
@@ -284,18 +291,38 @@ function readState(): StudentState {
         day: sameDay ? prev.heal.day : utcDay(),
       },
       history: Array.isArray(prev.history) ? prev.history.slice(-40) : [],
+      lastDecision: (prev as { lastDecision?: Decision | null }).lastDecision ?? null,
     };
-  } catch {
+  } catch (e: any) {
+    // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
+    // בהיסטוריה כשורה גלויה. קובץ שאינו קיים = עלייה ראשונה כנה.
+    if (fs.existsSync(STATE_FILE)) {
+      const reset = freshState();
+      reset.history = [
+        {
+          at: new Date().toISOString(),
+          kind: "STATE-RESET",
+          detail: `קובץ-המצב קיים אך לא נקרא (${String(e?.message ?? e).slice(0, 80)}) — אותחל מצב חדש בכנות`,
+        },
+      ];
+      return reset;
+    }
     return base;
   }
 }
 
 let state: StudentState = readState();
 let coverageTriggered = false;
+let coverageNoPatNoted = false; // R123 — דגל חד-פעמי: היעדר-סמכות נרשם פעם, לא כל מחזור
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/student`, { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  // R107b — חוק הכתיבה-האטומית (כמו בשומר): .tmp ואז rename — התלמיד כותב
+  // 111KB+ כל מחזור (probeHistory) — כתיבה חצויה באמצע תשאיר קובץ שבור
+  // ליורשים (ה-API והשומר קוראים אותו חי).
+  const tmp = `${STATE_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+  fs.renameSync(tmp, STATE_FILE);
 }
 
 function readPat(): string | null {
@@ -487,7 +514,17 @@ async function verifyFindings(): Promise<string[]> {
 async function measureCoverage(): Promise<void> {
   const pat = readPat();
   if (!pat) {
-    state.coverageAt = new Date().toISOString();
+    // R123 — כנות: בלי סמכות אין מדידה — coverageAt אינו מתעדכן (הוא חותמת-
+    // מדידה, לא חותמת-ניסיון). הדילוג נרשם כשורה גלויה פעם לעלייה.
+    if (!coverageNoPatNoted) {
+      coverageNoPatNoted = true;
+      state.history.push({
+        at: new Date().toISOString(),
+        kind: "COVERAGE-NO-PAT",
+        detail: "מפת-הכיסוי לא נמדדה — אין סמכות (PAT). התמונה הקודמת נשמרת בכנות",
+      });
+      state.history = state.history.slice(-40);
+    }
     return;
   }
   const headers = {
@@ -531,8 +568,16 @@ async function measureCoverage(): Promise<void> {
       out.push({ repo: r.name, role: REPO_ROLES[r.name] ?? "", pushedAt, pushAgeH, workflows, lastRun, verdict });
     }
     out.sort((a, b) => (b.pushAgeH ?? 0) - (a.pushAgeH ?? 0));
-  } catch {
-    // כיסוי שלם לא נמדד — נשמר הקודם, בכנות
+  } catch (e: any) {
+    // R123 — כנות: כיסוי שלם שנכשל נרשם כשורה גלויה בהיסטוריה — המצב
+    // הקודם נשמר, אבל "לא נמדד" לא מתחזה ל"נמדד עכשיו".
+    state.history.push({
+      at: new Date().toISOString(),
+      kind: "COVERAGE-FAIL",
+      detail: `מפת-הכיסוי לא נמדדה (${String(e?.message ?? e).slice(0, 100)}) — נשמרת התמונה הקודמת בכנות`,
+    });
+    state.history = state.history.slice(-40);
+    return; // coverageAt לא מתעדכן — הוא חותמת-מדידה, לא חותמת-ניסיון
   }
   if (out.length) state.coverage = out;
   state.coverageAt = new Date().toISOString();
@@ -617,8 +662,10 @@ async function learnEconomics(): Promise<string[]> {
     }
     state.economics = econ;
     state.economicsHistory = state.economicsHistory.slice(-60);
-  } catch {
-    // הכלכלה לא נמדדה במחזור זה — נשמר הקודם, בכנות
+  } catch (e) {
+    // R123 — כנות (אותו חוק שנחקק ב-learnExchange ב-R96): כשל למידה נראה
+    // ביומן, לא נעלם בשקט. המצב הקודם נשמר — בכנות.
+    console.error("[student] learnEconomics failed:", String(e));
   } finally {
     clearTimeout(t);
   }
@@ -823,6 +870,7 @@ async function tick() {
 
 Bun.serve({
   port: PORT,
+  hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (API/שומר/מפעיל מקומי)
   fetch(req) {
     const url = new URL(req.url);
     if (url.pathname === "/") {

@@ -299,7 +299,7 @@ export function AdminMissionsView() {
         <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
           כשכסף נכנס לכתובות ההפקדה, dex-watch מזהה אותו תוך 20 דקות. הניתוב
           מטרתו להמיר כל יחידת ערך לחוסן רשת: עצמאות עיגון, רציפות פרסום,
-          ויכולת הפעלה. האחוזים הם הנחיית-על - המפעיא יכול לשנות בכל עת.
+          ויכולת הפעלה. האחוזים הם הנחיית-על - המפעיל יכול לשנות בכל עת.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           {MONEY_BUCKETS.map((b, i) => (

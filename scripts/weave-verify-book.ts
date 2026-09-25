@@ -100,7 +100,7 @@ function loadLedgerSync(p: string): LedgerSnapshot {
 
 async function loadLedgerLive(): Promise<LedgerSnapshot> {
   console.log(`מושך את הספר הציבורי החי: ${PUBLIC_LEDGER_URL}`);
-  const res = await fetch(`${PUBLIC_LEDGER_URL}?t=${Date.now()}`, { headers: { "User-Agent": "weave-verify-book" } });
+  const res = await fetch(`${PUBLIC_LEDGER_URL}?t=${Date.now()}`, { headers: { "User-Agent": "weave-verify-book" }, signal: AbortSignal.timeout(30_000) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return (await res.json()) as LedgerSnapshot;
 }

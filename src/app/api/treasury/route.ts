@@ -228,7 +228,7 @@ async function tronSide() {
   // R86: TRON apilist מחזיר 429 בעיקר כשסורקים בזה אחר זה — ניסיון-כפול
   // עם הפסקה קצרה בין הכתובות עובר את הרגע. השופט נשאר השקף: שתי
   // הכתובות נבדקות מול אותו מקור, בלי מצב מקומי.
-  const out = [];
+  const out: { label: string; address: string; trx: number; trc20: number }[] = [];
   for (const t of TRON_ADDRS) {
     if (out.length > 0) await sleep(400); // הפסקה קצרה בין הכתובות — עוברת את ה-429
     const j = await jget(
@@ -247,7 +247,7 @@ async function tronSide() {
 }
 
 async function evmSide() {
-  const out = [];
+  const out: { label: string; address: string; eth: number; txsSent: number | null }[] = [];
   for (const e of EVM_ADDRS) {
     const [balHex, nonce] = await Promise.all([
       rpcCall(EVM_RPC, "eth_getBalance", [e.address, "latest"]),
@@ -264,7 +264,7 @@ async function evmSide() {
 }
 
 async function solSide() {
-  const out = [];
+  const out: { label: string; address: string; sol: number }[] = [];
   for (const s of SOL_ADDRS) {
     let lamports: number | null = null;
     // ניסיון-כפול: publicnode לפעמים חונק בשקט מהסנדבוקס

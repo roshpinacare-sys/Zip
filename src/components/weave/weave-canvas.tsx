@@ -36,7 +36,7 @@ export function WeaveCanvas({ className }: { className?: string }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const reduced = window.matchMedia("(preferc-reduced-motion: reduce), (prefers-reduced-motion: reduce)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let raf = 0;
     let running = true;

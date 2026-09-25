@@ -499,7 +499,7 @@ export function ArrayView() {
           />
           <PipeStep
             n={2}
-            title="מלאי מחויב — הגריד מפרס"
+            title="מלאי מחויב — הגריד פורש"
             status={gridArmed ? "חמוש" : "נעול"}
             tone={gridArmed ? "gold" : "zinc"}
             rows={[

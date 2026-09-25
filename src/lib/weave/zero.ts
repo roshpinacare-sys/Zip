@@ -41,8 +41,9 @@ export const ZERO_EXPLORER_TX = "https://zscan.live/tx";
 export const ZERO_RAIL_ID = "zero-9369";
 
 /** תקרת גז: EOA→EOA נמדד 21,000–34,680; 300k מכסה מטענים גדולים
- *  יותר על שרשרת שגובהת אפס על זה. */
-const ZERO_GAS_LIMIT = 300_000n;
+ *  יותר על שרשרת שגובהת אפס על זה.
+ *  (BigInt(...) במקום ליטרל 300_000n — target ES2017; זהה בזמן ריצה) */
+const ZERO_GAS_LIMIT = BigInt(300_000);
 
 // ─── סריאליזציה קנונית (סדר שדות ממוין, בלי float, בלי undefined) ──
 // אותה משמעת של canonical-json של הפלטפורמה: דטרמיניסטי, fail-closed.
@@ -162,7 +163,7 @@ export async function zeroReadiness(address?: string): Promise<ZeroReadiness> {
       throw new Error(`chainId gate: node answered ${chainId}, expected ${ZERO_CHAIN_ID} (fail-closed)`);
     }
     const gasPriceWei = BigInt(gasWei);
-    const zeroGas = gasPriceWei === 0n;
+    const zeroGas = gasPriceWei === BigInt(0);
 
     let balanceEth: string | null = null;
     let nonce: number | null = null;
@@ -308,12 +309,12 @@ export async function anchorOnZero(params: {
       throw new Error(`chainId gate: ${chainId} ≠ ${ZERO_CHAIN_ID} (fail-closed)`);
     }
     const gasPriceWei = BigInt(gasWei);
-    let pricedGas = 0n;
-    if (gasPriceWei > 0n) {
+    let pricedGas = BigInt(0);
+    if (gasPriceWei > BigInt(0)) {
       // נפילה כנה — הרשת התחילה לגבות: אותו שער מאזן×2 של anchor-evm
       const balanceWei = await provider.getBalance(wallet.address, "latest");
       const costWei = ZERO_GAS_LIMIT * gasPriceWei;
-      if (balanceWei < costWei * 2n) {
+      if (balanceWei < costWei * BigInt(2)) {
         throw new Error(
           `zero-gas property lost: gasPrice ${ethers.formatUnits(gasPriceWei, "gwei")} gwei and balance ${ethers.formatEther(balanceWei)} ETH < cost×2 — the anchor did not fire (honest)`
         );
@@ -325,10 +326,10 @@ export async function anchorOnZero(params: {
     const signer = new ethers.Wallet(wallet.privateKey, provider);
     const tx = await signer.sendTransaction({
       to: wallet.address,
-      value: 0n,
+      value: BigInt(0),
       data: dataHex,
       gasLimit: ZERO_GAS_LIMIT,
-      gasPrice: pricedGas, // 0n על שרשרת האפס — נמדד למעלה
+      gasPrice: pricedGas, // 0 על שרשרת האפס — נמדד למעלה
       type: 0,
       chainId: ZERO_CHAIN_ID,
     });
@@ -413,7 +414,8 @@ export async function verifyZeroAnchorOnChain(
     // חלון פיגור-האינדקס — עוד ניסיון אחרי המתנה, לפני הכרזת NOT-FOUND
     if (i < attempts - 1) await sleep(3000);
   }
-  return last;
+  // attempts≥1 מובטח מברירת-המחדל (4); הלולאה מילאה תמיד את last.
+  return last as ZeroReadback;
 }
 
 /** פענוח המטען הקנוני מה-calldata שעל השרשרת — סלקטור + JSON */

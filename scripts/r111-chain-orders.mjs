@@ -1,4 +1,4 @@
-const RPC = ["https://api.steemit.com", "https://api.justyy.com", "https://steem.61bts.com"];
+const RPC = ["https://api.steemit.com", "https://api.justyy.com"];
 async function call(method, params) {
   for (const url of RPC) {
     try {

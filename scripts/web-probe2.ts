@@ -15,7 +15,9 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { steemBroadcast, hiveBroadcast, type GrapheneOperation } from "@/lib/weave/graphene";
+import { steemBroadcast, hiveBroadcast } from "@/lib/weave/graphene";
+// GrapheneOperation מיובא מהחבילה עצמה — graphene.ts מגדיר אותו מקומית ולא מייצא
+import type { GrapheneOperation } from "steem";
 
 const ROOT = path.resolve(__dirname, "..");
 const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();

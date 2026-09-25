@@ -316,7 +316,7 @@ export const ROLE_META: Record<string, { icon: LucideIcon; badge: string; hint: 
   AUDITOR: {
     icon: ShieldCheck,
     badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-    hint: "מבקא - חותם אימותי AUDIT",
+    hint: "מבקר - חותם אימותי AUDIT",
   },
   SCOUT: {
     icon: Compass,

@@ -192,11 +192,12 @@ interface ChannelSpec {
   fee?: number; // v3 fee tier
 }
 
-/** 0.05 ETH / 0.1 BNB — נוטינאלי ~$100 — גדול מספיק לעומק אמיתי, קטן מספיק לקריאה מנומסת */
-const ETH_IN = 50n * 10n ** 15n; // 0.05
-const BNB_IN = 10n ** 17n; // 0.1
-const STABLE_IN_6 = 100n * 10n ** 6n; // 100 (6 decimals)
-const STABLE_IN_18 = 100n * 10n ** 18n; // 100 (18 decimals)
+/** 0.05 ETH / 0.1 BNB — נוטינאלי ~$100 — גדול מספיק לעומק אמיתי, קטן מספיק לקריאה מנומסת.
+ *  BigInt(...) במקום ליטרלים 0n (target ES2017) — זהה בזמן ריצה בדיוק. */
+const ETH_IN = BigInt(50) * BigInt(10) ** BigInt(15); // 0.05
+const BNB_IN = BigInt(10) ** BigInt(17); // 0.1
+const STABLE_IN_6 = BigInt(100) * BigInt(10) ** BigInt(6); // 100 (6 decimals)
+const STABLE_IN_18 = BigInt(100) * BigInt(10) ** BigInt(18); // 100 (18 decimals)
 
 const CHANNELS: ChannelSpec[] = [
   // ── Ethereum ──────────────────────────────────────────────────────
@@ -306,7 +307,7 @@ async function callChannel(spec: ChannelSpec): Promise<{ quote: number | null; e
         const raw = await p.call({ to: A(spec.contract), data });
         const amounts = IFACE_V2.decodeFunctionResult("getAmountsOut", raw)[0] as bigint[];
         const out = amounts[amounts.length - 1];
-        if (out <= 0n) throw new Error("zero-out");
+        if (out <= BigInt(0)) throw new Error("zero-out");
         return out;
       }
       if (spec.chainKey === "bsc") {
@@ -316,7 +317,7 @@ async function callChannel(spec: ChannelSpec): Promise<{ quote: number | null; e
         ]);
         const raw = await p.call({ to: A(spec.contract), data });
         const out = IFACE_V3_TUPLE.decodeFunctionResult("quoteExactInputSingle", raw)[0] as bigint;
-        if (out <= 0n) throw new Error("zero-out");
+        if (out <= BigInt(0)) throw new Error("zero-out");
         return out;
       }
       // QuoterV1 (Ethereum/Arbitrum) — חתימה שטוחה
@@ -325,7 +326,7 @@ async function callChannel(spec: ChannelSpec): Promise<{ quote: number | null; e
       ]);
       const raw = await p.call({ to: A(spec.contract), data });
       const out = IFACE_V3_FLAT.decodeFunctionResult("quoteExactInputSingle", raw)[0] as bigint;
-      if (out <= 0n) throw new Error("zero-out");
+      if (out <= BigInt(0)) throw new Error("zero-out");
       return out;
     })();
     const outRaw = await Promise.race([
@@ -486,7 +487,7 @@ const BLUE_CHIPS = new Set([
 async function fetchYields(): Promise<{ at: string | null; pools: YieldPool[]; down?: string }> {
   try {
     const ctl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 15_000);
+    const t = setTimeout(() => ctl.abort(), 15_000);
     const res = await fetch("https://yields.llama.fi/pools", {
       signal: ctl.signal,
       cache: "no-store",

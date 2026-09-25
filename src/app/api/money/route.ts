@@ -195,7 +195,8 @@ export interface MoneySense {
   opportunities: Opportunity[];
   daemon: DaemonState;
   doctrine: string[];
-  down: string[];
+  /** נפל רק כשמשהו נפל בפועל — במחזור נקי השדה לא נשלח */
+  down?: string[];
   cached: boolean;
   stale: boolean;
   cacheAgeSec: number;
@@ -438,7 +439,9 @@ export async function GET() {
   );
 }
 
-async function sense(): Promise<MoneySense> {
+// sense מייצר את גוף ההמתנה בלבד — את שדות המטמון (cached/stale/…)
+// מוסיף ה-GET מעל התוצאה; לכן ההבטחה כאן היא ה-Omit המדויק.
+async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeSec" | "refreshing">> {
   const down: string[] = [];
 
   const [steemRes, fills, marks, tron, daemon] = await Promise.all([

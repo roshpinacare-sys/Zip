@@ -161,7 +161,7 @@ function fmtTimeAgo(iso: string | null | undefined): string {
 
 // ── התצוגה ──────────────────────────────────────────────────────────
 
-export function MoneyMoverView({ section }: { section: string }) {
+export function MoneyMoverView({ section }: { section?: string }) {
   const [data, setData] = useState<MoneySense | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -250,8 +250,8 @@ export function MoneyMoverView({ section }: { section: string }) {
               value: d ? (d.daemon.alive ? "חי" : d.daemon.fetchedVia === "file" ? "קובץ" : "מושבת") : "…",
               sub: d?.daemon.beats != null ? `${d.daemon.beats} פעימות` : "…",
             },
-          ].map((chip, i) => (
-            <MotionCard key={chip.label} delay={i * 0.04}>
+          ].map((chip) => (
+            <MotionCard key={chip.label}>
               <CardContent className="flex items-start gap-3 p-4">
                 <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/60 text-muted-foreground [&_svg]:size-4">
                   <chip.icon />
@@ -274,9 +274,9 @@ export function MoneyMoverView({ section }: { section: string }) {
       </Section>
 
       {err ? (
-        <Section className="mt-0">
-          <ErrorBox>ה-API לא ענה: {err} — התצוגה מציגה את מה שיש; נסה רענון.</ErrorBox>
-        </Section>
+        <div className="mt-0">
+          <ErrorBox message={`ה-API לא ענה: ${err} — התצוגה מציגה את מה שיש; נסה רענון.`} />
+        </div>
       ) : null}
 
       {loading && !d ? (
@@ -523,13 +523,13 @@ export function MoneyMoverView({ section }: { section: string }) {
           <Section
             icon={<Radar />}
             title="ציד הזדמנויות — מה המערכת מחפשת עכשיו"
-              description="לא המתנה סבילה: כל זדמנות נמדדת בכל מחזור, וכשהיא נפתחת — הפעולה מיידית"
+            description="לא המתנה סבילה: כל הזדמנות נמדדת בכל מחזור, וכשהיא נפתחת — הפעולה מיידית"
             >
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {d.opportunities.map((o, i) => {
+                {d.opportunities.map((o) => {
                   const b = oppBadge(o.state);
                   return (
-                    <MotionCard key={o.id} delay={i * 0.03}>
+                    <MotionCard key={o.id}>
                       <CardContent className="space-y-2 p-4">
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-semibold leading-tight">{o.title}</p>
@@ -602,7 +602,6 @@ export function MoneyMoverView({ section }: { section: string }) {
                     </div>
                     <StatusBadge
                       status={d.redemption.verdict === "GO" ? "ok" : "warn"}
-                      label={d.redemption.verdict === "GO" ? "השער פתוח" : d.redemption.verdict === "WAIT" ? "ממתין לסף" : "לא נמדד"}
                     />
                     <p className="text-[11px] leading-relaxed text-muted-foreground">
                       כשהשער ייפתח — הכול זורם: המשמרת מגבהת, התיבה משדרת, והמוביל ממשיך לצוד. ההזדמנויות האלה נפתחות ממילויים אמיתיים, לא ממכירות מתחת לערך.

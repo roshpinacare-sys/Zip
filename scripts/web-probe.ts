@@ -12,7 +12,9 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import steem from "steem";
-import { steemBroadcast, type GrapheneOperation } from "@/lib/weave/graphene";
+import { steemBroadcast } from "@/lib/weave/graphene";
+// GrapheneOperation מיובא מהחבילה עצמה — graphene.ts מגדיר אותו מקומית ולא מייצא
+import type { GrapheneOperation } from "steem";
 
 const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
 const ACCOUNT = "cashmachine";

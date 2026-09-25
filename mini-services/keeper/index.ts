@@ -28,6 +28,13 @@
 
 import fs from "node:fs";
 
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+  spawnSync: (cmd: string[], opts?: { stdout?: string; stderr?: string }) => { stdout?: Buffer | null; stderr?: Buffer | null };
+  spawn: (opts: { cmd: string[]; cwd?: string; stdin?: string; stdout?: number; stderr?: number }) => unknown;
+};
+
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/keeper/state.json`;
 const PORT = 3036;
@@ -236,7 +243,13 @@ function record(kind: string, detail: string, canon = false) {
   const at = new Date().toISOString();
   state.lastDecision = { at, kind, detail };
   state.history = [...state.history, { at, kind, detail }].slice(-60);
-  if (canon) pendingCanon.push({ at, kind, detail });
+  if (canon) {
+    pendingCanon.push({ at, kind, detail });
+    // R123 — תקרת-זיכרון כנה: בלי PAT הקבלות נשמרות לניסיון חוזר — אבל
+    // לנצח זה דליפת-זיכרון. 200 הקבלות אחרונות נשמרות; הישנות נזרקות
+    // בכנות (הן מוחזקות גם ב-history של המצב, חתומות ביומן השומר).
+    if (pendingCanon.length > 200) pendingCanon.splice(0, pendingCanon.length - 200);
+  }
 }
 
 // ── שער-סודות + קנון ───────────────────────────────────────────────
@@ -339,7 +352,7 @@ async function probe(port: number): Promise<{ ok: boolean; body?: any }> {
 // ── הקמה מחדש: ניקוי פורט → bun run dev ──────────────────────────
 function pidsOnPort(port: number): number[] {
   try {
-    const out = Bun.spawnSync(["ss", "-tlnp", `sport = :${port}`], { stdout: "pipe", stderr: "pipe" }).stdout.toString();
+    const out = Bun.spawnSync(["ss", "-tlnp", `sport = :${port}`], { stdout: "pipe", stderr: "pipe" }).stdout?.toString() ?? "";
     return [...out.matchAll(/pid=(\d+)/g)].map((m) => Number(m[1])).filter((p) => p > 0);
   } catch {
     return [];
@@ -618,6 +631,7 @@ if (!g.__keeperLoop) {
   };
   Bun.serve({
     port: PORT,
+    hostname: "127.0.0.1", // R123 — השומר נצרך מ-localhost בלבד (API/מפעיל מקומי)
     fetch(req) {
       const url = new URL(req.url);
       if (url.pathname === "/") {

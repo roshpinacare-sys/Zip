@@ -636,7 +636,7 @@ function FileBrowser({ hash, entry }: { hash: string; entry?: string }) {
         className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         <FolderTree className={cn("size-3.5 transition-transform", open && "rotate-90")} aria-hidden="true" />
-        {open ? "סגוד קבצי חבילה" : "עיין בקבצי החבילה"}
+        {open ? "סגור קבצי חבילה" : "עיין בקבצי החבילה"}
       </button>
       {open ? (
         <div className="mt-2 rounded-xl border bg-muted/20 p-3">

@@ -14,6 +14,11 @@
 
 import fs from "node:fs";
 
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+};
+
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/hunter/state.json`;
 const PORT = 3035;
@@ -46,6 +51,7 @@ type HunterState = {
     gate: "OPEN" | "QUOTA-DEAD"; // R106 — השער עצמו נמדח, לא רק הריצה
     deadStreak: number; // רצף dispatch-ים שהסתיימו בכשל-ריצה (הרץ מעולם לא התחיל)
     deadSince: string | null; // מתי זוהה מוות-התקציב בפעם הראשונה
+    lastRunReadError?: string | null; // R123 — כישלון קריאת מצב-הריצה — נרשם, לא נבלע
   };
   lastDecision: Decision | null;
   history: Array<Decision>;
@@ -111,7 +117,19 @@ function readState(): HunterState {
       scansToday: prev.scanDay === utcDay() ? (prev.scansToday ?? 0) : 0,
       scanDay: prev.scanDay === utcDay() ? prev.scanDay : utcDay(),
     };
-  } catch {
+  } catch (e: any) {
+    // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
+    // כהחלטה גלויה. קובץ שאינו קיים = עלייה ראשונה כנה.
+    if (fs.existsSync(STATE_FILE)) {
+      return {
+        ...base,
+        lastDecision: {
+          at: new Date().toISOString(),
+          kind: "STATE-RESET",
+          detail: `קובץ-המצב קיים אך לא נקרא (${String(e?.message ?? e).slice(0, 80)}) — אותחל מצב חדש בכנות`,
+        },
+      };
+    }
     return base;
   }
 }
@@ -120,7 +138,11 @@ let state: HunterState = readState();
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/hunter`, { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  // R107b — חוק הכתיבה-האטומית (כמו בשומר): .tmp ואז rename — רגע-מוות
+  // באמצע כתיבה לא משאיר ליורש קובץ-מצב חצוי.
+  const tmp = `${STATE_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+  fs.renameSync(tmp, STATE_FILE);
 }
 
 function readPat(): string | null {
@@ -138,9 +160,25 @@ function readPat(): string | null {
 // בניסיון הבא. הצייד מפסיק להפציץ שער מת (באסה לגשאוש יומי בלבד),
 // מתעד את מצב-השער בכנות, וממשיך לחזור — כי המכסה יכולה לחזור בכל רגע
 // שהמפעיל מחליט. עד אז: הצי המקומי הוא המכונה, הענן גיבוי בלבד.
+let canaryNoPatNoted = false; // R123 — דגל חד-פעמי: היעדר-סמכות נרשם פעם, לא כל פעימה
 async function canaryTick(): Promise<void> {
   const pat = readPat();
-  if (!pat) return;
+  if (!pat) {
+    // R123 — כנות: בלי סמכות הקנרית לא נשלחת — זה נרשם בכנות פעם אחת
+    // לכל עלייה (לא כל פעימה — שההיסטוריה לא תוצף), ולא נשאר שקט.
+    if (!canaryNoPatNoted) {
+      canaryNoPatNoted = true;
+      state.lastDecision = {
+        at: new Date().toISOString(),
+        kind: "CANARY-NO-PAT",
+        detail: "אין סמכות (PAT) — הקנרית של שער-הדקות לא נשלחת. הצי המקומי הוא המכונה, הענן גיבוי",
+      };
+      state.history = [...state.history, state.lastDecision].slice(-40);
+      saveState();
+    }
+    return;
+  }
+  canaryNoPatNoted = false; // הסמכות חזרה — הדגל מתאפס
   const now = Date.now();
   if (now < Date.parse(state.canary.nextDueAt)) return;
   if (state.canary.dispatchesToday >= 4) return; // תקציב יומי כנה
@@ -184,6 +222,7 @@ async function canaryTick(): Promise<void> {
   // קריאת הריצה האחרונה (גם אם dispatch נכשל — עדיין מודדים את האמת)
   let runFailedAfterDispatch = false;
   let runSucceeded = false;
+  state.canary.lastRunReadError = null; // מדידה טרייה — שגיאה ישנה לא שורדת הצלחה
   try {
     const runs = await fetch(`${GH}/repos/${CANARY_REPO}/actions/workflows/${CANARY_WORKFLOW}/runs?per_page=1`, { headers, signal: AbortSignal.timeout(30_000), cache: "no-store" });
     if (runs.ok) {
@@ -209,8 +248,14 @@ async function canaryTick(): Promise<void> {
           runFailedAfterDispatch = true;
         }
       }
+    } else {
+      // R123 — כנות: HTTP שאינו 2xx נרשם, לא נבלע
+      state.canary.lastRunReadError = `HTTP ${runs.status}`;
     }
-  } catch {}
+  } catch (e: any) {
+    // R123 — כנות: קריאת אמת-הריצה נכשלה — נרשמת בכנות במצב, לא נבלעת
+    state.canary.lastRunReadError = String(e?.message ?? e).slice(0, 100);
+  }
   // חוק מוות-התקציב: ספירת-רצף, זיהוי, ובאסה כנה
   if (runSucceeded) {
     state.canary.deadStreak = 0;
@@ -285,9 +330,11 @@ async function scan(): Promise<void> {
     const deployed = moverMeasured ? Number(money?.deployedSteem ?? 0) : null;
     const idle = moverMeasured ? Number(money?.idleSteem ?? 0) : null;
     const orders = moverMeasured && Array.isArray(money?.orders) ? money.orders : [];
-    const ageH = orders.length
-      ? Math.max(...orders.map((o: any) => (Date.now() - Date.parse(o.created ?? 0)) / 3_600_000))
-      : 0;
+    // גיל פקודה — נגזר רק מתאריכים נקראים; created חסר/שבור לא מייצר "NaNש'" (R123)
+    const agesH = orders
+      .map((o: any) => (Date.now() - Date.parse(String(o?.created ?? ""))) / 3_600_000)
+      .filter((x: number) => Number.isFinite(x) && x >= 0);
+    const ageH = agesH.length ? Math.max(...agesH) : 0;
     const totalUsd = Number(treasury?.usd?.total ?? 0);
     const liquidUsd = Number(treasury?.usd?.liquid ?? 0);
     let moverPart: string;
@@ -338,6 +385,7 @@ async function tick() {
 // ── שרת-בריאות ─────────────────────────────────────────────────────
 Bun.serve({
   port: PORT,
+  hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (שומר/API/מפעיל מקומי)
   fetch(req) {
     const url = new URL(req.url);
     if (url.pathname === "/") {

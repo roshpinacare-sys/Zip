@@ -347,6 +347,8 @@ export async function dispatchWorkflow(repo: string, workflow: string): Promise<
         "User-Agent": "the-weave-live/1.0",
       },
       body: JSON.stringify({ ref: "main" }),
+      // R112 — law of the bounded wait: no fetch without a deadline
+      signal: AbortSignal.timeout(30_000),
     }
   );
   if (!res.ok && res.status !== 202) {

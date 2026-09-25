@@ -97,6 +97,8 @@ export interface GridSimResult {
 }
 
 export interface CrossAnalysis {
+  /** מצב חי: לפחות אחת מהרשתות נמדדה בהצלחה */
+  ok: boolean;
   at: string;
   steem: ChainMarket;
   hive: ChainMarket;
@@ -135,7 +137,7 @@ async function jpost<T>(url: string, method: string, params: unknown[], timeoutM
 
 async function jget(url: string, timeoutMs = 10_000): Promise<any> {
   const ctl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  const t = setTimeout(() => ctl.abort(), timeoutMs);
   try {
     const res = await fetch(url, {
       signal: ctl.signal,

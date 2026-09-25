@@ -33,6 +33,8 @@ const STEEM_RPC = "https://api.steemit.com";
 
 // כספת — ייבוא יחסי (Node v24 מפשט טיפוסים בזמן-ריצה)
 const nodeRequire = createRequire(path.join(HOME, "package.json"));
+// @ts-ignore — Node v24 (type-stripping) מחייב סיומת .ts בייבוא יחסי בזמן-ריצה;
+// tsc תחת moduleResolution=bundler אוסר זאת (TS5097) — מדוכא במקום לשנות זמן-ריצה.
 const { openVaultKey } = (await import("../src/lib/dex/wallet-vault.ts")) as {
   openVaultKey: (chain: "steem", account: string, role: string) => {
     ok: boolean; wif?: string; pub?: string; entryPub?: string; detail?: string;

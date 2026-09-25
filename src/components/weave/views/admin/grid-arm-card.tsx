@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   CalendarClock,
+  Eye,
   EyeOff,
   Flame,
   Fuel,
@@ -247,7 +248,7 @@ export function GridArmCard() {
                   className="absolute inset-y-0 left-2 my-auto rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
                   aria-label={showKey ? "הסתר מפתח" : "הצג מפתח"}
                 >
-                  <EyeOff className="size-4" aria-hidden="true" />
+                  {showKey ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
                 </button>
               </div>
               <Button

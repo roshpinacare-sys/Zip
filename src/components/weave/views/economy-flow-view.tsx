@@ -212,7 +212,7 @@ const CLASS_META: Record<BlockageClass, { label: string; hint: string }> = {
 
 const FLOW_STATUS_META: Record<FlowStatus, { label: string; badge: string }> = {
   LIVE: { label: "חי", badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" },
-  GATED: { label: "שעור", badge: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400" },
+  GATED: { label: "שער-מפעיל", badge: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400" },
   "QUOTES-ONLY": { label: "ציטוט בלבד", badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400" },
   PLANNED: { label: "מתוכנן", badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400" },
   MEASUREMENT: { label: "מדידה", badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400" },

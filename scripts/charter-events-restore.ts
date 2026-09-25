@@ -35,6 +35,7 @@ async function ghJson(path: string): Promise<unknown> {
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
     },
+    signal: AbortSignal.timeout(30_000),
   });
   if (!r.ok) throw new Error(`${path} → HTTP ${r.status}`);
   return r.json();
@@ -49,7 +50,7 @@ async function registryAt(ref: string): Promise<{
   try {
     const r = await fetch(
       `https://api.github.com/repos/${REPO}/contents/${CHARTER.registryPath}?ref=${ref}`,
-      { headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json" } },
+      { headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json" }, signal: AbortSignal.timeout(30_000) },
     );
     if (!r.ok) return null;
     const wrapped = (await r.json()) as { content?: string; encoding?: string };

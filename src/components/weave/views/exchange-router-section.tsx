@@ -48,6 +48,7 @@ interface QuoteChannel {
   chainId: number;
   dex: string;
   route: string;
+  pair: string;
   amountInLabel: string;
   quote: number | null;
   quoteUnit: string;
@@ -98,6 +99,7 @@ interface ExchangeData {
 }
 
 interface PnlData {
+  ok: boolean;
   stats: { fillsTotal: number; roundTrips: number; capturedSbd: number; openLongSteem: number; quietDays: number };
   market: { midVsParityBps: number | null; sbdUsd: number | null; steemUsd: number | null };
   ladder: { deployedSteem: number | null };

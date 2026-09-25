@@ -529,7 +529,7 @@ export function BrowserView({ sessionSlug }: { sessionSlug?: string }) {
           ...nextChat,
           {
             role: "assistant",
-            content: `⚠️ ${String(j?.error ?? "הפנייה נכשלה")}`,
+            content: `שגיאה: ${String(j?.error ?? "הפנייה נכשלה")}`,
           },
         ]);
       }
@@ -539,7 +539,7 @@ export function BrowserView({ sessionSlug }: { sessionSlug?: string }) {
         ...nextChat,
         {
           role: "assistant",
-          content: `⚠️ ${e instanceof Error ? e.message : "שגיאת רשת"}`,
+          content: `שגיאה: ${e instanceof Error ? e.message : "שגיאת רשת"}`,
         },
       ]);
     } finally {

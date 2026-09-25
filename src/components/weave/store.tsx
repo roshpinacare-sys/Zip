@@ -237,6 +237,8 @@ function liveAgentsFromOverview(o: LiveOverview): AgentDTO[] {
     ethAddress: a.address,
     pubKeyHex: "",
     status: a.status,
+    // מראת-ענן: אין מפתחות בסביבה זו — הזהויות לצפייה בלבד (הגדרת r117)
+    capability: "IDENTITY-ONLY" as const,
     attCount: a.attestations,
     createdAt: a.lastAttestationAt ?? "",
   }));

@@ -418,7 +418,7 @@ export function CharterView() {
                     </p>
                     {anchor.lastAnchor.txid && (
                       <a
-                        href={`https://steemd.com/tx/${anchor.lastAnchor.txid}`}
+                        href={`https://steemscan.com/transaction/${anchor.lastAnchor.txid}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-emerald-600 hover:underline"

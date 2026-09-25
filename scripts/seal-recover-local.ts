@@ -65,10 +65,12 @@ function sealDecrypt(raw: string, passphrase: string) {
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
   const verdicts: string[] = [];
-  const fail = (m: string): never => {
+  // הערה: חייב להיות declaration-פונקציה (ולא arrow על const) — רק כך
+  // מזהה TypeScript את טיפוס ה-never ומצר את ה-null-ability אחרי ה-guard.
+  function fail(m: string): never {
     console.error("✗ " + m);
     process.exit(1);
-  };
+  }
 
   // 1. הזוג ההיסטורי — blob + סיסמה מהשושלת (בזיכרון בלבד)
   const oldEnc = gitShow(HIST_COMMIT, "sovereign/weave-seal.enc");

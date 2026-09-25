@@ -88,7 +88,7 @@ export function TxGateCard() {
     try {
       const r = await fetch("/api/gate", { cache: "no-store" });
       const j = (await r.json()) as GateData;
-      if (!j.ok) throw new Error("gate-api");
+      if (!j.ok) throw new Error(`http ${r.status}`);
       setData(j);
       setErr(null);
     } catch (e) {

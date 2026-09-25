@@ -44,6 +44,7 @@ async function gh(method: string, apiPath: string, body?: unknown): Promise<{ st
       "Content-Type": "application/json",
     },
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(30_000),
   });
   let json: Record<string, unknown> | null = null;
   try {

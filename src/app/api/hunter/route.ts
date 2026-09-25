@@ -156,6 +156,7 @@ interface DaemonState {
     lastRun?: { id: number; conclusion: string | null; createdAt: string; stepsRun: number } | null;
     lastSuccessAt?: string | null;
     nextDueAt?: string | null;
+    gate?: "OPEN" | "QUOTA-DEAD";
   };
 }
 
@@ -310,6 +311,13 @@ async function buildBoard(): Promise<HunterPayload> {
     canary?.lastRun != null &&
     canary.lastRun.conclusion === "failure" &&
     canary.lastRun.stepsRun === 0;
+  // R123 — חוק הקצב הנגזר: "בודק כל 6 שעות" היה נכון רק לשער פתוח. שער
+  // מת (QUOTA-DEAD) נבדק יומית בבאסה כנה — הדיבון עצמו מודד וכותב את זה;
+  // הנוסח כאן נגזר ממצב-השער שבמדידה, לא מזיכרון (המשך חוק r121/r122).
+  const canaryGateDead = canary?.gate === "QUOTA-DEAD";
+  const canaryCadenceHe = canaryGateDead
+    ? "שער מת (חנקת-Actions) — הצייד בבאסה יומית כנה עד חידוש המכסה"
+    : "הצייד בודק בקצב מדיניות (כל 6ש' בשער פתוח · 15דק' אחרי כישלון שליחה)";
   const gates: Gate[] = [
     {
       id: "minutes",
@@ -323,7 +331,7 @@ async function buildBoard(): Promise<HunterPayload> {
         : canary?.lastSuccessAt
           ? "הקנרית צייצה — לדקות חזרה זרימה ומנוע-הענן הופעל מחדש."
           : "הקנרית טרם מדדה — הצייד בודק.",
-      opensWhen: "חידוש מכסת-הדקות במחזור החיוב — הצייד בודק כל 6 שעות",
+      opensWhen: canaryCadenceHe,
       flowsWhen: "מנועי-הענן (web-publish · weave-heart · anchor-lines) חוזרים לזרום מיד",
       evidence: {
         canaryRunId: canary?.lastRun?.id ?? null,
@@ -423,7 +431,9 @@ async function buildBoard(): Promise<HunterPayload> {
       number: canary?.nextDueAt
         ? `בדיקה הבאה ${canary.nextDueAt.slice(11, 16)}Z`
         : "—",
-      detail: "הצייד משגר עבודת-echo כל 6 שעות למחסן הפרטי. ברגע שהיא מצליחה — מנוע-הענן מופעל מיד.",
+      detail: canaryGateDead
+        ? "השער נמדח (חנקת-Actions) — הצייד בבאסה יומית כנה: גשאוש אחד ביום עד שהמכסה תחזור. ברגע שעבודת-echo תצליח — מנוע-הענן מופעל מיד."
+        : "הצייד משגר עבודת-echo בקצב מדיניות (כל 6ש' בשער פתוח · 15דק' אחרי כישלון שליחה) למחסן הפרטי. ברגע שהיא מצליחה — מנוע-הענן מופעל מיד.",
       action: "קנרית אוטונומית · הפעלת web-publish עם הציוץ הראשון",
       autonomy: "מלאה",
       rank: 2,

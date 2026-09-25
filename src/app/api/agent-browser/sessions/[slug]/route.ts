@@ -30,10 +30,14 @@ export async function GET(
       data: { visits: { increment: 1 } },
     });
     let state: unknown = {};
+    let stateCorrupted = false;
     try {
       state = JSON.parse(session.state);
     } catch {
+      // R123 · חוק הכנות: מצב שבור אינו מוצג כסשן ריק בשקט — הדגל נמסר
+      // ללקוח כדי שהמשתמש יידע שהעבודה הקודמת לא נקראה (אובדן-ראיה, לא אפס).
       state = {};
+      stateCorrupted = true;
     }
     return NextResponse.json({
       ok: true,
@@ -44,6 +48,7 @@ export async function GET(
         createdAt: session.createdAt,
         updatedAt: session.updatedAt,
         state,
+        stateCorrupted,
       },
     });
   } catch (e) {

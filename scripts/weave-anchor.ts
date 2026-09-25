@@ -41,8 +41,9 @@ import {
   steemRcGate,
   findInHistory,
   sleep,
-  type GrapheneOperation,
 } from "@/lib/weave/graphene";
+// GrapheneOperation מיובא מהחבילה עצמה — graphene.ts מגדיר אותו מקומית ולא מייצא
+import type { GrapheneOperation } from "steem";
 
 const ROOT = path.resolve(__dirname, "..");
 const LEDGER_PATH = path.join(ROOT, "sovereign", "ledger.json");

@@ -30,7 +30,17 @@ export async function GET(
   }
 
   // אימות-ההקמה מהספר — אם קיים (פרויקט מרופא עשוי שלא להחזיק אותו מקומית)
-  let attestation = null;
+  let attestation: {
+    seq: number;
+    claim: string;
+    claimType: string;
+    status: string;
+    prevHash: string;
+    entryHash: string;
+    sig: string | null;
+    signer: string | null;
+    createdAt: string;
+  } | null = null;
   if (project.attSeq != null) {
     const att = await db.attestation.findUnique({ where: { seq: project.attSeq } });
     if (att) {

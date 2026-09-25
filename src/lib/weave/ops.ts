@@ -116,7 +116,7 @@ export async function readOperatorCommands(): Promise<{ commands: OperatorComman
       let oldestSeen = Infinity;
       let deepest = 0;
       for (let p = 0; p < MAX_PAGES; p++) {
-        const hist = await rpcV4<[number, { trx_id: string; block: number; op?: [string, Record<string, unknown>] }]>(
+        const hist = await rpcV4<Array<[number, { trx_id: string; block: number; op?: [string, Record<string, unknown>] }]>>(
           node,
           "condenser_api.get_account_history",
           [OPERATOR_ACCOUNT, start, PAGE],
@@ -238,6 +238,8 @@ async function dispatchWorkflow(repo: string, workflow: string, token: string): 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ ref: "main" }),
+      // R112 — law of the bounded wait: no fetch without a deadline
+      signal: AbortSignal.timeout(30_000),
     });
     if (res.status === 204) return { ok: true, detail: "dispatched" };
     const txt = (await res.text()).slice(0, 120);

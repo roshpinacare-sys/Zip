@@ -22,6 +22,11 @@
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+};
+
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/weblift/state.json`;
 const RUNNER = `${HOME}/scripts/weblift-run.ts`;
@@ -85,17 +90,47 @@ function loadState(): WebliftState {
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) as WebliftState;
     if (prev && prev.service === "weblift") {
-      return {
+      // R123 — המשכיות קצב על פני טעינה-חמה: בלי שימור nextDueAt, כל רילוד
+      // מקצר את המחזור ל-60ש' ההמראה הקבועה של freshState — והחוק "הרמה
+      // אחת בכל פעם" נשבר כשהמודול הישן עוד מרים ברקע. כעת: המועד
+      // שורד; ואם הקודם היה באמצע הרמה (lifting שרד לדיסק) — מדלגים
+      // מחזור בכנות כדי ששני ראנרים לעולם לא ירוצו במקביל.
+      const prevDue = typeof prev.nextDueAt === "string" ? Date.parse(prev.nextDueAt) : NaN;
+      const wasLifting = prev.lifting === true;
+      const next: WebliftState = {
         ...freshState(),
         bootedAt: prev.bootedAt,
         beats: prev.beats ?? 0,
         lastLiftAt: prev.lastLiftAt ?? null,
         lastRun: prev.lastRun ?? null,
+        lastDecision: prev.lastDecision ?? null,
         historyTail: Array.isArray(prev.historyTail) ? prev.historyTail : [],
+        nextDueAt: Number.isFinite(prevDue)
+          ? new Date(Math.max(prevDue, Date.now() + 60_000)).toISOString()
+          : new Date(Date.now() + 60_000).toISOString(),
       };
+      if (wasLifting) {
+        next.lastDecision = {
+          at: new Date().toISOString(),
+          kind: "LIFT-ORPHANED",
+          detail: "טעינה-חמה באמצע הרמה — ההרמה שהתחילה קודם עשויה להיות עדיין בדרך; מדלגים מחזור אחד בכנות כדי לשמור על חוק ההרמה-היחידה (הראנר עצמו אידמפוטנטי ו-RC-gated)",
+        };
+        next.nextDueAt = new Date(Date.now() + POLICY.liftIntervalSec * 1000).toISOString();
+      }
+      return next;
     }
-  } catch {
-    /* קובץ חסר/שבור — מצב חדש */
+  } catch (e) {
+    // כנות: state קיים אך בלתי-קריא — לא נבלע בשקט; נרשם כהחלטה גלויה
+    if (fs.existsSync(STATE_FILE)) {
+      const fresh = freshState();
+      fresh.lastDecision = {
+        at: new Date().toISOString(),
+        kind: "STATE-RESET",
+        detail: `קובץ-המצב קיים אך לא נקרא (${String((e as Error)?.message ?? e).slice(0, 80)}) — אותחל מצב חדש בכנות`,
+      };
+      return fresh;
+    }
+    /* קובץ חסר — עלייה ראשונה כנה */
   }
   return freshState();
 }
@@ -105,7 +140,10 @@ let state: WebliftState = loadState();
 function saveState(): void {
   try {
     fs.mkdirSync(`${HOME}/sovereign/weblift`, { recursive: true });
-    fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + "\n");
+    // R107b — כתיבה-אטומית: .tmp ואז rename (כמו בשומר ובמפעל האימות).
+    const tmp = `${STATE_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(state, null, 2) + "\n");
+    fs.renameSync(tmp, STATE_FILE);
   } catch (e) {
     // אי-כתיבה אינה קטלנית לפעימה — אבל היא חייבת להיות נראית ביומן
     // הדיבון (כנות: כשל-דיסק נרשם, לא נבלע בשקט).
@@ -193,22 +231,46 @@ async function runLift(): Promise<void> {
   }
 }
 
+// R123 — שרת-היחיד חוצה-דורות (דפוס מפעל-האימות): bun --hot מעריך את
+// המודול מחדש בכל עריכה, ו-Bun.serve שנקרא שוב נתקל ב-EADDRINUSE מול
+// השרת של הדור הקודם — וההערכה נעצרת לפני שהטיימר חומש (נצפה חי:
+// פעימות קפואות מעל שרת-HTTP חי). החוק: שרת אחד לכל החיים של התהליך;
+// ה-handler קורא את המצב מציר-עולם שמתעדכן בכל דור — כך ה-HTTP מגיש תמיד
+// את המצב החי, גם כשהערכת-המודול התחלפה מתחתיו.
+const G_WL = globalThis as unknown as {
+  __WEBLIFT_STATE__?: WebliftState;
+  __WEBLIFT_SERVER__?: unknown;
+  __WEBLIFT_TIMER__?: ReturnType<typeof setInterval>;
+  __WEBLIFT_LIFT__?: () => Promise<void>;
+};
+G_WL.__WEBLIFT_STATE__ = state;
+G_WL.__WEBLIFT_LIFT__ = runLift; // הדור החי — ה-handler הישן מפנה אליו תמיד
+
 function serve(): void {
-  Bun.serve({
-    port: PORT,
-    async fetch(req) {
-      const url = new URL(req.url);
-      if (req.method === "POST" && (url.pathname === "/lift" || url.pathname === "/")) {
-        if (state.lifting) {
-          return Response.json({ ok: false, error: "הרמה כבר רצה" }, { status: 409 });
+  if (G_WL.__WEBLIFT_SERVER__) return; // שרת חי מדור קודם — ממשיך להגיש
+  try {
+    G_WL.__WEBLIFT_SERVER__ = Bun.serve({
+      port: PORT,
+      hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (שומר/API/מפעיל מקומי)
+      async fetch(req) {
+        const st = G_WL.__WEBLIFT_STATE__;
+        const url = new URL(req.url);
+        if (req.method === "POST" && (url.pathname === "/lift" || url.pathname === "/")) {
+          if (st?.lifting) {
+            return Response.json({ ok: false, error: "הרמה כבר רצה" }, { status: 409 });
+          }
+          void G_WL.__WEBLIFT_LIFT__?.();
+          return Response.json({ ok: true, detail: "הרמה הוזנקה" });
         }
-        void runLift();
-        return Response.json({ ok: true, detail: "הרמה הוזנקה" });
-      }
-      const st = { ok: true, ...state, policy: POLICY, day: utcDay() };
-      return Response.json(st);
-    },
-  });
+        return Response.json({ ok: true, ...(st ?? {}), policy: POLICY, day: utcDay() });
+      },
+    });
+  } catch (e) {
+    // כישלון הקשיבה אינו הורג את הדור: הטיימר ייחמש, המצב ייכתב לדיסק,
+    // והשומר (חוק הזומבי) יראה את האמת דרך השרת הקודם ויחייה במועדו.
+    // רק אחרי restart של התהליך ייקשר שרת טרי עם ה-handler החדש.
+    console.error(`[weblift] serve נדחה (הפורט בידי הדור הקודם?) — הפעימה ממשיכה: ${String((e as Error)?.message ?? e)}`);
+  }
 }
 
 function beat(): void {
@@ -219,7 +281,12 @@ function beat(): void {
 }
 
 serve();
-setInterval(beat, 30_000);
+// R112 — חוק הטיימר-היחיד, שהיה חסר כאן (נצפה בביקורת r123-c): bun --hot
+// מעריך את המודול מחדש אך לא מנקה את האינטרוול הישן — כל עריכה-חיה
+// הכפילה את הפעימה (beats תפח, saveState נכתב פעמיים, וההרמה נבדקה
+// פעמיים בכל מחזור). השומר הגלובלי מנקה את הקודם לפני החדש.
+if (G_WL.__WEBLIFT_TIMER__) clearInterval(G_WL.__WEBLIFT_TIMER__);
+G_WL.__WEBLIFT_TIMER__ = setInterval(beat, 30_000);
 state.bootedAt = state.bootedAt || new Date().toISOString();
 saveState();
 console.log(`[weblift] חי על ${PORT} · קצב ${POLICY.liftIntervalSec / 60} דקות · הראנר: scripts/weblift-run.ts`);

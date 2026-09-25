@@ -39,7 +39,7 @@ import { resolveOpenMarkets, type SettlementResult } from "@/lib/weave/market";
 import { brainProbeAll } from "@/lib/weave/brain";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { sealOpen } from "./weave-seal";
-import { anchorOnZero, verifyZeroAnchorOnChain, zeroReadiness, zeroExplorerLink, ZERO_RAIL_ID } from "@/lib/weave/zero";
+import { anchorOnZero, verifyZeroAnchorOnChain, zeroReadiness, zeroExplorerLink, ZERO_RAIL_ID, type ZeroReadback } from "@/lib/weave/zero";
 
 const ROOT = path.resolve(__dirname, "..");
 const LEDGER_PATH = path.join(ROOT, "sovereign", "ledger.json");
@@ -370,7 +370,8 @@ async function main(): Promise<void> {
   // 6. dedupe: root זה כבר עוגן ⇒ קריאה-חזרה בלבד (השרשרת השופטת)
   if (alreadyAnchored || VERIFY_ONLY) {
     const last = line.last;
-    let readback = null;
+    // הטיפוס המפורש נדרש: בלעדיו מסיק TypeScript את הטיפוס null ודוחה את ההשמה
+    let readback: ZeroReadback | { ok: boolean; verdict: string } | null = null;
     if (last && last.txid) {
       readback = await verifyZeroAnchorOnChain(last.txid).catch((e) => ({
         ok: false,

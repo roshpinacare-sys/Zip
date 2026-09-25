@@ -313,6 +313,8 @@ async function publishLiveFile(payload: Record<string, unknown>): Promise<{ publ
         "X-GitHub-Api-Version": "2022-11-28",
       },
       body: body ? JSON.stringify(body) : undefined,
+      // R112 — law of the bounded wait: no fetch without a deadline
+      signal: AbortSignal.timeout(30_000),
     });
     return { status: res.status, json: (await res.json().catch(() => null)) as Record<string, unknown> | null };
   };

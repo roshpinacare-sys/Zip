@@ -181,17 +181,21 @@ interface BlockWebOp {
   txid: string;
 }
 
+/** גוף הבלוק כפי ש-appbase/condenser מחזירים (טיפוס שם — לא typeof מקומי,
+ *  שמנטרל את היצוק-הזרימה של block בהמשך הפונקציה) */
+interface ChainBlock {
+  transactions?: Array<{
+    transaction_id?: string;
+    operations?: Array<unknown>;
+  }>;
+}
+
 async function readWebOpsFromBlock(chain: "steem" | "hive", blockNum: number): Promise<BlockWebOp[]> {
-  let block: {
-    transactions?: Array<{
-      transaction_id?: string;
-      operations?: Array<unknown>;
-    }>;
-  } | null = null;
+  let block: ChainBlock | null = null;
   try {
     const res = chain === "steem"
-      ? await steemRpc<{ block?: typeof block }>("block_api.get_block", { block_num: blockNum })
-      : await hiveRpc<{ block?: typeof block }>("block_api.get_block", { block_num: blockNum });
+      ? await steemRpc<{ block?: ChainBlock }>("block_api.get_block", { block_num: blockNum })
+      : await hiveRpc<{ block?: ChainBlock }>("block_api.get_block", { block_num: blockNum });
     block = res?.block ?? null;
   } catch {
     return [];
@@ -1284,12 +1288,15 @@ export async function probeStorageRc(
 
   // יש דגימה: מוגשת מיד — טריה או בשלה (חישוב-regen מקומי מדויק), ואם בשלה —
   // רענון-רקע single-flight עם backoff כדי שצומת שנפל לא יוצף.
-  if (rcSample) {
-    if (now - rcSample.at >= RC_SAMPLE_TTL_MS && now >= rcNextKickAt) {
+  // (עותק מקומי — צמצום על המודול מכבה את היצוק של rcSample אחרי
+  // המתנה ל-startRcProbe שממלא אותו מחדש)
+  const cached = rcSample;
+  if (cached) {
+    if (now - cached.at >= RC_SAMPLE_TTL_MS && now >= rcNextKickAt) {
       rcNextKickAt = now + RC_KICK_BACKOFF_MS;
       void startRcProbe(account);
     }
-    return rcProbeFromSample(rcSample.s, now, rcSample.at, false);
+    return rcProbeFromSample(cached.s, now, cached.at, false);
   }
 
   // קור: אין דגימה — מדידה ראשונה, ממתינים (single-flight מאחד קריאות מקבילות)

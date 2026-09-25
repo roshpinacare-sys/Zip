@@ -31,6 +31,11 @@
 
 import fs from "node:fs";
 
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+};
+
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/money/state.json`;
 const HISTORY_FILE = `${HOME}/sovereign/money/history.json`;
@@ -116,7 +121,20 @@ function readState(): MoneyState {
       lastPoolGuardAt: prev.lastPoolGuardAt ?? null,
       lastFleetSweepAt: prev.lastFleetSweepAt ?? null,
     };
-  } catch {
+  } catch (e: any) {
+    // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
+    // כהחלטה גלויה. קובץ שאינו קיים = עלייה ראשונה כנה. (הלקח נולד חי
+    // ב-R112: איתחול מקובץ-קונפליקט איפס את המצב בשקט.)
+    if (fs.existsSync(STATE_FILE)) {
+      return {
+        ...base,
+        lastDecision: {
+          at: new Date().toISOString(),
+          kind: "STATE-RESET",
+          detail: `קובץ-המצב קיים אך לא נקרא (${String(e?.message ?? e).slice(0, 80)}) — אותחל מצב חדש בכנות; אין prevTotal = אין גל-שקר, ותקרות השרת שומרות על הכסף`,
+        },
+      };
+    }
     return base;
   }
 }
@@ -125,7 +143,11 @@ let state: MoneyState = readState();
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/money`, { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  // R107b — חוק הכתיבה-האטומית (כמו בשומר): .tmp ואז rename — רגע-מוות
+  // באמצע כתיבה לא משאיר ליורש קובץ-מצב חצוי (הלקח נלמד חי בכסף עצמו).
+  const tmp = `${STATE_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+  fs.renameSync(tmp, STATE_FILE);
 }
 
 function appendHistory(entry: Record<string, unknown>, cap = 60) {
@@ -136,8 +158,15 @@ function appendHistory(entry: Record<string, unknown>, cap = 60) {
       if (!Array.isArray(h)) h = [];
     } catch {}
     h.push({ at: new Date().toISOString(), ...entry });
-    fs.writeFileSync(HISTORY_FILE, JSON.stringify(h.slice(-cap), null, 2));
-  } catch {}
+    // R107b — אטומי גם כאן: היסטוריית-הקבלות היא ראיה; כתיבה חצויה לא
+    // תאפס אותה בשקט בקריאה הבאה.
+    const tmp = `${HISTORY_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(h.slice(-cap), null, 2));
+    fs.renameSync(tmp, HISTORY_FILE);
+  } catch (e) {
+    // R123 — כנות: כישלון כתיבת-דיסק נרשם ביומן, לא נבלע בשקט (כמו ב-weblift)
+    console.error(`[money-mover] appendHistory נכשל — קבלה לא נשמרה לדיסק: ${String((e as Error)?.message ?? e)}`);
+  }
 }
 
 // ── שער-סודות לקנון: שום מפתח לא עובר ─────────────────────────────
@@ -566,8 +595,13 @@ async function tick() {
               }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
               if (comp?.ok) {
                 appendHistory({ kind: "CHAIN-COMPOUND", reason: String(comp.detail ?? "").slice(0, 140) });
+              } else if (comp) {
+                appendHistory({ kind: "CHAIN-COMPOUND-FAIL", reason: String(comp.error ?? "לא צוין").slice(0, 120) });
               }
             } catch { /* הגלגול לעולם לא מפיל את המדידה */ }
+          } else {
+            // R123 — כנות: תגמול על עבודה מוכחת שנכשל — נרשם, לא נבלע
+            appendHistory({ kind: "SAOS-REWARD-FAIL", reason: `מילויים ×${newFills}`, error: String(rew?.error ?? "הקריאה לא נענתה").slice(0, 120) });
           }
         } else if (fillsNow < seen) {
           state.fillsSeen = fillsNow; // החלון התנקה — סימן-המים בעקבות האמת
@@ -742,6 +776,7 @@ async function tick() {
 // ── שרת-בריאות (השומר קורא את זה כל 30ש') ─────────────────────────
 Bun.serve({
   port: PORT,
+  hostname: "127.0.0.1", // R123 — פקודות-כסף (/act) נשלחות מ-localhost בלבד — לא נחשפות לרשת החוץ
   async fetch(req) {
     const url = new URL(req.url);
     if (url.pathname === "/") {

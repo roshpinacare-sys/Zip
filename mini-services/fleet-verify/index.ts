@@ -38,7 +38,7 @@ import { spawn } from "node:child_process";
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה
 declare const Bun: {
   spawnSync: (cmd: string[], opts?: { cwd?: string; env?: Record<string, string>; stdout?: string; stderr?: string }) => { exitCode: number | null; stdout?: Buffer | null; stderr?: Buffer | null };
-  serve: (opts: { port: number; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
 };
 
 const HOME = "/home/z/my-project";
@@ -89,6 +89,12 @@ function gitEnv(): Record<string, string> {
     GIT_ASKPASS: ASKPASS,
     GIT_TERMINAL_PROMPT: "0",
     GIT_CONFIG_NOSYSTEM: "1",
+    // R123 — חוק ההמתנה-החסומה, גם לגיט: spawnSync חסום — חיבור GitHub
+    // שנתלה (בלי RST/FIN) היה קופא את המפעל כולו (single-threaded). גיט
+    // עצמו ינתק חיבור HTTP שלא זז מעל 1KB/s במשך 60ש' — כישלון נראה,
+    // לא תלייה שקטה (אותו חוק שנחקק ב-R112 ל-fetch-ים של הדיבונים).
+    GIT_HTTP_LOW_SPEED_LIMIT: "1000",
+    GIT_HTTP_LOW_SPEED_TIME: "60",
   };
 }
 
@@ -825,6 +831,10 @@ const state: FleetState = G.__FV_STATE__;
 
 function saveState(): void {
   fs.mkdirSync(STATE_DIR, { recursive: true });
+  // R123 — תקרת-זיכרון כנה: history נחתך גם בזמן-ריצה (boot() חותך רק
+  // בעלייה קרה; הסינגלטון ב-globalThis שורד טעינות-חמות — בלי חיתוך,
+  // דחיות-זיכרון של מאמתים כבדים היו ממלאות אותו לנצח).
+  state.history = state.history.slice(-60);
   const tmp = `${STATE_FILE}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
   fs.renameSync(tmp, STATE_FILE);
@@ -1127,6 +1137,7 @@ async function tick(): Promise<void> {
 if (!G.__FV_SERVER__) {
   G.__FV_SERVER__ = Bun.serve({
   port: PORT,
+  hostname: "127.0.0.1", // R123 — המפעל נצרך מ-localhost בלבד; /run/* מריץ בדיקות ודוחף לגיט — לא נחשף לרשת החוץ
   async fetch(req) {
     const url = new URL(req.url);
     if (url.pathname === "/health") {

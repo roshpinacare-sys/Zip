@@ -2,6 +2,8 @@
 
 > הבית הריבוני של THE WEAVE. ריפו `Zip` הריק הוסב לבית הזה ב-2026-09-14
 > (הוראת המפעיל: "הפוך, אל תמחק"). הריפו הוא האמת — הסנדבוקס הוא רק workspace.
+> אמת-שם (r123): הריפו ב-GitHub נקרא `Zip` — "weave-core" הוא שם הפרויקט, לא
+> כתובת ריפו; אין ריפו בשם weave-core (404, נמדד).
 
 ## מה חי כאן
 
@@ -12,7 +14,7 @@
 | `sovereign/weave-seal.enc` | ה-seal — מפתח הענן + מפתח הרשת (AES-256-GCM; ריפו פרטי) |
 | `sovereign/anchor-baseline.leaves.json` | חומר ההוכחה של גזירת העוגנים — 90 קבצי הארכיון ⇒ שורש מרקל בספר |
 | `sovereign/beat-report.json` | הדוח של הפעימה האחרונה (מקומית או ענן) |
-| `.github/workflows/weave-heart.yml` | **הלב הענן** — כל 6 שעות GitHub מריץ את הרשת בעצמו |
+| `.github/workflows/weave-heart.yml` | **הלב הענן** — התאום הציבורי ב-`Domain` מריץ את הרשת שעתית (cron :13) על checkout של הבית הזה; המקור כאן — dispatch-בלבד (ריבונות המכסה, R71) |
 | `SOVEREIGNTY.md` | מפת הריבונות: מה נגזר, מה חסר, מה העוגנים נותנים |
 | `scripts/` | weave-beat (הפעימה) · weave-seal · anchor-baseline · sovereign-milestones · compile-anchor |
 
@@ -29,7 +31,7 @@ bun scripts/weave-beat.ts --local   # פעימת ה-runner הראשי: verify �
 ## הרמה מ-clone נקי (SOV-3)
 
 ```bash
-git clone <this-repo> && cd weave-core
+git clone https://github.com/roshpinacare-sys/Zip.git && cd Zip
 bun install
 bunx prisma generate && bunx prisma db push   # SQLite מקומי
 cp .env.example .env                           # DATABASE_URL

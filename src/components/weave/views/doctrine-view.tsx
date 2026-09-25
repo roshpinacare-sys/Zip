@@ -165,10 +165,10 @@ export function DoctrineView() {
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {[
-                { icon: Link2, t: "Steem", d: "קו עדות ציבורי חי — הפעימה כותבת פוסט-עוגן עם כל לב (שעתי)" },
+                { icon: Link2, t: "Steem", d: "קו עדות ציבורי חי — הדופק משדר בו פוסט-עוגן בחלון יומי-UTC (מקסימום אחד ליום)" },
                 { icon: Link2, t: "Hive", d: "קו עדות מושהה — מפתחות ה-posting הוסרו מהריפו אחרי תקרית R11 וטרם נאטמו מחדש" },
                 { icon: Layers, t: "ZERO EVM (Z Chain 9369)", d: "עוגן-EVM בגז 0x0 מדוד + השופט-החיצוני של שוק האמת (גובה בלוק חי)" },
-                { icon: GitBranch, t: "GitHub (הלב הענן)", d: "Actions מריץ את הרשת מדי שעה - TAKEOVER כשהסנדבוקס ישן" },
+                { icon: GitBranch, t: "GitHub (הלב הענן)", d: "Actions מריץ את הרשת בענן כל חצי שעה (:17/:47 — נקרא מה-workflow החי של התאום) - TAKEOVER כשהסנדבוקס ישן" },
                 { icon: BrainCircuitIcon, t: "NVIDIA NIM - המודל", d: "המשקולות בחוץ; המפתחות, הרוטציה והזיהוי בבית. תווית אמת מוצהרת" },
               ].map((r) => (
                 <div key={r.t} className="flex items-start gap-3 rounded-lg border bg-muted/30 p-3.5">

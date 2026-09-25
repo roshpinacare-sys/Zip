@@ -4357,3 +4357,71 @@ Stage Summary:
 - החוק החדש שנחקק: "חוק-יום של הדופק" — מדיניות שמצהירה מקור-אמת חייבת לקרוא אותו; state מקומי הוא מטמון, לא סמכות — השרשרת הציבורית היא השופט. כלל נגזר: קבלה שלא נושאת txid אמיתי היא אובדן-ראיה שיתועד ויתוקן, לא "הצלחה שקטה".
 - איך זה נמדד: הפוסט של 2026-09-25 נחת בשרשרת ב-00:00:09 (אומת מול condenser_api) והחלון נסגר — בפעם הבאה שהסנדבוקס ייפול, הדופק יקרא את השרשרת ולא יפרסם כפול.
 - האמת שנשארת בכנות: seedError status 500 נרשם בזמן חלון-ההחייאה (קריאת /api/publish בזמן קומפילציה מחדש) — הוא fail-safe כמתוכנן ויתנקה בבדיקת היום הבאה.
+
+---
+Task ID: r123-a
+Agent: r123-a (docs truth scan)
+
+Task: סריקת אמת של מסמכי השורש (SOVEREIGNTY/BENCHMARK/TRUTH-AUDIT/AGENTS/README/VERIFY/ECOSYSTEM-ROADMAP/NETWORK-EVOLUTION/SAOS/CONSOLE-POLICY) — טענות הווה שקריות תוקנו, היסטוריה חתומה נשמרה.
+
+Work Log:
+- קרא כל 10 המסמכים במלואם. השוואה מול אמת חיה: GitHub API (16 ריפואים בפועל · חשבון User · weave-core=404 · Console/Domain=200 · Pages=200 · ledger.json ציבורי=200 · מלאי כספות Domain: WEAVE_STEEM_WIF+STEEM_ACTIVE_WIF קיימים) · בלוקי ה-on של ה-workflows ב-Domain מה-YAML בפועל (לב שעתי :13 · anchor-lines דו-שעתי :33 · ecosystem יומי 06:30 · console-publish שעתי :45 · cloud-heart 30-דק' :17/:47) · ריצות אחרונות ב-API (anchor-lines/heart/truth-gate/dex-grid — הצלחות עד 2026-09-25T01:21Z; truth-gate ALL-GREEN 10/0/2) · רישום הסוכנים החי (29) · saos-live.json (genesis.done=true).
+- התגלו ותוקנו שקרי-הווה: (1) VERIFY.md הנחה לשבט את github.com/roshpinacare-sys/weave-core — ריפו שאינו קיים (404, אותו שקר שנתפס ב-r121 בקוד); הוחלף בנתיב החי Console/verify + הספר ב-URL הציבורי. (2) "כל 6 שעות" מת ב-11 נקודות (README, SOVEREIGNTY §2/§5/§7/§9/§10/§11/§12/§13/§16.5, ECOSYSTEM-ROADMAP, CONSOLE-POLICY) — הוחלף בקדנסים החיים הנמדדים מה-YAML. (3) "יומי 07:17Z" של קו העיגון מת — weave-anchor-lines דו-שעתי :33 + הנעה מהלב. (4) "Steem+Hive" כקו חי ב-5 נקודות (SAOS, SOVEREIGNTY §7/§10/§12/§18, ECOSYSTEM-ROADMAP) — Hive מושהה בכנות: מפתחות הוסרו (R11). (5) "weave-core" כריפו/כתובת clone ב-README/SOVEREIGNTY/ECOSYSTEM-ROADMAP — הריפו הוא Zip; השם מוסבר כשם-פרויקט. (6) ECOSYSTEM-ROADMAP: "ארבעה-עשר הריפואים"→16 (נוספו שורות Domain+Defi); "mini-services/ ריק-RESERVED"→צי 7 הדיבונים (r80-r120); Pages "ממתין להפעלה"→פעיל (200). (7) SOVEREIGNTY G5: "הפעלת Pages נותרה"→נסגר (200, נמדד). (8) AGENTS.md: 4 סטטוסים מיושנים (Steem עד WEAVE_STEEM_WIF / dex-grid עד STEEM_ACTIVE_WIF / truth-gate 1-RED / agent-verify 52/53) — כולם ירוקים במדידה חיה (הסודות נמסרו R72-R75); "תשעת סוכני-הארכיון שומרים קדנס יומי"→מושהים במכסה, האמת היומית מ-local fleet-verify (r118); נוסף מונה הרישום החי (29). (9) SAOS.md: "הג'נזיס ממתין ל-RC" (09-15) → הונח (genesis.done=true, אוצר saos14wWG…, 1:1 מול v0); stateRoot v1 קפוא ff4a3511 → חי 311af20d (מדידת 2026-09-25). (10) CONSOLE-POLICY: דיאגרמת הצינור 0/20/40-כל-6ש' → הטופולוגיה החיה (תאומים ב-Domain דרך ZIP_PAT); "לא PAT בענן" → ZIP_PAT בכספת Domain; §6 הושלם בפירוק-המשמעויות של R69 (קבלות 8 · נוכחות 10 · אבטחה 7). (11) weave-ecosystem "על כל 14 הריפואים" → 16.
+- נשמרו כהיסטוריה חתומה (לא נגעתי): TRUTH-AUDIT.md כולו (יומן ביקורת append-only, עד R75); BENCHMARK.md כולו (עדכוני מדיד R57-R66 מתוארכים); NETWORK-EVOLUTION.md (מסמך מחקר מתוארך 2026-09-15; טענת "route /" אומתה כאמת — SPA); ראיות הסגירה המתוארכות ב-SOVEREIGNTY (G1-G6, run #1/#4, att/txids, "בעת הפריסה :00→:20→:40" כתיעוד מחזור 2026-09-14); ממצאי משמרת §5 ב-ECOSYSTEM-ROADMAP (upload/pat.env קיים — אומת).
+- ממצאי חוץ-תחום (לא נגעתי — לתיאום): console/verify/README.md (מקור קנוני שמסונכרן ל-Console הציבורי) עדיין מורה "git clone …/weave-core.git && cd weave-core" — 404; הנתיב הנכון: clone Console ← cd verify. וכן console/render.mjs עדיין מחזיק את הצומת המת steem.61bts.com ב-NODES (הוסר מה-src ב-R120).
+- סריקת סיום: אפס שאריות של "כל 6 שעות"/"כל 3 שניות"/"417"/weave-core.git/07:17Z בכל 10 המסמכים; git diff מאשר — רק 7 קבצי שורש שונו (+112/-76), TRUTH-AUDIT/BENCHMARK/NETWORK-EVOLUTION לא נגעו.
+
+Stage Summary:
+- 11 קבצי-ממצא של טענות-הווה שקריות תוקנו ב-7 מסמכים (מוות ה-6ש', מוות weave-core ככתובת, Hive כקו חי, 14→16 ריפואים, mini-services "ריק", ג'נזיס SAOS "ממתין", סטטוסי AGENTS מיושנים, Pages "ממתין"); כל תיקון נגזר ממדידה חיה (YAML בפועל, GitHub API, ריצות, שרשרת, ledger).
+- 3 מסמכים נשמרו בשלמותם כרשומות היסטוריות (TRUTH-AUDIT יומן ביקורת; BENCHMARK עדכוני מדיד; NETWORK-EVOLUTION מחקר מתוארך) — אפס טמפר עם העבר.
+- שני ממצאי חוץ-תחום הוגשו לתיאום (console/verify/README.md עם ה-clone המת — דגל חוק-13 הציבורי; צומת 61bts המת ב-render.mjs).
+
+---
+Task ID: r123-e
+Agent: r123-e (scripts+console type-hardening)
+
+Work Log:
+- scripts/seal-recover-local.ts (19→0): `fail` הומר מ-arrow-על-const ל-function-declaration עם טיפוס never ישיר — TS מזהה narrowing אחרי never-returning רק בצורת declaration; הגוף (console.error+process.exit) לא שונה כלל, אפס שינוי זמן-ריצה.
+- console/verify/src/lib/weave/evm.ts (2→0): CHECKPOINT_TYPES — הוסר `as const` וניתן טיפוס מפורש `Record<string, TypedDataField[]>` + `import type` — ethers דורש מערכים ניתנים-לשינוי; ערך הקבוע בזמן-ריצה זהה לחלוטין (verify:book לא נפגע).
+- scripts/weave-anchor-zero.ts (2→0): `readback` קיבל טיפוס מפורש `ZeroReadback | { ok; verdict } | null` (היסק-null נעלם).
+- scripts/weave-ecosystem.ts (2→0): PlanChange מרחיב את GroupFile עם origHash/origSize אופציונליים (תוצר-הפלנר בפועל נושא hash/size — הפלט ל-JSON ולמצבתות לא השתנה בית); `gh<Record<string, unknown>>` נוסף לקריאת ה-ref.
+- scripts/weave-anchor.ts + web-probe.ts + web-probe2.ts (3→0): GrapheneOperation מיובא כ-type מ-"steem" ישירות (graphene.ts מגדיר מקומית ולא מייצא; src/ לא נוגע).
+- scripts/weave-brain-import.ts (1→0): נוצר scripts/bun-sqlite.d.ts — הצהרת-סביבה מינימלית ל-bun:sqlite (query/get/all/close בלבד).
+- scripts/weblift-run.ts (1→0): @ts-ignore מתועד בעברית — Node v24 type-stripping מחייב סיומת .ts בייבוא היחדי, אסור לשנות זמן-ריצה.
+- skills/image-edit/scripts/image-edit.ts (1→0): ה-body של edit() הומר ב-cast טיפוסי בלבד (Parameters<...>) — המטען שנשלח לא נוגע.
+
+Stage Summary:
+- סה"כ בתחום: 31 שגיאות → 0 (tsc --noEmit | grep scripts/|console/ = אפס).
+- הפרויקט כולו: 99 → 67 (כולל בונוס: brain-restore.ts ה-1 של bun:sqlite תוקן דרך ה-d.ts הגלובלי בלי לגעת ב-src/).
+- bun run lint: נקי. dev.log: חי, 200-ים, ללא קריסה.
+- דפוסי שורש: (א) arrow-על-const עם :never לא מצר null — רק function-declaration מזהה; (ב) `as const` נגד Record<string, TypedDataField[]> של ethers; (ג) היסק-null של משתנים שמוקצים מאוחר; (ד) טיפוסים שמיובאים "דרך" מודול שלא מייצא אותם.
+- כל התיקונים טיפוסיים-בלבד; תשתית חיה (seal-recover/anchor-zero/ecosystem) — אפס שינוי התנהגות.
+
+---
+Task ID: r123-d
+Agent: r123-d (src type-hardening)
+
+Work Log:
+- src/lib/weave/exchange-router.ts (15→0): 14 ליטרלי BigInt (0n/10n**17n…) הומרו ל-BigInt() — target ES2017; זהה בזמן-ריצה (נבדק חי: 11 ערוצים מצוטטים). באג-כתיב אמיתי: ctrl→ctl ב-fetchYields (ReferenceError בטיימאאוט).
+- src/lib/weave/zero.ts (7→0): ליטרלי BigInt ל-BigInt(); החזרת last אחרי לולאה — `as ZeroReadback` (attempts≥1 מובטח; החתימה לא שונתה כדי לא לשבור סקריפטים).
+- src/components/weave/views/publisher-view.tsx (8→0): הוסר delay מ-7 MotionCard (ההגדרה = Card props — לא תומך; הדיליי לא עשה כלום בפועל; FadeIn כן תומך ונשאר); עטיפת שגיאה Section→div.
+- src/components/weave/views/money-mover-view.tsx (5→0): 2×delay הוסר; ErrorBox→message prop (אותו טקסט עברי); StatusBadge — הוסר prop לא-קיים label; עטיפת שגיאה Section→div.
+- src/lib/weave/grid-pnl.ts (7→0): jpost מוקלד ל-Array<[number, HistoryEntry]> (קאסט שקרי הוסר); empty קיבל null-ים מפורשים number|null.
+- src/app/api/treasury/route.ts (6→0): 3 מצברים `const out = []` (never[]) קיבלו טיפוס שורה מפורש.
+- src/lib/web/netstore.ts (4→0): typeof-block עצמי בגנריק מסמן block כ-never (נוירוט צמצום) — הוחלף ב-interface ChainBlock; rcSample מודולי שצומצם ל-null עבר לעותק מקומי cached.
+- src/lib/weave/ledger-sync.ts (3→0): BrainRow (Date|string) למיזוג DB+ספר-דיסק.
+- src/lib/weave/evm.ts (2→0): CHECKPOINT_TYPES — הוסר as const, הוגדר Record<string, TypedDataField[]> (כמו בעותק console/verify).
+- src/lib/weave/crossmarket.ts (2→0): ctrl→ctl ב-jget (באג אמיתי); ok:boolean נוסף ל-interface CrossAnalysis (הוחזר כבר בפועל).
+- src/lib/weave/market.ts (1→0): באג אמיתי — openMarket החזיר seq אך החוזה/קוראים (API + שוק-רצף) דורשים marketSeq → מיפוי opened.seq→marketSeq.
+- src/app/api/money/route.ts (1→0 + TS2741 שנחשף): down→אופציונלי (הריצה מחזירה undefined במחזור נקי); sense() הוקלד ל-Omit<MoneySense,"cached"|"stale"|"cacheAgeSec"|"refreshing">.
+- src/app/api/web/publish/route.ts (1→0): bytes הוקלד Buffer רחב (ArrayBufferLike) לאריזה-מחדש.
+- src/lib/charter.ts (1→0): {Accept} → {headers:{Accept:"text/plain"}} ב-jfetch.
+- src/lib/weave/ops.ts (1→0): rpcV4 קיבל Array<[number, entry]> (לא טופל בודד).
+- src/app/api/charter/projects/route.ts (1→0): ספרד מותנה ב-update → מאפיין update ישיר (אותו פלט).
+- src/app/api/charter/projects/[slug]/route.ts (1→0): אנוטציה מפורשת ל-attestation.
+- src/lib/weave/brain-restore.ts (1→0): נוצר src/types/bun-sqlite.d.ts — הכרזת מינימלית (Database/Query/get/all/close), בדפוס steem.d.ts.
+
+Stage Summary:
+- ספירת שגיאות ב-src: 67 → 0 (18 קבצים + קובץ הכרזה חדש). tsc מלא עובר; bun run lint נקי; dev.log בריא.
+- עשרות-עשיריות: שני באגי ctrl/ctl אמיתיים (ReferenceError בטיימאאוט — כעת abort תקין), ו-bug המרות market: לקוחות קיבלו undefined. ערכי BigInt זהים (נמדד חי ב-/api/exchange/router: VERIFIED).
+- עשרות-עשיריות: skills/stock-analysis-skill/src/analyzer.ts נותר (יחידת skills, לא שלי).

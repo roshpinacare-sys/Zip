@@ -45,6 +45,8 @@ async function gh<T>(apiPath: string): Promise<{ status: number; json: T | null 
       Authorization: `Bearer ${pat()}`,
       Accept: "application/vnd.github+json",
     },
+    // R112 — law of the bounded wait: no fetch without a deadline
+    signal: AbortSignal.timeout(30_000),
   });
   let json: T | null = null;
   try {
@@ -260,9 +262,11 @@ function dirtyName(p: string): boolean {
 }
 
 interface GroupFile { repo: string; path: string; size: number; hash: string }
-interface PlanChange {
-  path: string; repo: string; origHash: string; origSize: number;
+// תוצר-הפלנר בפועל נושא את שדות ה-GroupFile (hash/size) + השדות הקנוניים;
+// origHash/origSize אופציונליים — קיימים בתוכניות היסטוריות בלבד (תאימות לאחור בקריאה).
+interface PlanChange extends GroupFile {
   canonicalRepo: string; canonicalPath: string; groupIdx: number;
+  origHash?: string; origSize?: number;
 }
 
 function tombstoneContent(c: PlanChange, groupsTotal: number, before: { measured: number; redundant: number; dupRatio: number }): string {
@@ -364,6 +368,7 @@ async function ghSend(method: string, apiPath: string, body: unknown): Promise<{
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
+    signal: AbortSignal.timeout(30_000),
   });
   let json: Record<string, unknown> | null = null;
   try { json = (await res.json()) as Record<string, unknown>; } catch { /* 204 */ }
@@ -394,7 +399,7 @@ async function pushRepoTombstones(repo: string, branch: string, changes: PlanCha
   ].join("\n");
 
   for (let attempt = 1; attempt <= 3; attempt++) {
-    const ref = await gh(`/repos/${OWNER}/${repo}/git/ref/heads/${branch}`);
+    const ref = await gh<Record<string, unknown>>(`/repos/${OWNER}/${repo}/git/ref/heads/${branch}`);
     if (ref.status !== 200 || !ref.json) throw new Error(`${repo}: ref לא נקרא (${ref.status})`);
     const headSha = String((ref.json.object as Record<string, unknown>).sha);
     const headCommit = await gh<Record<string, unknown>>(`/repos/${OWNER}/${repo}/git/commits/${headSha}`);

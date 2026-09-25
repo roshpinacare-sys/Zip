@@ -662,7 +662,9 @@ export async function openMarket(input: {
     }
   }
 
-  return appendEvent(
+  // appendEvent מחזיר { seq, entryHash } — החוזה הציבורי של openMarket הוא marketSeq
+  // (כך קוראים: /api/weave/market/open ופתיחת דור-ההמשך בשוק-רצף). מיפוי שדה בלבד.
+  const opened = await appendEvent(
     {
       kind: "OPEN",
       title,
@@ -674,6 +676,7 @@ export async function openMarket(input: {
     },
     { agentId: input.createdBy } // הפותח חותם על פתיחת השוק שלו
   );
+  return { marketSeq: opened.seq, entryHash: opened.entryHash };
 }
 
 export async function placeStake(input: {

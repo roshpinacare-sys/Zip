@@ -26,6 +26,8 @@ export async function listRepoSecrets(repo: string): Promise<RepoSecretMeta[]> {
   const res = await fetch(`${GH_API}/repos/roshpinacare-sys/${repo}/actions/secrets?per_page=100`, {
     headers: { Authorization: `token ${token}`, Accept: "application/vnd.github+json" },
     cache: "no-store",
+    // R112 — law of the bounded wait: no fetch without a deadline
+    signal: AbortSignal.timeout(30_000),
   });
   if (!res.ok) throw new Error(`secrets-list-${res.status}`);
   const j = (await res.json()) as { secrets?: Array<{ name: string; created_at: string; updated_at: string }> };
@@ -41,6 +43,7 @@ export async function putRepoSecret(repo: string, name: string, value: string): 
   const pkRes = await fetch(`${GH_API}/repos/roshpinacare-sys/${repo}/actions/secrets/public-key`, {
     headers: { Authorization: `token ${token}`, Accept: "application/vnd.github+json" },
     cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
   });
   if (!pkRes.ok) throw new Error(`public-key-${pkRes.status}`);
   const pk = (await pkRes.json()) as { key_id: string; key: string };
@@ -59,6 +62,7 @@ export async function putRepoSecret(repo: string, name: string, value: string): 
     },
     body: JSON.stringify({ encrypted_value, key_id: pk.key_id }),
     cache: "no-store",
+    signal: AbortSignal.timeout(30_000),
   });
   if (!put.ok && put.status !== 201 && put.status !== 204) {
     throw new Error(`secret-put-${put.status}`);

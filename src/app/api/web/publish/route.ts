@@ -79,7 +79,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "לא התקבל קובץ (שדה file)" }, { status: 400 });
   }
   const rawName = file.name || "package";
-  let bytes = Buffer.from(await file.arrayBuffer());
+  // Buffer רחב (ArrayBufferLike) — האריזה-מחדש מחזירה Buffer כללי
+  let bytes: Buffer = Buffer.from(await file.arrayBuffer());
   if (bytes.length === 0) {
     return NextResponse.json({ ok: false, error: "קובץ ריק" }, { status: 400 });
   }

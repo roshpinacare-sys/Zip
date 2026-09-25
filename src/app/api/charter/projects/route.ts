@@ -118,7 +118,7 @@ async function selfHeal(): Promise<void> {
         meta: JSON.stringify({ healedFromCanon: true }),
       },
       // גם שורה קיימת מריפוי באגי (זמן-ייבוא) מותקנת לזמן ההיסטורי
-      ...(charterAt ? { update: { createdAt: charterAt } } : { update: {} }),
+      update: charterAt ? { createdAt: charterAt } : {},
     }).catch(() => undefined);
   }
 }

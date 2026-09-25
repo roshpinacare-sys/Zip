@@ -147,6 +147,20 @@ export interface LedgerSnapshot {
   }>;
 }
 
+/** שורת מוח במיזוג — DB (Date) או ספר-דיסק (ISO string); הצרכן מנרמל ב-new Date */
+type BrainRow = {
+  id: string;
+  fingerprint: string;
+  encKey: string;
+  keyIv: string;
+  keyTag: string;
+  status: string;
+  lastCode: string | null;
+  cooldownUntil: Date | string | null;
+  verifiedAt: Date | string | null;
+  createdAt: Date | string;
+};
+
 /** ייצוא הספר כולו ל-snapshot חסר-סודות (סדר דטרמיניסטי) */
 export async function exportLedger(): Promise<LedgerSnapshot> {
   const [agents, attestations, checkpoints, networkKey, keyOps, localAnchors, repoInventory, planStages, marketEvents, brain] =
@@ -169,7 +183,7 @@ export async function exportLedger(): Promise<LedgerSnapshot> {
   // מהספר שעל הדיסק (מקור הלקח של Task 17: מצב שחי רק בסביבה אחת
   // יאבד בהחלפתה). ה-DB מנצח לפי טביעת-אצבע; ספר-בלבד נשמר.
   // הסרת מפתח היא תהליך פרישה מפורש — לא תופעת לוואי של ייצוא.
-  const brainByFp = new Map(brain.map((b) => [b.fingerprint, b]));
+  const brainByFp = new Map<string, BrainRow>(brain.map((b) => [b.fingerprint, b]));
   try {
     const onDisk = JSON.parse(fs.readFileSync(LEDGER_ON_DISK_PATH, "utf8")) as LedgerSnapshot;
     for (const b of onDisk.brain ?? []) {

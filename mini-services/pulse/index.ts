@@ -16,6 +16,11 @@
 
 import fs from "node:fs";
 
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+};
+
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/pulse/state.json`;
 const PORT = 3033;
@@ -126,7 +131,20 @@ function readState(): PulseState {
       lastSeedAt: prev.lastSeedAt ?? null,
       seedError: prev.seedError ?? null,
     };
-  } catch {
+  } catch (e: any) {
+    // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
+    // כהחלטה גלויה. קובץ שאינו קיים = עלייה ראשונה כנה. חוק-היום נזרע
+    // מהשרשרת בפעימה הראשונה — פרסום כפול אינו אפשרי.
+    if (fs.existsSync(STATE_FILE)) {
+      return {
+        ...base,
+        lastDecision: {
+          at: new Date().toISOString(),
+          kind: "STATE-RESET",
+          detail: `קובץ-המצב קיים אך לא נקרא (${String(e?.message ?? e).slice(0, 80)}) — אותחל מצב חדש בכנות; החלון ייזרע מאמת-השרשרת (last_root_post) לפני פתיחה`,
+        },
+      };
+    }
     return base;
   }
 }
@@ -135,7 +153,11 @@ let state: PulseState = readState();
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/pulse`, { recursive: true });
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2));
+  // R107b — חוק הכתיבה-האטומית (כמו בשומר): .tmp ואז rename — רגע-מוות
+  // באמצע כתיבה לא ישאיר ליורש קובץ-מצב חצוי.
+  const tmp = `${STATE_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+  fs.renameSync(tmp, STATE_FILE);
 }
 
 // ── שער-סודות לקנון ────────────────────────────────────────────────
@@ -309,7 +331,7 @@ async function tryPublish(): Promise<void> {
       `- **שרשרת**: txid \`${entry.txid}\``,
       `- **קישור**: ${entry.url}`,
       "",
-      `_מופק אוטונומית על-ידי pulse v1.1 (R90 rebuild)._`,
+      `_מופק אוטונומית על-ידי pulse v${state.version} (R90 rebuild)._`,
     ].join("\n");
     await canonPush(`reports/pulse-${day}.md`, receipt);
   } catch (e: any) {
@@ -447,6 +469,7 @@ async function tick() {
 // ── שרת-בריאות ─────────────────────────────────────────────────────
 Bun.serve({
   port: PORT,
+  hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (API/שומר/מפעיל מקומי)
   fetch(req) {
     const url = new URL(req.url);
     if (url.pathname === "/") {

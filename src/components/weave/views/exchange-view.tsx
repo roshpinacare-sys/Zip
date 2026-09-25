@@ -523,7 +523,7 @@ export function ExchangeView() {
             size="sm"
             onClick={() =>
               window.open(
-                "https://roshpinacare-sys.github.io/Console/saos-dex/",
+                "https://roshpinacare-sys.github.io/Console/#/exchange/terminal",
                 "_blank",
                 "noopener"
               )

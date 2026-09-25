@@ -65,6 +65,14 @@ interface MomentData {
   stale?: boolean;
   cacheAgeSec?: number;
   down?: string[];
+  priceSource?: string;
+  thresholds?: {
+    btc24hPct: number;
+    fgLow: number;
+    fgHigh: number;
+    steemMovePct: number;
+    gridStaleHours: number;
+  } | null;
   market: {
     steem: MomentPrice;
     sbd: MomentPrice;

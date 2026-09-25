@@ -331,7 +331,7 @@ export async function readCanonText(path: string): Promise<string | null> {
   try {
     const r = await jfetch(
       `https://raw.githubusercontent.com/${CHARTER.canonRepo}/main/${path}`,
-      { Accept: "text/plain" },
+      { headers: { Accept: "text/plain" } },
       15_000,
     );
     if (!r.ok) return null;

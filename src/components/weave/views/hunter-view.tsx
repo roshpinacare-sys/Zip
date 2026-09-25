@@ -221,7 +221,7 @@ const OPP_LABEL: Record<Opportunity["state"], string> = {
   HUNTING: "צד",
   ARMED: "חמוש",
   FLOWING: "זורם",
-  GATED: "שעור",
+  GATED: "שער-מפעיל",
   STALLED: "מתעכב",
   WAITING: "ממתין",
 };

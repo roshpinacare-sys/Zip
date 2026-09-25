@@ -355,7 +355,7 @@ function AgentCard({
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-[280px]">
                 <p className="text-xs leading-relaxed">
-                  רוטציה ב-v1 לזוכנים ללא אימותים - הכתובת בזמן החתימה קפואה
+                  רוטציה ב-v1 לסוכנים ללא אימותים - הכתובת בזמן החתימה קפואה
                   ב-entryHash של ההיסטוריה
                 </p>
               </TooltipContent>

@@ -25,6 +25,7 @@ import {
   MapPin,
   Network,
   Plus,
+  RefreshCw,
   Rocket,
   Server,
   ShieldCheck,
@@ -84,6 +85,7 @@ export function DomainsView() {
   const mounted = useMounted();
   const [domains, setDomains] = useState<DomainRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [newDomain, setNewDomain] = useState("");
   const [newPurpose, setNewPurpose] = useState("");
   const [adding, setAdding] = useState(false);
@@ -94,9 +96,15 @@ export function DomainsView() {
     try {
       const res = await fetch("/api/domains", { cache: "no-store" });
       const j = await res.json();
-      if (j?.ok) setDomains(j.domains);
-    } catch {
-      /* רשימה ריקה זו תוצאה לגיטימית */
+      if (j?.ok) {
+        setDomains(j.domains);
+        setLoadError(null);
+      } else {
+        // כישלון-שרת (fail-closed לפי r119) — לא מתחזים ל"רשימה ריקה"
+        setLoadError(String(j?.error ?? `HTTP ${res.status}`));
+      }
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : "כשל רשת");
     } finally {
       setLoading(false);
     }
@@ -339,6 +347,20 @@ export function DomainsView() {
                 <div className="flex items-center justify-center gap-2 py-8 text-sm text-zinc-500">
                   <Loader2 className="size-4 animate-spin" aria-hidden />
                   טוען את הרישום…
+                </div>
+              ) : loadError ? (
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/[0.04] p-6 text-center text-xs leading-relaxed text-rose-600 dark:text-rose-300">
+                  טעינת רישום הדומיינים נכשלה: {loadError}
+                  <br />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="mt-3 h-9 border-rose-500/40 text-rose-600 dark:text-rose-300"
+                    onClick={() => void load()}
+                  >
+                    <RefreshCw className="size-3.5" aria-hidden />
+                    נסה שוב
+                  </Button>
                 </div>
               ) : domains.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-zinc-800 p-6 text-center text-xs leading-relaxed text-zinc-500">

@@ -551,11 +551,11 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
 
       {/* ── שגיאה ───────────────────────────────────────────────────── */}
       {err ? (
-        <Section className="mt-6">
+        <div className="mt-6">
           <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-700 dark:text-rose-400">
             ה-API לא ענה: {err} — התצוגה מציגה את מה שיש; נסה רענון.
           </div>
-        </Section>
+        </div>
       ) : null}
 
       {loading && !data ? (
@@ -582,8 +582,8 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
               description="מצב אמיתי בלבד: מה חי, מה חמוש, מה חסר — ומה כל השלמה פותחת"
             >
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {channels.map((c, i) => (
-                  <MotionCard key={c.id} delay={i * 0.05} className="p-4">
+                {channels.map((c) => (
+                  <MotionCard key={c.id} className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-sm font-bold leading-tight">{c.name}</h3>
                       <Badge variant="outline" dir="rtl" className={cn("shrink-0 text-[11px]", CHANNEL_STYLE[c.state].cls)}>
@@ -629,8 +629,8 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
               description="כל טיוטה נבנית מחדש בכל קריאה מהשרשרות — הפוסט תמיד נושא את המספרים של עכשיו, עם מקור לכל מספר"
             >
               <div className="grid gap-4 lg:grid-cols-3">
-                {drafts.map((d, i) => (
-                  <MotionCard key={d.id} delay={i * 0.05} className="flex flex-col p-4">
+                {drafts.map((d) => (
+                  <MotionCard key={d.id} className="flex flex-col p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <Badge variant="outline" dir="rtl" className="text-[11px]">
@@ -851,7 +851,7 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                         {earnings.postCount ?? "—"} פוסטים · אחרון {fmtTime(earnings.lastRootPost)}
                       </div>
                     </MotionCard>
-                    <MotionCard delay={0.05} className="p-4">
+                    <MotionCard className="p-4">
                       <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
                         <Coins className="size-4" aria-hidden="true" /> תגמולים ממתינים (חי)
                       </div>
@@ -861,14 +861,14 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                         <div className="text-muted-foreground">{earnings.pendingVests ?? "—"}</div>
                       </div>
                     </MotionCard>
-                    <MotionCard delay={0.1} className="p-4">
+                    <MotionCard className="p-4">
                       <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
                         <Bot className="size-4" aria-hidden="true" /> פורסם על-ידי הסוכן
                       </div>
                       <div className="mt-2 font-mono text-2xl font-bold">{earnings.publishedByAgent}</div>
                       <div className="mt-1 text-[11px] text-muted-foreground">פוסטים ששודרו מהתור של הרשת</div>
                     </MotionCard>
-                    <MotionCard delay={0.15} className="p-4">
+                    <MotionCard className="p-4">
                       <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
                         <TrendingUp className="size-4" aria-hidden="true" /> כוח ההצבעה
                       </div>
@@ -877,8 +877,8 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                     </MotionCard>
                   </div>
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
-                    {earnings.flows.map((f, i) => (
-                      <MotionCard key={f.id} delay={i * 0.05} className="flex items-center justify-between gap-3 p-3">
+                    {earnings.flows.map((f) => (
+                      <MotionCard key={f.id} className="flex items-center justify-between gap-3 p-3">
                         <div className="min-w-0">
                           <div className="text-[13px] font-semibold">{f.name}</div>
                           <div className="text-[10px] text-muted-foreground">{f.source}</div>
@@ -1093,8 +1093,8 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
               description="המטרה: חוסר תלות במשתמשים אנושיים. מה כבר אוטונומי, ומה עומד מאחורי שער-המפעיל — בכנות"
             >
               <div className="grid gap-3 md:grid-cols-2">
-                {autonomy.map((a, i) => (
-                  <MotionCard key={a.id} delay={i * 0.05} className="flex items-start gap-3 p-4">
+                {autonomy.map((a) => (
+                  <MotionCard key={a.id} className="flex items-start gap-3 p-4">
                     <span
                       className={cn(
                         "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border",

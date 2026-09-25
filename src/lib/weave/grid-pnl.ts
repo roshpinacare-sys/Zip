@@ -242,12 +242,12 @@ async function deepFills(): Promise<{ fills: PnlFill[]; pages: number; entries: 
   const found = new Map<number, PnlFill>();
   let stop = false;
   while (pages < MAX_PAGES && !stop) {
-    const hist = await jpost<HistoryEntry[]>("condenser_api.get_account_history", [ACCOUNT, start, 100]);
+    const hist = await jpost<Array<[number, HistoryEntry]>>("condenser_api.get_account_history", [ACCOUNT, start, 100]);
     if (!hist || !hist.length) break;
     let minIdx = Infinity;
     let maxIdx = -1;
     let oldestTs = "";
-    for (const [idx, rec] of hist as Array<[number, HistoryEntry]>) {
+    for (const [idx, rec] of hist) {
       minIdx = Math.min(minIdx, idx);
       maxIdx = Math.max(maxIdx, idx);
       if (idx > (cp?.maxIndex ?? -1)) {
@@ -328,11 +328,13 @@ async function marketSide(): Promise<{
   down: string[];
 }> {
   const down: string[] = [];
+  // null-ים מפורשים (number | null) — בלי זה `empty` מסיק את הטיפוס הליטרלי null
+  // ומסרב לקבל את המילוי החי של הספר/היתרות בהמשך
   const empty = {
-    book: { bestBid: null, bestAsk: null, mid: null, spreadBps: null },
+    book: { bestBid: null as number | null, bestAsk: null as number | null, mid: null as number | null, spreadBps: null as number | null },
     orders: [] as Array<{ steem: number; price: number }>,
-    balances: { steem: null, sbd: null },
-    marks: { steemUsd: null, sbdUsd: null },
+    balances: { steem: null as number | null, sbd: null as number | null },
+    marks: { steemUsd: null as number | null, sbdUsd: null as number | null },
     sbdSource: null as string | null,
   };
   const bookP = jpost<any>("condenser_api.get_order_book", [10]).catch((e) => {
