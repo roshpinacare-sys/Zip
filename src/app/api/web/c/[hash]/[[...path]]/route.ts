@@ -104,10 +104,27 @@ export async function GET(
       }),
     });
   } catch (e) {
-    return NextResponse.json(
-      { ok: false, error: e instanceof Error ? e.message : "שליפה מהשרשרת נכשלה", hash, path: innerPath },
-      { status: 404, headers: { "Access-Control-Allow-Origin": "*" } }
-    );
+    // R122 · חוק הסטטוס: RPC שנפל אינו "תוכן לא נמצא". 404 רק כשהשרשרת
+    // עצמה עונה שהחותם/הקובץ אינם שם; תקלת-רשת → 502; סירוב-אמת → 500;
+    // חלקי-בעלייה → 503 (ההגירה ממשיכה — לא כישלון קבוע).
+    const msg = e instanceof Error ? e.message : "שליפה מהשרשרת נכשלה";
+    const cors = { "Access-Control-Allow-Origin": "*" };
+    if (/חשיש לא תקין/.test(msg)) {
+      return NextResponse.json({ ok: false, error: msg, hash, path: innerPath }, { status: 400, headers: cors });
+    }
+    if (/אין חותם על השרשרת|לא נמצא בחבילה/.test(msg)) {
+      return NextResponse.json({ ok: false, error: msg, hash, path: innerPath }, { status: 404, headers: cors });
+    }
+    if (/חלקיים/.test(msg)) {
+      return NextResponse.json({ ok: false, error: msg, hash, path: innerPath }, { status: 503, headers: cors });
+    }
+    if (/steem-rpc-unreachable|ECONN|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|fetch failed|network/i.test(msg)) {
+      return NextResponse.json(
+        { ok: false, error: `RPC לא הגיב: ${msg}`, hash, path: innerPath },
+        { status: 502, headers: cors },
+      );
+    }
+    return NextResponse.json({ ok: false, error: msg, hash, path: innerPath }, { status: 500, headers: cors });
   }
 }
 

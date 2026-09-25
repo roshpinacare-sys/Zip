@@ -24,8 +24,16 @@ export async function GET() {
       },
     });
     return NextResponse.json({ ok: true, sessions });
-  } catch {
-    return NextResponse.json({ ok: true, sessions: [] });
+  } catch (err) {
+    // R119 · חוק הכנות: כשל-DB אינו "רשימה ריקה" — הסתרת כישלון תציג אמת-שקר
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `קריאת הסשנים נכשלה: ${err instanceof Error ? err.message : String(err)}`,
+        sessions: [],
+      },
+      { status: 500 },
+    );
   }
 }
 

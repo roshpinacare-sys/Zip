@@ -57,8 +57,8 @@ interface DefiDoc {
   down?: string[];
   world?: {
     height: number | null;
-    treasuryProfitUsds: number;
-    treasuryProfitEverUsds?: number; // FIX(R46): המונה-המונוטוני — מצטבר-לנצח, לעולם לא נשחק לדלק
+    treasuryProfitUsds: number | null;
+    treasuryProfitEverUsds?: number | null; // FIX(R46): המונה-המונוטוני — מצטבר-לנצח, לעולם לא נשחק לדלק
     // FIX(R47): THE-SAVE — החיסכון-החי על-השרשרת: קרן, הכנסה-מדודה, שיעור-יום-אמת
     // FIX(R48 · calibration-truth): apyBps=null בזמן-חלון-הכיול (החלון-הראשון שלאחר-מיגרציה
     // קולט-הצטבר-היסטורי ואינו-מפורסם-כשנתי). demoUsds — גילוי-מלא של עמדת-ההדגמה-של-המפעיל.
@@ -69,7 +69,7 @@ interface DefiDoc {
       incomeStreams: { vaultInterestUsds: number; lendReserveUsds: number; feeShareUsds: number };
       dayWindowBlocks: number | null; feeSharePct: number | null;
     };
-    fills: number; swaps: number; liveOrders: number; opsTotal: number;
+    fills: number | null; swaps: number | null; liveOrders: number | null; opsTotal: number | null;
     pools: Array<{
       key: string; ra: number; rb: number; swaps: number;
       feeAccruedUsds: number; feeBps: number | null;
@@ -90,7 +90,7 @@ interface DefiDoc {
   } | null;
   vaults?: Array<{
     key: string; apr: number; apy: number; tvlUsds: number;
-    feesAccruedUsds: number; swaps: number; feeBps: number | null;
+    feesAccruedUsds: number | null; swaps: number | null; feeBps: number | null;
   }>;
   flywheel?: Record<string, { label: string; value: number | string; unit: string; detail: string }>;
   compounding?: { marketApy: number; marketBorrowApy: number; note: string };
@@ -99,8 +99,8 @@ interface DefiDoc {
 // ── טיפוס מצב שוק-הכספים (חלץ לקריאות) ─────────────────────────────
 
 interface MarketState {
-  supplyUsds: number; treasuryUsds: number; operatorUsds: number; arenaUsds: number;
-  borrowedUsds: number; utilization: number; borrowApr: number; supplyApr: number;
+  supplyUsds: number | null; treasuryUsds: number | null; operatorUsds: number | null; arenaUsds: number | null;
+  borrowedUsds: number | null; utilization: number | null; borrowApr: number | null; supplyApr: number | null;
   onChain?: boolean;
   onChainNote?: string;
   onChainTotals?: { interestPaidUsds: number; reservesToTreasuryUsds: number; opens: number; closes: number; treasuryEarnedUsds: number } | null;
@@ -276,10 +276,10 @@ export function FlywheelView() {
               {data ? (
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {[
-                    { k: "גובה שרשרת", v: w ? `#${(w.height ?? 0).toLocaleString("he-IL")}` : "—" },
-                    { k: "מילויים נספרים", v: w ? `${(w.fills ?? 0).toLocaleString("he-IL")}` : "—" },
-                    { k: "החלפות", v: w ? `${(w.swaps ?? 0).toLocaleString("he-IL")}` : "—" },
-                    { k: "בריכות AMM", v: w ? `${w.pools.length}` : "—" },
+                    { k: "גובה שרשרת", v: w?.height != null ? `#${w.height.toLocaleString("he-IL")}` : "—" },
+                    { k: "מילויים נספרים", v: w?.fills != null ? `${w.fills.toLocaleString("he-IL")}` : "—" },
+                    { k: "החלפות", v: w?.swaps != null ? `${w.swaps.toLocaleString("he-IL")}` : "—" },
+                    { k: "בריכות AMM", v: w?.pools != null ? `${w.pools.length}` : "—" },
                     { k: "אוצר מצטבר לנצח", v: w ? fmtUsd(w.treasuryProfitEverUsds ?? w.treasuryProfitUsds) : "—", t: "מונה-מונוטוני (R46): כל-קציר עולה, לעולם לא נשחק לדלק-סולם/גז" },
                     { k: "יתרת אוצר עובדת", v: w ? fmtUsd(w.treasuryProfitUsds) : "—", t: "היתרה שמזרימה-דלק-סולם וגז — יורדת-כלפי-מטה-לפי-תכנון" },
                     { k: "חיסכון משלם", v: w?.savings ? `${fmtUsd(w.savings.paidUsds)} ל-${w.savings.savers} חוסכים${w.savings.demoUsds && w.savings.demoUsds > 0 ? " (עמדת-ההדגמה של המפעיל: " + fmtUsd(w.savings.demoUsds) + ")" : ""}` : "—", t: "THE-SAVE (R47): הכנסה-מדודה ששולמה-בפועל — אפס-הטבעה, העברה-טהורה מיתרת-האוצר. גילוי-מלא (R48): החוסך-היחיד הוא-המפעיל-עצמו — עמדת-הדגמה-עומדת מכספו-שלו, לא-הפקדה-חוץ" },
@@ -295,7 +295,7 @@ export function FlywheelView() {
                         ? "FIX(R48 · calibration-truth): חלון-הפתיחה שלאחר-מיגרציית-בסיס-ההכנסה קלט-את-ההצטבר-ההיסטורי ביום-אחד (77,184µ) — ארטיפקט-מיגרציה, לא-קצב-אמת. ה-APY השנתי יפורסם-רק-מחלון-יום-שני-והלאה; עד-אז מוצג-התשלום-החי-של-החלון-הנוכחי — מדידה, לא-הבטחה"
                         : `חלון-היום-האמיתי (5,760 גבהים = יום-אחד): מה-ששולם-בפועל-אתמול × 365 — לא-הבטחה, מדידה`,
                     },
-                    { k: "פעולות שרשרת", v: w ? `${(w.opsTotal ?? 0).toLocaleString("he-IL")}` : "—" },
+                    { k: "פעולות שרשרת", v: w?.opsTotal != null ? `${w.opsTotal.toLocaleString("he-IL")}` : "—" },
                   ].map((x) => (
                     <div key={x.k} title={x.t} className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
                       <div className="text-[10px] text-zinc-500">{x.k}</div>
@@ -443,7 +443,7 @@ export function FlywheelView() {
                 <td className="px-3 py-2 font-bold text-[#e8cd6e]">SAOS — הגלגל הריבוני</td>
                 <td className="px-3 py-2 text-zinc-300">הכל יחד</td>
                 <td className="px-3 py-2 font-mono font-bold text-[#e8cd6e]">
-                  {w ? fmtUsd(market?.supplyUsds ?? 0) : "—"}
+                  {w ? fmtUsd(market?.supplyUsds) : "—"}
                 </td>
                 <td className="px-3 py-2 text-zinc-300" dir="auto">
                   פחות משנייה אחת של ווליום Uniswap. אבל: אצלם אתה סומך על אודיטים — אצלנו
@@ -483,13 +483,13 @@ export function FlywheelView() {
                 <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
                   <div className="text-[10px] text-zinc-500">אספקה USDS</div>
                   <div className="font-mono text-sm font-semibold text-zinc-100">
-                    {market ? market.supplyUsds.toLocaleString("he-IL", { maximumFractionDigits: 0 }) : "—"}
+                    {market?.supplyUsds != null ? market.supplyUsds.toLocaleString("he-IL", { maximumFractionDigits: 0 }) : "—"}
                   </div>
                 </div>
                 <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
                   <div className="text-[10px] text-zinc-500">מושאל (חיילי-ארנה)</div>
                   <div className="font-mono text-sm font-semibold text-zinc-100">
-                    {market ? market.borrowedUsds.toLocaleString("he-IL", { maximumFractionDigits: 0 }) : "—"}
+                    {market?.borrowedUsds != null ? market.borrowedUsds.toLocaleString("he-IL", { maximumFractionDigits: 0 }) : "—"}
                   </div>
                 </div>
                 <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 px-2.5 py-1.5">
@@ -511,9 +511,14 @@ export function FlywheelView() {
               {/* עקומת הריבית */}
               <RateCurve util={market?.utilization ?? null} borrowApr={market?.borrowApr ?? null} />
               <p className="mt-2 text-[10px] leading-relaxed text-zinc-600" dir="auto">
-                העקומה: בסיס 1% + שיפוע 4% עד ניצולת 80% (הברך), ואז עונש 60% — בדיוק הצורה של
+                העקומה (פרמטרי מדיניות מה-API): בסיס {fmtPct(market?.policy?.baseApr, 0)} + שיפוע{" "}
+                {fmtPct(market?.policy?.slope1, 0)} עד ניצולת{" "}
+                {market?.policy ? `${market.policy.optimalUtilBps / 100}%` : "—"} (הברך), ואז עונש{" "}
+                {fmtPct(market?.policy?.slope2, 0)} — בדיוק הצורה של
                 Aave v3. הנקודה החיה על העקומה היא המצב האמיתי של השרשרת עכשיו: נעילות-החיילים
-                בארנה מול האספקה הפתוחה. ריבית למלווה = ריבית-הלוואה × 90% (10% גורם-יתרה לאוצר).
+                בארנה מול האספקה הפתוחה. ריבית למלווה = ריבית-הלוואה ×{" "}
+                {market?.policy ? `${Math.round((1 - market.policy.reserveFactor) * 100)}%` : "—"}{" "}
+                ({market?.policy ? `${Math.round(market.policy.reserveFactor * 100)}%` : "—"} גורם-יתרה לאוצר).
               </p>
             </CardContent>
           </Card>
@@ -554,7 +559,7 @@ export function FlywheelView() {
                   </div>
                   <div className="rounded-lg bg-zinc-950/60 px-1.5 py-1.5">
                     <div className="text-[9px] text-zinc-500">החלפות</div>
-                    <div className="font-mono text-xs font-semibold text-zinc-200">{v.swaps.toLocaleString("he-IL")}</div>
+                    <div className="font-mono text-xs font-semibold text-zinc-200">{v.swaps != null ? v.swaps.toLocaleString("he-IL") : "—"}</div>
                   </div>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-500">
@@ -725,32 +730,40 @@ function MarketCalc({
           <Banknote className="size-4" aria-hidden />
           מחשבון — אם אפקיד
         </div>
-        <div className="flex items-center gap-2">
-          <Input
-            dir="ltr"
-            inputMode="decimal"
-            value={amt}
-            onChange={(e) => setAmt(e.target.value.replace(/[^0-9.]/g, ""))}
-            className="border-[#d4af37]/30 bg-zinc-950/70 font-mono text-sm"
-            aria-label="סכום הפקדה ב-USDS"
-          />
-          <span className="text-xs font-semibold text-[#e8cd6e]">USDS</span>
-        </div>
-        <div className="mt-3 grid gap-1.5">
-          {rows.map((r) => (
-            <div key={r.d} className="flex items-center justify-between rounded-lg bg-zinc-950/60 px-3 py-1.5">
-              <span className="text-[11px] text-zinc-400">אחרי {r.d}</span>
-              <span className="font-mono text-sm font-bold text-emerald-300" dir="ltr">
-                +{r.earn.toFixed(4)} USDS
-              </span>
+        {apy == null ? (
+          <p className="text-[11px] leading-relaxed text-zinc-400" dir="auto">
+            אין מדידת APY חיה כרגע (המקור לא ענה) — החישוב מושהה במקום להמציא אפס.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center gap-2">
+              <Input
+                dir="ltr"
+                inputMode="decimal"
+                value={amt}
+                onChange={(e) => setAmt(e.target.value.replace(/[^0-9.]/g, ""))}
+                className="border-[#d4af37]/30 bg-zinc-950/70 font-mono text-sm"
+                aria-label="סכום הפקדה ב-USDS"
+              />
+              <span className="text-xs font-semibold text-[#e8cd6e]">USDS</span>
             </div>
-          ))}
-        </div>
-        <p className="mt-2 text-[10px] leading-relaxed text-zinc-600" dir="auto">
-          ב-APY החי של עכשיו ({fmtPct(rate)}). הריבית נגזרת מהניצולת האמיתית —{" "}
-          {market ? `${fmtPct(market.utilization, 1)} ניצולת` : "—"} — וצפויה להשתנות עם השוק.
-          זו המחשה כנה, לא הבטחת תשואה.
-        </p>
+            <div className="mt-3 grid gap-1.5">
+              {rows.map((r) => (
+                <div key={r.d} className="flex items-center justify-between rounded-lg bg-zinc-950/60 px-3 py-1.5">
+                  <span className="text-[11px] text-zinc-400">אחרי {r.d}</span>
+                  <span className="font-mono text-sm font-bold text-emerald-300" dir="ltr">
+                    +{r.earn.toFixed(4)} USDS
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] leading-relaxed text-zinc-600" dir="auto">
+              ב-APY החי של עכשיו ({fmtPct(rate)}). הריבית נגזרת מהניצולת האמיתית —{" "}
+              {market ? `${fmtPct(market.utilization, 1)} ניצולת` : "—"} — וצפויה להשתנות עם השוק.
+              זו המחשה כנה, לא הבטחת תשואה.
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   );
@@ -778,9 +791,10 @@ function FlywheelDiagram({
     return { key: k, d, cx, cy, angle, i };
   });
 
-  const fmtV = (d: { value: number | string; unit: string } | undefined) => {
+  const fmtV = (d: { value: number | string | null; unit: string } | undefined) => {
     if (!d) return "—";
     const v = d.value;
+    if (v == null) return "—";
     if (typeof v === "number")
       return v >= 1000 ? v.toLocaleString("he-IL", { maximumFractionDigits: 0 }) : v.toFixed(2);
     return v;

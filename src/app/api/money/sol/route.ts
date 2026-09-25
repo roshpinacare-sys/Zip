@@ -25,7 +25,10 @@ const VAULT_ACCOUNTS = [
 ];
 
 export const RAIL_PROOF = {
-  at: "2026-09-23T19:0x",
+  // R122 · תיקון חותמת-זמן: השעה האמיתית נמדדה מהשרשרת עצמה
+  // (getTransaction → blockTime 1790190376 = 2026-09-23T19:06:16Z, slot 449793107)
+  // — לא עוד "19:0x" חסר.
+  at: "2026-09-23T19:06:16Z",
   txid: "5amYdKACRm9pAHGpcpof3XANLfSX17yHUNUVcvgNszwAsLieyZ1K3fvX4RrCMpijio4S6D3ReqfoSHGGs5Pi4bGP",
   what: "0.001 SOL cashmachine → headcorner (חשבונות המפעיל בכספת)",
   verdict: "confirmed · 10 confirmations · err:null",
@@ -87,14 +90,24 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const at = new Date().toISOString();
+  // R122 · חוק הסטטוס הכנה: JSON שגוי הוא 400 (שגיאת-לקוח); כשל-ביצוע
+  // (שרשרת, כספת, DB) הוא 500 — לא מוסווה כשגיאת-קלט.
+  let body: {
+    action?: string;
+    account?: string;
+    to?: string;
+    sol?: number;
+    memo?: string; // R105 — הוראת spl-memo (הפקדות מזוויים)
+  };
   try {
-    const body = (await req.json()) as {
-      action?: string;
-      account?: string;
-      to?: string;
-      sol?: number;
-      memo?: string; // R105 — הוראת spl-memo (הפקדות מזוויים)
-    };
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json(
+      { ok: false, at, error: "BAD-BODY: גוף הבקשה אינו JSON תקין" },
+      { status: 400 },
+    );
+  }
+  try {
     const memo = typeof body.memo === "string" && /^wx:[a-z0-9.-]{3,16}$/.test(body.memo.trim().toLowerCase())
       ? body.memo.trim().toLowerCase()
       : undefined;
@@ -146,6 +159,9 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ at, gate: { id: gate.id, usdValue }, ...result });
   } catch (e) {
-    return NextResponse.json({ ok: false, at, error: String((e as Error).message ?? e).slice(0, 160) }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, at, error: `EXECUTE-FAILED: ${String((e as Error).message ?? e).slice(0, 160)}` },
+      { status: 500 },
+    );
   }
 }

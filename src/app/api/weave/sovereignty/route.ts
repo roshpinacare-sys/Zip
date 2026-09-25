@@ -27,6 +27,7 @@ import { jsonError } from "@/lib/weave/api";
 import { swrGet, cacheHeader } from "@/lib/live/swr";
 import { zeroReadiness, verifyZeroAnchorOnChain, zeroExplorerLink, ZERO_RAIL_ID } from "@/lib/weave/zero";
 import { deriveArchiveSnapshot, lastArchiveWitness, ARCHIVE_HASH_PLAN, ARCHIVE_REPO } from "@/lib/weave/archive";
+import { workflowScheduleDesc } from "@/lib/live/workflow-schedule";
 
 export const dynamic = "force-dynamic";
 
@@ -34,27 +35,13 @@ const ROOT = path.resolve(process.cwd());
 const WORKFLOW_PATH = path.join(ROOT, ".github", "workflows", "weave-heart.yml");
 const ANCHOR_WORKFLOW_PATH = path.join(ROOT, ".github", "workflows", "weave-anchor.yml");
 
-/** r121 — תיאור-קדנס כנה מה-workflow עצמו, לא מהזיכרון:
- *  קורא את בלוק ה-on (cron + workflow_dispatch) מהקובץ ומתאר אותו
- *  כפי שהוא. שלוש שורות-הסטטוס שיקרו עד כאן ("כל 6 שעות", "יומי 07:17Z",
- *  "כל 6 שעות :30") בזמן ש-R71/Task-24 הסירו את ה-cron — המציאות
- *  חיה בבית-התאום Domain והקבצים המקומיים dispatch-only. */
-function workflowScheduleDesc(file: string, twinNote?: string): string | null {
-  const p = path.join(ROOT, ".github", "workflows", file);
-  if (!fs.existsSync(p)) return null;
-  const text = fs.readFileSync(p, "utf8");
-  const onIdx = text.search(/^on:\s*$/m);
-  if (onIdx < 0) return "ללא בלוק-on";
-  const body = text.slice(onIdx);
-  const section = body.split(/^[a-zA-Z_][a-zA-Z0-9_-]*:/m)[0];
-  const crons = [...section.matchAll(/cron:\s*['"]([^'"]+)['"]/g)].map((m) => m[1]);
-  const hasDispatch = /workflow_dispatch\s*:/.test(section);
-  const parts: string[] = [];
-  if (crons.length > 0) parts.push(`schedule ${crons.map((c) => `‘${c}’`).join(" + ")}`);
-  if (hasDispatch) parts.push(crons.length > 0 ? "+ workflow_dispatch" : "workflow_dispatch בלבד");
-  if (twinNote) parts.push(twinNote);
-  return parts.join(" · ") || null;
-}
+// r121 — תיאור-קדנס כנה מה-workflow עצמו, לא מהזיכרון:
+//  קורא את בלוק ה-on (cron + workflow_dispatch) מהקובץ ומתאר אותו
+//  כפי שהוא. שלוש שורות-הסטטוס שיקרו עד כאן ("כל 6 שעות", "יומי 07:17Z",
+//  "כל 6 שעות :30") בזמן ש-R71/Task-24 הסירו את ה-cron — המציאות
+//  חיה בבית-התאום Domain והקבצים המקומיים dispatch-only.
+//  (r122: המנתח עבר ל-lib משותף — workflow-schedule.ts — לשירות גם
+//  את דלת-חימום הגריד; החוזה לא השתנה.)
 const LEDGER_PATH = path.join(ROOT, "sovereign", "ledger.json");
 const REPORT_PATH = path.join(ROOT, "sovereign", "beat-report.json");
 const SEAL_META_PATH = path.join(ROOT, "sovereign", "weave-seal.meta.json");

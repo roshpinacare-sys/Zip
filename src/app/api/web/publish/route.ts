@@ -28,6 +28,7 @@ import {
   mimeOf,
   looksLikeSha256,
   estimateMigration,
+  probeStorageRc,
   UPLOAD_SINGLE_EXTS,
   type WebInboxJob,
 } from "@/lib/web/netstore";
@@ -247,7 +248,11 @@ export async function POST(req: NextRequest) {
       { status: 502 }
     );
   }
-  const migration = estimateMigration(b64len, 469_500_000);
+  // R122 · חוק המקור-החי: קצב-ה-RC אינו קבוע מהזיכרון (469.5M) — נמדד חי
+  // מהשרשרת באותו probe שמשרת את /api/web/state. אין מדידה → null כנה,
+  // ואומדן-ההגירה מתוודה על חוסר-הבסיס במקום להמציא ימים.
+  const rc = await probeStorageRc();
+  const migration = estimateMigration(b64len, rc?.regenPerDay ?? null);
   try {
     await dispatchWorkflow("Zip", "web-publish.yml");
     dispatched = true;

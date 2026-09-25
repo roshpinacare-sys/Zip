@@ -49,7 +49,7 @@ const MISSIONS: Mission[] = [
   {
     id: "money-routing",
     priority: "P0",
-    title: "הכנת ניתוב הכסף הנכנס (עוד ~3 ימים)",
+    title: "הכנת ניתוב הכסף הנכנס (מועד הגעה לא נמדד)",
     why: "מועדף כסף אמור להיכנס למערכת דרך כתובות ההפקדה. לפני שהוא מגיע חייבת לעמוד תוכנית ניתוב מדודה - אחרת הוא יישב בטיפשות בכתובת.",
     how: [
       "dex-watch כבר סורק את 4 הכתובות (TRON/ETH/SOL/BTC) כל 20 דק' - לוודא שהסריקה תופסת את ההפקדה בפועל",
@@ -61,14 +61,14 @@ const MISSIONS: Mission[] = [
   {
     id: "foundry-ci",
     priority: "P1",
-    title: "foundry CI - לתקן או להוציא לגמלאות",
-    why: "ה-CI של saos-sovereign-foundry נכשל ב-100 הריצות האחרונות (בדיקות חוזה API בגל הייבוא) ורדום מ-2026-09-14. כתם אדום גלוי ברישום הפומבי.",
+    title: "foundry CI - נרפא מקומית (היסטורי, נסגר ב-r118)",
+    why: "נסגר: ה-CI של saos-sovereign-foundry נכשל ב-100 הריצות האחרונות (בדיקות חוזה API בגל הייבוא) ורדם מ-2026-09-14 - עד שהושמש ב-r118 (2026-09-24): המאמת המקומי foundry-selftest מאמת אותו מדי יום ודוחף פסק-דין [bot] לגיט. אומת אז PASS בדחיפה האחרונה.",
     how: [
-      "לתקן: להתאים את בדיקות החוזה לחתימת ה-API הנוכחית של הפלטפורמה",
-      "או לגמלאות: להעביר את התבנית השווה לארכיון מסומן ולהסיר את ה-CI",
-      "בשני המקרים - לעדכן את AGENTS.md והרישום הציבורי בכנות",
+      "בוצע (r118): foundry-selftest (install+prisma+tsc) מאמת את הריפו מדי יום מקומית",
+      "בוצע (r118): כל פסק-דין נדחף לגיט בזהות [bot] ואומת מול GitHub API",
+      "נשאר כאן כתיעוד היסטורי - אין פעולה פתוחה",
     ],
-    owner: "סוכן BUILD (כרגע ידני)",
+    owner: "foundry-selftest · דיבון fleet-verify",
   },
   {
     id: "evm-gates",
@@ -293,7 +293,7 @@ export function AdminMissionsView() {
           </h2>
           <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
             <AlertTriangle className="size-3" aria-hidden="true" />
-            מועד הגעה משוער: ~3 ימים
+            מועד הגעה לא נמדד
           </Badge>
         </div>
         <p className="mb-4 max-w-3xl text-sm text-muted-foreground">

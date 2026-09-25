@@ -1,13 +1,15 @@
 // ─────────────────────────────────────────────────────────────────────
 // /api/keeper — שומר הדיבונים (R84 · THE KEEPER).
 //
-// האמת שיצרה את ה-API: שלושת הדיבונים (דופק · מוביל · צייד) חיים
+// האמת שיצרה את ה-API: הדיבונים (בראשית R84 שלושה — דופק · מוביל · צייד;
+// כיום שבעה, ורשימתם נגזרת ממצב השומר) חיים
 // רק בסשן הסנדבוקס — דיבון שקרס היה מת בשקט, והכסף חוזר לשבת
 // על מחיר אתמול. השומר (R84) הוא עין-הצי: סיור 30ש', בדיקת-חיים,
 // החזרה לחיים בתוך חוקי-ברזל — ואף דיבון לא נהרג באמצע פעולת-כסף.
 //
 // ה-API מרכיב את התמונה ממדידות חיות בלבד:
-//   · בדיקת-HTTP חיה של כל ארבעת הדיבונים (כולל השומר עצמו).
+//   · בדיקת-HTTP חיה של כל דיבוני הצי (כולל השומר עצמו). רשימת הדיבונים
+//     נגזרת ממצב השומר עצמו (state.json) — לא מזיכרון קשיח בקוד (R122).
 //   · מצב השומר (סיורים, הקמות, החלטות) — מהדיבון עצמו, או מקובץ
 //     המצב אם הוא לא עונה (כנות: daemonDownHe).
 //   · חוקי-הברזל ופקודת-ההחייאה לסשן הבא — מתועדים בקנון.
@@ -114,6 +116,8 @@ interface KeeperStateFile {
   history?: Array<{ at: string; kind: string; detail: string }>;
   fleet?: Array<{
     name: string;
+    port?: number;
+    roleHe?: string;
     state: string;
     since: string;
     restartsToday: number;
@@ -137,33 +141,81 @@ const ROLES: Record<string, string> = {
   money: "מוביל הכסף — סולם הפאריטה על הקו",
   hunter: "הצייד — שער הדקות ולוח ההזדמנויות",
   keeper: "השומר — עין-הצי של הדיבונים",
+  student: "התלמיד — בחינה עצמית, כיסוי ולמידה",
+  "fleet-verify": "מפעל האימות המקומי — תשעת המאמתים חוזרים לחיים",
+  weblift: "מעלה התוכן — המשך הגירת רשת-האחסון אל השרשרת",
 };
 
-const PORTS: Record<string, number> = { pulse: 3033, money: 3034, hunter: 3035, keeper: 3036 };
+const PORTS: Record<string, number> = {
+  pulse: 3033,
+  money: 3034,
+  hunter: 3035,
+  keeper: 3036,
+  student: 3037,
+  "fleet-verify": 3038,
+  weblift: 3039,
+};
+
+// נפילה-כנה: state.json של השומר לא ענה — רשימת הפורטים הידועה של הדיבונים
+// שבמשמרת (בלי השומר עצמו, שמדווח בנפרד). זו אינה התחזות למצב-שומר —
+// ההבדל מתוודה ב-honestGaps.
+const KNOWN_FLEET: ReadonlyArray<{ name: string; port: number; roleHe: string }> = [
+  { name: "pulse", port: 3033, roleHe: ROLES.pulse },
+  { name: "money", port: 3034, roleHe: ROLES.money },
+  { name: "hunter", port: 3035, roleHe: ROLES.hunter },
+  { name: "student", port: 3037, roleHe: ROLES.student },
+  { name: "fleet-verify", port: 3038, roleHe: ROLES["fleet-verify"] },
+  { name: "weblift", port: 3039, roleHe: ROLES.weblift },
+];
 
 // ── ההרכבה ──────────────────────────────────────────────────────────
 
 async function buildBoard(): Promise<KeeperPayload> {
   const at = new Date().toISOString();
 
-  // ① בדיקות-חיים חיות של כל ארבעת הדיבונים
-  const names = ["keeper", "pulse", "money", "hunter"] as const;
-  const senses = await Promise.all(
-    names.map((n) => jfetch<DaemonSense>(`http://127.0.0.1:${PORTS[n]}/`, 4000)),
-  );
-  const senseOf: Record<string, DaemonSense | null> = Object.fromEntries(
-    names.map((n, i) => [n, senses[i]]),
-  );
-
-  const keeperSense = senseOf.keeper ?? null;
   const keeperFile = readKeeperFile();
+  const fleetFile = keeperFile?.fleet ?? [];
+
+  // ② רשימת הדיבונים נגזרת ממצב השומר עצמו (R122): השומר מפקח על שישה
+  //    דיבונים — שמותם, הפורטים והתפקידים נלקחים מה-state.json שלו,
+  //    לא מרשימה קשיחה בקוד. אין קובץ/אין רשימה — נפילה-כנה לרשימה
+  //    הידועה, בגילוי-כנות ב-honestGaps.
+  type FleetSpec = {
+    name: string;
+    port: number;
+    roleHe: string;
+    file: NonNullable<KeeperStateFile["fleet"]>[number] | undefined;
+  };
+  const fleetSpecs: FleetSpec[] = [];
+  for (const f of fleetFile) {
+    const port = typeof f.port === "number" ? f.port : PORTS[f.name];
+    if (typeof port !== "number") continue;
+    fleetSpecs.push({
+      name: f.name,
+      port,
+      roleHe: f.roleHe || ROLES[f.name] || f.name,
+      file: f,
+    });
+  }
+  const fleetListFromKeeperState = fleetSpecs.length > 0;
+  if (!fleetListFromKeeperState) {
+    for (const k of KNOWN_FLEET) {
+      fleetSpecs.push({ name: k.name, port: k.port, roleHe: k.roleHe, file: undefined });
+    }
+  }
+
+  // ① בדיקות-חיים חיות של כל הדיבונים (כולל השומר עצמו)
+  const [keeperSense, ...fleetSenses] = await Promise.all([
+    jfetch<DaemonSense>(`http://127.0.0.1:${PORTS.keeper}/`, 4000),
+    ...fleetSpecs.map((s) => jfetch<DaemonSense>(`http://127.0.0.1:${s.port}/`, 4000)),
+  ]);
+
   const keeperUp = Boolean(keeperSense?.alive || keeperSense?.ok);
 
-  // ② טבלת הצי — מדידה חיה מוזגת עם ספירת-ההקמות של השומר
-  const fleetFile = keeperFile?.fleet ?? [];
-  const fleet: KeeperPayload["fleet"] = (["pulse", "money", "hunter"] as const).map((name) => {
-    const sense = senseOf[name] ?? null;
-    const fileEntry = fleetFile.find((f) => f.name === name);
+  // ③ טבלת הצי — מדידה חיה מוזגת עם ספירת-ההקמות של השומר
+  const fleet: KeeperPayload["fleet"] = fleetSpecs.map((spec, i) => {
+    const sense = fleetSenses[i] ?? null;
+    const fileEntry = spec.file;
     const up = Boolean(sense?.alive || sense?.ok);
     const fileState = fileEntry?.state;
     const state: KeeperPayload["fleet"][number]["state"] = up
@@ -174,9 +226,9 @@ async function buildBoard(): Promise<KeeperPayload> {
           ? "DOWN"
           : "UNKNOWN";
     return {
-      name,
-      port: PORTS[name],
-      roleHe: ROLES[name],
+      name: spec.name,
+      port: spec.port,
+      roleHe: spec.roleHe,
       up,
       beats: typeof sense?.beats === "number" ? sense.beats : fileEntry?.lastBeats ?? null,
       bootedAt: sense?.bootedAt ?? null,
@@ -259,6 +311,9 @@ async function buildBoard(): Promise<KeeperPayload> {
       keeperUp
         ? "השומר חי בסשן הסנדבוקס — הוא מפקח על הצי בזמן אמת, אך קיומו עצמו תלוי בסשן."
         : "השומר אינו עונה כרגע — יש להרים את הצי בפקודה: bun run scripts/daemons-revive.mjs (כנות מלאה, לא מוסתר).",
+      fleetListFromKeeperState
+        ? `רשימת הדיבונים נגזרת ממצב השומר עצמו (state.json · ${fleetSpecs.length} דיבונים במשמרת) — לא מרשימה קשיחה בקוד.`
+        : "מצב השומר (state.json) לא נקרא — רשימת הדיבונים מוצגת מהפורטים הידועים, לא ממצב-שומר חי.",
       "ריבונות מעבר לסשן נשארת מותנית בשער-הדקות: כשהקנרית תצייץ, מנועי-הענן חוזרים לזרום — והצי יוכל לרוץ מהענן.",
     ],
   };

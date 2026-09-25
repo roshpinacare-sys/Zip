@@ -607,7 +607,7 @@ function OpenMarketCard({
               </span>
               {zeroAnchorRemaining != null && zeroAnchorRemaining > 0 && (
                 <span className="text-[10px] text-muted-foreground" dir="auto">
-                  · עוד {zeroAnchorRemaining} ריצות עוגן (הקו מעיד כל 6 שעות)
+                  · עוד {zeroAnchorRemaining} ריצות עוגן (הקו מעיד פעם בשעה)
                 </span>
               )}
             </div>
@@ -905,7 +905,7 @@ function NewMarketDialog({
       setIndex(String(context.checkpointMax + 2));
       setCount(String(context.anchorCount + 3));
       // ברירת מחדל חכמה לקו ה-ZERO: שתי ריצות עוגן נוספות (הקו מעיד
-      // כל 6 שעות - 00:30 · 06:30 · 12:30 · 18:30 UTC) => אופק ~12 שעות
+      // בקצב שעתי - ההנעה בעקבות כל פעימת לב) => אופק ~2 שעות
       // לטענה עתידית-ממשית בקצב הקו האמיתי
       setZeroCount(String((context.zeroAnchorCount ?? 0) + 2));
       // ברירת מחדל חכמה לשופט החיצוני: הגובה החי + 4,320 בלוקים (≈3 שעות
@@ -1072,7 +1072,8 @@ function NewMarketDialog({
                 onChange={(e) => setZeroCount(e.target.value)}
               />
               <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
-                הקו מעיד כל 6 שעות (00:30 · 06:30 · 12:30 · 18:30 UTC) - עוגן ZERO
+                קו ה-ZERO מעיד בקצב שעתי (הקצב הנגזר מה-workflow - ראה לוח
+                הריבונות) - עוגן ZERO
                 = checkpoint שנחת בפועל על Z Chain 9369 בגז-אפס. המדידה:
                 ספירת anchorNet=zero-9369 ב-DB, ניתנת לספירה-חוזרת מהספר
                 המיוצא. ההכרעה האפשרית היחידה: YES כשהמספר הושג; פג תוקף

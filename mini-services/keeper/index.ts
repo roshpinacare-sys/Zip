@@ -14,7 +14,7 @@
 // חוקי-ברזל (מ-R84, נשמרים מלה):
 //   · 3 פסילות רצופות → RESTARTING
 //   · צינון 2 דק' בין הקמות לאותו דיבון
-//   · זמן-חסד 90ש' מההקמה (בוט שעוד לא עלה אינו "מת")
+//   · זמן-חסד 90 דק' מההקמה (בוט שעוד לא עלה אינו "מת")
 //   · תקציב 12 הקמות/יום/דיבון ואז GAVE-UP כנה
 //   · חוק הפעולה: acting=true → BUSY, לא הורגים
 //   · ניקוי נעילות-פורט: SIGTERM→SIGKILL לפני הקמה
@@ -34,7 +34,7 @@ const PORT = 3036;
 const PATROL_INTERVAL_SEC = 30;
 const FAIL_THRESHOLD = 3;
 const RESTART_COOLDOWN_MS = 2 * 60 * 1000;
-const BOOT_GRACE_MS = 90 * 1000;
+const BOOT_GRACE_MS = 90 * 60 * 1000; // 90 דק' — כמסמך-החוזה למעלה (תיקון ביקורת: היה בטעות 90 שניות בלבד)
 const DAILY_RESTART_BUDGET = 12;
 // R112 — חוק החלון-הגלילי (נולד ממוות חי): השומר ראה ZOMBIE אמיתי ב-06:14
 // אבל תקציב ה-12 של אותו יום נשרף עד 03:26 (ספירלת R110 לפני שחוקי-היילוד
@@ -264,21 +264,26 @@ async function flushCanon() {
     state.canonToday = 0;
   }
   if (state.canonToday >= CANON_BUDGET_PER_DAY) return; // תקציב 8/יום — כנות
+  const path = `reports/keeper-${utcDay()}.md`;
   const pat = readPat();
   if (!pat) {
-    pendingCanon.length = 0;
+    // כנות: הכישלון נרשם — canonLast לא נשאר ישן {ok:true} מהצלחה
+    // קודמת. הקבלות נשמרות בזיכרון ויידחפו כשה-PAT יחזור (אין מחיקה שקטה).
+    state.canonLast = { at: new Date().toISOString(), ok: false, path: `${path} (NO-PAT)` };
     return;
   }
-  const path = `reports/keeper-${utcDay()}.md`;
   const body = [
     `# יומן השומר · ${utcDay()}`,
     "",
     ...pendingCanon.map((e) => `- \`${e.at}\` **${e.kind}** — ${e.detail}`),
     "",
-    `_מופק אוטונומית על-ידי keeper v1.1 (R90 rebuild). תקציב קנון: ${state.canonToday}/${CANON_BUDGET_PER_DAY}._`,
+    `_מופק אוטונומית על-ידי keeper v${state.version} (R90 rebuild). תקציב קנון: ${state.canonToday}/${CANON_BUDGET_PER_DAY}._`,
   ].join("\n");
   const gate = secretsGate(body);
   if (!gate.ok) {
+    // תוכן שנחסם בשער-הסודות לא יעבור לעולם — נזרק בכנות (רשום ב-canonLast),
+    // כדי שפריט בלתי-פרסומי אחד לא יחסום את כל הקבלות שאחריו לנצח.
+    state.canonLast = { at: new Date().toISOString(), ok: false, path: `${path} (BLOCKED: ${gate.reason})` };
     pendingCanon.length = 0;
     return;
   }
@@ -303,12 +308,16 @@ async function flushCanon() {
       }),
       signal: AbortSignal.timeout(30_000),
     });
-    state.canonToday += 1;
     state.canonLast = { at: new Date().toISOString(), ok: res.ok, path };
+    if (res.ok) {
+      state.canonToday += 1;
+      pendingCanon.length = 0; // הצלחה — הקבלות עלו לקנון
+    }
+    // כישלון דחיפה — הקבלות נשמרות לניסיון חוזר בסיור הבא (לא נזרקות בשקט)
   } catch {
-    state.canonLast = { at: new Date().toISOString(), ok: false, path };
+    state.canonLast = { at: new Date().toISOString(), ok: false, path: `${path} (FETCH-ERROR)` };
+    // חריגת רשת — הקבלות נשמרות לניסיון חוזר
   }
-  pendingCanon.length = 0;
 }
 
 // ── בדיקת-חיים של דיבון ────────────────────────────────────────────

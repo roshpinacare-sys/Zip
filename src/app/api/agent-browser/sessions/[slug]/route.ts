@@ -7,6 +7,12 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+// R122 · חוק הכנות: 404 רק ל"רשומה לא נמצאה" (P2025). כל שגיאה אחרת
+// (DB מת, נעילה, רשת) היא 500 כנה — תקלת-תשתית אינה \"לא נמצא\".
+function isRecordNotFound(e: unknown): boolean {
+  return (e as { code?: string } | null | undefined)?.code === "P2025";
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -40,10 +46,19 @@ export async function GET(
         state,
       },
     });
-  } catch {
+  } catch (e) {
+    if (isRecordNotFound(e)) {
+      return NextResponse.json(
+        { ok: false, error: "הקישורית לא נמצאה — ייתכן שנמחקה" },
+        { status: 404 },
+      );
+    }
     return NextResponse.json(
-      { ok: false, error: "הקישורית לא נמצאה — ייתכן שנמחקה" },
-      { status: 404 },
+      {
+        ok: false,
+        error: `קריאת הקישורית נכשלה: ${e instanceof Error ? e.message : String(e)}`,
+      },
+      { status: 500 },
     );
   }
 }
@@ -87,10 +102,19 @@ export async function PUT(
       data: { state, ...(title ? { title } : {}) },
     });
     return NextResponse.json({ ok: true, slug: session.slug });
-  } catch {
+  } catch (e) {
+    if (isRecordNotFound(e)) {
+      return NextResponse.json(
+        { ok: false, error: "הסשן לא נמצא לעדכון" },
+        { status: 404 },
+      );
+    }
     return NextResponse.json(
-      { ok: false, error: "הסשן לא נמצא לעדכון" },
-      { status: 404 },
+      {
+        ok: false,
+        error: `עדכון הסשן נכשל: ${e instanceof Error ? e.message : String(e)}`,
+      },
+      { status: 500 },
     );
   }
 }

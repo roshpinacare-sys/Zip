@@ -60,6 +60,10 @@ type PulseState = {
   canonLast: { at: string; ok: boolean; path: string } | null;
   historyTail: Array<Record<string, unknown>>;
   charter: CharterAnchorState;
+  // אמת-שרשרת לחוק היום: זריעת החלון מ-last_root_post של המפקד
+  windowSeededFromChain: boolean; // החלון הנוכחי נסגר מהשרשרת, לא מה-state המקומי
+  lastSeedAt: string | null;
+  seedError: string | null; // כישלון קריאת אמת-השרשרת — נרשם בכנות, לא נבלע
 };
 
 function freshCharterState(): CharterAnchorState {
@@ -92,6 +96,9 @@ function readState(): PulseState {
     canonLast: null,
     historyTail: [],
     charter: freshCharterState(),
+    windowSeededFromChain: false,
+    lastSeedAt: null,
+    seedError: null,
   };
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
@@ -115,6 +122,9 @@ function readState(): PulseState {
       attemptsToday: sameDay ? (prev.attemptsToday ?? 0) : 0,
       historyTail: Array.isArray(prev.historyTail) ? prev.historyTail.slice(-20) : [],
       canonLast: prev.canonLast ?? null,
+      windowSeededFromChain: prev.windowSeededFromChain ?? false,
+      lastSeedAt: prev.lastSeedAt ?? null,
+      seedError: prev.seedError ?? null,
     };
   } catch {
     return base;
@@ -152,7 +162,11 @@ async function canonPush(path: string, content: string): Promise<boolean> {
     return false;
   }
   const pat = readPat();
-  if (!pat) return false;
+  if (!pat) {
+    // כנות: כישלון נרשם — לא משאירים canonLast ישן {ok:true} מהצלחה קודמת
+    state.canonLast = { at: new Date().toISOString(), ok: false, path: `${path} (NO-PAT)` };
+    return false;
+  }
   const url = `https://api.github.com/repos/roshpinacare-sys/Defi/contents/${path}`;
   const headers = {
     Authorization: `token ${pat}`,
@@ -183,6 +197,50 @@ async function canonPush(path: string, content: string): Promise<boolean> {
     return false;
   }
 }
+
+// ── אמת-שרשרת לחוק היום ───────────────────────────────────────────
+// הבאג (נמדד בביקורת): "מקסימום 1 פרסום/יום-UTC" נשען על state מקומי
+// בלבד — איתחול סנדבוקס שמשחזר state.json ישן פתח את החלון מחדש והשרשרת
+// ראתה 3 פוסטים ב-2026-09-24 מול "מקסימום 1" מוצהר. ה-truthSource
+// (api.steemit.com · last_root_post) הוצהר אך לא נקרא. מעתה הדופק קורא
+// אותו (דרך /api/publish) בעלייה ופעם ביום-UTC: אם השרשרת מכירה פרסום
+// חדש מה-state — החלון נסגר מהאמת. כישלון הקריאה אינו חוסם את הדיבון
+// (fail-safe) — אך הוא נרשם ב-seedError, לא נבלע.
+async function seedWindowFromChain(): Promise<void> {
+  const day = utcDay();
+  state.windowSeededFromChain = false; // מדידה טרייה ליום זה
+  try {
+    const res = await fetch(PUBLISH_API, { signal: AbortSignal.timeout(20_000), cache: "no-store" });
+    const j: any = await res.json().catch(() => null);
+    if (!res.ok || !j?.ok) throw new Error(String(j?.error ?? `status ${res.status}`).slice(0, 120));
+    state.seedError = null;
+    const lrp = j?.earnings?.lastRootPost;
+    // last_root_post של Steem מגיע בלי אזור-זמן — מנרמל ל-UTC לפני גזירת היום
+    const ts = typeof lrp === "string" ? Date.parse(/[zZ]|[+-]\d\d:?\d\d$/.test(lrp) ? lrp : `${lrp}Z`) : NaN;
+    if (!Number.isFinite(ts)) return; // אין מדידה — לא מזייפים כיסוי
+    const chainDay = new Date(ts).toISOString().slice(0, 10);
+    const stateDay = state.lastPublishUtcDay ?? "";
+    if (chainDay > stateDay) {
+      // השרשרת מכירה פרסום שה-state המקומי לא זוכר — החלון נסגר מהאמת
+      state.lastPublishUtcDay = chainDay;
+      state.windowSeededFromChain = true;
+      state.lastSeedAt = new Date().toISOString();
+      if (chainDay === day) state.nextDueAt = nextUtcMidnight();
+      state.lastDecision = {
+        at: state.lastSeedAt,
+        kind: "WINDOW-SEEDED-FROM-CHAIN",
+        detail: `איתחול החזיר state ישן — השרשרת אומרת אחרת: פרסום-שורש אחרון של המפקד ${chainDay} (last_root_post). החלון נשאר סגור — כנות, לא פרסום כפול`,
+      };
+      saveState();
+    }
+  } catch (e: any) {
+    // fail-safe: לא חוסמים את הדיבון על כישלון קריאה — אבל הוא נרשם בכנות
+    state.seedError = String(e?.message ?? e).slice(0, 140);
+    saveState();
+  }
+}
+
+let seedDayChecked = ""; // בעלייה (ובכל יום-UTC) — בדיקת אמת אחת לפני פתיחת חלון
 
 // ── הפרסום: enqueue טיוטה חיה → broadcast לשרשרת ───────────────────
 async function tryPublish(): Promise<void> {
@@ -231,12 +289,13 @@ async function tryPublish(): Promise<void> {
       draftId: draft.id,
       kind: draft.kind?.toUpperCase() ?? "TRUTH-REPORT",
       title: draft.title,
-      permlink: bcJ.post?.permlink ?? null,
-      txid: bcJ.post?.txid ?? null,
-      url: bcJ.post?.url ?? null,
+      permlink: bcJ.receipt?.permlink ?? null,
+      txid: bcJ.receipt?.txid ?? null,
+      url: bcJ.receipt?.url ?? null,
       attempt: state.attemptsToday + 1,
     };
     state.lastPublishUtcDay = day;
+    state.windowSeededFromChain = false; // החלון נסגר עכשיו מהפרסום הנמדד שלנו, לא מזריעה
     state.attemptsToday = 0; // הצלחה מאפסת את מונה הניסיונות של היום
     state.nextDueAt = nextUtcMidnight();
     state.historyTail = [...state.historyTail, entry].slice(-20);
@@ -353,6 +412,13 @@ async function tick() {
       await tryCharterAnchor();
     }
 
+    // אמת-שרשרת לחוק היום — בעלייה ופעם ביום, לפני בדיקת החלון:
+    // state מקומי שהוחזר מהגיט/סנדבוקס לא יכול לפתוח חלון שהשרשרת סגרה.
+    if (seedDayChecked !== day) {
+      seedDayChecked = day;
+      await seedWindowFromChain();
+    }
+
     const windowOpen = state.lastPublishUtcDay !== day;
     if (windowOpen && state.attemptsToday < POLICY.attemptsBudget) {
       await tryPublish();
@@ -366,7 +432,7 @@ async function tick() {
       state.lastDecision = {
         at: new Date().toISOString(),
         kind: "WAIT",
-        detail: `ממתין לחלון הבא (${state.nextDueAt.slice(0, 10)}) · ניסיונות היום ${state.attemptsToday}/${POLICY.attemptsBudget} · עיגוני צ'רטר ${state.charter.anchorsToday}/${POLICY.charterAnchorsPerDay}`,
+        detail: `ממתין לחלון הבא (${state.nextDueAt.slice(0, 10)}) · ניסיונות היום ${state.attemptsToday}/${POLICY.attemptsBudget} · עיגוני צ'רטר ${state.charter.anchorsToday}/${POLICY.charterAnchorsPerDay}${state.windowSeededFromChain ? " · החלון נסגר מאמת-השרשרת (last_root_post)" : ""}${state.seedError ? ` · בדיקת-שרשרת נכשלה: ${state.seedError.slice(0, 60)}` : ""}`,
       };
     }
     saveState();

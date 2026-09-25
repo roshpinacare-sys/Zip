@@ -34,6 +34,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { db } from "@/lib/db";
 import { swrGet, cacheHeader, swrInvalidate } from "@/lib/live/swr";
+import { headOk } from "@/lib/live/head-check";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -450,6 +451,13 @@ async function composeState(): Promise<PublisherState> {
   };
 
   // ערוצים — מצב אמיתי בלבד
+  // R122 · חוק המצב-הנמדד: "LIVE" לאתרים הציבוריים אינו זיכרון — נמדד
+  // ב-HEAD חי מול הדפים עצמם (אותה בדיקה של הצייד). דף שלא ענה אינו חי.
+  const [consolePage, domainPage] = await Promise.all([
+    headOk(`${CONSOLE_BASE}/`),
+    headOk("https://roshpinacare-sys.github.io/Domain/"),
+  ]);
+  const sitesLive = consolePage.live && domainPage.live;
   const channels: PublishChannel[] = [
     {
       id: "steem",
@@ -463,11 +471,13 @@ async function composeState(): Promise<PublisherState> {
     {
       id: "sites",
       name: "האתרים הציבוריים (Domain + Console)",
-      state: "LIVE",
+      state: sitesLive ? "LIVE" : "MISSING",
       audience: "כל האינטרנט — דפי האמת של הרשת",
       earning: "עגינה ואמון — כל פוסט נושא קישורי-הוכחה לשרשרת",
-      detail: "הקונסולה הציבורית מגישה את הספר, הצ'קפוינטים והקבלות — בלי מתווך",
-      actionNeeded: null,
+      detail: sitesLive
+        ? `נמדד כעת ב-HEAD חי: Console ✓ (${consolePage.httpStatus}) · Domain ✓ (${domainPage.httpStatus}) — הקונסולה מגישה את הספר, הצ'קפוינטים והקבלות בלי מתווך`
+        : `נמדד כעת ב-HEAD חי: Console ${consolePage.live ? `✓ (${consolePage.httpStatus})` : "✗ לא ענה"} · Domain ${domainPage.live ? `✓ (${domainPage.httpStatus})` : "✗ לא ענה"} — דף שלא ענה אינו \"חי\" מהזיכרון`,
+      actionNeeded: sitesLive ? null : "דף ציבורי לא ענה ל-HEAD — בדיקת GitHub Pages",
     },
     {
       id: "hive",

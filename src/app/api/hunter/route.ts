@@ -22,6 +22,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync } from "node:fs";
 import { swrGet, cacheHeader } from "@/lib/live/swr";
+import { headOk } from "@/lib/live/head-check";
 
 export const dynamic = "force-dynamic";
 
@@ -136,19 +137,6 @@ async function jfetch<T>(url: string, init?: RequestInit, timeoutMs = 15_000): P
     return (await res.json().catch(() => null)) as T | null;
   } catch {
     return null;
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-async function headOk(url: string): Promise<{ live: boolean; httpStatus: number | null }> {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 6000);
-  try {
-    const res = await fetch(url, { method: "HEAD", signal: ctl.signal, cache: "no-store" });
-    return { live: res.ok, httpStatus: res.status };
-  } catch {
-    return { live: false, httpStatus: null };
   } finally {
     clearTimeout(t);
   }
@@ -412,11 +400,16 @@ async function buildBoard(): Promise<HunterPayload> {
   ];
 
   // ⑨ לוח ההזדמנויות — מדורג לפי מה שהמערכת עושה עכשיו
+  // R122 · חוק הסטטוס הנמדד: אף שורה לא טוענת מצב-חי מהזיכרון — כל
+  // state נגזר מהמדידה שבאותה שורה (סולם פרוס / פאוורדאון פעיל /
+  // דפים חיים); לא נמדד = ממתין, לא זורם.
+  const livePages = pagesSwr.value.filter((p) => p.live).length;
+  const totalPages = pagesSwr.value.length;
   const opportunities: Opportunity[] = [
     {
       id: "ladder-fill",
       title: "מלכודת הפאריטה",
-      state: "HUNTING",
+      state: money != null && (money.deployedSteem ?? 0) > 0 ? "HUNTING" : "WAITING",
       number: distanceBps != null ? `${distanceBps.toLocaleString("en-US")}bps` : "—",
       detail: "הסולם המלא על הקו — כל ביד שיחצה את הפאריטה נתפס מיד בשלוש רמות.",
       action: "המוביל בודק כל דקה · גורר את הסולם אם הקו זז >50bps",
@@ -438,7 +431,7 @@ async function buildBoard(): Promise<HunterPayload> {
     {
       id: "fuel-in",
       title: "נחיתת הדלק הבאה",
-      state: "ARMED",
+      state: money?.powerdown?.active ? "ARMED" : "WAITING",
       number: money?.powerdown ? `~${money.powerdown.weeklySteem.toFixed(1)} STEEM` : "—",
       detail: "הפאוורדאון ממשיך לזרום — כל נחיתה נפרסת לסולם בתוך מחזור אחד של המוביל.",
       action: "טריגר T3/T4 במוביל — דלק נזיל נפרס אוטומטית",
@@ -483,8 +476,10 @@ async function buildBoard(): Promise<HunterPayload> {
     {
       id: "public-mirrors",
       title: "מראות-הענן הציבוריות",
-      state: "FLOWING",
-      number: `${pagesSwr.value.filter((p) => p.live).length}/${pagesSwr.value.length} חיות`,
+      // R122: "זורם" נגזר מהמדידה — כל הדפים חיים; דף מטופל = מתעכב,
+      // לא זורם-מהזיכרון.
+      state: totalPages > 0 && livePages === totalPages ? "FLOWING" : "STALLED",
+      number: `${livePages}/${totalPages} חיות`,
       detail: "Console ו-Domain ממשיכות להיבנות ולהתפרסם על דקות-חינם ציבוריות — הפנים של הרשת לעולם.",
       action: "agents-watch · money-watch · moment-watch רצים — הוכחה חיה",
       autonomy: "מלאה",

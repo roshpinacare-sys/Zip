@@ -5,6 +5,12 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+// R122 · חוק הכנות: 404 רק ל"רשומה לא נמצאה" (P2025). כל שגיאה אחרת
+// (DB מת, נעילה, רשת) היא 500 כנה — תקלת-תשתית אינה "לא נמצא".
+function isRecordNotFound(e: unknown): boolean {
+  return (e as { code?: string } | null | undefined)?.code === "P2025";
+}
+
 const STATUSES = new Set(["PLANNED", "DNS", "DEPLOYING", "LIVE"]);
 
 export async function PATCH(
@@ -40,10 +46,19 @@ export async function PATCH(
   try {
     const updated = await db.sovereignDomain.update({ where: { id }, data });
     return NextResponse.json({ ok: true, domain: updated });
-  } catch {
+  } catch (e) {
+    if (isRecordNotFound(e)) {
+      return NextResponse.json(
+        { ok: false, error: "הדומיין לא נמצא" },
+        { status: 404 },
+      );
+    }
     return NextResponse.json(
-      { ok: false, error: "הדומיין לא נמצא" },
-      { status: 404 },
+      {
+        ok: false,
+        error: `עדכון הדומיין נכשל: ${e instanceof Error ? e.message : String(e)}`,
+      },
+      { status: 500 },
     );
   }
 }
@@ -56,10 +71,19 @@ export async function DELETE(
   try {
     await db.sovereignDomain.delete({ where: { id } });
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (e) {
+    if (isRecordNotFound(e)) {
+      return NextResponse.json(
+        { ok: false, error: "הדומיין לא נמצא" },
+        { status: 404 },
+      );
+    }
     return NextResponse.json(
-      { ok: false, error: "הדומיין לא נמצא" },
-      { status: 404 },
+      {
+        ok: false,
+        error: `מחיקת הדומיין נכשלה: ${e instanceof Error ? e.message : String(e)}`,
+      },
+      { status: 500 },
     );
   }
 }

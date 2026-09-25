@@ -128,7 +128,7 @@ interface TreasuryData {
   cached?: boolean;
   cacheAgeSec?: number;
   down?: string[];
-  usd: { total: number; liquid: number; vesting: number; deployed?: number; deployedExit?: number; missingPrices: string[] };
+  usd: { total: number | null; liquid: number; vesting: number; deployed?: number; deployedExit?: number; missingPrices: string[] };
   steem?: {
     accounts: SteemAccountRow[];
     deployed?: { steem: number; sbd: number; sbdTarget: number; orders: number };
@@ -1097,7 +1097,10 @@ export function GateView() {
                     <p className="text-xs text-zinc-500">כלוא ב-Steam-Power (13 שבועות שחרור)</p>
                     <p className="mt-1 font-mono text-2xl font-bold text-zinc-100">${fmtUsd(data?.usd.vesting)}</p>
                     <p className="mt-1 text-[11px] text-zinc-500">
-                      {fmtNum(head?.sp ?? null, 0)} SP של המפקד + הצי — זה 95% מההון
+                      {fmtNum(head?.sp ?? null, 0)} SP של המפקד + הצי —{" "}
+                      {data?.usd?.vesting != null && data.usd.total != null && data.usd.total > 0
+                        ? `זה כ-${Math.round((data.usd.vesting / data.usd.total) * 100)}% מההון`
+                        : "רוב ההון"}
                     </p>
                   </CardContent>
                 </Card>
@@ -1112,8 +1115,8 @@ export function GateView() {
                       <div>
                         <p className="text-sm font-bold text-zinc-100">דלק-המסילה: ה-powerdown הפעיל של המפקד</p>
                         <p className="mt-1 text-xs leading-relaxed text-zinc-400">
-                          ההעברה האוטומטית היחידה שמזרימה כסף אמת פנימה בלי הפקדות: כל יום חמישי ב-02:01 UTC
-                          נוחתים {fmtNum(powerdown.weeklySteem)} STEEM נזילים בחשבון. זה מה שהגריד החמוש יסחר.
+                          ההעברה האוטומטית היחידה שמזרימה כסף אמת פנימה בלי הפקדות: תשלום-ה-powerdown מנחית
+                          {" "}{fmtNum(powerdown.weeklySteem)} STEEM נזילים בחשבון. זה מה שהגריד החמוש יסחר.
                         </p>
                       </div>
                     </div>
@@ -1293,8 +1296,8 @@ export function GateView() {
         <GateSection
           id="tx-gate"
           icon={Scale}
-          title="שער-העסקאות — אוטונומיה עד $100, אישור-מפעיל מעליו"
-          sub="הוראת המפעיל: המערכת פועלת לבד; רק עסקאות באמת גדולות ($100+) ממתינות להחלטת המפעיל. כל הכרעה — עם ערך-USD חי וקבלה."
+          title="שער-העסקאות — אוטונומיה עד הסף החי, אישור-מפעיל מעליו"
+          sub="הוראת המפעיל: המערכת פועלת לבד; רק עסקאות באמת גדולות (מעל הסף) ממתינות להחלטת המפעיל. כל הכרעה — עם ערך-USD חי וקבלה."
         >
           <TxGateCard />
         </GateSection>
@@ -1326,7 +1329,7 @@ export function GateView() {
                   <li className="flex gap-2">
                     <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" aria-hidden />
                     <span>
-                      צופה-ההפקדות: ארבע שרשרות נקראות כל-20-דקות בלי-מפתח
+                      צופה-ההפקדות: ארבע שרשרות נקראות בלי-מפתח (קצב מוגדר בקוד: כל 20 דקות — לא נמדד כאן)
                       {data?.network?.chains ? ` (${Object.values(data.network.chains).join(" · ")})` : ""}.
                     </span>
                   </li>
@@ -1356,7 +1359,8 @@ export function GateView() {
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
-                      הגריד-החוץ חי ומזוין — אבל צד-הקנייה חסום על מלאי-SBD: ‏0.049 זמין מול 0.15 שנדרש.
+                      הגריד-החוץ חי ומזוין — אבל צד-הקנייה חסום על מלאי-SBD: ‏{fmtNum(head?.sbd, 3)} נזיל כרגע מול
+                      סף-החימוש שנקבע בקוד (המלאי והסף החיים מוצגים בלוח-הכספים).
                       המפתח כבר חי בכספת המנוע (STEEM_ACTIVE_WIF, נמדד ב-API) ופקודות אמת מונחות עם txids;
                       ה-SBD היחיד שזורם מגיע ממכירות-הפרימיה שלנו עצמנו — זהו קצב-הבנייה של הצד השני.
                     </span>
@@ -1418,7 +1422,7 @@ export function GateView() {
                     <Flame className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-400" aria-hidden />
                     <span>
                       הפער הפנימי: אלפי USDS פנימיים מול גיבוי-נזיל של{" "}
-                      {data?.network?.backingWsteem != null ? `${fmtNum(data.network.backingWsteem, 0)} WSTEEM` : "965 WSTEEM"} בערך
+                      {data?.network?.backingWsteem != null ? `${fmtNum(data.network.backingWsteem, 0)} WSTEEM` : "—"} בערך
                       של עשרות דולרים בודדים. הזיכוי להפקדות תלוי בהון שיגיע, לא במה שיש.
                     </span>
                   </li>
@@ -1446,7 +1450,7 @@ export function GateView() {
             {[
               {
                 icon: CalendarClock,
-                head: "יום-חמישי 02:01 UTC — הדלק נוחת",
+                head: "תשלום-ה-powerdown השבועי — הדלק נוחת",
                 body: "תשלום-ה-powerdown השבועי ממיר SP ל-STEEM נזיל בחשבון המפקד. זו הכניסה החד-משמעית של ערך אמת, בלי הפקדה של אף אחד.",
               },
               {
@@ -1456,8 +1460,8 @@ export function GateView() {
               },
               {
                 icon: TrendingDown,
-                head: "היתרון המדוד — פער 20.7% בין השוק הפנימי לחוץ",
-                body: "הספר הפנימי של Steem סוחר SBD/STEEM מתחת לקו-הזהות של הערך החיצוני. כל קנייה שם היא עודף מדוד (18% עד 29% במדידה החיה; עסקה אמיתית אחת כבר לכדה 26.28%). מכירה רק מעל הקו — הפרמיה היא אופציה חינם.",
+                head: "היתרון שנמדד — פער 20.7% בין השוק הפנימי לחוץ (נמדד 2026-09-24)",
+                body: "הספר הפנימי של Steem סחר SBD/STEEM מתחת לקו-הזהות של הערך החיצוני. כל קנייה שם היא עודף מדוד (18% עד 29% במדידה מ-2026-09-24; עסקה אמיתית אחת לכדה אז 26.28%). מכירה רק מעל הקו — הפרמיה היא אופציה חינם. הפער החי נמדד בכל רגע בסעיף הבנת-הרגע.",
               },
               {
                 icon: Banknote,

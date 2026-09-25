@@ -644,7 +644,7 @@ export function DefiRouterView({ section = "router" }: { section?: string }) {
       <Section
         className="mt-12"
         title="ראוטרים לרשתות אחרות — הגשרים החיים"
-        description="ארבע רשתות נצפות בקריאה חסרת-מפתחות כל 20 דקות. ההפקדה הראשונה בכל רשת תפתח את זרימת הנזילות פנימה — השער בנוי וממתין."
+        description="ארבע רשתות נצפות בקריאה חסרת-מפתחות בקצב מוגדר בקוד (כל 20 דקות — לא נמדד כאן). ההפקדה הראשונה בכל רשת תפתח את זרימת הנזילות פנימה — השער בנוי וממתין."
         icon={<Network />}
       >
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

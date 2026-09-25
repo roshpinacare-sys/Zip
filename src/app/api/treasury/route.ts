@@ -445,12 +445,17 @@ async function composeTreasury() {
   }
   const deployedUsd = steemDeployedUsd;
   const liquidUsd = steemLiquidUsd + hiveUsd + tronUsd + evmUsd + solUsd + btcUsd;
+  // R122 · חוק הסכום-הכנה: צד שנפל אינו "0$" — הוא חסר-מדידה. כשצד כלשהו
+  // (או עמוד-המחירים כולו) לא נמדד, הסכום-הכולל הוא null — "—" בתצוגה,
+  // לא אוצר מוקטן-סתם. ה-down[] מגלה איזה צד.
+  const anySideDown =
+    steem == null || hive == null || tron == null || evm == null || sol == null || btc == null || prices == null;
   const data = {
     ok: down.length === 0,
     fetchedAt: new Date().toISOString(),
     down: down.length ? down : undefined,
     usd: {
-      total: steemVestingUsd + hiveVestingUsd + liquidUsd + deployedUsd,
+      total: anySideDown ? null : steemVestingUsd + hiveVestingUsd + liquidUsd + deployedUsd,
       liquid: liquidUsd,
       deployed: deployedUsd,
       deployedExit: steemDeployedExitUsd,

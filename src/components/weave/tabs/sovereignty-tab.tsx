@@ -686,7 +686,7 @@ export function SovereigntyTab() {
                 {
                   icon: Cloud,
                   title: "לב-ענן",
-                  sub: "GitHub Actions · כל 6 שעות",
+                  sub: `GitHub Actions · ${data.cloud.schedule ?? "קצב לא נקרא"}`,
                   body: "ספר טרי => אימות-בלבד · ישן => TAKEOVER",
                   tone: "border-emerald-500/40",
                 },
@@ -1159,8 +1159,8 @@ export function SovereigntyTab() {
               <p className="text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
                 ארכיטקטורה חסרת-מפתחות: workflow בריפו הציבורי קורא את קו העוגנים מ-Steem
                 RPC ציבורי (custom_json מהעד בסמכות posting), מרנדר status.json ומבצע
-                commit ב-GITHUB_TOKEN שלו בלבד - כל 6 שעות (פעימה ב-:00, עיגון ב-:20,
-                קריאה-חזרה ב-:40). מוות של הסנדבוקס או של הריפו הפרטי לא מפיל את החלון.
+                commit ב-GITHUB_TOKEN שלו בלבד - בקצב שעתי בעקבות הלב (הקצב
+                הנגזר מוצג בכרטיסי הקווים). מוות של הסנדבוקס או של הריפו הפרטי לא מפיל את החלון.
                 מה שלא עולה לחוץ לעולם: מפתחות, טוקנים, יתרות, מסמכים פנימיים (CONSOLE-POLICY.md).
               </p>
             </CardContent>
@@ -1289,7 +1289,7 @@ export function SovereigntyTab() {
                 </>
               ) : (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  הקו חמוש אך טרם עוגן - הריצה היומית (07:17Z) או dispatch ידני יעגנו את ה-checkpoint האחרון.
+                  הקו חמוש אך טרם עוגן - הריצה הבאה לפי הקצב הנגזר (שדה ה״קצב״ למטה) או dispatch ידני יעגנו את ה-checkpoint האחרון.
                 </p>
               )}
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
@@ -1420,7 +1420,7 @@ export function SovereigntyTab() {
                 </>
               ) : (
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  הקו חמוש אך טרם עוגן - הריצה המתוזמנת (:30) או dispatch ידני יעגנו את ה-checkpoint האחרון.
+                  הקו חמוש אך טרם עוגן - הריצה הבאה לפי הקצב הנגזר (שדה ה״קצב״ למטה) או dispatch ידני יעגנו את ה-checkpoint האחרון.
                 </p>
               )}
               {data.zeroLine?.live?.readback && (
@@ -1474,7 +1474,7 @@ export function SovereigntyTab() {
       <Section
         title="SAOS-NET - שרשרת הכלכלה של הצי (המערכת שתחליף)"
         icon={<Coins />}
-        description="קרנל דטרמיניסטי (saos-net/0): אותו ג׳נזיס + אותן טרנזקציות = אותו state-root בכל מכונה · DEX + נכסים עטופים + דלתות רשת (108) + קציר (111) + ארנקי-הצבא (113) · האימות כאן: replay מלא מה-snapshot"
+        description="קרנל דטרמיניסטי (saos-net/0): אותו ג׳נזיס + אותן טרנזקציות = אותו state-root בכל מכונה · DEX + נכסים עטופים + דלתות רשת + קציר + ארנקי-הצבא · האימות כאן: replay מלא מה-snapshot"
       >
         <Card>
           <CardContent className="flex flex-col gap-3 p-4 sm:p-6">
@@ -1594,7 +1594,7 @@ export function SovereigntyTab() {
                   )}
                   <p className="mt-1.5 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                     העדות נכתבה כאימות CROSSCHAIN חתום (עד נגזר-seal) =&gt; checkpoint מכסה =&gt; העוגנים
-                    (Steem/Hive ב-:20 · ZERO-EVM ב-:30) מעידים עליה החוצה ב-$0. אותו stateRoot =&gt; דילוג
+                    (Steem/Hive · ZERO-EVM, בעקבות כל פעימה — הקצב הנגזר בכרטיסי הקווים) מעידים עליה החוצה ב-$0. אותו stateRoot =&gt; דילוג
                     כנה; replay שבור =&gt; REFUSED - לא נכתבת עדות על מצב בלתי-מאומת.
                   </p>
                 </>
@@ -1620,17 +1620,17 @@ export function SovereigntyTab() {
                 <div className="font-mono text-xs" dir="ltr">{saosnet.economy.wrappedSymbols.join(" · ") || "-"}</div>
               </div>
               <div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">ארנקי-הצבא (113)</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">ארנקי-הצבא</div>
                 <div className="font-mono" dir="ltr">{saosnet.wallets.agents}/4-rails</div>
               </div>
               <div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">קציר (111)</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">קציר</div>
                 <div className="font-mono text-emerald-600 dark:text-emerald-400" dir="ltr">
                   {saosnet.harvest.pot} SAOS
                 </div>
               </div>
               <div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">דלתות (108)</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">דלתות</div>
                 <div className="font-mono" dir="ltr">{saosnet.doors.issued} הונפקו / {saosnet.doors.sent} נשלחו</div>
               </div>
             </div>

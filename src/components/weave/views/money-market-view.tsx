@@ -319,15 +319,15 @@ export function MoneyMarketView(): React.JSX.Element {
                   USDS = יחידת-פדיון פנימית (הטבעה=נעילה 1:1 ברזרבה, פדיון=שריפה 1:1) — לא מטבע ציבורי
                 </p>
                 <Badge variant="outline" className="border-[#a78bfa]/25 bg-[#a78bfa]/5 text-[#a78bfa] text-[10px]">
-                  בסיס 1% + שיפוע 4% עד 80% · +60% מעל
+                  פרמטרי-עקומה (קבועים בקוד): בסיס 1% + שיפוע 4% עד 80% · +60% מעל
                 </Badge>
               </div>
               <KinkCurve m={usds} />
               <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] text-zinc-500 sm:grid-cols-4">
                 <span>מזומן-בבריכה: <b className="text-zinc-300">{fmtUsd(usds?.cashMu)}</b></span>
-                <span>פקטור-רזרבה: <b className="text-zinc-300">10% → אוצר</b></span>
-                <span>רצפת-נזילות: <b className="text-zinc-300">10% (משיכה מובטחת)</b></span>
-                <span>חוצץ-HF בשאילה: <b className="text-zinc-300">1.10</b></span>
+                <span>פקטור-רזרבה (קבוע בקוד): <b className="text-zinc-300">10% → אוצר</b></span>
+                <span>רצפת-נזילות (קבוע בקוד): <b className="text-zinc-300">10% (משיכה מובטחת)</b></span>
+                <span>חוצץ-HF בשאילה (קבוע בקוד): <b className="text-zinc-300">1.10</b></span>
               </div>
             </CardContent>
           </Card>

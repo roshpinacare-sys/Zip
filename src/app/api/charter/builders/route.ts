@@ -19,23 +19,44 @@ export async function GET(req: Request) {
   if (!op) {
     return NextResponse.json({ ok: false, error: "נדרש סשן-מפעיל" }, { status: 401 });
   }
-  const builders = await db.builderToken.findMany({
-    include: { agent: true },
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
-  return NextResponse.json({
-    ok: true,
-    builders: builders.map((b) => ({
-      name: b.agent.name,
-      address: b.agent.ethAddress,
-      prefix: b.prefix,
-      active: b.active,
-      issuedAt: b.createdAt.toISOString(),
-      lastUsedAt: b.lastUsedAt?.toISOString() ?? null,
-      projects: 0, // ממולא בצד הלקוח מהמרשם — לא שאילתת-עץ
-    })),
-  });
+  try {
+    // R122 · חוק המספר-הנמדד: "projects: 0" קבוע היה מציג אפס-מדומה —
+    // המספר האמיתי נספר מה-DB (groupBy על builderId, מודל מאונדקס).
+    const [builders, projectCounts] = await Promise.all([
+      db.builderToken.findMany({
+        include: { agent: true },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      }),
+      db.charterProject.groupBy({
+        by: ["builderId"],
+        _count: { _all: true },
+      }),
+    ]);
+    const countByBuilder = new Map(projectCounts.map((c) => [c.builderId, c._count._all]));
+    return NextResponse.json({
+      ok: true,
+      builders: builders.map((b) => ({
+        name: b.agent.name,
+        address: b.agent.ethAddress,
+        prefix: b.prefix,
+        active: b.active,
+        issuedAt: b.createdAt.toISOString(),
+        lastUsedAt: b.lastUsedAt?.toISOString() ?? null,
+        projects: countByBuilder.get(b.agent.id) ?? 0, // נספר מה-DB — לא ממולא בצד הלקוח
+      })),
+    });
+  } catch (err) {
+    // R119/R122 · כשל-DB אינו רשימה ריקה — fail-closed כנה
+    return NextResponse.json(
+      {
+        ok: false,
+        error: `קריאת הבונים נכשלה: ${err instanceof Error ? err.message : String(err)}`,
+        builders: [],
+      },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(req: Request) {

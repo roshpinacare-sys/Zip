@@ -319,6 +319,8 @@ const HTTP_PROBES: Array<{ name: string; url: string }> = [
   { name: "fleet:money", url: "http://127.0.0.1:3034/" },
   { name: "fleet:hunter", url: "http://127.0.0.1:3035/" },
   { name: "fleet:keeper", url: "http://127.0.0.1:3036/" },
+  { name: "fleet:verify", url: "http://127.0.0.1:3038/" },
+  { name: "fleet:weblift", url: "http://127.0.0.1:3039/" },
 ];
 
 async function probeOne(p: { name: string; url: string }): Promise<ProbeResult> {

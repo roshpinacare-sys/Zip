@@ -152,6 +152,7 @@ async function canaryTick(): Promise<void> {
   };
   const dispatchedAt = new Date().toISOString();
   let dispatchOk = false;
+  let dispatchError: string | null = null;
   // dispatch
   try {
     // R112 — law of the bounded wait: no fetch without a deadline
@@ -165,9 +166,20 @@ async function canaryTick(): Promise<void> {
       dispatchOk = true;
       state.canary.lastDispatchAt = dispatchedAt;
       state.canary.dispatchesToday += 1;
+    } else {
+      dispatchError = `HTTP ${res.status}`;
     }
-  } catch {
-    // dispatch נכשל — הקנרית תנסה שוב בסריקה הבאה (nextDueAt לא זז)
+  } catch (e: any) {
+    dispatchError = String(e?.message ?? e).slice(0, 120);
+  }
+  // כנות: dispatch שנכשל נרשם ככישלון גלוי — לא נבלע ולא נדחה בשקט
+  if (!dispatchOk) {
+    state.lastDecision = {
+      at: new Date().toISOString(),
+      kind: "CANARY-DISPATCH-FAIL",
+      detail: `שליחת הקנרית נכשלה בכנות: ${dispatchError ?? "לא ידוע"} — ניסיון חוזר בעוד 15 דק'`,
+    };
+    state.history = [...state.history, state.lastDecision].slice(-40);
   }
   // קריאת הריצה האחרונה (גם אם dispatch נכשל — עדיין מודדים את האמת)
   let runFailedAfterDispatch = false;
@@ -217,8 +229,13 @@ async function canaryTick(): Promise<void> {
       state.history = [...state.history, state.lastDecision].slice(-40);
     }
   }
-  // המועד הבא: שער פתוח — 6ש'; שער מת — גשאוש יומי (באסה כנה, לא ויתור)
-  const cadenceMs = state.canary.gate === "QUOTA-DEAD" ? 24 * 60 * 60 * 1000 : CANARY_EVERY_MS;
+  // המועד הבא: הצלחה — שער פתוח 6ש' / שער מת — גשאוש יומי (באסה כנה, לא ויתור).
+  // כישלון שליחה — ניסיון חוזר קצר (15 דק') במקום דילוג-שקט של 6ש'.
+  const cadenceMs = !dispatchOk
+    ? 15 * 60 * 1000
+    : state.canary.gate === "QUOTA-DEAD"
+      ? 24 * 60 * 60 * 1000
+      : CANARY_EVERY_MS;
   state.canary.nextDueAt = new Date(now + cadenceMs).toISOString();
   state.canary.day = utcDay();
   saveState();
@@ -282,7 +299,15 @@ async function scan(): Promise<void> {
     }
     const treasuryPart = totalUsd > 0 ? `אוצר: $${totalUsd.toFixed(0)} (${liquidUsd.toFixed(2)} נזיל)` : "אוצר: לא נמדד (כנות)";
 
-    const detail = `${moverPart} · ${treasuryPart} · דופק: חי · הבא ${state.canary.nextDueAt}`;
+    // אמת-מדידה ל"דופק: חי": הטענה נכתבת רק מבדיקה חיה של הדופק עצמו
+    // (בדיקת 2ש' זמן-מוגבל) — דיבון שלא עונה נרשם כלא-נענה, לא כחי.
+    const pulseRes = await fetch("http://127.0.0.1:3033/", {
+      signal: AbortSignal.timeout(2_000),
+      cache: "no-store",
+    }).catch(() => null);
+    const pulsePart = pulseRes?.ok ? "דופק: חי" : "דופק: לא-נענה";
+
+    const detail = `${moverPart} · ${treasuryPart} · ${pulsePart} · הבא ${state.canary.nextDueAt}`;
     state.lastDecision = { at: new Date().toISOString(), kind: "SCAN", detail };
     state.history = [...state.history, state.lastDecision].slice(-40);
     state.lastScanAt = new Date().toISOString();

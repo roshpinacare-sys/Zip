@@ -615,7 +615,7 @@ export function SovereignArenaView() {
               </p>
             </div>
             <div className="text-xs text-muted-foreground text-left">
-              <div>מאזן אוצר: <span className="font-mono">{fmt(snap?.treasury?.WSOL ?? 0, 4)} WSOL</span></div>
+              <div>מאזן אוצר: <span className="font-mono">{snap?.treasury?.WSOL != null ? `${fmt(snap.treasury.WSOL, 4)} WSOL` : "—"}</span></div>
               <div className="mt-0.5">שער SOL: <span className="font-mono">{snap?.prices?.sol ? `$${snap.prices.sol.toFixed(2)}` : "—"}</span></div>
             </div>
           </div>

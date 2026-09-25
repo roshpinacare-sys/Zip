@@ -309,6 +309,38 @@ async function internalGet<T>(path: string, timeoutMs = 9000): Promise<T | null>
   }
 }
 
+// ── מקור חי למספר הפקדות-החוץ (R122 · חוק המקור-החי) ──────────────────
+// מספר ההפקדות אינו זיכרון אלא מדידה ממראת watch הציבורית (אותה מראה
+// שמזינה את האוצר ואת שער-ההפקדות). אין מענה = null — לא אפס מומצא.
+
+const WATCH_MIRRORS = [
+  "https://roshpinacare-sys.github.io/Domain/dex/watch.json",
+  "https://roshpinacare-sys.github.io/Console/dex/watch.json",
+] as const;
+
+async function watchDepositsTotal(): Promise<{ total: number | null; cadenceMin: number | null }> {
+  for (const url of WATCH_MIRRORS) {
+    try {
+      const res = await fetch(url, {
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+        headers: { "user-agent": "the-weave-economy/1.0" },
+      });
+      if (!res.ok) continue;
+      const j = (await res.json()) as { depositsTotal?: unknown; cadenceMin?: unknown };
+      if (typeof j?.depositsTotal === "number") {
+        return {
+          total: j.depositsTotal,
+          cadenceMin: typeof j?.cadenceMin === "number" ? j.cadenceMin : null,
+        };
+      }
+    } catch {
+      /* המראה הבאה */
+    }
+  }
+  return { total: null, cadenceMin: null };
+}
+
 // החלקים שאנחנו צורכים מ-/api/money (חוזה חלקי - לא מעתיקים את כל ה-sense)
 interface MoneyLite {
   ok?: boolean;
@@ -421,7 +453,7 @@ function sbdBuildRate(money: MoneyLite | null): SbdBuildRate {
 
 // ── מרשם החסימות + שכבה חיה ─────────────────────────────────────────
 
-async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | null, build: SbdBuildRate, ex?: ExchangeLite | null, sol?: EthSolLegLite | null, eth?: EthSolLegLite | null): Promise<BlockageRow[]> {
+async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | null, build: SbdBuildRate, ex?: ExchangeLite | null, sol?: EthSolLegLite | null, eth?: EthSolLegLite | null, depositsTotal: number | null = null, watchCadenceMin: number | null = null): Promise<BlockageRow[]> {
   await ensureBlockages();
   const rows = await db.economyBlockage.findMany({ orderBy: { sortOrder: "asc" } });
   return rows.map((r) => {
@@ -492,8 +524,18 @@ async function blockageSnapshot(money: MoneyLite | null, router: RouterLite | nu
         : "בריכת WBLURT טרם נזרעה במחזור זה";
       base.liveState = blurtPool ? "HOLDING" : "IN-PROGRESS";
     } else if (r.code === "BLK-DEPOSITS") {
-      base.liveMeasured = "0 הפקדות-חוץ - המעגל טרם נסגר בכסף של מישהו אחר";
-      base.liveState = "HOLDING";
+      // R122 · לא עוד אפס-מזיכרון: מספר ההפקדות נמדד ממראת watch החיה.
+      // מקור שלא ענה מתוודה בגלוי — לא מתחזה למדידה.
+      if (depositsTotal != null) {
+        base.liveMeasured =
+          depositsTotal > 0
+            ? `${depositsTotal} הפקדות-חוץ נמדדו — כל אחת מאומתת מול השרשרת בטרם זיכוי`
+            : `0 הפקדות-חוץ — נמדד חי ממראת watch${watchCadenceMin != null ? ` (סריקה כל ${watchCadenceMin} דק׳)` : ""} · המעגל טרם נסגר בכסף של מישהו אחר`;
+        base.liveState = depositsTotal > 0 ? "IN-PROGRESS" : "HOLDING";
+      } else {
+        base.liveMeasured = "הפקדות-חוץ: טרם נמדדו במקור חי (מראת watch לא ענתה) — המעגל עדיין פתוח";
+        base.liveState = "IN-PROGRESS";
+      }
     } else if (r.code === "BLK-PRIVATE-QUOTA") {
       base.liveMeasured = "הדימום הוסט (R71): המכונות בדקות ציבוריות; הפרטיים dispatch-בלבד";
       base.liveState = "HOLDING";
@@ -1001,7 +1043,13 @@ export async function composeEconomy(sizeSteem?: number): Promise<EconomySnapsho
 
   const build = sbdBuildRate(money);
   const peg = pegMetrics(money);
-  const blockages = await blockageSnapshot(money, router, build, ex, sol, eth);
+  const deposits = await watchDepositsTotal();
+  if (deposits.total == null) {
+    down.push("watch-deposits: לא נמדד במחזור זה");
+  } else {
+    sources.watch = "Console/dex/watch.json (מראת סריקת ההפקדות החיצוניות)";
+  }
+  const blockages = await blockageSnapshot(money, router, build, ex, sol, eth, deposits.total, deposits.cadenceMin);
   const flows = flowMatrix(money, router, hive);
   const anchors = anchorRows(money, gate, peg);
   const size = sizeSteem && Number.isFinite(sizeSteem) && sizeSteem > 0 ? Math.min(sizeSteem, 100_000) : 10;

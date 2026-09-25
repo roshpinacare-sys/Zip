@@ -155,6 +155,14 @@ export function HoldingsView() {
   const armyWallets = v0?.wallets?.last ?? [];
   const live = data?.live ?? null;
   const dex = data?.dex;
+  // r121 — גיל ה-pack בכנות: replay אמיתי על תמונה קפואה אינו "מצב נוכחי"
+  // (אותו כלל-סף כמו ה-runner: pack מעל 24 שעות מתויג FROZEN-PACK)
+  const packLastAdvanced = net?.lastTime ?? null;
+  const packAgeHours =
+    packLastAdvanced != null
+      ? Math.floor((Date.now() - new Date(packLastAdvanced).getTime()) / 3_600_000)
+      : null;
+  const packFrozen = packAgeHours != null && packAgeHours > 24;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
@@ -200,8 +208,15 @@ export function HoldingsView() {
                 <Landmark className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 SAOS-NET v0
               </h2>
-              <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400">
-                מאומת מתמטית
+              <Badge
+                variant="outline"
+                className={
+                  packFrozen
+                    ? "border-amber-500/40 text-amber-600 dark:text-amber-400"
+                    : "border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
+                }
+              >
+                {packFrozen ? "מאומת מתמטית · חבילה קפואה" : "מאומת מתמטית"}
               </Badge>
             </div>
             {loading && !net ? (
@@ -240,7 +255,15 @@ export function HoldingsView() {
                 </dl>
                 <SourceNote>
                   נמדד ב-replay מתמטי מלא (38/38 בלוקים, שורש זהה להצהרת
-                  הצומת) - {v0?.measuredBy ?? "scripts/saosnet-status.cjs"}
+                  הצומת) - {v0?.measuredBy ?? "scripts/saosnet-status.cjs"}.{" "}
+                  {packFrozen && (
+                    <>
+                      חבילה קפואה — לא התקדמה מאז {packLastAdvanced?.slice(0, 10)} (עדכון
+                      חד-פעמי, גיל{" "}
+                      {packAgeHours != null ? packAgeHours.toLocaleString("he-IL") : "?"} שעות):
+                      replay מושלם על תמונה קפואה אינו מצב נוכחי.
+                    </>
+                  )}
                 </SourceNote>
               </>
             ) : (
@@ -572,7 +595,7 @@ export function HoldingsView() {
               <ul className="space-y-2 text-xs leading-relaxed text-muted-foreground">
                 <li className="flex gap-2">
                   <span className="mt-1 size-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
-                  ההיצע מוקבע בג&apos;נזיס (126,682 SAOS) - אין הנפקה
+                  ההיצע מוקבע בג&apos;נזיס ({net?.supply != null ? net.supply.toLocaleString("he-IL") : "—"} SAOS) - אין הנפקה
                   נוספת ב-v0; v1 מגביל בחוזה ל-21 מיליון.
                 </li>
                 <li className="flex gap-2">

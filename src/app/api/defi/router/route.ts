@@ -554,6 +554,14 @@ async function composeRouter() {
   {
     const balanceTrx = tronAcct?.data?.[0] ? tronAcct.data[0].balance / 1e6 : null;
     const broadcastCost = money?.redemption?.broadcastCostTrx ?? null;
+    // R122 · חוק האורקל (r121): אין עוד מחיר-זיכרון 0.25$ — סימון TRX
+    // מה-marks החיים של money.json בלבד; אין סימון → יחידות TRX טבעיות,
+    // בלי המרת-$. יתרה שלא נמדדה אינה אפס — היא אי-מדידה כנה.
+    const trxUsd = typeof money?.marks?.trxUsd === "number" ? money.marks.trxUsd : null;
+    const balanceHe =
+      balanceTrx == null
+        ? null
+        : `${balanceTrx.toFixed(6)} TRX${trxUsd != null ? ` ≈ $${(balanceTrx * trxUsd).toFixed(2)}` : ""}`;
     routes.push({
       id: "tron-route",
       goal: "נתיב TRON — המשמרת כראוטר יציאה לרשת החוץ",
@@ -588,9 +596,11 @@ async function composeRouter() {
         },
       ],
       blockers: [
-        (balanceTrx ?? 0) < 3
-          ? `הון המשמרת (${(balanceTrx ?? 0).toFixed(6)} TRX ≈ $${((balanceTrx ?? 0) * 0.25).toFixed(2)}) מתחת לסף-פעולה כלכלי — המסלול בנוי, ההון יגדל מהגריד`
-          : "",
+        balanceTrx == null
+          ? "יתרת המשמרת לא נמדדה — trongrid לא ענה (אין הערכת-ערך, אין פסק-דין)"
+          : balanceTrx < 3
+            ? `הון המשמרת (${balanceHe}) מתחת לסף-פעולה כלכלי — המסלול בנוי, ההון יגדל מהגריד`
+            : "",
       ].filter(Boolean),
       netFlow: "TRX (משמרת) → USDT (SunSwap) → ריבית חוץ (JustLend) → דלק רשת — ראוטר יציאה מוכן-להפעלה",
     });

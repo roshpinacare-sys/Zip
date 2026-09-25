@@ -157,7 +157,7 @@ export function BrainView() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">המוח הריבוני</h1>
             <p className="text-sm text-muted-foreground">
-              מאגר מפתחות AI אטום בבית · רוטציה אוטומטית · הרשת חושבת בעצמה
+              מאגר מפתחות AI אטום בבית · רוטציה בפקודת מפעיל (לא אוטומטית) · הרשת חושבת בעצמה
             </p>
           </div>
         </div>

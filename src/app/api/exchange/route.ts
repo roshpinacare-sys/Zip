@@ -38,27 +38,37 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const at = new Date().toISOString();
+  // R122 · חוק הסטטוס הכנה: JSON שגוי הוא 400 (שגיאת-לקוח); כשל-ביצוע
+  // (שרשרת, כספת, DB) הוא 500 — לא מוסווה כשגיאת-קלט.
+  let body: {
+    action?: string;
+    member?: string;
+    pair?: string;
+    side?: "A2B" | "B2A";
+    amountIn?: number;
+    minOut?: number;
+    asset?: ExchangeAsset;
+    stable?: "WSBD" | "WHBD";
+    amount?: number;
+    toAccount?: string;
+    note?: string;
+    maxA?: number;
+    maxB?: number;
+    sharePct?: number;
+    share?: number;
+    bandBps?: number;
+    seq?: number; // R111 — treasury-unwrap: מזהה אירוע ה-WRAP המקורי
+    reason?: string; // R111 — סיבת-ההיפוך המתועדת בשרשרת-הספר
+  };
   try {
-    const body = (await req.json()) as {
-      action?: string;
-      member?: string;
-      pair?: string;
-      side?: "A2B" | "B2A";
-      amountIn?: number;
-      minOut?: number;
-      asset?: ExchangeAsset;
-      stable?: "WSBD" | "WHBD";
-      amount?: number;
-      toAccount?: string;
-      note?: string;
-      maxA?: number;
-      maxB?: number;
-      sharePct?: number;
-      share?: number;
-      bandBps?: number;
-      seq?: number; // R111 — treasury-unwrap: מזהה אירוע ה-WRAP המקורי
-      reason?: string; // R111 — סיבת-ההיפוך המתועדת בשרשרת-הספר
-    };
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json(
+      { ok: false, at, error: "BAD-BODY: גוף הבקשה אינו JSON תקין" },
+      { status: 400 },
+    );
+  }
+  try {
     await ensureExchange();
     const session = operatorFromRequest(req);
     const issuedBy: "operator" | "daemon" = session ? "operator" : "daemon";
@@ -240,6 +250,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ ok: false, at, error: "BAD-ACTION" }, { status: 400 });
     }
   } catch (e) {
-    return NextResponse.json({ ok: false, at, error: String((e as Error).message ?? e).slice(0, 160) }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, at, error: `EXECUTE-FAILED: ${String((e as Error).message ?? e).slice(0, 160)}` },
+      { status: 500 },
+    );
   }
 }

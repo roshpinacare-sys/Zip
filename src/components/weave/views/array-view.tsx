@@ -659,8 +659,8 @@ export function ArrayView() {
         <Card className="mt-3 border-zinc-700/60 bg-zinc-900/40">
           <CardContent className="p-3 text-[11px] leading-relaxed text-zinc-500">
             הרישום המלא בעמוד <span className="text-zinc-300">סוכנים ← הצי החי</span>. החדש שבצי:{" "}
-            <span className="font-mono text-[#e8cd6e]">money-watch</span> — צופה נתיב-הכסף (כל רבע-שעה): קולט את נחיתת
-            ה-powerdown בתוך דקות ומזניק את הגריד מיד, ופוסק SEND-NOW/WAIT על תיבת הפדיון מול עלות השידור ב-TRON.
+            <span className="font-mono text-[#e8cd6e]">money-watch</span> — צופה נתיב-הכסף (קצב מוגדר: כל רבע-שעה — לא נמדד כאן): קולט את נחיתת
+            ה-powerdown ומזניק את הגריד מיד, ופוסק SEND-NOW/WAIT על תיבת הפדיון מול עלות השידור ב-TRON.
           </CardContent>
         </Card>
       </ArraySection>
@@ -751,7 +751,7 @@ export function ArrayView() {
               {
                 what: "מפת-האחזקות מיושנת",
                 detail:
-                  "AGENT-ESTATE-MAP.md מתאר את 2026-09-08. האמת החיה: agents/registry.json — 23 סוכנים ב-14 ריפואים, נמדד אוטומטית כל שעה. המפה הזו קוראת מהרישום, לא מהמסמך.",
+                  `AGENT-ESTATE-MAP.md מתאר את 2026-09-08. האמת החיה: agents/registry.json — ${fleet.total > 0 ? `${fleet.total} סוכנים` : "—"}${registry.data?.reposWithAgents?.length ? ` ב-${registry.data.reposWithAgents.length} ריפואים` : ""}, נמדד אוטומטית. המפה הזו קוראת מהרישום, לא מהמסמך.`,
                 status: "done",
                 statusLabel: "טופל — קריאה מהרישום",
               },
@@ -786,7 +786,7 @@ export function ArrayView() {
               {
                 what: "מקור דלק לצד הקנייה (SBD)",
                 detail:
-                  "צד הקנייה של הגריד חסום על מלאי SBD (0.049 < 0.15). המנגנון הקיים: מילויי המכירה מעל קו-הזהות מזרימים SBD שמחמש את צד הקנייה בריצה הבאה — הצינור מזין את עצמו, לא צריך מקור חוץ.",
+                  `צד הקנייה של הגריד חסום על מלאי SBD (כרגע ${money?.fuel?.sbd != null ? money.fuel.sbd.toFixed(3) : "—"} נזיל מול סף-החימוש שנקבע בקוד — החי בלוח-הכספים). המנגנון הקיים: מילויי המכירה מעל קו-הזהות מזרימים SBD שמחמש את צד הקנייה בריצה הבאה — הצינור מזין את עצמו, לא צריך מקור חוץ.`,
                 status: "done",
                 statusLabel: "קיים — מזרים מעצמו",
               },
@@ -807,7 +807,7 @@ export function ArrayView() {
               {
                 what: "הפקדות חוץ — 0 עדיין",
                 detail:
-                  "כתובות ההפקדה ב-4 רשתות (TRON/EVM/SOL/BTC) נצפות כל 20 דקות, אך אף הפקדה חיצונית לא נכנסה. זהו הצעד שתלוי בעולם — המערך מוכן לקלוט.",
+                  "כתובות ההפקדה ב-4 רשתות (TRON/EVM/SOL/BTC) נצפות בקצב מוגדר בקוד (כל 20 דקות — לא נמדד כאן), אך אף הפקדה חיצונית לא נכנסה. זהו הצעד שתלוי בעולם — המערך מוכן לקלוט.",
                 status: "open",
                 statusLabel: "פתוח — תלוי-חוץ",
               },

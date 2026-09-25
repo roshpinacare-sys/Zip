@@ -179,7 +179,11 @@ async function canonPush(path: string, content: string): Promise<boolean> {
     return false;
   }
   const pat = readPat();
-  if (!pat) return false;
+  if (!pat) {
+    // כנות: כישלון נרשם — לא משאירים canonLast ישן {ok:true} מהצלחה קודמת
+    state.canonLast = { at: new Date().toISOString(), ok: false, path: `${path} (NO-PAT)` };
+    return false;
+  }
   const url = `https://api.github.com/repos/roshpinacare-sys/Defi/contents/${path}`;
   const headers = {
     Authorization: `token ${pat}`,
@@ -393,7 +397,7 @@ async function act(
   reason: string,
   action: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream" = "reprice",
   target: "steem" | "hive" = "steem",
-): Promise<void> {
+): Promise<boolean> {
   state.acting = true;
   actStartedAt = Date.now();
   // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
@@ -418,7 +422,6 @@ async function act(
         signal: ctl.signal,
       });
       result = (await res.json()) as Record<string, unknown>;
-      state.lastStreamDay = utcDay();
     } else {
     const res = await fetch(target === "hive" ? HIVE_API : API, {
       method: "POST",
@@ -440,6 +443,9 @@ async function act(
   // ולא placed ברמה העליונה. הקבלה תעדוק את האמת מעכשיו (לקח R87 —
   // "הוצבו 0" שקרי — הפעם בצד הדיבון).
   const r = (result as any) ?? {};
+  // כנות (תיקון ביקורת): יום-ההזרמה נרשם רק כשההזרמה באמת הצליחה —
+  // כישלון שרף יום שלם בשקט והגל לא נורה שוב לעולם.
+  if (action === "arena-stream" && r.ok) state.lastStreamDay = utcDay();
   // נרמול קבלה: STEEM מחזיר מערכים; HIVE (R101) מחזיר מונים — אחת לכל צורה
   const normList = (v: unknown): unknown[] => (Array.isArray(v) ? v : typeof v === "number" ? Array.from({ length: v }) : []);
   const placed: unknown[] = normList(r.placed).length
@@ -490,18 +496,20 @@ async function act(
     `- **פעולות היום**: ${state.actionsToday}/${POLICY.actionsBudgetPerDay}`,
     `- **כנות**: ${r.error ?? r.receipt?.error ? `שגיאה: ${String(r.error ?? r.receipt?.error).slice(0, 200)}` : "אין"}`,
     "",
-    `_מופק אוטונומית על-ידי money-mover v1.5 (R101 · HIVE leg + stock-sbd + vault)._`,
+    `_מופק אוטונומית על-ידי money-mover v${state.version} (R101 · HIVE leg + stock-sbd + vault)._`,
   ].join("\n");
   await canonPush(`reports/money-${utcDay()}.md`, receipt);
+  return !!r.ok; // אמת-הפעולה עולה לקורא (גם ל-/act) — לא "הוזנק" בלבד
 }
 
 let ticking = false;
 // R112 — tick watchdog (the live-freeze law): the interval itself watches
 // the guard it lives behind. A tick stuck longer than TICK_MAX_MS is
 // force-released with an honest history note — the hung await is orphaned
-// (it can no longer write state; timeouts bound the normal case, the
-// watchdog bounds the pathological one). Caught live: money froze at
-// beats=813 for 20+ minutes while HTTP kept answering.
+// (if it ever wakes it can still mutate state; every fetch is deadline-
+// bounded, so the exposure window is time-bounded, not power-removed).
+// Caught live: money froze at beats=813 for 20+ minutes while HTTP kept
+// answering.
 let tickStartedAt = 0;
 let actStartedAt = 0;
 const TICK_MAX_MS = 5 * 60_000;
@@ -744,12 +752,14 @@ Bun.serve({
       if (state.acting) return Response.json({ ok: false, error: "already-acting" }, { status: 409 });
       const body = await req.json().catch(() => ({}));
       const target = body?.target === "hive" ? "hive" : "steem";
-      await act(
+      const actOk = await act(
         String(body?.reason ?? "manual operator command").slice(0, 200),
         body?.action === "arm-buy" ? "arm-buy" : body?.action === "stock-sbd" ? "stock-sbd" : body?.action === "arena-stream" ? "arena-stream" : "reprice",
         target,
       );
-      return Response.json({ ok: true, lastDecision: state.lastDecision });
+      // אמת ברמת ה-HTTP: ok משקף את תוצאת הפעולה עצמה (לא "הוזנק בהצלחה")
+      // — ההחלטה המלאה והכנה ב-lastDecision המצורף.
+      return Response.json({ ok: actOk, lastDecision: state.lastDecision });
     }
     return new Response("not found", { status: 404 });
   },
@@ -770,7 +780,7 @@ G.__MONEY_TIMER__ = setInterval(() => {
   const nowMs = Date.now();
   if (ticking && tickStartedAt && nowMs - tickStartedAt > TICK_MAX_MS) {
     ticking = false;
-    appendHistory({ kind: "WATCHDOG-RELEASE", reason: `tick נעול >${Math.round(TICK_MAX_MS / 60000)} דק' — הנעילה שוחררה; ה-await התלוי יתום וחסר-כוח-כתיבה` });
+    appendHistory({ kind: "WATCHDOG-RELEASE", reason: `tick נעול >${Math.round(TICK_MAX_MS / 60000)} דק' — הנעילה שוחררה; ה-await התלוי יתום: אם יתעורר, יכולת-הכתיבה שלו לא נשללה (כל ה-fetches deadline-bound — חלון הסיכון חסום-זמן בלבד)` });
     saveState();
   }
   if (state.acting && actStartedAt && nowMs - actStartedAt > ACTING_MAX_MS) {

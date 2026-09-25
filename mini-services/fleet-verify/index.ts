@@ -1054,8 +1054,11 @@ async function runJob(def: JobDef): Promise<void> {
     else if (st.verdict === "FAIL" || exitCode !== 0) verdict = "FAIL";
     else verdict = "ERROR";
   } catch {
-    verdict = exitCode === 0 ? "PASS" : "FAIL";
-    reason = reason ?? "status.json לא נכתב — פסק-דין מקוד-היציאה בלבד";
+    // חוק-הברזל: פסק-דין נכתב רק מ-status.json שהבדיקה עצמה ייצרה.
+    // בלי הקובץ אין PASS — exit 0 בלי קבלה אינו הוכחה (הריצה לא
+    // השאירה אמת מדידה; זו שגיאת בדיקה, לא הצלחה).
+    verdict = "ERROR";
+    reason = reason ?? `status.json לא נכתב — אין פסק-דין בלי קבלה (קוד-יציאה ${exitCode} נרשם לתצפית בלבד)`;
   }
 
   // 6) חוק דחיפת פסק-הדין (R118): האמת חוזרת לגיט. הבדיקה עברה —

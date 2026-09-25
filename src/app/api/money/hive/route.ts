@@ -350,8 +350,19 @@ async function POST_core(req: NextRequest) {
   };
   persist();
 
+  // R122 · חוק הכנות: אין עוד ok:true אוטומטי — ההצלחה נמדדת מהקבלות
+  // (כל ביטול/הצבה שנדחה מפיל את ה-ok, כמו באח ה-STEEM) ומוצלבת מול
+  // אימות-השרשרת: מה באמת פתוח שם.
+  const opsOk =
+    receipt.cancelled.every((c) => c.accepted) && receipt.placed.every((p) => p.accepted);
+  const placedAccepted = receipt.placed.filter((p) => p.accepted).length;
+  const cancelAccepted = receipt.cancelled.filter((c) => c.accepted).length;
+  const anyOp = receipt.cancelled.length + receipt.placed.length > 0;
+  const chainOk = (receipt.verify?.ordersNow ?? 0) > 0;
+  const ok = opsOk && (chainOk || placedAccepted > 0 || cancelAccepted > 0 || !anyOp);
+
   return NextResponse.json({
-    ok: true,
+    ok,
     kind: receipt.kind,
     at: receipt.at,
     parity,
@@ -359,5 +370,8 @@ async function POST_core(req: NextRequest) {
     placed: receipt.placed.length,
     verify: receipt.verify,
     notes: receipt.placed.filter((p) => !p.accepted).map((p) => ({ orderid: p.orderid, note: p.note })),
+    he: ok
+      ? `רגל HIVE הוצמדה מחדש (נמדד): בוטלו ${cancelAccepted}/${receipt.cancelled.length} · הוצבו ${placedAccepted}/${receipt.placed.length} · בשרשרת ${receipt.verify?.ordersNow ?? "—"} פקודות`
+      : "ה-reprice נכשל בכנות — לפחות ביטול/הצבה אחד נדחה; הקבלה המלאה ב-receipts (שום כסף לא אבד: העטיפה מוחזרת בכל כשל)",
   });
 }

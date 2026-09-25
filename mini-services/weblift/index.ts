@@ -106,8 +106,10 @@ function saveState(): void {
   try {
     fs.mkdirSync(`${HOME}/sovereign/weblift`, { recursive: true });
     fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + "\n");
-  } catch {
-    /* דיסק — לא קריטי לפעימה */
+  } catch (e) {
+    // אי-כתיבה אינה קטלנית לפעימה — אבל היא חייבת להיות נראית ביומן
+    // הדיבון (כנות: כשל-דיסק נרשם, לא נבלע בשקט).
+    console.error(`[weblift] saveState נכשל — מצב לא נשמר לדיסק: ${String((e as Error)?.message ?? e)}`);
   }
 }
 
@@ -117,9 +119,17 @@ function decide(kind: string, detail: string): void {
 
 /** מפיק שורת-סיכום מפלט הסוכן — השורה החיה של מצב השרשרת */
 function summarize(lines: string[]): string | null {
-  for (let i = lines.length - 1; i >= 0; i--) {
-    const m = /רצף \d+ צ׳אנקים · תווים (\d+)\/(\d+)/.exec(lines[i]);
-    if (m) return `רצף קונטיגואלי · תווים ${m[1]}/${m[2]} על השרשרת`;
+  // צבירה-כנה: כל חבילה מדפיסה שורת-התקדמות משלה — הסיכום מחבר את
+  // כולן (מספר חבילות · תווים שהועלו/סך-הכל), לא מציג רק את האחרונה.
+  const progress = lines
+    .map((ln) => /רצף \d+ צ׳אנקים · תווים (\d+)\/(\d+)/.exec(ln))
+    .filter((m): m is RegExpExecArray => m !== null);
+  if (progress.length) {
+    const done = progress.reduce((s, m) => s + Number(m[1]), 0);
+    const total = progress.reduce((s, m) => s + Number(m[2]), 0);
+    return progress.length === 1
+      ? `רצף קונטיגואלי · תווים ${done}/${total} על השרשרת`
+      : `${progress.length} חבילות · תווים ${done}/${total} על השרשרת`;
   }
   for (let i = lines.length - 1; i >= 0; i--) {
     if (/אפס משימות ממתינות/.test(lines[i])) return "אפס משימות — ההגירה שלמה";

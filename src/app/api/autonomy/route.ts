@@ -119,12 +119,9 @@ async function composeState() {
         ? "הדופק לא נמדד בסנדבוקס הזה — השירות (mini-services/pulse · פורט 3033) אינו זמין כרגע. זו מדידה, לא כישלון מוסתר: הקנון והשרשרת הם האמת."
         : null,
     receipts,
-    policy: pulse?.policy ?? {
-      maxPerUtcDay: 1,
-      rotation: ["draft-truth-he", "draft-liquidity-he", "draft-truth-en"],
-      attemptsBudget: 3,
-      truthSource: "api.steemit.com · last_root_post",
-    },
+    // R122 · חוק ה-null: כשהדיבון לא נמדד — אין מדיניות-מוצגת מהזיכרון.
+    // המדיניות האמיתית חיה בדיבון עצמו; daemonDown מגלה בגלוי למה.
+    policy: pulse?.policy ?? null,
     doctrine: [
       "הדופק מחליט מתי — הקול (R79) מחליט איך — המפתח לא נמצא באף אחד מהם.",
       "מקסימום פוסט אחד ליום-UTC: ריבונות פירושה משמעות, לא רעש.",

@@ -236,12 +236,12 @@ async function moneySide() {
     grid: {
       armed: g?.armed ?? false,
       verdict: g?.verdict ?? null,
-      filledTotal: g?.run?.filledTotal ?? 0,
-      externalFlowUsd: g?.externalFlowUsd ?? 0,
+      filledTotal: g?.run?.filledTotal ?? null,
+      externalFlowUsd: g?.externalFlowUsd ?? null,
       blockers: g?.blocker ?? [],
     },
     deposits: {
-      total: k?.depositsTotal ?? 0,
+      total: k?.depositsTotal ?? null,
       chains: k?.chains ?? null,
       watching: k?.watching ?? null,
       cadenceMin: k?.cadenceMin ?? null,
@@ -341,54 +341,66 @@ async function composeDefi() {
   }
 
   // ── מצב הגלגל: כל חוליה עם המספר החי שלה ───────────────────────────
+  // R122 · חוק ה-null: מקור שנפל אינו אפס-נמדד — הערך נשאר null והתצוגה
+  // מציגה "—" (r119/r121: null כנה, לא אפס מומצא). ה-down[] מגלה את הכשל.
   const flywheel = {
     deposits: {
       label: "הפקדות חוץ נכנסות",
-      value: money?.deposits.total ?? 0,
+      value: money?.deposits.total ?? null,
       unit: "הפקדות",
-      detail: "4 כתובות ב-4 רשתות נצפות כל 20 דק׳ — ספר פתוח",
+      detail: `4 כתובות ב-4 רשתות נצפות${money?.deposits.cadenceMin != null ? ` כל ${money.deposits.cadenceMin} דק׳` : ""} — ספר פתוח`,
     },
     credit: {
       label: "זיכוי USDS",
-      value: (money?.deposits.total ?? 0) > 0 ? "מופעל" : "מוכן",
+      value: money?.deposits.total == null ? null : money.deposits.total > 0 ? "מופעל" : "מוכן",
       unit: "",
       detail: "כל הפקדה שנטענת → תביעה חתומה → זיכוי בשער הרשת",
     },
     market: {
       label: "שוק-הכספים",
-      value: world?.market.supplyUsds ?? 0,
+      value: world?.market.supplyUsds ?? null,
       unit: "USDS",
-      detail: `ניצולת ${(100 * (world?.market.utilization ?? 0)).toFixed(1)}% · ריבית הלוואה ${((world?.market.borrowApr ?? 0) * 100).toFixed(2)}% APR`,
+      detail: world
+        ? `ניצולת ${(100 * (world.market.utilization ?? 0)).toFixed(1)}% · ריבית הלוואה ${((world.market.borrowApr ?? 0) * 100).toFixed(2)}% APR`
+        : null,
     },
     liquidity: {
       label: "נזילות הבורסה",
-      value: world?.pools.reduce((s: number, p: any) => s + (p.ra ?? 0), 0) ?? 0,
+      value: world?.pools.reduce((s: number, p: any) => s + (p.ra ?? 0), 0) ?? null,
       unit: "USDS",
-      detail: `${world?.pools.length ?? 0} בריכות · ${world?.swaps ?? 0} החלפות · ${world?.fills ?? 0} מילויים`,
+      detail: world
+        ? `${world.pools.length} בריכות · ${world.swaps ?? 0} החלפות · ${world.fills ?? 0} מילויים`
+        : null,
     },
     fees: {
       label: "עמלות זורמות",
-      value: world?.pools.reduce((s: number, p: any) => s + (p.feeAccruedUsds ?? 0), 0) ?? 0,
+      value: world?.pools.reduce((s: number, p: any) => s + (p.feeAccruedUsds ?? 0), 0) ?? null,
       unit: "USDS",
       detail: "עמלות נמדדות מכל החלפה — לא מובטחות, לא מומצאות",
     },
     treasury: {
       label: "אוצר מתעצם",
-      value: world?.treasuryProfitEverUsds ?? world?.treasuryProfitUsds ?? 0,
+      value: world?.treasuryProfitEverUsds ?? world?.treasuryProfitUsds ?? null,
       unit: "USDS",
-      detail: `מצטבר-לנצח ${(world?.treasuryProfitEverUsds ?? 0).toFixed(1)} (מונוטוני — לעולם לא נשחק לדלק) · יתרה-עובדת ${(world?.treasuryProfitUsds ?? 0).toFixed(1)} (מזרימה-דלק-סולם) · +10% מריבית שוק-הכספים`,
+      detail: world
+        ? `מצטבר-לנצח ${(world.treasuryProfitEverUsds ?? 0).toFixed(1)} (מונוטוני — לעולם לא נשחק לדלק) · יתרה-עובדת ${(world.treasuryProfitUsds ?? 0).toFixed(1)} (מזרימה-דלק-סולם) · +10% מריבית שוק-הכספים`
+        : null,
     },
     save: {
       label: "חיסכון-USDS מרוויח",
-      value: world?.savings?.potUsds ?? 0,
+      value: world?.savings?.potUsds ?? null,
       unit: "USDS",
-      detail: `קרן ${(world?.savings?.potUsds ?? 0).toFixed(0)}$ · שולם-לחוסכים ${(world?.savings?.paidUsds ?? 0).toFixed(2)}$ · הכנסה-מדודה ${(world?.savings?.incomeSourceUsds ?? 0).toFixed(2)}$ (30% חית-עמלות + ריבית-כספת + עתודת-שוק)`,
+      detail: world?.savings
+        ? `קרן ${(world.savings.potUsds ?? 0).toFixed(0)}$ · שולם-לחוסכים ${(world.savings.paidUsds ?? 0).toFixed(2)}$ · הכנסה-מדודה ${(world.savings.incomeSourceUsds ?? 0).toFixed(2)}$ (30% חית-עמלות + ריבית-כספת + עתודת-שוק)`
+        : null,
     },
     grid: {
       label: "הגריד מזרים",
-      value: money?.grid.externalFlowUsd ?? 0,
+      value: money?.grid.externalFlowUsd ?? null,
       unit: "USD",
-      detail: `powerdown ≈$${(money?.weeklyUsd ?? 0).toFixed(2)}/שבוע · ${money?.grid.filledTotal ?? 0} מילויים`,
+      detail: money
+        ? `${money.weeklyUsd != null ? `powerdown ≈$${money.weeklyUsd.toFixed(2)}/שבוע` : "powerdown לא נמדד"} · ${money.grid.filledTotal ?? "—"} מילויים`
+        : null,
     },
   };
 
@@ -400,8 +412,8 @@ async function composeDefi() {
     flywheel,
     compounding: {
       note: "APY = (1+APR/n)^n−1 · הכספות מתומחרות יומית (harvest), שוק-הכספים רציף",
-      marketApy: world ? aprToApy(world.market.supplyApr, 365) : 0,
-      marketBorrowApy: world ? aprToApy(world.market.borrowApr, 365) : 0,
+      marketApy: world ? aprToApy(world.market.supplyApr, 365) : null,
+      marketBorrowApy: world ? aprToApy(world.market.borrowApr, 365) : null,
     },
     down,
     honesty:

@@ -190,7 +190,8 @@ interface AutonomyData {
     publishedAt: string | null;
     by: string;
   }>;
-  policy: PulseStatus["policy"];
+  // R122 · חוזה-כנות: policy היא null כשהדיבון לא נמדד (אין מדיניות-מהזיכרון)
+  policy: PulseStatus["policy"] | null;
   doctrine: string[];
   cached: boolean;
   stale: boolean;

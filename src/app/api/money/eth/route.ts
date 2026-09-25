@@ -85,13 +85,18 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const at = new Date().toISOString();
+  // R122 · חוק הסטטוס הכנה: JSON שגוי הוא 400 (שגיאת-לקוח); כשל-ביצוע
+  // (שרשרת, כספת, DB) הוא 500 — לא מוסווה כשגיאת-קלט.
+  let body: { action?: string; account?: string; to?: string; valueEth?: number };
   try {
-    const body = (await req.json()) as {
-      action?: string;
-      account?: string;
-      to?: string;
-      valueEth?: number;
-    };
+    body = (await req.json()) as typeof body;
+  } catch {
+    return NextResponse.json(
+      { ok: false, at, error: "BAD-BODY: גוף הבקשה אינו JSON תקין" },
+      { status: 400 },
+    );
+  }
+  try {
     if (body.action !== "send") {
       return NextResponse.json({ ok: false, error: "BAD-ACTION: send בלבד" }, { status: 400 });
     }
@@ -140,6 +145,9 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json({ at, gate: { id: gate.id, usdValue }, ...result });
   } catch (e) {
-    return NextResponse.json({ ok: false, at, error: String((e as Error).message ?? e).slice(0, 160) }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, at, error: `EXECUTE-FAILED: ${String((e as Error).message ?? e).slice(0, 160)}` },
+      { status: 500 },
+    );
   }
 }

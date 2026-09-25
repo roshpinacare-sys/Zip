@@ -20,6 +20,7 @@ import { NextRequest, NextResponse } from "next/server";
 import steemLibRaw from "steem";
 import { operatorFromRequest, OPERATOR_ACCOUNT, commanderActiveKey } from "@/lib/operator-auth";
 import { listRepoSecrets, putRepoSecret, getGridState } from "@/lib/live/grid-arm";
+import { remoteWorkflowScheduleDesc } from "@/lib/live/workflow-schedule";
 
 interface SteemAuth {
   auth: {
@@ -199,6 +200,11 @@ export async function POST(req: NextRequest) {
   key = "";
   wifToSeal = "";
 
+  // R122 · חוק הקדנס (r121): "מתי הגריד רץ" נקרא מה-workflow של saos-dex
+  // בפועל (דרך ה-API של גיטהאב) — לא מהזיכרון. שליפה שנכשלה = null כנה,
+  // לא מספר-זיכרון שהתיישן.
+  const gridSchedule = await remoteWorkflowScheduleDesc(DEX_REPO, "dex-grid.yml");
+
   return NextResponse.json({
     ok: true,
     stage: "armed",
@@ -207,7 +213,10 @@ export async function POST(req: NextRequest) {
     secretUpdatedAt: evidence?.updatedAt ?? null,
     verifiedAgainst: `chain:active@${OPERATOR_ACCOUNT}`,
     publicKey: pub,
-    nextScheduledRun: "dex-grid · 03:17 UTC יומי",
-    note: "המפתח נאטם בכספת המוצפנת של הריפו ורק ה-Actions שלו יכולים לפתוח. ההזנקה הידנית זמינה במרכז הפיקוד.",
+    nextScheduledRun: gridSchedule != null ? `dex-grid · ${gridSchedule}` : null,
+    note:
+      gridSchedule != null
+        ? "המפתח נאטם בכספת המוצפנת של הריפו ורק ה-Actions שלו יכולים לפתוח. ההזנקה הידנית זמינה במרכז הפיקוד."
+        : "המפתח נאטם בכספת הריפו — אך לוח-הזמנים של dex-grid לא נקרא מהענן ברגע זה (בלי טענת-זיכרון); ההזנקה הידנית זמינה במרכז הפיקוד.",
   });
 }

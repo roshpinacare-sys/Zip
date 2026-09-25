@@ -1,8 +1,8 @@
 {
   "service": "pulse",
   "version": "1.2.0",
-  "bootedAt": "2026-09-24T14:09:34.741Z",
-  "beats": 1351,
+  "bootedAt": "2026-09-25T00:22:27.807Z",
+  "beats": 1476,
   "checkIntervalSec": 30,
   "policy": {
     "maxPerUtcDay": 1,
@@ -16,19 +16,19 @@
     "charterCheckEveryBeats": 10,
     "charterAnchorsPerDay": 4
   },
-  "lastPublishUtcDay": "2026-09-24",
-  "nextDueAt": "2026-09-25T00:00:00.000Z",
+  "lastPublishUtcDay": "2026-09-25",
+  "nextDueAt": "2026-09-26T00:00:00.000Z",
   "attemptsToday": 0,
   "broadcasting": false,
   "lastDecision": {
-    "at": "2026-09-24T23:49:34.758Z",
+    "at": "2026-09-25T00:52:27.849Z",
     "kind": "WAIT",
-    "detail": "ממתין לחלון הבא (2026-09-25) · ניסיונות היום 0/3 · עיגוני צ'רטר 3/4"
+    "detail": "ממתין לחלון הבא (2026-09-26) · ניסיונות היום 0/3 · עיגוני צ'רטר 0/4 · בדיקת-שרשרת נכשלה: status 500"
   },
   "canonLast": {
-    "at": "2026-09-24T06:54:43.357Z",
+    "at": "2026-09-25T00:00:15.381Z",
     "ok": true,
-    "path": "reports/pulse-2026-09-24.md"
+    "path": "reports/pulse-2026-09-25.md"
   },
   "historyTail": [
     {
@@ -41,19 +41,33 @@
       "txid": null,
       "url": null,
       "attempt": 1
+    },
+    {
+      "at": "2026-09-25T00:00:13.542Z",
+      "utcDay": "2026-09-25",
+      "draftId": "draft-truth-he",
+      "kind": "TRUTH-REPORT",
+      "title": "THE WEAVE · דוח אמת — הרשת שמאמתת את עצמה (2026-09-25)",
+      "permlink": null,
+      "txid": null,
+      "url": null,
+      "attempt": 1
     }
   ],
   "charter": {
     "lastAnchorAt": "2026-09-24T14:59:09.003Z",
-    "anchorsToday": 3,
-    "anchorDay": "2026-09-24",
+    "anchorsToday": 0,
+    "anchorDay": "2026-09-25",
     "lastRoot": "0x0a2da5e72b26be28bac2855d10a05da312fb527c383273bb8167a062a0aed369",
     "lastTxid": "6497e2f5ed55986d142f9bdc72c29cc810a88c63",
     "anchoring": false,
     "lastDecision": {
-      "at": "2026-09-24T23:49:04.787Z",
+      "at": "2026-09-25T00:49:27.899Z",
       "kind": "CHARTER-ANCHOR-FAIL",
       "detail": "עיגון הצ'רטרים נכשל בכנות: אין פרויקטים במרשם — אין מה לעגן (fail-closed כנה)"
     }
-  }
+  },
+  "windowSeededFromChain": false,
+  "lastSeedAt": null,
+  "seedError": "status 500"
 }
