@@ -30,7 +30,6 @@ import {
   CURATION_STATE_FILE,
   CURATION_VOTER,
   appendCurationHistory,
-  castVote,
   discoverCandidates,
   manaBudgetVerdict,
   readCurationState,
@@ -153,8 +152,27 @@ async function tick(): Promise<void> {
           `אף מועמד מעל סף ${CURATION_POLICY.voteScoreThreshold}${top ? ` — הטוב ביותר: @${top.author} ${top.score}′ (גיל ${top.ageMin}ד', ${top.votes} הצבעות)` : " — הפיד ריק ממועמדים כרגע"} · כנות: לא מצביעים בלי סיבה`
         );
       } else {
-        // 6) ההצבעה — אחת בלבד לפעימה. שער-RC בפנים; כישלון כנה לא שורף תקציב.
-        const res = await castVote({ author: top.author, permlink: top.permlink, weightPct: CURATION_POLICY.weightPctPerVote });
+        // 6) ההצבעה — אחת בלבד לפעימה. הדיבון מחליט; ה-API משדר (חוק פרימיטיב-המפתח
+        //    r128: node:sqlite של הכספת אינו קיים בהקשר Bun — ערוץ השידור הוא Next,
+        //    בדיוק כמו מוביל-הכסף. שער-RC בפנים; כישלון כנה לא שורף תקציב.
+        const res = (await fetch("http://localhost:3000/api/curation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "cast-vote",
+            author: top.author,
+            permlink: top.permlink,
+            weightPct: CURATION_POLICY.weightPctPerVote,
+            score: top.score,
+          }),
+          signal: AbortSignal.timeout(60_000),
+        })
+          .then((x) => x.json() as Promise<{ ok?: boolean; txid?: string | null; note?: string }>)
+          .catch(() => ({ ok: false, note: "שער השידור (ה-API) לא ענה — ננסה בפעימה הבאה" }))) as {
+          ok: boolean;
+          txid: string | null;
+          note: string;
+        };
         if (res.ok) {
           state.votesToday += 1;
           state.lastVoteAt = new Date().toISOString();

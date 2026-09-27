@@ -2,7 +2,7 @@
   "service": "money-mover",
   "version": "1.9.0",
   "bootedAt": "2026-09-27T15:49:10.743Z",
-  "beats": 960,
+  "beats": 970,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -37,14 +37,14 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-09-27T17:21:46.424Z",
+  "lastActionAt": "2026-09-27T17:51:46.439Z",
   "actionsToday": 8,
   "actionDay": "2026-09-27",
-  "acting": false,
+  "acting": true,
   "lastDecision": {
-    "at": "2026-09-27T17:41:46.441Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 10 דק' · WAIT-COOLDOWN · עוד 10 דק'"
+    "at": "2026-09-27T17:51:46.439Z",
+    "kind": "ACTING",
+    "detail": "נזיל 436.052 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)"
   },
   "canonLast": {
     "at": "2026-09-27T17:22:11.299Z",
@@ -52,7 +52,7 @@
     "path": "reports/money-2026-09-27.md"
   },
   "fillsSeen": 10,
-  "lastDepositScanAt": "2026-09-27T17:37:46.431Z",
+  "lastDepositScanAt": "2026-09-27T17:47:46.441Z",
   "lastStreamDay": "2026-09-27",
   "lastTotalSteem": 834.878,
   "fleetSeen": {
@@ -60,6 +60,35 @@
     "studentDay": "2026-09-27",
     "keeperRestartAt": "2026-09-27T15:49:10.710Z"
   },
-  "lastPoolGuardAt": "2026-09-27T17:36:46.434Z",
-  "lastFleetSweepAt": "2026-09-27T17:38:23.333Z"
+  "lastPoolGuardAt": "2026-09-27T17:46:46.437Z",
+  "lastFleetSweepAt": "2026-09-27T17:48:46.448Z",
+  "lastReceipt": {
+    "at": "2026-09-27T17:51:47.613Z",
+    "kind": "REPRICE",
+    "reason": "נזיל 436.052 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
+    "parity": 0.11242411666165397,
+    "cancelled": [
+      {
+        "orderid": 2026092701,
+        "txid": "0a3b9517502a811c8df454af3f7a19d195d75d05"
+      },
+      {
+        "orderid": 2026092702,
+        "txid": "043673e128ef54d8d3c7cd1ccb98e7c8fe89d9a3"
+      },
+      {
+        "orderid": 2026092703,
+        "txid": "b752c100490cdb84c4b43fc4442180438b1eb3d5"
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026092701,
+        "sell": 132.942,
+        "receive": 14.946,
+        "price": 0.112425,
+        "txid": "ff0832e062ad0da63bd63329e711631ef48c7962"
+      }
+    ]
+  }
 }

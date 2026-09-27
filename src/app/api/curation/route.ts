@@ -16,7 +16,9 @@
 import { NextResponse } from "next/server";
 import {
   CURATION_POLICY,
+  CURATION_VOTER,
   appendCurationHistory,
+  castVote,
   discoverCandidates,
   readCurationState,
   readVotingPower,
@@ -79,7 +81,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json().catch(() => ({}))) as { action?: string; reason?: string };
+    const body = (await req.json().catch(() => ({}))) as {
+      action?: string;
+      reason?: string;
+      author?: string;
+      permlink?: string;
+      weightPct?: number;
+      score?: number;
+    };
     const action = String(body.action ?? "");
     const reason = String(body.reason ?? "").slice(0, 200);
 
@@ -183,8 +192,39 @@ export async function POST(req: Request) {
       });
     }
 
+    // ── שידור הצבעה דרך ה-API (חוק פרימיטיב-המפתח r128): הכספת נפתחת
+    //    בהקשר Next בלבד — node:sqlite אינו קיים בהקשר Bun של הדיבון.
+    //    הדיבון מחליט ומנהל את הפנקס; ה-API הוא ערוץ השידור —
+    //    אותו דפוס שמוכח אצל מוביל-הכסף מאז יומו.
+    if (action === "cast-vote") {
+      const author = String(body.author ?? "").trim().toLowerCase();
+      const permlink = String(body.permlink ?? "").trim();
+      const weightPct = Number(body.weightPct ?? CURATION_POLICY.weightPctPerVote);
+      // קו-הגנה אחרון בצד המשדר: החוקים נבדקים כאן שוב — לא רק אצל הדיבון.
+      if (!/^[a-z0-9.\-]{3,16}$/.test(author)) {
+        return NextResponse.json({ ok: false, action, error: "BAD-AUTHOR" }, { status: 400 });
+      }
+      if (author === CURATION_VOTER) {
+        return NextResponse.json({ ok: false, action, error: "SELF-VOTE-BLOCKED: החוק נאכף בשער השידור" }, { status: 403 });
+      }
+      if (!Number.isFinite(weightPct) || weightPct <= 0 || weightPct > CURATION_POLICY.weightPctPerVote) {
+        return NextResponse.json({ ok: false, action, error: `WEIGHT-CAP: משקל מעל ${CURATION_POLICY.weightPctPerVote}% אסור בשער` }, { status: 400 });
+      }
+      const state = readCurationState();
+      const key = `${author}/${permlink}`;
+      if (state.votedPosts.some((v) => `${v.author}/${v.permlink}` === key)) {
+        return NextResponse.json({ ok: false, action, error: "DOUBLE-VOTE-BLOCKED: פוסט זה כבר הוצבע" }, { status: 409 });
+      }
+      const res = await castVote({ author, permlink, weightPct });
+      appendCurationHistory(
+        res.ok ? "API-VOTE" : "API-VOTE-FAIL",
+        `${res.note} · שודר עבור הדיבון (score ${String(body.score ?? "n/a")})`
+      );
+      return NextResponse.json({ ok: res.ok, action, txid: res.txid, note: res.note, rcGate: res.rcGate ?? null });
+    }
+
     return NextResponse.json(
-      { ok: false, error: `פעולה לא מוכרת: ${action || "(ריק)"} — arm | pause | resume | disarm | discover` },
+      { ok: false, error: `פעולה לא מוכרת: ${action || "(ריק)"} — arm | pause | resume | disarm | discover | cast-vote` },
       { status: 400 },
     );
   } catch (e) {
