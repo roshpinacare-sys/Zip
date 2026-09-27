@@ -29,6 +29,7 @@ const DAEMONS = [
   { name: "student", port: 3037, dir: `${HOME}/mini-services/student` },
   { name: "fleet-verify", port: 3038, dir: `${HOME}/mini-services/fleet-verify` },
   { name: "weblift", port: 3039, dir: `${HOME}/mini-services/weblift` }, // R120: מעלה התוכן — המשך הגירת רשת-האחסון לשרשרת
+  { name: "curation", port: 3040, dir: `${HOME}/mini-services/curation` }, // r128: דיבון האוצרות — הפעלת כוח-ההצבעה (עולה בגילוי-בלבד; חימוש בידי המפעיל)
 ];
 
 function httpOk(port, timeoutMs = 2500) {

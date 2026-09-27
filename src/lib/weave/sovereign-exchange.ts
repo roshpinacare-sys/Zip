@@ -92,6 +92,51 @@ async function eventExists(kind: string, txid: string): Promise<boolean> {
   return n > 0;
 }
 
+// ── R128 — מגע-ראשון: חיישן פער הלקוחות ─────────────────────────────
+// ממצא 2-d: לקוח/מבקר חיצוני בזירה — אפס מטפל, אין מדידה. ההפקדה
+// הראשונה של חשבון חיצוני היא המדד-המוביל של פער הלקוחות (r127:
+// "אפס לקוחות" נטען אך לא נמדד). אירוע FIRST-TOUCH נכתב פעם אחת
+// לכל חשבון — השוואת חברים ברשתות-הגרפן (steem/hive/blurt חולקות
+// מרחב-שמות) וכתובות-האוצר של SOL/ETH לא נספרות כלקוחות (הפקדה
+// עצמית אינה מגע-לקוח). חשבונות חוץ שהפקידו לפני החיישן אינם
+// נספרים כחדשים — הבדיקה רואה גם את רישומי ההיסטוריה.
+
+/** חשבונות הרשת שלנו — הפקדה מהם היא העברה פנימית, לא מגע-לקוח */
+const FIRST_TOUCH_EXCLUDE = new Set(["headcorner", "cashmachine", "haran", "lsa", "macrame", "saos"]);
+
+/** האם חשבון-חוץ נראה כבר בספר? שתי בדיקות: אירוע FIRST-TOUCH קיים
+ *  לחשבון (member מדויק), או רישום הפקדה היסטורי שנושא את החשבון
+ *  ב-payload. הבדיקה חייבת לרוץ לפני כתיבת זיכוי-ההפקדה של
+ *  אותו חשבון — אחרת האירוע שלנו עצמו היה "רואה" אותו. */
+async function accountSeenBefore(account: string): Promise<boolean> {
+  if (!account) return true; // אין חשבון למדידה — לא מגע-ראשון (כנות)
+  const touched = await db.exchangeEvent.findFirst({ where: { kind: "FIRST-TOUCH", member: account } });
+  if (touched) return true;
+  const n = await db.exchangeEvent.count({
+    where: { kind: "DEPOSIT_CREDIT", payload: { contains: `"from":"${account}"` } },
+  });
+  return n > 0;
+}
+
+/** בדיקת-קריאה בלבד: האם ההפקדה הזאת היא מגע-ראשון של החשבון? */
+async function isFirstTouchCandidate(chain: string, account: string): Promise<boolean> {
+  if (!account) return false;
+  if (chain !== "solana" && chain !== "ethereum" && FIRST_TOUCH_EXCLUDE.has(account)) return false;
+  if (account === SOL_TREASURY_PUB) return false;
+  if (account.toLowerCase() === ETH_TREASURY_ADDR.toLowerCase()) return false;
+  return !(await accountSeenBefore(account));
+}
+
+/** כתיבת אירוע המגע-הראשון — member = החשבון החיצוני (מפתח
+ *  האידמפוטנטיות המדויק לשאילתא). usdValue null: זהו מדד-לקוח,
+ *  לא סכום-כסף. */
+async function writeFirstTouch(chain: string, account: string, member: string, asset: ExchangeAsset, amount: number): Promise<void> {
+  await chainEvent("FIRST-TOUCH", account, {
+    account, chain, member, asset, amount,
+    note: `מגע-ראשון — ההפקדה הראשונה של ${account} (${chain}) לזירה, במזכיר wx:${member}`,
+  }, null);
+}
+
 // ── מאזנים ───────────────────────────────────────────────────────────
 
 type Balances = Partial<Record<ExchangeAsset, number>>;
@@ -471,6 +516,22 @@ export async function swap(params: {
       assetIn, assetOut, minOut, feeBps: pool.feeBps,
       reservesAfter: { a: rA, b: rB },
     }, q.usdValue);
+    // R128 — אירוע FEE: העמלה שנשארת בבריכה נכתבת סוף סוף לספר. עד כאן
+    // swap() תיעד feeBps בתוך אירוע ה-SWAP אך לעולם לא כתב אירוע FEE —
+    // ו-income.ts מסכם רק kind:"FEE" (ממצא 2-a: עמלות הזירה היו בלתי-נראות
+    // לנצח, $0 גם כשנפח יבוא). החישוב (x·y=k): העמלה נגבית מהצד הנכנס —
+    // fee = amountIn × feeBps/10000; ההמרה לדולר בשער החי של נכס-הקלט
+    // ברגע ההחלפה. אין שער → usdValue null בכנות, ההערה מתעדת את החישוב.
+    const feeIn = (params.amountIn * pool.feeBps) / 10000;
+    const feeUsd = q.usdValue != null ? (q.usdValue * pool.feeBps) / 10000 : null;
+    await chainEvent("FEE", params.member, {
+      pair: params.pair, side: params.side, assetIn, feeBps: pool.feeBps, feeIn,
+      swapSeq: ev.seq,
+      note: `fee = amountIn × feeBps/10000 = ${params.amountIn} × ${pool.feeBps}/10000 ${assetIn} — נשאר בבריכה (ערך ה-LP של האוצר צומח)`,
+      usdNote: feeUsd == null
+        ? "אין שער חי לנכס הנכנס בעת ההחלפה — usdValue לא נמדד בכנות"
+        : `usdValue = feeIn × שער-חי של ${assetIn} בעת ההחלפה`,
+    }, feeUsd);
     return { ok: true, detail: `הוחלף ${params.amountIn} ${assetIn} ← ${q.expectedOut} ${assetOut} (עמלה ${pool.feeBps}bps לבריכה)`, event: ev, quote: q };
   } catch (e) {
     return { ok: false, detail: "SWAP-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
@@ -590,11 +651,18 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
       if (await eventExists("DEPOSIT_CREDIT", txid)) continue;
       const asset = leg.mapAsset(amt);
       if (!asset) continue;
+      // R128 — מגע-ראשון: הבדיקה לפני כתיבת הזיכוי (אחרת האירוע שלנו עצמו יספור את החשבון)
+      const from = String(t.from ?? "");
+      const firstTouch = await isFirstTouchCandidate(leg.chain, from);
       await adjust(member, asset, num);
       await chainEvent("DEPOSIT_CREDIT", member, {
-        txid, from: t.from, asset, amount: num, memo: t.memo, chain: leg.chain,
+        txid, from, asset, amount: num, memo: t.memo, chain: leg.chain,
         evidence: `${leg.chain}:get_account_history(${TREASURY}) trx_id=${txid}`,
       }, null);
+      if (firstTouch) {
+        await writeFirstTouch(leg.chain, from, member, asset, num);
+        details.push(`${leg.chain}: מגע-ראשון — ${from} (לקוח חדש בזירה)`);
+      }
       credited++;
       details.push(`${leg.chain}: ${t.from} → ${member}: ${num} ${asset} (txid ${txid.slice(0, 10)}…)`);
     }
@@ -620,10 +688,12 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
       if (!tx || tx.meta?.err != null) continue; // טרם-finalized או נכשל — הסריקה הבאה תראה
       const instrs = tx.transaction?.message?.instructions ?? [];
       let lamportsIn = 0;
+      let solSource = ""; // R128 — כתובת-השולח לחיישן מגע-ראשון ולרישום
       for (const ins of instrs) {
-        const parsed = ins.parsed as { type?: string; info?: { destination?: unknown; lamports?: number } } | undefined;
+        const parsed = ins.parsed as { type?: string; info?: { destination?: unknown; lamports?: number; source?: unknown } } | undefined;
         if (parsed?.type === "transfer" && String(parsed.info?.destination ?? "") === SOL_TREASURY_PUB) {
           lamportsIn += Number(parsed.info?.lamports ?? 0);
+          if (!solSource) solSource = String(parsed.info?.source ?? "");
         }
       }
       if (lamportsIn <= 0) continue;
@@ -646,11 +716,17 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
       if (!member) continue; // העברה ללא מזכר — אין ייחוס, בכנות לא נזקפת
       const amt = lamportsIn / 1e9;
       if (!(amt > 0)) continue;
+      // R128 — מגע-ראשון לפני כתיבת הזיכוי; from נשמר גם ברישום (חיישן היסטורי)
+      const firstTouch = await isFirstTouchCandidate("solana", solSource);
       await adjust(member, "WSOL", amt);
       await chainEvent("DEPOSIT_CREDIT", member, {
-        txid: s.signature, asset: "WSOL", amount: amt, memo: `wx:${member}`, chain: "solana",
+        txid: s.signature, from: solSource, asset: "WSOL", amount: amt, memo: `wx:${member}`, chain: "solana",
         evidence: `solana:getSignaturesForAddress+getTransaction(${SOL_TREASURY_PUB}) sig=${s.signature}`,
       }, null);
+      if (firstTouch) {
+        await writeFirstTouch("solana", solSource, member, "WSOL", amt);
+        details.push(`solana: מגע-ראשון — ${solSource.slice(0, 10)}… (לקוח חדש בזירה)`);
+      }
       credited++;
       details.push(`solana: ${amt} SOL → ${member}: WSOL (sig ${s.signature.slice(0, 10)}…)`);
     }
@@ -666,7 +742,7 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
       signal: AbortSignal.timeout(12_000),
     });
     const j = (await r.json()) as {
-      items?: Array<{ hash?: string; to?: { hash?: string } | null; value?: string; status?: string; result?: string; input?: string }>;
+      items?: Array<{ hash?: string; from?: { hash?: string } | null; to?: { hash?: string } | null; value?: string; status?: string; result?: string; input?: string }>;
     };
     const items = j.items ?? [];
     scanned += items.length;
@@ -687,11 +763,18 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
         }
       } catch { /* אין מזכר */ }
       if (!member) continue; // העברה ללא מזכר — אין ייחוס, בכנות לא נזקפת
+      // R128 — מגע-ראשון לפני כתיבת הזיכוי; from נשמר גם ברישום (חיישן היסטורי)
+      const fromEth = String(t.from?.hash ?? "");
+      const firstTouch = await isFirstTouchCandidate("ethereum", fromEth);
       await adjust(member, "WETH", ethVal);
       await chainEvent("DEPOSIT_CREDIT", member, {
-        txid: hash, asset: "WETH", amount: ethVal, memo: `wx:${member}`, chain: "ethereum",
+        txid: hash, from: fromEth, asset: "WETH", amount: ethVal, memo: `wx:${member}`, chain: "ethereum",
         evidence: `blockscout:eth address=${ETH_TREASURY_ADDR} hash=${hash}`,
       }, null);
+      if (firstTouch) {
+        await writeFirstTouch("ethereum", fromEth, member, "WETH", ethVal);
+        details.push(`ethereum: מגע-ראשון — ${fromEth.slice(0, 10)}… (לקוח חדש בזירה)`);
+      }
       credited++;
       details.push(`ethereum: ${ethVal} ETH → ${member}: WETH (txid ${hash.slice(0, 10)}…)`);
     }

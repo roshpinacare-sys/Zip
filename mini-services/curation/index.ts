@@ -1,0 +1,261 @@
+// ─────────────────────────────────────────────────────────────────────
+// CURATION — דיבון האוצרות · הפעלת כוח-ההצבעה הבטל (r128 · Task 4-a)
+//
+// החוזה: פעימה כל 15 דקות. כל פעימה: מדידת כוח-הצבעה חיה מהשרשרת,
+// גילוי מועמדים מהפיד החי (created לפי תגיות), ניקוד-תזמון מתועד,
+// ואז — רק אם חמוש, בתקציב, מעל הרצפה ומעל סף הניקוד — הצבעה אחת
+// בלבד לכל פעימה (פרישה טבעית). המנוע חי ב-src/lib/weave/curation.ts —
+// הדיבון הוא לב-פעימה, אותו שאסיפוס של הדופק והצייד.
+//
+// חוקי-ברזל:
+//   · עולה במצב DISCOVER-ONLY (armed=false) — החימוש החלטת מפעיל בלבד
+//     (POST /api/curation {action:"arm"}); עד אז: מגלה, מנקד, מתעד — לא מצביע
+//   · מקסימום הצבעה אחת לפעימה · מקסימום 10/יום · 2% להצבעה · ≤20% מנה/יום
+//   · רצפת כוח-הצבעה 85% — מתחת: יום-החזקה כנה, לא "בכל זאת מצביעים"
+//   · אין self, אין אותו פוסט פעמיים, אין 1/מחבר/יום פעמיים, אין ביד-בוטים
+//   · שער-RC לפני כל שידור — דילוג-כנה שנרשם, לא כשל
+//   · כל החלטה — גם דילוג — נרשמת בפנקס ובהיסטוריה (כנות מלאה)
+//   · הדיבון נצרך מ-localhost בלבד · טיימר-יחיד · שרת-יחיד · כתיבה-אטומית
+// ─────────────────────────────────────────────────────────────────────
+
+import fs from "node:fs";
+
+// זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו בדופק/צייד)
+declare const Bun: {
+  serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
+};
+
+import {
+  CURATION_POLICY,
+  CURATION_STATE_FILE,
+  CURATION_VOTER,
+  appendCurationHistory,
+  castVote,
+  discoverCandidates,
+  manaBudgetVerdict,
+  readCurationState,
+  readVotingPower,
+  saveCurationState,
+  utcDay,
+  type CurationState,
+  type Decision,
+} from "../../src/lib/weave/curation";
+
+const PORT = 3040;
+const TICK_SEC = 15 * 60; // פעימה כל 15 דק' — פרישה טבעית של ההצבעות
+
+// ── ציר-העולם (R124): דור-חם יורש את אובייקט-המצב החי — קריאת-דיסק בכל
+// דור הייתה חושפת את הפנקס לשכתוב-מדור-קפוא. האיתחול היחיד: עלייה ראשונה.
+const G_CURATION = globalThis as unknown as { __CURATION_STATE__?: CurationState };
+let state: CurationState = G_CURATION.__CURATION_STATE__ ?? readCurationState();
+G_CURATION.__CURATION_STATE__ = state;
+
+// חוק שדות-הבקרה: ה-API רשאי לכתוב armed/paused ישירות לדיסק (כשאנחנו
+// לא מספיקים לענות). הכתיבה שלנו לעולם לא תדרוס החלטת מפעיל — לכן לפני
+// כל שמירה מתמזגים השדות מהדיסק, אלא אם השינוי מקורו בנו (controlDirty).
+let controlDirty = false;
+
+function setControl(patch: { armed?: boolean; paused?: boolean; pauseReason?: string | null }): void {
+  if (patch.armed !== undefined) state.armed = patch.armed;
+  if (patch.paused !== undefined) state.paused = patch.paused;
+  if (patch.pauseReason !== undefined) state.pauseReason = patch.pauseReason;
+  controlDirty = true;
+}
+
+function mergeControlFromDisk(): void {
+  // חוק שדות-הבקרה: הדיסק הוא הסמכות ל-armed/paused — ה-API רשאי לכתוב אותם
+  // ישירות לפנקס (נפילה-כנות כשלא ענינו בזמן). מיזוג בפתיחת כל פעימה
+  // ולפני כל שמירה — החלטת מפעיל לעולם לא תידרס ולא תמתין יותר מפעימה.
+  try {
+    const disk = JSON.parse(fs.readFileSync(CURATION_STATE_FILE, "utf8")) as Partial<CurationState>;
+    state.armed = disk.armed === true;
+    state.paused = disk.paused === true;
+    state.pauseReason = disk.pauseReason ?? null;
+  } catch {
+    /* אין קובץ עדיין — הזיכרון הוא האמת */
+  }
+}
+
+function saveState(): void {
+  if (!controlDirty) mergeControlFromDisk();
+  controlDirty = false;
+  saveCurationState(state);
+}
+
+function decide(kind: string, detail: string, toHistory = true): void {
+  const d: Decision = { at: new Date().toISOString(), kind, detail };
+  state.lastDecision = d;
+  if (toHistory) appendCurationHistory(kind, detail);
+}
+
+// ── פעימת האוצרות ────────────────────────────────────────────────────
+let ticking = false;
+
+async function tick(): Promise<void> {
+  if (ticking) return; // לולאה-יחידה
+  ticking = true;
+  try {
+    // מיזוג שדות-הבקרה לפני כל החלטה — פעולת מפעיל שנכתבה לפנקס בין
+    // הפעימות נכנסת לתוקף מיד בפעימה זו, בלי החלטה מיושנת אחת חינם
+    mergeControlFromDisk();
+    state.beats += 1;
+    const day = utcDay();
+
+    // גלגול יום-UTC כנה — התקציב מתאפס רק בחצות אמיתי
+    if (state.voteDay !== day) {
+      const rolled = { day: state.voteDay, votes: state.votesToday };
+      state.voteDay = day;
+      state.votesToday = 0;
+      state.votedAuthorsToday = [];
+      decide("DAY-ROLLOVER", `יום-UTC חדש (${day}) — התקציב התאפס (אתמול: ${rolled.votes} הצבעות ב-${rolled.day})`);
+    }
+
+    // 1) מדידה חיה של כוח-ההצבעה — השרשרת שופטת, לא הזיכרון
+    const power = await readVotingPower(CURATION_VOTER);
+    state.votingPowerLast = { at: new Date().toISOString(), pct: power.pct, ...(power.ok ? {} : { detail: power.detail }) };
+
+    // 2) גילוי — הפיד החי + הפנקס (אותו פוסט פעמיים / מחבר-של-היום)
+    const votedKeys = new Set(state.votedPosts.map((v) => `${v.author}/${v.permlink}`));
+    const authorsToday = new Set(state.votedAuthorsToday);
+    const disc = await discoverCandidates({ votedKeys, authorsToday });
+    state.candidatesSeen += disc.candidates.length;
+    state.lastDiscovery = {
+      at: disc.at,
+      node: disc.node,
+      fetched: disc.fetched,
+      candidates: disc.candidates.slice(0, 10), // עשירייה ראשונה בפנקס — השאר בהיסטוריית הלוג
+      filtered: disc.filtered,
+    };
+
+    // 3) בקרת-בטיחות: השהיה יזומה
+    if (state.paused) {
+      decide("PAUSED", `מושהה ע"י המפעיל${state.pauseReason ? ` — ${state.pauseReason}` : ""} · הגילוי ממשיך למדוד (${disc.candidates.length} מועמדים, כוח ${power.pct ?? "?"}%) — אפס הצבעות`);
+    }
+    // 4) בקרת-בטיחות r128: לא חמוש — גילוי-בלבד. זהו סף-ההפעלה עד החלטת המפעיל.
+    else if (!state.armed) {
+      const top = disc.candidates[0];
+      decide(
+        "DISCOVER-ONLY",
+        `לא חמוש — מגלה ומנקד בלבד${disc.error ? ` · שגיאת גילוי כנה: ${disc.error}` : ""} · ${disc.candidates.length} מועמדים מ-${disc.fetched} פוסטים${top ? ` · המוביל: @${top.author} ${top.score}′ (גיל ${top.ageMin}ד')` : ""} · כושר ${power.pct ?? "?"}%${power.pct != null && power.pct < CURATION_POLICY.votingPowerFloorPct ? " (מתחת לרצפה — גם חימוש לא היה מצביע)" : ""}`
+      );
+    }
+    // 5) תקציב / רצפה — חוקי המנה
+    else if (disc.error) {
+      decide("DISCOVER-FAIL", `הגילוי נכשל בכנות: ${disc.error} — אין מועמדים להצבעה בפעימה זו`);
+    } else {
+      const verdict = manaBudgetVerdict(state, power.pct);
+      const top = disc.candidates[0];
+      if (verdict) {
+        decide("HOLD", `${verdict} · הגילוי ממשיך ברקע (${disc.candidates.length} מועמדים נראו)`);
+      } else if (!top || top.score < CURATION_POLICY.voteScoreThreshold) {
+        decide(
+          "WAIT-NO-CANDIDATE",
+          `אף מועמד מעל סף ${CURATION_POLICY.voteScoreThreshold}${top ? ` — הטוב ביותר: @${top.author} ${top.score}′ (גיל ${top.ageMin}ד', ${top.votes} הצבעות)` : " — הפיד ריק ממועמדים כרגע"} · כנות: לא מצביעים בלי סיבה`
+        );
+      } else {
+        // 6) ההצבעה — אחת בלבד לפעימה. שער-RC בפנים; כישלון כנה לא שורף תקציב.
+        const res = await castVote({ author: top.author, permlink: top.permlink, weightPct: CURATION_POLICY.weightPctPerVote });
+        if (res.ok) {
+          state.votesToday += 1;
+          state.lastVoteAt = new Date().toISOString();
+          state.votedPosts = [...state.votedPosts, { author: top.author, permlink: top.permlink, at: state.lastVoteAt, txid: res.txid, weightPct: CURATION_POLICY.weightPctPerVote, score: top.score }].slice(-CURATION_POLICY.votedPostsCap);
+          state.votedAuthorsToday = [...state.votedAuthorsToday, top.author];
+          decide(
+            "VOTE",
+            `הוצבע ${CURATION_POLICY.weightPctPerVote}% על @${top.author}/${top.permlink.slice(0, 48)} (ניקוד ${top.score}, גיל ${top.ageMin}ד', כוח לפני ${(power.pct ?? 0).toFixed(1)}%) · txid ${res.txid} · היום ${state.votesToday}/${CURATION_POLICY.maxVotesPerDay}`,
+            true
+          );
+        } else {
+          decide("VOTE-SKIP", `ההצבעה על @${top.author} לא בוצעה: ${res.note} — ננסה שוב בפעימה הבאה (התקציב לא נשחק)`, true);
+        }
+      }
+    }
+
+    saveState();
+  } catch (e) {
+    decide("ERROR", `פעימה נכשלה בכנות: ${String((e as Error).message ?? e).slice(0, 160)}`);
+    saveState();
+  } finally {
+    ticking = false;
+  }
+}
+
+// ── שרת-בריאות + שער-בקרה ────────────────────────────────────────────
+// R124 — שרת-היחיד חוצה-דורות: ה-handler מגיש את המצב החי מציר-העולם.
+// POST / — ערוץ הבקרה של ה-API (חימוש/השהיה/גילוי) — כותב את הסמכות
+// באותה נשימה לפנקס, בלי חלון-מרוץ מול הפעימה.
+const G_CURATION_SRV = globalThis as unknown as { __CURATION_SERVER__?: unknown };
+if (G_CURATION_SRV.__CURATION_SERVER__) {
+  // שרת חי מדור קודם — ממשיך להגיש.
+} else {
+  G_CURATION_SRV.__CURATION_SERVER__ = Bun.serve({
+    port: PORT,
+    hostname: "127.0.0.1", // R123 — הדיבון נצרך מ-localhost בלבד (API/שומר/מפעיל מקומי)
+    fetch(req) {
+      const url = new URL(req.url);
+      if (url.pathname === "/" && req.method === "GET") {
+        return Response.json({ ...state, ok: true, alive: true, now: new Date().toISOString() });
+      }
+      if (url.pathname === "/" && req.method === "POST") {
+        // שער-בקרה — מקומי בלבד (127.0.0.1), ה-API הוא הפונה היחיד
+        return (async () => {
+          try {
+            const body = (await req.json().catch(() => ({}))) as { action?: string; reason?: string };
+            const action = String(body.action ?? "");
+            const reason = String(body.reason ?? "").slice(0, 200);
+            if (action === "arm") {
+              setControl({ armed: true, paused: false, pauseReason: null });
+              saveState();
+              appendCurationHistory("ARMED", `הדיבון חומש ע"י המפעיל${reason ? ` — ${reason}` : ""}`);
+              decide("ARMED", `חומש — החוקים בתוקף: מקס ${CURATION_POLICY.maxVotesPerDay}/יום · ${CURATION_POLICY.weightPctPerVote}% להצבעה · רצפת כוח ${CURATION_POLICY.votingPowerFloorPct}% · סף ניקוד ${CURATION_POLICY.voteScoreThreshold}`, false);
+              saveState();
+              return Response.json({ ok: true, action: "arm", state });
+            }
+            if (action === "pause") {
+              setControl({ paused: true, pauseReason: reason || "סיבה לא נמסרה" });
+              saveState();
+              appendCurationHistory("PAUSED", `הושהה ע"י המפעיל — ${reason || "סיבה לא נמסרה"}`);
+              return Response.json({ ok: true, action: "pause", state });
+            }
+            if (action === "resume") {
+              // חידוש לאחר השהיה — מנקה את ה-pause בלבד, בלי לגעת בחימוש
+              setControl({ paused: false, pauseReason: null });
+              saveState();
+              appendCurationHistory("RESUMED", `ההשהיה הוסרה${reason ? ` — ${reason}` : ""} · מצב החימוש נשמר כפי שהיה`);
+              return Response.json({ ok: true, action: "resume", state });
+            }
+            if (action === "disarm") {
+              // ניטול — חזרה מלאה לקו-הבסיס: גילוי-בלבד, לא מושהה
+              setControl({ armed: false, paused: false, pauseReason: null });
+              saveState();
+              appendCurationHistory("DISARMED", `נוטרל ע"י המפעיל — חזרה לקו-הבסיס (גילוי-בלבד, השהיה מוסרת)${reason ? ` — ${reason}` : ""}`);
+              return Response.json({ ok: true, action: "disarm", state });
+            }
+            if (action === "discover") {
+              // גילוי לפי דרישה — קריאה בלבד, לא מצביע לעולם
+              const votedKeys = new Set(state.votedPosts.map((v) => `${v.author}/${v.permlink}`));
+              const disc = await discoverCandidates({ votedKeys, authorsToday: new Set(state.votedAuthorsToday) });
+              state.candidatesSeen += disc.candidates.length;
+              state.lastDiscovery = { at: disc.at, node: disc.node, fetched: disc.fetched, candidates: disc.candidates.slice(0, 10), filtered: disc.filtered };
+              saveState();
+              return Response.json({ ok: true, action: "discover", discovery: { ...disc, candidates: disc.candidates.slice(0, 10) }, armed: state.armed, votesToday: state.votesToday });
+            }
+            return Response.json({ ok: false, error: `פעולה לא מוכרת: ${action || "(ריק)"} — arm | pause | resume | disarm | discover` }, { status: 400 });
+          } catch (e) {
+            return Response.json({ ok: false, error: String((e as Error).message ?? e).slice(0, 120) }, { status: 500 });
+          }
+        })();
+      }
+      return new Response("not found", { status: 404 });
+    },
+  });
+}
+
+saveState();
+console.log(`[curation] חי על פורט ${PORT} · beats=${state.beats} · ${state.armed ? "חמוש" : "גילוי-בלבד (לא חמוש — חימוש בידי המפעיל)"} · הצבעות היום ${state.votesToday}/${CURATION_POLICY.maxVotesPerDay}`);
+tick();
+// R112 — law of the single timer: bun --hot לא מנקה את האינטרוול הישן —
+// כל עריכה-חיה הייתה מכפילה את הפעימה. השומר תופס ומנקה את הקודם.
+const G = globalThis as unknown as { __CURATION_TIMER__?: ReturnType<typeof setInterval> };
+if (G.__CURATION_TIMER__) clearInterval(G.__CURATION_TIMER__);
+G.__CURATION_TIMER__ = setInterval(tick, TICK_SEC * 1000);

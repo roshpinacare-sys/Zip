@@ -3,7 +3,7 @@
 // R127 — נולד מהוראת המפעיל: המשימה היא תוצאה נמדדת, לא דופק בריאות.
 
 import { NextRequest, NextResponse } from "next/server";
-import { composeIncome, writeIncomeDay } from "@/lib/weave/income";
+import { composeIncome, writeIncomeDay, backfillMissingIncomeDays, type BackfillResult } from "@/lib/weave/income";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,9 +28,20 @@ export async function GET(req: NextRequest) {
 
 export async function POST() {
   try {
+    // R128 — ריפוי הזיכרון קודם לרישום: ימים שהסנדבוקס היה מת בהם ממולאים
+    // ממקורות האמת לפי תאריך, ורק אז נרשם היום. הדופק (הקורא הקבוע
+    // של הנתיב הזה) מרפא את זיכרון המשימה בעצמו בכל רישום יומי.
+    // כישלון מילוי אינו עוצר רישום — הוא מדווח בכנות בשדה backfill
+    // (הרשומה של היום היא המשימה הראשית; המילוי ינסה שוב מחר).
+    let backfill: BackfillResult | { ok: false; ran: false; noteHe: string };
+    try {
+      backfill = await backfillMissingIncomeDays();
+    } catch (e) {
+      backfill = { ok: false, ran: false, noteHe: `מילוי-החסר נכשל: ${String((e as Error).message).slice(0, 140)}` };
+    }
     const report = await composeIncome();
     const { file, created } = writeIncomeDay(report);
-    return NextResponse.json({ ...report, recorded: { file, created } });
+    return NextResponse.json({ ...report, recorded: { file, created }, backfill });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: `מדידה ורישום נכשלו: ${String((e as Error).message).slice(0, 160)}` },
