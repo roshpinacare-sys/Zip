@@ -592,7 +592,16 @@ async function tick() {
     // R103 — רייל התגמול: מילויים חדשים בחלון = עבודה אמיתית = SAOS לזירה.
     // הספירה היא סימן-מים עולה: ירידת החלון לא מתגמלת פעמיים.
     try {
-      const fillsNow = Number(meas?.fills?.window24h);
+      // R128 — חגורת-צורה: ה-API מחזיר fillsWindow24h כמספר; אם חסר (צורה ישנה/גרסת-רפא)
+      // מחושב מהמערך עצמו. עד R128 הדאימון קרא fills.window24h שלא היה קיים בתשובה
+      // ורייל R103 מעולם לא ירה (0 SAOS-REWARD בהיסטוריה כולה).
+      let fillsNow = Number(meas?.fillsWindow24h ?? meas?.fills?.window24h);
+      if (!Number.isFinite(fillsNow) && Array.isArray(meas?.fills)) {
+        const dayAgo = Date.now() - 86_400_000;
+        fillsNow = (meas.fills as Array<{ at?: string }>).filter(
+          (f) => new Date(f?.at ?? 0).getTime() >= dayAgo,
+        ).length;
+      }
       if (Number.isFinite(fillsNow)) {
         const seen = state.fillsSeen ?? 0;
         if (fillsNow > seen) {
@@ -624,7 +633,7 @@ async function tick() {
               if (comp?.ok) {
                 appendHistory({ kind: "CHAIN-COMPOUND", reason: String(comp.detail ?? "").slice(0, 140) });
               } else if (comp) {
-                appendHistory({ kind: "CHAIN-COMPOUND-FAIL", reason: String(comp.error ?? "לא צוין").slice(0, 120) });
+                appendHistory({ kind: "CHAIN-COMPOUND-FAIL", reason: String(comp.detail ?? comp.error ?? "לא צוין").slice(0, 120) });
               }
             } catch { /* הגלגול לעולם לא מפיל את המדידה */ }
           } else {

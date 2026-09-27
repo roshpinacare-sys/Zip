@@ -178,6 +178,7 @@ export interface MoneySense {
     totalRemainingSteem: number | null;
   };
   fills: FillReceipt[];
+  fillsWindow24h: number;
   sbdArming: { balance: number; needed: number; commitable: number; state: "ARMED" | "WAIT" };
   redemption: {
     outboxTrx: number | null;
@@ -274,7 +275,7 @@ async function steemSide(): Promise<{ a: any; openOrders: any[]; book: any }> {
   return { a, openOrders: openOrders ?? [], book };
 }
 
-async function fillsSide(): Promise<FillReceipt[]> {
+async function fillsSide(): Promise<{ recent: FillReceipt[]; window24h: number }> {
   const hist = await steemRpc("condenser_api.get_account_history", [ACCOUNT, -1, 100]);
   const out: FillReceipt[] = [];
   for (const [, rec] of hist as Array<[number, any]>) {
@@ -295,8 +296,13 @@ async function fillsSide(): Promise<FillReceipt[]> {
     }
     out.push({ at: (rec.timestamp ?? "") + "Z", side: paid.endsWith("SBD") ? "bought-steem" : "sold-steem", paid, received, price });
   }
-  return out.reverse().slice(0, 12);
-}
+    out.reverse(); // חדשים לפני ישנים
+    // R128 — ספירת חלון-24ש' מהסריקה המלאה (עד 100 פעולות אחרונות), לפני קיצוץ התצוגה.
+    // רייל R103 (מילוי→SAOS→גלגול) נשען עיקרו על השדה הזה; עד כאן הדאימון קרא שדה שלא היה קיים בתשובה.
+    const dayAgo = Date.now() - 86_400_000;
+    const window24h = out.filter((f) => new Date(f.at).getTime() >= dayAgo).length;
+    return { recent: out.slice(0, 12), window24h };
+  }
 
 async function marksSide(): Promise<MoneyMark> {
   const sources: Record<string, string> = {};
@@ -444,14 +450,14 @@ export async function GET() {
 async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeSec" | "refreshing">> {
   const down: string[] = [];
 
-  const [steemRes, fills, marks, tron, daemon] = await Promise.all([
+  const [steemRes, fillsInfo, marks, tron, daemon] = await Promise.all([
     steemSide().catch((e) => {
       down.push(`steem: ${String(e.message).slice(0, 50)}`);
       return null;
     }),
     fillsSide().catch((e) => {
       down.push(`fills: ${String(e.message).slice(0, 50)}`);
-      return [] as FillReceipt[];
+      return { recent: [] as FillReceipt[], window24h: 0 };
     }),
     marksSide().catch((e) => {
       down.push(`marks: ${String(e.message).slice(0, 50)}`);
@@ -681,7 +687,8 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     idleSteem,
     ladder,
     powerdown,
-    fills,
+    fills: fillsInfo.recent,
+    fillsWindow24h: fillsInfo.window24h,
     sbdArming,
     redemption,
     diagnosis,
