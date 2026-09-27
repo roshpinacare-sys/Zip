@@ -36,6 +36,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useWeave } from "../store";
 import { WeaveCanvas } from "../weave-canvas";
 import { StatusBadge } from "../shared";
+import { IncomeMissionCard } from "./income-card";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
 
@@ -374,6 +375,14 @@ export function HomeView() {
             loading={loading}
           />
         </div>
+      </section>
+
+      {/* ── מנוע ההכנסה — לוח המשימה (R127: $1,000/יום) ── */}
+      <section
+        className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 pb-14 sm:px-6"
+        aria-label="מנוע ההכנסה — לוח המשימה"
+      >
+        <IncomeMissionCard />
       </section>
 
       {/* ── איך זה עובד - שלושה צעדים ── */}

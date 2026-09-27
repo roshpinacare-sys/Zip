@@ -36,6 +36,7 @@ const POLICY = {
   // R91 — עוגן-הצ'רטרים: בדיקת סחף כל 10 פעימות (5 דק׳) · תקציב 4/יום בדיבון
   charterCheckEveryBeats: 10,
   charterAnchorsPerDay: 4,
+  incomeAttemptsPerDay: 5, // R127 — מנוע ההכנסה: עד 5 ניסיונות רישום ליום
 };
 
 type Decision = { at: string; kind: string; detail: string };
@@ -48,6 +49,16 @@ type CharterAnchorState = {
   lastTxid: string | null;
   anchoring: boolean;
   lastDecision: Decision | null; // R91: החלטת הצ'רטר האחרונה — לא נדרסת ע"י ה-WAIT של הפרסום
+};
+
+type IncomeDayState = {
+  // R127 — מנוע ההכנסה: רישום יומי מדוד לקנון (המשימה: $1,000/יום)
+  lastDay: string | null; // היום שנרשם בהצלחה
+  attemptsToday: number; // תקציב ניסיונות יומי (הגנה מפני פטישות)
+  day: string; // היום שמנוהל כעת (לצורך איפוס יומי של ניסיונות)
+  lastResultAt: string | null;
+  totalsUsd: { usdToday: number | null; usd7d: number | null; usd30d: number | null } | null;
+  lastError: string | null;
 };
 
 type PulseState = {
@@ -69,6 +80,7 @@ type PulseState = {
   windowSeededFromChain: boolean; // החלון הנוכחי נסגר מהשרשרת, לא מה-state המקומי
   lastSeedAt: string | null;
   seedError: string | null; // כישלון קריאת אמת-השרשרת — נרשם בכנות, לא נבלע
+  income: IncomeDayState; // R127 — עבודת ההכנסה היומית
 };
 
 function freshCharterState(): CharterAnchorState {
@@ -104,6 +116,7 @@ function readState(): PulseState {
     windowSeededFromChain: false,
     lastSeedAt: null,
     seedError: null,
+    income: { lastDay: null, attemptsToday: 0, day: utcDay(), lastResultAt: null, totalsUsd: null, lastError: null },
   };
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
@@ -130,6 +143,18 @@ function readState(): PulseState {
       windowSeededFromChain: prev.windowSeededFromChain ?? false,
       lastSeedAt: prev.lastSeedAt ?? null,
       seedError: prev.seedError ?? null,
+      income: (() => {
+        const pi = (prev as any).income ?? {};
+        const day = utcDay();
+        return {
+          lastDay: pi.lastDay ?? null,
+          attemptsToday: pi.day === day ? (pi.attemptsToday ?? 0) : 0,
+          day,
+          lastResultAt: pi.lastResultAt ?? null,
+          totalsUsd: pi.totalsUsd ?? null,
+          lastError: pi.lastError ?? null,
+        };
+      })(),
     };
   } catch (e: any) {
     // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
@@ -155,6 +180,11 @@ function readState(): PulseState {
 // השידור היומית של 09-25 נעלמה מ-historyTail בדיוק ברילוד).
 const G_PULSE = globalThis as unknown as { __PULSE_STATE__?: PulseState };
 let state: PulseState = G_PULSE.__PULSE_STATE__ ?? readState();
+// R127 — דור-חם שירש מצב חי מקוד קודם (בלי שדה-ההכנסה) מקבל אותו
+// מאותחל בכנות, לא קריסה על undefined בפעימה הראשונה.
+if (!state.income) {
+  state.income = { lastDay: null, attemptsToday: 0, day: utcDay(), lastResultAt: null, totalsUsd: null, lastError: null };
+}
 G_PULSE.__PULSE_STATE__ = state;
 
 function saveState() {
@@ -427,6 +457,44 @@ async function tryCharterAnchor(): Promise<void> {
 }
 
 let ticking = false;
+// ── עבודת ההכנסה היומית (R127): מדידה חיה + רישום לקנון ──
+// ליבת המשימה של הרשת: לייצר $1,000 ליום שניתנים להמרה. המדידה
+// היומית הזאת היא הזיכרון של המשימה — בלעדיה הצי מודד בריאות ולא
+// תוצאה (לקח המפעיל: "כל הבדיקות האלה פעם בדקה לא מועילות לכלום").
+// תקציב ניסיונות יומי מגן מפטישות; כישלון נרשם בכנות ב-lastError.
+async function tryIncomeRecord(day: string): Promise<void> {
+  // איפוס יומי של התקציב בהחלפת היום (חוק גלגול-היום של r125-c)
+  if (state.income.day !== day) {
+    state.income = { ...state.income, day, attemptsToday: 0 };
+  }
+  if (state.income.lastDay === day) return; // נרשם כבר היום
+  if (state.income.attemptsToday >= POLICY.incomeAttemptsPerDay) return;
+  state.income.attemptsToday += 1;
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 150_000);
+  try {
+    const res = await fetch("http://127.0.0.1:3000/api/income", {
+      method: "POST",
+      signal: ctl.signal,
+      cache: "no-store",
+      headers: { "Content-Type": "application/json" },
+    });
+    const j: any = await res.json().catch(() => ({}));
+    if (res.ok && j?.ok) {
+      state.income.lastDay = day;
+      state.income.lastResultAt = new Date().toISOString();
+      state.income.totalsUsd = j.totals ?? null;
+      state.income.lastError = null;
+    } else {
+      state.income.lastError = String(j?.error ?? `http ${res.status}`).slice(0, 140);
+    }
+  } catch (e: any) {
+    state.income.lastError = String(e?.message ?? e).slice(0, 140);
+  } finally {
+    clearTimeout(t);
+  }
+}
+
 async function tick() {
   if (ticking || state.broadcasting || state.charter.anchoring) return; // לולאה-יחידה
   ticking = true;
@@ -463,6 +531,11 @@ async function tick() {
         detail: `ממתין לחלון הבא (${state.nextDueAt.slice(0, 10)}) · ניסיונות היום ${state.attemptsToday}/${POLICY.attemptsBudget} · עיגוני צ'רטר ${state.charter.anchorsToday}/${POLICY.charterAnchorsPerDay}${state.windowSeededFromChain ? " · החלון נסגר מאמת-השרשרת (last_root_post)" : ""}${state.seedError ? ` · בדיקת-שרשרת נכשלה: ${state.seedError.slice(0, 60)}` : ""}`,
       };
     }
+
+    // R127 — מנוע ההכנסה: פעם ביום-UTC, אחרי החלון — מודד ורושם לקנון.
+    // זו עבודת המשימה של הרשת ($1,000/יום), לא עוד בדיקת בריאות.
+    await tryIncomeRecord(day);
+
     saveState();
   } catch (e: any) {
     state.lastDecision = { at: new Date().toISOString(), kind: "ERROR", detail: String(e?.message ?? e).slice(0, 160) };

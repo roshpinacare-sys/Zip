@@ -96,6 +96,8 @@ interface MoneySense {
     spreadBps: number | null;
   };
   orders: OpenAsk[];
+  // R127 — סולם הקנייה שלנו (הוצב לראשונה חי ב-27/09, חוק אין-רעבת-צד): הבידים הפתוחים שלנו מתחת לקו
+  ourBids: Array<{ orderid: number; sbd: number; steem: number; price: number; created: string; expiration: string; vsParityBps: number | null; usdIfFilled: number | null }>;
   deployedSteem: number;
   idleSteem: number;
   ladder: Array<{ level: number; premiumBps: number; price: number | null }>;
@@ -316,7 +318,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
                   <div className="rounded-lg border bg-muted/40 p-3">
                     <p className="text-[11px] text-muted-foreground">SBD בקופה</p>
                     <p className="font-mono text-lg font-semibold tabular-nums">{d.diagnosis.whereItSits.sbd.toFixed(3)}</p>
-                    <p className="text-[11px] text-muted-foreground">חימוש צד-קנייה: {d.sbdArming.commitable.toFixed(3)}/{d.sbdArming.needed}</p>
+                    <p className="text-[11px] text-muted-foreground">חימוש צד-קנייה: {d.sbdArming.commitable.toFixed(3)}/{d.sbdArming.needed}{(d.ourBids ?? []).length > 0 ? " · סולם קנייה חי" : ""}</p>
                   </div>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
@@ -433,6 +435,64 @@ export function MoneyMoverView({ section }: { section?: string }) {
                     </div>
                   </CardContent>
                 </MotionCard>
+
+                {/* סולם הקנייה שלנו — R127 */}
+                <Section
+                  icon={<TrendingUp />}
+                  title="סולם הקנייה שלנו — לוקחים את הפער מתחת לקו"
+                  description="שלוש רמות מתחת לפאריטה: כל קנייה מתחת לקו היא עודף נמדד — הגריד דו-צדדי (חוק R127: אין רעבת-צד)"
+                >
+                  <MotionCard>
+                    <CardContent className="p-0 sm:p-0">
+                      <div className="max-h-96 overflow-y-auto [scrollbar-width:thin]">
+                        <table className="w-full text-xs sm:text-sm">
+                          <thead className="sticky top-0 bg-muted/80 backdrop-blur">
+                            <tr>
+                              <th className="p-2 text-right font-medium">רמה</th>
+                              <th className="p-2 text-right font-medium">מוכר (SBD)</th>
+                              <th className="p-2 text-right font-medium">מקבל (STEEM)</th>
+                              <th className="p-2 text-right font-medium">מחיר</th>
+                              <th className="p-2 text-right font-medium">מול הקו</th>
+                              <th className="hidden p-2 text-right font-medium sm:table-cell">אם ימלא</th>
+                              <th className="hidden p-2 text-right font-medium md:table-cell">פותחה</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {[...(d.ourBids ?? [])]
+                              .sort((a, b) => b.price - a.price)
+                              .map((o, i) => {
+                                const bps = o.vsParityBps;
+                                return (
+                                  <tr key={o.orderid} className="border-t">
+                                    <td className="p-2 font-mono">#{i + 1}</td>
+                                    <td className="p-2 font-mono tabular-nums">{o.sbd.toFixed(3)}</td>
+                                    <td className="p-2 font-mono tabular-nums">{o.steem.toFixed(3)}</td>
+                                    <td className="p-2 font-mono tabular-nums">{o.price.toFixed(6)}</td>
+                                    <td className="p-2">
+                                      <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                                        {bps != null ? `${bps > 0 ? "+" : ""}${bps}bps מתחת לקו` : "—"}
+                                      </Badge>
+                                    </td>
+                                    <td className="hidden p-2 font-mono tabular-nums text-muted-foreground sm:table-cell">
+                                      {o.steem.toFixed(3)} STEEM {o.usdIfFilled != null ? `(${usd(o.usdIfFilled)})` : ""}
+                                    </td>
+                                    <td className="hidden whitespace-nowrap p-2 text-muted-foreground md:table-cell">{fmtTimeAgo(o.created + "Z")}</td>
+                                  </tr>
+                                );
+                              })}
+                            {(d.ourBids ?? []).length === 0 ? (
+                              <tr>
+                                <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                                  אין בידים פתוחים — יוצבו כשה-SBD יגיע לקו החימוש (0.15) במילוי המכירה הבא
+                                </td>
+                              </tr>
+                            ) : null}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </MotionCard>
+                </Section>
 
                 {/* שוק חי + סולם רצוי */}
                 <div className="grid gap-4 lg:grid-cols-2">

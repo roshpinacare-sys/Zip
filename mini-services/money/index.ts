@@ -334,6 +334,26 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
       };
     }
   }
+  // R127 — חוק צד-הקנייה (נולד מהרעבה שנמדדה חי): ARM-BUY היה אחרון
+  // בעץ ההחלטה — אחרי טריגרי הנזיל והסטייה שתופסים קודם את התור
+  // ואת הצינון שלאחריהם. תוצאה נמדדת 27/09: ourBids=[] במשך ימים
+  // בזמן ש-16.3 SBD חמושים יושבים בטלים — דפוס ההרעבה של r111-B,
+  // הפעם על צד הקנייה. התיקון: פריסת צד-הקנייה חדשה (סולם ריק)
+  // קודמת לתחזוקת צד-המכירה. אידמפוטנטי: ברגע שהסולם הוצב
+  // (ourBids>0) הענף שוקט לנצח והתחזוקה חוזרת להיות ראשונה.
+  const bidsLive = (Array.isArray(meas?.ourBids) ? meas.ourBids : []).length;
+  const arm127 = meas?.sbdArming;
+  if (
+    arm127?.state === "ARMED" &&
+    Number(arm127?.commitable ?? 0) >= POLICY.armBuy.minSbd &&
+    bidsLive === 0
+  ) {
+    return {
+      act: true,
+      action: "arm-buy",
+      reason: `SBD חמוש ${Number(arm127.commitable).toFixed(3)} וסולם הקנייה ריק — נפרס לפני תחזוקת המכירה (חוק R127: אין רעבת-צד)`,
+    };
+  }
   // טריגר: נזיל
   const idle = Number(meas?.idleSteem ?? 0);
   if (idle >= POLICY.triggers.idleTriggerSteem) {
