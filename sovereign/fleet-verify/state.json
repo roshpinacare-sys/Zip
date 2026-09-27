@@ -2,7 +2,7 @@
   "service": "fleet-verify",
   "version": "2.0.0",
   "bootedAt": "2026-09-27T13:49:10.683Z",
-  "beats": 70,
+  "beats": 130,
   "patAvailable": true,
   "current": null,
   "jobs": [
@@ -321,8 +321,8 @@
       "layer": "QA",
       "roleHe": "saos-sovereign-foundry הוא בית-היציקה של הרשת — הריפו שממנו נולדו הכלים והעדויות. מ-R109 עד R118 עמד מחוץ לכיסוי המפעל (המאמת העשירי). המאמת מתקין מהנעילה הקפואה, מג'נרט לקוח Prisma ומריץ בדיקת טיפוסים מלאה.",
       "verdict": "PASS",
-      "lastRunAt": "2026-09-24T20:12:48.994Z",
-      "durationMs": 14958,
+      "lastRunAt": "2026-09-27T15:58:10.703Z",
+      "durationMs": 14815,
       "checks": {
         "install": "pass",
         "prismaGenerate": "pass",
@@ -333,21 +333,21 @@
       "outputTail": [
         "verdict: PASS (install+typecheck pass (local gate: build skipped by sandbox policy))"
       ],
-      "nextDueAt": "2026-09-27T15:58:10.702Z",
-      "commit": "df62131",
-      "runs": 1,
+      "nextDueAt": "2026-09-28T15:58:27.492Z",
+      "commit": "18e2c53",
+      "runs": 2,
       "push": {
-        "at": "2026-09-24T20:13:03.953Z",
-        "commit": "18e2c53",
+        "at": "2026-09-27T15:58:25.519Z",
+        "commit": "edc12f4",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · saos-sovereign-foundry@18e2c53"
+        "detail": "נדחף לגיט · saos-sovereign-foundry@edc12f4"
       }
     }
   ],
   "lastDecision": {
-    "at": "2026-09-27T14:58:10.702Z",
-    "kind": "DEFER",
-    "detail": "foundry-selftest: נדחה בכנות — זיכרון פנוי 847MB מתחת לקו 900MB · ניסיון חוזר בעוד שעה"
+    "at": "2026-09-27T15:58:27.492Z",
+    "kind": "PASS",
+    "detail": "foundry-selftest: PASS · 15ש' · install+typecheck pass (local gate: build skipped by sandbox policy) · נדחף לגיט · saos-sovereign-foundry@edc12f4"
   },
   "history": [
     {
@@ -547,6 +547,12 @@
       "id": "foundry-selftest",
       "verdict": "DEFER",
       "detail": "low memory 847MB"
+    },
+    {
+      "at": "2026-09-27T15:58:10.703Z",
+      "id": "foundry-selftest",
+      "verdict": "PASS",
+      "detail": "14815ms · install+typecheck pass (local gate: build skipped by sandbox policy) · גיט: נדחף"
     }
   ]
 }
