@@ -33,12 +33,33 @@ import {
   steemRcGate,
 } from "./graphene";
 import type { GrapheneOperation } from "steem";
-import { openVaultKey } from "../dex/wallet-vault";
+import { createRequire } from "node:module";
 
 const HOME = "/home/z/my-project";
 const STATE_DIR = path.join(HOME, "sovereign", "curation");
 const STATE_FILE = path.join(STATE_DIR, "state.json");
 const HISTORY_FILE = path.join(STATE_DIR, "history.json");
+
+/** מפתח-האב מ-upload — הדפוס המוכח של מסלול הפרסום (R75: אומת 4/4 מול הרשות החיה).
+ *  מוחזר עצם-קיום בלבד; הסיסמה לעולם לא נכתבת ולא נרשמת. */
+function readOwnerKey(): { account: string; password: string } | null {
+  try {
+    const raw = fs.readFileSync(path.join(HOME, "upload", "headcorner.txt"), "utf8").trim();
+    const lines = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    const account = lines.find((l) => /^[a-z0-9][a-z0-9.-]{2,15}$/.test(l));
+    const password = lines.find((l) => l.length >= 40 && !/^[a-z0-9.-]+$/.test(l));
+    if (!account || !password) return null;
+    return { account, password };
+  } catch {
+    return null;
+  }
+}
+
+/** טעינת steem מנתיב-האב (createRequire — הדפוס של מסלול הפרסום). */
+function loadSteem(): { auth: { toWif: (a: string, p: string, r: string) => string; wifToPublic: (w: string) => string } } {
+  const nodeRequire = createRequire(path.join(HOME, "package.json"));
+  return nodeRequire("steem");
+}
 const HISTORY_CAP = 5000; // גג-ספר כנה (כ-500 ימי פעימות) — הדיסק לא נושם
 
 /** נתיב פנקס-המצב — לשימוש הדיבון במיזוח שדות-הבקרה מהדיסק */
@@ -567,15 +588,23 @@ export async function castVote(params: {
       return { ok: false, txid: null, note: `BAD-OP: ${String((e as Error).message ?? e)}` };
     }
 
-    // 2) המפתח מהכספת — נגזר בזיכרון, אף ביט לא יוצא החוצה
-    const v = openVaultKey("steem", CURATION_VOTER, "posting");
-    if (!v.ok || !v.wif) return { ok: false, txid: null, note: `NO-KEY: ${v.detail}` };
+    // 2) המפתח ממפתח-האב — נגזר ל-posting בזיכרון בלבד (דפוס R75 המוכח של
+    //    מסלול הפרסום). הכספת נבדקה ב-r128: רשומת ה-posting שבה אינה תואמת
+    //    את הרשות החיה — הגזירה ממפתח-האב היא שעברה 4/4 במדידות R75.
+    const ownerKey = readOwnerKey();
+    if (!ownerKey || ownerKey.account !== CURATION_VOTER) {
+      return { ok: false, txid: null, note: "NO-KEY: מפתח-האב (upload/headcorner.txt) אינו קריא או אינו של המצביע — לא נוגעים" };
+    }
+    const steem = loadSteem();
+    const wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+    const derivedPub = steem.auth.wifToPublic(wif);
 
-    // 3) השרשרת היא השופט: הפומבי הנגזר חייב להיות בסמכות החיה
-    type ChainAccount = { posting: { account_auths: Array<[string, number]> } };
+    // 3) השרשרת היא השופט: הפומבי הנגזר חייב להיות ברשות החיה (key_auths —
+    //    לא account_auths: שם מושווים שמות-חשבונות, ומפתח לעולם לא יימצא שם).
+    type ChainAccount = { posting: { key_auths: Array<[string, number]> } };
     const accounts = await rpcV4<ChainAccount[]>(STEEM_RPC_NODES[0], "condenser_api.get_accounts", [[CURATION_VOTER]]);
-    const auths = accounts?.[0]?.posting?.account_auths ?? [];
-    if (v.pub && !auths.some(([k]) => k === v.pub)) {
+    const liveKey = accounts?.[0]?.posting?.key_auths?.[0]?.[0];
+    if (!liveKey || derivedPub !== liveKey) {
       return { ok: false, txid: null, note: "KEY-AUTHORITY-MISMATCH: הנגזר אינו בסמכות ה-posting החיה — לא נוגעים" };
     }
 
@@ -586,7 +615,7 @@ export async function castVote(params: {
     }
 
     // 5) שידור
-    const res = await steemBroadcast([op], v.wif);
+    const res = await steemBroadcast([op], wif);
     if (!res.txid) return { ok: false, txid: null, note: `BROADCAST-FAIL: ${res.note ?? "?"}`, rcGate: gate };
     return { ok: true, txid: res.txid, note: `הצבעה ${params.weightPct}% שודרה → ${author}/${permlink.slice(0, 48)}…`, rcGate: gate };
   } catch (e) {
