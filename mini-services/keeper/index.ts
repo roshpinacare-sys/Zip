@@ -123,6 +123,7 @@ function freshFleet(): FleetEntry[] {
     ["fleet-verify", 3038, "מפעל האימות המקומי — תשעת המאמתים חוזרים לחיים", "The local verification plant — nine verifiers reborn", 120],
     ["weblift", 3039, "מעלה התוכן — המשך הגירת רשת-האחסון אל השרשרת", "The web lifter — storage-network migration to the chain", 2700],
     ["curation", 3040, "דיבון האוצרות — כוח-ההצבעה הבטל הופך הכנסה", "The curation daemon — idle voting power becomes income", 900],
+    ["kpi", 3041, "מפקיד ה-KPI — הספר היומי הנמדד של משימת $1,000 (Z-9)", "The KPI scribe — the measured daily ledger of the $1,000 mission (Z-9)", 60],
   ];
   return defs.map(([name, port, roleHe, roleEn, intervalSec]) => ({
     name,

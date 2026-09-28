@@ -33,6 +33,7 @@ const DAEMONS: Array<{ name: string; port: number }> = [
   { name: "fleet-verify", port: 3038 },
   { name: "weblift", port: 3039 },
   { name: "curation", port: 3040 },
+  { name: "kpi", port: 3041 },
 ];
 
 // סדרות-גודל של תשואה-שנתית נטו על הון DeFi — לא הבטחות: זהו טווח
