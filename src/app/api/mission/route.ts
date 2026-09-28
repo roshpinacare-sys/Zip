@@ -88,7 +88,10 @@ function tcpAlive(port: number, timeoutMs = 400): Promise<boolean> {
 
 interface MoneyMarks {
   steemUsd: number | null;
+  sbdUsd: number | null;
   balances: { steem?: number; sbd?: number } | null;
+  steemInOrders: number | null;
+  sbdInBids: number | null;
 }
 
 async function readMoneyMarks(): Promise<{ data: MoneyMarks | null; noteHe: string }> {
@@ -104,10 +107,21 @@ async function readMoneyMarks(): Promise<{ data: MoneyMarks | null; noteHe: stri
       };
     const j = await r.json();
     const marks = j?.marks ?? {};
+    // r133 · אמת-הון מלאה: ההון הוא נוזלי + מוצב בפקודות פתוחות (מכירות STEEM והצעות-קנייה SBD) —
+    // לא רק הנוזלי (D-012 עקביות: מדידה מלאה, פירוט גלוי, אפס הסתרה).
+    const ordersTotalSteem = Array.isArray(j?.orders)
+      ? (j.orders as Array<{ amount?: number }>).reduce((s, o) => s + (typeof o?.amount === "number" ? o.amount : 0), 0)
+      : null;
+    const bidsTotalSbd = Array.isArray(j?.ourBids)
+      ? (j.ourBids as Array<{ sbd?: number }>).reduce((s, b) => s + (typeof b?.sbd === "number" ? b.sbd : 0), 0)
+      : null;
     return {
       data: {
         steemUsd: typeof marks.steemUsd === "number" ? marks.steemUsd : null,
+        sbdUsd: typeof marks.sbdUsd === "number" ? marks.sbdUsd : null,
         balances: j?.balances ?? null,
+        steemInOrders: ordersTotalSteem !== null ? Math.round(ordersTotalSteem * 1000) / 1000 : null,
+        sbdInBids: bidsTotalSbd !== null ? Math.round(bidsTotalSbd * 1000) / 1000 : null,
       },
       noteHe: "מוביל-הכסף · שערי binance/coingecko + יתרות שרשרת חיות",
     };
@@ -161,11 +175,26 @@ export async function GET() {
   const measuredDaily7 = days.length ? sum7 / Math.min(7, days.length) : 0;
   const measuredDaily30 = days.length ? sum30 / Math.min(30, days.length) : 0;
 
-  // 2) הון חי
+  // 2) הון חי — נוזלי + מוצב בפקודות (r133: אמת-הון מלאה, לא רק נוזלי)
   const money = await readMoneyMarks();
   const steemBal = money.data?.balances?.steem ?? null;
   const steemUsd = money.data?.steemUsd ?? null;
-  const capitalUsd = steemBal !== null && steemUsd !== null ? steemBal * steemUsd : null;
+  const sbdBal = money.data?.balances?.sbd ?? null;
+  const sbdUsd = money.data?.sbdUsd ?? null;
+  const steemInOrders = money.data?.steemInOrders ?? null;
+  const sbdInBids = money.data?.sbdInBids ?? null;
+  const steemTotal =
+    steemBal !== null && steemInOrders !== null
+      ? Math.round((steemBal + steemInOrders) * 1000) / 1000
+      : steemBal;
+  const sbdTotal =
+    sbdBal != null && sbdInBids !== null
+      ? Math.round((sbdBal + sbdInBids) * 1000) / 1000
+      : sbdBal;
+  const capitalUsd =
+    steemTotal != null && steemUsd !== null
+      ? steemTotal * steemUsd + (sbdTotal != null && sbdUsd != null ? sbdTotal * sbdUsd : 0)
+      : null;
 
   // 3) ריצות שרשראות-הטריגר — הדומינו בפועל
   const since24 = new Date(Date.now() - 24 * 3600_000);
@@ -234,8 +263,13 @@ export async function GET() {
     capital: {
       sourceNoteHe: money.noteHe,
       steemBalance: steemBal,
+      steemInOrders,
+      steemTotal,
+      sbdTotal,
       steemUsd,
       capitalUsd: capitalUsd !== null ? Math.round(capitalUsd * 100) / 100 : null,
+      breakdownNoteHe:
+        "ההון = נוזלי + מוצב בפקודות פתוחות (סולם-המכירה והצעות-הקנייה). זו מדידה מלאה ולא הגדלה: הפקודות הן הון עובד שאפשר לבטל ולהחזיר. SBD מומר בשער-ה-SBD הנמדד.",
     },
     triggers: {
       windowHe: "24 שעות אחרונות — דבר גורר דבר, כפי שנרשם בספר (ChainRun)",

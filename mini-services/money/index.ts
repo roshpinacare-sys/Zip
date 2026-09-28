@@ -76,6 +76,7 @@ type MoneyState = {
   lastFleetSweepAt?: string | null; // R108 — סריקת גלגול-צי (כל 5 דק') // R108 — איזון-בריכות אחרון (כל 10 דק')
   lastStreamDay?: string; // R103 — הזרמת-נזילות אחת לכל היום ביותר
   lastTotalSteem?: number; // R111 — חתימת הון-כולל לטריגר הגל (נזיל+פרוס)
+  noKeySince?: string | null; // r133 · D-021: המעבר חסום בכנות — אין מפתח-אב בסנדבוקס; backoff 4ש' + ביטול מיידי כשמפתח חוזר
   fleetSeen?: { keeperRestartAt?: string; pulseDay?: string; studentDay?: string }; // R108 — סימני-מים לגוב-הצי
   canonLast: { at: string; ok: boolean; path: string } | null;
   history?: Array<Record<string, unknown>>;
@@ -260,6 +261,22 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   if (state.actionDay !== utcDay(now)) {
     state.actionDay = utcDay(now);
     state.actionsToday = 0;
+  }
+  // r133 · D-021 תיאום-מעברים: אין מפתח-אב בסנדבוקס ← המעבר הזה חסום בכנות.
+  // backoff 4ש' בלי שריפת תקציב-פעולות ובלי זיהום-ספר בכישלונות זהים; כשמפתח חוזר
+  // (מדידת keyPresent במדידה החיה) החסימה מתבטלת מיד והמעבר חוזר לעבוד.
+  const KEY_BACKOFF_MIN = 240;
+  if (state.noKeySince) {
+    const keyBack = meas?.keyPresent === true
+      ? 0
+      : (now.getTime() - new Date(state.noKeySince).getTime()) / 60_000;
+    if (meas?.keyPresent === true) {
+      state.noKeySince = null; // המפתח חזר — המעבר מתעורר מיד (תיאום D-021)
+      appendHistory({ kind: "LANE-UNBLOCKED", reason: "מפתח-אב נמדד בסנדבוקס — המעבר חוזר לזרימה", parity: null, placed: 0, cancelled: 0, error: null });
+    } else if (keyBack < KEY_BACKOFF_MIN) {
+      const remainMin = Math.max(1, Math.ceil(KEY_BACKOFF_MIN - keyBack));
+      return { act: false, reason: `LANE-BLOCKED · אין מפתח-אב (D-021: המעבר-החי מוסיף לעבוד) · בדיקה-חוזרת בעוד ${remainMin} דק'` };
+    }
   }
   // צינון
   if (state.lastActionAt) {
@@ -500,6 +517,23 @@ async function act(
   // ולא placed ברמה העליונה. הקבלה תעדוק את האמת מעכשיו (לקח R87 —
   // "הוצבו 0" שקרי — הפעם בצד הדיבון).
   const r = (result as any) ?? {};
+  // r133 · D-021 אמת-תקציב: NO-KEY אינו פעולה — שום דבר לא ניסה לזוז על-השרשרת.
+  // מחזירים את מנת-התקציב ומציבים חסימת-מעבר (backoff 4ש', ביטול מיידי כשמפתח חוזר).
+  if (!r.ok && r.code === "NO-KEY") {
+    state.actionsToday = Math.max(0, state.actionsToday - 1);
+    if (!state.noKeySince) state.noKeySince = finishedAt;
+    const lastH = state.history?.[state.history.length - 1];
+    state.lastDecision = {
+      at: finishedAt,
+      kind: "LANE-BLOCKED",
+      detail: `אין מפתח-אב בסנדבוקס — המעבר חסום בכנות (D-021: המעבר-החי ממשיך). תקציב נשמר (${state.actionsToday}/${POLICY.actionsBudgetPerDay}).`,
+    };
+    saveState();
+    if (lastH?.kind !== "LANE-BLOCKED") {
+      appendHistory({ kind: "LANE-BLOCKED", reason, parity: null, placed: 0, cancelled: 0, error: "NO-KEY · backoff 4ש'", });
+    }
+    return (result as any) ?? {};
+  }
   // כנות (תיקון ביקורת): יום-ההזרמה נרשם רק כשההזרמה באמת הצליחה —
   // כישלון שרף יום שלם בשקט והגל לא נורה שוב לעולם.
   if (action === "arena-stream" && r.ok) state.lastStreamDay = utcDay();

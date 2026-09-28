@@ -30,7 +30,13 @@ interface MissionLadder {
     usdPerDay30dAvg: number;
     daysRecorded: number;
   };
-  capital: { steemBalance: number | null; steemUsd: number | null; capitalUsd: number | null };
+  capital: {
+    steemBalance: number | null;
+    steemInOrders?: number | null;
+    steemTotal?: number | null;
+    steemUsd: number | null;
+    capitalUsd: number | null;
+  };
   fleet: { up: number; total: number };
   l0: {
     consecutiveGreenDays: number;
@@ -213,7 +219,12 @@ export function MissionLadderCard() {
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
                 ב-{fmtCapital(m?.gap.requiredCapitalUsdAtModerateApr ?? 0)} ו-APR 20% מגיעים ל-1,000$/יום.
-                ההון החי כרגע: {fmtUsd(m?.capital.capitalUsd)} · פער-הון: {m?.gap.capitalGapUsd != null ? fmtCapital(m.gap.capitalGapUsd) : "לא נמדד"}.
+                ההון החי כרגע: {fmtUsd(m?.capital.capitalUsd)}
+                {m?.capital.steemInOrders != null && m.capital.steemInOrders > 0
+                  ? ` (מתוכם הון-עובד בפקודות פתוחות: ${m.capital.steemInOrders.toLocaleString("en-US", { maximumFractionDigits: 0 })} STEEM + נוזלי ${m?.capital.steemBalance ?? 0})`
+                  : ""}
+                {" "}
+                · פער-הון: {m?.gap.capitalGapUsd != null ? fmtCapital(m.gap.capitalGapUsd) : "לא נמדד"}.
                 טירי-ה-APR הם סדרי-גודל לתכנון, לא הבטחת-רווח. שערי-המפעיל (רוטציית-מפתח X-1 · הון L2 X-2) פתוחים להחלטת המפעיל בלבד.
               </p>
             </div>

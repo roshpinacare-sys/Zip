@@ -119,7 +119,15 @@ const state: ScribeState = loadState();
 function loadState(): ScribeState {
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) as Partial<ScribeState>;
-    return { ...freshState(), ...prev, alive: true, recording: false, recordingSince: null };
+    return {
+      ...freshState(),
+      ...prev,
+      alive: true,
+      recording: false,
+      recordingSince: null,
+      // r133 אמת-זהות: bootedAt תמיד העלייה האמיתית של התהליך הקורא — לא מצב שנשמר
+      bootedAt: new Date().toISOString(),
+    };
   } catch {
     return freshState();
   }
@@ -527,6 +535,9 @@ async function runRecord(force: boolean): Promise<Record<string, unknown>> {
         daysRecorded: meas.mission?.measured?.daysRecorded ?? null,
         gridExternalFillsLifetimeUsd: meas.grid?.externalFlowUsd ?? null,
         capitalUsd: meas.mission?.capital?.capitalUsd ?? null,
+        // r133: ההון = נוזלי + מוצב בפקודות פתוחות (אמת-הון מלאה, עקבי-D-012)
+        capitalSteemInOrders: meas.mission?.capital?.steemInOrders ?? null,
+        capitalSteemTotal: meas.mission?.capital?.steemTotal ?? null,
         steemUsd: meas.mission?.capital?.steemUsd ?? null,
         triggers: {
           chainRuns24h: meas.mission?.triggers?.totalRuns24h ?? null,

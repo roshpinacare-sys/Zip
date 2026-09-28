@@ -157,6 +157,7 @@ export interface MoneySense {
   account: string;
   marks: MoneyMark;
   balances: { steem: number | null; sbd: number | null };
+  keyPresent?: boolean; // r133 · D-021: בוליאן-נוכחות בלבד, אפס חשיפת-סוד
   book: {
     bids: BookLevel[];
     asks: BookLevel[];
@@ -680,6 +681,9 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
       sources: marks?.sources ?? {},
     },
     balances,
+    // r133 · D-021: נוכחות-מפתח כבוליאני בלבד (בלי שום חשיפת-סוד) —
+    // מאפשר למוביל-הסנדבוקס להבחין LANE-BLOCKED מול כישלון-אמת
+    keyPresent: readOwnerKey() != null,
     book: { bids, asks, bestBid, bestAsk, mid, spreadBps },
     orders,
     ourBids,
