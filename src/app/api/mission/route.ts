@@ -122,6 +122,35 @@ async function readMoneyMarks(): Promise<{ data: MoneyMarks | null; noteHe: stri
 export async function GET() {
   const at = new Date().toISOString();
 
+  // 0) רצף-הירוק של L0 — נספר מקבצי KPI-history המקומיים שמפקיד ה-KPI (Z-9) כותב.
+  //    יום חסר שובר את הרצף בכנות — בדיוק כמו במפקיד.
+  let l0Streak = 0;
+  let l0TodayGreen: boolean | null = null;
+  let l0HistoryDays = 0;
+  try {
+    const histDir = path.join(process.cwd(), "sovereign", "kpi", "history");
+    const today = new Date().toISOString().slice(0, 10);
+    let cursor = new Date(`${today}T00:00:00Z`);
+    for (let i = 0; i < 60; i++) {
+      const d = cursor.toISOString().slice(0, 10);
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(histDir, `${d}.json`), "utf8"));
+        if (i === 0) l0HistoryDays = 1;
+        else l0HistoryDays++;
+        // צורה קנונית kpi-day-v1: { last: { green, ... }, runs: [...] } — וליתר-ביטחון גם j.green
+        const greenToday = (j?.last?.green ?? j?.green) === true;
+        if (i === 0) l0TodayGreen = greenToday;
+        if (greenToday) l0Streak++;
+        else break;
+      } catch {
+        break;
+      }
+      cursor = new Date(cursor.getTime() - 86_400_000);
+    }
+  } catch {
+    /* אין היסטוריה עדיין — הרצף 0, כנות */
+  }
+
   // 1) הכנסה נמדדת — חלונות 7 ו-30 יום מהספר היומי
   const { days, source: incomeSource } = readIncomeDays();
   const usdOf = (d: IncomeDay) =>
@@ -218,6 +247,14 @@ export async function GET() {
       daemons: daemonChecks,
       up: daemonsUp,
       total: DAEMONS.length,
+    },
+    l0: {
+      consecutiveGreenDays: l0Streak,
+      requiredDays: 7,
+      todayGreen: l0TodayGreen,
+      historyDays: l0HistoryDays,
+      noteHe:
+        "L0 = הוכחת-מנוע: צי מלא + רשת בריאה + grid טרי + CI ירוק, 7 ימים רצופים. הרצף נספר מ-KPI-history שמפקיד ה-KPI (Z-9) מפקיד יומית — יום חסר שובר את הרצף בכנות.",
     },
     ladder,
     gap: {

@@ -37,6 +37,7 @@ import { useWeave } from "../store";
 import { WeaveCanvas } from "../weave-canvas";
 import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
+import { MissionLadderCard } from "./mission-ladder-card";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
 
@@ -383,6 +384,14 @@ export function HomeView() {
         aria-label="מנוע ההכנסה — לוח המשימה"
       >
         <IncomeMissionCard />
+      </section>
+
+      {/* ── סולם המשימה — $1,000/יום (Task 9-2 · Z-9) ── */}
+      <section
+        className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 pb-14 sm:px-6"
+        aria-label="סולם המשימה — מנוע המשימה נמדד חי"
+      >
+        <MissionLadderCard />
       </section>
 
       {/* ── איך זה עובד - שלושה צעדים ── */}
