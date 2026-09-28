@@ -69,7 +69,7 @@ jobs:
       - name: Steem/Hive anchor (witness the ledger on public chains)
         run: |
           MODE_FLAG=""
-          case "${{ inputs.mode }}" in
+          case "${MODE_INPUT}" in
             dry) MODE_FLAG="--dry" ;;
             verify-only) MODE_FLAG="--verify-only" ;;
           esac

@@ -66,12 +66,13 @@ jobs:
 
       - name: Restore the brain home (fetch vault, verify live, seal under network key, anchor in the book)
         run: |
-          if [ "${{ inputs.mode }}" = "vault-only" ]; then
+          if [ "$MODE_INPUT" = "vault-only" ]; then
             bun scripts/weave-brain-restore.ts --vault-only --no-push
           else
             bun scripts/weave-brain-restore.ts
           fi
         env:
+          MODE_INPUT: ${{ inputs.mode }}
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
           WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
           WEAVE_OPS_PAT: ${{ secrets.WEAVE_OPS_PAT }}
