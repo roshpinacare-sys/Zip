@@ -2,28 +2,28 @@
   "service": "weblift",
   "version": "1.0.0",
   "bootedAt": "2026-09-24T22:21:33.328Z",
-  "beats": 991,
+  "beats": 1086,
   "intervalSec": 2700,
   "alive": true,
   "lifting": false,
-  "lastLiftAt": "2026-09-28T12:10:57.013Z",
-  "nextDueAt": "2026-09-28T12:55:57.013Z",
+  "lastLiftAt": "2026-09-28T12:56:27.004Z",
+  "nextDueAt": "2026-09-28T13:41:27.004Z",
   "lastRun": {
-    "at": "2026-09-28T12:10:57.013Z",
+    "at": "2026-09-28T12:56:27.004Z",
     "exitCode": 2,
     "killedByTimeout": false,
     "summary": null,
     "tail": [
-      "(node:9391) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
+      "(node:12540) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
       "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
       "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
       "(Use `node --trace-warnings ...` to show where the warning was created)",
-      "[weblift-run 2026-09-28T12:10:56.994Z] פותח כספת: steem/cashmachine/posting …",
+      "[weblift-run 2026-09-28T12:56:26.995Z] פותח כספת: steem/cashmachine/posting …",
       "VAULT-REFUSED: NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא"
     ]
   },
   "lastDecision": {
-    "at": "2026-09-28T12:10:57.013Z",
+    "at": "2026-09-28T12:56:27.004Z",
     "kind": "LIFT-FAIL",
     "detail": "יציאה 2"
   },
@@ -386,6 +386,20 @@
         "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
         "(Use `node --trace-warnings ...` to show where the warning was created)",
         "[weblift-run 2026-09-28T12:10:56.994Z] פותח כספת: steem/cashmachine/posting …",
+        "VAULT-REFUSED: NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא"
+      ]
+    },
+    {
+      "at": "2026-09-28T12:56:27.004Z",
+      "exitCode": 2,
+      "killedByTimeout": false,
+      "summary": null,
+      "tail": [
+        "(node:12540) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
+        "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
+        "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "[weblift-run 2026-09-28T12:56:26.995Z] פותח כספת: steem/cashmachine/posting …",
         "VAULT-REFUSED: NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא"
       ]
     }
