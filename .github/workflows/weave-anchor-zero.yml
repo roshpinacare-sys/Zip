@@ -74,15 +74,22 @@ jobs:
       - name: Zero-gas EVM anchor (witness the ledger on a public EVM mainnet at $0)
         run: |
           MODE_FLAG=""
-          case "${{ inputs.mode }}" in
+          case "${MODE_INPUT}" in
             dry) MODE_FLAG="--dry" ;;
             verify-only) MODE_FLAG="--verify-only" ;;
           esac
-          if [ -n "${{ inputs.recover }}" ]; then MODE_FLAG="--recover=${{ inputs.recover }}"; fi
+          if [ -n "$RECOVER_INPUT" ]; then
+            case "$RECOVER_INPUT" in
+              *\"*|*\'*|*\`*|*\$*|*\;*|*\|*|*(*|*)*|*[!0-9a-fA-Fx]*) echo "recover input rejected (audit 2026-09-28: txid must be hex)"; exit 1 ;;
+            esac
+            MODE_FLAG="--recover=$RECOVER_INPUT"
+          fi
           bun scripts/weave-anchor-zero.ts $MODE_FLAG
         env:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
           WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
+          MODE_INPUT: ${{ inputs.mode }}
+          RECOVER_INPUT: ${{ inputs.recover }}
 
       - name: Upload zero anchor report (evidence)
         if: always()
