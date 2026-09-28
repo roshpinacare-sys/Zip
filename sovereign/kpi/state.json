@@ -2,26 +2,27 @@
  "service": "kpi-scribe",
  "version": "1.0.0",
  "bootedAt": "2026-09-28T12:29:50.012Z",
- "beats": 1,
+ "beats": 2,
  "alive": true,
  "recording": false,
  "recordingSince": null,
  "lastRecordDay": "2026-09-28",
- "lastRecordAt": "2026-09-28T12:29:54.390Z",
+ "lastRecordAt": "2026-09-28T15:03:37.484Z",
  "lastResult": {
   "ok": true,
   "day": "2026-09-28",
   "green": true,
   "streak": 1,
-  "revenuePerDayUsd": 4.256,
+  "revenuePerDayUsd": 0.0103,
   "pushes": {
    "history": true,
    "kpi": true
   },
   "notes": [
-   "FIRST-RECORD-EVER — המפקיד נולד היום; רצף הירוק מתחיל מכאן"
+   "RECORD-FORCED — נדרש ידנית (POST /record)",
+   "D-012-SEMANTICS-FIX (r132): revenuePerDayUsd = הכנסה ממומשת בלבד; פאוורדאון SP נמדד כ-fuelBurn (המרת-הון), לא כהכנסה"
   ],
-  "durationMs": 4374
+  "durationMs": 4852
  },
  "lastCi": {
   "id": null,
@@ -40,6 +41,16 @@
    "at": "2026-09-28T12:29:54.390Z",
    "path": "fleet/KPI.json",
    "ok": true
+  },
+  {
+   "at": "2026-09-28T15:03:35.361Z",
+   "path": "fleet/KPI-history/2026-09-28.json",
+   "ok": true
+  },
+  {
+   "at": "2026-09-28T15:03:37.484Z",
+   "path": "fleet/KPI.json",
+   "ok": true
   }
  ],
  "history": [
@@ -52,6 +63,11 @@
    "at": "2026-09-28T12:29:54.390Z",
    "kind": "RECORD",
    "detail": "day=2026-09-28 green=true pushed=true ($4.256/day)"
+  },
+  {
+   "at": "2026-09-28T15:03:37.484Z",
+   "kind": "RECORD",
+   "detail": "day=2026-09-28 green=true pushed=true ($0.0103/day)"
   }
  ]
 }

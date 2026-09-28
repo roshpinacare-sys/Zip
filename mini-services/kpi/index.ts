@@ -392,7 +392,10 @@ function mergeKpi(
       ? book.usdPerDay7dAvg
       : 0;
   const fillsLifetime = typeof meas.grid?.externalFlowUsd === "number" ? meas.grid.externalFlowUsd : 0;
-  const revenueUsd = Math.round((fuelEngineUsdPerDay + missionBookUsdPerDay) * 10000) / 10000;
+  // r132 · תיקון-D-012: revenuePerDayUsd = הכנסה ממומשת מהספר בלבד.
+  // fuelEngine (פאוורדאון SP→נוזלי) היא המרת-הון ולא הכנסה — ספר-ההכנסה
+  // עצמו קובע "הון שנכנס אינו הכנסה", והיא נגמרת כשה-SP נגמר (remainingWeeks).
+  const revenueUsd = Math.round(missionBookUsdPerDay * 10000) / 10000;
 
   const merged: any = { ...prev };
   merged.ok = true;
@@ -404,21 +407,33 @@ function mergeKpi(
   merged.revenuePerDayReal = {
     usd: revenueUsd,
     method:
-      "fuel-engine weeklyUsd/7 (Console/dex/grid.json#fuel) + mission book usdPerDay7dAvg (/api/mission) — קצבים בלבד",
+      "mission book usdPerDay7dAvg (/api/mission → sovereign/income/daily-*.json) — הכנסה ממומשת בלבד (תיקון D-012 · r132)",
     breakdown: {
-      fuelEngineUsdPerDay,
       missionBookUsdPerDay,
+      fuelEngineUsdPerDay,
       gridExternalFillsLifetimeUsd: fillsLifetime,
-      note: "Z-9 תיקון-שיטה מול יום-0: מילויי-גריד הם מצטבר-חיים ולא קצב — נרשמים למטה, לא נספרים ב-usdPerDay",
+      note:
+        "תיקון-D-012 (r132): fuelEngine (פאוורדאון SP→נוזלי) אינו נספר עוד ב-revenuePerDayUsd — הוא שריפת-הון, לא הכנסה; נמדד ומוצג בנפרד ב-fuelBurn. Z-9 תיקון-שיטה מול יום-0: מילויי-גריד הם מצטבר-חיים ולא קצב.",
     },
+    fuelBurn: fuelActive
+      ? {
+          usdPerDay: fuelEngineUsdPerDay,
+          weeklySp: fuel?.weeklySp ?? null,
+          remainingSp: fuel?.remainingSp ?? null,
+          remainingWeeks: fuel?.remainingWeeks ?? null,
+          nextPayout: fuel?.nextPayout ?? null,
+          lawHe:
+            "המרת SP לנוזלי — הון שנשרף לתדלוק, לא הכנסה (D-012 · r132). נגמרת עם ה-SP; נמדדת כ-capitalInflow בספר-ההכנסה.",
+        }
+      : null,
     sources: [
-      "Console/dex/grid.json#fuel.weeklyUsd (raw, נמדד בזמן-ריצה)",
       "/api/mission → measured.usdPerDay7dAvg (sovereign/income/daily-*.json)",
       "/api/mission → capital (מוביל-הכסף)",
+      "Console/dex/grid.json#fuel (raw, נמדד בזמן-ריצה — fuelBurn בלבד)",
       "Console/dex/grid.json#externalFlowUsd (מצטבר-חיים)",
     ],
     caveat:
-      "פנימי-בלבד: עמלות USDS ו-APY הן סימולציה — לא נספרות כהכנסה. מנוע-הדלק = פאוורדאון SP חוץ אמיתי בקצב שבועי.",
+      "פנימי-בלבד: עמלות USDS ו-APY הן סימולציה — לא נספרות כהכנסה. fuelBurn = פאוורדאון SP חוץ אמיתי — קצב שריפת-הון עם תאריך-סיום, לעולם לא קצב הכנסה.",
   };
 
   merged.triggers = {
@@ -482,7 +497,12 @@ async function runRecord(force: boolean): Promise<Record<string, unknown>> {
   const day = utcDay();
   const notes: string[] = [];
   try {
-    if (force) notes.push("RECORD-FORCED — נדרש ידנית (POST /record)");
+    if (force) {
+      notes.push("RECORD-FORCED — נדרש ידנית (POST /record)");
+      notes.push(
+        "D-012-SEMANTICS-FIX (r132): revenuePerDayUsd = הכנסה ממומשת בלבד; פאוורדאון SP נמדד כ-fuelBurn (המרת-הון), לא כהכנסה",
+      );
+    }
     if (!state.lastRecordDay) notes.push("FIRST-RECORD-EVER — המפקיד נולד היום; רצף הירוק מתחיל מכאן");
 
     const meas = await measure();
@@ -495,12 +515,10 @@ async function runRecord(force: boolean): Promise<Record<string, unknown>> {
       green: ev.green,
       checks: ev.checks,
       measured: {
-        revenuePerDayUsd:
-          Math.round(
-            ((meas.grid?.fuel?.powerdownActive ? (meas.grid?.fuel?.weeklyUsd ?? 0) / 7 : 0) +
-              (meas.mission?.measured?.usdPerDay7dAvg ?? 0)) *
-              10000,
-          ) / 10000,
+        // r132 · D-012: revenuePerDayUsd = ספר ממומש בלבד; fuelEngine = שריפת-הון (לא נספרת)
+        revenuePerDayUsd: Math.round((meas.mission?.measured?.usdPerDay7dAvg ?? 0) * 10000) / 10000,
+        fuelBurnRemainingWeeks:
+          meas.grid?.fuel?.powerdownActive ? (meas.grid?.fuel?.remainingWeeks ?? null) : null,
         fuelEngineUsdPerDay:
           meas.grid?.fuel?.powerdownActive && typeof meas.grid?.fuel?.weeklyUsd === "number"
             ? Math.round(((meas.grid.fuel.weeklyUsd as number) / 7) * 10000) / 10000
@@ -560,7 +578,7 @@ async function runRecord(force: boolean): Promise<Record<string, unknown>> {
     const pushKpi = await pushFile(
       "fleet/KPI.json",
       kpiJson,
-      `kpi-scribe: KPI.json update ${day} — revenue/day $${record.measured.revenuePerDayUsd} (measured)`,
+      `kpi-scribe: KPI.json update ${day} — realized $${record.measured.revenuePerDayUsd}/day + fuel-burn $${record.measured.fuelEngineUsdPerDay}/day (D-012 fix r132, measured)`,
     );
 
     const allPushed = pushHist && pushKpi;

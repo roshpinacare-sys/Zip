@@ -3,7 +3,7 @@
  "format": "kpi-day-v1",
  "day": "2026-09-28",
  "last": {
-  "at": "2026-09-28T12:29:50.903Z",
+  "at": "2026-09-28T15:03:33.554Z",
   "green": true,
   "checks": {
    "missionOk": true,
@@ -11,7 +11,7 @@
    "fleetUp": "9/9",
    "fleetFull": true,
    "gridFresh": true,
-   "gridAgeHours": 1,
+   "gridAgeHours": 3.5,
    "ci": {
     "id": null,
     "conclusion": "no-run-found",
@@ -21,16 +21,17 @@
    "secretsBlockedToday": 0
   },
   "measured": {
-   "revenuePerDayUsd": 4.256,
+   "revenuePerDayUsd": 0.0103,
+   "fuelBurnRemainingWeeks": 4,
    "fuelEngineUsdPerDay": 4.2457,
    "missionBookUsdPerDay": 0.0103,
    "daysRecorded": 2,
    "gridExternalFillsLifetimeUsd": 0.171382,
-   "capitalUsd": 29.69,
-   "steemUsd": 0.06336,
+   "capitalUsd": 2.68,
+   "steemUsd": 0.06277,
    "triggers": {
-    "chainRuns24h": 4,
-    "chainOk24h": 4,
+    "chainRuns24h": 7,
+    "chainOk24h": 7,
     "gridConsumedCount": 0
    }
   },
@@ -45,7 +46,8 @@
    "https://api.github.com/repos/roshpinacare-sys/Console/actions/runs"
   ],
   "notes": [
-   "FIRST-RECORD-EVER — המפקיד נולד היום; רצף הירוק מתחיל מכאן"
+   "RECORD-FORCED — נדרש ידנית (POST /record)",
+   "D-012-SEMANTICS-FIX (r132): revenuePerDayUsd = הכנסה ממומשת בלבד; פאוורדאון SP נמדד כ-fuelBurn (המרת-הון), לא כהכנסה"
   ]
  },
  "runs": [
@@ -512,6 +514,54 @@
    ],
    "notes": [
     "FIRST-RECORD-EVER — המפקיד נולד היום; רצף הירוק מתחיל מכאן"
+   ]
+  },
+  {
+   "at": "2026-09-28T15:03:33.554Z",
+   "green": true,
+   "checks": {
+    "missionOk": true,
+    "healthOk": true,
+    "fleetUp": "9/9",
+    "fleetFull": true,
+    "gridFresh": true,
+    "gridAgeHours": 3.5,
+    "ci": {
+     "id": null,
+     "conclusion": "no-run-found",
+     "createdAt": null,
+     "lookupFailed": false
+    },
+    "secretsBlockedToday": 0
+   },
+   "measured": {
+    "revenuePerDayUsd": 0.0103,
+    "fuelBurnRemainingWeeks": 4,
+    "fuelEngineUsdPerDay": 4.2457,
+    "missionBookUsdPerDay": 0.0103,
+    "daysRecorded": 2,
+    "gridExternalFillsLifetimeUsd": 0.171382,
+    "capitalUsd": 2.68,
+    "steemUsd": 0.06277,
+    "triggers": {
+     "chainRuns24h": 7,
+     "chainOk24h": 7,
+     "gridConsumedCount": 0
+    }
+   },
+   "streak": {
+    "consecutiveGreenDays": 1,
+    "asOf": "2026-09-28"
+   },
+   "sources": [
+    "http://127.0.0.1:3000/api/mission",
+    "http://127.0.0.1:3000/api/health",
+    "https://raw.githubusercontent.com/roshpinacare-sys/Console/main/dex/grid.json",
+    "https://api.github.com/repos/roshpinacare-sys/Console/actions/runs"
+   ],
+   "notes": [
+    "RECORD-FORCED — נדרש ידנית (POST /record)",
+    "D-012-SEMANTICS-FIX (r132): revenuePerDayUsd = הכנסה ממומשת בלבד; פאוורדאון SP נמדד כ-fuelBurn (המרת-הון), לא כהכנסה"
    ]
   }
  ]
