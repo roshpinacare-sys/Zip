@@ -38,7 +38,7 @@ import { WeaveCanvas } from "../weave-canvas";
 import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
 import { MissionLadderCard } from "./mission-ladder-card";
-import { ArrayEfficiencyCard, SovereigntyDecisionsCard } from "./sovereignty-cards";
+import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard } from "./sovereignty-cards";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
 
@@ -404,13 +404,14 @@ export function HomeView() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">הריבונות במדידה</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              ההחלטות העומדות של הרשת, חיות מהגיט · ומבדק תייעלות חי של המערך האוטונומי: הצי, השרשראות, ההפעלה-העצמית.
+              ההחלטות העומדות של הרשת, חיות מהגיט · מבדק תייעלות חי של המערך · ומרשם-האוטונומיה: כל יכולת נרשמת — אוטונומית או בשער-המפעיל, בכנות.
             </p>
           </div>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           <SovereigntyDecisionsCard />
           <ArrayEfficiencyCard />
+          <AutonomyLedgerCard />
         </div>
       </section>
 

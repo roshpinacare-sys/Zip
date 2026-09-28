@@ -170,6 +170,16 @@ export interface MoneySense {
   ourBids: OpenBid[];
   deployedSteem: number;
   idleSteem: number;
+  valueFloor: {
+    parity: number | null;
+    asksBelowParity: number;
+    steemBelowParity: number;
+    worstBps: number;
+    maxDriftLossSbd: number | null;
+    maxDriftLossUsd: number | null;
+    state: "HELD" | "DRIFT" | "UNMEASURED";
+    noteHe: string;
+  };
   ladder: LadderLevel[];
   powerdown: {
     active: boolean | null;
@@ -521,6 +531,30 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
   const deployedSteem = Math.round(orders.reduce((s, o) => s + o.amount, 0) * 1000) / 1000;
   const idleSteem = balances.steem != null ? Math.round(balances.steem * 1000) / 1000 : 0;
 
+  // r134 · רצפת-הערך — צבירת-אמת של דריפת-הרצפה: פקודות-מכירה שלנו שנשארו
+  // מתחת לפאריטה החיצוני אחרי שהפאריטה זז (החוק נאכף בעת-הצבה; בלי מפתח
+  // הגרירה מושהית-בכנות — LANE-BLOCKED D-021 — והחשיפה נמדדת ומוצגת).
+  const belowParity = orders.filter((o) => o.vsParityBps != null && o.vsParityBps < 0);
+  const maxDriftLossSbd =
+    parity != null
+      ? Math.round(belowParity.reduce((s, o) => s + o.amount * (parity - o.price), 0) * 10_000) / 10_000
+      : null;
+  const valueFloor = {
+    parity: parity != null ? Math.round(parity * 1e6) / 1e6 : null,
+    asksBelowParity: belowParity.length,
+    steemBelowParity: Math.round(belowParity.reduce((s, o) => s + o.amount, 0) * 1000) / 1000,
+    worstBps: belowParity.length > 0 ? Math.min(...belowParity.map((o) => o.vsParityBps as number)) : 0,
+    maxDriftLossSbd,
+    maxDriftLossUsd: maxDriftLossSbd != null && marks?.sbdUsd != null ? Math.round(maxDriftLossSbd * marks.sbdUsd * 10_000) / 10_000 : null,
+    state: parity == null ? ("UNMEASURED" as const) : belowParity.length > 0 ? ("DRIFT" as const) : ("HELD" as const),
+    noteHe:
+      parity == null
+        ? "אין פאריטה חיה — רצפת-הערך לא נמדדת כרגע (כנות, לא הנחה)"
+        : belowParity.length > 0
+          ? `דריפת-רצפה: ${belowParity.length} פקודות נשארו מתחת לפאריטה החיצוני אחרי שהוא זז — החוק ייאכף בגרירת-הסולם בחזרת-מפתח (X-1); עד אז החשיפה מדודה כאן`
+          : "הרצפה מוחזקת: אף פקודת-מכירה שלנו לא מתחת לערך-החוץ",
+  };
+
   // ספר הפקודות
   const bids: BookLevel[] = (steemRes?.book?.bids ?? []).map((b: any) => ({
     price: Number(b.real_price),
@@ -689,6 +723,7 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     ourBids,
     deployedSteem,
     idleSteem,
+    valueFloor,
     ladder,
     powerdown,
     fills: fillsInfo.recent,

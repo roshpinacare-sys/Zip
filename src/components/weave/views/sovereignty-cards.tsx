@@ -13,10 +13,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Activity, Gavel, ScrollText, ShieldCheck } from "lucide-react";
+import { Activity, Gavel, ScrollText, ShieldCheck, Waypoints } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { scrollBoxClass } from "@/components/weave/shared";
 
 interface Decision {
   id: string;
@@ -315,6 +316,187 @@ export function ArrayEfficiencyCard() {
         <p className="text-[11px] leading-relaxed text-muted-foreground" dir="auto">
           <ScrollText className="mr-1 inline size-3" aria-hidden="true" />
           כל מספר נמדד כרגע ממקורות-אמת: keeper, הדופק, ChainRun והספר. מדידה שלא ענתה מוצגת כלא-נמדדת, לעולם לא כהצלחה.
+        </p>
+      </Card>
+    </motion.div>
+  );
+}
+
+// ── כרטיס 3: מרשם-האוטונומיה (D-022 · r134) ─────────────────────────
+
+interface AutonomyCapability {
+  id: string;
+  titleHe: string;
+  mode: "AUTONOMOUS" | "OPERATOR-GATED";
+  evidenceHe: string;
+  cadenceHe?: string;
+  unblockHe?: string;
+  gateRef?: string;
+}
+
+interface AutonomyDomain {
+  id: string;
+  titleHe: string;
+  capabilities: AutonomyCapability[];
+}
+
+interface AutonomyState {
+  ok: boolean;
+  at: string;
+  format: string;
+  verdict: {
+    total: number;
+    autonomous: number;
+    operatorGated: number;
+    share: number | null;
+    he: string;
+  };
+  domains: AutonomyDomain[];
+  dominos24h: Array<{ at: string; chain: string; step: string; firedBy: string; ok: boolean; detail: string }>;
+  honestyHe: string;
+  errorHe: string | null;
+}
+
+function modeDot(mode: string) {
+  return (
+    <span
+      className={`mt-1.5 inline-block size-2 shrink-0 rounded-full ${
+        mode === "AUTONOMOUS" ? "bg-emerald-500" : "bg-amber-500"
+      }`}
+      aria-hidden="true"
+      title={mode}
+    />
+  );
+}
+
+function CapRow({ c }: { c: AutonomyCapability }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-lg border bg-card/60 p-3">
+      {modeDot(c.mode)}
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium leading-snug text-foreground/90" dir="auto">
+          {c.titleHe}
+          {c.gateRef && (
+            <span className="ml-1.5 font-mono text-[10px] text-muted-foreground" dir="ltr">
+              [{c.gateRef}]
+            </span>
+          )}
+        </p>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+          {c.evidenceHe}
+        </p>
+        {c.mode === "OPERATOR-GATED" && c.unblockHe && (
+          <p className="mt-1 rounded-md border border-amber-500/25 bg-amber-500/5 px-2 py-1 text-[11px] leading-relaxed text-amber-700 dark:text-amber-300" dir="auto">
+            {c.unblockHe}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function AutonomyLedgerCard() {
+  const { data, loading } = useLiveJson<AutonomyState>("/api/sovereignty/autonomy");
+  const reduced = useReducedMotion();
+
+  const v = data?.verdict;
+  const pct = v?.share == null ? null : Math.round(v.share * 100);
+  const shareBadge = pct == null ? (
+    <Skeleton className="h-5 w-16" />
+  ) : (
+    <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 font-mono text-emerald-700 dark:text-emerald-300" dir="ltr">
+      {pct}% autonomous
+    </Badge>
+  );
+
+  const fleetDomains = data?.domains.filter((d) => d.id !== "operator") ?? [];
+  const operatorDomain = data?.domains.find((d) => d.id === "operator");
+  const dominos = data?.dominos24h ?? [];
+
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+      className="h-full lg:col-span-2"
+    >
+      <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <Waypoints className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            מרשם-האוטונומיה
+          </div>
+          {shareBadge}
+        </div>
+
+        {v?.he && (
+          <p className="text-xs leading-relaxed text-muted-foreground" dir="auto">
+            {v.he}
+          </p>
+        )}
+        {data?.errorHe && (
+          <p className="text-xs leading-relaxed text-amber-600 dark:text-amber-300" dir="auto">
+            {data.errorHe}
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <EffTile label="יכולות במרשם" value={v ? String(v.total) : "…"} sub="כל יכולת נרשמת — אף אחת לא מוסתרת" />
+          <EffTile label="אוטונומיות" value={v ? String(v.autonomous) : "…"} sub="רצות קצה-אל-קצה בלי אדם" />
+          <EffTile label="שערי-מפעיל" value={v ? String(v.operatorGated) : "…"} sub="מכוח החלטת-ריבונות, בכנות" />
+          <EffTile label="דומינוס 24ש'" value={data ? String(dominos.length) : "…"} sub="שרשראות שהציתו את עצמן" />
+        </div>
+
+        <div className={`grid gap-4 md:grid-cols-2 ${scrollBoxClass}`}>
+          {loading &&
+            Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+          {fleetDomains.map((d) => (
+            <div key={d.id} className="flex flex-col gap-2">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground" dir="auto">
+                {d.titleHe}
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {d.capabilities.map((c) => (
+                  <CapRow key={c.id} c={c} />
+                ))}
+              </div>
+            </div>
+          ))}
+          {operatorDomain && (
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-600 dark:text-amber-300" dir="auto">
+                {operatorDomain.titleHe}
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {operatorDomain.capabilities.map((c) => (
+                  <CapRow key={c.id} c={c} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {dominos.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground" dir="auto">
+              דבר גורר דבר — ההצתות העצמיות האחרונות
+            </p>
+            <div className={`${scrollBoxClass} rounded-lg border bg-card/60 p-3`}>
+              <ul className="flex flex-col gap-1 font-mono text-[10px] leading-relaxed text-muted-foreground" dir="ltr">
+                {dominos.map((d, i) => (
+                  <li key={`${d.at}-${d.chain}-${i}`}>
+                    {d.at.slice(11, 16)}Z {d.chain}/{d.step} ← {d.firedBy} {d.ok ? "ok" : "FAIL"}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        <p className="mt-auto text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+          <ScrollText className="mr-1 inline size-3" aria-hidden="true" />
+          {data?.honestyHe ?? "מרשם שלא נמדד מוצג כלא-נמדד — לעולם לא כהצלחה שנטענת."}
         </p>
       </Card>
     </motion.div>
