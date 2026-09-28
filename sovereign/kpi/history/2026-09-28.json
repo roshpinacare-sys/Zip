@@ -3,7 +3,7 @@
  "format": "kpi-day-v1",
  "day": "2026-09-28",
  "last": {
-  "at": "2026-09-28T15:03:33.554Z",
+  "at": "2026-09-28T15:59:57.570Z",
   "green": true,
   "checks": {
    "missionOk": true,
@@ -11,11 +11,11 @@
    "fleetUp": "9/9",
    "fleetFull": true,
    "gridFresh": true,
-   "gridAgeHours": 3.5,
+   "gridAgeHours": 0.7,
    "ci": {
-    "id": null,
-    "conclusion": "no-run-found",
-    "createdAt": null,
+    "id": 36444786803,
+    "conclusion": "success",
+    "createdAt": "2026-09-28T15:35:48Z",
     "lookupFailed": false
    },
    "secretsBlockedToday": 0
@@ -23,15 +23,17 @@
   "measured": {
    "revenuePerDayUsd": 0.0103,
    "fuelBurnRemainingWeeks": 4,
-   "fuelEngineUsdPerDay": 4.2457,
+   "fuelEngineUsdPerDay": 4.2414,
    "missionBookUsdPerDay": 0.0103,
    "daysRecorded": 2,
-   "gridExternalFillsLifetimeUsd": 0.171382,
-   "capitalUsd": 2.68,
-   "steemUsd": 0.06277,
+   "gridExternalFillsLifetimeUsd": 0.15252,
+   "capitalUsd": 60.47,
+   "capitalSteemInOrders": 887.061,
+   "capitalSteemTotal": 929.77,
+   "steemUsd": 0.06304,
    "triggers": {
-    "chainRuns24h": 7,
-    "chainOk24h": 7,
+    "chainRuns24h": 8,
+    "chainOk24h": 8,
     "gridConsumedCount": 0
    }
   },
@@ -546,6 +548,56 @@
     "triggers": {
      "chainRuns24h": 7,
      "chainOk24h": 7,
+     "gridConsumedCount": 0
+    }
+   },
+   "streak": {
+    "consecutiveGreenDays": 1,
+    "asOf": "2026-09-28"
+   },
+   "sources": [
+    "http://127.0.0.1:3000/api/mission",
+    "http://127.0.0.1:3000/api/health",
+    "https://raw.githubusercontent.com/roshpinacare-sys/Console/main/dex/grid.json",
+    "https://api.github.com/repos/roshpinacare-sys/Console/actions/runs"
+   ],
+   "notes": [
+    "RECORD-FORCED — נדרש ידנית (POST /record)",
+    "D-012-SEMANTICS-FIX (r132): revenuePerDayUsd = הכנסה ממומשת בלבד; פאוורדאון SP נמדד כ-fuelBurn (המרת-הון), לא כהכנסה"
+   ]
+  },
+  {
+   "at": "2026-09-28T15:59:57.570Z",
+   "green": true,
+   "checks": {
+    "missionOk": true,
+    "healthOk": true,
+    "fleetUp": "9/9",
+    "fleetFull": true,
+    "gridFresh": true,
+    "gridAgeHours": 0.7,
+    "ci": {
+     "id": 36444786803,
+     "conclusion": "success",
+     "createdAt": "2026-09-28T15:35:48Z",
+     "lookupFailed": false
+    },
+    "secretsBlockedToday": 0
+   },
+   "measured": {
+    "revenuePerDayUsd": 0.0103,
+    "fuelBurnRemainingWeeks": 4,
+    "fuelEngineUsdPerDay": 4.2414,
+    "missionBookUsdPerDay": 0.0103,
+    "daysRecorded": 2,
+    "gridExternalFillsLifetimeUsd": 0.15252,
+    "capitalUsd": 60.47,
+    "capitalSteemInOrders": 887.061,
+    "capitalSteemTotal": 929.77,
+    "steemUsd": 0.06304,
+    "triggers": {
+     "chainRuns24h": 8,
+     "chainOk24h": 8,
      "gridConsumedCount": 0
     }
    },
