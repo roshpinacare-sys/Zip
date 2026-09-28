@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-09-28T20:41:31.302Z",
-  "chainCount": 853,
-  "headHash": "0x6f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868",
+  "exportedAt": "2026-09-28T20:41:42.027Z",
+  "chainCount": 854,
+  "headHash": "0x89d102b9bd82afb7664853b466c39b368e54bc04a0fc3bba38bd43a650801899",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -12943,6 +12943,21 @@
       "sig": "0x131ba1e404b97754cb41678fcadeb96b12745e368b4517831a454da312c186de7806c821d01eec6e0271a7dcbf2b0884ce56eb87d958a6802911c626396f1e5c1b",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-09-28T20:41:31.202Z"
+    },
+    {
+      "id": "cmulpqm2600012guzs4mf4n40",
+      "seq": 854,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "קו ה-ZERO (Z Chain 9369, גז-אפס): checkpoint #843 root 0x6f111d40b646164e… עוגן כטרנזקציית EVM אמיתית ממפתח הרשת (סלקטור 0xa9059cbb + מטען קנוני, ממוען-עצמית ל-EOA אינרטי) — עד EVM ציבורי בלתי-תלוי בגיטהאב, בעלות מדודה 0.000000.",
+      "claimType": "ANCHOR",
+      "evidence": "zeroTxid=0x66283b4f181790e4e62ad03db26328e85e2eb23aa196de2414f4e4ac1ec04d6a · chainId=zero-9369 (Z Chain, Zero Network) · block=35836419 · gasUsed=37960 · effectiveGasPrice=0 (0 = הוכחת האפס בקבלה) · costEth=0.0 · account=0xe376d8431089A0275A0CF125655B6Bc7d693F1b2 (מפתח הרשת מה-seal; מאזן 0 — הגז מדוד 0x0) · operation=self-addressed EOA · value=0 · data=0xa9059cbb+canonical (רשימת-ההיתר של שער ה-RPC) · checkpoint=843 root=0x6f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868 attFrom=853 attTo=853 · attestations=853 · headHash=0x6f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868 · readback=ON-CHAIN · status 1 · data byte-exact · effectiveGasPrice 0x0 — the zero anchor is proven · explorer=https://zscan.live/tx/0x66283b4f181790e4e62ad03db26328e85e2eb23aa196de2414f4e4ac1ec04d6a · commit=0ca532f · payloadAt=2026-09-28T20:41:37.001Z · runner=github-actions · run=https://github.com/roshpinacare-sys/Domain/actions/runs/36480905597",
+      "evidenceHash": "0x901d67b81b182bcf53dafade1b4fa44b1e6c8b648e2237196f5f35ca18cfe0ae",
+      "status": "VERIFIED",
+      "prevHash": "0x6f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868",
+      "entryHash": "0x89d102b9bd82afb7664853b466c39b368e54bc04a0fc3bba38bd43a650801899",
+      "sig": "0x71e7eeb3423f5303b4411dcfaf896196365a236f6e1ef39ee92516c8afb405625ff47b718383f1e3c1111a56086ca3b9c14d2133ad6d566457645b3358ed00481b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-09-28T20:41:41.931Z"
     }
   ],
   "checkpoints": [
@@ -27271,11 +27286,28 @@
       "entryHash": "0xad0188a2c3e64ebf177b0d0298ba5b9f62fe60c58e5a98929ffd11ef58922f33",
       "sig": "0x6148a3a75b1a6c5c01d5575a1e75d3ec21a2a53169ab85f1dcd83f1890b568c532052db19dd22443f1f5236a97e0324a80171c2d86e82ca747c80201f0e29cb41c",
       "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "ANCHORED",
+      "anchorNet": "zero-9369",
+      "anchorTx": "0x66283b4f181790e4e62ad03db26328e85e2eb23aa196de2414f4e4ac1ec04d6a",
+      "calldata": "0xeecdf9276f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868",
+      "createdAt": "2026-09-28T20:41:31.229Z"
+    },
+    {
+      "id": "cmulpqm2j00022guzkk67qu21",
+      "index": 844,
+      "attFrom": 854,
+      "attTo": 854,
+      "leafCount": 1,
+      "root": "0x89d102b9bd82afb7664853b466c39b368e54bc04a0fc3bba38bd43a650801899",
+      "prevRoot": "0x6f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868",
+      "entryHash": "0xcb169ea9bf0ad4ffdf2270b927c9524550b28c4b5bfc8925b7f5813c182d92e6",
+      "sig": "0x2b78809517d8472ee6b77c5e14a472b6a6518fd1e5592d4105a468900be4c32860d19a5fe59b395192e6152bad7f8b29b5bdfdaa84a33d2344e331f856d932531c",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
       "anchorStatus": "LOCAL",
       "anchorNet": null,
       "anchorTx": null,
-      "calldata": "0xeecdf9276f111d40b646164ef00f3eb01402da50f71462049c44e34f9a3ce53de5e94868",
-      "createdAt": "2026-09-28T20:41:31.229Z"
+      "calldata": "0xeecdf92789d102b9bd82afb7664853b466c39b368e54bc04a0fc3bba38bd43a650801899",
+      "createdAt": "2026-09-28T20:41:41.948Z"
     }
   ],
   "networkKey": {
@@ -28078,7 +28110,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-28T20:23:23.978Z",
+      "verifiedAt": "2026-09-28T20:41:35.110Z",
       "createdAt": "2026-09-15T13:13:34.866Z"
     },
     {
@@ -28090,7 +28122,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-28T20:23:23.879Z",
+      "verifiedAt": "2026-09-28T20:41:34.896Z",
       "createdAt": "2026-09-15T13:13:34.864Z"
     },
     {
@@ -28102,7 +28134,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-09-28T20:23:24.087Z",
+      "verifiedAt": "2026-09-28T20:41:35.336Z",
       "createdAt": "2026-09-15T13:13:34.868Z"
     }
   ]
