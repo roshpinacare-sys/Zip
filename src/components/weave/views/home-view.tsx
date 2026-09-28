@@ -38,6 +38,7 @@ import { WeaveCanvas } from "../weave-canvas";
 import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
 import { MissionLadderCard } from "./mission-ladder-card";
+import { ArrayEfficiencyCard, SovereigntyDecisionsCard } from "./sovereignty-cards";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
 
@@ -392,6 +393,25 @@ export function HomeView() {
         aria-label="סולם המשימה — מנוע המשימה נמדד חי"
       >
         <MissionLadderCard />
+      </section>
+
+      {/* ── החלטת הריבונות + תייעלות המערך (D-017/D-018 · r131) ── */}
+      <section
+        className="mx-auto w-full max-w-7xl scroll-mt-24 px-4 pb-14 sm:px-6"
+        aria-label="החלטת הריבונות ומבדק תייעלות המערך"
+      >
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">הריבונות במדידה</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              ההחלטות העומדות של הרשת, חיות מהגיט · ומבדק תייעלות חי של המערך האוטונומי: הצי, השרשראות, ההפעלה-העצמית.
+            </p>
+          </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <SovereigntyDecisionsCard />
+          <ArrayEfficiencyCard />
+        </div>
       </section>
 
       {/* ── איך זה עובד - שלושה צעדים ── */}

@@ -24,8 +24,15 @@ import {
   WEB_ACCOUNT,
   type WebManifestRecord,
 } from "@/lib/web/netstore";
+import { startFleetGuard } from "@/lib/weave/fleet-guard";
 
 export const dynamic = "force-dynamic";
+
+// D-016 · הפעלה-עצמית כפולה: בקשת-הבריאות הראשונה מדליקה את שומר-הצי
+// בתוך השרת (fleet-guard). זו נקודת-ההצתה העצלה: keeper פוגע כאן כל 30ש',
+// לכן השומר קם גם ב-dev וגם אחרי כל החייאת-שרת, בלי סדר-עלייה תלוי.
+// לולאה-יחידה ב-globalThis — קריאות חוזרות הן no-op.
+startFleetGuard();
 
 // R86: סנדבוקס מתאפס מדי יום — ספריית המניפסטים לא נוצרה עדיין. ״מחסן
 // ריק״ הוא מצב תקין לפי ההגדרה שלעיל (0 חבילות = תקין); תיקייה-שאינה־קיימת
