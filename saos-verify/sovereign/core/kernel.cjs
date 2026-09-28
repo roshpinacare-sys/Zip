@@ -97,6 +97,33 @@ const OPS = Object.keys(GAS);
 /* ── עזרים שלמים ── */
 const µ = (n) => Math.round(n * 1000);           // SAOS/STEEM → micro
 const fromµ = (n) => n / 1000;
+
+/* HARDEN-FORK (2026-09-28) — גובה-מזלג ההתקשות.
+ * בעקבות ביקורת עצמאית (PoC מאומת) נמצאו שלושה-פרצות קריטיים שנסגרו כאן:
+ *   H1. steemPay{from:'host'} היה מינט-חופשי (host יכול-שלילי-בלי-גבול).
+ *       מעל-המזלג: host מגובל ב-st.meta.hostCreditLimit (ברירת-מחדל 0 =
+ *       fail-closed; המפעיל מצהיר-גבול-גיבוי-מדוד בג'נזיס — "שום טענה בלי מדידה").
+ *   H2. טרנזאקציה-נדחית היתה משנה-מצב (acct() יוצר-חשבונות לפני-הוולידציה).
+ *       מעל-המזלג: אף-reject לא נוגע במצב — ההבטחה שבכותרת היא עכשיו אמת.
+ *   H3. wrap_mint דחה-refs בטבעת-FIFO-256 → אותה-נעילה-חיצונית נספרה
+ *       שוב (PoC: מינט-כפול). מעל-המזלג: refs קבועים-לעד (בלי-דחיקה),
+ *       כל-ref מאחסן-את-כמות-המינט שלו; שינוי-מצב-ה-wrapped נדחה-עד-סוף-הוולידציה.
+ * מתחת-לגובה-זה ההתנהגות byte-זהה להיסטוריה (replay לא-נשבר).
+ * הקבוע חוזה-בקוד (לא-סביבה) — אותו-ערך בכל מכונה. */
+const HARDEN_FORK_HEIGHT = 224000;
+
+/* קורא-חשבון-טהור: לא יוצר, לא משנה — לוולידציה לפני-mutation. */
+const getAcct = (st, name) => {
+  if (Object.prototype.hasOwnProperty.call(st.accounts, name)) return st.accounts[name];
+  return undefined;
+};
+/* כמות-קפדנית (מעל-המזלג): מספר או מחרוזת-מספרית-קנונית בלבד —
+ * קוטלת-מחלקת-הפרכות Number(true)=1 / Number('0x10')=16 / Number(null)=0. */
+const strictAmt = (v, scale) => {
+  if (typeof v === 'number') { if (!Number.isFinite(v)) return 0; return Math.round(v * scale); }
+  if (typeof v === 'string' && /^-?\d+(\.\d+)?$/.test(v)) return Math.round(Number(v) * scale);
+  return 0;
+};
 /* 117 — דיוק-פר-סמל: bookScale ב-assetMeta מגדיר את-יחידת-הספר-לסמל (ברירת-מחדל 1000 = µ,
  * כל-הסמלים-הקיימים-נשארים-µ ללא-שינוי — הווקטורים-הקדושים-נשארים-byte-זהים).
  * מטבעות-רשת-אמת (ETH 18 ספרות · SOL 9 · BTC 8) נרשמים-עם-bookScale=1e9 (ננו) —
@@ -151,11 +178,17 @@ function applyTx(st, tx, atHeight) {
     case 'pay': {
       const a = µ(Number(tx.amount));
       if (!(a > 0)) return { ok: false, gas, err: 'amount' };
-      const from = acct(st, String(tx.from || '').toLowerCase());
-      const to = acct(st, String(tx.to || '').toLowerCase());
-      if (from.saos < a) return { ok: false, gas, err: 'insufficient' };
+      const fromName = String(tx.from || '').toLowerCase();
+      const toName = String(tx.to || '').toLowerCase();
+      /* HARDEN-FORK (H2): ולידציה-על-קריאה-טהורה; יצירת-חשבונות רק-בהצלחה. */
+      const hard = atH >= HARDEN_FORK_HEIGHT;
+      const from = hard ? getAcct(st, fromName) : acct(st, fromName);
+      const to = hard ? getAcct(st, toName) : acct(st, toName);
+      if ((from ? from.saos : 0) < a) return { ok: false, gas, err: 'insufficient' };
       if (from === to && tx.from === tx.to) return { ok: false, gas, err: 'self' };
-      from.saos -= a; to.saos += a;
+      const F = hard ? acct(st, fromName) : from;
+      const T = hard ? acct(st, toName) : to;
+      F.saos -= a; T.saos += a;
       if (type === 'pay') st.meta.pays = (st.meta.pays || 0) + 1;
       return { ok: true, gas };
     }
@@ -165,15 +198,22 @@ function applyTx(st, tx, atHeight) {
       const a = µ(Number(tx.amount));
       const p = Number(tx.price);
       if (!side || !(a > 0) || !(p > 0)) return { ok: false, gas, err: 'bad-order' };
-      const o = acct(st, owner);
+      /* HARDEN-FORK (H2): קריאה-טהורה לוולידציה; יצירת-חשבון רק-בהצלחה. */
+      const hard = atH >= HARDEN_FORK_HEIGHT;
+      const o = hard ? getAcct(st, owner) : acct(st, owner);
       if (st.orders.filter((x) => x.owner === owner && x.live).length >= 8) return { ok: false, gas, err: 'order-cap' };
+      let paySteem = 0;
       if (side === 'sell') {
-        if (o.saos < a) return { ok: false, gas, err: 'insufficient' };
-        o.saos -= a; o.lockedSaos += a;
+        if ((o ? o.saos : 0) < a) return { ok: false, gas, err: 'insufficient' };
       } else {
-        const paySteem = Math.ceil(a * p);
-        if (o.steem < paySteem) return { ok: false, gas, err: 'insufficient-steem' };
-        o.steem -= paySteem; o.lockedSteem += paySteem;
+        paySteem = Math.ceil(a * p);
+        if ((o ? o.steem : 0) < paySteem) return { ok: false, gas, err: 'insufficient-steem' };
+      }
+      const O = hard ? acct(st, owner) : o;
+      if (side === 'sell') {
+        O.saos -= a; O.lockedSaos += a;
+      } else {
+        O.steem -= paySteem; O.lockedSteem += paySteem;
       }
       const id = st.nextOrder++;
       st.orders.push({ id, side, owner, amount: a, price: Math.round(p * 1e6), live: true, at: tx.at || null });
@@ -235,16 +275,20 @@ function applyTx(st, tx, atHeight) {
       return { ok: true, gas, filled: a };
     }
     case 'pool_add': {
-      const o = acct(st, String(tx.owner || '').toLowerCase());
+      /* HARDEN-FORK (H2): קריאה-טהורה לוולידציה; יצירת-חשבון רק-בהצלחה. */
+      const ownerName = String(tx.owner || '').toLowerCase();
+      const hard = atH >= HARDEN_FORK_HEIGHT;
+      const o = hard ? getAcct(st, ownerName) : acct(st, ownerName);
       const inS = µ(Number(tx.amountSaos)), inT = µ(Number(tx.amountSteem));
       if (inS < 0 || inT < 0 || inS + inT <= 0) return { ok: false, gas, err: 'amount' };
-      if (o.saos < inS || o.steem < inT) return { ok: false, gas, err: 'insufficient' };
+      if ((o ? o.saos : 0) < inS || (o ? o.steem : 0) < inT) return { ok: false, gas, err: 'insufficient' };
+      const O = hard ? acct(st, ownerName) : o;
       let shares;
       if (st.pool.lpSupply <= 0) { shares = Math.round((inS + inT) * 1000); } // 1e3 µlp per µ
       else { shares = Math.floor((inS / Math.max(st.pool.saos, 1)) * st.pool.lpSupply); if (!(shares > 0)) shares = 1; }
-      o.saos -= inS; o.steem -= inT;
+      O.saos -= inS; O.steem -= inT;
       st.pool.saos += inS; st.pool.steem += inT; st.pool.lpSupply += shares;
-      o.lp += shares;
+      O.lp += shares;
       return { ok: true, gas, shares };
     }
     case 'pool_swap': {
@@ -252,11 +296,13 @@ function applyTx(st, tx, atHeight) {
       const side = tx.side === 'sell_saos' ? 'sell_saos' : tx.side === 'buy_saos' ? 'buy_saos' : null;
       const inAmt = µ(Number(tx.inAmt));
       if (!side || !(inAmt > 0)) return { ok: false, gas, err: 'bad-swap' };
-      const o = acct(st, t);
+      /* HARDEN-FORK (H2): קריאה-טהורה לוולידציה; יצירת-חשבון רק-בהצלחה. */
+      const hardPS = atH >= HARDEN_FORK_HEIGHT;
+      const o = hardPS ? getAcct(st, t) : acct(st, t);
       const p = st.pool;
       if (p.saos <= 0 || p.steem <= 0) return { ok: false, gas, err: 'empty-pool' };
       if (side === 'sell_saos') {
-        if (o.saos < inAmt) return { ok: false, gas, err: 'insufficient' };
+        if ((o ? o.saos : 0) < inAmt) return { ok: false, gas, err: 'insufficient' };
         const fee = Math.floor(inAmt * p.feeBps / 10000);
         const net = inAmt - fee;
         const out = Math.floor(net * p.steem / (p.saos + net));
@@ -265,17 +311,18 @@ function applyTx(st, tx, atHeight) {
         if (tx.minOut !== undefined && !(out >= Math.floor(Number(tx.minOut)))) return { ok: false, gas, err: 'minOut' };
         const feeToLp = Math.floor(fee / 2), feeToTr = fee - feeToLp;
         // שימור: inAmt == (net + feeToLp) + feeToTr — כל-המיקרו נספרים
-        o.saos -= inAmt;
+        const O = hardPS ? acct(st, t) : o;
+        O.saos -= inAmt;
         p.saos += net; p.steem -= out;
         p.saos += feeToLp;
-        o.steem += out;
+        O.steem += out;
         st.fees.toLp += feeToLp; st.fees.toTreasury += feeToTr;
         acct(st, st.meta.issuer || 'treasury').saos += feeToTr;
         st.fees.total += fee;
         st.meta.swaps = (st.meta.swaps || 0) + 1;
         return { ok: true, gas, out };
       } else {
-        if (o.steem < inAmt) return { ok: false, gas, err: 'insufficient-steem' };
+        if ((o ? o.steem : 0) < inAmt) return { ok: false, gas, err: 'insufficient-steem' };
         const fee = Math.floor(inAmt * p.feeBps / 10000);
         const net = inAmt - fee;
         const out = Math.floor(net * p.saos / (p.steem + net));
@@ -283,10 +330,11 @@ function applyTx(st, tx, atHeight) {
         // 117k — minOut-אופציונלי (אותו-חוזה-של-pool_x): replay-safe
         if (tx.minOut !== undefined && !(out >= Math.floor(Number(tx.minOut)))) return { ok: false, gas, err: 'minOut' };
         const feeToLp = Math.floor(fee / 2), feeToTr = fee - feeToLp;
-        o.steem -= inAmt;
+        const O = hardPS ? acct(st, t) : o;
+        O.steem -= inAmt;
         p.steem += net; p.saos -= out;
         p.steem += feeToLp;
-        o.saos += out;
+        O.saos += out;
         st.fees.toLp += feeToLp; st.fees.toTreasury += feeToTr;
         acct(st, st.meta.issuer || 'treasury').steem += feeToTr;
         st.fees.total += fee;
@@ -299,9 +347,32 @@ function applyTx(st, tx, atHeight) {
       if (!/^[A-Z0-9-]{2,12}$/.test(sym)) return { ok: false, gas, err: 'bad-symbol' };
       const ISSUER = st.meta.issuer || 'treasury';
       if (String(tx.issuer || '').toLowerCase() !== ISSUER) return { ok: false, gas, err: 'issuer' };
-      if (!tx.ref || st.wrapped[sym] && st.wrapped[sym].refs && st.wrapped[sym].refs[tx.ref]) return { ok: false, gas, err: 'ref' };
-      const a = Math.round(Number(tx.amount) * bookScaleOf(st, sym));
+      /* HARDEN-FORK (H3): מעל-המזלג — refs קבועים (בלי-דחיקת-FIFO) כדי שאותה-נעילה
+       * חיצונית לא תוכל להיספר שנית גם אחרי-מאות-מינטים; וגם: אף-יצירת-מצב
+       * (st.wrapped[sym]) לפני-שכל-הבדיקות עברו. מתחת-המזלג: ההיסטוריה byte-זהה. */
+      const hard = atH >= HARDEN_FORK_HEIGHT;
+      const scale = bookScaleOf(st, sym);
+      const a = hard ? strictAmt(tx.amount, scale) : Math.round(Number(tx.amount) * bookScaleOf(st, sym));
       if (!(a > 0)) return { ok: false, gas, err: 'amount' };
+      const existing = st.wrapped[sym];
+      if (hard) {
+        if (!tx.ref || typeof tx.ref !== 'string' || tx.ref === '__proto__' || tx.ref === 'constructor' || tx.ref === 'prototype') return { ok: false, gas, err: 'ref' };
+        const refKey = tx.ref.slice(0, 96);
+        if (existing && existing.refs && Object.prototype.hasOwnProperty.call(existing.refs, refKey)) return { ok: false, gas, err: 'ref' };
+        const curLocked = existing ? existing.locked : 0;
+        const curSupply = existing ? existing.supply : 0;
+        const ld = tx.lockedDelta ? strictAmt(tx.lockedDelta, scale) : 0;
+        const candLocked = curLocked + ld;
+        if ((curSupply + a) / Math.max(candLocked, 1) > 1.0001) return { ok: false, gas, err: 'under-backed' };
+        const w = st.wrapped[sym] = existing || { locked: 0, supply: 0, refs: {} };
+        w.locked = candLocked;
+        w.refs[refKey] = a;                       // קבוע-לעד — בלי-דחיקה
+        const to = acct(st, String(tx.to || '').toLowerCase());
+        to.wrapped[sym] = (to.wrapped[sym] || 0) + a;
+        w.supply += a;
+        return { ok: true, gas };
+      }
+      if (!tx.ref || st.wrapped[sym] && st.wrapped[sym].refs && st.wrapped[sym].refs[tx.ref]) return { ok: false, gas, err: 'ref' };
       const w = st.wrapped[sym] = st.wrapped[sym] || { locked: 0, supply: 0, refs: {} };
       // שמור-על-טהור: לא-נוגעים במצב לפני-שכל-הבדיקות עברו (מרוצף-מטה)
       const candLocked = w.locked + (tx.lockedDelta ? Math.round(Number(tx.lockedDelta) * bookScaleOf(st, sym)) : 0);
@@ -321,9 +392,13 @@ function applyTx(st, tx, atHeight) {
       if (!(a > 0)) return { ok: false, gas, err: 'amount' };
       const w = st.wrapped[sym];
       if (!w) return { ok: false, gas, err: 'no-symbol' };
-      const o = acct(st, String(tx.from || '').toLowerCase());
-      if ((o.wrapped[sym] || 0) < a) return { ok: false, gas, err: 'not-holder' };
-      o.wrapped[sym] -= a; w.supply -= a; w.redeemed = (w.redeemed || 0) + a;
+      /* HARDEN-FORK (H2): קריאה-טהורה; יצירת-חשבון רק-בהצלחה. */
+      const fromName = String(tx.from || '').toLowerCase();
+      const hard = atH >= HARDEN_FORK_HEIGHT;
+      const o = hard ? getAcct(st, fromName) : acct(st, fromName);
+      if ((o ? (o.wrapped[sym] || 0) : 0) < a) return { ok: false, gas, err: 'not-holder' };
+      const O = hard ? acct(st, fromName) : o;
+      O.wrapped[sym] -= a; w.supply -= a; w.redeemed = (w.redeemed || 0) + a;
       return { ok: true, gas };
     }
     case 'wrap_cover': {
@@ -402,17 +477,26 @@ function applyTx(st, tx, atHeight) {
     }
     case 'steemPay': {
       // מראה-STEEM: תנועת-STEEM אמיתית-מהמארח ממופה למצב-הריבוני (mirror).
-      // 'host' = חשבון-גבול (boundary): מייצג את-צד-ה-STEEM של-המארח,
-      // רשאי-יתרה-שלילית (כמו-חשבון-פיקדון-בבורסה) — הוא-הסמן-המצטבר של
-      // הזרימה-נטו-מעבר-לגבול. מקור-כל-שאר-החשבונות: מאוזן-רגיל.
-      const a = µ(Number(tx.amount));
+      // 'host' = חשבון-גבול (boundary): מייצג את-צד-ה-STEEM של-המארח.
+      // HARDEN-FORK (H1): מעל-המזלג host מגובל ב-st.meta.hostCreditLimit
+      // (ברירת-מחדל 0 = fail-closed — אין-מינט-חינם); מתחת-המזלג ההיסטוריה byte-זהה.
+      const atH2 = atH;
+      const hard = atH2 >= HARDEN_FORK_HEIGHT;
+      const a = hard ? strictAmt(tx.amount, 1000) : µ(Number(tx.amount));
       if (!(a > 0)) return { ok: false, gas, err: 'amount' };
       const fromName = String(tx.from || '').toLowerCase();
       const toName = String(tx.to || '').toLowerCase();
-      const from = acct(st, fromName);
-      const to = acct(st, toName);
-      if (fromName !== 'host' && from.steem < a) return { ok: false, gas, err: 'insufficient-steem' };
-      from.steem -= a; to.steem += a;
+      const from = hard ? getAcct(st, fromName) : acct(st, fromName);
+      const fromSteem = from ? from.steem : 0;
+      if (fromName === 'host') {
+        if (hard) {
+          const limit = Number.isFinite(st.meta.hostCreditLimit) ? Math.max(0, Math.round(st.meta.hostCreditLimit)) : 0;
+          if (fromSteem - a < -limit) return { ok: false, gas, err: 'host-limit' };
+        }
+      } else if (fromSteem < a) return { ok: false, gas, err: 'insufficient-steem' };
+      const F = hard ? acct(st, fromName) : from;
+      const T = hard ? acct(st, toName) : acct(st, toName);
+      F.steem -= a; T.steem += a;
       st.meta.steemPays = (st.meta.steemPays || 0) + 1;
       return { ok: true, gas };
     }
@@ -550,12 +634,18 @@ function applyTx(st, tx, atHeight) {
       if (!st.assetMeta || !st.assetMeta[sym]) return { ok: false, gas, err: 'no-symbol' };
       const a = Math.round(Number(tx.amount) * bookScaleOf(st, sym));
       if (!(a > 0)) return { ok: false, gas, err: 'amount' };
-      const from = acct(st, String(tx.from || '').toLowerCase());
-      const to = acct(st, String(tx.to || '').toLowerCase());
-      if ((from.wrapped[sym] || 0) < a) return { ok: false, gas, err: 'not-holder' };
-      if (from === to && String(tx.from || '').toLowerCase() === String(tx.to || '').toLowerCase()) return { ok: false, gas, err: 'self' };
-      from.wrapped[sym] -= a;
-      to.wrapped[sym] = (to.wrapped[sym] || 0) + a;
+      /* HARDEN-FORK (H2): קריאה-טהורה; יצירת-חשבון רק-בהצלחה. */
+      const hardTW = atH >= HARDEN_FORK_HEIGHT;
+      const fromNameW = String(tx.from || '').toLowerCase();
+      const toNameW = String(tx.to || '').toLowerCase();
+      const from = hardTW ? getAcct(st, fromNameW) : acct(st, fromNameW);
+      const to = hardTW ? getAcct(st, toNameW) : acct(st, toNameW);
+      if ((from ? (from.wrapped[sym] || 0) : 0) < a) return { ok: false, gas, err: 'not-holder' };
+      if (from === to && fromNameW === toNameW) return { ok: false, gas, err: 'self' };
+      const F = hardTW ? acct(st, fromNameW) : from;
+      const T = hardTW ? acct(st, toNameW) : to;
+      F.wrapped[sym] -= a;
+      T.wrapped[sym] = (T.wrapped[sym] || 0) + a;
       return { ok: true, gas };
     }
     case 'pool_addw': {
@@ -563,19 +653,23 @@ function applyTx(st, tx, atHeight) {
        * נזילות-גשר אמת (WTRX מגובה-מדידה על-הספר) נמשכת-לבריכות-שלנו.
        * אותה-מתמטיקת-mint-me-של-pool_add · אותן-עמלי-feeBps (ברירת-מחדל 30).
        * מניות-µlp: 1e3 µlp ל-µ בבריכה-הראשונה; אחר-כך יחסי. */
-      const o = acct(st, String(tx.owner || '').toLowerCase());
+      /* HARDEN-FORK (H2): קריאה-טהורה; יצירת-חשבון רק-בהצלחה. */
+      const ownerPW = String(tx.owner || '').toLowerCase();
+      const hardPW = atH >= HARDEN_FORK_HEIGHT;
+      const o = hardPW ? getAcct(st, ownerPW) : acct(st, ownerPW);
       const inS = µ(Number(tx.amountSaos));   // צד-SAOS
       const inW = µ(Number(tx.amountWtrx));   // צד-WTRX
       if (inS < 0 || inW < 0 || inS + inW <= 0) return { ok: false, gas, err: 'amount' };
-      if (o.saos < inS || (o.wrapped.WTRX || 0) < inW) return { ok: false, gas, err: 'insufficient' };
+      if ((o ? o.saos : 0) < inS || (o && o.wrapped ? (o.wrapped.WTRX || 0) : 0) < inW) return { ok: false, gas, err: 'insufficient' };
+      const O = hardPW ? acct(st, ownerPW) : o;
       const p = st.poolW = st.poolW || { saos: 0, wtrx: 0, lpSupply: 0, feeBps: 30 };
       let shares;
       if (p.lpSupply <= 0) { shares = Math.round((inS + inW) * 1000); }
       else { shares = Math.floor((inS / Math.max(p.saos, 1)) * p.lpSupply); if (!(shares > 0)) shares = 1; }
-      o.saos -= inS;
-      o.wrapped.WTRX = (o.wrapped.WTRX || 0) - inW;
+      O.saos -= inS;
+      O.wrapped.WTRX = (O.wrapped.WTRX || 0) - inW;
       p.saos += inS; p.wtrx += inW; p.lpSupply += shares;
-      o.lp += shares;
+      O.lp += shares;
       return { ok: true, gas, shares };
     }
     case 'pool_swapw': {
@@ -649,10 +743,14 @@ function applyTx(st, tx, atHeight) {
       const raw = tx.raw === true;
       const inA = raw ? Math.floor(Number(tx.amountA || 0)) : µ(Number(tx.amountA || 0)), inB = raw ? Math.floor(Number(tx.amountB || 0)) : µ(Number(tx.amountB || 0));
       if (inA < 0 || inB < 0 || inA + inB <= 0) return { ok: false, gas, err: 'amount' };
-      const o = acct(st, String(tx.owner || '').toLowerCase());
-      const bal = (acc, sym) => sym === 'SAOS' ? acc.saos : sym === 'STEEM' ? acc.steem : (acc.wrapped[sym] || 0);
+      /* HARDEN-FORK (H2): קריאה-טהורה; יצירת-חשבון רק-בהצלחה. */
+      const ownerXA = String(tx.owner || '').toLowerCase();
+      const hardXA = atH >= HARDEN_FORK_HEIGHT;
+      const o = hardXA ? getAcct(st, ownerXA) : acct(st, ownerXA);
+      const bal = (acc, sym) => !acc ? 0 : sym === 'SAOS' ? acc.saos : sym === 'STEEM' ? acc.steem : (acc.wrapped[sym] || 0);
       const debit = (acc, sym, amt) => { if (sym === 'SAOS') acc.saos -= amt; else if (sym === 'STEEM') acc.steem -= amt; else acc.wrapped[sym] = (acc.wrapped[sym] || 0) - amt; };
       if (bal(o, A) < inA || bal(o, B) < inB) return { ok: false, gas, err: 'insufficient' };
+      const O = hardXA ? acct(st, ownerXA) : o;
       const ps = st.poolsX = st.poolsX || {};
       /* 117c — תקנת-הריבונות: עמלת-בריכה-ניתנת-להצהרה בעת-היצירה (tx.feeBps 0..100).
        * המנדט (המפעיל): "להשתחרר-מהתלות של עמלות" — בריכת-אמת על-הרשת-שלנו יכולה
@@ -666,9 +764,9 @@ function applyTx(st, tx, atHeight) {
       /* 100 — צד-יחיד-על-b: ב-0 מתפוצץ inB×lpSupply (נמדד-חי: WBLURT קיבל 1.7e11
        * מניות-µlp) — √(inB·lpSupply) הוא-החלק-הסביר (Uniswap-style); ב-b>0 יחסי רגיל. */
       else { shares = p.b > 0 ? Math.floor((inB / p.b) * p.lpSupply) : Math.floor(Math.sqrt(inB * p.lpSupply)); if (!(shares > 0)) shares = 1; }
-      debit(o, A, inA); debit(o, B, inB);
+      debit(O, A, inA); debit(O, B, inB);
       p.a += inA; p.b += inB; p.lpSupply += shares;
-      o.lp += shares;
+      O.lp += shares;
       return { ok: true, gas, shares };
     }
     case 'pool_x': {
@@ -683,10 +781,11 @@ function applyTx(st, tx, atHeight) {
       if (!side || !(inAmt > 0)) return { ok: false, gas, err: 'bad-swap' };
       const A = p.symA, B = p.symB;
       const t = String(tx.taker || '').toLowerCase();
-      const o = acct(st, t);
+      /* HARDEN-FORK (H2): קריאה-טהורה; יצירת-חשבונות (taker+issuer) רק-בהצלחה. */
+      const hardPX = atH >= HARDEN_FORK_HEIGHT;
+      const o = hardPX ? getAcct(st, t) : acct(st, t);
       const ISSUER = st.meta.issuer || 'treasury';
-      const tr = acct(st, ISSUER);
-      const bal = (acc, sym) => sym === 'SAOS' ? acc.saos : sym === 'STEEM' ? acc.steem : (acc.wrapped[sym] || 0);
+      const bal = (acc, sym) => !acc ? 0 : sym === 'SAOS' ? acc.saos : sym === 'STEEM' ? acc.steem : (acc.wrapped[sym] || 0);
       const debit = (acc, sym, amt) => { if (sym === 'SAOS') acc.saos -= amt; else if (sym === 'STEEM') acc.steem -= amt; else acc.wrapped[sym] = (acc.wrapped[sym] || 0) - amt; };
       const credit = (acc, sym, amt) => { if (sym === 'SAOS') acc.saos += amt; else if (sym === 'STEEM') acc.steem += amt; else acc.wrapped[sym] = (acc.wrapped[sym] || 0) + amt; };
       const inSym = side === 'A2B' ? A : B;
@@ -703,9 +802,11 @@ function applyTx(st, tx, atHeight) {
       if (tx.minOut !== undefined && !(out >= Math.floor(Number(tx.minOut)))) return { ok: false, gas, err: 'minOut' };
       const outSym = side === 'A2B' ? B : A;
       const feeToLp = Math.floor(fee / 2), feeToTr = fee - feeToLp;
-      debit(o, inSym, inAmt);
+      const O = hardPX ? acct(st, t) : o;
+      const tr = acct(st, ISSUER);
+      debit(O, inSym, inAmt);
       if (side === 'A2B') { p.a += net + feeToLp; p.b -= out; } else { p.b += net + feeToLp; p.a -= out; }
-      credit(o, outSym, out);
+      credit(O, outSym, out);
       credit(tr, inSym, feeToTr);
       st.fees.total += fee;
       st.meta.swapsX = (st.meta.swapsX || 0) + 1;
@@ -914,8 +1015,16 @@ function applyTx(st, tx, atHeight) {
       if (!(amt > 0)) return { ok: false, gas, err: 'harvest-amount' };
       const ref = String(tx.ref || '').trim().slice(0, 64);
       if (!ref) return { ok: false, gas, err: 'harvest-ref' };
+      /* HARDEN-FORK (H2): מעל-המזלג — בדיקת-dedupe לפני-יצירת-st.harvest, כדי
+       * שדחיית-dup לא תיצור-מחסנית-ריקה על-הספר (זיהום-מצב). */
+      const hardHV = atH >= HARDEN_FORK_HEIGHT;
+      if (hardHV) {
+        if (st.harvest && st.harvest.seen && st.harvest.seen[ref]) return { ok: false, gas, err: 'harvest-dup' };
+      } else {
+        const H0 = st.harvest;
+        if (H0 && H0.seen && H0.seen[ref]) return { ok: false, gas, err: 'harvest-dup' };
+      }
       const H = st.harvest = st.harvest || { potµ: 0, byStream: {}, seen: {}, seenRing: [], releases: [], count: 0, releasedµ: 0 };
-      if (H.seen[ref]) return { ok: false, gas, err: 'harvest-dup' };
       H.seen[ref] = 1; H.seenRing.push(ref);
       if (H.seenRing.length > 512) { const old = H.seenRing.shift(); delete H.seen[old]; }
       H.potµ += amt;
@@ -940,10 +1049,13 @@ function applyTx(st, tx, atHeight) {
       if (!(amt > 0)) return { ok: false, gas, err: 'harvest-release-amount' };
       const H = st.harvest;
       if (!H || H.potµ < amt) return { ok: false, gas, err: 'harvest-pot-dry' };
-      const src = acct(st, ISSUER);
-      if (src.saos < amt) return { ok: false, gas, err: 'insufficient' };
+      /* HARDEN-FORK (H2): קריאה-טהורה; יצירת-חשבונות רק-בהצלחה. */
+      const hardHR = atH >= HARDEN_FORK_HEIGHT;
+      const src = hardHR ? getAcct(st, ISSUER) : acct(st, ISSUER);
+      if ((src ? src.saos : 0) < amt) return { ok: false, gas, err: 'insufficient' };
+      const S = hardHR ? acct(st, ISSUER) : src;
       const dst = acct(st, to);
-      src.saos -= amt; dst.saos += amt;
+      S.saos -= amt; dst.saos += amt;
       H.potµ -= amt;
       H.releasedµ = (H.releasedµ || 0) + amt;
       H.byPurpose = H.byPurpose || {};
@@ -1224,6 +1336,7 @@ function selfTestHarvest() {
 module.exports = {
   canon, sha256, stateRoot, GAS, OPS, initFromGenesis, applyTx, buildBlock,
   buildCheckpoint, verifyCheckpoint, selfTest, selfTestRotation, µ, fromµ, acct,
+  HARDEN_FORK_HEIGHT, getAcct, strictAmt, selfTestHarden,
   TEST_GENESIS, TEST_TXS, ROT_TEST_GENESIS, ROT_TEST_TXS,
   // WEAVE (W1)
   weaveLeaf, weaveInit, selfTestWeave, merkle: M,
@@ -1394,6 +1507,54 @@ function selfTestWeave() {
   };
 }
 
+/* ── HARDEN-FORK vectors (2026-09-28) — רגרסיה-חוזרת לשלושת-הפרצות שנסגרו.
+ * רצים-מעל-גובה-המזלג על-מצב-טסט-טרי; מתחת-המזלג מוכיחים שההיסטוריה-הלגאטית לא-נשברה. */
+function selfTestHarden() {
+  const H = HARDEN_FORK_HEIGHT;
+  // H1 · מינט-host: נדחה-מעל-המזלג (ברירת-מחדל limit=0), מותר-מתחת (היסטוריה), מגובל-ב-limit הצהרתי.
+  const s1 = initFromGenesis(TEST_GENESIS);
+  const hostKick = applyTx(s1, { type: 'steemPay', from: 'host', to: 'attacker', amount: 400 }, H + 1);
+  const s1b = initFromGenesis(TEST_GENESIS);
+  const hostLegacy = applyTx(s1b, { type: 'steemPay', from: 'host', to: 'attacker', amount: 400 }, 1); // לגאט: מותר (replay-היסטוריה)
+  const s1c = initFromGenesis(TEST_GENESIS);
+  s1c.meta.hostCreditLimit = 100000; // 100 STEEM מדוד
+  applyTx(s1c, { type: 'steemPay', from: 'host', to: 'user', amount: 60 }, H + 1); // ok — בתוך-הגבול
+  const hostOverLimit = applyTx(s1c, { type: 'steemPay', from: 'host', to: 'user', amount: 60 }, H + 1); // סה"כ 120 > 100 → נדחה
+  const hostBounded = hostKick.ok === false && hostKick.err === 'host-limit'
+    && hostLegacy.ok === true && hostOverLimit.ok === false && hostOverLimit.err === 'host-limit'
+    && s1c.accounts['user'].steem === 60000;
+  // H2 · טרנזאקציה-נדחית לא נוגעת במצב (מעל-המזלג) — כל-סוגי-ה-reject:
+  const s2 = initFromGenesis(TEST_GENESIS);
+  const rBefore = stateRoot(s2);
+  const rejects = [
+    applyTx(s2, { type: 'transfer', from: 'nobody', to: 'junk-a', amount: 5 }, H + 1),
+    applyTx(s2, { type: 'order', owner: 'nobody', side: 'sell', amount: 5, price: 1 }, H + 1),
+    applyTx(s2, { type: 'steemPay', from: 'nobody', to: 'junk-b', amount: 5 }, H + 1),
+    applyTx(s2, { type: 'pool_swap', taker: 'nobody', side: 'sell_saos', inAmt: 5 }, H + 1),
+    applyTx(s2, { type: 'steemPay', from: 'host', to: 'junk-c', amount: true }, H + 1), // strict-amount: bool נדחה
+    applyTx(s2, { type: 'steemPay', from: 'host', to: 'junk-d', amount: '0x10' }, H + 1), // strict-amount: hex-string נדחה
+  ];
+  const rejectsClean = rejects.every((r) => r.ok === false) && stateRoot(s2) === rBefore;
+  // H3 · wrap_mint: ref-קבוע — replay-אותו-נעילה נדחה גם-אחרי-300 מינטים (מעל-המזלג);
+  // נדחה-מינט לא יוצר st.wrapped[sym] (שום-זיהום); מתחת-המזלג ה-FIFO-הלגאטי שומר-התנהגות.
+  const s3 = initFromGenesis(TEST_GENESIS);
+  const ISS = s3.meta.issuer || 'treasury';
+  const m1 = applyTx(s3, { type: 'wrap_mint', issuer: ISS, symbol: 'WTRX', to: 'u1', amount: 1000, lockedDelta: 1000, ref: 'lock-001' }, H + 1);
+  for (let i = 0; i < 300; i++) applyTx(s3, { type: 'wrap_mint', issuer: ISS, symbol: 'WTRX', to: 'u1', amount: 1, lockedDelta: 1, ref: 'f-' + i }, H + 1);
+  const replayRef = applyTx(s3, { type: 'wrap_mint', issuer: ISS, symbol: 'WTRX', to: 'u1', amount: 1000, lockedDelta: 1000, ref: 'lock-001' }, H + 1);
+  const refsPermanent = m1.ok === true && replayRef.ok === false && replayRef.err === 'ref';
+  const s3b = initFromGenesis(TEST_GENESIS);
+  const rejectNoCreate = applyTx(s3b, { type: 'wrap_mint', issuer: ISS, symbol: 'WXXX', to: 'u1', amount: 1000, lockedDelta: 0, ref: 'x' }, H + 1);
+  const noPollution = rejectNoCreate.ok === false && s3b.wrapped.WXXX === undefined;
+  // לגאט-מתחת-המזלג: אותו-replay-ref אחרי-דחיקה עדיין מתאפשר (שחזור-היסטוריה byte-זהה):
+  const s4 = initFromGenesis(TEST_GENESIS);
+  applyTx(s4, { type: 'wrap_mint', issuer: ISS, symbol: 'WTRX', to: 'u1', amount: 1000, lockedDelta: 1000, ref: 'lock-001' }, 1);
+  for (let i = 0; i < 300; i++) applyTx(s4, { type: 'wrap_mint', issuer: ISS, symbol: 'WTRX', to: 'u1', amount: 1, lockedDelta: 1, ref: 'g-' + i }, 1);
+  const legacyEvicted = !s4.wrapped.WTRX.refs['lock-001']; // ה-FIFO הלגאטי דחה-אותו
+  const legacyReplayOk = applyTx(s4, { type: 'wrap_mint', issuer: ISS, symbol: 'WTRX', to: 'u1', amount: 1000, lockedDelta: 1000, ref: 'lock-001' }, 1).ok === true;
+  return { hostBounded, rejectsClean, refsPermanent, noPollution, legacyOk: legacyEvicted && legacyReplayOk, forkHeight: H };
+}
+
 if (require.main === module) {
   const mode = process.argv.includes('--selftest');
   if (mode) {
@@ -1413,7 +1574,10 @@ if (require.main === module) {
     const fb = selfTestFillBuy();
     const fbOk = fb.fixedOk && fb.noMint && fb.legacyOk && fb.replay && fb.swapwOk && fb.legacyBurn;
     console.log('R8 fork vectors (' + fb.atHeight + '): ' + (fbOk ? 'OK' : 'BROKEN') + ' · fill-fixed=' + fb.fixedOk + ' · no-mint=' + fb.noMint + ' · fill-legacy=' + fb.legacyOk + ' · replay=' + fb.replay + ' · swapw-conserved=' + fb.swapwOk + ' · swapw-legacy-burn=' + fb.legacyBurn);
-    if (!t.replay || !rot.replay || !rot.dupGuard || !weaveOk || !fbOk) process.exit(1);
+    const hv = selfTestHarden();
+    const hvOk = hv.hostBounded && hv.rejectsClean && hv.refsPermanent && hv.noPollution && hv.legacyOk;
+    console.log('HARDEN fork vectors (' + hv.forkHeight + '): ' + (hvOk ? 'OK' : 'BROKEN') + ' · host-bounded=' + hv.hostBounded + ' · rejects-clean=' + hv.rejectsClean + ' · refs-permanent=' + hv.refsPermanent + ' · no-pollution=' + hv.noPollution + ' · legacy-ok=' + hv.legacyOk);
+    if (!t.replay || !rot.replay || !rot.dupGuard || !weaveOk || !fbOk || !hvOk) process.exit(1);
   } else {
     console.log('kernel.cjs — SAOS-NET v0 deterministic kernel. usage: --selftest');
   }
