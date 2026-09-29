@@ -1,8 +1,8 @@
 {
   "service": "pulse",
   "version": "1.2.0",
-  "bootedAt": "2026-09-28T11:24:26.612Z",
-  "beats": 2745,
+  "bootedAt": "2026-09-29T13:25:53.037Z",
+  "beats": 2978,
   "checkIntervalSec": 30,
   "policy": {
     "maxPerUtcDay": 1,
@@ -19,12 +19,12 @@
   },
   "lastPublishUtcDay": "2026-09-28",
   "nextDueAt": "2026-09-29T00:00:00.000Z",
-  "attemptsToday": 0,
+  "attemptsToday": 3,
   "broadcasting": false,
   "lastDecision": {
-    "at": "2026-09-28T17:51:26.649Z",
-    "kind": "WAIT",
-    "detail": "ממתין לחלון הבא (2026-09-29) · ניסיונות היום 0/3 · עיגוני צ'רטר 0/4 · החלון נסגר מאמת-השרשרת (last_root_post)"
+    "at": "2026-09-29T15:21:53.083Z",
+    "kind": "WAIT-BUDGET",
+    "detail": "3/3 ניסיונות נשחקו היום — החלון ייפתח מחר (כנות, לא מתיירים)"
   },
   "canonLast": {
     "at": "2026-09-24T06:54:43.357Z",
@@ -47,28 +47,28 @@
   "charter": {
     "lastAnchorAt": "2026-09-24T14:59:09.003Z",
     "anchorsToday": 0,
-    "anchorDay": "2026-09-28",
+    "anchorDay": "2026-09-29",
     "lastRoot": "0x0a2da5e72b26be28bac2855d10a05da312fb527c383273bb8167a062a0aed369",
     "lastTxid": "6497e2f5ed55986d142f9bdc72c29cc810a88c63",
     "anchoring": false,
     "lastDecision": {
-      "at": "2026-09-28T17:48:58.573Z",
-      "kind": "CHARTER-COVERED",
-      "detail": "המרשם מכוסה — אין סחף מאז העיגון האחרון (שורש …8e1fd1a8)"
+      "at": "2026-09-29T15:17:55.532Z",
+      "kind": "CHARTER-ANCHOR-FAIL",
+      "detail": "עיגון הצ'רטרים נכשל בכנות: מפתח הרשת אינו זמין — זהויות DAEMON נגזרות מה-seal דרך מפתח הרשת (הרץ פעימה או פתח seal תחילה)"
     }
   },
-  "windowSeededFromChain": true,
+  "windowSeededFromChain": false,
   "lastSeedAt": "2026-09-28T11:24:28.622Z",
-  "seedError": null,
+  "seedError": "Unable to connect. Is the computer able to access the url?",
   "income": {
-    "lastDay": "2026-09-28",
-    "attemptsToday": 1,
-    "day": "2026-09-28",
-    "lastResultAt": "2026-09-28T11:24:36.515Z",
+    "lastDay": "2026-09-29",
+    "attemptsToday": 2,
+    "day": "2026-09-29",
+    "lastResultAt": "2026-09-29T13:26:36.375Z",
     "totalsUsd": {
-      "usdToday": 0,
-      "usd7d": 0,
-      "usd30d": 0.1426
+      "usdToday": null,
+      "usd7d": null,
+      "usd30d": null
     },
     "lastError": null
   }
