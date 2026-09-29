@@ -602,6 +602,18 @@ async function pushLane(parts: string[]): Promise<void> {
   const behind2 = gitRun(["rev-list", "--count", "HEAD..origin/main"]);
   const nBehind = behind2.ok ? parseInt(behind2.out, 10) || 0 : 0;
   if (nBehind > 0) {
+    // עץ-מלוכלך חוסם rebase — הדיבונים כותבי-מצב כל הזמן. סחרור-מצב קודם
+    // (הדפוס הקנוני של הבית), ואז rebase. כשל = abort כנה + backoff.
+    const dirty = gitRun(["status", "--porcelain", "--", "sovereign/"]);
+    if (dirty.ok && dirty.out.length > 0) {
+      gitRun(["add", "sovereign/"]);
+      const churn = gitRun(["commit", "-m", `[daemon-state] keeper: fleet state refresh (${utcDay()})`]);
+      if (!churn.ok) {
+        bumpBackoff(false, `CHURN-COMMIT-FAIL: ${churn.out.slice(0, 120)}`);
+        parts.push(`push:CHURN-FAIL`);
+        return;
+      }
+    }
     const rebase = gitRun(["pull", "--rebase", "origin", "main"]);
     if (!rebase.ok) {
       gitRun(["rebase", "--abort"]); // כנות: לא משאירים מצב-ביניים
