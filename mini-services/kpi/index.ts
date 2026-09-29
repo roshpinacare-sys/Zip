@@ -665,7 +665,10 @@ function tick() {
 // ── שרת — הפנים של הדיבון (כך השומר והמשימה רואים אותו) ───────────
 Bun.serve({
   port: PORT,
-  hostname: "0.0.0.0",
+  // 2026-09-29 audit fix (HIGH · R123/2-b residual): loopback-only, כמו heart-service —
+  // אין שום סיבה לחשוף את הספר היומי מחוץ-למכונה.
+  // TODO(auth): POST /record חשוף ללא אימות — loopback ממתן, לא סוגר; נדרוש token כשיהיה שער-משותף.
+  hostname: "127.0.0.1",
   async fetch(req) {
     const url = new URL(req.url);
     if (req.method === "POST" && url.pathname === "/record") {
