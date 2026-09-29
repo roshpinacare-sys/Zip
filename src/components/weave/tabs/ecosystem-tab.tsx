@@ -73,6 +73,13 @@ export function EcosystemTab() {
   const avgDup =
     list.length > 0 ? list.reduce((acc, r) => acc + r.dupScore, 0) / list.length : 0;
   const avgTone = dupTone(avgDup);
+  // יושר: המיון מבוצע בפועל כפי שנטען בכותרת - שכפול מדוד, המשוכפל ביותר ראשון
+  // (עותק בלבד - כרטיסי הסיכום ממשיכים לחשב על הרשימה המקורית; חסרי-מדידה בסוף)
+  const sorted = [...list].sort((a, b) => {
+    const ad = a.dupScore ?? -1;
+    const bd = b.dupScore ?? -1;
+    return bd - ad;
+  });
 
   return (
     <FadeIn className="flex flex-col gap-4 sm:gap-6">
@@ -94,7 +101,7 @@ export function EcosystemTab() {
             <MotionCard className="p-4 sm:p-6">
               <p className="text-xs font-medium text-muted-foreground">ריפוים במלאי</p>
               <p className="mt-1 font-mono text-3xl font-bold tabular-nums">{list.length}</p>
-              <p className="mt-2 text-xs text-muted-foreground">כולם נמדדו בביקורת</p>
+              <p className="mt-2 text-xs text-muted-foreground">ביקורת שכפול - מדידה חלקית מתועדת</p>
             </MotionCard>
             <MotionCard className="p-4 sm:p-6">
               <p className="text-xs font-medium text-muted-foreground">נפח כולל</p>
@@ -167,7 +174,7 @@ export function EcosystemTab() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {list.map((repo) => (
+                {sorted.map((repo) => (
                   <RepoRow key={repo.id} repo={repo} />
                 ))}
                 {list.length === 0 && !repos.loading ? (

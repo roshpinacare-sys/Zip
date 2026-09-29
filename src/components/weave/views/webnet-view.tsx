@@ -1176,7 +1176,11 @@ export function WebNetView() {
         <FadeIn delay={0.2}>
           <Section
             title="מגרש הרשת — מוגש תחת חותם-השרשרת"
-            description={`חבילת ${active.manifest.name}: ה-sha256 שלה חתום על שרשרת ציבורית — כל טעינה עוברת אימות מול החותם`}
+            description={
+              active.status !== "pending-seal"
+                ? `חבילת ${active.manifest.name}: ה-sha256 שלה חתום על שרשרת ציבורית — כל טעינה עוברת אימות מול החותם`
+                : `חבילת ${active.manifest.name}: החותם בדרך — מוגש מהמחסן הריבוני עד שהצ'אנקים נסלקים על השרשרת`
+            }
             icon={<PlayCircle />}
           >
             <Playground rec={active} others={playable} onPick={setPickedHash} />

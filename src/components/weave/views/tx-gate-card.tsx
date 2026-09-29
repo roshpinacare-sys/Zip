@@ -216,7 +216,7 @@ export function TxGateCard() {
           ) : queue.length === 0 ? (
             <div className="flex items-center gap-2 px-4 py-6 text-sm text-zinc-500">
               <Bot className="size-4 text-emerald-400" aria-hidden />
-              אין פעולות ממתינות — האוטונומיה זורמת מתחת לסף, והכסף עובד.
+              אין פעולות ממתינות — ההכרעות שמתחת לסף נרשמות בסטטיסטיקה למעלה.
             </div>
           ) : (
             <ul className="divide-y divide-zinc-800/70">

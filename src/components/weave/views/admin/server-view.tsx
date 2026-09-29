@@ -281,7 +281,7 @@ export function AdminServerView() {
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  הענן לא נענה במדידה זו - הרשת עדיין חיה שם; נסה שוב.
+                  הענן לא נענה במדידה זו — החיות שלו טרם נמדדה מכאן; נסה שוב.
                 </p>
               )}
             </CardContent>

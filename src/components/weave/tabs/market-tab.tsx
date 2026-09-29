@@ -566,7 +566,13 @@ function OpenMarketCard({
             {listing.successorOf ? `·M${listing.successorOf}` : "·GEN"}
           </span>
         )}
-        <StatusBadge status={expired ? "UNMEASURED" : "VERIFIED"} />
+        {expired ? (
+          <StatusBadge status="UNMEASURED" />
+        ) : (
+          <span className="rounded-md border px-2 py-0.5 text-xs text-muted-foreground">
+            פתוח · ממתין להכרעה
+          </span>
+        )}
         <span className="ms-auto text-xs text-muted-foreground">
           תוקף עד {fmtDateTime(listing.byDate)}
         </span>

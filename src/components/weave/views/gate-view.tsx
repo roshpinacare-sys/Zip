@@ -316,7 +316,8 @@ function FirstDropProof() {
           הפקדה-אמיתית של <span className="font-semibold text-zinc-100">2.000 TRX</span> (TransferContract
           על-רשת-TRON) אומתה מול-RPC-ציבורי, והוטבעו מולה{" "}
           <span className="font-semibold text-emerald-300">2,000µ WTRX</span> — הנכס-העטוף הראשון
-          בהיסטוריה-של-הרשת שמגובה 1:1 בכסף-אמת שנמדד-חי. ה-TRX נשאר בכתובת-המשמורת כגיבוי-פיזי;{" "}
+          בהיסטוריה-של-הרשת שמגובה 1:1 בכסף-אמת שנמדד-חי. ה-TRX של ההפקדה נשאר בכתובת-המשמורת
+          כגיבוי-פיזי — הגיבוי נמדד-חי למטה;{" "}
           ה-WTRX הוא זכות-הפדיון המתועדת.
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
@@ -464,7 +465,7 @@ function FullCycleProof() {
         <p className="text-sm leading-relaxed text-zinc-300">
           הכסף-האמת שנכנן בדלת (2.0 TRX → 2,000µ WTRX) עבר את כל המסלול הכלכלי על השרשרת-הקנונית:{" "}
           <span className="font-semibold text-zinc-100">רישום בסולם-הערך</span> (refPrice 335, h21496) ·{" "}
-          <span className="font-semibold text-zinc-100">שוק-חי USDS/WTRX</span> שנפתח במחיר-האורקל ·{" "}
+          <span className="font-semibold text-zinc-100">פתיחת שוק-חי USDS/WTRX</span> במחיר-האורקל ·{" "}
           <span className="font-semibold text-zinc-100">המכירה-האמיתית הראשונה</span> 30µ WTRX → 9µ USDS ·{" "}
           <span className="font-semibold text-zinc-100">קנייה-חזרה</span> 9µ USDS → 27µ WTRX (שוק דו-כיווני) ·{" "}
           <span className="font-semibold text-zinc-100">תביעת-הפדיון הראשונה</span> — 100µ לתיבת-היציאה
@@ -584,7 +585,11 @@ function ArmDoor({ onArmed }: { onArmed: () => void }) {
       const j = (await r.json()) as ArmResult;
       setResult(j);
       if (j.ok) {
-        toast.success("המפתח אומת מול השרשרת ונחתם כסוד-GitHub. הגריד שוגר.");
+        toast.success(
+          j.gridDispatched
+            ? "המפתח אומת מול השרשרת ונחתם כסוד-GitHub. הגריד שוגר."
+            : "המפתח אומת מול השרשרת ונחתם כסוד-GitHub. הגריד לא שוגר מכאן — לוח-הזמנים בענן יריץ.",
+        );
         onArmed();
       } else {
         toast.error(j.reason ?? "האימות נכשל");
@@ -1015,8 +1020,11 @@ export function GateView() {
         </h1>
         <p className="max-w-3xl text-sm leading-relaxed text-zinc-400">
           כל מספר בעמוד הזה נקרא כרגע מהשרשרות הציבוריות (Steem, Hive, TRON, Ethereum, Solana,
-          Bitcoin) ומהבורסות — לא מהזיכרון, לא מהצהרות. המפתח כבר חי בכספת המנוע והגריד מניח
-          פקודות אמת; מה שעדיין חסום — כתוב בעמודת "חסום (ולמה)" עם הסיבה המדויקת לכל שורה.
+          Bitcoin) ומהבורסות — לא מהזיכרון, לא מהצהרות.{" "}
+          {gridArmed
+            ? "מפתח-המנוע חי בענן (סוד-GitHub) והגריד מניח פקודות אמת עם txids"
+            : "מפתח-המנוע לא נמדד כחמוש כרגע — דלת-ההפעלה למטה מזינה אותו"}
+          ; מה שעדיין חסום — כתוב בעמודת "חסום (ולמה)" עם הסיבה המדויקת לכל שורה.
         </p>
         <div className="flex flex-wrap gap-2">
           <StatusPill
@@ -1309,7 +1317,7 @@ export function GateView() {
           id="door"
           icon={DoorOpen}
           title="הדלת — חימוש-מחדש מבוקר של הגריד"
-          sub="המפתח הנוכחי כבר חי בכספת המנוע; הדלת נשארת להחלפת-מפתח או חימוש-מחדש — עם אימות מול השרשרת לפני כל נגיעה."
+          sub="הדלת מזינה את מקור-החתימה המקומי של הבית; מצב-החי של הבית (חתום/עיוור) מוצג בפס-המדידה בכרטיס ההפעלה."
         >
           <ActivationDoorCard />
           <ArmDoor
@@ -1389,13 +1397,19 @@ export function GateView() {
                   <li className="flex gap-2">
                     <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-400" aria-hidden />
                     <span>
-                      הגריד-החוץ חי ומזוין — אבל צד-הקנייה {" "}
-                      {(head?.sbd ?? 0) * 0.9 < 0.15 ? (
-                        <>חסום על מלאי-SBD: ‏{fmtNum(head?.sbd, 3)} נזיל כרגע מול סף-החימוש שנקבע בקוד (0.15 SBD לאחר פקטור-מחויבות 0.9 — המלאי והסף החיים מוצגים בלוח-הכספים).</>
+                      {gridArmed ? (
+                        <>
+                          הגריד-החוץ חי ומזוין — אבל צד-הקנייה {" "}
+                          {(head?.sbd ?? 0) * 0.9 < 0.15 ? (
+                            <>חסום על מלאי-SBD: ‏{fmtNum(head?.sbd, 3)} נזיל כרגע מול סף-החימוש שנקבע בקוד (0.15 SBD לאחר פקטור-מחויבות 0.9 — המלאי והסף החיים מוצגים בלוח-הכספים).</>
+                          ) : (
+                            <>מחומש: מלאי ה-SBD החי ({fmtNum(head?.sbd, 3)}) מעל סף-החימוש — סולם-הקנייה יכול להיפתח בפעולה הבאה.</>
+                          )}{" "}
+                          המפתח כבר חי בכספת המנוע (STEEM_ACTIVE_WIF, נמדד ב-API) ופקודות אמת מונחות עם txids;
+                        </>
                       ) : (
-                        <>מחומש: מלאי ה-SBD החי ({fmtNum(head?.sbd, 3)}) מעל סף-החימוש — סולם-הקנייה יכול להיפתח בפעולה הבאה.</>
+                        <>הגריד-החוץ לא נמדד כחמוש — ממתין להזנה; דלת-ההפעלה למטה היא שמזינה את מפתח-המנוע;</>
                       )}{" "}
-                      המפתח כבר חי בכספת המנוע (STEEM_ACTIVE_WIF, נמדד ב-API) ופקודות אמת מונחות עם txids;
                       ה-SBD היחיד שזורם מגיע ממכירות-הפרימיה שלנו עצמנו — זהו קצב-הבנייה של הצד השני.
                     </span>
                   </li>
@@ -1453,7 +1467,9 @@ export function GateView() {
                           ? Math.round((data.usd.vesting / data.usd.total) * 100)
                           : "רוב"
                       }%) יושב ב-Steam-Power שלא מייצר כלום מלבד RC — חלון-13-השבועות מונע מימוש מהיר,
-                      ה-powerdown מחלק אותו ב-4 תשלומים ונגמר.
+                      {powerdown?.paymentsLeft != null
+                        ? `ה-powerdown מחלק אותו ב-${powerdown.paymentsLeft} תשלומים ונגמר.`
+                        : "ה-powerdown מחלק אותו ונגמר — מספר-התשלומים לא נמדד."}
                     </span>
                   </li>
                   <li className="flex gap-2">

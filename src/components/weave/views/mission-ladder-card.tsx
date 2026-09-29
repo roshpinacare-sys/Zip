@@ -91,6 +91,7 @@ export function MissionLadderCard() {
   const fleetUp = m?.fleet.up ?? null;
   const fleetTotal = m?.fleet.total ?? null;
   const dailyNow = m?.gap.dailyNowUsd ?? null;
+  const daysRecorded = m?.measured.daysRecorded ?? null;
   const moderateCapital = (rung: number) =>
     rungs.find((r) => r.rungUsdPerDay === rung)?.requiredCapitalUsd.find((t) => t.tier === "moderate")?.capitalUsd ?? null;
 
@@ -102,9 +103,15 @@ export function MissionLadderCard() {
             <div className="flex items-center gap-2">
               <Target className="size-5 text-violet-600" aria-hidden="true" />
               <h3 className="text-xl font-bold tracking-tight sm:text-2xl">סולם המשימה · 1,000$ ליום</h3>
-              <Badge variant="outline" className="border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
-                נמדד חי
-              </Badge>
+              {m ? (
+                <Badge variant="outline" className="border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                  נמדד חי
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-zinc-500/40 bg-zinc-500/10 text-zinc-600 dark:text-zinc-400">
+                  {loading ? "…" : "לא נמדד"}
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-muted-foreground">
               הדרך היחידה: מדידה ← מכונות ← הון. מדרגה מוכרזת רק ממדידה חיה רציפה — אין קסם, יש סולם.
@@ -139,9 +146,12 @@ export function MissionLadderCard() {
             {/* המספרים החיים */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <div className="rounded-lg border bg-muted/30 p-4">
-                <div className="text-xs font-medium text-muted-foreground">קצב נמדד · 7 יום</div>
+                <div className="text-xs font-medium text-muted-foreground">קצב נמדד · ממוצע יום-רישום</div>
                 <div className="mt-1 text-2xl font-black tabular-nums tracking-tight">
                   {dailyNow != null ? `${fmtUsd(dailyNow)}/יום` : "—"}
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  {daysRecorded != null ? `מתוך ${daysRecorded} ימי-רישום בחלון` : "…"}
                 </div>
               </div>
               <div className="rounded-lg border bg-muted/30 p-4">

@@ -143,6 +143,10 @@ const LAWS: Array<{ n: number; t: string; d: string; map: string; status: LawSta
   { n: 15, t: "כשכולם בוטים - קולוזיה ברירת מחדל", d: "הפרדת תפקידים (מציע ≠ מכריע ≠ מרוויח) + מגוון מבנה חובה.", map: "עדי-מערכת נגזרים-דטרמיניסטית (לא נבחרים); הפרדה מלאה - בדור הבא.", status: "next" },
 ];
 
+// ── התג נגזר מהמערך עצמו - ספירה חיה, לא מספרים קבועים ביד ──
+const LAWS_ENFORCED = LAWS.filter((law) => law.status === "enforced").length;
+const LAWS_NEXT = LAWS.length - LAWS_ENFORCED;
+
 // ── ההפכים: הכשל שלהם מול ההפך אצלנו ──
 const OPPOSITES = [
   { fell: "Ninja-mine · יסודות סמויים", weave: "DAEMONs נגזרים-seal · היסטוריית מפתחות מעוגנת" },
@@ -394,7 +398,7 @@ export function EvolutionView() {
             15 חוקי ברזל לרשת סוכני-AI
           </h2>
           <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-            10 נאכפים כבר · 5 בדור הבא
+            {LAWS_ENFORCED} נאכפים כבר · {LAWS_NEXT} בדור הבא
           </Badge>
         </div>
         <ol className="grid gap-3 md:grid-cols-2">

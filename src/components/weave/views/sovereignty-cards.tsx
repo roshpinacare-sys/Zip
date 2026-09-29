@@ -271,7 +271,7 @@ export function ArrayEfficiencyCard() {
           />
           <EffTile
             label="סיורי שרת"
-            value={data?.guardians?.fleetGuard ? String(data.guardians.fleetGuard.cycles) : "0"}
+            value={data?.guardians?.fleetGuard ? String(data.guardians.fleetGuard.cycles) : "לא נמדד"}
             sub="fleet-guard כל 60ש' · החייאות 24ש'"
           />
           <EffTile

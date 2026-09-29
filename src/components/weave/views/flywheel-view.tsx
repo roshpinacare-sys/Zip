@@ -200,6 +200,14 @@ export function FlywheelView() {
   const w = data?.world ?? null;
   const m = data?.money ?? null;
   const market = w?.market ?? null;
+  // r139-c · אמת-עקומה: הפרמטרים נשאבים ממדיניות-ה-API החיה; בהיעדרם — ברירת-מחדל קבועה בקוד, ומתויגת כך.
+  const livePolicy = market?.policy ?? null;
+  const curvePolicy = {
+    baseApr: livePolicy?.baseApr ?? 0.01,
+    slope1: livePolicy?.slope1 ?? 0.04,
+    slope2: livePolicy?.slope2 ?? 0.6,
+    kinkPct: livePolicy ? livePolicy.optimalUtilBps / 100 : 80,
+  };
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-6 sm:px-6">
@@ -351,8 +359,13 @@ export function FlywheelView() {
                 הצעה כנה בת שלוש שכבות: (א) זיכוי USDS מול הפקדה חיה בשער הרשת, מאומת מספר
                 פתוח; (ב) שלושה שימושים מיד — מסחר בבורסה, תשואה בשוק-הכספים, כספת אוטומטית;
                 (ג) דלת יציאה מגובה עם פסק-דין חי (SEND-NOW/WAIT) מול עלות שידור אמיתית.
-                האמת המלאה: <span className="text-zinc-300">אפס הפקדות חוץ עד עכשיו</span> —
-                המערך מוכן, העולם עדיין לא בא.
+                האמת המלאה:{" "}
+                {m?.deposits.total ? (
+                  <span className="text-zinc-300">הפקדות-חוץ שנספרו: {m.deposits.total}</span>
+                ) : (
+                  <span className="text-zinc-300">אפס הפקדות חוץ עד עכשיו</span>
+                )}{" "}
+                — {m?.deposits.total ? "המערך מקבל ומנפח מיד." : "המערך מוכן, העולם עדיין לא בא."}
               </p>
             </CardContent>
           </Card>
@@ -443,7 +456,7 @@ export function FlywheelView() {
               ))}
               <tr className="bg-[#d4af37]/[0.06]">
                 <td className="px-3 py-2 font-bold text-[#e8cd6e]">SAOS — הגלגל הריבוני</td>
-                <td className="px-3 py-2 text-zinc-300">הכל יחד</td>
+                <td className="px-3 py-2 text-zinc-300">אספקת-USDS בהלוואות (חי)</td>
                 <td className="px-3 py-2 font-mono font-bold text-[#e8cd6e]">
                   {w ? fmtUsd(market?.supplyUsds) : "—"}
                 </td>
@@ -511,16 +524,16 @@ export function FlywheelView() {
                 </div>
               </div>
               {/* עקומת הריבית */}
-              <RateCurve util={market?.utilization ?? null} borrowApr={market?.borrowApr ?? null} />
+              <RateCurve util={market?.utilization ?? null} borrowApr={market?.borrowApr ?? null} policy={curvePolicy} />
               <p className="mt-2 text-[10px] leading-relaxed text-zinc-600" dir="auto">
-                העקומה (פרמטרי מדיניות מה-API): בסיס {fmtPct(market?.policy?.baseApr, 0)} + שיפוע{" "}
-                {fmtPct(market?.policy?.slope1, 0)} עד ניצולת{" "}
-                {market?.policy ? `${market.policy.optimalUtilBps / 100}%` : "—"} (הברך), ואז עונש{" "}
-                {fmtPct(market?.policy?.slope2, 0)} — בדיוק הצורה של
+                העקומה ({livePolicy ? "פרמטרי מדיניות מה-API" : "ברירת-מחדל קבועה בקוד"}): בסיס {fmtPct(curvePolicy.baseApr, 0)} + שיפוע{" "}
+                {fmtPct(curvePolicy.slope1, 0)} עד ניצולת{" "}
+                {curvePolicy.kinkPct}% (הברך), ואז עונש{" "}
+                {fmtPct(curvePolicy.slope2, 0)} — בדיוק הצורה של
                 Aave v3. הנקודה החיה על העקומה היא המצב האמיתי של השרשרת עכשיו: נעילות-החיילים
                 בארנה מול האספקה הפתוחה. ריבית למלווה = ריבית-הלוואה ×{" "}
-                {market?.policy ? `${Math.round((1 - market.policy.reserveFactor) * 100)}%` : "—"}{" "}
-                ({market?.policy ? `${Math.round(market.policy.reserveFactor * 100)}%` : "—"} גורם-יתרה לאוצר).
+                {livePolicy ? `${Math.round((1 - livePolicy.reserveFactor) * 100)}%` : "—"}{" "}
+                ({livePolicy ? `${Math.round(livePolicy.reserveFactor * 100)}%` : "—"} גורם-יתרה לאוצר).
               </p>
             </CardContent>
           </Card>
@@ -642,16 +655,24 @@ const ROAST_LINES: Record<string, string> = {
   "Yearn":
     "אסטרטגיות-על בליווי שכבת עמלות שאוכלת חצי מהתשואה. הכספות שלנו: 0 עמלות ניהול, ה-APR נמדד מהבריכה עצמה — מה שכתוב זה מה שיש.",
   "Maker/Sky":
-    "ה-CDP ההיסטורי שהפך למפלצת מוסדית עם נכסי-עולם-אמיתיים שאיש לא ראה. USDS שלנו מגובה בהפקדות חיות עם אינווריאנטה שנבדקת בכל פעימה — קטן, אבל פתוח.",
+    "ה-CDP ההיסטורי שהפך למפלצת מוסדית עם נכסי-עולם-אמיתיים שאיש לא ראה. USDS מגובה 1:1 במשמרות; האינווריאנטה נבדקת בכל פעימה (ההפקדות החיות נספרות למעלה) — קטן, אבל פתוח.",
 };
 
 // ═══════════════════════════════════════════════════════════════════════
 // עקומת הריבית — SVG חי
 // ═══════════════════════════════════════════════════════════════════════
 
-function RateCurve({ util, borrowApr }: { util: number | null; borrowApr: number | null }) {
+function RateCurve({
+  util,
+  borrowApr,
+  policy,
+}: {
+  util: number | null;
+  borrowApr: number | null;
+  policy: { baseApr: number; slope1: number; slope2: number; kinkPct: number };
+}) {
   const P = useMemo(() => {
-    const baseApr = 0.01, slope1 = 0.04, slope2 = 0.6, kink = 0.8;
+    const baseApr = policy.baseApr, slope1 = policy.slope1, slope2 = policy.slope2, kink = policy.kinkPct / 100;
     const f = (u: number) =>
       baseApr + slope1 * u + (u > kink ? slope2 * (u - kink) : 0);
     const pts: string[] = [];
@@ -662,7 +683,7 @@ function RateCurve({ util, borrowApr }: { util: number | null; borrowApr: number
       pts.push(`${x},${y}`);
     }
     return { line: pts.join(" "), kinkX: 40 + kink * 520, maxR: 50 };
-  }, []);
+  }, [policy]);
 
   const liveX = util != null ? 40 + util * 520 : null;
   const liveY =
@@ -676,7 +697,7 @@ function RateCurve({ util, borrowApr }: { util: number | null; borrowApr: number
         <line x1="40" y1="20" x2="40" y2="180" stroke="#3f3f46" strokeWidth="1" />
         {/* סימון הברך */}
         <line x1={P.kinkX} y1="20" x2={P.kinkX} y2="180" stroke="#a78bfa55" strokeDasharray="4 4" />
-        <text x={P.kinkX + 4} y="30" fill="#a78bfa" fontSize="9">kink 80%</text>
+        <text x={P.kinkX + 4} y="30" fill="#a78bfa" fontSize="9">kink {Math.round(policy.kinkPct)}%</text>
         {/* העקומה */}
         <polyline points={P.line} fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinejoin="round" />
         {/* הנקודה החיה */}

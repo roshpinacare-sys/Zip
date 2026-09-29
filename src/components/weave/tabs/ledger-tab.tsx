@@ -492,7 +492,7 @@ export function LedgerTab() {
                             <TooltipContent side="top">
                               <p className="text-xs">
                                 {sigOk
-                                  ? "חתימת EIP-191 שוחזרה ב-ecrecover לכתובת הסוכן"
+                                  ? "תאימות בדפדפן: כתובת-חתומה מושווה לכתובת הסוכן; ecrecover מלא רץ באימות-השרת"
                                   : "חתימה חסרה או לא תואמת לכתובת הסוכן"}
                               </p>
                             </TooltipContent>

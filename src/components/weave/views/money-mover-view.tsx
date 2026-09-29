@@ -100,6 +100,17 @@ interface MoneySense {
   ourBids: Array<{ orderid: number; sbd: number; steem: number; price: number; created: string; expiration: string; vsParityBps: number | null; usdIfFilled: number | null }>;
   deployedSteem: number;
   idleSteem: number;
+  // r139-c · רצפת-הערך הנמדדת (מ-/api/money): מחליף טענת-HOLD סטטית במדידה חיה
+  valueFloor?: {
+    parity: number | null;
+    asksBelowParity: number;
+    steemBelowParity: number;
+    worstBps: number;
+    maxDriftLossSbd: number | null;
+    maxDriftLossUsd: number | null;
+    state: "HELD" | "DRIFT" | "UNMEASURED";
+    noteHe: string;
+  };
   ladder: Array<{ level: number; premiumBps: number; price: number | null }>;
   powerdown: { active: boolean | null; weeklySteem: number | null; nextPayment: string | null; paymentsLeft: number | null; totalRemainingSteem: number | null };
   fills: FillReceipt[];
@@ -360,7 +371,13 @@ export function MoneyMoverView({ section }: { section?: string }) {
                   </div>
                 ) : (
                   <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">
-                    המוביל טרם פעל בסשן הזה — הסולם הנוכחי מדויק מול הקו (HOLD). קבלות יופיעו כאן בכל פעולה עתידית.
+                    המוביל טרם פעל בסשן הזה —{" "}
+                    {d.valueFloor?.state === "HELD"
+                      ? "הרצפה מוחזקת (נמדד)."
+                      : d.valueFloor?.state === "DRIFT"
+                        ? "דריפה נמדדת."
+                        : "טרם נמדד."}{" "}
+                    קבלות יופיעו כאן בכל פעולה עתידית.
                   </p>
                 )}
                 <p className="text-[11px] leading-relaxed text-muted-foreground">

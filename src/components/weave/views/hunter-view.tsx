@@ -362,7 +362,11 @@ export function HunterView() {
                     )}
                   >
                     {canary?.lastSuccessAt ? <CheckCircle2 className="size-4" /> : <DoorClosed className="size-4" />}
-                    {canary?.lastSuccessAt ? "צייצה — פתוח" : "סגור · 0 צעדים"}
+                    {canary?.lastSuccessAt
+                      ? "צייצה — פתוח"
+                      : canary?.lastRun
+                        ? `סגור · ${canary.lastRun.stepsRun} צעדים`
+                        : "סגור"}
                   </span>
                   <span className="text-[11px] text-muted-foreground">
                     בדיקה הבאה {canary?.nextDueAt ? canary.nextDueAt.slice(11, 16) + "Z" : "—"}

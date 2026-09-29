@@ -273,7 +273,7 @@ function AgentCard({
           <p className="mt-0.5 text-xs text-muted-foreground">
             {mirror
               ? agent.createdAt
-                ? `אימות אחרון · ${fmtDateTime(agent.createdAt)}`
+                ? `נרשם · ${fmtDateTime(agent.createdAt)}`
                 : "טרם אימת בספר החי"
               : `נרשם ב-${fmtDateTime(agent.createdAt)}`}
           </p>

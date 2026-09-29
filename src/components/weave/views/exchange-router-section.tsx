@@ -235,7 +235,7 @@ export function ExchangeRouterSection({ router }: { router: RouterDataLike | nul
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
           {[
             { label: "ערוצי ציטוט", value: data ? `${channels.length}` : "—", note: "חוזים אמיתיים" },
-            { label: "אומתו מול סימוכין", value: data ? `${verified}/${channels.length}` : "—", note: deviant ? `${deviant} אותגרו` : "כולם עמדו" },
+            { label: "אומתו מול סימוכין", value: data ? `${verified}/${channels.length}` : "—", note: deviant ? `${deviant} אותגרו` : verified > 0 ? "כולם עמדו" : "טרם אומתו ערוצים במחזור זה" },
             { label: "רשתות חיות", value: data ? `${chainsLive}/${data.chains.length}` : "—", note: "גובה-שרשרת נמדד" },
             { label: "ETH · בינאנס", value: data ? `$${fmt(data.reference.ethUsdt)}` : "—", note: "סימוכין עצמאי" },
             { label: "BNB · בינאנס", value: data ? `$${fmt(data.reference.bnbUsdt)}` : "—", note: "סימוכין עצמאי" },

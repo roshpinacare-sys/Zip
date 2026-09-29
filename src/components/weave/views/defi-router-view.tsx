@@ -215,6 +215,11 @@ export function DefiRouterView({ section = "router" }: { section?: string }) {
     category === "all" ? tools : tools.filter((t) => t.category === category);
   const liveCount = tools.filter((t) => t.state === "LIVE").length;
   const autoCount = data?.agents.filter((a) => a.autonomy === "AUTONOMOUS").length ?? 0;
+  // כותרת-אמת: מספר-המסלולים נמדד מה-API, לא קבוע בקוד. כשאין נתונים — בלי מספר בכלל.
+  const engineTitle =
+    data == null
+      ? "מנוע הניתוב — מסלולים מחושבים מהמספרים החיים"
+      : `מנוע הניתוב — ${data.routes.length} מסלולים מחושבים מהמספרים החיים`;
 
   return (
     <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
@@ -311,7 +316,7 @@ export function DefiRouterView({ section = "router" }: { section?: string }) {
       >
       <Section
         className="mt-10"
-        title="מנוע הניתוב — שישה מסלולים מחושבים מהמספרים החיים"
+        title={engineTitle}
         description="כל מסלול הוא שרשרת חוליות: מה כבר קורה בשרשרת (ירוק) ומה בנוי וממתין. החוסמים כתובים בכנות — זו רשת הוכחות, לא הבטחות."
         icon={<RouteIcon />}
       >

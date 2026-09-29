@@ -733,6 +733,14 @@ async function patrol() {
       d.restartDay = utcDay();
       d.restartsToday = 0;
     }
+    // 2026-09-29 (r139): תקציב-ההקמות היומי נאכף — היה מוגדר (DAILY_RESTART_BUDGET)
+    // אך לעולם לא נבדק במסלול-הפסילה הראשי; kpi רשם 192 הקמות ביום על דיבון בריא
+    // (שורש-השורש היה probe חסר-`ok` ב-kpi — תוקן שם) — שתי ההגנות עכשיו בקוד.
+    if (d.restartsToday >= DAILY_RESTART_BUDGET) {
+      d.state = "GAVE-UP";
+      record("GAVE-UP", `${d.name} (${d.port}): תקציב-ההקמות היומי אזל (${d.restartsToday}/${DAILY_RESTART_BUDGET}) — הסגר עד חצות-UTC; הפגם הוא בקוד, לא בהקמה`, true);
+      continue;
+    }
     if (recentRestarts(d) >= ROLLING_WINDOW_CAP) {
       d.state = "GAVE-UP";
       record("GAVE-UP", `${d.name} (${d.port}): חלון-ההחייאות הגלילי מלא (${recentRestarts(d)}/${ROLLING_WINDOW_CAP} ב-6ש' · יומי ${d.restartsToday} לתצפית) — הסגר עד שהחלון נפתח`, true);
@@ -748,6 +756,9 @@ async function patrol() {
     const reason =
       d.consecutiveFails === FAIL_THRESHOLD ? `${FAIL_THRESHOLD} פסילות רצופות` : "פורט ריק (מת)";
     const ok = restartDaemon(d);
+    // 2026-09-29 (r139): רישום-החלון הגלילי במסלול-הפסילה הראשי — היה נרשם
+    // רק בענף-הזומבי, ולכן recentRestarts החזיר אפס כאן והחלון לא נסגר לעולם.
+    (d.restartsLog ??= []).push(now.toISOString());
     d.restartsToday += 1;
     d.lastRestartAt = now.toISOString();
     d.consecutiveFails = 0;

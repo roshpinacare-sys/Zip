@@ -186,7 +186,9 @@ export function DoctrineView() {
 
       <motion.p {...f(0.2)} className="rounded-xl border border-dashed p-4 text-center text-xs leading-relaxed text-muted-foreground">
         הדוקטרינה המלאה חיה בקוד: SOVEREIGNTY.md בריפו הריבוני ·
-        כל טענה בעמוד זה נמדדת מה-APIs החיים של הרשת - כולל זו.
+        עמוד זה הוא האמנה בנוסחה הקבועה שלה. המדידות החיות שמאמתות את הטענות
+        כאן נמצאות בדפים החיים (הבית, המרשם, הצי) - האימות מתבצע שם, במספרים,
+        לא בעמוד זה.
       </motion.p>
     </div>
   );

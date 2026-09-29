@@ -692,6 +692,11 @@ Bun.serve({
     }
     return new Response(
       JSON.stringify({
+        // 2026-09-29 (r139): `ok:true` — השורש של לופ-הקריסה. הסיור של keeper
+        // משפט חיים לפי `j?.ok` (keeper/index.ts probe()); התשובה הזו לא נשאה
+        // את השדה — כל סיור נכשל → 3 פסילות → הקמה-מחדש → שוב. 192 הקמות
+        // ביום על דיבון בריא לחלוטין. השדה חוזר — הסיור שופט אמת.
+        ok: true,
         service: "kpi-scribe",
         version: state.version,
         bootedAt: state.bootedAt,
