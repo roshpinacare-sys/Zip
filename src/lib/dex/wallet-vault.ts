@@ -138,6 +138,91 @@ function aesGcmOpen(key: Buffer, ctHex: string, ivHex: string, tagHex: string): 
 }
 
 /**
+ * r136 — פתיחת-כספת עם WIF-שליטה בזיכרון (אותה סמכות, אותו קריפטו).
+ *
+ * הנתיב המתועד למעלה קורא את סיסמת-האב מהקובץ. נתיב זה מקבל את ה-WIF
+ * השליטה עצמו בזיכרון-הריצה (למשל: ה-active שהמפעיל הדביק בדלת-ההפעלה
+ * ואומת מול השרשרת ביט-מול-ביט). ה-KEK נגזר מה-WIF בדיוק כמו בנתיב
+ * הקובץ (scrypt(controlWif, salt) — כך נבנה ה-Keystore), ולכן התוצאה
+ * זהה ביט-מול-ביט. ה-WIF והמפתח-האב חיים בסגירה בלבד — לא נכתבים,
+ * לא מודפסים, לא חוזרים מהפונקציה.
+ *
+ * מחזיר פותח-רשומות (chain, account, role) → { priv, entryPub, status }.
+ * הקורא מחויב לאמת את הנגזרת מול הרשות החיה לפני כל שידור (חוק-השופט).
+ */
+export interface VaultOpener {
+  ok: boolean;
+  detail?: string;
+  open(chain: string, account: string, role: string): VaultRawResult & { wif?: string };
+}
+
+export function openVaultWithControlWif(controlWif: string): VaultOpener {
+  const open = (chain: string, account: string, role: string): VaultRawResult & { wif?: string } => {
+    try {
+      if (!fs.existsSync(WALLET_DB)) {
+        return { ok: false, detail: `NO-WALLET-DB: ${path.basename(WALLET_DB)} לא נמצא` };
+      }
+      const nodeRequire = createRequire(path.join(HOME, "package.json"));
+      const { DatabaseSync } = nodeRequire("node:sqlite") as {
+        DatabaseSync: new (p: string, o?: { readOnly?: boolean }) => {
+          prepare(q: string): { get(...a: unknown[]): Record<string, unknown> | undefined };
+        };
+      };
+      const db = new DatabaseSync(WALLET_DB, { readOnly: true });
+      const cfgRow = db.prepare("SELECT keySeals FROM GateConfig WHERE id = 'gate'").get() as
+        | { keySeals: string }
+        | undefined;
+      if (!cfgRow?.keySeals) return { ok: false, detail: "NO-SEALS: אין חותמות בכספת" };
+      const seals = JSON.parse(cfgRow.keySeals) as KeySeal[];
+      const seal = seals.find((s) => s.pub === sealPub);
+      if (!seal) {
+        return {
+          ok: false,
+          detail: `NO-SEAL-FOR-KEY: אין חותמה תחת ה-WIF שנגזר (${sealPub.slice(0, 12)}…)`,
+        };
+      }
+      const kek = crypto.scryptSync(controlWif, Buffer.from(seal.kdfSalt, "hex"), 32, SCRYPT);
+      const masterHexStr = aesGcmOpen(kek, seal.encMaster, seal.sealIv, seal.sealTag).toString("utf8");
+      if (!/^[0-9a-fA-F]{64}$/.test(masterHexStr)) {
+        return { ok: false, detail: "BAD-MASTER: החותמת נפתחה אך תוכנה אינו מפתח-אב תקין" };
+      }
+      const master = Buffer.from(masterHexStr, "hex");
+      const entry = db
+        .prepare(
+          "SELECT pub, encPriv, privIv, privTag, status FROM VaultEntry WHERE chain = ? AND account = ? AND role = ? ORDER BY status = 'verified' DESC, id DESC LIMIT 1",
+        )
+        .get(chain, account, role) as
+        | { pub: string; encPriv: string; privIv: string; privTag: string; status: string }
+        | undefined;
+      if (!entry) {
+        return { ok: false, detail: `NO-ENTRY: אין רשומת ${role} ל-${account} ברשת ${chain}` };
+      }
+      const priv = aesGcmOpen(master, entry.encPriv, entry.privIv, entry.privTag).toString("utf8");
+      return { ok: true, priv, entryPub: entry.pub, status: entry.status, detail: `vault:${chain}/${account}/${role} (${entry.status})` };
+    } catch (e) {
+      return { ok: false, detail: `VAULT-ERROR: ${String((e as Error).message ?? e).slice(0, 140)}` };
+    }
+  };
+
+  // החותמת נבדקת פעם אחת בעת הבנייה — אם אין התאמה, הפותח מדווח בכנות
+  let sealPub = "";
+  try {
+    const nodeRequire = createRequire(path.join(HOME, "package.json"));
+    const steemLib = nodeRequire("steem") as {
+      auth: { wifToPublic(w: string): string };
+    };
+    sealPub = steemLib.auth.wifToPublic(controlWif);
+  } catch {
+    return {
+      ok: false,
+      detail: "BAD-CONTROL-WIF: ה-WIF השליטה אינו תקין",
+      open,
+    };
+  }
+  return { ok: true, detail: `vault-opened-by-control-wif (${sealPub.slice(0, 12)}…)`, open };
+}
+
+/**
  * פתיחת רשומת-מפתח מהארנק בנתיב הריבוני.
  * זורם: סיסמת-האב → WIF-ה-active החי של STEEM → חותמת → מפתח-אב → AES-GCM → WIF.
  */

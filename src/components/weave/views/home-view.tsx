@@ -39,6 +39,7 @@ import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
 import { MissionLadderCard } from "./mission-ladder-card";
 import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard, LanesCard } from "./sovereignty-cards";
+import { ActivationDoorCard } from "./admin/activation-door-card";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
 
@@ -413,6 +414,7 @@ export function HomeView() {
           <ArrayEfficiencyCard />
           <AutonomyLedgerCard />
           <LanesCard />
+          <ActivationDoorCard />
         </div>
       </section>
 

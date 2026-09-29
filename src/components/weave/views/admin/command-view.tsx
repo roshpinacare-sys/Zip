@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { AdminGate, useOperator } from "@/components/weave/operator";
 import { GridArmCard } from "@/components/weave/views/admin/grid-arm-card";
+import { ActivationDoorCard } from "@/components/weave/views/admin/activation-door-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -139,6 +140,7 @@ export function AdminCommandView() {
       </div>
 
       {/* חימום הגריד החוץ — עורק הכסף האמיתי */}
+      <ActivationDoorCard />
       <GridArmCard />
 
       {/* הזנקה מהירה */}

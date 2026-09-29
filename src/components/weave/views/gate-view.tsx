@@ -51,6 +51,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TxGateCard } from "@/components/weave/views/tx-gate-card";
+import { ActivationDoorCard } from "@/components/weave/views/admin/activation-door-card";
 
 // ── טיפוסי-הבנת-הרגע (משקפים את /api/moment בדיוק) ────────────────
 
@@ -1310,6 +1311,7 @@ export function GateView() {
           title="הדלת — חימוש-מחדש מבוקר של הגריד"
           sub="המפתח הנוכחי כבר חי בכספת המנוע; הדלת נשארת להחלפת-מפתח או חימוש-מחדש — עם אימות מול השרשרת לפני כל נגיעה."
         >
+          <ActivationDoorCard />
           <ArmDoor
             onArmed={() => {
               setTimeout(load, 20_000);

@@ -83,7 +83,8 @@ async function run(cmd, timeoutMs = 300_000) {
 }
 
 function firstLines(text, n) {
-  const lines = text.split("\n").filter((l) => l.trim());
+  // r136 · חוסן: הפונקציה מקבלת מחרוזת או מערך-שורות (הדיווח לעולם לא מפיל את הפרוטוקול)
+  const lines = (Array.isArray(text) ? text : String(text ?? "").split("\n")).filter((l) => String(l).trim());
   if (lines.length <= n) return lines;
   return [...lines.slice(0, n), `…+${lines.length - n} שורות נוספות`];
 }
