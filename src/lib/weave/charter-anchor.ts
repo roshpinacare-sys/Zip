@@ -22,20 +22,21 @@
 
 import { createRequire } from "module";
 import path from "path";
-import fs from "fs";
+// r137 · D-026: קריאת-קבצים עברה לספריית owner-key — fs הוסר מכאן
 import { keccak256, toUtf8Bytes } from "ethers";
 import { db } from "@/lib/db";
 import { merkleRoot } from "./merkle";
 import { ensureDaemonAgent } from "./daemons";
 import { appendAttestation } from "./ledger";
 import { rpcV4, STEEM_RPC_NODES } from "./graphene";
+import { readOwnerSource, steemSigningWif } from "@/lib/owner-key"; // r137 · D-026: מקור-מפתח דו-מצבי
 
 // ── קבועים ───────────────────────────────────────────────────────────
 
 export const CHARTER_ANCHOR_OP_ID = "saos.weave.charter.v1";
 export const CHARTER_ANCHOR_ACCOUNT = "headcorner";
 const HOME = "/home/z/my-project";
-const OWNER_FILE = `${HOME}/upload/headcorner.txt`;
+// r137 · D-026: קריאת המפתח עברה לספריית owner-key המשותפת (OWNER_FILE שם)
 const WITNESS_NAME = "weave-charter-anchor";
 
 /** תקציבים — נאכפים בקוד, לא בתקווה */
@@ -117,17 +118,13 @@ export class CharterAnchorError extends Error {
   }
 }
 
-function readOwnerKey(): { account: string; password: string } | null {
-  try {
-    const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
-    const lines = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    const account = lines.find((l) => /^[a-z0-9][a-z0-9.-]{2,15}$/.test(l));
-    const password = lines.find((l) => l.length >= 40 && !/^[a-z0-9.-]+$/.test(l));
-    if (!account || !password) return null;
-    return { account, password };
-  } catch {
-    return null;
-  }
+function readOwnerKey(): { account: string; password: string; wif?: string } | null {
+  // r137 · D-026: מקור-המפתח הדו-מצבי — מצב-אב או מצב-wif (הדלת).
+  const src = readOwnerSource();
+  if (!src) return null;
+  if (src.mode === "master" && src.master) return { account: src.account, password: src.master };
+  if (src.mode === "wif" && src.activeWif) return { account: src.account, password: "", wif: src.activeWif };
+  return null;
 }
 
 interface ChainAnchor {
@@ -324,7 +321,18 @@ export async function anchorCharterOnSteem(opts?: { dryRun?: boolean }): Promise
   steem.api.setOptions({ url: "https://api.steemit.com" });
 
   // דוקטרינת R75: המפתח מכריז את החותם — אימות ביט-מול-ביט לפני שידור
-  const wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+  // r137 · D-026: מצב-אב גוזר posting ישירות; מצב-wif פותח את רשומת-
+  // ה-posting מהכספת תחת WIF-השליטה. אין-פתיחה = חסימה כנה.
+  let wif: string;
+  if (ownerKey.wif) {
+    const viaVault = steemSigningWif("posting", ownerKey.account);
+    if (!viaVault) {
+      throw new CharterAnchorError("מצב-wif: אין רשומת-posting נפתחה מהכספת — העיגון נדחה בכנות.", 409);
+    }
+    wif = viaVault.wif;
+  } else {
+    wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+  }
   const accounts: any[] = await new Promise<any[]>((resolve, reject) =>
     steem.api.getAccounts([ownerKey.account], (err: Error | null, res: any[]) =>
       err || !res?.length ? reject(err ?? new Error("empty")) : resolve(res),

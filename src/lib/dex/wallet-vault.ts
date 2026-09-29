@@ -25,6 +25,44 @@ const HOME = "/home/z/my-project";
 const OWNER_FILE = path.join(HOME, "upload", "headcorner.txt");
 const WALLET_DB = process.env.WALLET_DB || path.join(HOME, "db", "wallet-vault.db");
 
+function nodeSteemLib(): {
+  auth: { toWif(a: string, p: string, r: string): string; wifToPublic(w: string): string };
+} {
+  const nodeRequire = createRequire(path.join(HOME, "package.json"));
+  return nodeRequire("steem") as {
+    auth: { toWif(a: string, p: string, r: string): string; wifToPublic(w: string): string };
+  };
+}
+
+/**
+ * r137 · D-026 — קריאת WIF-השליטה ממקור-המפתח הדו-מצבי:
+ *   · מצב-אב:  "account\n<סיסמת-אב>" → toWif(account, אב, "active")
+ *   · מצב-WIF: "account\nwif:<WIF>"  → ה-WIF עצמו ישירות
+ * הפונקציה מחזירה חומר-סוד — קוראיה חייבים בזיכרון-הרצה בלבד.
+ */
+export function readOwnerControlWif(): { account: string; controlWif: string; mode: "master" | "wif" } | null {
+  try {
+    const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
+    if (!raw) return null;
+    const lines = raw
+      .split(/\r?\n/)
+      .map((x) => x.trim())
+      .filter(Boolean);
+    const account = lines[0];
+    const secret = lines[1] ?? "";
+    if (!account || !secret) return null;
+    if (secret.startsWith("wif:")) {
+      const wif = secret.slice(4).trim();
+      if (!wif) return null;
+      return { account, controlWif: wif, mode: "wif" };
+    }
+    const controlWif = nodeSteemLib().auth.toWif(account, secret, "active");
+    return { account, controlWif, mode: "master" };
+  } catch {
+    return null;
+  }
+}
+
 export type VaultChain = "steem" | "hive" | "blurt";
 
 export interface VaultKeyResult {
@@ -56,29 +94,19 @@ export interface VaultRawResult {
 
 export function openVaultEntryRaw(chain: string, account: string, role: string): VaultRawResult {
   try {
-    let ownerAccount = "";
-    let password = "";
-    try {
-      const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
-      const [first, ...rest] = raw.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-      ownerAccount = first;
-      password = rest[0] ?? "";
-    } catch {
-      return { ok: false, detail: "NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא" };
+    // r137 · D-026: מקור-המפתח הדו-מצבי (סיסמת-אב או WIF ישיר) — קריאה
+    // דרך העוזר המשותף, אותו קריפטו בשני-המצבים.
+    const src = readOwnerControlWif();
+    if (!src) {
+      return { ok: false, detail: "NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא או ריק" };
     }
-    if (!ownerAccount || !password) {
-      return { ok: false, detail: "NO-OWNER-KEY: קובץ המפתח ריק" };
-    }
-    const nodeRequire = createRequire(path.join(HOME, "package.json"));
-    const steemLib = nodeRequire("steem") as {
-      auth: { toWif(a: string, p: string, r: string): string; wifToPublic(w: string): string };
-    };
-    const controlWif = steemLib.auth.toWif(ownerAccount, password, "active");
+    const { account: ownerAccount, controlWif } = src;
+    const steemLib = nodeSteemLib();
     const controlPub = steemLib.auth.wifToPublic(controlWif);
     if (!fs.existsSync(WALLET_DB)) {
       return { ok: false, detail: `NO-WALLET-DB: ${path.basename(WALLET_DB)} לא נמצא` };
     }
-    const { DatabaseSync } = nodeRequire("node:sqlite") as {
+    const { DatabaseSync } = createRequire(path.join(HOME, "package.json"))("node:sqlite") as {
       DatabaseSync: new (p: string, o?: { readOnly?: boolean }) => {
         prepare(q: string): { get(...a: unknown[]): Record<string, unknown> | undefined };
       };
@@ -228,34 +256,22 @@ export function openVaultWithControlWif(controlWif: string): VaultOpener {
  */
 export function openVaultKey(chain: VaultChain, account: string, role: string): VaultKeyResult {
   try {
-    // 1) סיסמת-האב מהמקור הריבוני
-    let ownerAccount = "";
-    let password = "";
-    try {
-      const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
-      const [first, ...rest] = raw.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-      ownerAccount = first;
-      password = rest[0] ?? "";
-    } catch {
-      return { ok: false, detail: "NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא" };
+    // 1+2) r137 · D-026: מקור-המפתח הדו-מצבי → WIF-השליטה (שורש-המורשת,
+    //      מפתח-הפתיחה של החותמת) — קריאה דרך העוזר המשותף
+    const src = readOwnerControlWif();
+    if (!src) {
+      return { ok: false, detail: "NO-OWNER-FILE: מקור המפתח (upload/headcorner.txt) לא נמצא או ריק" };
     }
-    if (!ownerAccount || !password) {
-      return { ok: false, detail: "NO-OWNER-KEY: קובץ המפתח ריק" };
-    }
-
-    // 2) ה-active החי של STEEM (שורש המורשת) — מפתח-הפתיחה של החותמת
-    const nodeRequire = createRequire(path.join(HOME, "package.json"));
-    const steemLib = nodeRequire("steem") as {
-      auth: { toWif(a: string, p: string, r: string): string; wifToPublic(w: string): string };
-    };
-    const controlWif = steemLib.auth.toWif(ownerAccount, password, "active");
+    const ownerAccount = src.account;
+    const steemLib = nodeSteemLib();
+    const controlWif = src.controlWif;
     const controlPub = steemLib.auth.wifToPublic(controlWif);
 
     // 3) פתיחת הארנק (קריאה-בלבד)
     if (!fs.existsSync(WALLET_DB)) {
       return { ok: false, detail: `NO-WALLET-DB: ${path.basename(WALLET_DB)} לא נמצא — הארנק המוצפן חסר` };
     }
-    const { DatabaseSync } = nodeRequire("node:sqlite") as {
+    const { DatabaseSync } = createRequire(path.join(HOME, "package.json"))("node:sqlite") as {
       DatabaseSync: new (p: string, o?: { readOnly?: boolean }) => {
         prepare(q: string): { get(...a: unknown[]): Record<string, unknown> | undefined };
       };

@@ -799,9 +799,12 @@ export async function depositScan(limit = 60): Promise<DepositScanResult> {
 
 function activeWif(): string | null {
   try {
+    // r137 · D-026: מקור-המפתח הדו-מצבי — מצב-wif חותם ישירות, מצב-אב גוזר.
     const raw = fs.readFileSync(path.join(HOME, "upload", "headcorner.txt"), "utf8").trim();
     const [account, ...rest] = raw.split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
-    return steem.auth.toWif(account, rest[0] ?? "", "active");
+    const secret = rest[0] ?? "";
+    if (secret.startsWith("wif:")) return secret.slice(4).trim() || null;
+    return steem.auth.toWif(account, secret, "active");
   } catch {
     return null;
   }

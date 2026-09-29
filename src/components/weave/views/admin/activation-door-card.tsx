@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  Activity,
   BadgeCheck,
   Eye,
   EyeOff,
@@ -48,6 +49,7 @@ interface ArmAllResult {
   total: number;
   vaultOpen: boolean;
   wroteOwnerFile: boolean;
+  ownerFileMode?: "master" | "wif" | null;
   dispatched: boolean;
   dispatchedBackup?: boolean;
   results: ArmResultRow[];
@@ -69,6 +71,102 @@ interface InspectResult {
   verdicts: InspectVerdict[];
   guidanceHe: string;
   noteHe: string;
+}
+
+// r137 · מצב-החי של הבית — ההוכחה שהדלת לא רק אטמה לענן אלא גם החייתה
+// את החתימה המקומית: מקור-מפתח · סולם · פאריטה · רצפת-ערך. נמדד מ-/api/money.
+interface HouseStatus {
+  keyPresent: boolean;
+  ordersCount: number;
+  deployedSteem: number | null;
+  idleSteem: number | null;
+  parity: number | null;
+  paritySource: string | null;
+  floorState: string | null;
+  daemonDecision: string | null;
+}
+
+function HouseLiveStatus() {
+  const [st, setSt] = useState<HouseStatus | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const load = () => {
+      fetch("/api/money", { cache: "no-store" })
+        .then((r) => r.json())
+        .then((j: any) => {
+          if (!alive) return;
+          const orders = Array.isArray(j?.orders) ? j.orders : [];
+          setSt({
+            keyPresent: j?.keyPresent === true,
+            ordersCount: orders.length,
+            deployedSteem: typeof j?.deployedSteem === "number" ? j.deployedSteem : null,
+            idleSteem: typeof j?.idleSteem === "number" ? j.idleSteem : null,
+            parity: typeof j?.marks?.parity === "number" ? j.marks.parity : null,
+            paritySource: typeof j?.marks?.paritySource === "string" ? j.marks.paritySource : null,
+            floorState: typeof j?.valueFloor?.state === "string" ? j.valueFloor.state : null,
+            daemonDecision: typeof j?.daemon?.lastDecision?.kind === "string" ? j.daemon.lastDecision.kind : null,
+          });
+        })
+        .catch(() => {});
+    };
+    load();
+    const t = setInterval(load, 45_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, []);
+  if (!st) return null;
+  const ladderLive = st.ordersCount > 0;
+  return (
+    <div className="flex flex-col gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/40 px-3 py-2" dir="rtl">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold text-zinc-300">
+        <Activity className="size-3.5 text-emerald-500" aria-hidden="true" />
+        מצב-החי של הבית אחרי-החימוש · נמדד כל 45ש׳
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+        {st.keyPresent ? (
+          <Badge className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+            <BadgeCheck className="size-3" aria-hidden="true" />
+            בית חתום — מקור-מפתח חי
+          </Badge>
+        ) : (
+          <Badge className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
+            <KeyRound className="size-3" aria-hidden="true" />
+            בית עיוור — אין מקור-מפתח (הדבק בדלת 1)
+          </Badge>
+        )}
+        {ladderLive ? (
+          <Badge variant="outline" className="gap-1 text-[10px]">
+            סולם חי · {st.ordersCount} פקודות · {st.deployedSteem?.toFixed(1) ?? "?"} STEEM מוצב
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="gap-1 text-[10px]">
+            סולם ריק · {st.idleSteem?.toFixed(1) ?? "?"} STEEM נזילים — המוביל מציב במחזור הבא
+          </Badge>
+        )}
+        {st.parity != null ? (
+          <Badge variant="outline" className="gap-1 text-[10px]">
+            פאריטה {st.parity.toFixed(4)} · {st.paritySource ?? "oracle"}
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="gap-1 text-[10px]">
+            פאריטה לא נמדדה
+          </Badge>
+        )}
+        {st.floorState && (
+          <Badge variant="outline" className="gap-1 text-[10px]">
+            רצפת-ערך {st.floorState}
+          </Badge>
+        )}
+        {st.daemonDecision && (
+          <Badge variant="outline" className="gap-1 text-[10px] font-mono">
+            מוביל {st.daemonDecision}
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function ActivationDoorCard() {
@@ -254,7 +352,7 @@ export function ActivationDoorCard() {
                   כספת {armResult.vaultOpen ? "נפתחה" : "לא נפתחה"}
                 </Badge>
                 <Badge variant="outline" className="gap-1 text-[10px]">
-                  מקור-מפתח מקומי {armResult.wroteOwnerFile ? "נכתב" : "לא נכתב"}
+                  מקור-מפתח מקומי {armResult.wroteOwnerFile ? `נכתב${armResult.ownerFileMode ? ` (${armResult.ownerFileMode})` : ""}` : "לא נכתב"}
                 </Badge>
                 <Badge variant="outline" className="gap-1 text-[10px]">
                   dex-grid {armResult.dispatched ? "שוגר" : "לא שוגר"}
@@ -281,6 +379,9 @@ export function ActivationDoorCard() {
             </div>
           )}
         </div>
+
+        {/* r137 · מצב-החי — ההוכחה שהחימוש עבר עד-הבית */}
+        <HouseLiveStatus />
 
         {/* דלת 2 — רופא-מפתחות */}
         <div className="flex flex-col gap-2 rounded-lg border px-4 py-3">

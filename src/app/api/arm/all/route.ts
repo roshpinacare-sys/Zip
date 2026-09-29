@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
   }
 
   let key = "";
-  let wroteOwnerFile = false;
+  let wroteOwnerFile = false; // r137 · D-026: נכתב בשני-המצבים (אב או wif)
   try {
     const body = (await req.json()) as { key?: unknown };
     key = typeof body.key === "string" ? body.key.trim() : "";
@@ -192,16 +192,27 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 3) סיסמת-אב → מקור-המפתח הריבוני (מחוץ-לגיט) — כל סטאק-החתימה
-  //    המקומי (money · pulse · vault) חוזר לחיים ממנו במחזור הבא
-  if (!looksLikeWif) {
-    try {
-      fs.mkdirSync(path.dirname(OWNER_FILE), { recursive: true });
+  // 3) מקור-המפתח הריבוני (מחוץ-לגיט) — כל סטאק-החתימה המקומי
+  //    (money · pulse · vault) חוזר לחיים ממנו במחזור הבא.
+  //    r137 · D-026: מקור דו-מצבי — סיסמת-אב נכתבת כמקודם, ועכשיו גם
+  //    WIF שהודבק ישירות נכתב במצב-wif ("account\nwif:<WIF>"). זה התיקון
+  //    של "הוא מזהה כ-active אבל הוא לא עובר": החימוש בענן עבר, אבל הבית
+  //    נשאר עיוור כי מקור-המפתח לא נכתב. ה-WIF נכתב 0600 מחוץ-לגיט —
+  //    אותו סטנדרט-אחסון של סיסמת-האב עצמה, אף-בייט לא בלוג ולא בתשובה.
+  let ownerFileMode: "master" | "wif" | null = null;
+  try {
+    fs.mkdirSync(path.dirname(OWNER_FILE), { recursive: true });
+    if (looksLikeWif) {
+      fs.writeFileSync(OWNER_FILE, `${OPERATOR_ACCOUNT}\nwif:${controlWif}\n`, { mode: 0o600 });
+      wroteOwnerFile = true;
+      ownerFileMode = "wif";
+    } else {
       fs.writeFileSync(OWNER_FILE, `${OPERATOR_ACCOUNT}\n${key}\n`, { mode: 0o600 });
       wroteOwnerFile = true;
-    } catch {
-      /* כתיבה כושלת לא עוצרת את שאר-החימוש — מדווח בכנות בתוצאות */
+      ownerFileMode = "master";
     }
+  } catch {
+    /* כתיבה כושלת לא עוצרת את שאר-החימוש — מדווח בכנות בתוצאות */
   }
 
   // 4) פתיחת הכספת עם WIF-השליטה
@@ -302,7 +313,7 @@ export async function POST(req: NextRequest) {
         step: "arm-all",
         firedBy: "operator",
         ok: sealedCount > 0,
-        detail: `דלת-ההפעלה-האחת: active אומת מול השרשרת · ${sealedCount}/${results.length} סודות נאטמו לכספת-הריפו · כספת-ארנק ${vaultOpen ? "נפתחה" : "לא נפתחה"} · מקור-מפתח מקומי ${wroteOwnerFile ? "נכתב" : "לא נכתב"} · dex-grid חי (Domain) ${dispatched ? "שוגר" : "לא שוגר"} · גיבוי (saos-dex) ${dispatchedBackup ? "שוגר" : "לא שוגר"}`,
+        detail: `דלת-ההפעלה-האחת: active אומת מול השרשרת · ${sealedCount}/${results.length} סודות נאטמו לכספת-הריפו · כספת-ארנק ${vaultOpen ? "נפתחה" : "לא נפתחה"} · מקור-מפתח מקומי ${wroteOwnerFile ? `נכתב (${ownerFileMode})` : "לא נכתב"} · dex-grid חי (Domain) ${dispatched ? "שוגר" : "לא שוגר"} · גיבוי (saos-dex) ${dispatchedBackup ? "שוגר" : "לא שוגר"}`,
       },
     });
   } catch {
@@ -321,6 +332,7 @@ export async function POST(req: NextRequest) {
     total: results.length,
     vaultOpen,
     wroteOwnerFile,
+    ownerFileMode,
     dispatched,
     dispatchedBackup,
     results,

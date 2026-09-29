@@ -25,6 +25,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { readOwnerSource, steemSigningWif } from "@/lib/owner-key"; // r137 · D-026: מקור-מפתח דו-מצבי
 import {
   rpcV4,
   STEEM_RPC_NODES,
@@ -41,18 +42,14 @@ const STATE_FILE = path.join(STATE_DIR, "state.json");
 const HISTORY_FILE = path.join(STATE_DIR, "history.json");
 
 /** מפתח-האב מ-upload — הדפוס המוכח של מסלול הפרסום (R75: אומת 4/4 מול הרשות החיה).
- *  מוחזר עצם-קיום בלבד; הסיסמה לעולם לא נכתבת ולא נרשמת. */
-function readOwnerKey(): { account: string; password: string } | null {
-  try {
-    const raw = fs.readFileSync(path.join(HOME, "upload", "headcorner.txt"), "utf8").trim();
-    const lines = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    const account = lines.find((l) => /^[a-z0-9][a-z0-9.-]{2,15}$/.test(l));
-    const password = lines.find((l) => l.length >= 40 && !/^[a-z0-9.-]+$/.test(l));
-    if (!account || !password) return null;
-    return { account, password };
-  } catch {
-    return null;
-  }
+ *  מוחזר עצם-קיום בלבד; הסוד לעולם לא נכתב ולא נרשם. (r137 · D-026:
+ *  מקור-המפתח עבר לספרייה המשותפת — דו-מצבי: סיסמת-אב או WIF-הדלת.) */
+function readOwnerKey(): { account: string; password: string; wif?: string } | null {
+  const src = readOwnerSource();
+  if (!src) return null;
+  if (src.mode === "master" && src.master) return { account: src.account, password: src.master };
+  if (src.mode === "wif" && src.activeWif) return { account: src.account, password: "", wif: src.activeWif };
+  return null;
 }
 
 /** טעינת steem מנתיב-האב (createRequire — הדפוס של מסלול הפרסום). */
@@ -596,7 +593,14 @@ export async function castVote(params: {
       return { ok: false, txid: null, note: "NO-KEY: מפתח-האב (upload/headcorner.txt) אינו קריא או אינו של המצביע — לא נוגעים" };
     }
     const steem = loadSteem();
-    const wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+    // r137 · D-026: מצב-אב גוזר posting ישירות (הדפוס שעבר 4/4 ב-R75);
+    // מצב-wif פותח את רשומת-ה-posting מהכספת תחת WIF-השליטה. אין-פתיחה
+    // או פומבי לא-תואם = סירוב-כנה מטעם השופט בהמשך — אין ניחוש-חתימה.
+    const viaVault = ownerKey.wif ? steemSigningWif("posting", ownerKey.account) : null;
+    if (ownerKey.wif && !viaVault) {
+      return { ok: false, txid: null, note: "NO-SIGNING: מצב-wif — אין רשומת-posting נפתחה מהכספת; לא נוגעים" };
+    }
+    const wif = viaVault ? viaVault.wif : steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
     const derivedPub = steem.auth.wifToPublic(wif);
 
     // 3) השרשרת היא השופט: הפומבי הנגזר חייב להיות ברשות החיה (key_auths —

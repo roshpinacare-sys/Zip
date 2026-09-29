@@ -22,6 +22,7 @@ import { operatorFromRequest } from "@/lib/operator-auth";
 import { evaluateGate } from "@/lib/weave/tx-gate";
 import { rpcV4, HIVE_RPC } from "@/lib/weave/graphene";
 import { openVaultKey } from "@/lib/dex/wallet-vault";
+import { readOwnerSource } from "@/lib/owner-key"; // r137 · D-026: מקור-מפתח דו-מצבי
 import {
   readHiveLeg,
   hiveSendMarket,
@@ -33,7 +34,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const HOME = "/home/z/my-project";
-const OWNER_FILE = path.join(HOME, "upload", "headcorner.txt");
+// r137 · D-026: קריאת המפתח עברה לספריית owner-key המשותפת (OWNER_FILE שם)
 const HISTORY_FILE = `${HOME}/sovereign/money/history.json`;
 
 interface SteemAuth {
@@ -48,14 +49,11 @@ function bad(message: string, status = 400, extra?: Record<string, unknown>) {
 }
 
 function readOwnerKey(): { account: string; password: string } | null {
-  try {
-    const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
-    const [account, password] = raw.split(/\r?\n/).map((x) => x.trim());
-    if (!account || !password) return null;
-    return { account, password };
-  } catch {
-    return null;
-  }
+  // r137 · D-026: מקור-המפתח הדו-מצבי — הרגל עצמה חותמת רק דרך הכספת
+  // (openVaultKey פותחת בשני-המצבים), כאן נבדקת נוכחות וזהות בלבד.
+  const src = readOwnerSource();
+  if (!src) return null;
+  return { account: src.account, password: src.mode === "master" ? (src.master ?? "") : "" };
 }
 
 interface HiveReceipt {

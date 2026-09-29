@@ -72,6 +72,9 @@ type PulseState = {
   nextDueAt: string;
   attemptsToday: number;
   broadcasting: boolean;
+  // r137 · D-021-to-voice: חסימת-ערוץ כנה (NO-KEY) לא שורפת ניסיון —
+  // רק קורנת-backoff עד הזמן הזה; ההתעוררות מיידית כשהדלת נפתחת.
+  laneBlockedUntil: string | null;
   lastDecision: Decision | null;
   canonLast: { at: string; ok: boolean; path: string } | null;
   historyTail: Array<Record<string, unknown>>;
@@ -109,6 +112,7 @@ function readState(): PulseState {
     nextDueAt: nextUtcMidnight(),
     attemptsToday: 0,
     broadcasting: false,
+    laneBlockedUntil: null,
     lastDecision: null,
     canonLast: null,
     historyTail: [],
@@ -138,6 +142,8 @@ function readState(): PulseState {
       lastPublishUtcDay: prev.lastPublishUtcDay ?? null,
       nextDueAt: prev.nextDueAt ?? nextUtcMidnight(),
       attemptsToday: sameDay ? (prev.attemptsToday ?? 0) : 0,
+      // r137 · D-021-to-voice: חסימת-ערוץ כנה לא שורפת ניסיון — רק קורנת-backoff
+      laneBlockedUntil: (prev as any).laneBlockedUntil ?? null as string | null,
       historyTail: Array.isArray(prev.historyTail) ? prev.historyTail.slice(-20) : [],
       canonLast: prev.canonLast ?? null,
       windowSeededFromChain: prev.windowSeededFromChain ?? false,
@@ -338,7 +344,13 @@ async function tryPublish(): Promise<void> {
       signal: ctl.signal,
     });
     const bcJ: any = await bc.json();
-    if (!bc.ok || !bcJ?.ok) throw new Error(String(bcJ?.error ?? `broadcast ${bc.status}`));
+    if (!bc.ok || !bcJ?.ok) {
+      // r137 · קוד-החסימה נושא עם-השגיאה — כדי ש-LANE-BLOCKED לא ייחשב
+      // ניסיון-פרסום שנשחק (D-021-to-voice).
+      const err = new Error(String(bcJ?.error ?? `broadcast ${bc.status}`)) as Error & { code?: string };
+      err.code = typeof bcJ?.code === "string" ? bcJ.code : undefined;
+      throw err;
+    }
 
     // 5) הצלחה — רישום וקבלה
     const entry = {
@@ -371,6 +383,21 @@ async function tryPublish(): Promise<void> {
     ].join("\n");
     await canonPush(`reports/pulse-${day}.md`, receipt);
   } catch (e: any) {
+    // r137 · D-021-to-voice: חסימה-מובטחת אינה ניסיון — NO-KEY/NO-SIGNING
+    // לא שורף תקציב-דיבור (השיעור של r133 בכסף, כעת גם בקול). הערוץ קורן
+    // backoff 30 דק׳ ומנסה שוב — ההתעוררות מיידית אחרי הדלת.
+    const code = typeof e?.code === "string" ? e.code : "";
+    if (code === "NO-KEY" || code === "NO-SIGNING" || code === "NO-OWNER-KEY") {
+      const until = new Date(Date.now() + 30 * 60_000).toISOString();
+      state.laneBlockedUntil = until;
+      state.lastDecision = {
+        at: new Date().toISOString(),
+        kind: "LANE-BLOCKED",
+        detail: `ערוץ-הקול חסום בכנות (${code}) — אין מקור-מפתח לחתימה. אפס ניסיון-שרוף (${state.attemptsToday}/${POLICY.attemptsBudget} נשמרים) · בדיקה-חוזרת ${until.slice(11, 16)}Z · דלת-ההפעלה פותחת מיד`,
+      };
+      saveState();
+      return;
+    }
     state.attemptsToday += 1;
     state.lastDecision = {
       at: new Date().toISOString(),
@@ -516,8 +543,15 @@ async function tick() {
     }
 
     const windowOpen = state.lastPublishUtcDay !== day;
-    if (windowOpen && state.attemptsToday < POLICY.attemptsBudget) {
+    const laneBlocked = state.laneBlockedUntil != null && new Date(state.laneBlockedUntil).getTime() > Date.now();
+    if (windowOpen && state.attemptsToday < POLICY.attemptsBudget && !laneBlocked) {
       await tryPublish();
+    } else if (windowOpen && laneBlocked) {
+      state.lastDecision = {
+        at: new Date().toISOString(),
+        kind: "LANE-BLOCKED",
+        detail: `ערוץ-הקול חסום בכנות — חוזרים לבדוק ${String(state.laneBlockedUntil).slice(11, 16)}Z · תקציב נשמר (${state.attemptsToday}/${POLICY.attemptsBudget})`,
+      };
     } else if (windowOpen) {
       state.lastDecision = {
         at: new Date().toISOString(),

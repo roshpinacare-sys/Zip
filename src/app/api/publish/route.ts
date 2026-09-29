@@ -33,6 +33,7 @@ import { createRequire } from "node:module";
 import fs from "node:fs";
 import path from "node:path";
 import { db } from "@/lib/db";
+import { readOwnerSource, steemSigningWif } from "@/lib/owner-key"; // r137 · D-026: מקור-מפתח דו-מצבי
 import { swrGet, cacheHeader, swrInvalidate } from "@/lib/live/swr";
 import { headOk } from "@/lib/live/head-check";
 
@@ -42,7 +43,7 @@ export const maxDuration = 60;
 const CONSOLE_BASE = "https://roshpinacare-sys.github.io/Console";
 const GITHUB_USER = "roshpinacare-sys";
 const UPLOAD_DIR = "/home/z/my-project/upload";
-const OWNER_FILE = path.join(UPLOAD_DIR, "headcorner.txt");
+// r137 · D-026: קריאת המפתח עברה לספריית owner-key המשותפת (OWNER_FILE שם)
 const PAT_FILE = path.join(UPLOAD_DIR, "pat.env");
 const HOME = "/home/z/my-project";
 
@@ -189,17 +190,14 @@ const mu = (v: number | undefined) => (v ?? 0) / 1000;
 // הסוד לעולם לא מוחזר בתשובה, לא נכתב ללוג, לא נשמר ב-DB.
 // מה שמוחזר: רק עצם-קיום ושם-החשבון (נמדד מהקובץ עצמו).
 
-function readOwnerKey(): { account: string; password: string } | null {
-  try {
-    const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
-    const lines = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
-    const account = lines.find((l) => /^[a-z0-9][a-z0-9.-]{2,15}$/.test(l));
-    const password = lines.find((l) => l.length >= 40 && !/^[a-z0-9.-]+$/.test(l));
-    if (!account || !password) return null;
-    return { account, password };
-  } catch {
-    return null;
-  }
+function readOwnerKey(): { account: string; password: string; wif?: string } | null {
+  // r137 · D-026: מקור-המפתח הדו-מצבי — מצב-אב או מצב-wif (הדלת).
+  // הסוד לעולם לא מוחזר בתשובה, לא נכתב ללוג, לא נשמר ב-DB.
+  const src = readOwnerSource();
+  if (!src) return null;
+  if (src.mode === "master" && src.master) return { account: src.account, password: src.master };
+  if (src.mode === "wif" && src.activeWif) return { account: src.account, password: "", wif: src.activeWif };
+  return null;
 }
 
 // ── פרמאלינק תקני (ASCII בלבד — Steem דורש) ────────────────────────────
@@ -706,7 +704,18 @@ export async function POST(req: Request) {
       steem.api.setOptions({ url: "https://api.steemit.com" });
 
       // דוקטרינת R75: המפתח מכריז את החותם — אימות ביט-מול-ביט לפני שידור
-      const wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+      // r137 · D-026: מצב-אב גוזר posting ישירות; מצב-wif פותח את
+      // רשומת-ה-posting מהכספת תחת WIF-השליטה. אין-פתיחה = סירוב-כנה.
+      let wif: string;
+      if (ownerKey.wif) {
+        const viaVault = steemSigningWif("posting", ownerKey.account);
+        if (!viaVault) {
+          return bad("מצב-wif: אין רשומת-posting נפתחה מהכספת — אין חתימה. שום דבר לא שודר. סירוב-כנה.", 409, { code: "NO-SIGNING" });
+        }
+        wif = viaVault.wif;
+      } else {
+        wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+      }
       const accounts = await new Promise<any[]>((resolve, reject) =>
         steem.api.getAccounts([ownerKey.account], (err: Error | null, res: any[]) =>
           err || !res?.length ? reject(err ?? new Error("empty")) : resolve(res),

@@ -49,13 +49,13 @@ import path from "node:path";
 import { swrGet, cacheHeader, swrInvalidate } from "@/lib/live/swr";
 import { operatorFromRequest } from "@/lib/operator-auth";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
+import { readOwnerSource } from "@/lib/owner-key"; // r137 · D-026: מקור-מפתח דו-מצבי
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const ACCOUNT = "headcorner"; // החותם — הזהות מוכרזת מהמפתח עצמו (R75)
-const UPLOAD_DIR = "/home/z/my-project/upload";
-const OWNER_FILE = path.join(UPLOAD_DIR, "headcorner.txt");
+// r137 · D-026: קריאת המפתח עברה לספריית owner-key המשותפת (OWNER_FILE שם)
 const HOME = "/home/z/my-project";
 const STATE_DIR = `${HOME}/sovereign/money`;
 const STATE_FILE = `${STATE_DIR}/state.json`;
@@ -68,6 +68,10 @@ export interface MoneyMark {
   sbdUsd: number | null;
   trxUsd: number | null;
   parity: number | null; // SBD per STEEM
+  /** r137: פאריטה מהשוק-הפנימי עצמו (get_order_book mid) — מקור-השרשרת */
+  parityInternal: number | null;
+  /** r137: מקור-הפאריטה שהופעל בפועל — oracle או chain */
+  paritySource: string | null;
   sources: Record<string, string>;
 }
 
@@ -233,6 +237,53 @@ async function jget(url: string, timeoutMs = 9000): Promise<any> {
   }
 }
 
+// r137 · פאריטת-השרשרת: השוק-הפנימי של STEEM/SBD עצמו (condenser_api.
+// get_order_book) — המקור-הכי-קרוב לשוק שבו הסולם באמת סוחר. מיד = מרכז
+// הביד-האסק הטובים. צמתים נפלים-בתור (שיעור r136b: צומת-רפה אינו פסק-דין),
+// User-Agent מזוהה (שיעור r136b: rpc.blurt.blog דוחה fetch אנונימי).
+async function jpostChain(url: string, body: unknown, timeoutMs = 8000): Promise<any> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      signal: ctrl.signal,
+      cache: "no-store",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json",
+        "user-agent": "the-weave-money-mover/1.0 (sovereign; r137)",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`http ${res.status}`);
+    return await res.json();
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+const INTERNAL_MARKET_NODES = ["https://api.steemit.com", "https://api.justyy.com"];
+
+async function internalMarketParity(): Promise<{ mid: number | null; node: string | null }> {
+  for (const node of INTERNAL_MARKET_NODES) {
+    try {
+      const j = await jpostChain(node, { jsonrpc: "2.0", method: "condenser_api.get_order_book", params: [10], id: 1 });
+      const bids: Array<{ real_price: string }> = j?.result?.bids ?? [];
+      const asks: Array<{ real_price: string }> = j?.result?.asks ?? [];
+      if (!bids.length || !asks.length) continue;
+      const bestBid = Math.max(...bids.map((b) => parseFloat(b.real_price)).filter((n) => n > 0));
+      const bestAsk = Math.min(...asks.map((a) => parseFloat(a.real_price)).filter((n) => n > 0));
+      if (!(bestBid > 0) || !(bestAsk > 0) || bestAsk < bestBid) continue;
+      const mid = Math.round(((bestBid + bestAsk) / 2) * 1e6) / 1e6;
+      if (mid > 0.001 && mid < 1000) return { mid, node: new URL(node).hostname };
+    } catch {
+      /* הצומת-הבא בתור */
+    }
+  }
+  return { mid: null, node: null };
+}
+
 // ── רב-צמתיות (R106): מדידת-הפאריטה היא הרצפה לחוק-1 — צומת בודד שנחנק
 // משאיר את הסולם עיוור (נמדד חי 00:53Z: REPRICE-FAIL "הפאריטה לא נמדדה
 // חי" למשך מחזור שלם). מעתה כל קריאת-מדידה מנסה את רשימת-הצמתים
@@ -356,8 +407,22 @@ async function marksSide(): Promise<MoneyMark> {
       /* בלי שער */
     }
   }
-  const parity = steemUsd != null && sbdUsd != null && sbdUsd > 0 ? steemUsd / sbdUsd : null;
-  return { steemUsd, sbdUsd, trxUsd, parity, sources };
+  let parity = steemUsd != null && sbdUsd != null && sbdUsd > 0 ? steemUsd / sbdUsd : null;
+  let paritySource: string | null = parity != null ? "oracle:steemUsd/sbdUsd" : null;
+  // r137 · פאריטת-השוק-הפנימי: נמדדת תמיד (שקיפות), וכשאין סימון-חוץ ל-SBD
+  // היא הקו — כך הסולם, רצפת-הערך והמוביל לא נשארים עיוורים בכנות.
+  const internal = await internalMarketParity();
+  const parityInternal = internal.mid;
+  if (parity == null && parityInternal != null) {
+    parity = parityInternal;
+    paritySource = `chain:internal-market-mid@${internal.node}`;
+    if (steemUsd != null) {
+      sbdUsd = Math.round((steemUsd / parityInternal) * 1e6) / 1e6;
+      sources.sbd = "implied:steemUsd/parityInternal";
+    }
+  }
+  if (parity != null) parity = Math.round(parity * 1e6) / 1e6;
+  return { steemUsd, sbdUsd, trxUsd, parity, parityInternal, paritySource, sources };
 }
 
 async function tronSide(): Promise<{ outbox: number | null; custody: number | null }> {
@@ -712,6 +777,8 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
       sbdUsd: marks?.sbdUsd ?? null,
       trxUsd: marks?.trxUsd ?? null,
       parity,
+      parityInternal: marks?.parityInternal ?? null,
+      paritySource: marks?.paritySource ?? null,
       sources: marks?.sources ?? {},
     },
     balances,
@@ -751,15 +818,15 @@ function bad(message: string, status = 400, extra?: Record<string, unknown>) {
   return NextResponse.json({ ok: false, error: message, ...extra }, { status });
 }
 
-function readOwnerKey(): { account: string; password: string } | null {
-  try {
-    const raw = fs.readFileSync(OWNER_FILE, "utf8").trim();
-    const [account, password] = raw.split(/\r?\n/).map((x) => x.trim());
-    if (!account || !password) return null;
-    return { account, password };
-  } catch {
-    return null;
-  }
+function readOwnerKey(): { account: string; password: string; wif?: string } | null {
+  // r137 · D-026: מקור-המפתח הדו-מצבי — מצב-אב (הדפוס המוכח) או מצב-wif
+  // (ה-active שהמפעיל הדביק בדלת-ההפעלה). במצב-wif החתימה ישירה וה
+  // אימות ביט-מול-ביט מול הרשות החיה נשאר כפי שהוא (חוק R75).
+  const src = readOwnerSource();
+  if (!src) return null;
+  if (src.mode === "master" && src.master) return { account: src.account, password: src.master };
+  if (src.mode === "wif" && src.activeWif) return { account: src.account, password: "", wif: src.activeWif };
+  return null;
 }
 
 // r125a · חוק הראיה: הקבלה החיה היא השרשרת — כשל כתיבה אינו מפיל פעולת-
@@ -874,7 +941,8 @@ async function POST_core(req: Request) {
   });
 
   // דוקטרינת R75: המפתח מכריז את החותם — אימות ביט-מול-ביט לפני כל שידור
-  const wif = steem.auth.toWif(ownerKey.account, ownerKey.password, "active");
+  // r137 · D-026: מצב-wif → חתימה ישירה; מצב-אב → גזירה כמקודם.
+  const wif = ownerKey.wif ?? steem.auth.toWif(ownerKey.account, ownerKey.password, "active");
   const liveActive = accts?.[0]?.active?.key_auths?.[0]?.[0];
   const derivedPub = steem.auth.wifToPublic(wif);
   if (!liveActive || derivedPub !== liveActive) {

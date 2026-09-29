@@ -5028,3 +5028,22 @@ Stage Summary:
 - דלת-ההפעלה עובדת מקצה-לקצה: הדבקה אחת של ה-active או סיסמת-האב מחמשת את הכל ומשגרת את הגריד תוך שניות.
 - מצב חי: 5/5 מאוטמים · מנוע-הכסף Domain מריץ dex-grid בהצלחה פעמיים היום מלבד היומי · גיבוי saos-dex מאוטם מחדש אך דקות-ה-Actions שלו מתות (מוכר ב-D-025, המנוע החי הוא Domain).
 - פער-כנות שנסגר: "מפתח לא תואם" מול "שרשרת לא נקראה" עכשיו נבדלים בקוד ובתצוגה.
+
+---
+Task ID: r137
+Agent: Z.ai Code (ראשי)
+Task: הוראת המפעיל (2026-09-29): "יופי בוא נשפר עוד יותר הרבה מאוד את מה שעשינו"
+
+Work Log:
+- **שורש-השורש נתפס במדידה חיה:** הדלת של r136b כתבה מקור-מפתח מקומי רק כשמודבקת סיסמת-אב (`!looksLikeWif`). המפעיל הדביק WIF → הענן חומש (5/5 אטומים · dex-grid שוגר) אך הבית נשאר עיוור: keyPresent=false · סולם ריק · 925.27 STEEM נזילים · noKeySince במוביל. זו השלמת התשובה ל"הוא מזהה כ-active אבל הוא לא עובר".
+- **D-026 — מקור-מפתח דו-מצבי:** ספרייה משותפת חדשה src/lib/owner-key.ts (readOwnerSource · steemSigningWif · ownerKeyPresent · writeOwnerSource). הקובץ תומך במצב-אב (האב גוזר לכל-תפקיד) ומצב-wif (ה-active חותם ישירות; posting ואחרים נפתחים מהכספת תחת WIF-השליטה — openVaultWithControlWif). שמונה צרכנים שודרגו ואוחדו: money · money/hive · publish · charter-anchor · curation · sovereign-exchange · wallet-vault (שני-העוזרים דו-מצביים) · arm/all (כותב שני-המצבים ומדווח ownerFileMode בתשובה וב-ChainRun). חוק-השופט (אימות ביט-מול-ביט מול הרשות החיה) נשמר בכל-חתימה.
+- **פאריטת-השרשרת:** internalMarketParity() — condenser_api.get_order_book mid מ-api.steemit.com עם נפילה ל-api.justyy.com, צמתים-נפלים-בתור, UA מזוהה (שיעורי r136b). marksSide: oracle-חוץ כשנענה, אחרת mid-פנימי עם תווית chain:internal-market-mid@node; parityInternal+paritySource נחשפים תמיד; sbdUsd נגזר market-implied כשאין סימון-חוץ. מדידה חיה: parity 0.100327 · valueFloor UNMEASURED→HELD · מדרגות מתומחרות 0.100327/0.10133/0.102334.
+- **D-021 בקול:** publish מחזיר NO-KEY/NO-SIGNING → pulse מסווג LANE-BLOCKED עם laneBlockedUntil (backoff 30דק') ואפס-ניסיון-שרוף — תקציב-הדיבור נשמר; ההתעוררות אוטומטית אחרי החלון.
+- **ממשק:** HouseLiveStatus ב-ActivationDoorCard — פס-מדידה חי כל 45ש׳: keyPresent (בית חתום/עיוור) · סולם (פקודות/מוצב/נזילים) · פאריטה+מקור · רצפת-ערך · החלטת-המוביל.
+- אימותים: tsc 0 · eslint 0 · דפדפן דסקטופ 1366 + מובייל 390 — אפס שגיאות-קונסולה, פוטר תחתון (נמדד אחרי-גלילה), אין גלילה-אופקית · רופא-המפתחות נבדק קצה-לקצה בדפדפן (ערך-דמה → אבחנה כנה, אפס שמירה) · pulse חי (beats 3334) ו-dev.log נקי. ראיות: sovereign/evidence/r137-home-desktop.png · r137-home-mobile-390.png · r137-home-mobile-footer.png.
+- קנון: D-026 נרשם (26 החלטות) ב-decisions.json + SOVEREIGNTY-DECISIONS.md (טבלה + יומן + סעיף-מלא) · דוח: sovereign/reports/r137-dual-source-key-and-chain-parity-2026-09-29.md.
+
+Stage Summary:
+- ארבעה שיפורים נמדדו חי: (1) מקור-מפתח דו-מצבי שסוגר את הפער "הענן חומש אך הבית עיוור" — הדבקה אחת של ה-active מעתה מחייה את כל-הערימה המקומית בתוך פעימה; (2) פאריטת-שרשרת שהחזירה את מדידת-הערך מ-UNMEASURED ל-HELD ומתמחרת את המדרגות; (3) ערוץ-הקול מוגן משריפת-תקציב על חסימה-מובטחת; (4) מצב-החי של הבית גלוי למפעיל בזמן-אמת.
+- הצעד-האחד שנשאר למפעיל: הדבקה אחת של ה-active בדלת 1 (מגבלת-הקצה 5/שעה — החלון נפתח מחדש עד 18:39Z). משם: keyPresent=true → המוביל פורס את 925 ה-STEEM על הפאריטה החיה במחזור הקרוב.
+- כנות: keyPresent=false נכון לרגע-הדוח (עד ההדבקה) — נמדד ומוצג בגלוי, לא מוסתר; הפאריטה הפנימית (0.1003) מתויגת במקורה מול סימון-החוץ (0.0634) — אין-עירוב ואין-החבאה.
