@@ -45,6 +45,7 @@ const steemLib = steemLibRaw as unknown as SteemAuth;
 export const dynamic = "force-dynamic";
 
 const DEX_REPO = "roshpinacare-sys/saos-dex";
+const LIVE_REPO = "roshpinacare-sys/Domain";
 const DEX_DIR = "/home/z/saos-dex";
 const HOME = "/home/z/my-project";
 const OWNER_FILE = path.join(HOME, "upload", "headcorner.txt");
@@ -234,9 +235,19 @@ export async function POST(req: NextRequest) {
           results.push({ secret: d.secret, chain: d.chain, role: d.role, ok: false, detailHe: `הכספת לא פתחה (${opened.detail ?? "?"})` });
           continue;
         }
-        // שיפוט מול הרשות החיה של שרשרת-המקור
-        const auth = await fetchAuthorities(d.chain, "headcorner");
-        const livePub = auth.roles.find((r) => r.role === d.role)?.pub ?? null;
+        // שיפוט מול הרשות החיה של שרשרת-המקור — עם ניסיון-חוזר אחד
+        // (צומת-רפה אינו פסק-דין: r136b — הבחנה כנה בין "לא תואם" ל"לא נקרא")
+        let auth = await fetchAuthorities(d.chain, "headcorner");
+        let livePub = auth.roles.find((r) => r.role === d.role)?.pub ?? null;
+        if (!livePub) {
+          await new Promise((r) => setTimeout(r, 1500));
+          auth = await fetchAuthorities(d.chain, "headcorner");
+          livePub = auth.roles.find((r) => r.role === d.role)?.pub ?? null;
+        }
+        if (!livePub) {
+          results.push({ secret: d.secret, chain: d.chain, role: d.role, ok: false, detailHe: `השרשרת ${d.chain} לא נקראה כרגע (צומת רפה, לא פסק-דין) — לא נאטם במחזור זה; החימוש הבא ישפוט שוב` });
+          continue;
+        }
         const derivedPub = d.chain === "steem" ? steemLib.auth.wifToPublic(opened.priv) : null;
         // hive/blurt חולקים את פורמט-הפומבי של steem (קידומת שונה בלבד
         // בכרטיס-המפתח של הארנק — הנגזרת עצמה זהה ביט-מול-ביט)
@@ -259,16 +270,27 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 6) שיגור dex-grid מיידי
+  // 6) שיגור dex-grid מיידי — המנוע החי הוא Domain (D-025, דקות-חינם),
+  //    saos-dex הוא עותק-הגיבוי (מכסת-הדקות שלו מתה, מדווח בכנות)
   let dispatched = false;
   try {
-    const d = await gh(`/repos/${DEX_REPO}/actions/workflows/dex-grid.yml/dispatches`, {
+    const d = await gh(`/repos/${LIVE_REPO}/actions/workflows/dex-grid.yml/dispatches`, {
       method: "POST",
       body: JSON.stringify({ ref: "main" }),
     });
     dispatched = d.status === 204;
   } catch {
-    /* לוח-הזמנים היומי ירוץ ממילא */
+    /* לוח-הזמנים היומי של Domain ירוץ ממילא */
+  }
+  let dispatchedBackup = false;
+  try {
+    const d = await gh(`/repos/${DEX_REPO}/actions/workflows/dex-grid.yml/dispatches`, {
+      method: "POST",
+      body: JSON.stringify({ ref: "main" }),
+    });
+    dispatchedBackup = d.status === 204;
+  } catch {
+    /* הגיבוי מדווח בכנות */
   }
 
   // 7) קבלת-ChainRun כנה — אפס חומר-סוד
@@ -280,7 +302,7 @@ export async function POST(req: NextRequest) {
         step: "arm-all",
         firedBy: "operator",
         ok: sealedCount > 0,
-        detail: `דלת-ההפעלה-האחת: active אומת מול השרשרת · ${sealedCount}/${results.length} סודות נאטמו לכספת-הריפו · כספת-ארנק ${vaultOpen ? "נפתחה" : "לא נפתחה"} · מקור-מפתח מקומי ${wroteOwnerFile ? "נכתב" : "לא נכתב"} · dex-grid ${dispatched ? "שוגר" : "לא שוגר"}`,
+        detail: `דלת-ההפעלה-האחת: active אומת מול השרשרת · ${sealedCount}/${results.length} סודות נאטמו לכספת-הריפו · כספת-ארנק ${vaultOpen ? "נפתחה" : "לא נפתחה"} · מקור-מפתח מקומי ${wroteOwnerFile ? "נכתב" : "לא נכתב"} · dex-grid חי (Domain) ${dispatched ? "שוגר" : "לא שוגר"} · גיבוי (saos-dex) ${dispatchedBackup ? "שוגר" : "לא שוגר"}`,
       },
     });
   } catch {
@@ -300,9 +322,10 @@ export async function POST(req: NextRequest) {
     vaultOpen,
     wroteOwnerFile,
     dispatched,
+    dispatchedBackup,
     results,
     detailHe: allCore
-      ? "הכל חומש: הגריד, הקול והכספת חיים. ההזנקה בוצעה — התוצאות ייראו בקונסולה בעוד דקות."
+      ? `הכל חומש: הגריד, הקול והכספת חיים. dex-grid שוגר למנוע החי (Domain)${dispatchedBackup ? " ולגיבוי (saos-dex)" : " — הגיבוי מדווח בנפרד"}. התוצאות ייראו בקונסולה בעוד דקות.`
       : `${sealedCount}/${results.length} נאטמו — השאר מדווחים בכנות למטה. מה שנאטם חי ועובד.`,
   });
 }

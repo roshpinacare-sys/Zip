@@ -14,6 +14,13 @@ export const CHAIN_RPC: Record<GrapheneChain, string> = {
   blurt: process.env.BLURT_RPC || "https://rpc.blurt.blog",
 };
 
+// r136b — נפלת-צמתים לכל שרשרת (הראשונה = CHAIN_RPC ההיסטורי)
+const CHAIN_NODES: Record<GrapheneChain, string[]> = {
+  steem: [CHAIN_RPC.steem],
+  hive: [CHAIN_RPC.hive],
+  blurt: [CHAIN_RPC.blurt, "https://rpc.blurt.world"],
+};
+
 export interface ChainAuthorities {
   chain: GrapheneChain;
   account: string;
@@ -27,17 +34,28 @@ async function rpc<T>(chain: GrapheneChain, method: string, params: unknown[]): 
   const ac = new AbortController();
   const t = setTimeout(() => ac.abort(), 12_000);
   try {
-    const r = await fetch(CHAIN_RPC[chain], {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-      signal: ac.signal,
-      cache: "no-store",
-    });
-    if (!r.ok) throw new Error(`http-${r.status}`);
-    const j = (await r.json()) as { result?: T; error?: unknown };
-    if (j.error) throw new Error("rpc-error");
-    return j.result as T;
+    // r136b — זיהוי נחוץ: צומת-BLURT חוסם User-Agent אנונימי ומחזיר HTML
+    // במקום JSON (נמדד חי). פענוח מגן: תגובה לא-JSON = כשל-צומת, לא פסק-דין.
+    let lastErr: unknown = null;
+    for (const node of CHAIN_NODES[chain]) {
+      try {
+        const r = await fetch(node, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "User-Agent": "saos-grid/1 (+https://headcorner.local)" },
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+          signal: ac.signal,
+          cache: "no-store",
+        });
+        if (!r.ok) throw new Error(`http-${r.status}`);
+        const txt = await r.text();
+        const j = JSON.parse(txt) as { result?: T; error?: unknown };
+        if (j.error) throw new Error("rpc-error");
+        return j.result as T;
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    throw lastErr instanceof Error ? lastErr : new Error("all-nodes-failed");
   } finally {
     clearTimeout(t);
   }

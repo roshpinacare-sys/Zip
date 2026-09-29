@@ -49,6 +49,7 @@ interface ArmAllResult {
   vaultOpen: boolean;
   wroteOwnerFile: boolean;
   dispatched: boolean;
+  dispatchedBackup?: boolean;
   results: ArmResultRow[];
   detailHe: string;
 }
@@ -258,6 +259,11 @@ export function ActivationDoorCard() {
                 <Badge variant="outline" className="gap-1 text-[10px]">
                   dex-grid {armResult.dispatched ? "שוגר" : "לא שוגר"}
                 </Badge>
+                {armResult.dispatchedBackup !== undefined && (
+                  <Badge variant="outline" className="gap-1 text-[10px]">
+                    גיבוי {armResult.dispatchedBackup ? "שוגר" : "לא שוגר"}
+                  </Badge>
+                )}
               </div>
               {armResult.results.map((r) => (
                 <div key={r.secret} className="flex items-start gap-1.5">
