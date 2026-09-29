@@ -1,8 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────
 // INSTRUMENTATION · נקודת-הצתה אחת לכל תהליך שרת (Next 16).
-// כאן נולד שומר-הצי בתוך השרת (D-016): השרת מסייר על הדיבונים ומקים
-// את keeper כשהוא מת — בזמן ש-keeper מסייר על השרת. הפעלה-עצמית
-// כפולה, שתי שכבות שמגנות זו על זו.
+// כאן נולדים שתי שכבות-ההפעלה-העצמית (D-016/D-027):
+//   · fleet-guard  — השרת מסייר על הדיבונים ומקים את keeper כשהוא מת
+//   · self-boot    — הבית מרים את עצמו אחרי מיחזור: סכימה · ספר · כספת
+// הפעלה-עצמית כפולה-משולשת: keeper מחייה את השרת · השרת מחייה את keeper ·
+// והבית כולו קם מעצמו. מוות-שקט אינו אפשרות.
 // ─────────────────────────────────────────────────────────────────────
 
 export async function register(): Promise<void> {
@@ -11,4 +13,6 @@ export async function register(): Promise<void> {
   if (process.env.NEXT_PHASE === "phase-production-build") return;
   const { startFleetGuard } = await import("@/lib/weave/fleet-guard");
   startFleetGuard();
+  const { startSelfBoot } = await import("@/lib/weave/self-boot");
+  startSelfBoot();
 }

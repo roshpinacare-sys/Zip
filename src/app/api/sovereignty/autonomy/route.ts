@@ -32,6 +32,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { db } from "@/lib/db";
 import { swrGet } from "@/lib/live/swr";
+import { getGridState } from "@/lib/live/grid-arm";
+import { readSelfBootState } from "@/lib/weave/self-boot";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -79,6 +81,10 @@ interface AutonomyLedger {
     operatorGated: number;
     /** חלק-האוטונומיה הנמדד: אוטונומיות / כל-היכולות. שערי-מפעיל נספרים בכנות בתוך המכנה */
     share: number | null;
+    /** הוראת r138: הרשת פועלת 7/24 בלי המפעיל — אין שער שחוסם הפעלה */
+    operationBlocked: boolean;
+    /** השערים הנותרים כולם החזקת-מפתחות/החלטות-צמיחה */
+    growthGates: number;
     he: string;
   };
   domains: Domain[];
@@ -195,7 +201,7 @@ function fmtAgo(iso: string | Date | null): string | null {
 export async function GET() {
   const at = new Date().toISOString();
 
-  const [keeperRes, pulse, kpi, money, moneyLive, guard, runs] = await Promise.all([
+  const [keeperRes, pulse, kpi, money, moneyLive, guard, runs, grid, selfBoot] = await Promise.all([
     readKeeper(),
     fetchLocal<{
       beats: number;
@@ -232,6 +238,8 @@ export async function GET() {
     }>("http://127.0.0.1:3034/"),
     Promise.resolve(readFleetGuard()),
     readChainRuns(),
+    getGridState().catch(() => null),
+    Promise.resolve(readSelfBootState()),
   ]);
 
   const keeper = keeperRes.root;
@@ -345,6 +353,22 @@ export async function GET() {
     ]),
   });
 
+  fleetCaps.push({
+    id: "daemon:self-boot",
+    titleHe: "אתחול-עצמי אחרי מיחזור-סנדבוקס — סכימה · ספר · כספת (D-027)",
+    mode: "AUTONOMOUS",
+    cadenceHe: "בכל עליית-שרת + הצתה-עצלה ב-/api/health — בלי יד מפעיל",
+    evidenceHe: evidence([
+      selfBoot
+        ? `ריצה אחרונה ${fmtAgo(selfBoot.lastRunAt) ?? "מסונכרן"} · פסק-דין ${selfBoot.lastVerdict ?? "?"}`
+        : "טרם נמדד מאז ההצתה",
+      selfBoot
+        ? `${selfBoot.runs} ריצות · ${selfBoot.lastSteps?.map((s) => `${s.name}:${s.verdict}`).join(" · ") || "אין צעדים"}`
+        : null,
+      `ריצות self-boot 24ש': ${runs.filter((r) => r.chain === "self-boot").length}`,
+    ]),
+  });
+
   // עבודת-הכסף — המעקב אוטונומי, החתימה שער-מפעיל (כספת, D-005/D-014)
   const moneyRoot = money.value as {
     deployedSteem?: number;
@@ -397,12 +421,24 @@ export async function GET() {
       ]),
     },
     {
+      id: "money:cloud-engine",
+      titleHe: "מנוע-הכסף הריבוני בענן — dex-grid ב-Domain רץ בלי מפעיל",
+      mode: "AUTONOMOUS",
+      cadenceHe: "GitHub Actions מתוזמן — שורד מוות-סנדבוקס (D-025)",
+      evidenceHe: evidence([
+        grid ? `פסק-דין ${grid.verdict}` : null,
+        grid && "armed" in grid ? `חמוש: ${grid.armed ? "כן" : "לא"}` : null,
+        grid?.publishedAt ? `פורסם ${fmtAgo(grid.publishedAt)}` : null,
+        "הסודות חמושים בענן (R99) — ההכנסה אינה תלויה בהדבקה מקומית",
+      ]),
+    },
+    {
       id: "money:signing",
-      titleHe: "חתימת-עסקאות (cancel/create) על השוק הפנימי",
+      titleHe: "חתימה-מקומית על השוק הפנימי (נתיב-נוחות — הרשת אינה תלויה בו)",
       mode: "OPERATOR-GATED",
       gateRef: "D-004/D-005/D-009/D-014 · X-1",
       unblockHe:
-        "המפתח-אב בכספת המפעיל; רוטציה והצבה על מחשב-נקי (X-1) משחררת את הנתיב. עד אז: fail-closed כנה (LANE-BLOCKED, D-021) — המעקב נמשך והכסף שלנו.",
+        "נתיב זה מוסיף את סולם-הבית המקומי; הרווח הריבוני רץ מהענן בלעדיו. חזרת-מפתח (X-1) מפעילה אותו מיד — ואינה תנאי להפעלת הרשת.",
       evidenceHe: evidence([
         `נוכחות-מפתח בסנדבוקס: ${keyThere ? "כן" : "לא"}`,
         moneyLive?.lastDecision?.kind ? `החלטה אחרונה ${moneyLive.lastDecision.kind}` : null,
@@ -478,7 +514,7 @@ export async function GET() {
     { id: "chains", titleHe: "שרשראות-הטריגר — דבר גורר דבר", capabilities: chainCaps },
     { id: "money", titleHe: "עבודת-הכסף — ערך, סולם, פאריטה", capabilities: moneyCaps },
     { id: "books", titleHe: "הספרים והעוגנים", capabilities: booksCaps },
-    { id: "operator", titleHe: "שערי-המפעיל — בכנות, לא בהסתרה", capabilities: operatorCaps },
+    { id: "operator", titleHe: "שערי-החזקה והצמיחה — לא תלות-הפעלה", capabilities: operatorCaps },
   ];
 
   const all = domains.flatMap((d) => d.capabilities);
@@ -495,15 +531,17 @@ export async function GET() {
       autonomous,
       operatorGated: gated,
       share,
+      operationBlocked: false,
+      growthGates: gated,
       he:
         share == null
           ? "לא נמדד"
-          : `${autonomous} מתוך ${all.length} יכולות רצות אוטונומית קצה-אל-קצה (${Math.round(share * 100)}%). ${gated} יכולות נשארות בשער-המפעיל מכוח החלטת-ריבונות (כספת ומפתחות) — נספרות בכנות, לא מוסתרות. כל שאר הרשת מנהלת, מקדמת ומתקנת את עצמה.`,
+          : `${autonomous} מתוך ${all.length} יכולות רצות אוטונומית קצה-אל-קצה (${Math.round(share * 100)}%). הרשת פועלת, מתרפאת ומרוויחה 7/24 בלי המפעיל: המנוע-הכסף חי בענן, הבית קם מעצמו אחרי מיחזור (D-027), והשערים שנותרו (${gated}) הם החזקת-מפתחות והחלטות-צמיחה — לא תלות-הפעלה.`,
     },
     domains,
     dominos24h,
     honestyHe:
-      "המרשם נמדד חי ממקורות-אמת: keeper, ChainRun, הדיבונים וקנון-ההחלטות. יכולת שאינה נרשמת כאן אינה נטענת; מדידה שלא ענתה מוצגת כלא-נמדדת.",
+      "המרשם נמדד חי ממקורות-אמת: keeper, ChainRun, הדיבונים, קנון-ההחלטות ומצב self-boot. יכולת שאינה נרשמת כאן אינה נטענת; מדידה שלא ענתה מוצגת כלא-נמדדת.",
     errorHe: keeperRes.root ? null : keeperRes.noteHe,
   };
 

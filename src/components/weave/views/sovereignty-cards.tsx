@@ -113,7 +113,7 @@ export function SovereigntyDecisionsCard() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full"
+      className="h-full min-w-0"
     >
       <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
         <div className="flex items-center justify-between gap-2">
@@ -231,7 +231,7 @@ export function ArrayEfficiencyCard() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full"
+      className="h-full min-w-0"
     >
       <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
         <div className="flex items-center justify-between gap-2">
@@ -349,6 +349,8 @@ interface AutonomyState {
     autonomous: number;
     operatorGated: number;
     share: number | null;
+    operationBlocked?: boolean;
+    growthGates?: number;
     he: string;
   };
   domains: AutonomyDomain[];
@@ -419,7 +421,7 @@ export function AutonomyLedgerCard() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full lg:col-span-2"
+      className="h-full min-w-0 lg:col-span-2"
     >
       <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -444,9 +446,16 @@ export function AutonomyLedgerCard() {
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <EffTile label="יכולות במרשם" value={v ? String(v.total) : "…"} sub="כל יכולת נרשמת — אף אחת לא מוסתרת" />
           <EffTile label="אוטונומיות" value={v ? String(v.autonomous) : "…"} sub="רצות קצה-אל-קצה בלי אדם" />
-          <EffTile label="שערי-מפעיל" value={v ? String(v.operatorGated) : "…"} sub="מכוח החלטת-ריבונות, בכנות" />
+          <EffTile label="שערי-החזקה וצמיחה" value={v ? String(v.operatorGated) : "…"} sub="מפתחות והון — לא חוסמים הפעלה" />
           <EffTile label="דומינוס 24ש'" value={data ? String(dominos.length) : "…"} sub="שרשראות שהציתו את עצמן" />
         </div>
+
+        {v?.operationBlocked === false && (
+          <p className="flex items-start gap-1.5 rounded-md border border-emerald-500/25 bg-emerald-500/5 px-2.5 py-1.5 text-[11px] leading-relaxed text-emerald-700 dark:text-emerald-300" dir="auto">
+            <ShieldCheck className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            אפס תלות-הפעלה: המערכת מחוברת קבוע ופועלת 7/24 בלי לחיצה שלך. השערים הנותרים הם החלטות-צמיחה בידיים שלך — לא מנעולים בצינור.
+          </p>
+        )}
 
         <div className={`grid gap-4 md:grid-cols-2 ${scrollBoxClass}`}>
           {loading &&
@@ -552,7 +561,7 @@ export function LanesCard() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.5, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
-      className="h-full"
+      className="h-full min-w-0"
     >
       <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
         <div className="flex flex-wrap items-center justify-between gap-2">

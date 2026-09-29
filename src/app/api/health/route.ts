@@ -25,6 +25,7 @@ import {
   type WebManifestRecord,
 } from "@/lib/web/netstore";
 import { startFleetGuard } from "@/lib/weave/fleet-guard";
+import { startSelfBoot } from "@/lib/weave/self-boot";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,10 @@ export const dynamic = "force-dynamic";
 // לכן השומר קם גם ב-dev וגם אחרי כל החייאת-שרת, בלי סדר-עלייה תלוי.
 // לולאה-יחידה ב-globalThis — קריאות חוזרות הן no-op.
 startFleetGuard();
+
+// D-027 · אתחול-עצמי ריבוני: אותה הצתה-עצלה מרימה את self-boot — סכימה,
+// ספר וכספת קמים מעצמם אם נמדדו חסרים. אידמפוטנטי; קריאה חוזרת no-op.
+startSelfBoot();
 
 // R86: סנדבוקס מתאפס מדי יום — ספריית המניפסטים לא נוצרה עדיין. ״מחסן
 // ריק״ הוא מצב תקין לפי ההגדרה שלעיל (0 חבילות = תקין); תיקייה-שאינה־קיימת
