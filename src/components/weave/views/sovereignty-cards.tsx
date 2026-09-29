@@ -502,3 +502,104 @@ export function AutonomyLedgerCard() {
     </motion.div>
   );
 }
+
+// ── כרטיס 4: דוח-הערוצים החוצה (r135 · D-023) ──────────────────────
+// הלקח החי של 2026-09-29: הרשת רצה ומדידה, אבל ערוצי-החוצה נחסמו
+// אחד-אחר-השני והמפעיל ראה שתיקה בלי הסבר. החוק החדש: ערוץ חסום
+// מדווח על עצמו — מצב, ראיה, ונתיב-השחרור. אף ערוץ לא שותק בשקט שוב.
+
+interface Lane {
+  id: string;
+  titleHe: string;
+  state: "OPEN" | "GATED" | "STALE" | "UNMEASURED";
+  lastGoodAt: string | null;
+  evidenceHe: string;
+  unlockHe: string;
+}
+
+interface LanesState {
+  ok: boolean;
+  verdict: "OK" | "SOFT-MUTE" | "MUTE";
+  verdictHe: string;
+  lanes: Lane[];
+}
+
+function laneDot(state: Lane["state"]) {
+  if (state === "OPEN") return "bg-emerald-500";
+  if (state === "UNMEASURED") return "bg-slate-400";
+  return "bg-amber-500";
+}
+
+export function LanesCard() {
+  const { data, loading } = useLiveJson<LanesState>("/api/sovereignty/lanes");
+  const reduced = useReducedMotion();
+
+  const verdictBadge = loading ? (
+    <Skeleton className="h-5 w-20" />
+  ) : data?.verdict === "OK" ? (
+    <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 font-mono text-emerald-700 dark:text-emerald-300" dir="ltr">
+      all lanes open
+    </Badge>
+  ) : (
+    <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 font-mono text-amber-700 dark:text-amber-300" dir="ltr">
+      {data?.verdict.toLowerCase() ?? "…"}
+    </Badge>
+  );
+
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      className="h-full"
+    >
+      <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <Activity className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            דוח-הערוצים החוצה
+          </div>
+          {verdictBadge}
+        </div>
+
+        {data?.verdictHe && (
+          <p className="text-xs leading-relaxed text-muted-foreground" dir="auto">
+            {data.verdictHe}
+          </p>
+        )}
+
+        <div className="flex flex-col gap-2">
+          {loading &&
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+          {data?.lanes.map((l) => (
+            <div key={l.id} className="rounded-lg border bg-card/60 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`size-2 shrink-0 rounded-full ${laneDot(l.state)}`} aria-hidden="true" />
+                <span className="text-xs font-bold" dir="auto">
+                  {l.titleHe}
+                </span>
+                <span className="font-mono text-[10px] uppercase text-muted-foreground" dir="ltr">
+                  {l.state}
+                </span>
+              </div>
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+                {l.evidenceHe}
+              </p>
+              {l.state !== "OPEN" && l.state !== "UNMEASURED" && (
+                <p className="mt-1 text-[11px] leading-relaxed text-amber-600 dark:text-amber-300" dir="auto">
+                  נתיב-שחרור: {l.unlockHe}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-auto text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+          <ShieldCheck className="mr-1 inline size-3" aria-hidden="true" />
+          D-023 — ערוץ חסום מדווח על עצמו: מצב, ראיה, נתיב-שחרור. אף ערוץ לא שותק בשקט שוב.
+        </p>
+      </Card>
+    </motion.div>
+  );
+}

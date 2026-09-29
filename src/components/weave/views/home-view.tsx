@@ -38,7 +38,7 @@ import { WeaveCanvas } from "../weave-canvas";
 import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
 import { MissionLadderCard } from "./mission-ladder-card";
-import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard } from "./sovereignty-cards";
+import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard, LanesCard } from "./sovereignty-cards";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
 
@@ -412,6 +412,7 @@ export function HomeView() {
           <SovereigntyDecisionsCard />
           <ArrayEfficiencyCard />
           <AutonomyLedgerCard />
+          <LanesCard />
         </div>
       </section>
 

@@ -31,7 +31,7 @@ import fs from "node:fs";
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
   serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
-  spawnSync: (cmd: string[], opts?: { stdout?: string; stderr?: string }) => { stdout?: Buffer | null; stderr?: Buffer | null };
+  spawnSync: (cmd: string[], opts?: { cwd?: string; stdout?: string; stderr?: string }) => { exitCode?: number; stdout?: Buffer | null; stderr?: Buffer | null };
   spawn: (opts: { cmd: string[]; cwd?: string; stdin?: string; stdout?: number; stderr?: number }) => unknown;
 };
 
@@ -53,6 +53,13 @@ const DAILY_RESTART_BUDGET = 12;
 const ROLLING_WINDOW_MS = 6 * 3_600_000;
 const ROLLING_WINDOW_CAP = 4;
 const CANON_BUDGET_PER_DAY = 8;
+// r135 — חוקי ערוץ-הדחיפה (אותו דוקטרינה של D-021: נעול אינו פעולה,
+// אין שריפת-תקציב על כישלון מובטח, התעוררות מיידית כשהדרך פתוחה):
+const PUSH_HOME = "/home/z/my-project";
+const PUSH_BUDGET_PER_DAY = 12;
+const PUSH_COOLDOWN_OK_MS = 30 * 60 * 1000; // 30 דק' בין דחיפות-הצלחה
+const PUSH_BACKOFF_BASE_MS = 30 * 60 * 1000; // backoff = base × 2^failStreak (תקרה 4ש')
+const PUSH_BACKOFF_CAP_MS = 4 * 60 * 60 * 1000;
 // R113 — שומר שרת-הרשת
 const WEB_PORT = 3000;
 const WEB_FAIL_THRESHOLD = 2; // שתי בדיקות שכנות (~60ש') לפני החייאה
@@ -106,6 +113,17 @@ type KeeperState = {
     reviveDay: string;
     revivesLog: string[];
   };
+  // r135 — ערוץ-הדחיפה של הבית (Zip): נולד מהשתיקה של 2026-09-29.
+  // הצי רץ ורושם מקומית, קומיטים נתקעו בלי דוחף, והעולם ראה "אין התקדמות".
+  push: {
+    lastPushAt: string | null;
+    lastResult: { at: string; ok: boolean; detail: string } | null;
+    today: number;
+    day: string;
+    lastAhead: number;
+    failStreak: number;
+    nextAllowedAt: string | null;
+  };
 };
 
 type WebGuard = KeeperState["web"];
@@ -146,6 +164,19 @@ function freshFleet(): FleetEntry[] {
   }));
 }
 
+function freshPush(): KeeperState["push"] {
+  const now = new Date().toISOString();
+  return {
+    lastPushAt: null,
+    lastResult: null,
+    today: 0,
+    day: utcDay(),
+    lastAhead: 0,
+    failStreak: 0,
+    nextAllowedAt: null,
+  };
+}
+
 function freshWeb(): WebGuard {
   return {
     lastCheckAt: null,
@@ -174,6 +205,7 @@ function readState(): KeeperState {
     canonToday: 0,
     canonDay: utcDay(),
     web: freshWeb(),
+    push: freshPush(),
   };
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
@@ -223,6 +255,17 @@ function readState(): KeeperState {
         revivesToday: prev.web?.reviveDay === utcDay() ? (prev.web?.revivesToday ?? 0) : 0,
         reviveDay: prev.web?.reviveDay === utcDay() ? prev.web.reviveDay : utcDay(),
         revivesLog: Array.isArray(prev.web?.revivesLog) ? prev.web.revivesLog : [],
+      },
+      // r135 — ערוץ-הדחיפה: נשיאת מצב בין אתחולים (יום חדש מאפס תקציב)
+      push: {
+        ...freshPush(),
+        lastPushAt: prev.push?.lastPushAt ?? null,
+        lastResult: prev.push?.lastResult ?? null,
+        today: prev.push?.day === utcDay() ? (prev.push?.today ?? 0) : 0,
+        day: prev.push?.day === utcDay() ? prev.push.day : utcDay(),
+        lastAhead: typeof prev.push?.lastAhead === "number" ? prev.push.lastAhead : 0,
+        failStreak: typeof prev.push?.failStreak === "number" ? prev.push.failStreak : 0,
+        nextAllowedAt: prev.push?.nextAllowedAt ?? null,
       },
     };
   } catch {
@@ -489,6 +532,96 @@ async function patrolWeb(parts: string[]): Promise<void> {
   );
 }
 
+// ── ערוץ-הדחיפה של הבית (r135) ────────────────────────────────────
+// הלקח החי של 2026-09-29: הצי רץ, מדיד ורושם — אבל קומיטים מקומיים
+// נשארו תקועים בלי דוחף (חיווט-האישורים אבד במיחזור-סנדבוקס), והעולם
+// ראה שתיקה. מעתה השומר גם דוחף, בחוקים הקשוחים של הצי:
+//   · אפס פעולה על כישלון מובטח (D-021): אין מפתח/אין קדימה → רישום
+//     כנה + backoff, לא שריפת-תקציב.
+//   · תקציב 12 דחיפות/יום · צינון 30 דק' בין הצלחות · backoff כפול עד 4ש'.
+//   · pull --rebase לפני push (העוגנים חיים ב-origin ולעולם לא נדרוס);
+//     סכסוך = abort כנה + backoff ארוך, אף דריסה.
+//   · האישורים חיים רק ב-upload/ (מחוץ לגיט) — לעולם לא בלוג או בקבלה.
+function gitRun(args: string[], timeoutMs = 45_000): { ok: boolean; out: string } {
+  const r = Bun.spawnSync(["git", ...args], { cwd: PUSH_HOME, stdout: "pipe", stderr: "pipe" });
+  const out = `${r.stdout?.toString() ?? ""}${r.stderr?.toString() ?? ""}`.trim();
+  return { ok: r.exitCode === 0, out: out.slice(0, 300) };
+}
+
+async function pushLane(parts: string[]): Promise<void> {
+  const now = new Date();
+  const p = state.push;
+  if (p.day !== utcDay()) {
+    p.day = utcDay();
+    p.today = 0;
+  }
+  // מדידת-קדימה מקומית בלבד (אפס תלות-רשת)
+  const ahead = gitRun(["rev-list", "--count", "origin/main..HEAD"]);
+  p.lastAhead = ahead.ok ? parseInt(ahead.out, 10) || 0 : p.lastAhead;
+
+  if (p.nextAllowedAt && now.getTime() < Date.parse(p.nextAllowedAt)) return;
+  if (p.today >= PUSH_BUDGET_PER_DAY) return; // תקציב — כנות, לא התעלמות
+  if (p.lastPushAt && now.getTime() - Date.parse(p.lastPushAt) < PUSH_COOLDOWN_OK_MS && p.lastAhead === 0) return;
+  if (p.lastAhead === 0) return; // אין קדימה — אין פעולה (לא שורפים צינון)
+
+  const bumpBackoff = (ok: boolean, detail: string) => {
+    p.lastResult = { at: now.toISOString(), ok, detail };
+    if (ok) {
+      p.failStreak = 0;
+      p.nextAllowedAt = null;
+      p.today += 1;
+      p.lastPushAt = now.toISOString();
+    } else {
+      p.failStreak += 1;
+      const ms = Math.min(PUSH_BACKOFF_BASE_MS * 2 ** Math.min(p.failStreak - 1, 4), PUSH_BACKOFF_CAP_MS);
+      p.nextAllowedAt = new Date(now.getTime() + ms).toISOString();
+    }
+  };
+
+  // שער-אישורים: ה-helper קורא את ה-PAT מ-upload/ בעת-הריצה; בלי קובץ — אין ניסיון (D-021)
+  const pat = readPat();
+  if (!pat) {
+    bumpBackoff(false, "NO-PAT — ערוץ-הדחיפה סגור (האישורים חיים ב-upload/ מחוץ לגיט)");
+    parts.push(`push:BLOCKED`);
+    return;
+  }
+
+  const fetchR = gitRun(["fetch", "origin", "main"]);
+  if (!fetchR.ok) {
+    bumpBackoff(false, `FETCH-FAIL: ${fetchR.out.slice(0, 120)}`);
+    parts.push(`push:FETCH-FAIL`);
+    return;
+  }
+  // ספירה-מחדש אחרי-fetch: אולי העוגנים כבר כללו את המצב שלנו
+  const ahead2 = gitRun(["rev-list", "--count", "origin/main..HEAD"]);
+  const nAhead = ahead2.ok ? parseInt(ahead2.out, 10) || 0 : p.lastAhead;
+  if (nAhead === 0) {
+    p.lastAhead = 0;
+    return;
+  }
+  const behind2 = gitRun(["rev-list", "--count", "HEAD..origin/main"]);
+  const nBehind = behind2.ok ? parseInt(behind2.out, 10) || 0 : 0;
+  if (nBehind > 0) {
+    const rebase = gitRun(["pull", "--rebase", "origin", "main"]);
+    if (!rebase.ok) {
+      gitRun(["rebase", "--abort"]); // כנות: לא משאירים מצב-ביניים
+      bumpBackoff(false, `REBASE-CONFLICT — abort כנה, backoff ${Math.round(Math.min(PUSH_BACKOFF_BASE_MS * 2 ** Math.min(p.failStreak, 4), PUSH_BACKOFF_CAP_MS) / 60000)} דק'`);
+      parts.push(`push:REBASE-CONFLICT`);
+      record("PUSH-FAIL", `ערוץ-הדחיפה: rebase נגד origin/main נתקל בסכסוך — בוטל בכנות, אף דריסה (backoff)`, true);
+      return;
+    }
+  }
+  const push = gitRun(["push", "origin", "main"]);
+  bumpBackoff(push.ok, push.ok ? `נדחף ל-origin/main (${nAhead} קומיטים)` : `PUSH-FAIL: ${push.out.slice(0, 120)}`);
+  if (push.ok) {
+    record("PUSH", `ערוץ-הדחיפה: ${nAhead} קומיטים מקומיים ירדו ל-origin/main — הבית מדבר שוב`, true);
+    parts.push(`push:PUSHED-${nAhead}`);
+  } else {
+    record("PUSH-FAIL", `ערוץ-הדחיפה: דחיפה נכשלה בכנות — הקבלות נשמרות, backoff (אין מחיקה שקטה)`, true);
+    parts.push(`push:FAIL`);
+  }
+}
+
 // ── הסיור ───────────────────────────────────────────────────────────
 async function patrol() {
   const now = new Date();
@@ -610,6 +743,7 @@ async function patrol() {
     record(ok ? "RESTART" : "RESTART-FAIL", `${d.name} (${d.port}): ${ok ? `הוקם — ${reason}` : `ההקמה נכשלה — ${reason}`}`, true);
   }
   await patrolWeb(parts);
+  await pushLane(parts);
   // R113 — אמת מלאה במילה: "סיור תקין" רק כשגם שרת-הרשת עונה
   const allUp = state.fleet.every((d) => d.state === "UP" || d.state === "BUSY") && state.web.consecutiveFails === 0;
   if (state.history.length === 0 || state.history[state.history.length - 1].detail !== parts.join(" · ")) {
