@@ -31,7 +31,7 @@ import fs from "node:fs";
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
   serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
-  spawnSync: (cmd: string[], opts?: { cwd?: string; stdout?: string; stderr?: string }) => { exitCode?: number; stdout?: Buffer | null; stderr?: Buffer | null };
+  spawnSync: (cmd: string[], opts?: { cwd?: string; stdout?: string; stderr?: string; timeout?: number }) => { exitCode?: number; stdout?: Buffer | null; stderr?: Buffer | null };
   spawn: (opts: { cmd: string[]; cwd?: string; stdin?: string; stdout?: number; stderr?: number }) => unknown;
 };
 
@@ -543,7 +543,9 @@ async function patrolWeb(parts: string[]): Promise<void> {
 //     סכסוך = abort כנה + backoff ארוך, אף דריסה.
 //   · האישורים חיים רק ב-upload/ (מחוץ לגיט) — לעולם לא בלוג או בקבלה.
 function gitRun(args: string[], timeoutMs = 45_000): { ok: boolean; out: string } {
-  const r = Bun.spawnSync(["git", ...args], { cwd: PUSH_HOME, stdout: "pipe", stderr: "pipe" });
+  // r143-a — הזמן-הקצוב שהיה בחתימה ולא היה חי בגוף: spawnSync חסום עולם-חסר
+  // גבול = הסיור קפוא בזמן שהפורט חי (בדיוק מצב-ההקפאה שהוליד את מתג-איש-המת).
+  const r = Bun.spawnSync(["git", ...args], { cwd: PUSH_HOME, stdout: "pipe", stderr: "pipe", timeout: timeoutMs });
   const out = `${r.stdout?.toString() ?? ""}${r.stderr?.toString() ?? ""}`.trim();
   return { ok: r.exitCode === 0, out: out.slice(0, 300) };
 }
@@ -843,6 +845,7 @@ async function revivalSweep(): Promise<void> {
         method: "POST",
         headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "keeper-revival" },
         body: JSON.stringify({ ref: "main" }),
+        signal: AbortSignal.timeout(15_000), // r143-a — אין המתנה בלתי-חסומה בנתיב-הסיור
       });
       dispatched = r.status === 204;
     } catch {
@@ -857,7 +860,10 @@ async function revivalSweep(): Promise<void> {
     try {
       const r = await fetch(
         `https://api.github.com/repos/roshpinacare-sys/${res.repo}/actions/workflows/${res.wf}/runs?per_page=1`,
-        { headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "keeper-revival" } },
+        {
+          headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "keeper-revival" },
+          signal: AbortSignal.timeout(15_000), // r143-a — אין המתנה בלתי-חסומה בנתיב-הסיור
+        },
       );
       const j: any = await r.json();
       const run = j?.workflow_runs?.[0];
@@ -889,6 +895,7 @@ if (!g.__keeperLoop) {
     state.patrolling = true;
     try {
       state.beats += 1;
+      lastPatrolBeatAt = Date.now(); // r143-a — מתג-איש-המת מודד מכאן
       await patrol();
       await flushCanon();
       await revivalSweep();
@@ -899,6 +906,29 @@ if (!g.__keeperLoop) {
       saveState();
     }
   };
+
+  // ── r143-a · מתג-איש-מת ──────────────────────────────────────────
+  // הקפאה חיה שנמדדה (r143 טרום-התיקון): HTTP ענה 3ש' ו-24ד' בזמן שהפעימות
+  // קפואות ב-4000 — fleet-guard ראה פורט-חי ולא הקים. החוק החדש: כל 60ש'
+  // נמדדת התקדמות-הסיור; שתיקה מעל 10 דק' ⇒ רישום כן ביומן-השומר ויציאה
+  // (exit 1) — fleet-guard יקים תהליך-טרי. מוות-שקט אינו אפשרות, גם לא
+  // מוות-עם-דופק. הטיימר חי בתוך משמר-הלולאה-היחידה (R80) — טעינת-חם של
+  // המודול לא מכפילה שומרים.
+  let lastPatrolBeatAt = Date.now(); // חותמת-הפעימה האחרונה של הסיור — מזינה את המתג
+  const DEAD_MAN_TICK_MS = 60_000;
+  const DEAD_MAN_STALL_MS = 600_000; // 10 דק' בלי התקדמות-סיור = קפוא
+  const deadManLog = `${HOME}/sovereign/keeper/logs/keeper-daemon.log`;
+  const deadMan = setInterval(() => {
+    if (Date.now() - lastPatrolBeatAt <= DEAD_MAN_STALL_MS) return;
+    const msg = "dead-man: patrol stalled >10min — exiting for revival";
+    try {
+      fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+      fs.appendFileSync(deadManLog, `${new Date().toISOString()} ${msg}\n`);
+    } catch {}
+    console.log(msg);
+    clearInterval(deadMan);
+    process.exit(1);
+  }, DEAD_MAN_TICK_MS);
   Bun.serve({
     port: PORT,
     hostname: "127.0.0.1", // R123 — השומר נצרך מ-localhost בלבד (API/מפעיל מקומי)

@@ -108,6 +108,83 @@ export function appendDecision(
   return sealed;
 }
 
+// ─── r143-a · חתימת-פער-הגנזיס (self-healing · content-preserving · idempotent) ───
+// רשומת-הגנזיס (D-r142-01) נכתבה עם entryHash זמני "TO_BE_SEALED_BY_DAEMON"
+// לפני שהמחזור הראשון של הדיבון רץ מעולם — והשרשרת נשארה שבורה ב-seq 1.
+// החוק כאן: append-only מגן על תוכן-ההחלטה; החתימה משלימה את מה שה-placeholder
+// הבטיח. נחתמים רק שדות-הקריפטוגרפיה (prevHash/entryHash) — תוכן-ההחלטה
+// נשמר בייט-בייט, אף שורה לא נמחקת ואינה מסודרת מחדש. פעולת-החתימה עצמה
+// נרשמת כהחלטה חתומה משלה (נעשה ב-governance-loop).
+// ידידותי-אידמפוטנטי: הכל חתום והשרשרת מאומתת ⇒ אפס פעולה.
+
+const ENTRY_HASH_PLACEHOLDER = "TO_BE_SEALED_BY_DAEMON";
+
+function looksLikeRealHash(h: string): boolean {
+  return /^[0-9a-f]{64}$/.test(h);
+}
+
+export function sealUnsealedEntries(): { sealed: number; rechained: number; ok: boolean } {
+  // אידמפוטנציה: כל-הרשומות חתומות בגיבוב אמיתי והשרשרת מאומתת ⇒ no-op
+  {
+    const log = readDecisionLog();
+    const allSealed = log.length > 0 && log.every((e) => looksLikeRealHash(e.entryHash) && e.entryHash !== ENTRY_HASH_PLACEHOLDER);
+    const v = verifyDecisionLog();
+    if (allSealed && v.ok) return { sealed: 0, rechained: 0, ok: true };
+  }
+
+  // קריאה גולמית: שורה שאינה מתפרסת נשמרת בייט-בייט — אף ראיה לא נמחקת בשקט
+  let rawLines: string[] = [];
+  try {
+    rawLines = fs
+      .readFileSync(DECISION_LOG_PATH, "utf8")
+      .split(/\r?\n/)
+      .filter((l) => l.trim().length > 0);
+  } catch {
+    return { sealed: 0, rechained: 0, ok: false };
+  }
+
+  let prev = "GENESIS";
+  let sealed = 0; // רשומות ש-entryHash שלהן היה placeholder/לא-אמיתי — נחתמו עכשיו
+  let rechained = 0; // רשומות ש-prevHash שלהן הוצב מחדש אל גיבוב-הקודם המחושב
+  let changed = false;
+  const out: string[] = [];
+  for (const line of rawLines) {
+    let e: DecisionEntry;
+    try {
+      e = JSON.parse(line) as DecisionEntry;
+    } catch {
+      out.push(line);
+      continue;
+    }
+    // פירוק שומר-סדר: spread של האובייקט המפורסר משמר את סדר-השדות המקורי —
+    // התוכן (seq/at/decisionId/class/chosen/why/boundary/evidence) לא נוגע.
+    const { entryHash: oldHash, ...content } = e as unknown as Record<string, unknown>;
+    const typed = content as Omit<DecisionEntry, "entryHash">;
+    if (typed.prevHash !== prev) {
+      typed.prevHash = prev;
+      rechained += 1;
+    }
+    const newHash = hashDecision(typed);
+    if (oldHash !== newHash) changed = true;
+    if (typeof oldHash !== "string" || !looksLikeRealHash(oldHash) || oldHash === ENTRY_HASH_PLACEHOLDER) sealed += 1;
+    out.push(JSON.stringify({ ...typed, entryHash: newHash }));
+    prev = newHash;
+  }
+
+  // כנות: אין מה לחתום ואין מה לשרשר — אין כתיבה בכלל
+  if (!changed) return { sealed: 0, rechained: 0, ok: verifyDecisionLog().ok };
+
+  try {
+    fs.mkdirSync(GOV_DIR, { recursive: true });
+    const tmp = `${DECISION_LOG_PATH}.tmp`;
+    fs.writeFileSync(tmp, `${out.join("\n")}\n`, "utf8");
+    fs.renameSync(tmp, DECISION_LOG_PATH);
+  } catch {
+    return { sealed: 0, rechained: 0, ok: false };
+  }
+  return { sealed, rechained, ok: verifyDecisionLog().ok };
+}
+
 // ─── קריאת-פרוטוקול ───
 
 export interface ProgramState {

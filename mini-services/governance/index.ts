@@ -150,6 +150,28 @@ Bun.serve({
 setTimeout(beat, 20_000);
 setInterval(beat, CYCLE_SEC * 1000);
 
+// ── r143-a · מתג-איש-מת ─────────────────────────────────────────────
+// הלקח החי של ה-keeper: HTTP שעונה עם פעימות קפואות = זומבי שאף שומר
+// חיצוני לא מזהה (הפורט חי). כל 60ש' נמדדת טריות lastBeatAt; שתיקה מעל
+// 3×CYCLE_SEC (30 דק' — המחזור 10 דק') ⇒ רישום כן ביומן-הדיבון ויציאה
+// (exit 1) — fleet-guard (סיור-פורטים כל 60ש') מקים תהליך-טרי.
+// המדידה בטוחה בעלייה: beat() הראשון רץ ב-20ש' ומציב lastBeatAt טרי לפני
+// הטיק הראשון של המתג (60ש'), וכישלון-בית אינו מקפיא את הפעימה עצמה.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 3 * CYCLE_SEC * 1000; // 30 דק'
+const DEAD_MAN_LOG = path.join(HOME, "sovereign", "keeper", "logs", "governance-daemon.log");
+setInterval(() => {
+  const lastMs = state.lastBeatAt ? Date.parse(state.lastBeatAt) : Date.parse(state.bootedAt);
+  if (Number.isFinite(lastMs) && Date.now() - lastMs <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >30min — exiting for revival";
+  try {
+    fs.mkdirSync(path.dirname(DEAD_MAN_LOG), { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);
+
 // רישום-עלייה כנה
 try {
   fs.mkdirSync(path.join(HOME, "sovereign", "keeper", "logs"), { recursive: true });

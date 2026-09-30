@@ -26,6 +26,7 @@ import {
   readNextAction,
   readOpenDecisions,
   readProgramState,
+  sealUnsealedEntries,
   verifyDecisionLog,
   writeNextAction,
   type BrainCaller,
@@ -33,6 +34,11 @@ import {
 
 const HOME = "/home/z/my-project";
 const CYCLE_STATE_PATH = `${HOME}/sovereign/governance/cycle-state.json`;
+// r143-a — התמדת-מצב-הלולאה לדיסק: ב-dev, טעינת-מודול מחדש מאפסת את
+// ה-globalThis וה-API הציג אפסים בזמן שהאמת חיה בתהליך אחר. מעתה כל
+// מחזור שהושלם נכתב אטומית ל-loop-state.json, ומופע-מודול טרי קורא
+// אותו לפני שהוא נופל לברירות-המחדל — ה-UI צורך אמת-חיה, לא אפסים.
+const LOOP_STATE_PATH = `${HOME}/sovereign/governance/loop-state.json`;
 const CYCLE_INTERVAL_MS = 10 * 60_000; // מחזור כל 10 דק'
 const FIRST_CYCLE_DELAY_MS = 15_000; // מחזור ראשון אחרי עליית-השרת
 const HOME_BASE = "http://127.0.0.1:3000";
@@ -98,6 +104,31 @@ function writeCycleState(s: CycleState): void {
     fs.writeFileSync(tmp, JSON.stringify(s, null, 2), "utf8");
     fs.renameSync(tmp, CYCLE_STATE_PATH);
   } catch {}
+}
+
+// r143-a — קריאת מצב-הלולאה מהדיסק (מופע-מודול טרי); null אם אין/פגום
+function readLoopState(): CycleState | null {
+  try {
+    const raw = JSON.parse(fs.readFileSync(LOOP_STATE_PATH, "utf8")) as CycleState;
+    if (raw && raw.service === "governance-loop") return raw;
+  } catch {}
+  return null;
+}
+
+// r143-a — כתיבה אטומית (tmp+rename) של מצב-הלולאה אחרי כל מחזור שהושלם
+function writeLoopState(s: CycleState): void {
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/governance`, { recursive: true });
+    const tmp = `${LOOP_STATE_PATH}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(s, null, 2), "utf8");
+    fs.renameSync(tmp, LOOP_STATE_PATH);
+  } catch {}
+}
+
+// r143-a — סנכרון המצב-החי ב-globalThis (R80): מופע-המודול שרץ מחזיק אמת
+function syncLoopGlobal(s: CycleState): void {
+  const live = g.__weaveGovernanceLoop;
+  if (live) live.state = s;
 }
 
 // ─── מדידות-חיות (הראיות של כל החלטה) ───
@@ -236,6 +267,32 @@ async function execAdvanceCheck(): Promise<string> {
 
 export async function runGovernanceCycle(): Promise<CycleState> {
   const state = readCycleState();
+
+  // r143-a — תיקון-עצמי בפתיחת-המחזור: אימות-השרשרת; שבורה ⇒ חתימת-פער.
+  // החתימה נוגעת רק בשדות-הקריפטו; תוכן-ההחלטות נשאר בייט-בייט (D-OP-01).
+  const chainAtStart = verifyDecisionLog();
+  const seal = chainAtStart.ok ? null : sealUnsealedEntries();
+  // רישום פעולת-החתימה כהחלטה חתומה משלה — פעם-אחת לכל אירוע-חתימה באמת
+  // (רק כשנחתם/שורשר משהו במחזור הזה; מחזור-בא אינו חוזר על הרישום).
+  const recordSealDecision = (): void => {
+    if (!seal || (seal.sealed === 0 && seal.rechained === 0)) return;
+    try {
+      const sealedEntry = appendDecision({
+        decisionId: `D-r143-SEAL-${Date.now()}`,
+        class: "governance",
+        chosen: "seal-bootstrap-wedge",
+        why:
+          `the genesis entry (D-r142-01) was written with entryHash placeholder "TO_BE_SEALED_BY_DAEMON" before the first daemon cycle ever ran, leaving the hash chain broken at seq 1; sealing recomputed ONLY the cryptographic fields (prevHash/entryHash) — decision content untouched byte-for-byte (sealed=${seal.sealed} rechained=${seal.rechained})`,
+        boundary:
+          "auto: evidence integrity repair under D-OP-01 — append-only law preserved (no decision content edited)",
+        evidence: `sovereign/governance/DECISION_LOG.jsonl · sealed=${seal.sealed} · rechained=${seal.rechained} · chainOkAfter=${seal.ok}`,
+      });
+      state.lastDecisionId = sealedEntry.decisionId;
+      state.lastChosen = sealedEntry.chosen;
+      state.lastDetail = `seal-bootstrap-wedge: sealed=${seal.sealed} rechained=${seal.rechained} ok=${seal.ok}`.slice(0, 300);
+    } catch {}
+  };
+
   try {
     const ps = readProgramState();
     const na = readNextAction();
@@ -246,7 +303,10 @@ export async function runGovernanceCycle(): Promise<CycleState> {
     if (!ps || !na) {
       state.lastVerdict = "DEGRADED";
       state.lastDetail = "פרוטוקול חסר (PROGRAM_STATE/NEXT_ACTION) — לא מחליטים בתוך-עיוורון";
+      recordSealDecision(); // החתימה שהתרחשה חייבת רישום גם במחזור שנכשל
       writeCycleState(state);
+      writeLoopState(state);
+      syncLoopGlobal(state);
       return state;
     }
 
@@ -286,12 +346,18 @@ export async function runGovernanceCycle(): Promise<CycleState> {
     state.brainUsed = choice.index !== null && Boolean(choice.raw);
     state.lastVerdict = "DECIDED";
     state.lastDetail = detail.slice(0, 300);
+    recordSealDecision(); // r143-a — אחרי הזרימה הרגילה: החלטת-החתימה נרשמת אחרונה
     writeCycleState(state);
+    writeLoopState(state); // r143-a — התמדה אטומית של מצב-הלולאה אחרי כל מחזור
+    syncLoopGlobal(state);
     return state;
   } catch (e) {
     state.lastVerdict = "DEGRADED";
     state.lastDetail = (e instanceof Error ? e.message : "שגיאת מחזור").slice(0, 300);
+    recordSealDecision();
     writeCycleState(state);
+    writeLoopState(state);
+    syncLoopGlobal(state);
     return state;
   }
 }
@@ -300,7 +366,7 @@ export async function runGovernanceCycle(): Promise<CycleState> {
 
 export function startGovernanceLoop(): void {
   if (g.__weaveGovernanceLoop?.started) return;
-  const state = readCycleState();
+  const state = readLoopState() ?? readCycleState(); // r143-a — מופע-טרי יורש את האמת מהדיסק
   state.bootedAt = state.bootedAt || utcIso();
   g.__weaveGovernanceLoop = { timer: null, started: true, state };
 
@@ -323,5 +389,7 @@ export function startGovernanceLoop(): void {
 }
 
 export function governanceLoopState(): CycleState {
-  return g.__weaveGovernanceLoop?.state ?? readCycleState();
+  // r143-a — המצב-החי בתהליך גובר תמיד; מופע-מודול טרי קורא loop-state.json
+  // לפני שהוא נופל לברירות-המחדל — אפסים כוזבים אינם עוד תשובה אפשרית.
+  return g.__weaveGovernanceLoop?.state ?? readLoopState() ?? readCycleState();
 }
