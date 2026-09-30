@@ -782,6 +782,14 @@ async function patrol() {
 // ניסיון נרשם כמה שהוא — הצלחה או כישלון מדוד.
 // תקציב: סריקה אחת/יום · 13 שיגורים · אפס סודות בקובץ-המצב.
 
+// r141 · עדכון-אמת לרשימה: זרימות-שער-מפעיל אינן מטרות-החזאה —
+// key-verify (Domain + Console) מסרב בכנות כל יום על הסוד הישן
+// (MAIN_KEY = סיסמת-החותם, לא מפתח-Steem; נמדד 15:32 verdict=unidentified)
+// וזו המדידה עובדת, לא באג. הסרנו אותן מהסריקה כדי שהמרשם לא יציג
+// שער-מפעיל כ"חולה-מתכבלת", והחזאה לא תשרוף שיגורים על דלת נעולה.
+// הערה-קטלוג (r141): Defi/defi-canary אינו קיים עוד — בריפו Defi חיים
+// canary.yml ו-gitleaks.yml בלבד (נמדד ב-API); שמות-הקטלוג מתעדכנים
+// בידי agents-watch, לא כאן.
 const REVIVAL_WORKFLOWS: Array<{ repo: string; wf: string }> = [
   { repo: "Zip", wf: "weave-heart.yml" },
   { repo: "Zip", wf: "weave-anchor-lines.yml" },
@@ -791,11 +799,9 @@ const REVIVAL_WORKFLOWS: Array<{ repo: string; wf: string }> = [
   { repo: "Zip", wf: "web-probe2.yml" },
   { repo: "Zip", wf: "weave-brain-restore.yml" },
   { repo: "Domain", wf: "bootstrap-pages.yml" },
-  { repo: "Domain", wf: "key-verify.yml" },
   { repo: "Domain", wf: "seal-adopt.yml" },
   { repo: "steem", wf: "cloud-heart.yml" },
   { repo: "saos-dex", wf: "dex-beat.yml" },
-  { repo: "Console", wf: "key-verify.yml" },
 ];
 const REVIVAL_STATE = `${HOME}/sovereign/keeper/revival-sweep.json`;
 const REVIVAL_WAIT_MS = 90_000;

@@ -402,7 +402,7 @@ export async function GET() {
         Array.isArray(moneyRoot?.ladder) ? `סולם ${moneyRoot.ladder.length} רמות על הקו` : null,
         Array.isArray(moneyRoot?.fills) ? `${moneyRoot.fills.length} מילויים בחלון` : null,
         moneyRoot?.valueFloor && moneyRoot.valueFloor.state === "DRIFT"
-          ? `רצפת-ערך: DRIFT — ${moneyRoot.valueFloor.asksBelowParity} פקודות/${Number(moneyRoot.valueFloor.steemBelowParity).toFixed(1)} STEEM מתחת לפאריטה החדש, חשיפה מרבית $${moneyRoot.valueFloor.maxDriftLossUsd != null ? moneyRoot.valueFloor.maxDriftLossUsd.toFixed(4) : "?"} (מיושר בחזרת-מפתח X-1)`
+          ? `רצפת-ערך: DRIFT — ${moneyRoot.valueFloor.asksBelowParity} פקודות/${Number(moneyRoot.valueFloor.steemBelowParity).toFixed(1)} STEEM מתחת לפאריטה החדש, חשיפה מרבית $${moneyRoot.valueFloor.maxDriftLossUsd != null ? moneyRoot.valueFloor.maxDriftLossUsd.toFixed(4) : "?"} (${moneyRoot.keyPresent ? "המפתח חי בבית — מיושר בהזדמנות-הפעולה הבאה של המוביל" : "מיושר בחזרת-מפתח X-1"})`
           : moneyRoot?.valueFloor && moneyRoot.valueFloor.state === "HELD"
             ? "רצפת-ערך: HELD — אף מכירה מתחת לערך-החוץ"
             : null,

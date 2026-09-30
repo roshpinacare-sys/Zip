@@ -164,6 +164,8 @@ interface TreasuryData {
     gridArmed?: boolean | null;
     chains?: Record<string, string> | null;
     halted?: boolean | null;
+    // r141 · אמת-בית: נוכחות-מפתח נמדדת (בוליאני, אפס-סוד) — לפתיח-השער
+    house?: { keyPresent?: boolean } | null;
   };
 }
 
@@ -1022,7 +1024,9 @@ export function GateView() {
           כל מספר בעמוד הזה נקרא כרגע מהשרשרות הציבוריות (Steem, Hive, TRON, Ethereum, Solana,
           Bitcoin) ומהבורסות — לא מהזיכרון, לא מהצהרות.{" "}
           {gridArmed
-            ? "מפתח-המנוע חי בענן (סוד-GitHub) והגריד מניח פקודות אמת עם txids"
+            ? data?.network?.house?.keyPresent === true
+              ? "מפתח-המנוע חי בבית ובענן — הסולם החי נחתם ומוצב מהבית (קבלות txid) והגריד החוץ חמוש"
+              : "מפתח-המנוע חי בענן (סוד-GitHub) והגריד מניח פקודות אמת עם txids"
             : "מפתח-המנוע לא נמדד כחמוש כרגע — דלת-ההפעלה למטה מזינה אותו"}
           ; מה שעדיין חסום — כתוב בעמודת "חסום (ולמה)" עם הסיבה המדויקת לכל שורה.
         </p>

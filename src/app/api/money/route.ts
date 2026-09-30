@@ -604,6 +604,10 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     parity != null
       ? Math.round(belowParity.reduce((s, o) => s + o.amount * (parity - o.price), 0) * 10_000) / 10_000
       : null;
+  // r141 · אמת-חיה: נוסחת-הדריפה מותנית בנוכחות-מפתח בפועל — כשהמפתח חי
+  // הטענה "יאכף כשהמפתח יחזור" היתה מיושנת (המפתח חזר); הגרירה כעת מסלול-פעולה
+  // של המוביל במסגרת הקצבה, לא המתנה ל-X-1.
+  const houseKeyPresent = readOwnerKey() != null;
   const valueFloor = {
     parity: parity != null ? Math.round(parity * 1e6) / 1e6 : null,
     asksBelowParity: belowParity.length,
@@ -616,7 +620,9 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
       parity == null
         ? "אין פאריטה חיה — רצפת-הערך לא נמדדת כרגע (כנות, לא הנחה)"
         : belowParity.length > 0
-          ? `דריפת-רצפה: ${belowParity.length} פקודות נשארו מתחת לפאריטה החיצוני אחרי שהוא זז — החוק ייאכף בגרירת-הסולם בחזרת-מפתח (X-1); עד אז החשיפה מדודה כאן`
+          ? houseKeyPresent
+            ? `דריפת-רצפה: ${belowParity.length} פקודות נשארו מתחת לפאריטה החיצוני אחרי שהוא זז — המפתח חי בבית והמוביל גורר את הסולם בחזרה בהזדמנות-הפעולה הבאה (קצבת-פעולות · L4); החשיפה נמדדת כאן בינתיים`
+            : `דריפת-רצפה: ${belowParity.length} פקודות נשארו מתחת לפאריטה החיצוני אחרי שהוא זז — החוק ייאכף בגרירת-הסולם בחזרת-מפתח (X-1); עד אז החשיפה מדודה כאן`
           : "הרצפה מוחזקת: אף פקודת-מכירה שלנו לא מתחת לערך-החוץ",
   };
 

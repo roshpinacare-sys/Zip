@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 import { operatorFromRequest } from "@/lib/operator-auth";
 import { decideQueued, gateSnapshot, GATE_THRESHOLD_USD } from "@/lib/weave/tx-gate";
+import { ownerKeyPresent } from "@/lib/owner-key";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -24,6 +25,10 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       ...snap,
+      // r141 · אמת-בית: נוכחות-מפתח בוליאנית בלבד (אפס-חשיפת-סוד) —
+      // הפתיח של השער נקשר למדידה במקום לטעון "המפתח חי בענן" גם כשהוא
+      // חי בבית והסולם החי נחתם והוצב מכאן (נמדד 15:41 ו-16:27).
+      house: { keyPresent: ownerKeyPresent() },
       doctrine: [
         `אוטונומיה מלאה מתחת ל-$${GATE_THRESHOLD_USD} — ברירת-המחדל של הרשת, לא החריג.`,
         `מ-$${GATE_THRESHOLD_USD} ומעלה — תור אישור מפעיל. שום כסף לא זז בלי החלטתו.`,

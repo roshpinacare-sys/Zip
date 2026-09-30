@@ -374,6 +374,15 @@ async function networkSide() {
   } catch {
     out.gridVerdict = null;
   }
+  // r141 · אמת-בית: נוכחות-מפתח בבית — בוליאני בלבד (אפס-סוד; D-021).
+  // הפתיח של השער נקשר למדידה: כשהמפתח חי בבית, הסולם החי נחתם ומוצב
+  // מכאן (קבלות-txid על השרשרת 15:41/16:27) — לא רק "בענן".
+  try {
+    const { ownerKeyPresent } = await import("@/lib/owner-key");
+    out.house = { keyPresent: ownerKeyPresent() };
+  } catch {
+    out.house = null;
+  }
   return out;
 }
 

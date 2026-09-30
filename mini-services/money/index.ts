@@ -396,6 +396,23 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
       };
     }
   }
+  // r141 — חוק-הרצפה החי (L4): אף פקודת-מכירה לא יושבת מתחת לערך-החוץ.
+  // הפער שנתפס חי: הטריגר הגס (±50bps) השאיר פקודות בין -50bps ל-0 יושבות
+  // מתחת לקו בלי גרירה — ה-DRIFT ש-valueFloor מודד היה מתויג "ייגרר בהזדמנות
+  // הבאה" אך אף הזדמנות כזו לא היתה נולדת (טריגר-מת בין -50 ל-0). מעתה:
+  // פסק-דין רצפה מדויק מהפקודות הפתוחות (vsParityBps מה-API) — כל פקודה
+  // מתחת לפאריטה מעבר לאפסילון 2bps (נגד רעש-עיגול) ← reprice. הצינון
+  // (30 דק') והקצבה (12/יום) הם חוסמי-השחיקה; החשיפה נמדדת בכל פעימה.
+  const worstBelowBps = (Array.isArray(meas?.orders) ? meas.orders : [])
+    .map((o: { vsParityBps?: number | null }) => Number(o?.vsParityBps))
+    .filter((b: number) => Number.isFinite(b))
+    .reduce((min: number, b: number) => (b < min ? b : min), 0);
+  if (worstBelowBps < -2) {
+    return {
+      act: true,
+      reason: `חוק-הרצפה (L4): פקודת-מכירה ${worstBelowBps}bps מתחת לערך-החוץ — הסולם נגרר אל הקו (הצינון והקצבה חוסמי-שחיקה)`,
+    };
+  }
   // טריגר R97 — ARM-BUY: SBD חמוש → סולם קנייה מתחת לפאריטה (O1).
   // הגריד נעשה דו-צדדי: המכירות מעל הקו צדות ערך; הקניות מתחתיו
   // תופסות את הפער הפנימי המדוד (VALUE-TRAP ההפוך). החימוש נפתח
