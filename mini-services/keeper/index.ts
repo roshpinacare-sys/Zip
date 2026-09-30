@@ -774,6 +774,106 @@ async function patrol() {
   }
 }
 
+// ── r140 · מפקד-ההחזאה (revival sweep) ─────────────────────────────
+// זרימות-הענן שמתו בחנקת-המכסה (D-025/R106 — steps:0, מוות ב-2ש') חוזרות
+// מעצמן: אחת ליום-UTC השומר שולח workflow_dispatch לכל זרימה-דורמת ידועה,
+// מודד את פסקי-הדין מה-API, ורושם אותם בכנות בקובץ-מצב. אפס תלות
+// במפעיל: כשהמכסה נפתחת (חידוש-חיוב 01/10) הצי קם לבד, ועד אז כל
+// ניסיון נרשם כמה שהוא — הצלחה או כישלון מדוד.
+// תקציב: סריקה אחת/יום · 13 שיגורים · אפס סודות בקובץ-המצב.
+
+const REVIVAL_WORKFLOWS: Array<{ repo: string; wf: string }> = [
+  { repo: "Zip", wf: "weave-heart.yml" },
+  { repo: "Zip", wf: "weave-anchor-lines.yml" },
+  { repo: "Zip", wf: "weave-ecosystem.yml" },
+  { repo: "Zip", wf: "web-publish.yml" },
+  { repo: "Zip", wf: "web-probe.yml" },
+  { repo: "Zip", wf: "web-probe2.yml" },
+  { repo: "Zip", wf: "weave-brain-restore.yml" },
+  { repo: "Domain", wf: "bootstrap-pages.yml" },
+  { repo: "Domain", wf: "key-verify.yml" },
+  { repo: "Domain", wf: "seal-adopt.yml" },
+  { repo: "steem", wf: "cloud-heart.yml" },
+  { repo: "saos-dex", wf: "dex-beat.yml" },
+  { repo: "Console", wf: "key-verify.yml" },
+];
+const REVIVAL_STATE = `${HOME}/sovereign/keeper/revival-sweep.json`;
+const REVIVAL_WAIT_MS = 90_000;
+
+interface RevivalResult {
+  repo: string;
+  wf: string;
+  dispatched: boolean;
+  status?: string;
+  conclusion?: string | null;
+  at?: string;
+}
+
+function readRevivalState(): { day: string | null; results: RevivalResult[] } {
+  try {
+    return JSON.parse(fs.readFileSync(REVIVAL_STATE, "utf8"));
+  } catch {
+    return { day: null, results: [] };
+  }
+}
+
+async function revivalSweep(): Promise<void> {
+  const st = readRevivalState();
+  const day = utcDay();
+  if (st.day === day) return; // תקציב: סריקה אחת ליום-UTC
+  const pat = readPat();
+  if (!pat) {
+    record("REVIVAL-SKIP", "אין PAT — הסריקה היומית מדולגת בכנות, תחזור מחר");
+    st.day = day;
+    fs.writeFileSync(REVIVAL_STATE, JSON.stringify(st, null, 2));
+    return;
+  }
+  record("REVIVAL-SWEEP", `פתיחת סריקת-החזאה יומית — ${REVIVAL_WORKFLOWS.length} זרימות-יעד`, false);
+  const results: RevivalResult[] = [];
+  for (const { repo, wf } of REVIVAL_WORKFLOWS) {
+    let dispatched = false;
+    try {
+      const r = await fetch(`https://api.github.com/repos/roshpinacare-sys/${repo}/actions/workflows/${wf}/dispatches`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "keeper-revival" },
+        body: JSON.stringify({ ref: "main" }),
+      });
+      dispatched = r.status === 204;
+    } catch {
+      dispatched = false;
+    }
+    results.push({ repo, wf, dispatched });
+  }
+  // המתנה מדודה ואז קריאת פסקי-הדין — אמת, לא הנחה
+  await new Promise((r) => setTimeout(r, REVIVAL_WAIT_MS));
+  for (const res of results) {
+    if (!res.dispatched) continue;
+    try {
+      const r = await fetch(
+        `https://api.github.com/repos/roshpinacare-sys/${res.repo}/actions/workflows/${res.wf}/runs?per_page=1`,
+        { headers: { Authorization: `Bearer ${pat}`, Accept: "application/vnd.github+json", "User-Agent": "keeper-revival" } },
+      );
+      const j: any = await r.json();
+      const run = j?.workflow_runs?.[0];
+      if (run) {
+        res.status = run.status;
+        res.conclusion = run.conclusion ?? null;
+        res.at = run.created_at;
+      }
+    } catch {
+      /* כנות: לא נקרא — נישאר בלי פסק-דין */
+    }
+  }
+  const woke = results.filter((x) => x.conclusion === "success").length;
+  const ran = results.filter((x) => x.status === "completed").length;
+  fs.writeFileSync(REVIVAL_STATE, JSON.stringify({ day, at: new Date().toISOString(), results }, null, 2));
+  record(
+    "REVIVAL",
+    `סריקת-החזאה: ${results.filter((x) => x.dispatched).length}/${REVIVAL_WORKFLOWS.length} שוגרו · ${ran} הסתיימו · ${woke} קמו (פסקי-דין מלאים ב-sovereign/keeper/revival-sweep.json)`,
+    false,
+  );
+}
+
 // לולאה-יחידה (לקח R80)
 const g = globalThis as { __keeperLoop?: boolean };
 if (!g.__keeperLoop) {
@@ -785,6 +885,7 @@ if (!g.__keeperLoop) {
       state.beats += 1;
       await patrol();
       await flushCanon();
+      await revivalSweep();
     } catch (e: any) {
       record("ERROR", String(e?.message ?? e).slice(0, 160));
     } finally {
