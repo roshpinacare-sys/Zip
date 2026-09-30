@@ -154,15 +154,19 @@ async function httpOk(port: number): Promise<boolean> {
 
 // r143-c — קריאת הוכחת-החיים מקובץ-המצב של הדיבון (קריאת-fs מקומית — סיור מהיר).
 // קובץ חסר/שבור/בלי מונה-מספרי = אין הוכחה — null (הדילוג שקט, חוק המשימה).
-function readDaemonBeats(stateFile: string): number | null {
+// mtime הוא זמן-הכתיבה האמיתי של המונה — ממנו נמדדת הטריות (כך מצב שכבר
+// קפוא זמן-רב לפני הסיור הראשון מתגלה מיד, לא רק 15 דק' אחריו).
+function readDaemonBeats(stateFile: string): { beats: number; mtimeMs: number } | null {
   try {
     const raw = JSON.parse(fs.readFileSync(stateFile, "utf8")) as { beats?: unknown };
     const beats = raw?.beats;
-    return typeof beats === "number" && Number.isFinite(beats) ? beats : null;
+    if (typeof beats !== "number" || !Number.isFinite(beats)) return null;
+    return { beats, mtimeMs: fs.statSync(stateFile).mtimeMs };
   } catch {
     return null;
   }
 }
+
 function pidsOnPort(port: number): number[] {
   try {
     const out = spawnSync("ss", ["-tlnp", `sport = :${port}`], { encoding: "utf8" });
@@ -288,14 +292,16 @@ async function cycle(): Promise<void> {
       delete st.state.zombieSnapshots[w.name]; // פורט מת — מסלול-המוות מטפל
       continue;
     }
-    const beats = readDaemonBeats(w.stateFile);
-    if (beats == null) {
+    const proof = readDaemonBeats(w.stateFile);
+    if (proof == null) {
       delete st.state.zombieSnapshots[w.name]; // אין הוכחת-טריות — דילוג שקט
       continue;
     }
     const snap = st.state.zombieSnapshots[w.name];
-    if (!snap || snap.beats !== beats) {
-      st.state.zombieSnapshots[w.name] = { beats, since: utcIso() }; // בסיס-מדידה חדש
+    if (!snap || snap.beats !== proof.beats) {
+      // בסיס-מדידה חדש — since הוא זמן-הכתיבה האמיתי של המונה (mtime),
+      // לא זמן-הסיור: מצב שכבר קפוא זמן-רב מתגלה בסיור הראשון.
+      st.state.zombieSnapshots[w.name] = { beats: proof.beats, since: new Date(proof.mtimeMs).toISOString() };
       continue;
     }
     const staleMs = now - new Date(snap.since).getTime();
