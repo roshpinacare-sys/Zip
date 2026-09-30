@@ -39,6 +39,7 @@ import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
 import { MissionLadderCard } from "./mission-ladder-card";
 import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard, LanesCard } from "./sovereignty-cards";
+import { GovernanceCard } from "./governance-card";
 import { ActivationDoorCard } from "./admin/activation-door-card";
 
 // ── ניווט hash ──────────────────────────────────────────────────────
@@ -413,6 +414,7 @@ export function HomeView() {
         </div>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <SovereigntyDecisionsCard />
+          <GovernanceCard />
           <ArrayEfficiencyCard />
           <AutonomyLedgerCard />
           <LanesCard />
@@ -527,8 +529,8 @@ export function HomeView() {
 
       {/* ── למה - החוק ── */}
       <section className="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6" aria-label="למה">
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col justify-center gap-4">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-2">
+          <div className="flex min-w-0 flex-col justify-center gap-4">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
               למה ככה?
             </h2>
@@ -553,8 +555,8 @@ export function HomeView() {
               </li>
             </ul>
           </div>
-          <Card>
-            <CardContent className="flex flex-col gap-4 p-6">
+          <Card className="min-w-0">
+            <CardContent className="flex min-w-0 flex-col gap-4 p-6">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <Landmark className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 פעימות אחרונות מהספר

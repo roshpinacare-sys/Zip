@@ -204,6 +204,7 @@ export interface ProgramState {
 
 export interface NextAction {
   format: string;
+  schemaVersion: string;
   version: string;
   updatedAt: string;
   actionId: string;

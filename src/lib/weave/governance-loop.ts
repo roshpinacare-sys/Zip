@@ -30,6 +30,8 @@ import {
   verifyDecisionLog,
   writeNextAction,
   type BrainCaller,
+  type DecisionEntry,
+  type NextAction,
 } from "./sovereign-decisions";
 
 const HOME = "/home/z/my-project";
@@ -39,6 +41,7 @@ const CYCLE_STATE_PATH = `${HOME}/sovereign/governance/cycle-state.json`;
 // מחזור שהושלם נכתב אטומית ל-loop-state.json, ומופע-מודול טרי קורא
 // אותו לפני שהוא נופל לברירות-המחדל — ה-UI צורך אמת-חיה, לא אפסים.
 const LOOP_STATE_PATH = `${HOME}/sovereign/governance/loop-state.json`;
+const FLEET_GUARD_STATE_PATH = `${HOME}/sovereign/keeper/fleet-guard-state.json`;
 const CYCLE_INTERVAL_MS = 10 * 60_000; // מחזור כל 10 דק'
 const FIRST_CYCLE_DELAY_MS = 15_000; // מחזור ראשון אחרי עליית-השרת
 const HOME_BASE = "http://127.0.0.1:3000";
@@ -240,27 +243,177 @@ async function execEvidenceRefresh(): Promise<string> {
   return `מדידת-בית: ${key} · ראיה-כי-ישנה ביותר: ${stalest ? `${stalest.file} בת ${stalest.ageMinutes} דק'` : "אין"}`;
 }
 
-async function execAdvanceCheck(): Promise<string> {
-  const na = readNextAction();
-  if (!na) return "אין פעולה-באה — פרוטוקול פגום";
-  const [gov, fleet] = await Promise.all([fetchJson("/api/governance"), measureFleet()]);
+// ─── קידום-מדינה (r143-b · תיקון-שורש) ───
+// השורש שנמדד: הלולאה בחרה "Advance NEXT_ACTION..." חמש פעמים (seq 2-6
+// ביומן) ומדדה תנאי-יציאה — אבל writeNextAction היה קוד-מת: אין נתיב
+// ביצוע שכותב את הפעולה-הבאה, והפרוטוקול נשאר r142 לנצח. מעתה: מדידה
+// 1:1 מול נוסח-הקריטריונים בקובץ, וכשהכל נמדד מלא — הלולאה עצמה כותבת
+// את הפעולה-הבאה (הקבצים בבעלות-הפרוטוקול: אף יד לא עורכת אותם ישירות).
+
+interface ExitCheck {
+  name: string;
+  ok: boolean;
+  measured: string;
+}
+
+function readFleetGuardCycles(): number | null {
+  try {
+    const raw = JSON.parse(fs.readFileSync(FLEET_GUARD_STATE_PATH, "utf8")) as { cycles?: number };
+    return typeof raw.cycles === "number" ? raw.cycles : null;
+  } catch {
+    return null;
+  }
+}
+
+// ראיה-מצביעה: שדה evidence, או מצביע-ראיה בתוך טקסט הגבול (רשומת-האימוץ
+// seq 1 נכתבה לפני-הלולאה והראיה שלה חיה בתוך ה-boundary — זו מדידה, לא היתמות).
+function hasEvidencePointer(d: DecisionEntry): boolean {
+  return Boolean(d.evidence?.trim()) || /evidence\s*:/i.test(d.boundary ?? "");
+}
+
+async function measureExitCriteria(na: NextAction): Promise<ExitCheck[]> {
+  const [gov, gitAhead] = await Promise.all([fetchJson("/api/governance"), measureGitAhead()]);
   const log = readDecisionLog();
-  const distinct = new Set(log.map((d) => d.decisionId)).size;
   const chain = verifyDecisionLog();
   const govOk = gov?.ok === true;
-  const daemonAlive = await tcpAlive(3042);
-  const gitAhead = await measureGitAhead();
-  const checks = [
-    { name: "daemon-3042-alive", ok: daemonAlive, measured: daemonAlive ? "חי" : "מת" },
-    { name: "distinct-decisions>=3", ok: distinct >= 3, measured: `${distinct}` },
-    { name: "log-chain-valid", ok: chain.ok, measured: chain.ok ? `${chain.entries} רשומות תקינות` : `שבור ב-${chain.brokenAt}` },
-    { name: "governance-api-live", ok: govOk, measured: govOk ? "200" : "no-response" },
-    { name: "git-advanced", ok: gitAhead === 0, measured: gitAhead < 0 ? "git-unreachable" : gitAhead === 0 ? "הכל ב-origin" : `${gitAhead} קומיטים מקומיים` },
-  ];
-  const allMet = checks.every((c) => c.ok);
-  return allMet
-    ? `כל תנאי-היציאה של ${na.actionId} נמדדו מלאים: ${checks.map((c) => `${c.name}=${c.measured}`).join(" · ")}`
-    : `תנאי-יציאה: ${checks.map((c) => `${c.name}=${c.ok ? "PASS" : `FAIL(${c.measured})`}`).join(" · ")}`;
+  const checks: ExitCheck[] = [];
+
+  for (const crit of na.exitCriteria) {
+    const c = crit.toLowerCase();
+    let matched = false;
+
+    // "governance daemon alive on port N and measured by fleet-guard"
+    const portM = /daemon alive on port (\d+)/.exec(c);
+    if (portM) {
+      const alive = await tcpAlive(Number(portM[1]) || 0);
+      const guardCycles = readFleetGuardCycles();
+      const guardMeasured = guardCycles != null && guardCycles > 0;
+      checks.push({
+        name: "daemon-alive+guard",
+        ok: alive && guardMeasured,
+        measured: `${alive ? "חי" : "מת"} · fleet-guard ${guardCycles != null ? `cycles=${guardCycles}` : "לא נמדד"}`,
+      });
+      matched = true;
+    }
+
+    // "at least N ... with distinct decisionIds" (אופציונלי: "after this action was set")
+    if (/distinct decisionids/.test(c)) {
+      const since = /after this action/.test(c) ? Date.parse(na.updatedAt) || 0 : 0;
+      const need = Number(/at least (\d+)/.exec(c)?.[1] ?? 3);
+      const distinct = new Set(log.filter((d) => Date.parse(d.at) >= since).map((d) => d.decisionId)).size;
+      checks.push({ name: "distinct-decisions", ok: distinct >= need, measured: `${distinct}/${need}` });
+      matched = true;
+    }
+
+    // "each logged decision carries: chosen action, why, boundary class, evidence pointer"
+    if (/chosen action, why, boundary/.test(c)) {
+      const missing = log
+        .filter((d) => !(d.chosen?.trim() && d.why?.trim() && d.boundary?.trim()) || !hasEvidencePointer(d))
+        .map((d) => d.seq);
+      checks.push({
+        name: "entries-complete",
+        ok: missing.length === 0,
+        measured: missing.length === 0 ? `${log.length} רשומות מלאות` : `חסר ב-seq ${missing.join(",")}`,
+      });
+      matched = true;
+    }
+
+    // "DECISION_LOG.jsonl ... append-only hash-chained"
+    if (/hash-chained|append-only/.test(c)) {
+      checks.push({ name: "log-chain-valid", ok: chain.ok, measured: chain.ok ? `${chain.entries} רשומות תקינות` : `שבור ב-${chain.brokenAt}` });
+      matched = true;
+    }
+
+    // "governance API (/api/governance) returns live state consumed by the UI"
+    if (/api\/governance/.test(c)) {
+      checks.push({ name: "governance-api-live", ok: govOk, measured: govOk ? "200" : "no-response" });
+      matched = true;
+    }
+
+    // "git advanced: ... committed and pushed by the fleet itself"
+    if (/git advanced/.test(c)) {
+      checks.push({
+        name: "git-advanced",
+        ok: gitAhead === 0,
+        measured: gitAhead < 0 ? "git-unreachable" : gitAhead === 0 ? "הכל ב-origin" : `${gitAhead} קומיטים מקומיים`,
+      });
+      matched = true;
+    }
+
+    // fail-closed: קריטריון שאין לו מדידה קשורה — לא מתקדמים בעיוורון
+    if (!matched) {
+      checks.push({ name: "unmatched-criterion", ok: false, measured: `אין מדידה קשורה: ${crit.slice(0, 80)}` });
+    }
+  }
+  return checks;
+}
+
+// הפעולה-הבאה נכתבת על-ידי הלולאה עצמה (לעולם לא ביד) — תוכן-ההמשך נגזר
+// מהפעולה-הנוכחית: אותם איסורים, תחום-הפעולות המותרות של מצב-שגרה,
+// וקריטריוני-יציאה שהמדידה שלעיל יודעת למדוד 1:1.
+function buildNextAction(prev: NextAction): NextAction {
+  const version =
+    prev.qualificationTargetVersion ||
+    `r${(Number(/r(\d+)/.exec(prev.version)?.[1] ?? 0) || 0) + 1}`;
+  const nextNum = (Number(/r(\d+)/.exec(version)?.[1] ?? 0) || 0) + 1;
+  const updatedAt = utcIso();
+  return {
+    format: prev.format,
+    schemaVersion: prev.schemaVersion,
+    version,
+    updatedAt,
+    actionId: `NA-${version}-STEADY-DECISION-LOOP`,
+    title:
+      "Steady state: one signed decision per cycle — decide within boundaries, measure truth, record evidence, close open decisions, advance when criteria are measured met",
+    allowedActions: [
+      "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
+      "Advance NEXT_ACTION when exit criteria are measured met",
+      "Close provisional open decisions whose measured evidence exists (mark resolved with evidence pointer)",
+      "Refresh stale evidence behind any page claim (measure, then update truth)",
+      "Triage degraded fleet agents: classify quota-strangled / operator-gate / code-bug, dispatch revival where pre-approved",
+    ],
+    forbiddenActions: [...prev.forbiddenActions],
+    exitCriteria: [
+      "governance daemon alive on port 3042 and measured by fleet-guard",
+      `at least 3 signed decisions recorded after this action was set (${updatedAt}) with distinct decisionIds`,
+      "every logged decision carries: chosen action, why, boundary class, evidence pointer",
+      "governance API (/api/governance) returns live state consumed by the UI",
+      "git advanced: protocol files + daemon + evidence committed and pushed by the fleet itself",
+    ],
+    qualificationTargetVersion: `r${nextNum}`,
+  };
+}
+
+async function execAdvanceCheck(na: NextAction): Promise<{ detail: string; advanced: boolean }> {
+  const checks = await measureExitCriteria(na);
+  const fmt = (allOk: boolean): string =>
+    checks.map((c) => `${c.name}=${allOk && c.ok ? c.measured : c.ok ? "PASS" : `FAIL(${c.measured})`}`).join(" · ");
+
+  if (!checks.every((c) => c.ok)) {
+    return { detail: `תנאי-יציאה: ${fmt(false)}`, advanced: false };
+  }
+
+  // CAS כנה: אם מופע-אחר התקדם במקביל — אין כתיבה כפולה
+  const current = readNextAction();
+  if (!current || current.version !== na.version) {
+    return {
+      detail: `התקדמות כבר בוצעה במקביל (version=${current?.version ?? "?"}) — אין כתיבה כפולה`,
+      advanced: false,
+    };
+  }
+  if (!na.qualificationTargetVersion) {
+    return {
+      detail: `כל תנאי-היציאה נמדדו מלאים (${fmt(true)}) אך אין qualificationTargetVersion — לא מתקדמים בעיוורון`,
+      advanced: false,
+    };
+  }
+
+  const next = buildNextAction(na);
+  writeNextAction(next);
+  return {
+    detail: `כל תנאי-היציאה של ${na.actionId} נמדדו מלאים: ${fmt(true)} · הפרוטוקול התקדם: ${next.actionId} (version ${next.version})`,
+    advanced: true,
+  };
 }
 
 // ─── המחזור עצמו ───
@@ -324,14 +477,18 @@ export async function runGovernanceCycle(): Promise<CycleState> {
 
     // הרצאה חסומה לפי מה שנבחר
     let detail = "";
+    let advanced = false;
     if (/טריאז'|triage|degraded/i.test(chosen)) detail = await execFleetTriage();
     else if (/Refresh stale evidence|רענון|evidence/i.test(chosen)) detail = await execEvidenceRefresh();
-    else if (/Advance NEXT_ACTION|התקדמות|advance/i.test(chosen)) detail = await execAdvanceCheck();
-    else detail = await execEvidenceRefresh(); // ברירת-מחדל חסומה: מדידת-אמת
+    else if (/Advance NEXT_ACTION|התקדמות|advance/i.test(chosen)) {
+      const adv = await execAdvanceCheck(na);
+      detail = adv.detail;
+      advanced = adv.advanced;
+    } else detail = await execEvidenceRefresh(); // ברירת-מחדל חסומה: מדידת-אמת
 
     // רישום ההחלטה — חתומה גיבוב, עם הראיה שנמדדה
     const sealed = appendDecision({
-      decisionId: `D-r142-${String(state.cycles + 1).padStart(3, "0")}`,
+      decisionId: `D-${na.version}-${String(state.cycles + 1).padStart(3, "0")}`,
       class: "governance",
       chosen: chosen || "measure-truth",
       why: choice.why,
@@ -344,7 +501,7 @@ export async function runGovernanceCycle(): Promise<CycleState> {
     state.lastDecisionId = sealed.decisionId;
     state.lastChosen = sealed.chosen;
     state.brainUsed = choice.index !== null && Boolean(choice.raw);
-    state.lastVerdict = "DECIDED";
+    state.lastVerdict = advanced ? "ADVANCED" : "DECIDED";
     state.lastDetail = detail.slice(0, 300);
     recordSealDecision(); // r143-a — אחרי הזרימה הרגילה: החלטת-החתימה נרשמת אחרונה
     writeCycleState(state);
