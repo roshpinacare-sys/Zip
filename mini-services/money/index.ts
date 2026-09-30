@@ -611,6 +611,8 @@ async function act(
 }
 
 let ticking = false;
+// r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת בסוף-הקובץ
+let lastBeatAt = Date.now();
 // R112 — tick watchdog (the live-freeze law): the interval itself watches
 // the guard it lives behind. A tick stuck longer than TICK_MAX_MS is
 // force-released with an honest history note — the hung await is orphaned
@@ -628,6 +630,7 @@ async function tick() {
   tickStartedAt = Date.now();
   try {
     state.beats += 1;
+    lastBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן
     const meas = await measure();
     // שער שלמות-מדידה (R90): balances.steem === null → RPC נכשל → אין אמת, אין פעולה.
     // לעולם לא מפרשים "לא נמדד" כ"0 נזיל" — כסף לא זז על נתוני-רפא.
@@ -922,3 +925,28 @@ G.__MONEY_TIMER__ = setInterval(() => {
   }
   tick();
 }, CHECK_INTERVAL_SEC * 1000);
+
+// ── r143-c · מתג-איש-מת ─────────────────────────────────────
+// זומבי חי שנמדד (keeper, r143): HTTP עונה בזמן שהפעימות קפואות.
+// כל 60ש' נמדדת התקדמות-הלולאה; שתיקה מעל 15 דק' ⇒ שורה כנה ביומן
+// ויציאה (exit 1) — fleet-guard יקים תהליך-טרי. הסף 15 דק' ולא 10:
+// פעולת-כסף חיה (acting) מותרת להתארך עד ACTING_MAX_MS = 10 דק' ובזמנה
+// הפעימות נעצרות בכנות (חוק הפעולה — לא שולחים פעימה חדשה בזמן פעולה)
+// — פעימה איטית אחת לעולם לא הורגת דיבון בריא. הטיימר במשמר-גלובלי
+// (חוק הטיימר-היחיד) — טעינה-חמה לא מכפילה שומרים.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 15 * 60_000;
+const DEAD_MAN_LOG = `${HOME}/sovereign/keeper/logs/money-daemon.log`;
+const G_DM = globalThis as unknown as { __MONEY_DEADMAN__?: ReturnType<typeof setInterval> };
+if (G_DM.__MONEY_DEADMAN__) clearInterval(G_DM.__MONEY_DEADMAN__);
+G_DM.__MONEY_DEADMAN__ = setInterval(() => {
+  if (Date.now() - lastBeatAt <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >15min — exiting for revival";
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  clearInterval(G_DM.__MONEY_DEADMAN__);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);

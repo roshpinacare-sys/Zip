@@ -35,6 +35,33 @@ const ROLLING_WINDOW_MS = 6 * 3_600_000;
 const ROLLING_WINDOW_CAP = 4;
 const BOOT_GRACE_MS = 3 * 60_000;
 
+// r143-c — גרסת-השומר: טעינה-חמה של השרת מעריכה את המודול מחדש, אבל הטיימר
+// של הדור הקודם ממשיך לרוץ עם הקוד הישן (משמר started ב-globalThis). מעתה:
+// דור חם עם גרסה שונה מנקה את הטיימר הישן ומתחמש מחדש — חוק הלולאה-היחידה
+// נשמר (טיימר אחד בדיוק, של הדור החי), והקוד החדש באמת נכנס לפעולה.
+const GUARD_VERSION = "r143-c";
+
+// r143-c — סיור-זומבים (הגנה-בעומק): פורט עונה אך הוכחת-החיים של הדיבון
+// עצמו (מונה-הפעימות בקובץ-המצב שהוא כותב) קפואה — זהו זומבי, גם אם ה-HTTP
+// חם. נכללים רק דיבונים שקובץ-המצב שלהם הוכחת-טריות אמיתית (מונה נשמר
+// לדיסק בכל פעימה/מחזור — נמדד חי). סף-הקפאה לכל דיבון = max(15 דק',
+// 3×קצב-כתיבת-הדיסק שלו) כדי שפעימה איטית אחת לעולם לא תהרוג דיבון בריא
+// (חוק-הספירלה). הריגה/הקמה דרך אותם חוקי-צינון וחלון-גלילי של כל הקמה.
+const ZOMBIE_WATCH: Array<{ name: string; stateFile: string; staleMs: number }> = [
+  { name: "pulse", stateFile: `${HOME}/sovereign/pulse/state.json`, staleMs: 900_000 },
+  { name: "money", stateFile: `${HOME}/sovereign/money/state.json`, staleMs: 900_000 },
+  { name: "hunter", stateFile: `${HOME}/sovereign/hunter/state.json`, staleMs: 1_800_000 },
+  { name: "keeper", stateFile: `${HOME}/sovereign/keeper/state.json`, staleMs: 900_000 },
+  { name: "student", stateFile: `${HOME}/sovereign/student/state.json`, staleMs: 1_800_000 },
+  { name: "weblift", stateFile: `${HOME}/sovereign/weblift/state.json`, staleMs: 900_000 },
+  { name: "curation", stateFile: `${HOME}/sovereign/curation/state.json`, staleMs: 2_700_000 },
+  { name: "governance", stateFile: `${HOME}/sovereign/governance/daemon-state.json`, staleMs: 1_800_000 },
+  // fleet-verify: state.json נכתב רק בסיום-ריצת-מאמת (נמדד חי: דיסק beats=10
+  //   מול חי 288, mtime ישן 5 שעות על דיבון בריא) — אינו הוכחת-טריות.
+  // kpi: כתיבת-דיסק רק כל 30 פעימות (~30 דק') — אינו הוכחת-טריות של 15 דק'.
+  // שניהם מכוסים במתג-איש-מת פנימי משלהם (r143-c) במקום.
+];
+
 const DAEMONS = [
   { name: "pulse", port: 3033, dir: `${HOME}/mini-services/pulse` },
   { name: "money", port: 3034, dir: `${HOME}/mini-services/money` },
@@ -55,6 +82,9 @@ interface FleetGuardState {
   lastCycleAt: string | null;
   lastVerdict: string | null;
   revivesLog: Array<{ at: string; name: string; ok: boolean; detail: string }>;
+  // r143-c — בסיס-מדידה לזומבים: מונה-הפעימות שנקרא מקובץ-המצב + מתי נראה
+  // לראשונה. מונה שאינו מתקדם מעל סף-הדיבון בזמן שהפורט חי = זומבי.
+  zombieSnapshots: Record<string, { beats: number; since: string }>;
 }
 
 // שומר-מצב גלובלי — חוק הלולאה-היחידה (R80)
@@ -63,6 +93,7 @@ interface GuardGlobal {
     timer: ReturnType<typeof setInterval> | null;
     state: FleetGuardState;
     started: boolean;
+    version: string;
   };
 }
 
@@ -75,7 +106,11 @@ function utcIso(): string {
 function readState(): FleetGuardState {
   try {
     const raw = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) as FleetGuardState;
-    if (raw && raw.service === "fleet-guard") return raw;
+    if (raw && raw.service === "fleet-guard") {
+      // קובץ-מצב מהדור שלפני r143-c — ברירת-מחדל לשדה החדש, לא דריסה
+      raw.zombieSnapshots = raw.zombieSnapshots ?? {};
+      return raw;
+    }
   } catch {}
   return {
     service: "fleet-guard",
@@ -84,6 +119,7 @@ function readState(): FleetGuardState {
     lastCycleAt: null,
     lastVerdict: null,
     revivesLog: [],
+    zombieSnapshots: {},
   };
 }
 
@@ -116,6 +152,17 @@ async function httpOk(port: number): Promise<boolean> {
   }
 }
 
+// r143-c — קריאת הוכחת-החיים מקובץ-המצב של הדיבון (קריאת-fs מקומית — סיור מהיר).
+// קובץ חסר/שבור/בלי מונה-מספרי = אין הוכחה — null (הדילוג שקט, חוק המשימה).
+function readDaemonBeats(stateFile: string): number | null {
+  try {
+    const raw = JSON.parse(fs.readFileSync(stateFile, "utf8")) as { beats?: unknown };
+    const beats = raw?.beats;
+    return typeof beats === "number" && Number.isFinite(beats) ? beats : null;
+  } catch {
+    return null;
+  }
+}
 function pidsOnPort(port: number): number[] {
   try {
     const out = spawnSync("ss", ["-tlnp", `sport = :${port}`], { encoding: "utf8" });
@@ -178,6 +225,44 @@ async function recordChainRun(step: string, ok: boolean, detail: string): Promis
   }
 }
 
+// r143-c — מסלול-הקמה מאוחד (מוות או זומבי): אותם חוקי-ברזל בדיוק — צינון
+// 3 דק' בין הקמות לאותו דיבון, חלון-גלילי 4/6ש', חסד-עלייה 3 דק'. זומבי
+// נהרג באותו מנגנון (pidsOnPort → clearPort) ומוקם באותו spawnDaemon.
+async function reviveWithGuards(d: (typeof DAEMONS)[number]): Promise<void> {
+  const st = g.__weaveFleetGuard;
+  if (!st) return;
+  const now = Date.now();
+
+  const lastRevive = [...st.state.revivesLog].reverse().find((r) => r.name === d.name);
+  if (lastRevive && now - new Date(lastRevive.at).getTime() < COOLDOWN_MS) {
+    appendLog(`skip ${d.name} cooldown (${Math.round((now - new Date(lastRevive.at).getTime()) / 1000)}s)`);
+    return;
+  }
+  const window = st.state.revivesLog.filter(
+    (r) => r.name === d.name && now - new Date(r.at).getTime() < ROLLING_WINDOW_MS,
+  );
+  if (window.length >= ROLLING_WINDOW_CAP) {
+    appendLog(`skip ${d.name} rolling-window full (${window.length}/${ROLLING_WINDOW_CAP} in 6h)`);
+    return;
+  }
+
+  // חסד-עלייה: דיבון שהוקם לאחרונה — לא נוגעים בו (גם לא זומבי)
+  const graceOk = lastRevive && now - new Date(lastRevive.at).getTime() < BOOT_GRACE_MS;
+  if (graceOk) return;
+
+  // פורט תפוס (מת בלי מענה או זומבי עם מענה) → ניקוי לפני הקמה
+  const pids = pidsOnPort(d.port);
+  if (pids.length > 0) await clearPort(d.port);
+  const pid = spawnDaemon(d);
+  const ok = pid != null;
+  const detail = ok
+    ? `fleet-guard הקים את ${d.name} (:${d.port}) pid=${pid}`
+    : `fleet-guard נכשל בהקמת ${d.name}`;
+  appendLog(ok ? `revive ${d.name} pid=${pid}` : `revive-failed ${d.name}`);
+  st.state.revivesLog.push({ at: utcIso(), name: d.name, ok, detail });
+  await recordChainRun(`auto-revive:${d.name}`, ok, detail);
+}
+
 async function cycle(): Promise<void> {
   const st = g.__weaveFleetGuard;
   if (!st) return;
@@ -185,9 +270,40 @@ async function cycle(): Promise<void> {
   st.state.lastCycleAt = utcIso();
 
   const now = Date.now();
-  let dead: string[] = [];
+  const dead: string[] = [];
+  const up: Array<(typeof DAEMONS)[number]> = [];
   for (const d of DAEMONS) {
-    if (!(await httpOk(d.port))) dead.push(`${d.name}:${d.port}`);
+    if (await httpOk(d.port)) up.push(d);
+    else dead.push(`${d.name}:${d.port}`);
+  }
+
+  // ── r143-c · סיור-זומבים: פורט חי, מצב קפוא ─────────────────────
+  // הקפאה חיה שנמדדה (keeper :3036, 20:03Z): HTTP ענה והפעימות קפואות
+  // רבע-שעה — המתג-הפנימי של הדיבון לא ירה. כאן ההגנה-בעומק: אם מונה-
+  // הפעימות בקובץ-המצב של הדיבון לא זז מעל סף-הקפאה שלו בזמן שהפורט עונה
+  // — הריגה והקמה טרייה, באותם חוקי-צינון. אין קובץ-מצב אמין → דילוג שקט.
+  for (const w of ZOMBIE_WATCH) {
+    const d = up.find((x) => x.name === w.name);
+    if (!d) {
+      delete st.state.zombieSnapshots[w.name]; // פורט מת — מסלול-המוות מטפל
+      continue;
+    }
+    const beats = readDaemonBeats(w.stateFile);
+    if (beats == null) {
+      delete st.state.zombieSnapshots[w.name]; // אין הוכחת-טריות — דילוג שקט
+      continue;
+    }
+    const snap = st.state.zombieSnapshots[w.name];
+    if (!snap || snap.beats !== beats) {
+      st.state.zombieSnapshots[w.name] = { beats, since: utcIso() }; // בסיס-מדידה חדש
+      continue;
+    }
+    const staleMs = now - new Date(snap.since).getTime();
+    if (staleMs >= w.staleMs) {
+      appendLog(`zombie-revive ${w.name} (port up, state stale ${Math.round(staleMs / 60_000)}m)`);
+      delete st.state.zombieSnapshots[w.name];
+      await reviveWithGuards(d);
+    }
   }
 
   if (dead.length === 0) {
@@ -203,45 +319,24 @@ async function cycle(): Promise<void> {
     const name = key.split(":")[0];
     const d = DAEMONS.find((x) => x.name === name);
     if (!d) continue;
-
-    const lastRevive = [...st.state.revivesLog].reverse().find((r) => r.name === d.name);
-    if (lastRevive && now - new Date(lastRevive.at).getTime() < COOLDOWN_MS) {
-      appendLog(`skip ${d.name} cooldown (${Math.round((now - new Date(lastRevive.at).getTime()) / 1000)}s)`);
-      continue;
-    }
-    const window = st.state.revivesLog.filter(
-      (r) => r.name === d.name && now - new Date(r.at).getTime() < ROLLING_WINDOW_MS,
-    );
-    if (window.length >= ROLLING_WINDOW_CAP) {
-      appendLog(`skip ${d.name} rolling-window full (${window.length}/${ROLLING_WINDOW_CAP} in 6h)`);
-      continue;
-    }
-
-    // פורט תפוס בלי מענה → ניקוי לפני הקמה (אותו חוק של daemons-revive)
-    const graceOk = lastRevive && now - new Date(lastRevive.at).getTime() < BOOT_GRACE_MS;
-    if (!graceOk) {
-      const pids = pidsOnPort(d.port);
-      if (pids.length > 0) await clearPort(d.port);
-      const pid = spawnDaemon(d);
-      const ok = pid != null;
-      const detail = ok
-        ? `fleet-guard הקים את ${d.name} (:${d.port}) pid=${pid}`
-        : `fleet-guard נכשל בהקמת ${d.name}`;
-      appendLog(ok ? `revive ${d.name} pid=${pid}` : `revive-failed ${d.name}`);
-      st.state.revivesLog.push({ at: utcIso(), name: d.name, ok, detail });
-      await recordChainRun(`auto-revive:${d.name}`, ok, detail);
-    }
+    await reviveWithGuards(d);
   }
 
   writeState(st.state);
 }
 
 export function startFleetGuard(): void {
-  if (g.__weaveFleetGuard?.started) return;
+  if (g.__weaveFleetGuard?.started) {
+    // r143-c — טעינה-חמה: הטיימר של הדור הקודם רץ עם הקוד הישן. דור עם
+    // גרסה חדשה מנקה אותו ומתחמש מחדש (לולאה-יחידה — טיימר אחד בדיוק).
+    if (g.__weaveFleetGuard.version === GUARD_VERSION) return;
+    if (g.__weaveFleetGuard.timer) clearInterval(g.__weaveFleetGuard.timer);
+    g.__weaveFleetGuard.started = false;
+  }
   const state = readState();
   // שרת חדש = מופע חדש של שומר-השרת; bootedAt מרענן, ההיסטוריה נשמרת
   state.bootedAt = utcIso();
-  g.__weaveFleetGuard = { timer: null, state, started: true };
+  g.__weaveFleetGuard = { timer: null, state, started: true, version: GUARD_VERSION };
   appendLog(`fleet-guard started (daemon-revival authority in-server)`);
   // הסיור הראשון אחרי 45ש' — נותן לשרת להתייצב, ולא נכנס בין עליות של dev-revive
   setTimeout(() => {

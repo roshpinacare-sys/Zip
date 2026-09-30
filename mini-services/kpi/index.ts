@@ -641,6 +641,7 @@ function dueNow(): { due: boolean; why: string } {
 
 function tick() {
   state.beats += 1;
+  lastBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן (הטיק סינכרוני — מתקדם בכל 60ש')
 
   // משמרת-תקועה: ריצה שתקועה יותר מ-RECORD_WEDGE_MS משוחררת בכנות
   if (state.recording && state.recordingSince) {
@@ -719,6 +720,33 @@ Bun.serve({
 
 console.log(`[kpi-scribe] קם על :${PORT} — המפקיד היומי של MISSION-1000 (Z-9)`);
 
+// r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת למטה
+let lastBeatAt = Date.now();
+
 // טיק ראשון מיידי + מחזור
 tick();
 setInterval(tick, TICK_SEC * 1000);
+
+// ── r143-c · מתג-איש-מת ─────────────────────────────────────
+// זומבי חי שנמדד (keeper, r143): HTTP עונה בזמן שהפעימות קפואות.
+// כל 60ש' נמדדת התקדמות-הלולאה; שתיקה מעל 10 דק' ⇒ שורה כנה ביומן
+// ויציאה (exit 1) — fleet-guard יקים תהליך-טרי. הטיק עצמו סינכרוני
+// (הרישום היומי רץ async ולא חוסם פעימות; משמרת-הנעילה R112 היא 5 דק')
+// — כך שריצה ארוכה אחת לעולם לא הורגת דיבון בריא. הטיימר במשמר-גלובלי
+// (חוק הטיימר-היחיד) — טעינה-חמה לא מכפילה שומרים.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 10 * 60_000; // > 2×קצב (60ש') · > RECORD_WEDGE_MS (5 דק')
+const DEAD_MAN_LOG = `${HOME}/sovereign/keeper/logs/kpi-daemon.log`;
+const G_DM = globalThis as unknown as { __KPI_DEADMAN__?: ReturnType<typeof setInterval> };
+if (G_DM.__KPI_DEADMAN__) clearInterval(G_DM.__KPI_DEADMAN__);
+G_DM.__KPI_DEADMAN__ = setInterval(() => {
+  if (Date.now() - lastBeatAt <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >10min — exiting for revival";
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  clearInterval(G_DM.__KPI_DEADMAN__);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);

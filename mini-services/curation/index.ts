@@ -42,6 +42,8 @@ import {
 
 const PORT = 3040;
 const TICK_SEC = 15 * 60; // פעימה כל 15 דק' — פרישה טבעית של ההצבעות
+// r143-c — שורש-הבית (ליומן-מתג-איש-המת; המנוע עצמו מגדיר את שלו ב-src/lib)
+const HOME = "/home/z/my-project";
 
 // ── ציר-העולם (R124): דור-חם יורש את אובייקט-המצב החי — קריאת-דיסק בכל
 // דור הייתה חושפת את הפנקס לשכתוב-מדור-קפוא. האיתחול היחיד: עלייה ראשונה.
@@ -89,6 +91,8 @@ function decide(kind: string, detail: string, toHistory = true): void {
 
 // ── פעימת האוצרות ────────────────────────────────────────────────────
 let ticking = false;
+// r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת בסוף-הקובץ
+let lastBeatAt = Date.now();
 
 async function tick(): Promise<void> {
   if (ticking) return; // לולאה-יחידה
@@ -98,6 +102,7 @@ async function tick(): Promise<void> {
     // הפעימות נכנסת לתוקף מיד בפעימה זו, בלי החלטה מיושנת אחת חינם
     mergeControlFromDisk();
     state.beats += 1;
+    lastBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן
     const day = utcDay();
 
     // גלגול יום-UTC כנה — התקציב מתאפס רק בחצות אמיתי
@@ -277,3 +282,26 @@ tick();
 const G = globalThis as unknown as { __CURATION_TIMER__?: ReturnType<typeof setInterval> };
 if (G.__CURATION_TIMER__) clearInterval(G.__CURATION_TIMER__);
 G.__CURATION_TIMER__ = setInterval(tick, TICK_SEC * 1000);
+
+// ── r143-c · מתג-איש-מת ─────────────────────────────────────
+// זומבי חי שנמדד (keeper, r143): HTTP עונה בזמן שהפעימות קפואות.
+// כל 60ש' נמדדת התקדמות-הלולאה; שתיקה מעל 45 דק' (3×קצב-הפעימה של 15 דק')
+// ⇒ שורה כנה ביומן-הדיבון ויציאה (exit 1) — fleet-guard יקים תהליך-טרי.
+// פעימה איטית אחת לעולם לא הורגת דיבון בריא. הטיימר במשמר-גלובלי
+// (חוק הטיימר-היחיד) — טעינה-חמה לא מכפילה שומרים.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 45 * 60_000; // 3×TICK_SEC (900ש') · > קצב×2
+const DEAD_MAN_LOG = `${HOME}/sovereign/keeper/logs/curation-daemon.log`;
+const G_DM = globalThis as unknown as { __CURATION_DEADMAN__?: ReturnType<typeof setInterval> };
+if (G_DM.__CURATION_DEADMAN__) clearInterval(G_DM.__CURATION_DEADMAN__);
+G_DM.__CURATION_DEADMAN__ = setInterval(() => {
+  if (Date.now() - lastBeatAt <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >45min — exiting for revival";
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  clearInterval(G_DM.__CURATION_DEADMAN__);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);

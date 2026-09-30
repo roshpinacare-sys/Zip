@@ -789,6 +789,8 @@ const G = globalThis as {
   // עריכת-קוד חיה (bun --hot) הקפיאה את הטיימר הישן ב-03:54 והשאירה
   // זומבי — HTTP עונה, פעימות קפואות. השעון נמדד לפי פעימות, לא קיום.
   __FV_HEARTBEAT__?: number;
+  // r143-c — מתג-איש-המת (טיימר-יחיד, כמו __FV_TIMER__)
+  __FV_DEADMAN__?: ReturnType<typeof setInterval>;
 };
 if (G.__FV_STATE__) {
   try {
@@ -1120,10 +1122,13 @@ async function runJob(def: JobDef): Promise<void> {
 
 // ── מנוע הלולאה ────────────────────────────────────────────────────
 let running = false;
+// r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת בסוף-הקובץ
+let lastFvBeatAt = Date.now();
 async function tick(): Promise<void> {
   // פעימת-חיים תחילה — גם אם הריצה תיכשל, השעון הזה התקדם (חוק R110)
   G.__FV_HEARTBEAT__ = Date.now();
   state.beats += 1;
+  lastFvBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן (מתקדמת בכל 60ש' גם בזמן-ריצות)
   if (running) return;
   if (!PAT) {
     state.lastDecision = { at: new Date().toISOString(), kind: "WAIT", detail: "אין סמכות (PAT) — המפעל ממתין בכנות" };
@@ -1232,3 +1237,29 @@ function ensureTimer(): void {
 }
 
 ensureTimer();
+
+// ── r143-c · מתג-איש-מת ─────────────────────────────────────
+// זומבי חי שנמדד (keeper, r143): HTTP עונה בזמן שהפעימות קפואות.
+// למפעל יש כבר חוק פעימת-חיים (R110 — טיימר קפוא מוחלף כששואלים /health)
+// — זהו ההיגיון-הפנימי. מתג-איש-המת הוא ההגנה-בעומק שאינה תלויה במישהו
+// ששואל: כל 60ש' נמדדת התקדמות-הלולאה; שתיקה מעל 10 דק' (10 מחזורי-טיימר
+// — הרבה מעל 3 המחזורים של R110) ⇒ שורה כנה ביומן ויציאה (exit 1) —
+// fleet-guard יקים תהליך-טרי. הפעימה מתקדמת בכל 60ש' גם בזמן ריצות-מאמת
+// ארוכות (עד 20 דק' — async, לא חוסמת את הלופ), כך שריצה ארוכה אחת
+// לעולם לא הורגת מפעל בריא.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 10 * 60_000;
+const DEAD_MAN_LOG = `${HOME}/sovereign/keeper/logs/fleet-verify-daemon.log`;
+const G_DM = globalThis as unknown as { __FV_DEADMAN__?: ReturnType<typeof setInterval> };
+if (G_DM.__FV_DEADMAN__) clearInterval(G_DM.__FV_DEADMAN__);
+G_DM.__FV_DEADMAN__ = setInterval(() => {
+  if (Date.now() - lastFvBeatAt <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >10min — exiting for revival";
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  clearInterval(G_DM.__FV_DEADMAN__);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);

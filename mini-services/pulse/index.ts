@@ -485,6 +485,8 @@ async function tryCharterAnchor(): Promise<void> {
 
 let ticking = false;
 // ── עבודת ההכנסה היומית (R127): מדידה חיה + רישום לקנון ──
+// r143-c — חותמת-הפעימה האחרונה של הלולאה — מזינה את מתג-איש-המת בסוף-הקובץ
+let lastBeatAt = Date.now();
 // ליבת המשימה של הרשת: לייצר $1,000 ליום שניתנים להמרה. המדידה
 // היומית הזאת היא הזיכרון של המשימה — בלעדיה הצי מודד בריאות ולא
 // תוצאה (לקח המפעיל: "כל הבדיקות האלה פעם בדקה לא מועילות לכלום").
@@ -527,6 +529,7 @@ async function tick() {
   ticking = true;
   try {
     state.beats += 1;
+    lastBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן
     const day = utcDay();
 
     // R91: בדיקת סחף-צ'רטרים כל 10 פעימות (5 דק׳) — לפני לוגיקת הפרסום.
@@ -609,3 +612,28 @@ tick();
 const G = globalThis as unknown as { __PULSE_TIMER__?: ReturnType<typeof setInterval> };
 if (G.__PULSE_TIMER__) clearInterval(G.__PULSE_TIMER__);
 G.__PULSE_TIMER__ = setInterval(tick, CHECK_INTERVAL_SEC * 1000);
+
+// ── r143-c · מתג-איש-מת ─────────────────────────────────────
+// זומבי חי שנמדד (keeper, r143): HTTP עונה בזמן שהפעימות קפואות —
+// fleet-guard רואה פורט-חי ולא מקים. החוק: כל 60ש' נמדדת התקדמות-הלולאה;
+// שתיקה מעל 15 דק' ⇒ שורה כנה ביומן-הדיבון ויציאה (exit 1) — fleet-guard
+// יקים תהליך-טרי. הסף 15 דק' ולא 10: עיגון-הצ'רטרים מותר להתארך עד 10 דק'
+// (R92 — חלון-האישור מההיסטוריה) ובזמנו הפעימות נעצרות בכנות (עוגן
+// יחיד) — פעימה איטית אחת לעולם לא הורגת דיבון בריא. הטיימר חי
+// במשמר-גלובלי (חוק הטיימר-היחיד) — טעינה-חמה לא מכפילה שומרים.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 15 * 60_000;
+const DEAD_MAN_LOG = `${HOME}/sovereign/keeper/logs/pulse-daemon.log`;
+const G_DM = globalThis as unknown as { __PULSE_DEADMAN__?: ReturnType<typeof setInterval> };
+if (G_DM.__PULSE_DEADMAN__) clearInterval(G_DM.__PULSE_DEADMAN__);
+G_DM.__PULSE_DEADMAN__ = setInterval(() => {
+  if (Date.now() - lastBeatAt <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >15min — exiting for revival";
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  clearInterval(G_DM.__PULSE_DEADMAN__);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);

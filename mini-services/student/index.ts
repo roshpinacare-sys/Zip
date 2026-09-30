@@ -783,12 +783,15 @@ async function safeHeal(): Promise<string[]> {
 // ── מחזור ────────────────────────────────────────────────────────────
 
 let ticking = false;
+// r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת בסוף-הקובץ
+let lastBeatAt = Date.now();
 async function tick() {
   if (ticking || state.examining) return;
   ticking = true;
   state.examining = true;
   try {
     state.beats += 1;
+    lastBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן
 
     // בחינה-עצמית
     const probes = await selfExamine();
@@ -922,3 +925,26 @@ tick();
 const G = globalThis as unknown as { __STUDENT_TIMER__?: ReturnType<typeof setInterval> };
 if (G.__STUDENT_TIMER__) clearInterval(G.__STUDENT_TIMER__);
 G.__STUDENT_TIMER__ = setInterval(tick, CYCLE_SEC * 1000);
+
+// ── r143-c · מתג-איש-מת ─────────────────────────────────────
+// זומבי חי שנמדד (keeper, r143): HTTP עונה בזמן שהפעימות קפואות.
+// כל 60ש' נמדדת התקדמות-הלולאה; שתיקה מעל 30 דק' (3×קצב-המחזור של 10 דק')
+// ⇒ שורה כנה ביומן-הדיבון ויציאה (exit 1) — fleet-guard יקים תהליך-טרי.
+// פעימה איטית אחת לעולם לא הורגת דיבון בריא. הטיימר במשמר-גלובלי
+// (חוק הטיימר-היחיד) — טעינה-חמה לא מכפילה שומרים.
+const DEAD_MAN_TICK_MS = 60_000;
+const DEAD_MAN_STALL_MS = 30 * 60_000;
+const DEAD_MAN_LOG = `${HOME}/sovereign/keeper/logs/student-daemon.log`;
+const G_DM = globalThis as unknown as { __STUDENT_DEADMAN__?: ReturnType<typeof setInterval> };
+if (G_DM.__STUDENT_DEADMAN__) clearInterval(G_DM.__STUDENT_DEADMAN__);
+G_DM.__STUDENT_DEADMAN__ = setInterval(() => {
+  if (Date.now() - lastBeatAt <= DEAD_MAN_STALL_MS) return;
+  const msg = "dead-man: beats stalled >30min — exiting for revival";
+  try {
+    fs.mkdirSync(`${HOME}/sovereign/keeper/logs`, { recursive: true });
+    fs.appendFileSync(DEAD_MAN_LOG, `${new Date().toISOString()} ${msg}\n`);
+  } catch {}
+  console.log(msg);
+  clearInterval(G_DM.__STUDENT_DEADMAN__);
+  process.exit(1);
+}, DEAD_MAN_TICK_MS);
