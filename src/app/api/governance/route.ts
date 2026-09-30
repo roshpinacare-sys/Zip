@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { governanceLoopState } from "@/lib/weave/governance-loop";
+import { governanceBrainStats } from "@/lib/weave/governance-brain";
 import {
   readDecisionLog,
   readNextAction,
@@ -35,6 +36,7 @@ export async function GET() {
         nextAction,
         openDecisions,
         loop,
+        brain: governanceBrainStats(),
         chain: {
           ok: chain.ok,
           entries: chain.entries,

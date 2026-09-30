@@ -29,10 +29,11 @@ import {
   sealUnsealedEntries,
   verifyDecisionLog,
   writeNextAction,
-  type BrainCaller,
+  type BrainChoice,
   type DecisionEntry,
   type NextAction,
 } from "./sovereign-decisions";
+import { callGovernanceBrain, governanceBrainStats } from "./governance-brain";
 
 const HOME = "/home/z/my-project";
 const CYCLE_STATE_PATH = `${HOME}/sovereign/governance/cycle-state.json`;
@@ -200,30 +201,39 @@ async function measureGitAhead(): Promise<number> {
   }
 }
 
-// ─── קריאת-מוח דרך ה-API של הבית ───
+// ─── קריאת-מוח (r143-d · תיקון-שורש) ───
+// הנתיב הקודם — POST ל-/api/weave/brain (מאגר NIM) — נמדד כעומד-נעול:
+// netKeyHexOrFail זורק "מפתח הרשת אינו זמין" (db.networkKey חסר devKeyHex)
+// ⇒ כל החלטה עד r143 נבחרה ברוטציה דטרמיניסטית (brainUsed=false תמיד).
+// מעתה: callGovernanceBrain ישירות בשרת (z-ai-web-dev-sdk · nodejs runtime),
+// fail-closed עם חסם-30ש' ואימות chosen מול allowed בהשוואה מדויקת;
+// כישלון כלשהו ⇒ chooseAction עם מוח-אפס ⇒ רוטציה דטרמיניסטית —
+// בדיוק אותו התנהגות-ברירת-מחדל כמקודם, בייט-בייט.
+const deterministicFallbackBrain = async (): Promise<null> => null;
 
-const brainCaller: BrainCaller = async (prompt, system) => {
-  try {
-    const res = await fetch(`${HOME_BASE}/api/weave/brain`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: prompt },
-        ],
-        maxTokens: 256,
-      }),
-      signal: AbortSignal.timeout(45_000),
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { ok?: boolean; reply?: string; content?: string; text?: string };
-    return data.reply ?? data.content ?? data.text ?? null;
-  } catch {
-    return null;
-  }
-};
+function buildProtocolSummary(
+  ps: NonNullable<ReturnType<typeof readProgramState>>,
+  na: NextAction,
+  od: ReturnType<typeof readOpenDecisions>,
+  log: DecisionEntry[],
+): string {
+  const open = (od?.decisions ?? [])
+    .filter((d) => d.status === "open" || d.status === "provisional")
+    .map((d) => `${d.id}(${d.status}${d.recommendation ? ` · המלצה: ${d.recommendation.slice(0, 80)}` : ""})`)
+    .join(", ");
+  const recent = log
+    .slice(-3)
+    .reverse()
+    .map((d) => `${d.decisionId}: ${d.chosen.slice(0, 80)} — נימוק: ${d.why.slice(0, 140)}`)
+    .join(" | ");
+  return (
+    `פאזה: ${ps.phase}\n` +
+    `פעולה-באה: ${na.actionId} (v${na.version} · יעד-הסמכה ${na.qualificationTargetVersion}) — ${na.title}\n` +
+    `תנאי-יציאה:\n${na.exitCriteria.map((c) => `- ${c}`).join("\n")}\n` +
+    `החלטות-פתוחות: ${open || "אין"}\n` +
+    `החלטות-אחרונות (חדש-ראשון): ${recent || "אין"}`
+  );
+}
 
 // ─── הרצאות-פעולה חסומות (בתוך allowed בלבד) ───
 
@@ -464,15 +474,28 @@ export async function runGovernanceCycle(): Promise<CycleState> {
     }
 
     // מדידות-חיות לפני הבחירה
-    const [fleet, freshness] = await Promise.all([measureFleet(), measureEvidenceFreshness()]);
+    const [fleet, freshness, gitAhead] = await Promise.all([
+      measureFleet(),
+      measureEvidenceFreshness(),
+      measureGitAhead(),
+    ]);
     const fleetSummary = `דיבונים ${fleet.alive.length}/${DAEMON_PORTS.length} חיים${fleet.dead.length ? ` · מתים: ${fleet.dead.join(",")}` : ""} · ראיה-ישנה: ${freshness.sort((a, b) => b.ageMinutes - a.ageMinutes)[0]?.ageMinutes ?? "?"} דק'`;
 
     // המוח בוחר מתוך allowedActions בלבד; כישלון-מוח ⇒ רוטציה דטרמיניסטית
-    const choice = await chooseAction(
-      na.allowedActions,
-      { phase: ps.phase, openDecisions: od?.decisions ?? [], lastDecision: last, fleetSummary },
-      brainCaller,
-    );
+    const brain = await callGovernanceBrain({
+      allowed: na.allowedActions,
+      protocolSummary: buildProtocolSummary(ps, na, od, log),
+      context: `${fleetSummary} · chain.ok=${chainAtStart.ok} · gitAhead=${gitAhead} · cycles=${state.cycles}`,
+    });
+    const brainIdx = brain ? na.allowedActions.indexOf(brain.chosen) : -1;
+    const choice: BrainChoice =
+      brain && brainIdx >= 0
+        ? { index: brainIdx, why: brain.why, raw: JSON.stringify({ chosen: brain.chosen, why: brain.why }) }
+        : await chooseAction(
+            na.allowedActions,
+            { phase: ps.phase, openDecisions: od?.decisions ?? [], lastDecision: last, fleetSummary },
+            deterministicFallbackBrain,
+          );
     const chosen = choice.index !== null ? (na.allowedActions[choice.index] ?? "") : "";
 
     // הרצאה חסומה לפי מה שנבחר
