@@ -2,7 +2,7 @@
   "service": "money-mover",
   "version": "1.9.0",
   "bootedAt": "2026-09-30T20:47:14.880Z",
-  "beats": 2081,
+  "beats": 2126,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -37,22 +37,22 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-09-30T21:18:14.917Z",
-  "actionsToday": 8,
+  "lastActionAt": "2026-09-30T22:18:14.935Z",
+  "actionsToday": 9,
   "actionDay": "2026-09-30",
-  "acting": false,
+  "acting": true,
   "lastDecision": {
-    "at": "2026-09-30T21:33:14.920Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 15 דק' · WAIT-COOLDOWN · עוד 15 דק'"
+    "at": "2026-09-30T22:18:14.935Z",
+    "kind": "ACTING",
+    "detail": "נזיל 354.306 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)"
   },
   "canonLast": {
-    "at": "2026-09-30T21:18:41.795Z",
+    "at": "2026-09-30T21:48:41.383Z",
     "ok": true,
     "path": "reports/money-2026-09-30.md"
   },
-  "fillsSeen": 5,
-  "lastDepositScanAt": "2026-09-30T21:30:14.919Z",
+  "fillsSeen": 0,
+  "lastDepositScanAt": "2026-09-30T22:14:14.911Z",
   "lastStreamDay": "2026-09-27",
   "lastTotalSteem": 885.767,
   "fleetSeen": {
@@ -60,6 +60,63 @@
     "studentDay": "2026-09-30",
     "keeperRestartAt": "2026-09-30T21:01:14.832Z"
   },
-  "lastPoolGuardAt": "2026-09-30T21:30:37.671Z",
-  "lastFleetSweepAt": "2026-09-30T21:30:37.577Z"
+  "lastPoolGuardAt": "2026-09-30T22:13:14.923Z",
+  "lastFleetSweepAt": "2026-09-30T22:15:14.924Z",
+  "lastReceipt": {
+    "at": "2026-09-30T22:18:16.281Z",
+    "kind": "REPRICE",
+    "reason": "נזיל 354.306 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
+    "parity": 0.109092,
+    "cancelled": [
+      {
+        "orderid": 1790805262,
+        "txid": "3b7896e580f9ca893dcacbc1264d9a8f4fb725cc"
+      },
+      {
+        "orderid": 1790805263,
+        "txid": "601f39a33371f8cf3f45fc12257a25f03a308b08"
+      },
+      {
+        "orderid": 1790805863,
+        "txid": "fc686594684bb309f8d9a50894c6b724512a77e2"
+      },
+      {
+        "orderid": 1790805864,
+        "txid": "1cef5e4d9ea8582013d4c241f543318898fa0891"
+      },
+      {
+        "orderid": 1790805865,
+        "txid": "30cb3925fd406c3c3e8454c8b3521e4fef72e711"
+      },
+      {
+        "orderid": 1790806462,
+        "txid": "beec1a24f45e908191110b4bc70d3b0463a71774"
+      },
+      {
+        "orderid": 1790806463,
+        "txid": "386b95f15b9c8fee4f0afcd7db1f2a56b9420e66"
+      },
+      {
+        "orderid": 1790806464,
+        "txid": "f10ddf029199fe864cf5e2929c445de4458ddaa5"
+      },
+      {
+        "orderid": 1790806465,
+        "txid": "2d6829ef88aacb1c4205b80bb40f469072cb0d15"
+      },
+      {
+        "orderid": 2026093001,
+        "txid": "eb069b401a30e80ebe87ea98e2c6089490c70d7d"
+      },
+      {
+        "orderid": 2026093002,
+        "txid": "1ecb4991df8a566c95013a1bcbe06e416ee1dd5e"
+      },
+      {
+        "orderid": 2026093003,
+        "txid": "19ab3a759dbdb0e94c79f7af259accb037496572"
+      }
+    ],
+    "placed": []
+  }
 }
