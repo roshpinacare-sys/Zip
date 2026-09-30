@@ -31,6 +31,7 @@ const DAEMONS = [
   { name: "weblift", port: 3039, dir: `${HOME}/mini-services/weblift` }, // R120: מעלה התוכן — המשך הגירת רשת-האחסון לשרשרת
   { name: "curation", port: 3040, dir: `${HOME}/mini-services/curation` }, // r128: דיבון האוצרות — הפעלת כוח-ההצבעה (עולה בגילוי-בלבד; חימוש בידי המפעיל)
   { name: "kpi", port: 3041, dir: `${HOME}/mini-services/kpi` }, // Z-9: מפקיד ה-KPI — הספר היומי הנמדד של משימת $1,000
+  { name: "governance", port: 3042, dir: `${HOME}/mini-services/governance` }, // r142: דיבון-הממשל — פעימת-ההחלטות (D-OP-01): קורא למחזור החלטה בבית כל 10 דק'
 ];
 
 function httpOk(port, timeoutMs = 2500) {

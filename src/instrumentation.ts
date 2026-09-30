@@ -15,4 +15,8 @@ export async function register(): Promise<void> {
   startFleetGuard();
   const { startSelfBoot } = await import("@/lib/weave/self-boot");
   startSelfBoot();
+  // r142 · D-OP-01: לולאת-ההחלטות הריבונית — הבית לא רק קם מעצמו,
+  // הוא גם מחליט מעצמו (בתוך גבולות-הפרוטוקול) בלי המתנה למפעיל.
+  const { startGovernanceLoop } = await import("@/lib/weave/governance-loop");
+  startGovernanceLoop();
 }

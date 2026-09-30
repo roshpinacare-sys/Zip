@@ -45,6 +45,7 @@ const DAEMONS = [
   { name: "weblift", port: 3039, dir: `${HOME}/mini-services/weblift` },
   { name: "curation", port: 3040, dir: `${HOME}/mini-services/curation` },
   { name: "kpi", port: 3041, dir: `${HOME}/mini-services/kpi` },
+  { name: "governance", port: 3042, dir: `${HOME}/mini-services/governance` },
 ];
 
 interface FleetGuardState {

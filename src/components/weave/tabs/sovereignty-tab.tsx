@@ -47,6 +47,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { GovernancePanel } from "@/components/weave/views/governance-panel";
 import {
   CopyButton,
   ErrorBox,
@@ -658,6 +659,9 @@ export function SovereigntyTab() {
           </p>
         </MotionCard>
       </div>
+
+      {/* ── r142: הממשל הריבוני — הרשת מחליטה מעצמה (D-OP-01) ── */}
+      <GovernancePanel />
 
       {/* ── שרשרת הריבונות - דיאגרמה ── */}
       <Section
