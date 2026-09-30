@@ -3,9 +3,9 @@
 // ─────────────────────────────────────────────────────────────────────
 // THE WEAVE · Agents Fleet View - הצי החי.
 //
-// 12 הסוכנים האוטונומיים ב-5 ריפואים, כפי שהענן מכיר אותם:
 // רישום חי מ-agents-watch (מתעדכן שעתית מה-API של גיטהאב) + נקודת
 // חיים לפי זמן הריצה האחרונה. מי שמת - נראה מת. הכל עובדות.
+// r140: מפעל-האימות המקומי והעותקים בענן מוצגים מתחת לאותם חוקי-אמת.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from "react";
@@ -208,6 +208,20 @@ interface FleetVerifyDTO {
   error?: string;
 }
 
+// r140 — רישום-העל המאוחד: ארבע שכבות הצי, מדידה חיה לכל אחת
+interface UnifiedFleetDTO {
+  ok: boolean;
+  at: string;
+  layers: {
+    daemons: { total: number; up: number; list: Array<{ name: string; port: number; up: boolean }> };
+    identities: { total: number; active: number; error: string | null };
+    cloud: { ok: boolean; total: number; live: number; degraded: number; dormant: number };
+    verify: { total: number; pass: number; fresh: number; stale: number };
+  };
+  totals: { grand: number; byLayer: { daemons: number; identities: number; cloud: number; verifyJobs: number } };
+  error?: string;
+}
+
 const VERIFY_VERDICT_STYLE: Record<string, { badge: string; label: string }> = {
   PASS: { badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "עבר" },
   FAIL: { badge: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300", label: "נכשל" },
@@ -233,7 +247,18 @@ function VerifyCard({ job, delay }: { job: VerifyJob; delay: number }) {
               {job.verdict === "RUNNING" ? (
                 <Loader2 className="size-3.5 shrink-0 animate-spin text-sky-500" aria-hidden="true" />
               ) : (
-                <span className="size-2 shrink-0 rounded-full bg-emerald-500" aria-hidden="true" />
+                // r140 — הנקודה נגזרת מפסק-הדין, לא ירוקה בכוח: כישלון נראה כישלון
+                <span
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    job.verdict === "PASS"
+                      ? "bg-emerald-500"
+                      : job.verdict === "FAIL" || job.verdict === "ERROR" || job.verdict === "TIMEOUT"
+                        ? "bg-rose-500"
+                        : "bg-zinc-400",
+                  )}
+                  aria-hidden="true"
+                />
               )}
               <span className="truncate font-mono text-sm font-bold">{job.id}</span>
             </div>
@@ -465,6 +490,14 @@ export function AgentsFleetView() {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [repos, setRepos] = useState<ReposEcosystemDTO | null>(null);
   const [reposLoading, setReposLoading] = useState(false);
+  const [unified, setUnified] = useState<UnifiedFleetDTO | null>(null);
+
+  const loadUnified = () => {
+    fetch("/api/fleet", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d: UnifiedFleetDTO) => setUnified(d))
+      .catch(() => setUnified({ ok: false } as UnifiedFleetDTO));
+  };
 
   const loadVerify = () => {
     setVerifyLoading(true);
@@ -483,6 +516,15 @@ export function AgentsFleetView() {
       .catch(() => setRepos({ ok: false, error: "מערך הריפואים לא נענה" }))
       .finally(() => setReposLoading(false));
   };
+
+  useEffect(() => {
+    const t = setTimeout(loadUnified, 100);
+    const iv = setInterval(loadUnified, 90_000);
+    return () => {
+      clearTimeout(t);
+      clearInterval(iv);
+    };
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(loadVerify, 0);
@@ -515,6 +557,15 @@ export function AgentsFleetView() {
   void tick;
 
   const data = registry.data;
+
+  // r140 — כנות-טריות: "10/10 עברו" על פסקי-דין בני יומיים-שלושה הוא
+  // סימון שקרי. אם יש פסק-דין שגילו מעבר ל-26 שע׳ — התג נצבע ענבר ואומר זאת.
+  const verifySummaryStale = useMemo(() => {
+    const jobs = verify?.jobs ?? [];
+    if (jobs.length === 0) return false;
+    const cut = Date.now() - 26 * 3_600_000;
+    return jobs.some((j) => !j.lastRunAt || Date.parse(j.lastRunAt) < cut);
+  }, [verify]);
   const loading = registry.loading && !data;
 
   const summary = useMemo(() => {
@@ -614,6 +665,88 @@ export function AgentsFleetView() {
         </div>
       )}
 
+      {/* r140 — רישום-העל המאוחד: ארבע שכבות הצי במדידה חיה, הגדרה בגלוי */}
+      {unified?.ok ? (
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="ארבע שכבות הצי">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <Cpu
+                className={cn(
+                  "size-5",
+                  unified.layers.daemons.up === unified.layers.daemons.total
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-amber-500",
+                )}
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <div className="text-2xl font-bold tabular-nums leading-none">
+                  {unified.layers.daemons.up}/{unified.layers.daemons.total}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">דיבוני-הבית חיים עכשיו</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <Users className="size-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              <div className="min-w-0">
+                <div className="text-2xl font-bold tabular-nums leading-none">
+                  {unified.layers.identities.error ? "—" : unified.layers.identities.total}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">זהויות-ספר (EVM)</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <Globe
+                className={cn(
+                  "size-5",
+                  unified.layers.cloud.ok && unified.layers.cloud.dormant === 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-amber-500",
+                )}
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <div className="text-2xl font-bold tabular-nums leading-none">
+                  {unified.layers.cloud.ok ? `${unified.layers.cloud.live}/${unified.layers.cloud.total}` : "—"}
+                </div>
+                <div className="mt-1 truncate text-xs text-muted-foreground">
+                  זרימות-ענן חיות (מתוכן {unified.layers.cloud.degraded} מדורדות · {unified.layers.cloud.dormant} דורמות)
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <ShieldCheck
+                className={cn(
+                  "size-5",
+                  unified.layers.verify.stale === 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-amber-500",
+                )}
+                aria-hidden="true"
+              />
+              <div className="min-w-0">
+                <div className="text-2xl font-bold tabular-nums leading-none">
+                  {unified.layers.verify.total ? `${unified.layers.verify.fresh}/${unified.layers.verify.total}` : "—"}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">מאמתי-המפעל · פסק-דין טרי (26ש׳)</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-[76px]" />
+          ))}
+        </div>
+      )}
+
       {/* מפעל האימות המקומי — הריבונות מהמכסה (R109) · חוק דחיפת פסק-הדין (R118) */}
       <section className="mb-8" aria-label="מפעל האימות המקומי">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
@@ -621,8 +754,19 @@ export function AgentsFleetView() {
             <h2 className="flex items-center gap-2 text-lg font-bold tracking-tight">
               <Cpu className="size-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
               מפעל האימות המקומי
-              <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                {verify?.summary ? `${verify.summary.pass}/${verify.summary.total} עברו` : "טוען"}
+              <Badge
+                variant="outline"
+                className={cn(
+                  verifySummaryStale
+                    ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+                )}
+              >
+                {verify?.summary
+                  ? verifySummaryStale
+                    ? `${verify.summary.pass}/${verify.summary.total} עברו · פסק-דין ישן — טרם נמדד טרי`
+                    : `${verify.summary.pass}/${verify.summary.total} עברו`
+                  : "טוען"}
               </Badge>
               {verify?.jobs?.some((j) => j.push && (j.push.verdict === "PASS" || j.push.verdict === "FAIL")) && (
                 <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">

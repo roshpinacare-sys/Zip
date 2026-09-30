@@ -474,7 +474,11 @@ export function HomeView() {
             value={loopCov ? `${loopCov.withAgents}/${loopCov.total}` : "…"}
             context={
               loopCov
-                ? `${loopCov.agents} סוכנים · ${loopCov.idle} רדומים`
+                ? `${loopCov.agents} סוכנים בצי הענן${
+                    loopCov.byState
+                      ? ` · ${loopCov.byState.live} חיים · ${loopCov.byState.degraded} מדורדים · ${loopCov.byState.dormant} דורמים`
+                      : ""
+                  }`
                 : "ממתין לרישום"
             }
             loading={loading}
@@ -629,7 +633,7 @@ export function HomeView() {
               who="אני מפעיל או סוכן"
               what={
                 loopCov
-                  ? `אזור האדמין: מרכז פיקוד על ${loopCov.agents} סוכני הצי בענן, תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת.`
+                  ? `אזור האדמין: מרכז פיקוד על ${loopCov.agents} סוכני הצי בענן (מתוכם ${loopCov.byState ? loopCov.byState.live : "…"} חיים ביממה האחרונה), תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת.`
                   : "אזור האדמין: מרכז פיקוד על צי הסוכנים בענן, תור המשימות, תוכנית ניתוב הכסף הנכנס, ומצב השרת."
               }
               cta="לאזור האדמין"
@@ -645,7 +649,11 @@ export function HomeView() {
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("agents/fleet")}>
             <Users className="size-4" aria-hidden="true" />
-            {loopCov ? `${loopCov.agents} סוכני הצי` : "צי הסוכנים"}
+            {loopCov
+              ? loopCov.byState
+                ? `${loopCov.agents} סוכני הצי · ${loopCov.byState.live} חיים`
+                : `${loopCov.agents} סוכני הצי`
+              : "צי הסוכנים"}
           </Button>
           <Button variant="ghost" size="sm" className="gap-2" onClick={() => goHash("knowledge/brain")}>
             <BookOpen className="size-4" aria-hidden="true" />

@@ -27,7 +27,6 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
-import { execSync } from "child_process";
 import sodium from "libsodium-wrappers";
 import steemLibRaw from "steem";
 import fs from "node:fs";
@@ -36,6 +35,7 @@ import { db } from "@/lib/db";
 import { OPERATOR_ACCOUNT, commanderActiveKey } from "@/lib/operator-auth";
 import { fetchAuthorities } from "@/lib/live/authorities";
 import { openVaultWithControlWif } from "@/lib/dex/wallet-vault";
+import { DEX_REPO, dexGhToken } from "@/lib/dex-token";
 
 interface SteemAuth {
   auth: { toWif(account: string, password: string, role: string): string; wifToPublic(wif: string): string };
@@ -44,9 +44,7 @@ const steemLib = steemLibRaw as unknown as SteemAuth;
 
 export const dynamic = "force-dynamic";
 
-const DEX_REPO = "roshpinacare-sys/saos-dex";
 const LIVE_REPO = "roshpinacare-sys/Domain";
-const DEX_DIR = "/home/z/saos-dex";
 const HOME = "/home/z/my-project";
 const OWNER_FILE = path.join(HOME, "upload", "headcorner.txt");
 
@@ -65,11 +63,9 @@ function rateLimited(ip: string): boolean {
 
 // ── GitHub: טוקן מהשלט של המנוע + אטימת-סוד (כמו /api/arm) ──────────
 
+// r140: הסמכות מהכספת המקומית — אפס תלות בעותק חיצוני שנעלם במיחזור
 function ghToken(): string {
-  const url = execSync("git remote get-url origin", { cwd: DEX_DIR, encoding: "utf8", timeout: 5000 }).trim();
-  const m = url.match(/x-access-token:([^@]+)@/);
-  if (!m) throw new Error("engine-remote-token-not-found");
-  return m[1];
+  return dexGhToken();
 }
 
 async function gh(path: string, init: RequestInit = {}): Promise<Response> {

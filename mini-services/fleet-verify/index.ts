@@ -50,12 +50,23 @@ const ASKPASS = `${STATE_DIR}/.git-askpass.sh`;
 const ORG = "roshpinacare-sys";
 
 // ── הסמכות: PAT מהכספת המקומית; נפילה לחילוץ מה-remote ───────────
+// r140 תיקון-שורש: הנתיב הקודם היה /home/z/upload/pat.env — נתיב שאינו
+// קיים בסנדבוקס הנוכחי (הקובץ בתוך my-project) — מה שהשאיר את
+// patAvailable=false ואת מפעל-האימות שקט מ-27/09 בלי שום ריצה.
+// מעתה: נגזר מהתיקייה-החיה + נפילה מסודרת לנתיבים ההיסטוריים.
+const PAT_CANDIDATES = [
+  path.join(HOME, "upload", "pat.env"), // הנתיב האמיתי בסנדבוקס
+  path.resolve(process.cwd(), "..", "..", "upload", "pat.env"), // נגזר ממקום-הריצה (עמיד למיחזור-סנדבוקס)
+  "/home/z/upload/pat.env", // הנתיב ההיסטורי (סביבות ישנות)
+];
 function readPat(): string | null {
-  try {
-    const t = fs.readFileSync("/home/z/upload/pat.env", "utf8").trim();
-    if (t.length > 20) return t;
-  } catch {
-    /* ניפול לחילוץ מה-remote */
+  for (const p of PAT_CANDIDATES) {
+    try {
+      const t = fs.readFileSync(p, "utf8").trim();
+      if (t.length > 20) return t;
+    } catch {
+      /* הנתיב הבא */
+    }
   }
   try {
     const url = spawnSyncText("git", ["-C", HOME, "remote", "get-url", "origin"]);

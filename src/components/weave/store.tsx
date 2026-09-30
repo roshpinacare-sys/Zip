@@ -94,7 +94,14 @@ export interface LiveOverview {
   }>;
   lastCheckpoint: { index: number; root: string; attFrom: number; attTo: number; at: string; anchoredOn: string[] } | null;
   loop: {
-    coverage: { withAgents: number; total: number; idle: number; agents: number } | null;
+    coverage: {
+      withAgents: number;
+      total: number;
+      idle: number;
+      agents: number;
+      // r140 — חלוקת-אמת ברמת-הסוכן (agents-watch): לא מספיק "ריפו מכוסה"
+      byState?: { live: number; degraded: number; dormant: number } | null;
+    } | null;
     requests: { delivered: number; total: number } | null;
     standingOrders: number | null;
     verify: { total: number; passed: number; failed: number; verdict: string } | null;

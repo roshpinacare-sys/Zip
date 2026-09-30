@@ -106,6 +106,16 @@ async function composeOverview() {
         standingOrders: agentState ? agentState.standingOrders.length : null,
         verify: verify ? verify.summary : null,
         checkpoints: mirror.stats.checkpoints,
+        // r140 · אמת-מדידה ברמת-הסוכן: "אין רדומים" ברמת-ריפו היתה מטעה —
+        // ריפו יכול להיות מכוסה וסוכנים בודדים בתוכו מדורדים/דורמים.
+        // החלוקה הרשמית של agents-watch (live/degraded/dormant) נחשפת כעת.
+        byState: registry
+          ? {
+              live: registry.agents.filter((a) => a.state === "live").length,
+              degraded: registry.agents.filter((a) => a.state === "degraded").length,
+              dormant: registry.agents.filter((a) => a.state === "dormant").length,
+            }
+          : null,
       },
     },
     registry: registry

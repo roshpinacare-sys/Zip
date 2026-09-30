@@ -19,9 +19,9 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
-import { execSync } from "child_process";
 import sodium from "libsodium-wrappers";
 import steemLibRaw from "steem";
+import { DEX_REPO, dexGhToken } from "@/lib/dex-token";
 
 interface SteemAuth {
   auth: { wifToPublic(wif: string): string };
@@ -30,8 +30,6 @@ const steemLib = steemLibRaw as unknown as SteemAuth;
 
 export const dynamic = "force-dynamic";
 
-const DEX_REPO = "roshpinacare-sys/saos-dex";
-const DEX_DIR = "/home/z/saos-dex";
 const SECRET_NAME = "STEEM_ACTIVE_WIF";
 const COMMANDER = "headcorner";
 
@@ -50,17 +48,9 @@ function rateLimited(ip: string): boolean {
   return false;
 }
 
-// ── טוקן-GitHub מהשלט של המנוע (לעולם לא בקוד) ───────────────────────
-
+// r140: הסמכות מהכספת המקומית — אפס תלות בעותק חיצוני שנעלם במיחזור
 function ghToken(): string {
-  const url = execSync("git remote get-url origin", {
-    cwd: DEX_DIR,
-    encoding: "utf8",
-    timeout: 5000,
-  }).trim();
-  const m = url.match(/x-access-token:([^@]+)@/);
-  if (!m) throw new Error("engine-remote-token-not-found");
-  return m[1];
+  return dexGhToken();
 }
 
 async function gh(path: string, init: RequestInit = {}): Promise<Response> {
