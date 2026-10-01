@@ -90,6 +90,15 @@ export function appendDecision(
 ): DecisionEntry {
   const log = readDecisionLog();
   const last = log[log.length - 1];
+  // r144-f — שכבה 3 (חגורה-ומגינה): אידמפוטנציית-סף ברמת-היומן. אותו decisionId
+  // פעמיים בתוך 60ש' אינו חוקי מעולם — מחזורים נפרדים שבחרו אותו טקסט-פעולה
+  // בהפרש 10 דק' נותרים חוקיים לחלוטין (ההשוואה על decisionId בלבד, לא על chosen).
+  if (last && last.decisionId === entry.decisionId) {
+    const lastAtMs = Date.parse(last.at);
+    if (Number.isFinite(lastAtMs) && Math.abs(Date.now() - lastAtMs) < 60_000) {
+      throw new Error("זוהתה החלטה כפולה — נדחה");
+    }
+  }
   const seq = (last?.seq ?? 0) + 1;
   const full: Omit<DecisionEntry, "entryHash"> = {
     seq,

@@ -30,7 +30,8 @@ export async function POST(req: Request) {
       }
     }
     g.__govLastManualCycleAt = Date.now();
-    const state = await runGovernanceCycle();
+    // r144-f — force מועבר הלאה: פוטר את הקצב-הפנימי של הלולאה (לא את קירור-90ש' כאן).
+    const state = await runGovernanceCycle({ force });
     return Response.json({ ok: true, loop: state });
   } catch (e) {
     return Response.json(

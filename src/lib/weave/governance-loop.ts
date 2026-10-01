@@ -45,6 +45,13 @@ const LOOP_STATE_PATH = `${HOME}/sovereign/governance/loop-state.json`;
 const FLEET_GUARD_STATE_PATH = `${HOME}/sovereign/keeper/fleet-guard-state.json`;
 const CYCLE_INTERVAL_MS = 10 * 60_000; // מחזור כל 10 דק'
 const FIRST_CYCLE_DELAY_MS = 15_000; // מחזור ראשון אחרי עליית-השרת
+// r144-f — חוק-כותב-יחיד: הבאג שנמדד (seq 60 @21:14:24.734Z ו-seq 61 @21:14:38.913Z,
+// אותה החלטה פעמיים) היה TOCTOU — שני כותבים (לולאת-האינסטרומנטציה + דיבון-הממשל
+// 3042) עברו את קירור-90ש' של הנתב לפני שאף אחד סיים, שניהם הריצו מחזור מלא,
+// שניהם צירפו ליומן. מעתה שלוש שכבות-הגנה: נעילת-עיצוב + קצב-פנימי + אידמפוטנציית-סף
+// ב-appendDecision. lastCycleAt מתעדכן רק אחרי-הצירוף — החלון-בין-הבדיקה-לעדכון
+// הוא כל-משך-המחזור, ולכן הבדיקה-החוזרת חייבת לשבת בתוך-נעילה.
+const MIN_INTERNAL_GAP_MS = 9 * 60_000; // כותב-שני בתוך אותו קצב של 10 דק' נדחה (force פוטר)
 const HOME_BASE = "http://127.0.0.1:3000";
 
 const DAEMON_PORTS: Array<{ name: string; port: number }> = [
@@ -74,6 +81,8 @@ export interface CycleState {
 
 interface LoopGlobal {
   __weaveGovernanceLoop?: { timer: ReturnType<typeof setInterval> | null; started: boolean; state: CycleState };
+  // r144-f — נעילת-עיצוב למחזור-ההחלטות: כותב-יחיד בכל רגע נתון (שכבה 1).
+  __govCycleInFlight__?: boolean;
 }
 
 const g = globalThis as typeof globalThis & LoopGlobal;
@@ -467,7 +476,52 @@ async function execAdvanceCheck(na: NextAction): Promise<{ detail: string; advan
 
 // ─── המחזור עצמו ───
 
-export async function runGovernanceCycle(): Promise<CycleState> {
+// r144-f — תוצאת-מחזור: מצב-הלולאה + שדות-דחייה כנים כשהמחזור לא רץ (כותב-שני).
+export interface GovernanceCycleResult extends CycleState {
+  skipped?: boolean;
+  reason?: string;
+}
+
+// r144-f — חוק-כותב-יחיד: השער-הכניסה לכל מחזור. שני הכותבים (לולאת-האינסטרומנטציה
+// שקוראת ישירות · דיבון-3042 שעובר דרך הנתב) נכנסים דרך כאן — באותו תהליך-שרת,
+// ולכן נעילת-ה-globalThis חוסמת את שניהם. בדיקת-הנעילה והצבתה סינכרוניות
+// (בלי await ביניהן) — אטומיות בלולאת-האירועים. try/finally משחרר תמיד.
+export async function runGovernanceCycle(options: { force?: boolean } = {}): Promise<GovernanceCycleResult> {
+  // שכבה 1 — נעילת-עיצוב: מחזור כבש רץ עכשיו ⇒ דחייה מיידית בכנות, בלי ביצוע.
+  if (g.__govCycleInFlight__) {
+    return {
+      ...governanceLoopState(),
+      skipped: true,
+      reason: "מחזור כבש בעיצומו — נדחה (מנע-כתיבה-כפולה)",
+    };
+  }
+  g.__govCycleInFlight__ = true;
+  try {
+    // שכבה 2 — קצב-פנימי בתוך-הנעילה: כותב-שני שמגיע בתוך אותו קצב של 10 דק'
+    // (המחזור-המוצלח האחרון טרי מ-<9 דק') נדחה בכנות. lastCycleAt מתעדכן רק
+    // אחרי-הצירוף — לכן הבדיקה חייבת לשבת בתוך-הנעילה, אחרת זה אותו TOCTOU.
+    // force פוטר (יד-אנושית מכוונת); קירור-90ש' של הנתב נשאר מעליו כרגיל.
+    if (!options.force) {
+      const live = governanceLoopState();
+      const lastAt = live.lastCycleAt ? Date.parse(live.lastCycleAt) : 0;
+      if (Number.isFinite(lastAt) && lastAt > 0) {
+        const sinceMs = Date.now() - lastAt;
+        if (sinceMs >= 0 && sinceMs < MIN_INTERNAL_GAP_MS) {
+          return {
+            ...live,
+            skipped: true,
+            reason: `מחזור טרי נמדד לפני ${(sinceMs / 60_000).toFixed(1)}דק' — אנטי-כפילות`,
+          };
+        }
+      }
+    }
+    return await runGovernanceCycleLocked();
+  } finally {
+    g.__govCycleInFlight__ = false;
+  }
+}
+
+async function runGovernanceCycleLocked(): Promise<CycleState> {
   const state = readCycleState();
 
   // r143-a — תיקון-עצמי בפתיחת-המחזור: אימות-השרשרת; שבורה ⇒ חתימת-פער.
