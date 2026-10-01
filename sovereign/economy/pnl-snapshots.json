@@ -1,6 +1,6 @@
 {
   "format": "weave-pnl-snapshots-v1",
-  "savedAt": "2026-10-01T21:20:35.156Z",
+  "savedAt": "2026-10-01T22:38:36.407Z",
   "entries": [
     {
       "seq": 1,
@@ -103,6 +103,113 @@
       ],
       "prevHash": "GENESIS",
       "entryHash": "90d7c2dca6dc456469e36cd2a4136c64d80e252f0d2c55afa398a501c16e5a58"
+    },
+    {
+      "seq": 2,
+      "at": "2026-10-01T22:38:36.407Z",
+      "account": "headcorner",
+      "realized": {
+        "measured": true,
+        "fillsTotal": 69,
+        "trips": 65,
+        "capturedSbd": -1.118787,
+        "capturedUsd": -0.7207,
+        "netSteem": -504.76,
+        "netSbd": 51.233,
+        "openLongSteem": 0,
+        "firstFillAt": "2026-09-10T20:48:42Z",
+        "lastFillAt": "2026-10-01T22:18:36Z",
+        "note": "FIFO על fill_order אמיתיים מהשרשרת (צ'קפוינט 2026-10-01T22:24:30.562Z) · סבב נסגר רק במכירה שסוגרת קנייה; מלאי פתוח אינו רווח"
+      },
+      "unrealized": {
+        "measured": true,
+        "ordersOpen": 1,
+        "deployedSteem": 255.825,
+        "ladderPremiumSbd": 0.499115,
+        "ladderPremiumUsd": 0.3215,
+        "ordersBelowParity": 0,
+        "openLongMarkSbd": 0,
+        "openLongMarkUsd": 0,
+        "bidsOpenSbd": 0.15,
+        "note": "פרמיית-הסולם = Σ(amount×(price−parity)) על פקודות-המכירה הפתוחות מול הפאריטה החיה (oracle:steemUsd/sbdUsd) · מלאי פתוח מסומן לפאריטה"
+      },
+      "marks": {
+        "parity": 0.099005,
+        "paritySource": "oracle:steemUsd/sbdUsd",
+        "steemUsd": 0.06378,
+        "sbdUsd": 0.644212,
+        "sbdSource": "console:money.json@2026-10-01T22:17Z"
+      },
+      "sources": {
+        "fills": "chain:fill_order (steem get_account_history) via sovereign/money/pnl-scan.json checkpoint savedAt=2026-10-01T22:24:30.562Z maxIndex=58249 — כל מילוי נושא אינדקס-ראיה (idx)",
+        "ordersAndMarks": "live /api/money → condenser_api.get_open_orders + get_order_book (כל פקודה נושאת orderid; פאריטה: oracle:steemUsd/sbdUsd)",
+        "receipts": "sovereign/money/history.json (money daemon MoverReceipts — txid לכל cancel/create)",
+        "usdConversion": "SBD→USD בשער-היום בלבד: 0.644212 (console:money.json@2026-10-01T22:17Z) — שער היסטורי לא נמדד כאן"
+      },
+      "receipts": {
+        "total": 60,
+        "withTxid": 7,
+        "lastAt": "2026-10-01T22:34:51.525Z",
+        "lastKinds": [
+          "FLEET-COMPOUND",
+          "FLEET-COMPOUND",
+          "FLEET-COMPOUND",
+          "CHAIN-COMPOUND-FAIL",
+          "SAOS-REWARD"
+        ],
+        "lastTxids": [
+          "6dfc05d23b07796f55d0158bce1f786ec2f1a669",
+          "6e60047b270cb79fb4787910291d7a5af946c6c1",
+          "3114a29c3f3bafdd3d75990e919601dabc60472f",
+          "2396c191a2bedab15f97b5f15cc78c40a9e96c5f",
+          "9e36be01087fae482e63e70fecf1abe23d9404f7",
+          "b23f9ce7b0c34dacd82076ae26d8bd979b0c1971"
+        ]
+      },
+      "fillsLast": [
+        {
+          "idx": 58226,
+          "at": "2026-10-01T20:16:27Z",
+          "side": "sold-steem",
+          "price": 0.1,
+          "steem": 0.08,
+          "sbd": 0.008
+        },
+        {
+          "idx": 58233,
+          "at": "2026-10-01T21:18:27Z",
+          "side": "sold-steem",
+          "price": 0.1,
+          "steem": 1.35,
+          "sbd": 0.135
+        },
+        {
+          "idx": 58240,
+          "at": "2026-10-01T21:48:27Z",
+          "side": "sold-steem",
+          "price": 0.1,
+          "steem": 0.14,
+          "sbd": 0.014
+        },
+        {
+          "idx": 58245,
+          "at": "2026-10-01T22:18:33Z",
+          "side": "sold-steem",
+          "price": 0.100014,
+          "steem": 255.825,
+          "sbd": 25.586
+        },
+        {
+          "idx": 58247,
+          "at": "2026-10-01T22:18:36Z",
+          "side": "sold-steem",
+          "price": 0.100014,
+          "steem": 255.825,
+          "sbd": 25.586
+        }
+      ],
+      "prevHash": "90d7c2dca6dc456469e36cd2a4136c64d80e252f0d2c55afa398a501c16e5a58",
+      "entryHash": "16c4e51976e8676e974125fde5e018d1e48c45d002dcc033693dc041447b7f2f"
     }
   ]
 }
