@@ -212,7 +212,7 @@ export default function Page() {
                 initial={reduced ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={reduced ? undefined : { opacity: 0, y: -8 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
               >
                 <SectionBody view={route.view} section={route.section} query={route.query} />
               </motion.div>

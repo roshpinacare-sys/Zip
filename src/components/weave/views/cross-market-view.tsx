@@ -34,6 +34,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/components/weave/api";
+import { EmptyState } from "@/components/weave/shared";
 
 // ── טיפוסים (מראה את חוזה ה-API) ───────────────────────────────────
 
@@ -399,7 +400,7 @@ function GridPnlCard({ p }: { p: PnlData }) {
         )}
 
         {/* המילויים עצמם — קבלה מהשרשרת */}
-        {p.fills.length > 0 && (
+        {p.fills.length > 0 ? (
           <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-zinc-800/70 bg-zinc-900/40 p-2">
             <table className="w-full text-[11px]">
               <thead>
@@ -427,6 +428,14 @@ function GridPnlCard({ p }: { p: PnlData }) {
               </tbody>
             </table>
           </div>
+        ) : (
+          <EmptyState
+            icon={Coins}
+            title="אין מילויים מאומתים בחלון — הסולם עוד לא נגע בשוק"
+            hint="כל מילוי נרשם כאן ישר מהשרשרת (fill_order). ריק = לא נמדד מילוי, לא הבטחה."
+            term="no fills measured"
+            className="mt-2 border-zinc-800/70 bg-zinc-900/20"
+          />
         )}
 
         <p className="mt-2 text-[11px] leading-relaxed text-zinc-600">
@@ -447,6 +456,7 @@ export function CrossMarketView() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [pnl, setPnl] = useState<PnlData | null>(null);
+  const [pnlPending, setPnlPending] = useState(true);
 
   const load = useCallback(async () => {
     setRefreshing(true);
@@ -471,6 +481,9 @@ export function CrossMarketView() {
       })
       .catch(() => {
         /* כלכלה לא נמדדה — הכרטיס לא יוצג; הכנות מלאה */
+      })
+      .finally(() => {
+        if (alive) setPnlPending(false);
       });
     const t = setInterval(() => {
       void apiFetch<PnlData>("/api/money/pnl")
@@ -500,8 +513,8 @@ export function CrossMarketView() {
             <ArrowLeftRight className="size-5 text-[#d4af37]" aria-hidden />
           </div>
           <div>
-            <h1 className="text-lg font-bold sm:text-xl">השוק הבין-רשתי</h1>
-            <p className="text-xs text-zinc-500">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">השוק הבין-רשתי</h1>
+            <p className="mt-1 text-sm text-zinc-500">
               STEEM/SBD · HIVE/HBD · BLURT — מדידה חיה חסרת-מפתחות + סימולציית גריד על ההיסטוריה האמיתית
               {data ? <span className="text-zinc-600"> · {dataAge(data.at)}</span> : null}
             </p>
@@ -541,7 +554,11 @@ export function CrossMarketView() {
           </div>
 
           {/* כלכלת הגריד — ה-P&L הכנה מהשרשרת (R95) */}
-          {pnl && <GridPnlCard p={pnl} />}
+          {pnlPending && !pnl ? (
+            <Skeleton className="h-56 w-full rounded-xl" />
+          ) : pnl ? (
+            <GridPnlCard p={pnl} />
+          ) : null}
 
           {/* הדולרים הנגזרים — לב הניתוח הצולב */}
           <Card className="border-zinc-800 bg-zinc-950/40">

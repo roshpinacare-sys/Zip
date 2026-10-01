@@ -44,6 +44,7 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -62,7 +63,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.596 0.145 163.225);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -79,6 +80,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -96,7 +98,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.696 0.17 162.48);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -118,5 +120,57 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* ── סרגלי-גלילה מעוצבים בכל המערכת (zinc, עגולים, שקופים-ברקע) ── */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(113 113 122 / 0.45) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: rgb(113 113 122 / 0.4);
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(113 113 122 / 0.6);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* ── בחירת-טקסט בצבע-המותג ── */
+  ::selection {
+    background-color: rgb(16 185 129 / 0.25);
+  }
+
+  /* ── חוק מטרות-המגע: 44px מינימום לכל כפתור במובייל (<640px) ──
+     דסקטופ (מצביע עדין) נשאר קומפקטי — החוק חל רק על רוחב-מסך נייד. */
+  @media (max-width: 639px) {
+    button,
+    [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* ── כבוד ל-prefers-reduced-motion בכל ה-CSS ── */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

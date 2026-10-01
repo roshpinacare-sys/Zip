@@ -712,10 +712,10 @@ export function BrowserView({ sessionSlug }: { sessionSlug?: string }) {
               <Compass className="size-6" aria-hidden />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-zinc-100">
+              <h1 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">
                 דפדפן הסוכנים
               </h1>
-              <p className="text-xs text-zinc-500">
+              <p className="mt-1 text-sm text-zinc-500">
                 הגלישה החיה של הרשת — קריאה, חיפוש וסוכן AI, הכל דרך האתר שלך
                 מחובר ל-z.ai
               </p>

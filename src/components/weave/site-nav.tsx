@@ -308,7 +308,8 @@ export function SiteNav({
               <circle cx="12" cy="12" r="3" />
             </svg>
           </span>
-          <span className="min-w-0">
+          {/* מובייל: לוגו-צלמית בלבד (המיתוג המלא בראש המגירה); מסך-מלא: שם+תת-כותרת */}
+          <span className="hidden min-w-0 sm:block">
             <span className="block truncate text-sm font-bold tracking-tight sm:text-base">
               SAOS · THE WEAVE
             </span>

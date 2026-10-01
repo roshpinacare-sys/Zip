@@ -241,12 +241,12 @@ export function MoneyMarketView(): React.JSX.Element {
       {/* כותרת */}
       <div className="mb-6">
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="flex size-10 items-center justify-center rounded-xl border border-[#d4af37]/30 bg-[#d4af37]/10">
+          <div className="flex size-11 items-center justify-center rounded-xl border border-[#d4af37]/30 bg-[#d4af37]/10">
             <Landmark className="size-5 text-[#e8cd6e]" aria-hidden />
           </div>
           <div>
-            <h1 className="text-xl font-black text-zinc-100 sm:text-2xl">שוק-הכספים הריבוני</h1>
-            <p className="text-xs text-zinc-500">peer-to-pool בסטנדרט Aave-v3 — על השרשרת-הקנונית שלנו, בלי-תלות-באף-רשת-חוץ</p>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-100 sm:text-3xl">שוק-הכספים הריבוני</h1>
+            <p className="mt-1 text-sm text-zinc-500">peer-to-pool בסטנדרט Aave-v3 — על השרשרת-הקנונית שלנו, בלי-תלות-באף-רשת-חוץ</p>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-zinc-500">

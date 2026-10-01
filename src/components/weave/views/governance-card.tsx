@@ -142,10 +142,10 @@ export function GovernanceCard() {
       initial={reduced ? false : { opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.3, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
       className="h-full min-w-0"
     >
-      <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
+      <Card className="flex h-full flex-col gap-4 p-6 transition-[border-color,box-shadow] duration-200 hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-950/10">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm font-bold">
             <Gavel className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />

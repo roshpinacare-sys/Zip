@@ -7,7 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import * as React from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
   Bot,
@@ -396,6 +396,42 @@ export function PageWash({ className = "inset-0" }: { className?: string }) {
   );
 }
 
+// ── מצב-ריק כנה — אף רשימה לא נשארת שקטה-מוזרה ─────────────────────
+
+export function EmptyState({
+  icon: Icon,
+  title,
+  hint,
+  term,
+  className,
+}: {
+  icon: LucideIcon;
+  title: string;
+  hint?: string;
+  term?: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed px-4 py-6 text-center",
+        className
+      )}
+    >
+      <span className="flex size-9 items-center justify-center rounded-lg border bg-muted/40 text-muted-foreground" aria-hidden="true">
+        <Icon className="size-4" />
+      </span>
+      <p className="text-sm font-medium text-foreground/90">{title}</p>
+      {hint ? <p className="max-w-md text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
+      {term ? (
+        <p className="font-mono text-[10px] tracking-wide text-muted-foreground/70" dir="ltr">
+          {term}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 // ── Section - כותרת מקטע עם אייקון ופעולה ────────────────────────
 
 export function Section({
@@ -416,7 +452,9 @@ export function Section({
   wash?: boolean;
 }) {
   return (
-    <section className={cn("flex flex-col gap-4", wash && "relative isolate", className)}>
+    // overflow-x-clip: שטיפת-העומק בולטת 16px מעבר לקופסה מטעמי-עיצוב —
+    // הקליפ מבטיח שהיא לעולם לא תיצור דימום-אופקי ברמת-המסמך (RTL phantom bleed).
+    <section className={cn("flex flex-col gap-4", wash && "relative isolate overflow-x-clip", className)}>
       {wash ? <PageWash className="-inset-x-4 -inset-y-3 rounded-2xl" /> : null}
       <div className="flex flex-wrap items-center gap-3">
         {icon ? (
@@ -448,11 +486,12 @@ export function FadeIn({
   className?: string;
   delay?: number;
 }) {
+  const reduced = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={reduced ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.25, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -465,13 +504,21 @@ export function MotionCard({
   children,
   ...props
 }: React.ComponentProps<typeof Card>) {
+  const reduced = useReducedMotion();
   return (
     <motion.div
-      whileHover={{ scale: 1.008, y: -2 }}
+      whileHover={reduced ? undefined : { scale: 1.008, y: -2 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className="h-full min-w-0"
     >
-      <Card className={cn("h-full", className)} {...props}>
+      <Card
+        className={cn(
+          "h-full transition-[border-color,box-shadow] duration-200",
+          !reduced && "hover:border-emerald-500/30 hover:shadow-md hover:shadow-emerald-950/10",
+          className
+        )}
+        {...props}
+      >
         {children}
       </Card>
     </motion.div>
