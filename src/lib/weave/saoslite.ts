@@ -31,6 +31,9 @@ import { db } from "@/lib/db";
 import { appendAttestation } from "@/lib/weave/ledger";
 import { createCheckpointNow } from "@/lib/weave/beat";
 import { secretGate, filterKnownHashes } from "../../../scripts/weave-gate";
+// r144-g2 — תור-הריליי הריבוני: מעטפות wallet.create חתומות-בידי-משתמשים
+// שממתינות לשידור-תעבורה (append-only, אפס חומר-מפתח)
+import { readRelayQueue, markRelayQueueEntry } from "./saos-relay-queue";
 
 export const SAOS_LIVE_OP_ID = "saos.weave.live.v1";
 const WITNESS_ACCOUNT = (process.env.WEAVE_STEEM_ACCOUNT || "cashmachine").toLowerCase();
@@ -294,6 +297,70 @@ async function ensureGenesis(fold: GenesisFoldState, st: SaosLiveStateFile): Pro
   }
 }
 
+/* ── שטיפת תור-הריליי (r144-g2): מעטפות wallet.create חתומות-בידי
+ * משתמשים שהריליי לא שידר ישירות (שער-עוגן/שער-RC/אין מפתח-תעבורה
+ * בסביבה). אותה משמעת בדיוק כמו הג'נזיס: עדיפות עוגן-הליבה קודם,
+ * שער-RC, תעבורה בלבד דרך קו-העדות, תקציב-גנוע אחרי שידור-ג'נזיס,
+ * ולכל היותר 3 מעטפות לפעימה. השרשרת היא השופט: כל מעטפה נשפטת
+ * מחדש מול המצב החי — מה שנדחה נרשם rejected בכנות, רשומות
+ * test:true לעולם לא משודרות, וכלום לעולם לא נמחק (append-only). ── */
+const RELAY_FLUSH_MAX = 3;
+async function flushRelayQueue(judgeEnvs: Record<string, unknown>[], genesisBroadcast: boolean): Promise<{ flushed: number; rejected: number; note: string }> {
+  const q = readRelayQueue();
+  const pending = q.entries.filter((e) => e.status === "queued" && !e.test && e.env?.k === "wallet.create");
+  if (!pending.length) return { flushed: 0, rejected: 0, note: "תור-הריליי פנוי" };
+  if (genesisBroadcast) return { flushed: 0, rejected: 0, note: `דילוג-כנה - הג'נזיס דיבר הפעימה הזו (תקציב-RC אחד לחשבון) · ${pending.length} בתור` };
+  const core = await readCoreAnchorAge();
+  if (!core.ok || (core.ageHours ?? 0) > CORE_PRIORITY_H) {
+    return { flushed: 0, rejected: 0, note: `דילוג-כנה - עדיפות עוגן-הליבה (${!core.ok ? core.reason ?? "?" : `גיל ${(core.ageHours ?? 0).toFixed(1)} ש'`}) · ${pending.length} בתור` };
+  }
+  const batch = pending.slice(0, RELAY_FLUSH_MAX);
+  const wif = (process.env.WEAVE_STEEM_WIF || "").trim();
+  if (!wif) return { flushed: 0, rejected: 0, note: `אין WEAVE_STEEM_WIF בסביבה - התור ממתין לענן · ${pending.length} בתור` };
+
+  const SaosLive = await import("../../../console/saos-live.js");
+  // השופט: קיפול אחד של הספר החי + המעטפות המועמדות בתורו -
+  // סמנטיקת סדר מדויקת (dup-id/pub-taken/wallet-exists נשפטים כמו על השרשרת)
+  const judged = await SaosLive.fold([...judgeEnvs, ...batch.map((e) => e.env)]);
+  let flushed = 0;
+  let rejected = 0;
+  for (const entry of batch) {
+    const bad = (judged.invalid ?? []).find((x) => x.id === entry.id);
+    if (bad && bad.err !== "wallet-exists") {
+      rejected++;
+      markRelayQueueEntry(entry.id, { status: "rejected", note: `FOLD-REJECT: ${bad.err}` });
+      continue;
+    }
+    if (bad) {
+      // wallet-exists = המטרה הושגה בדרך אחרת - רישום כנה, אפס שידור
+      markRelayQueueEntry(entry.id, { status: "registered", note: "כבר רשום על השרשרת (נמצא בקיפול)" });
+      continue;
+    }
+    const gate = await steemRcGate(WITNESS_ACCOUNT);
+    if (!gate.ok) {
+      markRelayQueueEntry(entry.id, { note: `ממתין - RC נמוך (${gate.reason ?? "gated"})` });
+      continue; // נשאר queued - הפעימה הבאה תנסה שוב
+    }
+    const txOps: GrapheneOperation[] = [[
+      "custom_json",
+      {
+        required_auths: [],
+        required_posting_auths: [WITNESS_ACCOUNT],
+        id: SAOS_LIVE_OP_ID,
+        json: JSON.stringify(entry.env),
+      },
+    ]] as GrapheneOperation[];
+    const res = await steemBroadcast(txOps, wif);
+    if (res.txid) {
+      flushed++;
+      markRelayQueueEntry(entry.id, { status: "flushed", txid: res.txid, broadcastAt: new Date().toISOString(), note: "שוטף מהתור בפרסום-הקיפול" });
+    } else {
+      markRelayQueueEntry(entry.id, { note: `שידור נכשל (${(res.note ?? "?").slice(0, 50)}) - ננסה בפעימה הבאה` });
+    }
+  }
+  return { flushed, rejected, note: `שוטפו ${flushed} · נדחו ${rejected} · ${pending.length - flushed - rejected} נותרו בתור` };
+}
+
 /* ── פרסום saos-live.json לריפו הציבורי - כמו המראה: שער + שינוי-בלבד ── */
 async function publishLiveFile(payload: Record<string, unknown>): Promise<{ published: boolean; reason: string; bytes?: number }> {
   const text = JSON.stringify(payload, null, 2) + "\n";
@@ -398,6 +465,7 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
 
   const SaosLive = await import("../../../console/saos-live.js");
   let res = await SaosLive.fold(envelopes.map((e) => e.env));
+  let judgeEnvs: Record<string, unknown>[] = envelopes.map((e) => e.env);
 
   // הנחת הג'נזיס - מדורג: רק הפעולה החסרה (השרשרת היא השופט)
   const gen = await ensureGenesis(res.state, st);
@@ -406,8 +474,19 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
     await new Promise((r) => setTimeout(r, 9000));
     const again = await readLiveEnvelopes().catch(() => null);
     if (again) {
-      res = await SaosLive.fold(again.envelopes.map((e) => e.env));
+      judgeEnvs = again.envelopes.map((e) => e.env);
+      res = await SaosLive.fold(judgeEnvs);
     }
+  }
+
+  // r144-g2 — שטיפת תור-הריליי לפני הפרסום: מה שהוצא מהתור כבר על
+  // השרשרת ויאסף בקריאה הבאה; הכנות נשמרת ברשומות התור עצמן.
+  let relayFlush: { flushed: number; rejected: number; note: string } = { flushed: 0, rejected: 0, note: "לא רץ" };
+  try {
+    relayFlush = await flushRelayQueue(judgeEnvs, gen.broadcast);
+    if (relayFlush.flushed || relayFlush.rejected) console.log(`[saos-live] ריליי: ${relayFlush.note}`);
+  } catch (flErr) {
+    relayFlush = { flushed: 0, rejected: 0, note: `שטיפה נדחתה: ${flErr instanceof Error ? flErr.message.slice(0, 80) : String(flErr)}` };
   }
   // השלמת הג'נזיס - רק מהקיפול: אוצר רשום + חוזה פרוס + אספקה מלאה
   if (res.state.tokens?.SAOS && (res.state.supply?.SAOS ?? BigInt(0)) >= BigInt(SaosLive.SAOS_GENESIS.initialMint)) {
@@ -466,6 +545,14 @@ export async function processSaosLive(ctx: { runner: string; cloudAgentId: strin
       treasury: res.state?.treasury ?? null,
     },
     ops: opsList,
+    // r144-g2 — הצהרת-הריליי של הבית: כתובת אופציונלית (WEAVE_PUBLIC_URL)
+    // לשימוש דף-הארנק הציבורי + מצב התור המקומי. אין כאן כתובת = אין ריליי
+    // מוכר, והדף אומר זאת בכנות (אפס-המצאה).
+    relay: {
+      url: (process.env.WEAVE_PUBLIC_URL || "").trim() || null,
+      queued: readRelayQueue().entries.filter((e) => e.status === "queued" && !e.test).length,
+      lastFlush: relayFlush.note,
+    },
     invalid: res.invalid,
     verify: {
       replayed: envelopes.length,
