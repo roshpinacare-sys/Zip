@@ -175,6 +175,11 @@ async function measureEvidenceFreshness(): Promise<Array<{ file: string; ageMinu
     `${HOME}/sovereign/beat-report.json`,
     `${HOME}/sovereign/kpi/state.json`,
     `${HOME}/sovereign/keeper/fleet-guard-state.json`,
+    // r144-c — ראיות-הכלכלה נמדדות עם הבית: פנקס-ה-PnL (תמונות hash-chained)
+    // ומילויי-השרשרת (צ'קפוינט fill_order) — החלטה בלי אמת-כלכלית אינה עוד
+    // החלטה-עיוורת (D-SCALE: PnL מכריע את הצעד הבא).
+    `${HOME}/sovereign/economy/pnl-snapshots.json`,
+    `${HOME}/sovereign/money/pnl-scan.json`,
   ];
   const out: Array<{ file: string; ageMinutes: number }> = [];
   const now = Date.now();
@@ -250,7 +255,41 @@ async function execEvidenceRefresh(): Promise<string> {
   const [treasury, freshness] = await Promise.all([fetchJson("/api/treasury"), measureEvidenceFreshness()]);
   const stalest = freshness.sort((a, b) => b.ageMinutes - a.ageMinutes)[0];
   const key = treasury && typeof treasury === "object" ? ("keyPresent" in treasury ? `keyPresent=${String((treasury as { keyPresent?: unknown }).keyPresent)}` : "house-state") : "treasury-unreachable";
-  return `מדידת-בית: ${key} · ראיה-כי-ישנה ביותר: ${stalest ? `${stalest.file} בת ${stalest.ageMinutes} דק'` : "אין"}`;
+  // r144-c — ראיית-כלכלה חיה בתוך ההחלטה: פנקס-ה-PnL (realized/unrealized,
+  // שרשרת-גיבוב) + מילויי-השרשרת. כישלון-קריאה = "unmeasured" בכנות.
+  const economy = measureEconomyEvidence();
+  return `מדידת-בית: ${key} · ראיה-כי-ישנה ביותר: ${stalest ? `${stalest.file} בת ${stalest.ageMinutes} דק'` : "אין"} · כלכלה: ${economy}`;
+}
+
+// r144-c — מדידת-אמת-כלכלית לראיית-החלטה: פנקס-ה-PnL + מילויי-השרשרת.
+// קריאה מקומית בלבד (אפס רשת, אפס מפתחות) — fail-closed ל-"unmeasured".
+function measureEconomyEvidence(): string {
+  const parts: string[] = [];
+  try {
+    const j = JSON.parse(fs.readFileSync(`${HOME}/sovereign/economy/pnl-snapshots.json`, "utf8")) as {
+      entries?: Array<{ at?: string; realized?: { capturedSbd?: number | null; trips?: number | null }; unrealized?: { ladderPremiumSbd?: number | null; ordersOpen?: number | null } }>;
+    };
+    const entries = Array.isArray(j.entries) ? j.entries : [];
+    const last = entries[entries.length - 1];
+    if (last) {
+      const ageMin = last.at ? Math.round((Date.now() - Date.parse(last.at)) / 60_000) : null;
+      parts.push(
+        `pnl-snapshots seq=${entries.length} (realizedSbd=${last.realized?.capturedSbd ?? "unmeasured"} · trips=${last.realized?.trips ?? "unmeasured"} · unrealizedPremiumSbd=${last.unrealized?.ladderPremiumSbd ?? "unmeasured"} · orders=${last.unrealized?.ordersOpen ?? "unmeasured"}${ageMin != null ? ` · בת ${ageMin} דק'` : ""})`,
+      );
+    } else {
+      parts.push("pnl-snapshots ריק (unmeasured)");
+    }
+  } catch {
+    parts.push("pnl-snapshots unmeasured");
+  }
+  try {
+    const s = JSON.parse(fs.readFileSync(`${HOME}/sovereign/money/pnl-scan.json`, "utf8")) as { fills?: unknown[]; maxIndex?: number; savedAt?: string };
+    const fills = Array.isArray(s.fills) ? s.fills.length : null;
+    parts.push(`מילויי-שרשרת ${fills ?? "unmeasured"} (maxIndex=${s.maxIndex ?? "?"})`);
+  } catch {
+    parts.push("מילויי-שרשרת unmeasured");
+  }
+  return parts.join(" · ");
 }
 
 // ─── קידום-מדינה (r143-b · תיקון-שורש) ───
