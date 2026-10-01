@@ -417,7 +417,7 @@ function GridPnlCard({ p }: { p: PnlData }) {
                     <td className="py-1 text-zinc-400" dir="ltr">{f.at.slice(0, 16).replace("T", " ")}</td>
                     <td className={cn("py-1 font-medium", f.side === "bought-steem" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                       {f.side === "bought-steem" ? "קנייה" : "מכירה"}
-                      <span className="ms-1 text-[9px] text-zinc-600">{f.maker ? "maker" : "taker"}</span>
+                      <span className="ms-1 text-[10px] text-zinc-600">{f.maker ? "maker" : "taker"}</span>
                     </td>
                     <td className="py-1 text-end font-mono text-zinc-300" dir="ltr">{f.steem.toFixed(3)}</td>
                     <td className="py-1 text-end font-mono text-zinc-300" dir="ltr">{f.sbd.toFixed(3)}</td>

@@ -131,7 +131,7 @@ const ASSET_STATE_META: Record<AssetState, { he: string; cls: string }> = {
   WAIT: { he: "ממתין", cls: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400" },
   DORMANT: { he: "רדום", cls: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400" },
   EPHEMERAL: { he: "ארעי", cls: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400" },
-  BASELINE: { he: "בסיס-מפגש", cls: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-400" },
+  BASELINE: { he: "בסיס-מפגש", cls: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-400" },
   PARTIAL: { he: "חלקי", cls: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400" },
 };
 

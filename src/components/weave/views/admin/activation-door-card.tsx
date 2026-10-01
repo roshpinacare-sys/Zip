@@ -386,7 +386,7 @@ export function ActivationDoorCard() {
         {/* דלת 2 — רופא-מפתחות */}
         <div className="flex flex-col gap-2 rounded-lg border px-4 py-3">
           <div className="flex items-center gap-2 text-xs font-bold">
-            <Stethoscope className="size-3.5 text-sky-500" aria-hidden="true" />
+            <Stethoscope className="size-3.5 text-emerald-500" aria-hidden="true" />
             דלת 2 · רופא-מפתחות — לא בטוחים מה יש ביד? הדביקו ותקבלו אבחנה מדויקת
           </div>
           <div className="flex flex-col gap-2 sm:flex-row">

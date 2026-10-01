@@ -375,7 +375,7 @@ export function AdminMissionsView() {
       {/* רשויות פרסום */}
       <section className="mb-10" aria-label="רשויות פרסום">
         <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
-          <ScrollText className="size-5 text-violet-500" aria-hidden="true" />
+          <ScrollText className="size-5 text-emerald-500" aria-hidden="true" />
           רשויות הפרסום - הכוח להישמע בחוץ
         </h2>
         <p className="mb-4 max-w-3xl text-sm text-muted-foreground">
@@ -389,7 +389,7 @@ export function AdminMissionsView() {
               <CardContent className="flex flex-col gap-2.5 p-5">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-sm font-bold">{a.name}</span>
-                  <Badge variant="outline" className="border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300 text-xs">
+                  <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-xs">
                     {a.scope}
                   </Badge>
                 </div>

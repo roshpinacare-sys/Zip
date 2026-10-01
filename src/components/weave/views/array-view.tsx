@@ -147,7 +147,7 @@ function StatusPill({
   icon: typeof Gauge;
   label: string;
   value: string;
-  tone?: "emerald" | "rose" | "amber" | "zinc" | "gold" | "violet";
+  tone?: "emerald" | "rose" | "amber" | "zinc" | "gold" | "accent";
 }) {
   const tones: Record<string, string> = {
     emerald: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
@@ -155,7 +155,7 @@ function StatusPill({
     amber: "border-amber-500/30 bg-amber-500/10 text-amber-300",
     zinc: "border-zinc-500/30 bg-zinc-500/10 text-zinc-300",
     gold: "border-[#d4af37]/40 bg-[#d4af37]/10 text-[#e8cd6e]",
-    violet: "border-violet-500/30 bg-violet-500/10 text-violet-300",
+    accent: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   };
   return (
     <div className={cn("flex items-center gap-2 rounded-lg border px-3 py-1.5", tones[tone])}>
@@ -451,7 +451,7 @@ export function ArrayView() {
             icon={Coins}
             label="רווח אוצר לנצח"
             value={`$${fmtUsd((world?.state?.income?.treasuryProfitEverMu ?? world?.state?.treasuryProfit ?? 0) / 1000)}`}
-            tone="violet"
+            tone="accent"
           />
           <StatusPill
             icon={Banknote}
@@ -619,12 +619,12 @@ export function ArrayView() {
               </p>
             </CardContent>
           </Card>
-          <Card className="border-violet-500/25 bg-violet-500/[0.03]">
+          <Card className="border-emerald-500/25 bg-emerald-500/[0.03]">
             <CardContent className="p-4">
               <div className="mb-3 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-violet-300" aria-hidden />
+                <Zap className="h-4 w-4 text-emerald-300" aria-hidden />
                 <h3 className="text-sm font-bold text-zinc-100">THE-MICRORAIL · המסילה</h3>
-                <Badge variant="outline" className="ml-auto border-violet-500/30 font-mono text-[10px] text-violet-300">
+                <Badge variant="outline" className="ml-auto border-emerald-500/30 font-mono text-[10px] text-emerald-300">
                   {(rail?.doses ?? 0) > 0 ? `${rail?.doses} מנות בריצה זו` : "ממתינה לפרמיה"}
                 </Badge>
               </div>
@@ -662,7 +662,7 @@ export function ArrayView() {
           <StatusPill icon={Activity} label="חיים" value={`${fleet.live}`} tone="emerald" />
           <StatusPill icon={AlertTriangle} label="מדורדים" value={`${fleet.degraded}`} tone={fleet.degraded > 0 ? "rose" : "zinc"} />
           <StatusPill icon={CalendarClock} label="דורמיטים" value={`${fleet.dormant}`} tone="zinc" />
-          <StatusPill icon={Package} label="אוטומטיים" value={`${fleet.auto}`} tone="violet" />
+          <StatusPill icon={Package} label="אוטומטיים" value={`${fleet.auto}`} tone="accent" />
         </div>
         <Card className="mt-3 border-zinc-700/60 bg-zinc-900/40">
           <CardContent className="p-3 text-[11px] leading-relaxed text-zinc-500">

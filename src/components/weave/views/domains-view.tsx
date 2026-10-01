@@ -67,7 +67,7 @@ interface DomainRow {
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
   PLANNED: { label: "בתכנון", cls: "border-zinc-700 text-zinc-400" },
-  DNS: { label: "DNS מוגדר", cls: "border-sky-700/60 text-sky-300" },
+  DNS: { label: "DNS מוגדר", cls: "border-emerald-700/60 text-emerald-300" },
   DEPLOYING: { label: "בפריסה", cls: "border-amber-600/60 text-amber-300" },
   LIVE: { label: "חי", cls: "border-emerald-600/60 text-emerald-300" },
 };

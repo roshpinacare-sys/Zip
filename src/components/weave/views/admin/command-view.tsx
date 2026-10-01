@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { PageWash } from "@/components/weave/shared";
 
 interface CloudData {
   repos: Array<{ name: string; pushedAt: string; private: boolean; archived: boolean }>;
@@ -122,7 +123,8 @@ export function AdminCommandView() {
 
   return (
     <AdminGate>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="relative isolate mb-6 flex flex-wrap items-end justify-between gap-3">
+        <PageWash className="-inset-x-4 -inset-y-3 rounded-2xl" />
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <ShieldCheck className="size-7 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
@@ -258,7 +260,7 @@ export function AdminCommandView() {
                             )}
                             <span className="truncate font-mono">{r.name}</span>
                             {r.event === "workflow_dispatch" && (
-                              <Badge variant="outline" className="shrink-0 text-[9px]">
+                              <Badge variant="outline" className="shrink-0 text-[10px]">
                                 ידני
                               </Badge>
                             )}

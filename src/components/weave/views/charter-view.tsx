@@ -95,7 +95,7 @@ const CONTRACT_RULES: Array<{ icon: React.ReactNode; title: string; body: string
     body: "PAT / gh-token / WIF בכל שם-קובץ או תוכן נדחים ב-422. אף מפתח לא נכנס לקנון לעולם — הטוקן של הבונה הוא הסוד היחיד שלו.",
   },
   {
-    icon: <Network className="h-4 w-4 text-indigo-600" aria-hidden />,
+    icon: <Network className="h-4 w-4 text-emerald-600" aria-hidden />,
     title: "הקנון — הזיכרון",
     body: "כל צ'רטר ומסמך מתפרסם לריפו הקנוני. הסנדבוקס מת? המרשם חי. אחרי איפוס — ה-API מרפא את עצמו מהקנון.",
   },

@@ -511,9 +511,9 @@ export function MoneyMarketView(): React.JSX.Element {
                       רווח שנצבר: {fmtMu(lend.treasury.earnedMu)}µ
                     </p>
                   </div>
-                  <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
+                  <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-violet-300">ספקי-הצי (R45) — THE-PEERS</span>
+                      <span className="font-bold text-emerald-300">ספקי-הצי (R45) — THE-PEERS</span>
                       <span className="tabular-nums text-zinc-300">{lend.positions.filter((p) => (p.supplies.find((s) => s.asset === "USDS")?.mu ?? 0) > 0 && p.who !== "treasury").length} עמיתים</span>
                     </div>
                     <p className="mt-1 text-[11px] leading-relaxed text-zinc-500">

@@ -96,15 +96,15 @@ export function MissionLadderCard() {
     rungs.find((r) => r.rungUsdPerDay === rung)?.requiredCapitalUsd.find((t) => t.tier === "moderate")?.capitalUsd ?? null;
 
   return (
-    <Card className="overflow-hidden border-2 border-violet-600/25 shadow-lg shadow-violet-950/10">
+    <Card className="overflow-hidden border-emerald-600/25">
       <CardContent className="flex flex-col gap-5 p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <Target className="size-5 text-violet-600" aria-hidden="true" />
+              <Target className="size-5 text-emerald-600" aria-hidden="true" />
               <h3 className="text-xl font-bold tracking-tight sm:text-2xl">סולם המשימה · 1,000$ ליום</h3>
               {m ? (
-                <Badge variant="outline" className="border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300">
+                <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                   נמדד חי
                 </Badge>
               ) : (
@@ -222,9 +222,9 @@ export function MissionLadderCard() {
             </div>
 
             {/* הכנות על הפער */}
-            <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
+            <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/5 p-3">
               <div className="mb-1 flex items-center gap-1.5 text-sm font-semibold">
-                <TrendingUp className="size-4 text-violet-600" aria-hidden="true" />
+                <TrendingUp className="size-4 text-emerald-600" aria-hidden="true" />
                 הפער הוא הון + זמן-הוכחה, לא קסם
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">

@@ -182,7 +182,7 @@ function TabBody({ tab }: { tab: BrowserTab }) {
           </div>
         </header>
         <div
-          className="max-h-[62vh] overflow-y-auto whitespace-pre-wrap text-[15px] leading-7 text-zinc-300 [scrollbar-width:thin]"
+          className="max-h-[62vh] overflow-y-auto whitespace-pre-wrap text-base leading-7 text-zinc-300 [scrollbar-width:thin]"
           dir="auto"
         >
           {d.text}

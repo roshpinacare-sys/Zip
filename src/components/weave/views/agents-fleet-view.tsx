@@ -30,6 +30,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useWeave } from "../store";
+import { PageWash } from "../shared";
 
 // ── עזרי זמן ────────────────────────────────────────────────────────
 
@@ -74,8 +75,8 @@ const LIFE_STYLE: Record<ReturnType<typeof lifeLevel>, { dot: string; label: str
 const LAYER_STYLE: Record<string, string> = {
   "ALWAYS-UP": "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   WITNESS: "border-teal-500/40 bg-teal-500/10 text-teal-700 dark:text-teal-300",
-  MIRROR: "border-cyan-600/40 bg-cyan-600/10 text-cyan-700 dark:text-cyan-300",
-  PUBLISH: "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  MIRROR: "border-[#d4af37]/40 bg-[#d4af37]/10 text-[#e8cd6e]",
+  PUBLISH: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   ENFORCEMENT: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300",
   RECOVERY: "border-zinc-500/40 bg-zinc-500/10 text-zinc-700 dark:text-zinc-300",
   QA: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300",
@@ -227,7 +228,7 @@ const VERIFY_VERDICT_STYLE: Record<string, { badge: string; label: string }> = {
   FAIL: { badge: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300", label: "נכשל" },
   ERROR: { badge: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300", label: "שגיאה" },
   TIMEOUT: { badge: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300", label: "פסק-זמן" },
-  RUNNING: { badge: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300", label: "רץ עכשיו" },
+  RUNNING: { badge: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300", label: "רץ עכשיו" },
   PENDING: { badge: "border-zinc-500/40 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300", label: "ממתין" },
 };
 
@@ -245,7 +246,7 @@ function VerifyCard({ job, delay }: { job: VerifyJob; delay: number }) {
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex items-center gap-2">
               {job.verdict === "RUNNING" ? (
-                <Loader2 className="size-3.5 shrink-0 animate-spin text-sky-500" aria-hidden="true" />
+                <Loader2 className="size-3.5 shrink-0 animate-spin text-emerald-500" aria-hidden="true" />
               ) : (
                 // r140 — הנקודה נגזרת מפסק-הדין, לא ירוקה בכוח: כישלון נראה כישלון
                 <span
@@ -410,7 +411,7 @@ function RepoCard({ repo, delay }: { repo: RepoEcosystem; delay: number }) {
             variant="outline"
             className={cn(
               "shrink-0",
-              repo.kind === "live" ? "border-violet-500/40 bg-violet-500/10 text-violet-700 dark:text-violet-300" : style.text,
+              repo.kind === "live" ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : style.text,
             )}
           >
             {repo.kind === "live" ? "בית · ענן" : style.label}
@@ -586,7 +587,8 @@ export function AgentsFleetView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div className="relative isolate mb-6 flex flex-wrap items-end justify-between gap-3">
+        <PageWash className="-inset-x-4 -inset-y-3 rounded-2xl" />
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight sm:text-3xl">
             <Users className="size-7 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />

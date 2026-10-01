@@ -771,7 +771,7 @@ function AttestDialog({ open, onOpenChange, agents, agentsLoading, onSubmit }: A
                   <SelectItem key={agent.id} value={agent.id}>
                     <span className="flex items-center gap-2">
                       <span className="font-medium">{agent.name}</span>
-                      <RoleBadge role={agent.role} className="text-[9px]" />
+                      <RoleBadge role={agent.role} className="text-[10px]" />
                     </span>
                   </SelectItem>
                 ))}

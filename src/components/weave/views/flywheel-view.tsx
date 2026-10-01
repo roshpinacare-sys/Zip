@@ -565,15 +565,15 @@ export function FlywheelView() {
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div className="rounded-lg bg-zinc-950/60 px-1.5 py-1.5">
-                    <div className="text-[9px] text-zinc-500">APR מדוד</div>
+                    <div className="text-[10px] text-zinc-500">APR מדוד</div>
                     <div className="font-mono text-xs font-semibold text-zinc-200">{fmtPct(v.apr)}</div>
                   </div>
                   <div className="rounded-lg bg-zinc-950/60 px-1.5 py-1.5">
-                    <div className="text-[9px] text-zinc-500">עמלות נצברו</div>
+                    <div className="text-[10px] text-zinc-500">עמלות נצברו</div>
                     <div className="font-mono text-xs font-semibold text-zinc-200">{fmtUsd(v.feesAccruedUsds)}</div>
                   </div>
                   <div className="rounded-lg bg-zinc-950/60 px-1.5 py-1.5">
-                    <div className="text-[9px] text-zinc-500">החלפות</div>
+                    <div className="text-[10px] text-zinc-500">החלפות</div>
                     <div className="font-mono text-xs font-semibold text-zinc-200">{v.swaps != null ? v.swaps.toLocaleString("he-IL") : "—"}</div>
                   </div>
                 </div>

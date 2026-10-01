@@ -382,6 +382,20 @@ export function RoleIcon({ role, className }: { role: string; className?: string
   );
 }
 
+// ── שטיפת-גרדיאנט לאזורי-כותרת — עומק עדין במשפחת הקונסולה בלבד ────
+
+export function PageWash({ className = "inset-0" }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute -z-10 bg-gradient-to-l from-emerald-500/[0.08] via-emerald-500/[0.02] to-transparent",
+        className
+      )}
+      aria-hidden="true"
+    />
+  );
+}
+
 // ── Section - כותרת מקטע עם אייקון ופעולה ────────────────────────
 
 export function Section({
@@ -391,6 +405,7 @@ export function Section({
   action,
   children,
   className,
+  wash = false,
 }: {
   title: string;
   description?: string;
@@ -398,9 +413,11 @@ export function Section({
   action?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
+  wash?: boolean;
 }) {
   return (
-    <section className={cn("flex flex-col gap-4", className)}>
+    <section className={cn("flex flex-col gap-4", wash && "relative isolate", className)}>
+      {wash ? <PageWash className="-inset-x-4 -inset-y-3 rounded-2xl" /> : null}
       <div className="flex flex-wrap items-center gap-3">
         {icon ? (
           <span className="flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/60 text-muted-foreground [&_svg]:size-4">

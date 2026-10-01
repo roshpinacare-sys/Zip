@@ -171,7 +171,7 @@ export function BrainView() {
                 {status ? `${status.live}/${status.total} מפתחות חיים` : "-"}
               </Badge>
               {status?.cooling ? (
-                <Badge variant="outline" className="gap-1.5 border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300">
+                <Badge variant="outline" className="gap-1.5 border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                   <Snowflake className="size-3.5" aria-hidden="true" />
                   {status.cooling} בקירור
                 </Badge>
@@ -238,7 +238,7 @@ export function BrainView() {
                     </div>
                     <span className="shrink-0">
                       {k.status === "cooling" ? (
-                        <Timer className="size-5 text-sky-500" aria-hidden="true" />
+                        <Timer className="size-5 text-emerald-500" aria-hidden="true" />
                       ) : k.verified ? (
                         <ShieldCheck className="size-5 text-emerald-500" aria-hidden="true" />
                       ) : (

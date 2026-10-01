@@ -1545,9 +1545,9 @@ export function SovereigntyTab() {
             </div>
 
             {/* עוגן-עוגנים - ההצלבה של שרשרת הצי בספר של THE WEAVE */}
-            <div className="rounded-md border border-violet-500/20 bg-violet-500/5 p-3">
+            <div className="rounded-md border border-emerald-500/20 bg-emerald-500/5 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs font-medium text-violet-700 dark:text-violet-400">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                   <Link2 className="h-3.5 w-3.5" />
                   עוגן-עוגנים - ההצלבה בספר של THE WEAVE
                 </div>

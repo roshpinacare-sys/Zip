@@ -235,7 +235,7 @@ const CHANNEL_STYLE: Record<ChannelState, { label: string; cls: string }> = {
 };
 
 const TASK_STYLE: Record<string, string> = {
-  QUEUED: "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  QUEUED: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   PUBLISHING: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
   PUBLISHED: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   FAILED: "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400",
@@ -989,7 +989,7 @@ export function PublisherView({ section = "foundry" }: { section?: string }) {
                               : pulse.lastDecision.kind === "BROADCAST-FAIL"
                                 ? "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400"
                                 : pulse.lastDecision.kind.startsWith("WAIT")
-                                  ? "border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-400"
+                                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                                   : "",
                           )}
                         >

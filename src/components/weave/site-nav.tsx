@@ -19,6 +19,7 @@ import { useEffect, useState } from "react";
 import {
   BarChart3,
   BookOpen,
+  ChevronDown,
   Cloud,
   Compass,
   Crosshair,
@@ -355,70 +356,120 @@ export function SiteNav({
           />
           <ThemeToggle />
 
-          {/* תפריט מובייל */}
+          {/* תפריט מובייל — מגירה מלאה מצד ההפעלה, מטרות-מגע 44px+, כותרת ותחתית דביקות */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
               <Button
                 variant="outline"
                 size="icon"
-                className="size-10 lg:hidden"
+                className="size-11 lg:hidden"
                 aria-label="פתח תפריט"
               >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-80 overflow-y-auto p-4" aria-describedby={undefined}>
-              <SheetTitle className="text-sm font-bold">ניווט</SheetTitle>
-              <nav aria-label="ניווט ראשי במובייל" className="mt-4 grid gap-3">
-                {SECTIONS.map((item) => {
-                  const active = view === item.view;
-                  return (
-                    <div key={item.view} className="grid gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => go(item.view, item.subs[0]?.key)}
-                        aria-current={active ? "page" : undefined}
-                        className={cn(
-                          "flex h-12 items-center gap-3 rounded-lg border px-4 text-sm font-medium transition-colors",
-                          active
-                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                            : "border-border bg-background hover:bg-muted/50"
+            <SheetContent
+              side="left"
+              className="flex w-[min(21rem,88vw)] flex-col gap-0 p-0"
+              aria-describedby={undefined}
+            >
+              {/* כותרת דביקה — המותג בראש, כפתור-הסגירה (44px) בקצה השני */}
+              <div className="flex items-center gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur">
+                <span
+                  className="flex size-10 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-5">
+                    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8" strokeLinecap="round" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </span>
+                <div className="min-w-0">
+                  <SheetTitle className="text-sm font-bold tracking-tight">SAOS · THE WEAVE</SheetTitle>
+                  <p className="text-[11px] text-muted-foreground">ניווט ראשי · {SECTIONS.length} סקציות</p>
+                </div>
+              </div>
+
+              {/* הרשימה — גלילה עם סרגל מעוצב, מטרות-מגע 44px+ */}
+              <nav
+                aria-label="ניווט ראשי במובייל"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3 [scrollbar-width:thin] [scrollbar-color:rgba(113,113,122,0.45)_transparent] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-zinc-500/40 hover:[&::-webkit-scrollbar-thumb]:bg-zinc-500/60"
+              >
+                <div className="flex flex-col gap-1">
+                  {SECTIONS.map((item) => {
+                    const active = view === item.view;
+                    return (
+                      <div key={item.view} className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() => go(item.view, item.subs[0]?.key)}
+                          aria-current={active ? "page" : undefined}
+                          className={cn(
+                            "flex min-h-12 w-full items-center gap-3 rounded-xl border px-2.5 text-start text-sm font-semibold transition-all duration-150 active:scale-[0.99]",
+                            active
+                              ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                              : "border-transparent text-foreground/90 hover:bg-muted/60 hover:text-foreground"
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "flex size-9 shrink-0 items-center justify-center rounded-lg border transition-colors",
+                              active
+                                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                : "border-border bg-muted/40 text-muted-foreground"
+                            )}
+                            aria-hidden="true"
+                          >
+                            <item.icon className="size-4" />
+                          </span>
+                          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                          {item.subs.length > 0 && (
+                            <ChevronDown
+                              className={cn(
+                                "size-4 shrink-0 text-muted-foreground/70 transition-transform",
+                                active && "rotate-180"
+                              )}
+                              aria-hidden="true"
+                            />
+                          )}
+                        </button>
+                        {item.subs.length > 0 && (
+                          <div className="mb-1.5 ms-4 mt-0.5 flex flex-col gap-0.5 border-s ps-3 pe-1">
+                            {item.subs.map((sub) => {
+                              const subActive = active && section === sub.key;
+                              return (
+                                <button
+                                  key={sub.key}
+                                  type="button"
+                                  onClick={() => go(item.view, sub.key)}
+                                  aria-current={subActive ? "true" : undefined}
+                                  className={cn(
+                                    "flex min-h-11 w-full items-center rounded-lg px-3 text-start text-[13px] transition-colors duration-150 active:scale-[0.99]",
+                                    subActive
+                                      ? "bg-emerald-500/10 font-medium text-emerald-700 dark:text-emerald-300"
+                                      : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                  )}
+                                >
+                                  {sub.label}
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
-                      >
-                        <item.icon className="size-5" aria-hidden="true" />
-                        {item.label}
-                      </button>
-                      {item.subs.length > 0 && (
-                        <div className="grid gap-1 pe-2 ps-6">
-                          {item.subs.map((sub) => {
-                            const subActive = active && section === sub.key;
-                            return (
-                              <button
-                                key={sub.key}
-                                type="button"
-                                onClick={() => go(item.view, sub.key)}
-                                className={cn(
-                                  "flex h-9 items-center rounded-md px-3 text-start text-[13px] transition-colors",
-                                  subActive
-                                    ? "bg-muted font-medium text-foreground"
-                                    : "text-muted-foreground hover:text-foreground"
-                                )}
-                              >
-                                {sub.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-                <div className="mt-2 flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3">
+                      </div>
+                    );
+                  })}
+                </div>
+              </nav>
+
+              {/* תחתית דביקה — ראש השרשרת החי + טריות המראה (רק כשנמדד) */}
+              <div className="border-t bg-muted/30 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">שרשרת חיה</span>
                   <HashChip value={headHash} label="HEAD" head={6} tail={4} />
                 </div>
                 {pulse && (
-                  <p className="px-2 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                     מראת הענן עודכנה{" "}
                     {new Date(pulse.mirrorGeneratedAt).toLocaleTimeString("he-IL", {
                       hour: "2-digit",
@@ -427,7 +478,7 @@ export function SiteNav({
                     · {pulse.stats.attestations} אימותים · {pulse.vitality.windowLimited ? "חלון-מראה" : "רצף"} {pulse.vitality.aliveDays} ימים
                   </p>
                 )}
-              </nav>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -439,7 +490,7 @@ export function SiteNav({
           aria-label={`תתי-תפריט: ${currentSection.label}`}
           className="border-t bg-muted/20"
         >
-          <div className="mx-auto w-full max-w-7xl overflow-x-auto px-4 py-1.5 sm:px-6 [scrollbar-width:thin]">
+          <div className="mx-auto w-full max-w-7xl overflow-x-auto px-4 py-1.5 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="flex w-max items-center gap-1">
               {currentSection.subs.map((sub) => {
                 const active = section === sub.key;
@@ -450,7 +501,7 @@ export function SiteNav({
                     onClick={() => go(currentSection.view, sub.key)}
                     aria-current={active ? "true" : undefined}
                     className={cn(
-                      "flex h-9 shrink-0 items-center rounded-full px-3.5 text-[13px] font-medium transition-colors",
+                      "flex h-11 shrink-0 items-center rounded-full px-3.5 text-[13px] font-medium transition-colors active:scale-[0.98] md:h-9",
                       active
                         ? "bg-foreground text-background"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"

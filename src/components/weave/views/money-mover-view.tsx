@@ -220,6 +220,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
     <div className="flex flex-col gap-6">
       {/* פתיח */}
       <Section
+        wash
         icon={<Landmark />}
         title="מוביל הכסף — R81"
         description="הדלק לעולם לא יושב: הסולם על קו הפאריטה החי, הדיבון צד הזדמנויות כל דקה, וכל פעולה נמדדת מהשרשרת"
@@ -714,7 +715,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
                               {f.side === "sold-steem" ? (
                                 <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"><ArrowUpRight className="size-3.5" /> מכר STEEM</span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-sky-700 dark:text-sky-400"><ArrowDownLeft className="size-3.5" /> קנה STEEM</span>
+                                <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400"><ArrowDownLeft className="size-3.5" /> קנה STEEM</span>
                               )}
                             </td>
                             <td className="p-2 font-mono tabular-nums">{f.paid}</td>

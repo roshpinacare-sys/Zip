@@ -28,7 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { truncateMiddle } from "../shared";
+import { truncateMiddle, PageWash } from "../shared";
 
 // ── טיפוסים ממופים ל-API החי של הדקס ─────────────────────────────────
 
@@ -478,7 +478,8 @@ export function ExchangeView() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
       {/* כותרת */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="relative isolate mb-6 flex flex-wrap items-center justify-between gap-4">
+        <PageWash className="-inset-x-4 -inset-y-3 rounded-2xl" />
         <div className="flex items-center gap-3">
           <span
             className="flex size-11 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
@@ -699,7 +700,7 @@ export function ExchangeView() {
                               "h-5 px-1.5 text-[10px]",
                               ev.kind === "fill"
                                 ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                                : "border-sky-500/30 text-sky-600 dark:text-sky-400"
+                                : "border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
                             )}
                           >
                             {ev.kind === "fill" ? "מילוי" : "סוופ"}

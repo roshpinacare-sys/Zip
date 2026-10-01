@@ -441,7 +441,7 @@ export function EvolutionView() {
       {/* מה שונה ברשת סוכנית */}
       <motion.section {...f(0.05)} aria-labelledby="agent-diff">
         <h2 id="agent-diff" className="mb-4 flex items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
-          <BrainCircuit className="size-5 text-violet-500/80" aria-hidden="true" />
+          <BrainCircuit className="size-5 text-emerald-500/80" aria-hidden="true" />
           רשת סוכני-AI: שונה, אבל לא חסינה מאליה
         </h2>
         <div className="grid gap-4 md:grid-cols-2">

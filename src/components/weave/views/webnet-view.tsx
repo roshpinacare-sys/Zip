@@ -173,7 +173,7 @@ function StatsStrip({ state }: { state: WebState | null }) {
     {
       key: "residency",
       icon: HardDrive,
-      tone: "border-violet-500/25 bg-violet-500/10 text-violet-600 dark:text-violet-400",
+      tone: "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       label: "תושבות-שרשרת כוללת",
       value: t ? `${t.residencyPct}%` : "—",
       sub: t
@@ -263,9 +263,9 @@ function RcMeter({ rc, active }: { rc: RcProbe | null; active: MigrationEstimate
         </span>
       </div>
       {active ? (
-        <div className="mt-4 rounded-xl border border-violet-500/25 bg-violet-500/5 p-3">
+        <div className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="font-semibold text-violet-700 dark:text-violet-300">הגירה פעילה — החבילה שבדרך</span>
+            <span className="font-semibold text-emerald-700 dark:text-emerald-300">הגירה פעילה — החבילה שבדרך</span>
             <span className="tabular-nums text-muted-foreground">
               נותרו {active.remainingChars.toLocaleString("he-IL")} תווים · ~{active.chunksLeft} צ׳אנקים
             </span>
@@ -518,7 +518,7 @@ function VerifyPanel({ hash, account }: { hash: string; account: string }) {
               תושבות-שרשרת: {report.residencyPct}% ({report.chainChars.toLocaleString("he-IL")}/{report.b64len.toLocaleString("he-IL")} תווים)
             </Badge>
             {report.blockVerifiedChunks > 0 ? (
-              <Badge variant="outline" className="border-violet-500/40 text-violet-700 dark:text-violet-300">
+              <Badge variant="outline" className="border-emerald-500/40 text-emerald-700 dark:text-emerald-300">
                 {report.blockVerifiedChunks} צ׳אנקים אומתו מקריאות-בלוק ממוקדות
               </Badge>
             ) : null}
@@ -661,7 +661,7 @@ function FileBrowser({ hash, entry }: { hash: string; entry?: string }) {
                       <FileText className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                       <span dir="ltr" className="truncate font-mono text-[11px]">{f.name}</span>
                       {f.name === entry ? (
-                        <Badge variant="outline" className="h-4 shrink-0 px-1.5 text-[9px] text-emerald-700 dark:text-emerald-400">
+                        <Badge variant="outline" className="h-4 shrink-0 px-1.5 text-[10px] text-emerald-700 dark:text-emerald-400">
                           כניסה
                         </Badge>
                       ) : null}

@@ -116,7 +116,7 @@ const STATE_META: Record<
   RESTARTING: {
     label: "בהקמה",
     icon: Loader2,
-    cls: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+    cls: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   },
   DOWN: {
     label: "מת",
