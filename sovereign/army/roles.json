@@ -1,0 +1,43 @@
+{
+  "task": "r144-i2",
+  "agent": "army-content-i2",
+  "at": "2026-10-01T22:30:00Z",
+  "roles": [
+    {
+      "role": "content-reviewer",
+      "status": "recruited",
+      "repo": "Domain",
+      "flow": "content-reviewer.yml",
+      "cadence": "daily",
+      "purpose": "duplication+staleness watchdog on public content",
+      "recruitedAt": "2026-10-01T22:24:40Z",
+      "firstRun": {
+        "attempt": 2,
+        "runId": 36935020247,
+        "url": "https://github.com/roshpinacare-sys/Domain/actions/runs/36935020247",
+        "conclusion": "success",
+        "at": "2026-10-01T22:25:58Z",
+        "measured": {
+          "items24h": 24,
+          "pairDuplicationPct": 0.4,
+          "commentLevelDuplicationPct": 8.3,
+          "nearDuplicatePairs": 1,
+          "silentAccounts24h": 0,
+          "issueGate": "not tripped (0.4% <= 30%) - correct",
+          "reportCommit": "c8861cd"
+        }
+      },
+      "honestNote": "first dispatch attempt (run 36934884701) failed on an issue-gate exit-code bug (bash -e ate the gate-not-tripped path); fixed and re-dispatched — run 2 all-green. Dispatch token used at call time from the fleet askpass machinery, never printed.",
+      "pairsWith": "home curation daemon dedupe layer (mini-services/curation/dedupe.ts, :3040) — same duplication math (content-Jaccard, threshold 0.6); the daemon gates casting, the Domain flow measures the public result daily"
+    },
+    {
+      "role": "audience-analyst",
+      "status": "proposed-not-recruited"
+    },
+    {
+      "role": "treasury-auditor",
+      "status": "proposed-not-recruited"
+    }
+  ],
+  "doctrine": "non-exposing by law: public wording says community accounts; no coordination signals in any public artifact (scan-verified clean on agents/content-reviewer.mjs + .github/workflows/content-reviewer.yml)"
+}

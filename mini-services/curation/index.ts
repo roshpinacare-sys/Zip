@@ -39,6 +39,9 @@ import {
   type CurationState,
   type Decision,
 } from "../../src/lib/weave/curation";
+// r144-i2 — שכבת-מניעת-שכפול-תוכן חוצת-חשבונות (תוספת נקייה: אפס-נגיעה
+// באיש-המת, במכסות ובנתיב-ההצבעה; השער מוסיף זיכרון-תגובות + יומן-דדופ)
+import { contentGate, ensureDedupeLog } from "./dedupe";
 
 const PORT = 3040;
 const TICK_SEC = 15 * 60; // פעימה כל 15 דק' — פרישה טבעית של ההצבעות
@@ -130,6 +133,11 @@ async function tick(): Promise<void> {
       candidates: disc.candidates.slice(0, 10), // עשירייה ראשונה בפנקס — השאר בהיסטוריית הלוג
       filtered: disc.filtered,
     };
+
+    // 2.5) r144-i2 — שער-תוכן חוצת-חשבונות: זיכרון-50-התגובות האחרונות של
+    //      כל-החשבונות שלנו, סריקת חפיפה ≥0.6, רישום כנה ב-dedupe-log.json.
+    //      כשל-כנה לא נוגע בהצבעה (fail-soft מלא בתוך contentGate).
+    await contentGate(state as CurationState & { dedupe?: unknown });
 
     // 3) בקרת-בטיחות: השהיה יזומה
     if (state.paused) {
@@ -274,6 +282,7 @@ if (G_CURATION_SRV.__CURATION_SERVER__) {
   });
 }
 
+ensureDedupeLog(); // r144-i2 — יומן-הדדופ חי מהעלייה הראשונה (גם ריק+כותרת)
 saveState();
 console.log(`[curation] חי על פורט ${PORT} · beats=${state.beats} · ${state.armed ? "חמוש" : "גילוי-בלבד (לא חמוש — חימוש בידי המפעיל)"} · הצבעות היום ${state.votesToday}/${CURATION_POLICY.maxVotesPerDay}`);
 tick();
