@@ -1,0 +1,70 @@
+{
+  "format": "treasury-audit-v1",
+  "seq": 3,
+  "at": "2026-10-01T23:51:40.491Z",
+  "verdict": "WARN",
+  "checks": [
+    {
+      "id": "decision-chain",
+      "status": "pass",
+      "detail": "יומן-ההחלטות מאומת — 82 רשומות, שרשרת sha256 תקינה",
+      "numbers": {
+        "entries": 82,
+        "brokenAt": null,
+        "ok": true
+      }
+    },
+    {
+      "id": "pnl-snapshot-chain",
+      "status": "pass",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 3 תמונות (אחרונה seq 3 בת 14 דק')",
+      "numbers": {
+        "entries": 3,
+        "brokenAt": null,
+        "ok": true,
+        "lastSeq": 3
+      }
+    },
+    {
+      "id": "receipts-book",
+      "status": "pass",
+      "detail": "ספר-הקבלות תקין — 60 קבלות · 6 עם txid · אחרונה בת 2 דק'",
+      "numbers": {
+        "total": 60,
+        "withTxid": 6,
+        "outOfOrder": 0,
+        "lastAgeMinutes": 2
+      }
+    },
+    {
+      "id": "ladder-floor",
+      "status": "warn",
+      "detail": "/api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+      "numbers": {
+        "state": "UNMEASURED"
+      }
+    },
+    {
+      "id": "orders-stale",
+      "status": "pass",
+      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
+      "numbers": {
+        "staleCount": 0,
+        "thresholdHours": 48,
+        "oldestHours": null
+      }
+    },
+    {
+      "id": "balances-drift",
+      "status": "warn",
+      "detail": "יתרות-הבית לא נמדדו מ-/api/money — unmeasured",
+      "numbers": {
+        "measured": false
+      }
+    }
+  ],
+  "anomalies": [
+    "warn · ladder-floor: /api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+    "warn · balances-drift: יתרות-הבית לא נמדדו מ-/api/money — unmeasured"
+  ]
+}

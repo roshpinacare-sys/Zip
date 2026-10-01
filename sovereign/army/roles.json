@@ -1,7 +1,7 @@
 {
-  "task": "r144-i2",
-  "agent": "army-content-i2",
-  "at": "2026-10-01T22:30:00Z",
+  "task": "r145-b",
+  "agent": "army-expansion",
+  "at": "2026-10-01T23:49:11.861Z",
   "roles": [
     {
       "role": "content-reviewer",
@@ -32,12 +32,65 @@
     },
     {
       "role": "audience-analyst",
-      "status": "proposed-not-recruited"
+      "status": "recruited",
+      "where": "Domain repo (github.com/roshpinacare-sys/Domain) — agents/audience-analyst.mjs + .github/workflows/audience-analyst.yml (daily 05:37 UTC, keyless, commit + issue gate)",
+      "mission": "daily engagement digest on community-account public content: votes/replies/external-rshares per post, topic resonance by tag, top posts; zero recorded honestly; zero-signal gate after 3 all-zero days",
+      "cadence": "daily (cron 37 5 * * * UTC) + workflow_dispatch",
+      "pairsWith": "home curation daemon (:3040) consumes audience/latest.json → sovereign/audience/latest-digest.json → readResonanceTags() scouting tags; governance loop evidence freshness includes the digest file",
+      "honestNote": "first run executed locally (node agents/audience-analyst.mjs, exit 0) with measured output; workflow_dispatch via the fleet token returned HTTP 204 (run dispatched on main). Numbers come from the chain, zero keys.",
+      "firstRun": {
+        "executedAt": "2026-10-01T23:38:52Z",
+        "method": "local node run + Actions dispatch (HTTP 204)",
+        "conclusion": "success",
+        "measured": {
+          "postsMeasured": 32,
+          "externalVotesTotal": 22,
+          "externalRsharesTotal": 539403566030,
+          "repliesTotal": 38,
+          "postsWithReplies": 19,
+          "conversationSharePct": 59.4,
+          "topics": 7,
+          "topTopic": "hebrew (12 ext votes · 19 replies · 538.6G rshares)",
+          "zeroGateTripped": false
+        }
+      },
+      "recruitedAt": "2026-10-01T23:48:54.367Z",
+      "decisionId": "D-r145-AUD",
+      "seq": 81
     },
     {
       "role": "treasury-auditor",
-      "status": "proposed-not-recruited"
+      "status": "recruited",
+      "where": "home mini-service :3043 (mini-services/treasury-audit · bun --hot · dead-man 60s · fleet-guard DAEMONS+ZOMBIE_WATCH registered, guard version r145-b.1)",
+      "mission": "recurring read-only audit of treasury/economy state with measured pass/fail per check: decisionChain, pnlSnapshotChain, receiptsBook, ladderFloor (valueFloor), ordersStale, balancesDrift vs public chain; anomalies surfaced honestly",
+      "cadence": "audit every 5 minutes (300s), first audit 15s after boot, POST /beat for on-demand",
+      "pairsWith": "money daemon :3034 (audited system), /api/economy/pnl (snapshot chain it verifies), governance loop (last-audit.json in evidence freshness set)",
+      "honestNote": "zero keys, zero writes to money systems — reads localhost + public Steem RPC only. Zero drift / HELD floor are real measurements, not defaults; unmeasured states are recorded as warn, never as fake pass.",
+      "firstRun": {
+        "executedAt": "2026-10-01T23:46:02.916Z",
+        "method": "live daemon boot on :3043 (bun --hot, pid started 23:45:47Z)",
+        "conclusion": "success",
+        "measured": {
+          "auditSeq": 1,
+          "verdict": "PASS",
+          "decisionChain": "pass (80 entries, chain ok)",
+          "pnlSnapshotChain": "pass (3 snapshots)",
+          "receiptsBook": "pass (60 receipts, 5 with txid, 0 out-of-order)",
+          "ladderFloor": "pass (HELD, 2 open orders, 0 below parity)",
+          "ordersStale": "pass (0 stale >48h)",
+          "balancesDrift": "pass (headcorner vs public chain within 0.001)"
+        }
+      },
+      "recruitedAt": "2026-10-01T23:49:11.861Z",
+      "decisionId": "D-r145-TRS",
+      "seq": 82
+    },
+    {
+      "role": "risk-sentinel",
+      "status": "not-recruited-duplication-law",
+      "at": "2026-10-01T23:50:00Z",
+      "reason": "r145-b measured review: the two real risk signals worth watching (ladder valueFloor violations, stale/old open orders) are already first-class checks inside treasury-auditor (:3043, checks ladder-floor + orders-stale) — a separate role would duplicate the auditor 1:1. Re-visit only if a signal class appears that the auditor cannot cover (e.g. account-security or key-custody drift)."
     }
   ],
-  "doctrine": "non-exposing by law: public wording says community accounts; no coordination signals in any public artifact (scan-verified clean on agents/content-reviewer.mjs + .github/workflows/content-reviewer.yml)"
+  "doctrine": "non-exposing by law: public wording says community accounts; no coordination signals in any public artifact (scan-verified clean on agents/content-reviewer.mjs + .github/workflows/content-reviewer.yml). r145-b addition: every recruitment is a signed decision (class army) with first-run measurement as evidence; NO DUPLICATION LAW verified before recruiting."
 }

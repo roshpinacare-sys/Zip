@@ -1,6 +1,6 @@
 {
   "format": "weave-pnl-snapshots-v1",
-  "savedAt": "2026-10-01T22:38:36.407Z",
+  "savedAt": "2026-10-01T23:38:07.470Z",
   "entries": [
     {
       "seq": 1,
@@ -210,6 +210,111 @@
       ],
       "prevHash": "90d7c2dca6dc456469e36cd2a4136c64d80e252f0d2c55afa398a501c16e5a58",
       "entryHash": "16c4e51976e8676e974125fde5e018d1e48c45d002dcc033693dc041447b7f2f"
+    },
+    {
+      "seq": 3,
+      "at": "2026-10-01T23:38:07.470Z",
+      "account": "headcorner",
+      "realized": {
+        "measured": true,
+        "fillsTotal": 73,
+        "trips": 65,
+        "capturedSbd": -1.118787,
+        "capturedUsd": -0.7204,
+        "netSteem": -713.712,
+        "netSbd": 72.131,
+        "openLongSteem": 0,
+        "firstFillAt": "2026-09-10T20:48:42Z",
+        "lastFillAt": "2026-10-01T23:18:51Z",
+        "note": "FIFO על fill_order אמיתיים מהשרשרת (צ'קפוינט 2026-10-01T23:36:47.188Z) · סבב נסגר רק במכירה שסוגרת קנייה; מלאי פתוח אינו רווח"
+      },
+      "unrealized": {
+        "measured": true,
+        "ordersOpen": 2,
+        "deployedSteem": 46.873,
+        "ladderPremiumSbd": 0.0737,
+        "ladderPremiumUsd": 0.0475,
+        "ordersBelowParity": 0,
+        "openLongMarkSbd": 0,
+        "openLongMarkUsd": 0,
+        "bidsOpenSbd": 0.15,
+        "note": "פרמיית-הסולם = Σ(amount×(price−parity)) על פקודות-המכירה הפתוחות מול הפאריטה החיה (oracle:steemUsd/sbdUsd) · מלאי פתוח מסומן לפאריטה"
+      },
+      "marks": {
+        "parity": 0.099254,
+        "paritySource": "oracle:steemUsd/sbdUsd",
+        "steemUsd": 0.06391,
+        "sbdUsd": 0.643904,
+        "sbdSource": "console:money.json@2026-10-01T23:33Z"
+      },
+      "sources": {
+        "fills": "chain:fill_order (steem get_account_history) via sovereign/money/pnl-scan.json checkpoint savedAt=2026-10-01T23:36:47.188Z maxIndex=58266 — כל מילוי נושא אינדקס-ראיה (idx)",
+        "ordersAndMarks": "live /api/money → condenser_api.get_open_orders + get_order_book (כל פקודה נושאת orderid; פאריטה: oracle:steemUsd/sbdUsd)",
+        "receipts": "sovereign/money/history.json (money daemon MoverReceipts — txid לכל cancel/create)",
+        "usdConversion": "SBD→USD בשער-היום בלבד: 0.643904 (console:money.json@2026-10-01T23:33Z) — שער היסטורי לא נמדד כאן"
+      },
+      "receipts": {
+        "total": 60,
+        "withTxid": 6,
+        "lastAt": "2026-10-01T23:34:24.370Z",
+        "lastKinds": [
+          "FLEET-COMPOUND",
+          "FLEET-COMPOUND",
+          "FLEET-COMPOUND",
+          "CHAIN-COMPOUND-FAIL",
+          "SAOS-REWARD"
+        ],
+        "lastTxids": [
+          "0152f0f73b274d5ae1ecbed6577650c2d778f27b",
+          "e566b34b30163641662750b4f1aafc1327b1f2e7",
+          "de58161bd91d433dfae39d1404e8f45622f8cc31",
+          "54c5fdea691502ee87bb0f2f2befb4f93efcdd5d"
+        ]
+      },
+      "fillsLast": [
+        {
+          "idx": 58247,
+          "at": "2026-10-01T22:18:36Z",
+          "side": "sold-steem",
+          "price": 0.100014,
+          "steem": 255.825,
+          "sbd": 25.586
+        },
+        {
+          "idx": 58254,
+          "at": "2026-10-01T22:48:33Z",
+          "side": "sold-steem",
+          "price": 0.100006,
+          "steem": 85.275,
+          "sbd": 8.528
+        },
+        {
+          "idx": 58256,
+          "at": "2026-10-01T22:48:39Z",
+          "side": "sold-steem",
+          "price": 0.100006,
+          "steem": 85.275,
+          "sbd": 8.528
+        },
+        {
+          "idx": 58261,
+          "at": "2026-10-01T23:18:33Z",
+          "side": "sold-steem",
+          "price": 0.099982,
+          "steem": 28.425,
+          "sbd": 2.842
+        },
+        {
+          "idx": 58265,
+          "at": "2026-10-01T23:18:51Z",
+          "side": "sold-steem",
+          "price": 0.100231,
+          "steem": 9.977,
+          "sbd": 1
+        }
+      ],
+      "prevHash": "16c4e51976e8676e974125fde5e018d1e48c45d002dcc033693dc041447b7f2f",
+      "entryHash": "020dd7b640f384645ae1167fe821651ce34ead921607f6a1a711aee97c0781fe"
     }
   ]
 }
