@@ -194,6 +194,10 @@ async function measureEvidenceFreshness(): Promise<Array<{ file: string; ageMinu
     // r146-b — ראיית-הסייר: דיג'סט-החוץ של scout-market (D-r146-SCOUT) —
     // שוק/תחרות/מועמד-פריצה מהרשת הפתוחה; החלטה שלא רואה את-העולם = החלטה-עיוורת
     `${HOME}/sovereign/scout/latest-digest.json`,
+    // r147-biz — ראיית-החממה: רישום-העסקים + פרוטוקול-החשיבה (D-r147-BIZ) —
+    // החלטה שלא רואה את עסקי-הרשת, שורות-ההרג שלהם וחוקי-הקיבולת = החלטה עיוורת-כלכלית
+    `${HOME}/sovereign/businesses/registry.json`,
+    `${HOME}/sovereign/businesses/protocol.md`,
   ];
   const out: Array<{ file: string; ageMinutes: number }> = [];
   const now = Date.now();
