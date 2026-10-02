@@ -36,6 +36,7 @@ import {
   Repeat,
   Scale,
   ShieldCheck,
+  Store,
   Users,
   Waypoints,
 } from "lucide-react";
@@ -60,6 +61,7 @@ export type SiteView =
   | "hunter"
   | "flywheel"
   | "money-market"
+  | "business"
   | "holdings"
   | "publish"
   | "defi"
@@ -99,6 +101,13 @@ export const SECTIONS: Array<{
       { key: "arena", label: "זירת-המסחר הריבונית" },
       { key: "markets", label: "שווקי ההלוואות" },
     ],
+  },
+  // R148 · החזית החיה של חממת-העסקים (D-r147-BIZ) — רישום, מספרים מדודים ושורות-הרג
+  {
+    view: "business",
+    label: "עסקים",
+    icon: Store,
+    subs: [{ key: "desk", label: "דלפק" }],
   },
   {
     view: "holdings",

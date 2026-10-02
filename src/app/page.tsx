@@ -31,6 +31,7 @@ import { PlanTab } from "@/components/weave/tabs/plan-tab";
 import { SovereigntyTab } from "@/components/weave/tabs/sovereignty-tab";
 import { BrainView } from "@/components/weave/views/brain-view";
 import { BrowserView } from "@/components/weave/views/browser-view";
+import { BusinessesView } from "@/components/weave/views/businesses-view";
 import { DomainsView } from "@/components/weave/views/domains-view";
 import { DoctrineView } from "@/components/weave/views/doctrine-view";
 import { EvolutionView } from "@/components/weave/views/evolution-view";
@@ -105,6 +106,9 @@ function SectionBody({ view, section, query }: Route) {
     case "money-market":
       // המוביל (R81) ראשון · השוק הבין-רשתי (R94) שני · הכלכלה הריבונית (R98) שלישי · זירת-המסחר (R102) רביעי · ההלוואות אחרונות
       return section === "markets" ? <MoneyMarketView /> : section === "flows" ? <EconomyFlowView /> : section === "cross" ? <CrossMarketView /> : section === "arena" ? <SovereignArenaView /> : <MoneyMoverView />;
+    case "business":
+      // R148 · חממת-העסקים — דלפק אחד, רישום חי
+      return <BusinessesView />;
     case "holdings":
       return <HoldingsAuditView section={section} />;
     case "publish":
