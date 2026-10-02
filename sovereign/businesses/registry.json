@@ -54,6 +54,23 @@
       "budgetCap": "3/שבוע קשוח · אפס-כפילות: המנועים הקיימים עושים את העבודה, הדלפק רק מפרסם",
       "metricSource": "sovereign/curation/duplication-audit-*.json + קבלות truth-fix ב-Domain",
       "reviewCadence": "חודשי"
+    },
+    {
+      "id": "B-4-public-feed-desk",
+      "nameHe": "דלפק-הפיד הציבורי",
+      "stage": "PILOT",
+      "thesisHe": "ממשקי-ה-JSON הציבוריים של הרשת (pulse · businesses · kpi) הם מוצר-נתונים בפני עצמו: מתועדים בקטלוג-עצמי (/api/businesses/docs), כן — כל מספר עם measuredAt+source, אפס-סודות, אפס-זיוף — ורצים על המסילות שלנו: גינה ציבורית, לא ברז-שכור.",
+      "demandEvidence": "הפיד חי מאז r147-c (commit b5c291d) עם שדות-מדידה אמת · קהל-חוץ מדוד (sovereign/audience/latest-digest.json, 2026-10-02): 32 הצבעות-חוץ על 38 פוסטים · 540.1G rshares-חוץ · 43 תגובות של 16 מגיבים-חוץ · ביקוש-מדוד ל-API עצמו: 0 — מוני-השימוש (r148-d) חיים עכשיו ומדווחים בשדה usage של /api/businesses ו-/api/public/pulse",
+      "unitEconomics": {
+        "cost": "≈0 — אותן מסילות, אפס תשתית-חדשה; מונים בזיכרון + כתיבה-אטומית מדוחסת (60ש')",
+        "output": "בקשות-API מדודות + אימוץ-חוץ (external adoption)",
+        "measuredNow": 0,
+        "target": "בסיס-מדידה על 30 יום — כמה שימוש אמת"
+      },
+      "killLine": "30 יום עם אפס-שימוש חוץ-רשת מדוד → הכרעת-פורמט בשרשרת",
+      "budgetCap": "אפס פעולות — קריאה בלבד, מונים בלבד",
+      "metricSource": "GET /api/businesses + sovereign/businesses/feed-metrics.json",
+      "reviewCadence": "חודשי"
     }
   ],
   "capacityLawHe": "חוק-הקיבולת (מהלקח מ-governor של clodfarm): הפסקות-קשות מול קצב-רך · אף עסק לא חורג מתקציב-הפעולות הגלובלי · איבוד-מודע לא שורף תקציב (D-r147-ECO) · לעולם לא מעל-התקרה.",

@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 170,
-  "at": "2026-10-02T12:51:40.854Z",
-  "verdict": "FAIL",
+  "seq": 186,
+  "at": "2026-10-02T13:01:40.856Z",
+  "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 115 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 116 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 115,
+        "entries": 116,
         "brokenAt": null,
         "ok": true
       }
@@ -17,23 +17,23 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 6 תמונות (אחרונה seq 6 בת 74 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 7 תמונות (אחרונה seq 7 בת 4 דק')",
       "numbers": {
-        "entries": 6,
+        "entries": 7,
         "brokenAt": null,
         "ok": true,
-        "lastSeq": 6
+        "lastSeq": 7
       }
     },
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 113 קבלות · 10 עם txid · אחרונה בת 1 דק'",
+      "detail": "ספר-הקבלות תקין — 116 קבלות · 10 עם txid · אחרונה בת 2 דק'",
       "numbers": {
-        "total": 113,
+        "total": 116,
         "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 1
+        "lastAgeMinutes": 2
       }
     },
     {
@@ -60,20 +60,18 @@
     },
     {
       "id": "balances-drift",
-      "status": "fail",
-      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 0 · דריפת SBD -0.5 (אנומליה)",
+      "status": "pass",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 4.886 · SBD 0.618 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 5.386,
-        "homeSbd": 0.568,
-        "chainSteem": 5.386,
-        "chainSbd": 1.068,
+        "homeSteem": 4.886,
+        "homeSbd": 0.618,
+        "chainSteem": 4.886,
+        "chainSbd": 0.618,
         "driftSteem": 0,
-        "driftSbd": -0.5
+        "driftSbd": 0
       }
     }
   ],
-  "anomalies": [
-    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 0 · דריפת SBD -0.5 (אנומליה)"
-  ]
+  "anomalies": []
 }
