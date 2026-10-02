@@ -653,7 +653,18 @@ async function act(
     "",
     `_מופק אוטונומית על-ידי money-mover v${state.version} (R101 · HIVE leg + stock-sbd + vault)._`,
   ].join("\n");
-  await canonPush(`reports/money-${utcDay()}.md`, receipt);
+  // Z-30-c NOISE LAW (cross-agent mutual review 2026-10-02): the daily receipt
+  // file is overwritten via the contents API — every call = one commit. FAIL
+  // ticks were committing a receipt every ~6min (11/12 budget burned on
+  // REPRICE-FAIL with zero placements), burying real commits in the shared
+  // repo. Gate: commit when the tick MOVED something or ≥60min since the last
+  // receipt commit; every decision still lands in history — honesty without spam.
+  {
+    const moved = placed.length > 0 || cancelled.length > 0;
+    const lastAt = state.canonLast?.at ? Date.parse(state.canonLast.at) : 0;
+    const due = moved || Date.now() - (isNaN(lastAt) ? 0 : lastAt) >= 60 * 60_000;
+    if (due) await canonPush(`reports/money-${utcDay()}.md`, receipt);
+  }
   return !!r.ok; // אמת-הפעולה עולה לקורא (גם ל-/act) — לא "הוזנק" בלבד
 }
 

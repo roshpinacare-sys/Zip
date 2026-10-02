@@ -321,6 +321,15 @@ function readPat(): string | null {
 
 async function flushCanon() {
   if (!pendingCanon.length) return;
+  // Z-30-c NOISE LAW (cross-agent mutual review 2026-10-02): receipt commits at
+  // most once per 60min unless the batch carries a critical event — RESTART
+  // receipts were landing every ~10min (8/8 budget burned by 10:34Z), burying
+  // real commits. Events accumulate in pendingCanon and still land, batched.
+  {
+    const lastOk = state.canonLast && state.canonLast.ok ? Date.parse(state.canonLast.at) : 0;
+    const critical = pendingCanon.some((e) => /GAVE-UP|SERVER|REVIV/i.test(`${e.kind} ${e.detail}`));
+    if (!critical && Date.now() - (isNaN(lastOk) ? 0 : lastOk) < 60 * 60_000) return;
+  }
   if (state.canonDay !== utcDay()) {
     state.canonDay = utcDay();
     state.canonToday = 0;
