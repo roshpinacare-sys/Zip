@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 130,
-  "at": "2026-10-02T12:26:40.856Z",
+  "seq": 170,
+  "at": "2026-10-02T12:51:40.854Z",
   "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 113 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 115 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 113,
+        "entries": 115,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 6 תמונות (אחרונה seq 6 בת 49 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 6 תמונות (אחרונה seq 6 בת 74 דק')",
       "numbers": {
         "entries": 6,
         "brokenAt": null,
@@ -28,9 +28,9 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 102 קבלות · 10 עם txid · אחרונה בת 1 דק'",
+      "detail": "ספר-הקבלות תקין — 113 קבלות · 10 עם txid · אחרונה בת 1 דק'",
       "numbers": {
-        "total": 102,
+        "total": 113,
         "withTxid": 10,
         "outOfOrder": 0,
         "lastAgeMinutes": 1
@@ -39,19 +39,19 @@
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (10 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (11 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 10
+        "ordersOpen": 11
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (10 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (11 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -64,10 +64,10 @@
       "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 0 · דריפת SBD -0.5 (אנומליה)",
       "numbers": {
         "measured": true,
-        "homeSteem": 5.836,
-        "homeSbd": 0.573,
-        "chainSteem": 5.836,
-        "chainSbd": 1.073,
+        "homeSteem": 5.386,
+        "homeSbd": 0.568,
+        "chainSteem": 5.386,
+        "chainSbd": 1.068,
         "driftSteem": 0,
         "driftSbd": -0.5
       }
