@@ -57,7 +57,11 @@ bun scripts/sovereign-guard.mjs --selftest >/dev/null 2>&1 && ok "selftest-הש�
 [ -x .git/hooks/pre-commit ] && ok "pre-commit-השער מותקן (scan-mode: סודות+sh)" || bad "pre-commit חסר — ריצה: bun scripts/sovereign-guard.mjs --install"
 [ -f sovereign/guard/blocked.jsonl ] && ok "יומן-הראיה חי ($(wc -l < sovereign/guard/blocked.jsonl) אירועים-מתועדים)" || ok "יומן-ראיה ריק (עדיין לא נחסם דבר)"
 
-head "6. ה-harness עצמו"
+head "6. הוכחת-הריבונות (scorecard מול Emergence World · r154)"
+bun scripts/sovereignty-proof.mjs 2>/dev/null | grep -q '"failed":0' && ok "scorecard: כל-מצבי-הכישלון-של-המחקר חסומים (PROVEN)" || bad "scorecard אדום — ריצה: bun scripts/sovereignty-proof.mjs"
+[ -f sovereign/bloc/EMERGENCE-scorecard.json ] && ok "ראיה: sovereign/bloc/EMERGENCE-scorecard.json"
+
+head "7. ה-harness עצמו"
 for F in feature_list.json progress.md session-handoff.md AGENTS.md; do
   [ -f "$F" ] && ok "$F קיים" || bad "$F חסר"
 done

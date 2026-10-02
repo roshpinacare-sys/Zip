@@ -1,8 +1,8 @@
 {
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
-  "last_updated": "2026-10-02T22:55:00Z",
-  "active_feature": "r153-sovereign-guard-dcg",
+  "last_updated": "2026-10-02T23:10:00Z",
+  "active_feature": "r154-emergence-sovereignty-proof",
   "features": [
     {
       "id": "F-1",
@@ -125,6 +125,20 @@
         "F-6"
       ],
       "next_step": "החסימות-האמתיות-של-הסוכנים ייאספו ב-blocked.jsonl — סקירת-המונים בכל-גל; אם-חבילה-מייצרת false-positive חוזר — הקפדה-מנומקת-בראיה"
+    },
+    {
+      "id": "F-11",
+      "name": "הוכחת-הריבונות מול Emergence World (scorecard רץ)",
+      "status": "running",
+      "description": "Executable proof engine comparing every documented failure mode of the Emergence World Season 2 research (683 crimes despite written prohibitions; cross-contamination; passive death; rubber-stamp democracy; phase transitions too fast for monitor-and-intervene) against this network's live countermeasures, each with a real-time measurement and evidence path. Roast + full comparison in sovereign/bloc/EMERGENCE-WORLD-roast.md.",
+      "evidence_path": "sovereign/bloc/EMERGENCE-scorecard.json",
+      "last_verified_at": "2026-10-02T23:07:00Z",
+      "evidence": "9/9 PROVEN בריצה-הראשונה (23:06:52Z): E1 selftest-60/60+hook · E1b CAP=16 · E2 roles=7+wired · E3 beats=2999/ticks=12 · E4 147-החלטות/30-עדויות · E5 kill-armed · E6 שערים-2/2 · E7 worklog-5891-שורות · E8 sealed · init.sh סעיף 6",
+      "dependencies": [
+        "F-10",
+        "F-6"
+      ],
+      "next_step": "הרצה-בכל-גל (init.sh); אם-מצב-כישלון-חדש-מתפרסם-במחקר-ההמשך — הוספת-בדיקה-מקבילה-ל-scorecard"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."

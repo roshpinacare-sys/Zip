@@ -1,15 +1,15 @@
-# session-handoff — מסירת-סשן (harness · r153)
+# session-handoff — מסירת-סשן (harness · r154)
 
-**Last Updated:** 2026-10-02T22:55Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-02:01Z אמת-נחיתת-powerdown-ופריסת-דלק-אוטונומית (חוק-4) · טיק-מפעל-ראשון-עם-שכבת-תפקיד ~03:42Z.
+**Last Updated:** 2026-10-02T23:10Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-02:01Z אמת-נחיתת-powerdown-ופריסת-דלק-אוטונומית (חוק-4) · טיק-מפעל-ראשון-עם-שכבת-תפקיד ~03:42Z.
 
 > מטרה: כל סשן חדש עובד תוך דקות. עדכן בסוף-כל-סשן. אין סודות בקובץ זה.
 
-## מצב-עתה (עודכן: 2026-10-02T22:55Z)
+## מצב-עתה (עודכן: 2026-10-02T23:10Z)
 
 - **קומיט:** local==origin==(ראש-השרשרת-החי; תמיד אמת ב-init.sh). תמיד `git pull --rebase --autostash` לפני-עבודה — יש סשנים-מקבילים + עוגנים-אוטומטיים. **rebase-חשוף עתה נחסם-על-ידי-השער (git.race).**
-- **צי-החיים (נמדד 22:37–22:45Z):** 3000 בית · 3034 money-mover (2,973 פעימות · 60ש') · 3038 fleet-verify · 3040 קיורציה · 3041 kpi-scribe · 3042 governance · 3043 treasury-audit · 3044 scout-market · 3045 business-engine (85 ticks) · 3046 מפעל-תוכן (12 ticks · 2 פוסטים · 12 הצבעות בפוסט-האחרון).
+- **צי-החיים (נמדד 22:37–23:07Z):** 3000 בית · 3034 money-mover (2,999 פעימות · 60ש') · 3038 fleet-verify · 3040 קיורציה · 3041 kpi-scribe · 3042 governance · 3043 treasury-audit · 3044 scout-market · 3045 business-engine (85 ticks) · 3046 מפעל-תוכן (12 ticks · 2 פוסטים · 12 הצבעות בפוסט-האחרון).
 - **הכנסה (כנה):** קיורציה = הנתיב-הראשי (4,285 SP על 6% משקל) · מפעל-תוכן: 22 הצבעות-חוץ + 1 תגובה + 0.006 SBD ביום-הוול · מיקרו-גריד: PnL ממומש −1.119 SBD — הודק r151, מדידת-השפעה ~2026-10-09.
-- **ריבונות-הסוכנים (r152+r153):** (1) ספריית-תפקידי-מומחה — R1+R2 wired למפעל · (2) **שער-ההרג sovereign-guard חי** — selftest 60/60 · pre-commit אוטומטי (סודות+sh) · חסימת-ראיה ב-blocked.jsonl · init.sh סעיף 5 מאמת-בכל-ריצה.
+- **ריבונות-הסוכנים (r152→r154):** (1) ספריית-תפקידים — R1+R2 wired · (2) שער-ההרג sovereign-guard — selftest 60/60 · pre-commit · חסימות-מתועדות · (3) **הוכחת-הריבונות — PROVEN 9/9 מול Emergence World (מנוע רץ + init.sh סעיף 6)**.
 
 ## חסמים (blockers)
 
@@ -35,6 +35,7 @@
 | רישום-העסקים | sovereign/businesses/registry.json · ONE-READ.md (למפעיל) |
 | ספריית-תפקידי-מומחה | sovereign/agents/role-library.json (prompts.chat · r152) |
 | שער-ההרג | scripts/sovereign-guard.mjs · sovereign/guard/blocked.jsonl+stats+selftest (r153) |
+| הוכחת-הריבונות | scripts/sovereignty-proof.mjs · sovereign/bloc/EMERGENCE-scorecard.json · EMERGENCE-WORLD-roast.md (r154) |
 | מארזי-הכרעה | sovereign/bloc/D-TREASURY-evidence.md · WEAVE_PUBLIC_URL-one-read.md |
 | יומן-העבודה המלא | worklog.md (append בלבד) |
 | סודות (מקומי) | upload/pat.env · upload/headcorner.txt — לעולם לא בגיט |
