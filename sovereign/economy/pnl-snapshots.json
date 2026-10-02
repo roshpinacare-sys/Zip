@@ -1,6 +1,6 @@
 {
   "format": "weave-pnl-snapshots-v1",
-  "savedAt": "2026-10-02T00:34:43.267Z",
+  "savedAt": "2026-10-02T10:25:13.528Z",
   "entries": [
     {
       "seq": 1,
@@ -422,6 +422,113 @@
       ],
       "prevHash": "020dd7b640f384645ae1167fe821651ce34ead921607f6a1a711aee97c0781fe",
       "entryHash": "b303de5d7e1b7d5e6e7350da2b081b9ab21de875cc55014b4516d7b766f64073"
+    },
+    {
+      "seq": 5,
+      "at": "2026-10-02T10:25:13.528Z",
+      "account": "headcorner",
+      "realized": {
+        "measured": true,
+        "fillsTotal": 87,
+        "trips": 65,
+        "capturedSbd": -1.118787,
+        "capturedUsd": -0.7248,
+        "netSteem": -857.932,
+        "netSbd": 86.575,
+        "openLongSteem": 0,
+        "firstFillAt": "2026-09-10T20:48:42Z",
+        "lastFillAt": "2026-10-02T10:15:06Z",
+        "note": "FIFO על fill_order אמיתיים מהשרשרת (צ'קפוינט 2026-10-02T10:25:13.527Z) · סבב נסגר רק במכירה שסוגרת קנייה; מלאי פתוח אינו רווח"
+      },
+      "unrealized": {
+        "measured": true,
+        "ordersOpen": 7,
+        "deployedSteem": 2.14,
+        "ladderPremiumSbd": 0.017042,
+        "ladderPremiumUsd": 0.011,
+        "ordersBelowParity": 0,
+        "openLongMarkSbd": 0,
+        "openLongMarkUsd": 0,
+        "bidsOpenSbd": 78.145,
+        "note": "פרמיית-הסולם = Σ(amount×(price−parity)) על פקודות-המכירה הפתוחות מול הפאריטה החיה (oracle:steemUsd/sbdUsd) · מלאי פתוח מסומן לפאריטה"
+      },
+      "marks": {
+        "parity": 0.099513,
+        "paritySource": "oracle:steemUsd/sbdUsd",
+        "steemUsd": 0.06447,
+        "sbdUsd": 0.647855,
+        "sbdSource": "console:money.json@2026-10-02T10:18Z"
+      },
+      "sources": {
+        "fills": "chain:fill_order (steem get_account_history) via sovereign/money/pnl-scan.json checkpoint savedAt=2026-10-02T10:25:13.527Z maxIndex=59477 — כל מילוי נושא אינדקס-ראיה (idx)",
+        "ordersAndMarks": "live /api/money → condenser_api.get_open_orders + get_order_book (כל פקודה נושאת orderid; פאריטה: oracle:steemUsd/sbdUsd)",
+        "receipts": "sovereign/money/history.json (money daemon MoverReceipts — txid לכל cancel/create)",
+        "usdConversion": "SBD→USD בשער-היום בלבד: 0.647855 (console:money.json@2026-10-02T10:18Z) — שער היסטורי לא נמדד כאן"
+      },
+      "receipts": {
+        "total": 92,
+        "withTxid": 10,
+        "lastAt": "2026-10-02T10:23:18.317Z",
+        "lastKinds": [
+          "REPRICE-FAIL",
+          "FLEET-COMPOUND",
+          "FLEET-PAY",
+          "CHAIN-COMPOUND-FAIL",
+          "SAOS-REWARD"
+        ],
+        "lastTxids": [
+          "f05860f1fcffcb7bf390982f9286ec299ddf7ebe",
+          "49efacb811d8e7ee02e96597c83cab77bdf989ad",
+          "f65cbb432908a0a5a875f63f9bf6e65dfec00757",
+          "63d8b7dc9fa9ee7f14252009dde512dad8827ed2",
+          "6e23e488b854a08ee75c85b133063b62b5870f98",
+          "082b6a8d10b2dd53438c3c19010347527b292965"
+        ]
+      },
+      "fillsLast": [
+        {
+          "idx": 59024,
+          "at": "2026-10-02T04:01:03Z",
+          "side": "sold-steem",
+          "price": 0.100517,
+          "steem": 34.641,
+          "sbd": 3.482
+        },
+        {
+          "idx": 59034,
+          "at": "2026-10-02T09:43:54Z",
+          "side": "sold-steem",
+          "price": 0.100251,
+          "steem": 0.399,
+          "sbd": 0.04
+        },
+        {
+          "idx": 59036,
+          "at": "2026-10-02T09:44:00Z",
+          "side": "sold-steem",
+          "price": 0.100251,
+          "steem": 0.399,
+          "sbd": 0.04
+        },
+        {
+          "idx": 59038,
+          "at": "2026-10-02T09:44:03Z",
+          "side": "sold-steem",
+          "price": 0.100251,
+          "steem": 0.399,
+          "sbd": 0.04
+        },
+        {
+          "idx": 59455,
+          "at": "2026-10-02T10:15:06Z",
+          "side": "sold-steem",
+          "price": 0.1,
+          "steem": 0.16,
+          "sbd": 0.016
+        }
+      ],
+      "prevHash": "b303de5d7e1b7d5e6e7350da2b081b9ab21de875cc55014b4516d7b766f64073",
+      "entryHash": "5b5c92b65c241f7ef8a90e10c98b5baba84fafe4073206254bafbba1c20dc30c"
     }
   ]
 }

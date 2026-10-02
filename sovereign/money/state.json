@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
   "version": "1.9.0",
-  "bootedAt": "2026-10-02T09:42:17.883Z",
-  "beats": 2503,
+  "bootedAt": "2026-10-02T10:22:47.825Z",
+  "beats": 2521,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -12,6 +12,9 @@
     },
     "cooldownMin": 30,
     "actionsBudgetPerDay": 12,
+    "fillDeploy": {
+      "cooldownMin": 5
+    },
     "armBuy": {
       "minSbd": 0.15,
       "offsetsBps": [
@@ -39,65 +42,30 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-02T10:14:56.457Z",
-  "actionsToday": 4,
+  "lastActionAt": "2026-10-02T10:35:15.661Z",
+  "actionsToday": 8,
   "actionDay": "2026-10-02",
-  "acting": true,
+  "acting": false,
   "lastDecision": {
-    "at": "2026-10-02T10:14:56.457Z",
-    "kind": "ACTING",
-    "detail": "נזיל 17.285 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)"
+    "at": "2026-10-02T10:38:47.919Z",
+    "kind": "WAIT-COOLDOWN",
+    "detail": "WAIT-COOLDOWN · עוד 2 דק' · FILL-DEPLOY חמוש (מילוי נמדד) · WAIT-COOLDOWN · עוד 27 דק'"
   },
   "canonLast": {
-    "at": "2026-10-02T09:45:05.752Z",
+    "at": "2026-10-02T10:35:18.061Z",
     "ok": true,
     "path": "reports/money-2026-10-02.md"
   },
-  "fillsSeen": 12,
-  "lastDepositScanAt": "2026-10-02T10:14:30.676Z",
+  "fillsSeen": 14,
+  "fillDeployPending": true,
+  "lastDepositScanAt": "2026-10-02T10:34:47.867Z",
   "lastStreamDay": "2026-09-27",
-  "lastTotalSteem": 18.785,
+  "lastTotalSteem": 12.141,
   "fleetSeen": {
     "pulseDay": "2026-10-02",
     "studentDay": "2026-10-02",
-    "keeperRestartAt": "2026-10-02T00:34:24.246Z"
+    "keeperRestartAt": "2026-10-02T10:34:17.809Z"
   },
-  "lastPoolGuardAt": "2026-10-02T10:05:41.446Z",
-  "lastFleetSweepAt": "2026-10-02T10:14:54.678Z",
-  "lastReceipt": {
-    "at": "2026-10-02T10:14:57.466Z",
-    "kind": "REPRICE",
-    "reason": "נזיל 17.285 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)",
-    "parity": 0.099745,
-    "cancelled": [
-      {
-        "orderid": 2100000574,
-        "txid": "efa818309db5d50dc86784f0b274c0dcccfcb1f5"
-      },
-      {
-        "orderid": 2100000575,
-        "txid": "a85e149af47db9079c9202b80e71f6cc1e3e7c05"
-      },
-      {
-        "orderid": 2100000576,
-        "txid": "97f0d314cada05c2898512f6059160c60aec9014"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026100201,
-        "sell": 0.16,
-        "receive": 0.016,
-        "price": 0.1,
-        "txid": "f05860f1fcffcb7bf390982f9286ec299ddf7ebe"
-      },
-      {
-        "orderid": 2026100202,
-        "sell": 0.16,
-        "receive": 0.017,
-        "price": 0.10625,
-        "txid": "49efacb811d8e7ee02e96597c83cab77bdf989ad"
-      }
-    ]
-  }
+  "lastPoolGuardAt": "2026-10-02T10:38:47.861Z",
+  "lastFleetSweepAt": "2026-10-02T10:35:15.048Z"
 }
