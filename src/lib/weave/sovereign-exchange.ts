@@ -1812,8 +1812,11 @@ export interface ExchangeSnapshot {
   treasury: Balances;
   members: Array<{ member: string; balances: Balances }>;
   prices: Record<string, number | null>;
-  recentEvents: Array<ChainedEvent & { usdValue?: number | null; createdAt?: string }>;
+  recentEvents: Array<ChainedEvent & { usdValue?: number | null; createdAt?: string; truthClass?: "SIM" }>;
   bookIntegrity: { events: number; headHash: string | null; recomputeOk: boolean | null };
+  /** r145-a — חוק אמת-הספרים: הזירה הזאת היא ספר-תביעות פנימי (SIM-class) —
+   *  המדינות המלאות (realBooks/simBooks + מונים) חשופות בשדה truth */
+  truth: Awaited<ReturnType<typeof import("@/lib/weave/book-truth").bookTruth>>;
   depositDoor: { memo: string; treasury: string; chain: string; doors: Array<{ chain: string; account?: string; address?: string; hint?: string }> };
   note: string;
 }
@@ -1914,8 +1917,16 @@ export async function exchangeSnapshot(): Promise<ExchangeSnapshot> {
     recentEvents: events.map((e) => ({
       seq: e.seq, kind: e.kind, member: e.member, payload: e.payload, prevHash: e.prevHash, hash: e.hash,
       usdValue: e.usdValue ?? null, createdAt: e.createdAt?.toISOString?.() ?? String(e.createdAt),
+      // r145-a — תיוג-שורה מפורש: כל אירוע בספר הזה SIM-class (ספר-תביעות
+      // פנימי hash-chained) — אף צופה לא יכול לקרוא לו פעילות-שרשרת.
+      truthClass: "SIM" as const,
     })),
     bookIntegrity: { events: all.length, headHash, recomputeOk: all.length > 0 ? recomputeOk : null },
+    // r145-a — אמת-הספרים: הספר הזה SIM-class — המדינות נמדדות ונחשפות כאן
+    truth: await (async () => {
+      const { bookTruth } = await import("@/lib/weave/book-truth");
+      return bookTruth();
+    })(),
     depositDoor: {
       memo: "wx:<member>",
       treasury: TREASURY,

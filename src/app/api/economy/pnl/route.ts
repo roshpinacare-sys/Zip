@@ -18,6 +18,7 @@
 import { NextResponse } from "next/server";
 import { appendDecision, readDecisionLog, verifyDecisionLog } from "@/lib/weave/sovereign-decisions";
 import { computePnl, snapshotIfStale, verifySnapshots } from "@/lib/economy/pnl-ledger";
+import { bookTruth } from "@/lib/weave/book-truth"; // r145-a — אמת-הספרים (SIM vs REAL)
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -94,6 +95,10 @@ export async function GET(req: Request) {
       unmeasured: pnl.unmeasured,
       snapshot,
       decision,
+      // r145-a — חוק אמת-הספרים: הפנקס הזה REAL (מקבלות-שרשרת); המדינות המלאות
+      // (realBooks/simBooks + מונים) חשופות כאן — שום ספר-תביעות פנימי לא יכול
+      // להיות מוצג כאמת-שרשרת.
+      truth: await bookTruth(),
       snapshotChain: verifySnapshots(),
       decisionChain: verifyDecisionLog(),
       doctrine: [

@@ -48,7 +48,7 @@ const POLICY = {
   triggers: { parityDriftBps: 50, floorBps: -50, idleTriggerSteem: 1 },
   cooldownMin: 30,
   actionsBudgetPerDay: 12,
-  armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300] }, // R97 — צד הקנייה של המיקרו-גריד
+  armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300, 400, 500] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות (עומק-אמיתי לפי מלאי-חימוש ב-/api/money)
   hive: { driftBps: 50 },
   stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
   rewards: { saosPerFill: 2, member: "money-mover" }, // R103 — עבודה→מטבע→נזילות
@@ -159,7 +159,10 @@ function saveState() {
   fs.renameSync(tmp, STATE_FILE);
 }
 
-function appendHistory(entry: Record<string, unknown>, cap = 60) {
+// r145-a — חלון-ספר-הקבלות מאוחד עם העורק (/api/money appendReceipt כותב 200):
+// היה 60 — הדיבון קיצץ בשקט את קבלות-העורק עם ה-txids (ראיה!) כל שהצי שילם
+// FLEET-PAY. ספר-ראיה שמוחק את הראיה שלו — לא ספר. 200 = יום-פעילות מלא.
+function appendHistory(entry: Record<string, unknown>, cap = 200) {
   try {
     let h: Array<Record<string, unknown>> = [];
     try {
