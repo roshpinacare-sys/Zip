@@ -48,3 +48,8 @@ bun run dev                                    # הקונסולה חיה
 5. **תווית אמת מוצהרת תמיד** — REAL / LOCAL / NOT-YET.
 
 *חלק מה-SAOS Ecosystem · org-בפועל: חשבון roshpinacare-sys · הצי חי ב-steem/weave (cloud-heart)*
+
+## 🔐 gitleaks-triage (asOf 2026-10-02T13:0xZ · Task 15)
+- Org run 2026-10-02T11:40Z flagged findingsHead=8 — ALL 8 = `sovereign/ledger.json` `.{encKey,keyIv,keyTag}` AES-256-GCM envelope fields of the by-design PUBLIC replay book (KEK lives only in the Zip operator DB — iron law). 0 real secrets.
+- Root-cause fix (mirrors Console 14-a): NEW `.gitleaks.toml` NARROW rule-level allowlist (same-ID merge on generic-api-key, condition=and, path `sovereign/ledger.json` + hex-gated envelope fields only) — durable vs bots rewriting the ledger, line-fingerprint-proof.
+- Negative test PROVEN with corrected methodology (multi-line JSON like production): envelope fields suppressed, a fake `apiKey` secret on its own line STILL FLAGGED. Full-history + HEAD-tree re-scans = 0.
