@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
+import { bump, usageOf } from "@/lib/feed-metrics";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -44,6 +45,7 @@ async function fetchSelf(api: string, ms = 6000): Promise<Record<string, unknown
 
 export async function GET() {
   const at = new Date().toISOString();
+  bump("public-pulse");
 
   const pnl = (await fetchSelf("/api/economy/pnl")) as unknown as PnlApi | null;
   const mission = (await fetchSelf("/api/mission")) as unknown as MissionApi | null;
@@ -53,6 +55,7 @@ export async function GET() {
     ok: true,
     at,
     format: "public-pulse-feed-v1",
+    usage: usageOf("public-pulse"),
     law: "read-only, no secrets, no fabrication: every number carries measuredAt + source; a failed source is reported honestly (null), never re-invented",
     pnl: {
       measured: !!pnl?.realized?.measured,

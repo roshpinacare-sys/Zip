@@ -12,6 +12,7 @@
 
 import { NextResponse } from "next/server";
 import fs from "node:fs";
+import { bump, usageOf } from "@/lib/feed-metrics";
 
 export const dynamic = "force-dynamic";
 
@@ -55,10 +56,11 @@ function latestDupAudit(): { file: string | null; at: string | null; nearDuplica
 }
 
 export async function GET() {
+  bump("businesses");
   const registry = readJson(REGISTRY) as Record<string, unknown> | null;
   if (!registry) {
     return NextResponse.json(
-      { ok: false, noteHe: "רישום-העסקים לא נקרא מהדיסק — המשטח מדווח כנות, לא ממציא" },
+      { ok: false, usage: usageOf("businesses"), noteHe: "רישום-העסקים לא נקרא מהדיסק — המשטח מדווח כנות, לא ממציא" },
       { status: 200 },
     );
   }
@@ -114,6 +116,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     at: new Date().toISOString(),
+    usage: usageOf("businesses"),
     law: "read-only, no secrets, no fabrication: a failed source is reported as null, never re-invented",
     registry,
     metrics,
