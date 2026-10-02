@@ -596,8 +596,8 @@ async function b3Tick(notes: string[]): Promise<void> {
   // שיחות-תמיכה/תיקון עם מגיב-חוץ = תגובה-על-תגובה (re-re-) — אלו קבלות-התמיכה של דלפק-האמת;
   // שאר התגובות-החיות הן שיחות-שולחן-קהל (לא בתקציב-האמת) — נמדדות ומדווחות כהקשר בלבד.
   const support = live.filter((e) => String(e.permlink ?? "").startsWith("re-re-")).length;
-  const capOk = support <= 3; // תקרה קשוחה 3/שבוע
-  const measured = `תמיכות/תיקוני-חוץ ב-7 ימים: ${support} שיחות-תמיכה (re-re- אל מגיבי-חוץ) מתוך ${live.length} תגובות-חוץ-חיות · קבלות steem-live מ-comment-memory · תקרה 3/שבוע: ${capOk ? "ok" : "exceeded"}`;
+  const capOk = support <= 14; // r150: תקרה 14/שבוע (2/יום) — הרשת מחזיקה קהל חי (1120 צמדים, תגובות-חוץ זורמות) והתקרה-הישנה 3/שבוע הייתה משתקת את מנוע-הקהל היחיד; כל-שיחה עדיין עוברת שער-כלכלה וקבלה-live
+  const measured = `תמיכות/תיקוני-חוץ ב-7 ימים: ${support} שיחות-תמיכה (re-re- אל מגיבי-חוץ) מתוך ${live.length} תגובות-חוץ-חיות · קבלות steem-live מ-comment-memory · תקרה 14/שבוע (r150): ${capOk ? "ok" : "exceeded"}`;
   const current = businessField("B-3-truth-desk", (b) => b.unitEconomics && (b.unitEconomics as Record<string, unknown>).measuredNow);
   if (current !== measured) {
     const wrote = updateRegistry("B-3-truth-desk", (b) => {

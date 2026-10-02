@@ -54,6 +54,9 @@ const MAX_POSTS_PER_DAY = 2; // גג-מפעל: אחד לכל מוצר
 const FACTORY_KILL_ZERO_VOTES = 7; // שורת-הרג: 7 פוסטים רצופים בלי הצבעות
 const MIN_BODY_CHARS = 2200; // איכות-מינימום: פוסט-רזה לא נתפס בידי-אוצרים
 const LLM_TIMEOUT_MS = 90_000;
+// חוק r143-c: dead-man = max(3×קצב, 10 דק') — קצב המפעל 6ש' ⇒ סף 18ש'.
+// ליקוי r150: היה כאן 45דק' — המתין-המת הרג כל-מופע חי לפני-הטיק-הבא (מוות-מחזורי).
+const DEADMAN_STALL_MS = 18 * 60 * 60 * 1000;
 const OWNER_FILE = path.join(HOME, "upload", "headcorner.txt");
 
 // ── מצב המפעל ───────────────────────────────────────────────────────────
@@ -113,6 +116,10 @@ function readState(): FactoryState {
   try {
     const raw = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) as FactoryState;
     if (raw && raw.service === "content-factory" && raw.format === "content-factory-state-v1") {
+      // אימוץ-תחייה (r150): מצב-ישן ממופע-מת לא יהרוג מופע-חדש —
+      // lastTickAt ישן-מעל-הסף מתאפס, הבסיס-של-המת נולד מ-bootedAt.
+      const stale = raw.lastTickAt ? Date.now() - Date.parse(raw.lastTickAt) : Infinity;
+      if (stale > DEADMAN_STALL_MS) raw.lastTickAt = null;
       // יום-חדש UTC ⇒ איפוס-מונים יומיים (שמירת-יום, לא מחיקת-היסטוריה)
       const today = utcDay();
       if (raw.budget.postDay !== today) {
@@ -706,7 +713,7 @@ setInterval(() => {
 installDeadManWatch({
   id: "content-factory",
   lastMs: () => Date.parse(state.lastTickAt ?? state.bootedAt),
-  stallMs: 45 * 60 * 1000,
+  stallMs: DEADMAN_STALL_MS, // r150: 18ש' לפי-החוק (היה 45דק' — מוות-מחזורי)
   logFile: HEARTBEAT,
   subject: "ticks",
 });

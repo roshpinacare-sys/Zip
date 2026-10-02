@@ -85,13 +85,32 @@ function spawnSyncText(cmd: string, args: string[]): string {
 
 const PAT = readPat();
 
+const HOME_ASKPASS = `${HOME}/.git-askpass.sh`;
+
 // ה-askpass: הטוקן חי רק בזיכרון-הריצה ובקובץ chmod-700 חד-פעמי
 function ensureAskpass(): void {
   if (!PAT) return;
+  const script = `#!/bin/sh\necho '${PAT.replace(/'/g, "'\\''")}'\n`;
   if (!fs.existsSync(ASKPASS)) {
-    fs.writeFileSync(ASKPASS, `#!/bin/sh\necho '${PAT.replace(/'/g, "'\\''")}'\n`, { mode: 0o700 });
+    fs.writeFileSync(ASKPASS, script, { mode: 0o700 });
   }
   fs.chmodSync(ASKPASS, 0o700);
+  // r150 — ריפוי-עצמי של askpass-הבית: .git/config (credential.helper)
+  // מצביע עליו, והסנדבוקס מוחק אותו בכל-מיחזור (r140 שורש-1 · חזר 02/10).
+  // אם חסר או שבור — נולד מחדש מהסמכות-החיה (upload/pat.env) בכל-ריצה.
+  try {
+    let broken = false;
+    try {
+      const cur = fs.readFileSync(HOME_ASKPASS, "utf8");
+      broken = cur.trim().length < 10;
+    } catch {
+      broken = true;
+    }
+    if (broken) fs.writeFileSync(HOME_ASKPASS, script, { mode: 0o700 });
+    else fs.chmodSync(HOME_ASKPASS, 0o700);
+  } catch {
+    /* fail-soft — ל-ASKPASS שלנו יש עותק חי */
+  }
 }
 
 function gitEnv(): Record<string, string> {
