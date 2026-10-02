@@ -1,5 +1,35 @@
 # AGENTS — רישום הסוכנים הקנוני של המערכת
 
+## ── Startup Workflow · מסלול-הפעלה לסוכן חדש (harness · r151) — קרא-קודם ──
+
+**Before writing code — המסלול (60 שניות):**
+1. `git pull --rebase origin main` — יש סשנים-מקבילים; רץ רק על ראש-השרשרת.
+2. קרא `session-handoff.md` (מצב · חסמים · צעד-הבא) ← קובץ-המסירה הקנוני.
+3. קרא רשומה-אחת ב-`progress.md` (החדשה-בראש) + `feature_list.json` (עוקב-המצב עם ראיות).
+4. `bash init.sh` — שער-האימות: git-sync · סודות · tsc · eslint · צי-הפורטים · המכונות · ה-harness עצמו. **אדום = תיקון-לפני-עבודה-חדשה.**
+5. בחר פתוח מ-progress.md או next_step מ-feature_list.json. יומן-העבודה המלא: `worklog.md` (append בלבד).
+
+**Definition of Done · הגדרת-סיום — כל הסעיפים או אין הכרזה:**
+- [ ] הקוד עובר `bash init.sh` ירוק (tsc 0 · eslint 0 · הצי חי).
+- [ ] לכל טענה יש **ראיה מדודה**: נתיב-state / txid / פלט-API — אפס מספרים מהזיכרון.
+- [ ] `feature_list.json` עודכן (status + evidence_path + last_verified_at) · `progress.md` רשומה-חדשה · `session-handoff.md` עדכני.
+- [ ] commit + push על ראש-השרשרת (ריבייס אם נדרש) · worklog.md סעיף-גל.
+
+**מסלול-מצב (איפה האמת):** מפעל `sovereign/businesses/content-factory-state.json` · קיורציה `sovereign/curation/state.json` · כסף `sovereign/money/state.json`+`pnl-scan.json` · עסקים `sovereign/businesses/registry.json`+`ONE-READ.md` · פריטים-פתוחים `progress.md`.
+
+**Scope · גבולות-היקף:** One feature at a time — `active_feature` יחיד ב-feature_list.json; Stay in scope — אסור לפתוח-feature חדשה לפני סגירת-הפעילה או הקפאתה-בראיה; תלויות מרושמות ב-`dependencies` בכל-feature. אין סודות בגיט (upload/* · *.env · .git-askpass.sh) · אין המצאת-הכרעות-מפעיל (WEAVE_PUBLIC_URL / D-TREASURY) · אין "בוצע" בלי ראיה.
+
+**End of Session · לפני-סיום-סשן (רוטינה-קבועה):**
+1. `bash init.sh` ירוק.
+2. עדכון `feature_list.json` + רשומה בראש `progress.md` + עדכון `session-handoff.md`.
+3. רישום-גל ב-`worklog.md` (append).
+4. `git add` סלקטיבי (רק מה ששייך-לגל; לעולם לא upload/* · *.env · .git-askpass.sh) → commit → push.
+5. ודא local==origin (`git rev-parse --short HEAD` == `origin/main`).
+
+> מה שלהלן — הרישום ההיסטורי-המלא של הסוכנים והמכונות (מקור-עמק, לא נקרא בכל-סשן).
+
+---
+
 > מקור אמת אחד לכל הסוכנים האוטונומיים בכל 16 הריפואים.
 > הרישום החי: `Console/agents/registry.json` — מתעדכן אוטומטית כל שעה על-ידי `agents-watch`.
 > התצוגה הציבורית: `https://roshpinacare-sys.github.io/Console/#agents`

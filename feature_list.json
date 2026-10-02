@@ -1,0 +1,103 @@
+{
+  "$schema": "harness-feature-list-v1",
+  "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
+  "last_updated": "2026-10-02T22:05:00Z",
+  "active_feature": "r151-harness-adoption",
+  "features": [
+    {
+      "id": "F-1",
+      "name": "מפעל-התוכן (B-5) — מכונת-ההכנסה שאינה תלוית-הון",
+      "status": "running",
+      "evidence_path": "sovereign/businesses/content-factory-state.json",
+      "last_verified_at": "2026-10-02T22:00:49Z",
+      "evidence": "פורט 3046 /health ok · 2 פוסטים-אמת על-השרשרת (txids) · אינגייג'מנט מדוד 22:00Z: פוסט-1 10 הצבעות · פוסט-2 12 הצבעות+1 תגובה+0.006 SBD · שורת-הרג מוזנת בפועל (r151)",
+      "next_step": "למדוד-התכנסות שבועית: רצף הצבעות-חוץ לפי פוסט; אם רצף-אפס 7 — FORMAT-REVIEW כנה",
+      "description": "Content factory: publishes measured ledger + agents-at-work posts on-chain via econ gate; income path via votes/curation.",
+      "dependencies": [
+        "F-4"
+      ]
+    },
+    {
+      "id": "F-2",
+      "name": "מנוע-הקיורציה — הנתיב-הראשי להכנסה מ-4,285 SP",
+      "status": "running",
+      "evidence_path": "sovereign/curation/state.json",
+      "last_verified_at": "2026-10-02T21:50:00Z",
+      "evidence": "פורט 3040 · 217 beats · armed=true · משקל 6% (3× פריסה מהמדידה 4,285 SP נטו) · votesToday נמדד ב-API",
+      "next_step": "מדידה-שבועית של curation-rewards מהשרשרת; שיפור-ברירת-הפוסטים לפי תשואה-ממומשת",
+      "description": "Curation engine votes with 6% weight on 4,285 SP net stake; the primary capital-free income path.",
+      "dependencies": []
+    },
+    {
+      "id": "F-3",
+      "name": "דיבון-הכסף (money-mover) — המיקרו-גריד הדו-צדדי",
+      "status": "running",
+      "evidence_path": "sovereign/money/state.json",
+      "last_verified_at": "2026-10-02T21:51:26Z",
+      "evidence": "2,925 beats · PnL ממומש −1.119 SBD/89 מילויים-מבוקר · r151: armBuy הודק מהמדידה (קנייה-avg 0.1056 מול מכירה-avg 0.1019) — רמת-320bps נקצצה, רף-חימוש 0.15→0.30",
+      "next_step": "מדידת-7-יום אחרי-ההידוק: האם ממוצע-קנייה יורד מתחת ממוצע-מכירה; אם לא — קצץ עוד רמה או העלה רף",
+      "description": "Money mover micro-grid: two-sided ladder on SBD/STEEM; r151 buy-side tightened from measured PnL evidence.",
+      "dependencies": []
+    },
+    {
+      "id": "F-4",
+      "name": "מנוע-העסקים (business-engine) — תדריך-השוק ו-4 העסקים",
+      "status": "running",
+      "evidence_path": "sovereign/businesses/engine-state.json",
+      "last_verified_at": "2026-10-02T22:00:41Z",
+      "evidence": "פורט 3045 · 54 ticks · תדריך-שוק על-השרשרת (txid 2628839…) · B-1 RUNNING, B-2..B-5 PILOT · ONE-READ למפעיל: sovereign/businesses/ONE-READ.md",
+      "next_step": "שלושת-השערים הפתוחים עומדים: WEAVE_PUBLIC_URL · D-TREASURY · דלק-חדש (התביעות ממתינות-בשלות)",
+      "description": "Business engine publishes on-chain market brief and runs B-1..B-5 with kill lines and budget gates.",
+      "dependencies": [
+        "F-2"
+      ]
+    },
+    {
+      "id": "F-5",
+      "name": "הגיט-הריבוני + ריפוי-עצמי (askpass) — שלטון-המאגר",
+      "status": "running",
+      "evidence_path": "sovereign/fleet-verify/state.json",
+      "last_verified_at": "2026-10-02T22:05:00Z",
+      "evidence": "origin==local==b9216de · ensureAskpass משחזר askpass-בית בכל-ריצה · r151: .git-askpass.sh (PAT) נוסף ל-.gitignore בשורש — דליפה-אפשרית נסתמה (git check-ignore מאומת)",
+      "next_step": "ביקורת-תקופתית: git status לא יראה אף קובץ-סודות; git check-ignore .git-askpass.sh = 0",
+      "description": "Git sovereignty: self-healing askpass, rebase discipline, secrets never staged.",
+      "dependencies": []
+    },
+    {
+      "id": "F-6",
+      "name": "ה-harness הקנוני — חמשת-המערכות (r151, אימוץ learn-harness-engineering)",
+      "status": "running",
+      "evidence_path": "feature_list.json",
+      "last_verified_at": "2026-10-02T22:05:00Z",
+      "evidence": "ביקורת-פתיחה 28/100 (צוואר-בקבוק: state) → feature_list.json + progress.md + session-handoff.md + init.sh + AGENTS.md-ראש-ניתוב · ביקורת-סיום נמדדת ב-init.sh",
+      "next_step": "כל סוכן: עדכון feature_list.json בסוף-גל + progress.md + handoff — נאכף ב-init.sh (בדיקת-קיום)",
+      "description": "Canonical harness five subsystems adopted from learn-harness-engineering (r151).",
+      "dependencies": [
+        "F-5"
+      ]
+    },
+    {
+      "id": "F-7",
+      "name": "צי-השירותים החיים — 3000/3038/3040/3041-3046",
+      "status": "running",
+      "evidence_path": "sovereign/fleet-verify/state.json",
+      "last_verified_at": "2026-10-02T22:00:00Z",
+      "evidence": "נמדד חי 22:00Z: 3000 בית · 3038 fleet-verify · 3040 קיורציה · 3041 kpi-scribe · 3042 governance · 3043 treasury-audit · 3044 scout-market · 3045 business-engine · 3046 מפעל-התוכן",
+      "next_step": "init.sh מאמת את הצי בכל-ריצה — פורט-מת = כישלון-מהיר",
+      "description": "Live fleet of services ports 3000/3038/3040-3046 with health verification in init.sh.",
+      "dependencies": []
+    },
+    {
+      "id": "F-8",
+      "name": "מחקר-השראה: learn-harness-engineering — רואסט+אימוץ",
+      "status": "done",
+      "evidence_path": "progress.md",
+      "last_verified_at": "2026-10-02T22:05:00Z",
+      "evidence": "קורס walkinglabs נחקר (14 הרצאות · 5 מערכות · harness-creator skill) · השקלול: הרשת שלנו כבר רצה לולאות-ומדידות אבל חסרה לה שכבת-ה-state הקנונית — תוקן ב-F-6",
+      "next_step": "להחזיק את המשמעת: אין 'בוצע' בלי ראיה ב-feature_list.json",
+      "description": "Study + adoption of walkinglabs learn-harness-engineering; honest critique and economic-thinking extraction documented in progress.md.",
+      "dependencies": []
+    }
+  ],
+  "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."
+}

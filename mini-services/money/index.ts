@@ -59,7 +59,7 @@ const POLICY = {
   // עברו מ-[100..500] ל-[20,40,80,160,320] bps — אפס מילויי-קנייה מאז-הרחבת r145
   // מול 12 מילויי-מכירה; הבידים הישנים ישבו 130+bps מאחורי ראש-הספר החי.
   // אותו מקור-אמת של ה-route (BID_OFFSETS_BPS ב-/api/money) — מדידה אחת.
-  armBuy: { minSbd: 0.15, offsetsBps: [20, 40, 80, 160, 320] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות · r147-a: צמוד-שוק
+  armBuy: { minSbd: 0.30, offsetsBps: [20, 40, 80, 160] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות · r147-a: צמוד-שוק · r151: הידוק מהמדידה — קצץ 320bps (תופסת-סכין, ניתוח pnl-scan: קנייה-avg 0.1056 מול מכירה-avg 0.1019) + רף-חימוש 0.15→0.30 (פחות-גלגולים, יותר-מובהקות)
   hive: { driftBps: 50 },
   stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
   rewards: { saosPerFill: 2, member: "money-mover" }, // R103 — עבודה→מטבע→נזילות

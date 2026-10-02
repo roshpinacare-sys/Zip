@@ -72,6 +72,7 @@ interface FactoryPost {
   gateScore: number | null;
   gateVerdict: string | null;
   chars: number;
+  engagement?: PostEngagement | null;
 }
 
 interface FactoryState {
@@ -529,15 +530,27 @@ function sleep(ms: number): Promise<void> {
 
 interface SteemContent {
   net_votes?: number | string;
+  children?: number | string;
   pending_payout_value?: string;
   author_rewards?: string;
   permlink?: string;
 }
 
+// r151 — שדה-האינגייג'מנט המדוד נשמר בכל פוסט (היה: רק יומן — נתיב-מת)
+interface PostEngagement {
+  at: string;
+  netVotes: number;
+  replies: number;
+  pendingPayout: string;
+}
+
 async function measureEngagement(): Promise<void> {
   const now = Date.now();
-  let changed = false;
-  const pending = state.posts.filter((p) => p.txid && now - Date.parse(p.at) > 24 * 3600 * 1000);
+  let measured = 0;
+  // r151: המדידה מגיל-שעה (היה: 24ש' — כל פוסט חדש היה מדולג יום שלם,
+  // והמדידה-הראשונה-של-המפעל נרשמה כפריט-פתוח). מעתה: 1ש' — החוק
+  // "מדידת-אינגייג'מנט שעה-אחרי-עלייה" בפועל, ומדידה חוזרת בכל שעה (הערך-האחרון נשמר).
+  const pending = state.posts.filter((p) => p.txid && now - Date.parse(p.at) > 3600 * 1000);
   for (const p of pending.slice(-10)) {
     try {
       const res = await fetch(STEEM_RPC, {
@@ -554,22 +567,29 @@ async function measureEngagement(): Promise<void> {
       const j = (await res.json()) as { result?: SteemContent };
       const votes = Number(j.result?.net_votes ?? NaN);
       if (Number.isFinite(votes)) {
-        const extra = `\u2192 engagement: net_votes=${votes} pending=${String(j.result?.pending_payout_value ?? "?")}`;
+        const replies = Number(j.result?.children ?? 0);
+        const pendingPayout = String(j.result?.pending_payout_value ?? "0.000 SBD");
+        const engagement: PostEngagement = { at: new Date().toISOString(), netVotes: votes, replies, pendingPayout };
+        p.engagement = engagement;
+        const extra = `\u2192 engagement: net_votes=${votes} replies=${replies} pending=${pendingPayout}`;
         logEvent("engagement", `${p.line} ${p.permlink} ${extra}`);
         p.gateVerdict = p.gateVerdict === "MEASURED" ? p.gateVerdict : `${p.gateVerdict ?? ""}|MEASURED`.slice(0, 40);
-        changed = true;
+        measured += 1;
+        // שורת-הרג בפועל (r151): רצף נמדד-אמיתי — פוסט 0-הצבעות מאריך, הצבעה מאפסת.
+        // חוק FACTORY_KILL_ZERO_VOTES=7 — עד-היום אף לוגיקה לא הזינה אותו (נתיב-מת).
+        if (votes === 0) state.zeroVoteStreak += 1;
+        else state.zeroVoteStreak = 0;
+        if (state.zeroVoteStreak >= FACTORY_KILL_ZERO_VOTES) state.killLineTripped = true;
       }
     } catch {
       /* fail-soft — מדידה נדלגת, לא מפילה טיק */
     }
   }
-  // שורת-הרג: ספירת רצף-אפס-הצבעות על פוסטים שנמדדו
-  const measured = state.posts.filter((p) => p.gateVerdict?.includes("MEASURED"));
-  if (measured.length > 0) {
-    // הרצף נמדד בפועל ביומן — כאן רק מונה-עדכון כן לפי יומן-אינגייג'מנט
+  if (measured > 0) {
     state.lastEngagementAt = new Date().toISOString();
+    saveState();
+    logEvent("engagement", `measured ${measured} posts · zeroVoteStreak=${state.zeroVoteStreak} kill=${state.killLineTripped}`);
   }
-  if (changed) saveState();
 }
 
 // ── הטיק — ההפקה עצמה ───────────────────────────────────────────────────
@@ -691,6 +711,11 @@ Bun.serve({
       // הזמנת-טיק ידנית (לביקורת/הדגמה) — אותה משמעת single-flight
       void tick();
       return Response.json({ ok: true, he: "טיק הוזמן — נמדד ביומן כשיגמר" });
+    }
+    if (url.pathname === "/measure" && req.method === "POST") {
+      // r151 — הזמנת-מדידת-אינגייג'מנט ידנית (שער-אימות: אפשר להוכיח את המדידה בלי לחכות שעה)
+      void measureEngagement();
+      return Response.json({ ok: true, he: "מדידת-אינגייג'מנט הוזמנה — נמדד במצב וביומן" });
     }
     return new Response("content-factory: not found", { status: 404 });
   },
