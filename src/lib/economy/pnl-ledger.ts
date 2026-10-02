@@ -25,7 +25,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { createHash } from "node:crypto";
+// r147-d · גוף-אחד: קנון-הגיבוב עבר ל-src/lib/weave/hash-chain.ts — מנגנון אחד לכל השרשרות בבית
+import { hashChainEntry, verifyHashChain } from "@/lib/weave/hash-chain";
 
 const HOME = "/home/z/my-project";
 const SCAN_FILE = path.join(HOME, "sovereign/money/pnl-scan.json");
@@ -477,9 +478,9 @@ export async function computePnl(): Promise<PnlComputation> {
 
 // ── פנקס-התמונות: append-only, hash-chained (כמו יומן-ההחלטות) ────────
 
+// r147-d: הקנון חי ב-src/lib/weave/hash-chain.ts (hashChainEntry) — מנגנון אחד.
 function hashEntry(entry: Omit<PnlSnapshotEntry, "entryHash">): string {
-  const { entryHash: _omit, ...rest } = entry as Record<string, unknown>;
-  return createHash("sha256").update(JSON.stringify(rest)).digest("hex");
+  return hashChainEntry(entry);
 }
 
 export function readSnapshotFile(): SnapshotFile {
@@ -491,15 +492,11 @@ export function readSnapshotFile(): SnapshotFile {
 }
 
 export function verifySnapshots(): SnapshotChainState {
+  // r147-d: האימות מהגרעין-המשותף (verifyHashChain) — אותו-חוק, גוף-אחד
   const entries = readSnapshotFile().entries;
-  let prev = "GENESIS";
-  for (let i = 0; i < entries.length; i++) {
-    const e = entries[i]!;
-    if (e.prevHash !== prev) return { entries: entries.length, ok: false, brokenAt: e.seq, lastAt: null };
-    if (hashEntry(e) !== e.entryHash) return { entries: entries.length, ok: false, brokenAt: e.seq, lastAt: null };
-    prev = e.entryHash;
-  }
-  return { entries: entries.length, ok: true, brokenAt: null, lastAt: entries.length ? entries[entries.length - 1]!.at : null };
+  const v = verifyHashChain(entries as unknown as Array<Record<string, unknown>>);
+  if (!v.ok) return { entries: v.entries, ok: false, brokenAt: v.brokenAt, lastAt: null };
+  return { entries: v.entries, ok: true, brokenAt: null, lastAt: entries.length ? entries[entries.length - 1]!.at : null };
 }
 
 export function appendSnapshot(pnl: PnlComputation): { appended: boolean; entry: PnlSnapshotEntry } {

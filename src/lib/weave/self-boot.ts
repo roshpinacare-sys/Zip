@@ -34,6 +34,8 @@ import { spawnSync } from "node:child_process";
 import { db } from "@/lib/db";
 import { parseLedgerSnapshot, importLedger } from "./ledger-sync";
 import { verifyLedger } from "./beat";
+// r147-d · גוף-אחד: כתיבה-אטומית מהגרעין-המשותף (src/lib/weave/atomic.ts — R107b)
+import { writeJsonAtomic, writeBytesAtomic } from "./atomic";
 
 const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/keeper/self-boot-state.json`;
@@ -96,10 +98,8 @@ function readState(): SelfBootState {
 
 function writeState(s: SelfBootState): void {
   try {
-    fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-    const tmp = `${STATE_FILE}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(s, null, 2));
-    fs.renameSync(tmp, STATE_FILE);
+    // r147-d: כתיבה-אטומית מהגרעין-המשותף (src/lib/weave/atomic.ts — R107b)
+    writeJsonAtomic(STATE_FILE, s);
   } catch {}
 }
 
@@ -202,10 +202,9 @@ async function restoreVaultFromCloud(): Promise<{ ok: boolean; detail: string }>
     return { ok: false, detail: `התוכן אינו SQLite (magic "${magic.slice(0, 8)}…") — לא נכתב` };
   }
   try {
-    fs.mkdirSync(path.dirname(VAULT_PATH), { recursive: true });
-    const tmp = `${VAULT_PATH}.tmp-selfboot`;
-    fs.writeFileSync(tmp, bytes);
-    fs.renameSync(tmp, VAULT_PATH); // אטום — רגע-מוות לא משאיר כספת חצויה
+    // r147-d: כתיבה-אטומית מהגרעין-המשותף (writeBytesAtomic — R107b) — אטום:
+    // רגע-מוות לא משאיר כספת חצויה
+    writeBytesAtomic(VAULT_PATH, bytes);
     return { ok: true, detail: `שוחזר מהענן (${usedLabel}) · ${VAULT_EXPECTED_BYTES.toLocaleString("en-US")} בייטים בדיוק · SQLite תקין` };
   } catch (e) {
     return { ok: false, detail: `כתיבה נכשלה: ${String(e instanceof Error ? e.message : e).slice(0, 120)}` };

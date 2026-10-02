@@ -34,6 +34,8 @@ import {
   type NextAction,
 } from "./sovereign-decisions";
 import { callGovernanceBrain, governanceBrainStats } from "./governance-brain";
+// r147-d · גוף-אחד: כתיבה-אטומית מהגרעין-המשותף (R107b)
+import { writeJsonAtomic } from "./atomic";
 
 const HOME = "/home/z/my-project";
 const CYCLE_STATE_PATH = `${HOME}/sovereign/governance/cycle-state.json`;
@@ -112,10 +114,8 @@ function readCycleState(): CycleState {
 
 function writeCycleState(s: CycleState): void {
   try {
-    fs.mkdirSync(`${HOME}/sovereign/governance`, { recursive: true });
-    const tmp = `${CYCLE_STATE_PATH}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(s, null, 2), "utf8");
-    fs.renameSync(tmp, CYCLE_STATE_PATH);
+    // r147-d: כתיבה-אטומית מהגרעין-המשותף (src/lib/weave/atomic.ts — R107b)
+    writeJsonAtomic(CYCLE_STATE_PATH, s);
   } catch {}
 }
 
@@ -131,10 +131,8 @@ function readLoopState(): CycleState | null {
 // r143-a — כתיבה אטומית (tmp+rename) של מצב-הלולאה אחרי כל מחזור שהושלם
 function writeLoopState(s: CycleState): void {
   try {
-    fs.mkdirSync(`${HOME}/sovereign/governance`, { recursive: true });
-    const tmp = `${LOOP_STATE_PATH}.tmp`;
-    fs.writeFileSync(tmp, JSON.stringify(s, null, 2), "utf8");
-    fs.renameSync(tmp, LOOP_STATE_PATH);
+    // r147-d: כתיבה-אטומית מהגרעין-המשותף (src/lib/weave/atomic.ts — R107b)
+    writeJsonAtomic(LOOP_STATE_PATH, s);
   } catch {}
 }
 
