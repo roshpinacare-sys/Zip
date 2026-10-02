@@ -29,7 +29,7 @@
 | ה-seal | `sovereign/weave-seal.enc` — AES-256-GCM+scrypt: מפתח הענן + מפתח הרשת; הסיסמה במשמרת מפוצלת — GitHub Secret + .env.local + כספת המפעיל; לא בגיט | REAL — הוכח בענן (sealCustody=github-secret, att 13) |
 | הלב הענן | `weave-heart.yml` — שעתי (התאום הציבורי ב-Domain, cron :13, מאז R71; בעת הכתיבה היה קצב 6-שעות ב-Zip): ספר טרי ⇒ אימות-בלבד; ישן ⇒ TAKEOVER (פעימה+checkpoint+דחיפה); השרשרת עצמה השופטת | REAL — **הוכח בשני הכיוונים**: run #1 שפט SANDBOX-ALIVE ונסוג; run #4 (15:40Z) ביצע TAKEOVER — כתב seq 11, סגר SOV-2, דחף כ-weave-heart[bot] (ec28bf3) · הריצות החיות: שעתיות וירוקות (נמדד 2026-09-25) |
 | שער-הסודות | סריקת staged-diff לפני כל דחיפה: WIF/PEM/PAT/מפתח-64hex ⇒ חסימה מוחלטת | REAL |
-| גזירת העוגנים | `anchor-baseline.leaves.json` — 90 קבצי הארכיון ⇒ sha256 לכל קובץ ⇒ שורש מרקל בספר | REAL |
+| גזירת העוגנים | `anchor-baseline.leaves.json` — 86 קבצי הארכיון (נמדד 2026-10-02 מהקובץ עצמו: fileCount=86; המספר 90 בשורות היסטוריות למטה קדם לדדופליקציית G6) ⇒ sha256 לכל קובץ ⇒ שורש מרקל בספר | REAL |
 | ערכת הכלים | `toolkit-baseline.leaves.json` — 4250 קבצים (5 zips+פריצה) ⇒ שורש מרקל בספר; הבתים ב-Project-files (הוצלבו blob-sha 5/5) | REAL — מועגן (2026-09-14) |
 
 ---

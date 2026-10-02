@@ -12,7 +12,7 @@
 | `src/` | הפלטפורמה המלאה — קונסולת Next.js + API + ספריות הקריפטו (`src/lib/weave/`) |
 | `sovereign/ledger.json` | **הספר** — snapshot קנוני חסר-סודות של כל האימותים, checkpoints, סוכנים ושערים |
 | `sovereign/weave-seal.enc` | ה-seal — מפתח הענן + מפתח הרשת (AES-256-GCM; ריפו פרטי) |
-| `sovereign/anchor-baseline.leaves.json` | חומר ההוכחה של גזירת העוגנים — 90 קבצי הארכיון ⇒ שורש מרקל בספר |
+| `sovereign/anchor-baseline.leaves.json` | חומר ההוכחה של גזירת העוגנים — 86 קבצי הארכיון (נמדד 2026-10-02 מהקובץ עצמו: fileCount=86; היה 90 לפני דדופליקציית G6 שהפכה 4 עותקים למצביעים) ⇒ שורש מרקל בספר |
 | `sovereign/beat-report.json` | הדוח של הפעימה האחרונה (מקומית או ענן) |
 | `.github/workflows/weave-heart.yml` | **הלב הענן** — התאום הציבורי ב-`Domain` מריץ את הרשת שעתית (cron :13) על checkout של הבית הזה; המקור כאן — dispatch-בלבד (ריבונות המכסה, R71) |
 | `SOVEREIGNTY.md` | מפת הריבונות: מה נגזר, מה חסר, מה העוגנים נותנים |
