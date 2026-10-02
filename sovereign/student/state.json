@@ -1,543 +1,81 @@
 {
   "service": "student",
   "version": "1.5.0",
-  "bootedAt": "2026-10-02T13:16:00.723Z",
-  "beats": 327,
+  "bootedAt": "2026-10-02T21:10:26.186Z",
+  "beats": 334,
   "cycleSec": 600,
   "alive": true,
   "examining": false,
-  "lastExamAt": "2026-10-02T16:36:01.964Z",
+  "lastExamAt": "2026-10-02T22:10:27.089Z",
   "probes": [
     {
       "probe": "app:health",
       "ok": true,
-      "ms": 1101,
-      "at": "2026-10-02T16:36:01.860Z"
+      "ms": 671,
+      "at": "2026-10-02T22:10:26.992Z"
     },
     {
       "probe": "app:money",
       "ok": true,
-      "ms": 36,
-      "at": "2026-10-02T16:36:01.896Z"
+      "ms": 23,
+      "at": "2026-10-02T22:10:27.015Z"
     },
     {
       "probe": "app:crossmarket",
       "ok": true,
-      "ms": 14,
-      "at": "2026-10-02T16:36:01.910Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 9,
-      "at": "2026-10-02T16:36:01.919Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 16,
-      "at": "2026-10-02T16:36:01.935Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-02T16:36:01.935Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-02T16:36:01.935Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-02T16:36:01.936Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-02T16:36:01.936Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-02T16:36:01.937Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-02T16:36:01.937Z"
-    }
-  ],
-  "probeHistory": [
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 48,
-      "at": "2026-09-28T15:43:01.776Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 33,
-      "at": "2026-09-28T15:43:01.809Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 105,
-      "at": "2026-09-28T15:43:01.914Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:43:01.914Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:43:01.914Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T15:43:01.915Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:43:01.915Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T15:43:01.916Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:43:01.916Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 246,
-      "at": "2026-09-28T15:53:01.707Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 55,
-      "at": "2026-09-28T15:53:01.762Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 9,
-      "at": "2026-09-28T15:53:01.771Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 9,
-      "at": "2026-09-28T15:53:01.780Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 6,
-      "at": "2026-09-28T15:53:01.786Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:53:01.786Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T15:53:01.787Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:53:01.787Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:53:01.787Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T15:53:01.787Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T15:53:01.788Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 231,
-      "at": "2026-09-28T16:03:01.691Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 27,
-      "at": "2026-09-28T16:03:01.718Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 16,
-      "at": "2026-09-28T16:03:01.734Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-28T16:03:01.744Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 17,
-      "at": "2026-09-28T16:03:01.761Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:03:01.762Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:03:01.763Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:03:01.763Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:03:01.763Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:03:01.764Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:03:01.764Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 237,
-      "at": "2026-09-28T16:13:01.698Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 30,
-      "at": "2026-09-28T16:13:01.728Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 24,
-      "at": "2026-09-28T16:13:01.752Z"
+      "ms": 25,
+      "at": "2026-10-02T22:10:27.040Z"
     },
     {
       "probe": "app:exchange-router",
       "ok": true,
       "ms": 11,
-      "at": "2026-09-28T16:13:01.763Z"
+      "at": "2026-10-02T22:10:27.051Z"
     },
     {
       "probe": "app:charter",
       "ok": true,
-      "ms": 82,
-      "at": "2026-09-28T16:13:01.845Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:13:01.846Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:13:01.846Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:13:01.847Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:13:01.847Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:13:01.848Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:13:01.848Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 251,
-      "at": "2026-09-28T16:23:01.712Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 28,
-      "at": "2026-09-28T16:23:01.740Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 13,
-      "at": "2026-09-28T16:23:01.753Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 9,
-      "at": "2026-09-28T16:23:01.762Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-28T16:23:01.772Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:23:01.772Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:23:01.773Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:23:01.773Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:23:01.773Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:23:01.774Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:23:01.774Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 244,
-      "at": "2026-09-28T16:33:01.704Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 29,
-      "at": "2026-09-28T16:33:01.733Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 1225,
-      "at": "2026-09-28T16:33:02.958Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 2493,
-      "at": "2026-09-28T16:33:05.451Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 59,
-      "at": "2026-09-28T16:33:05.510Z"
+      "ms": 16,
+      "at": "2026-10-02T22:10:27.067Z"
     },
     {
       "probe": "fleet:pulse",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-28T16:33:05.511Z"
+      "at": "2026-10-02T22:10:27.068Z"
     },
     {
       "probe": "fleet:money",
       "ok": true,
       "ms": 0,
-      "at": "2026-09-28T16:33:05.511Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:33:05.511Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:33:05.512Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:33:05.512Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:33:05.513Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 936,
-      "at": "2026-09-28T16:43:02.397Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 35,
-      "at": "2026-09-28T16:43:02.432Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 1422,
-      "at": "2026-09-28T16:43:03.854Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 2501,
-      "at": "2026-09-28T16:43:06.355Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 91,
-      "at": "2026-09-28T16:43:06.446Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-28T16:43:06.447Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-28T16:43:06.447Z"
+      "at": "2026-10-02T22:10:27.068Z"
     },
     {
       "probe": "fleet:hunter",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-28T16:43:06.448Z"
+      "at": "2026-10-02T22:10:27.069Z"
     },
     {
       "probe": "fleet:keeper",
       "ok": true,
       "ms": 0,
-      "at": "2026-09-28T16:43:06.448Z"
+      "at": "2026-10-02T22:10:27.069Z"
     },
     {
       "probe": "fleet:verify",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-28T16:43:06.449Z"
+      "at": "2026-10-02T22:10:27.070Z"
     },
     {
       "probe": "fleet:weblift",
       "ok": true,
       "ms": 0,
-      "at": "2026-09-28T16:43:06.449Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 252,
-      "at": "2026-09-28T16:53:01.712Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 29,
-      "at": "2026-09-28T16:53:01.741Z"
-    },
+      "at": "2026-10-02T22:10:27.070Z"
+    }
+  ],
+  "probeHistory": [
     {
       "probe": "app:crossmarket",
       "ok": true,
@@ -12075,6 +11613,468 @@
       "ok": true,
       "ms": 0,
       "at": "2026-10-02T16:36:01.937Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-02T21:10:26.390Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-02T21:10:26.390Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-02T21:10:26.390Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-02T21:10:26.390Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-02T21:10:26.390Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 33,
+      "at": "2026-10-02T21:10:26.424Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:10:26.424Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:10:26.425Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:10:26.426Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1745,
+      "at": "2026-10-02T21:10:28.171Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 2,
+      "at": "2026-10-02T21:10:28.173Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 965,
+      "at": "2026-10-02T21:20:27.286Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 28,
+      "at": "2026-10-02T21:20:27.314Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 813,
+      "at": "2026-10-02T21:20:28.127Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 2745,
+      "at": "2026-10-02T21:20:30.872Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 324,
+      "at": "2026-10-02T21:20:31.196Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:20:31.197Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:20:31.197Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:20:31.198Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:20:31.199Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:20:31.199Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:20:31.200Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 774,
+      "at": "2026-10-02T21:30:27.096Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-02T21:30:27.118Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 24,
+      "at": "2026-10-02T21:30:27.142Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 13,
+      "at": "2026-10-02T21:30:27.155Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 20,
+      "at": "2026-10-02T21:30:27.175Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 2,
+      "at": "2026-10-02T21:30:27.177Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:30:27.177Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:30:27.177Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:30:27.178Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:30:27.178Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:30:27.179Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 972,
+      "at": "2026-10-02T21:40:27.293Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-02T21:40:27.315Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 18,
+      "at": "2026-10-02T21:40:27.333Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 11,
+      "at": "2026-10-02T21:40:27.344Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-02T21:40:27.352Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:40:27.353Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:40:27.353Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:40:27.353Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:40:27.354Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:40:27.354Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:40:27.355Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 625,
+      "at": "2026-10-02T21:50:26.946Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 28,
+      "at": "2026-10-02T21:50:26.974Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 19,
+      "at": "2026-10-02T21:50:26.993Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 18,
+      "at": "2026-10-02T21:50:27.011Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 25,
+      "at": "2026-10-02T21:50:27.036Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:50:27.037Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:50:27.037Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:50:27.038Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:50:27.038Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T21:50:27.038Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T21:50:27.039Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 690,
+      "at": "2026-10-02T22:00:27.011Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 26,
+      "at": "2026-10-02T22:00:27.037Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 17,
+      "at": "2026-10-02T22:00:27.054Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 19,
+      "at": "2026-10-02T22:00:27.073Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 20,
+      "at": "2026-10-02T22:00:27.093Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T22:00:27.094Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T22:00:27.094Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T22:00:27.094Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T22:00:27.095Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T22:00:27.096Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T22:00:27.096Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 671,
+      "at": "2026-10-02T22:10:26.992Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 23,
+      "at": "2026-10-02T22:10:27.015Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 25,
+      "at": "2026-10-02T22:10:27.040Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 11,
+      "at": "2026-10-02T22:10:27.051Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 16,
+      "at": "2026-10-02T22:10:27.067Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T22:10:27.068Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T22:10:27.068Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T22:10:27.069Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T22:10:27.069Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-02T22:10:27.070Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-02T22:10:27.070Z"
     }
   ],
   "recurring": [
@@ -12111,215 +12111,215 @@
   ],
   "coverage": [
     {
-      "repo": "Project-files",
-      "role": "שומר-ארכיון",
-      "pushedAt": "2026-10-01T19:51:34Z",
-      "pushAgeH": 20.409004166666666,
-      "workflows": 2,
-      "lastRun": {
-        "name": "gitleaks-secret-scan",
-        "conclusion": "success",
-        "createdAt": "2026-10-01T19:51:36Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-sovereign-foundry",
-      "role": "CI חוזים — האמת לפי הריצה האחרונה (לא הזיכרון)",
-      "pushedAt": "2026-10-01T19:53:39Z",
-      "pushAgeH": 20.375591666666665,
-      "workflows": 2,
-      "lastRun": {
-        "name": "gitleaks-secret-scan",
-        "conclusion": "success",
-        "createdAt": "2026-10-01T19:53:42Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Adsmarket",
-      "role": "שמירת-טענות שיווק",
-      "pushedAt": "2026-10-02T06:31:00Z",
-      "pushAgeH": 9.750610555555555,
-      "workflows": 2,
-      "lastRun": {
-        "name": "claims-guard",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T06:30:51Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "anchor-baseline",
-      "role": "שלמות בסיס-קו",
-      "pushedAt": "2026-10-02T07:28:13Z",
-      "pushAgeH": 8.797237777777777,
-      "workflows": 2,
-      "lastRun": {
-        "name": "baseline-integrity",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T07:28:08Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "roshpina",
-      "role": "ביקורת בקרות",
-      "pushedAt": "2026-10-02T08:34:27Z",
-      "pushAgeH": 7.6945266666666665,
-      "workflows": 2,
-      "lastRun": {
-        "name": "controls-audit",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T08:34:20Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Sdk",
-      "role": "אימות SDK",
-      "pushedAt": "2026-10-02T09:37:59Z",
-      "pushAgeH": 6.637394166666667,
-      "workflows": 2,
-      "lastRun": {
-        "name": "sdk-verify",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T09:37:18Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
       "repo": "saos-jummper",
       "role": "סוויטת נוטריון",
-      "pushedAt": "2026-10-02T10:40:10Z",
-      "pushAgeH": 5.600082777777778,
+      "pushedAt": "2026-10-02T21:10:33Z",
+      "pushAgeH": 0.5005919444444444,
       "workflows": 2,
-      "lastRun": {
-        "name": "jumpper-tests",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T10:39:56Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-control-center",
-      "role": "בניית מרכז-בקרה",
-      "pushedAt": "2026-10-02T12:52:03Z",
-      "pushAgeH": 3.401425,
-      "workflows": 2,
-      "lastRun": {
-        "name": "control-center-build",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T12:51:04Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "steem",
-      "role": "כלי רשות העוגן",
-      "pushedAt": "2026-10-02T14:48:38Z",
-      "pushAgeH": 1.4602511111111112,
-      "workflows": 3,
       "lastRun": {
         "name": "gitleaks-secret-scan",
         "conclusion": "success",
-        "createdAt": "2026-10-02T14:48:41Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Defi",
-      "role": "ריפו-קנון — דוחות וקבלות",
-      "pushedAt": "2026-10-02T14:55:42Z",
-      "pushAgeH": 1.3396491666666666,
-      "workflows": 2,
-      "lastRun": {
-        "name": "canary",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T15:46:02Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-sovereign-platform",
-      "role": "מנוע-קצה",
-      "pushedAt": "2026-10-02T14:58:25Z",
-      "pushAgeH": 1.2963908333333334,
-      "workflows": 3,
-      "lastRun": {
-        "name": "foundry-tests",
-        "conclusion": "success",
-        "createdAt": "2026-10-02T14:58:27Z"
+        "createdAt": "2026-10-02T21:10:35Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Saosmartwallet",
       "role": "אימות ארנק",
-      "pushedAt": "2026-10-02T14:59:38Z",
-      "pushAgeH": 1.2763297222222223,
+      "pushedAt": "2026-10-02T21:11:54Z",
+      "pushAgeH": 0.47887833333333335,
       "workflows": 2,
       "lastRun": {
-        "name": "wallet-verify",
+        "name": "gitleaks-secret-scan",
         "conclusion": "success",
-        "createdAt": "2026-10-02T14:57:46Z"
+        "createdAt": "2026-10-02T21:11:56Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Sdk",
+      "role": "אימות SDK",
+      "pushedAt": "2026-10-02T21:12:28Z",
+      "pushAgeH": 0.46964805555555555,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:12:30Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Adsmarket",
+      "role": "שמירת-טענות שיווק",
+      "pushedAt": "2026-10-02T21:13:32Z",
+      "pushAgeH": 0.44885027777777775,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:13:34Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "roshpina",
+      "role": "ביקורת בקרות",
+      "pushedAt": "2026-10-02T21:14:29Z",
+      "pushAgeH": 0.4343827777777778,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:14:31Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "saos-control-center",
+      "role": "בניית מרכז-בקרה",
+      "pushedAt": "2026-10-02T21:15:44Z",
+      "pushAgeH": 0.4137661111111111,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:15:46Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "saos-sovereign-platform",
+      "role": "מנוע-קצה",
+      "pushedAt": "2026-10-02T21:16:33Z",
+      "pushAgeH": 0.4011588888888889,
+      "workflows": 3,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:16:35Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Project-files",
+      "role": "שומר-ארכיון",
+      "pushedAt": "2026-10-02T21:17:35Z",
+      "pushAgeH": 0.3824941666666667,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:17:37Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "anchor-baseline",
+      "role": "שלמות בסיס-קו",
+      "pushedAt": "2026-10-02T21:18:29Z",
+      "pushAgeH": 0.36659444444444444,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:18:31Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "saos-sovereign-foundry",
+      "role": "CI חוזים — האמת לפי הריצה האחרונה (לא הזיכרון)",
+      "pushedAt": "2026-10-02T21:19:41Z",
+      "pushAgeH": 0.3485963888888889,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:19:43Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Zip",
       "role": "בית ריבוני — ספר, סקריפטים, worklog",
-      "pushedAt": "2026-10-02T15:28:09Z",
-      "pushAgeH": 0.8018647222222223,
+      "pushedAt": "2026-10-02T21:25:16Z",
+      "pushAgeH": 0.2567725,
       "workflows": 9,
       "lastRun": {
         "name": "gitleaks-secret-scan",
         "conclusion": "success",
-        "createdAt": "2026-10-02T15:28:11Z"
+        "createdAt": "2026-10-02T21:25:18Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "saos-dex",
       "role": "מנוע הדקס",
-      "pushedAt": "2026-10-02T15:52:09Z",
-      "pushAgeH": 0.40011444444444444,
+      "pushedAt": "2026-10-02T21:29:02Z",
+      "pushAgeH": 0.19233194444444446,
       "workflows": 4,
       "lastRun": {
         "name": "gitleaks-secret-scan",
         "conclusion": "success",
-        "createdAt": "2026-10-02T15:03:15Z"
+        "createdAt": "2026-10-02T21:29:04Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Defi",
+      "role": "ריפו-קנון — דוחות וקבלות",
+      "pushedAt": "2026-10-02T21:36:08Z",
+      "pushAgeH": 0.07289222222222222,
+      "workflows": 2,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:36:10Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "steem",
+      "role": "כלי רשות העוגן",
+      "pushedAt": "2026-10-02T21:36:35Z",
+      "pushAgeH": 0.06792916666666667,
+      "workflows": 3,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-02T21:36:37Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Console",
       "role": "קונסולה ציבורית — אתר, זרימות, גשר-סוכנים",
-      "pushedAt": "2026-10-02T15:58:30Z",
-      "pushAgeH": 0.2927605555555556,
+      "pushedAt": "2026-10-02T21:36:29Z",
+      "pushAgeH": 0.06681444444444444,
       "workflows": 10,
       "lastRun": {
         "name": "pages build and deployment",
         "conclusion": "success",
-        "createdAt": "2026-10-02T15:58:31Z"
+        "createdAt": "2026-10-02T21:36:30Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Domain",
       "role": "מראה ציבורית — המכונה (20 זרימות)",
-      "pushedAt": "2026-10-02T16:01:37Z",
-      "pushAgeH": 0.2412763888888889,
+      "pushedAt": "2026-10-02T21:38:32Z",
+      "pushAgeH": 0.03310361111111111,
       "workflows": 40,
       "lastRun": {
-        "name": "anchor-execute",
+        "name": "pages build and deployment",
         "conclusion": "success",
-        "createdAt": "2026-10-02T16:03:16Z"
+        "createdAt": "2026-10-02T21:38:34Z"
       },
       "verdict": "AGENTED"
     }
   ],
-  "coverageAt": "2026-10-02T16:16:16.570Z",
+  "coverageAt": "2026-10-02T21:40:41.203Z",
   "findings": [
     {
       "id": "P1",
@@ -12398,13 +12398,13 @@
     }
   ],
   "lessons": {
-    "rounds": 268,
+    "rounds": 269,
     "liveBugsCaught": 8,
-    "fixedMentions": 377,
+    "fixedMentions": 382,
     "honestyMentions": 348,
-    "parsedAt": "2026-10-02T16:26:01.884Z",
+    "parsedAt": "2026-10-02T21:50:27.080Z",
     "note": [
-      "268 סבבי-עבודה תועדו מאז הפתיחה — כל אחד בנוי על קודמו",
+      "269 סבבי-עבודה תועדו מאז הפתיחה — כל אחד בנוי על קודמו",
       "8 אזכורי \"באג חי\" — באגים שנתפסו בשידור חי ותוקנו בשורש, לא טואטאו",
       "לקח-הדורות (נלמד מהספר): ההיסטוריה מפגרת אחרי השרשרת — אימות שידור דורש חלון + דה-דופ (R87/R91)",
       "לקח-הדורות: bun --hot מקפיא טיימרים — בריאות דיבון נמדדת לפי טריות פעימות, לא פורט פתוח (R91)",
@@ -12412,16 +12412,16 @@
     ]
   },
   "economics": {
-    "at": "2026-10-02T16:26:01.895Z",
-    "fillsTotal": 116,
-    "roundTrips": 88,
-    "capturedSbd": -1.133683,
-    "openLongSteem": 9.19,
+    "at": "2026-10-02T22:10:27.089Z",
+    "fillsTotal": 212,
+    "roundTrips": 186,
+    "capturedSbd": -1.372769,
+    "openLongSteem": 0,
     "regime": "CAPTURE",
-    "midVsParityBps": 407,
-    "ladderVsMidBps": 5,
-    "deployedSteem": 11.626,
-    "sbdBalance": 14.305
+    "midVsParityBps": 497,
+    "ladderVsMidBps": null,
+    "deployedSteem": 0,
+    "sbdBalance": 17.408
   },
   "economicsHistory": [
     {
@@ -12628,17 +12628,27 @@
       "at": "2026-10-02T16:26:01.895Z",
       "kind": "FILL",
       "detail": "FILL: מילוי חדש בגריד! 110→116 מילויים · סבבים 83→88 · נלכד -1.1225→-1.1337 SBD"
+    },
+    {
+      "at": "2026-10-02T21:30:27.997Z",
+      "kind": "FILL",
+      "detail": "FILL: מילוי חדש בגריד! 116→201 מילויים · סבבים 88→114 · נלכד -1.1337→-1.1927 SBD"
+    },
+    {
+      "at": "2026-10-02T22:10:27.089Z",
+      "kind": "FILL",
+      "detail": "FILL: מילוי חדש בגריד! 201→212 מילויים · סבבים 114→186 · נלכד -1.1927→-1.3728 SBD"
     }
   ],
   "exchange": {
-    "at": "2026-10-02T16:36:01.964Z",
+    "at": "2026-10-02T22:00:27.107Z",
     "channels": 11,
-    "verified": 9,
+    "verified": 10,
     "deviant": 1,
-    "down": 1,
+    "down": 0,
     "chainsLive": 4,
     "bestEthDex": "Uniswap v3",
-    "worstDevBps": -1323,
+    "worstDevBps": -1355,
     "topYield": "sky-lending 3.60%"
   },
   "exchangeHistory": [
@@ -12869,56 +12879,11 @@
     "day": "2026-10-02"
   },
   "lastDecision": {
-    "at": "2026-10-02T16:36:01.964Z",
+    "at": "2026-10-02T22:10:27.089Z",
     "kind": "EXAMINE",
     "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
   },
   "history": [
-    {
-      "at": "2026-10-02T11:36:30.159Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-02T11:46:26.677Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 10/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · ריפוי: 1"
-    },
-    {
-      "at": "2026-10-02T11:46:26.677Z",
-      "kind": "HEAL",
-      "detail": "charter-selfheal: ok — 2 פרויקטים · אירועים 10"
-    },
-    {
-      "at": "2026-10-02T11:56:21.953Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-02T12:04:37.081Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-02T12:14:37.017Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-02T12:24:56.127Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-02T12:34:38.259Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-02T12:44:37.057Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
     {
       "at": "2026-10-02T12:54:37.074Z",
       "kind": "EXAMINE",
@@ -13071,6 +13036,51 @@
     },
     {
       "at": "2026-10-02T16:36:01.964Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T21:10:28.177Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T21:20:31.201Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T21:30:27.997Z",
+      "kind": "ECONOMY",
+      "detail": "FILL: מילוי חדש בגריד! 116→201 מילויים · סבבים 88→114 · נלכד -1.1337→-1.1927 SBD"
+    },
+    {
+      "at": "2026-10-02T21:30:28.005Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T21:40:41.219Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T21:50:27.098Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T22:00:27.107Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-02T22:10:27.089Z",
+      "kind": "ECONOMY",
+      "detail": "FILL: מילוי חדש בגריד! 201→212 מילויים · סבבים 114→186 · נלכד -1.1927→-1.3728 SBD"
+    },
+    {
+      "at": "2026-10-02T22:10:27.089Z",
       "kind": "EXAMINE",
       "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
     }
