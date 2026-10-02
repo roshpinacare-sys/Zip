@@ -55,6 +55,8 @@ const FIRST_CYCLE_DELAY_MS = 15_000; // מחזור ראשון אחרי עליי�
 // הוא כל-משך-המחזור, ולכן הבדיקה-החוזרת חייבת לשבת בתוך-נעילה.
 const MIN_INTERNAL_GAP_MS = 9 * 60_000; // כותב-שני בתוך אותו קצב של 10 דק' נדחה (force פוטר)
 const HOME_BASE = "http://127.0.0.1:3000";
+// r148-b — טביעת-הדור של המודול (מתעדכנת בכל גל שנוגע בלולאה)
+const LOOP_GEN = "r148-b";
 
 const DAEMON_PORTS: Array<{ name: string; port: number }> = [
   { name: "pulse", port: 3033 },
@@ -79,10 +81,27 @@ export interface CycleState {
   lastVerdict: "DECIDED" | "ADVANCED" | "DEGRADED" | null;
   lastDetail: string | null;
   brainUsed: boolean;
+  // r148-b — שער-הכלכלה: פסק-הדין האחרון של השער לפני-ביצוע (אדיטיבי — אף שדה
+  // קיים לא שונה; חסר/null = המחזור קדם לשער). "gate-unreachable" = כשל-פתוח
+  // כן: הלולאה המשיכה לפעום והכישלון נרשם, לא הוסתר.
+  lastGate?: LoopGateRecord | null;
+}
+
+// r148-b — רשומת-שער-הכלכלה במצב-הלולאה
+export interface LoopGateRecord {
+  at: string;
+  verdict: "ALLOW" | "REVIEW" | "DENY" | "gate-unreachable";
+  score: number | null;
+  reasonsHe: string[];
+  actionsToday: number | null;
+  cap: number | null;
+  actionId: string | null;
 }
 
 interface LoopGlobal {
-  __weaveGovernanceLoop?: { timer: ReturnType<typeof setInterval> | null; started: boolean; state: CycleState };
+  // r148-b — gen: טביעת-דור-מודול; אחרי HMR הדור-החדש פורש את טיימר-הדור-הישן
+  // (R80 — לולאה-יחידה) כדי שאף מחזור לא ירוץ בלי שער-הכלכלה.
+  __weaveGovernanceLoop?: { timer: ReturnType<typeof setInterval> | null; started: boolean; state: CycleState; gen?: string };
   // r144-f — נעילת-עיצוב למחזור-ההחלטות: כותב-יחיד בכל רגע נתון (שכבה 1).
   __govCycleInFlight__?: boolean;
 }
@@ -140,6 +159,87 @@ function writeLoopState(s: CycleState): void {
 function syncLoopGlobal(s: CycleState): void {
   const live = g.__weaveGovernanceLoop;
   if (live) live.state = s;
+}
+
+// ─── r148-b · שער-הכלכלה לפני-ביצוע (FAIL-OPEN) ─────────────────────
+// הלקח: 7 דחיות NO-FUEL שרפו 7/12 תקציב (r147-a) — דחייה אחרי-השידור היא
+// שריפה. מעתה, לפני כל ביצוע-פעולה נבחרת: POST לשער (תקציב-יומי 12/יום
+// דטרמיניסטי + שיפוט-LLM לפי שבעת-החוקים). חוקי-החיווט:
+//   · כשל-שער כלשהו (חסם-20ש' / תשובה לא תקינה) ⇒ כשל-פתוח: ממשיכים
+//     והכישלון נרשם בכנות ב-lastGate — הלולאה לעולם לא נחסמת בכישלון-שער.
+//   · DENY ⇒ מדלגים על הביצוע במחזור הזה (אין ביצוע, אין חתימה) והלולאה
+//     ממשיכה לפעום — מצב-הלולאה נושא את פסק-הדין והסיבות בעברית.
+//   · ALLOW/REVIEW ⇒ מבצעים כרגיל.
+async function callEconGate(actionId: string, kind: string, description: string): Promise<LoopGateRecord> {
+  const at = utcIso();
+  try {
+    const res = await fetch(`${HOME_BASE}/api/econ-gate`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ actionId, kind, description, source: "governance-loop", spend: false }),
+      signal: AbortSignal.timeout(20_000),
+      cache: "no-store",
+    });
+    const data = (await res.json().catch(() => null)) as {
+      ok?: boolean;
+      verdict?: { verdict?: string; score?: number; reasonsHe?: unknown; budget?: { actionsToday?: number; cap?: number } };
+    } | null;
+    const v = data?.verdict;
+    if (res.ok && data?.ok && v && (v.verdict === "ALLOW" || v.verdict === "REVIEW" || v.verdict === "DENY")) {
+      return {
+        at,
+        verdict: v.verdict,
+        score: typeof v.score === "number" ? v.score : null,
+        reasonsHe: Array.isArray(v.reasonsHe)
+          ? v.reasonsHe.filter((r): r is string => typeof r === "string").slice(0, 4)
+          : [],
+        actionsToday: typeof v.budget?.actionsToday === "number" ? v.budget.actionsToday : null,
+        cap: typeof v.budget?.cap === "number" ? v.budget.cap : null,
+        actionId,
+      };
+    }
+    return {
+      at,
+      verdict: "gate-unreachable",
+      score: null,
+      reasonsHe: [`תשובת-שער לא תקינה (HTTP ${res.status}) — כשל-פתוח: הלולאה המשיכה`],
+      actionsToday: null,
+      cap: null,
+      actionId,
+    };
+  } catch (e) {
+    return {
+      at,
+      verdict: "gate-unreachable",
+      score: null,
+      reasonsHe: [`השער לא נענה: ${(e instanceof Error ? e.message : "שגיאה").slice(0, 140)} — כשל-פתוח: הלולאה המשיכה`],
+      actionsToday: null,
+      cap: null,
+      actionId,
+    };
+  }
+}
+
+// r148-b — פרישת-דור: אחרי HMR של המודול, טיימר-דור-ישן (נטען לפני שער-
+// הכלכלה) עלול להמשיך להריץ מחזורים בלי שער. המחזור-הראשון של הדור-החדש
+// פורש את הטיימר-הישן — לולאה-יחידה (R80) עם השער בתוכה. מופע-טרי-אחרי-
+// איתחול-שרת נושא gen עדכני והפונקציה אינה עושה דבר.
+function retireStaleLoopTimer(): void {
+  const live = g.__weaveGovernanceLoop;
+  if (live?.started && live.gen !== LOOP_GEN) {
+    if (live.timer) {
+      try {
+        clearInterval(live.timer);
+      } catch {}
+    }
+    live.gen = LOOP_GEN;
+    try {
+      fs.appendFileSync(
+        `${HOME}/sovereign/keeper/logs/governance-loop.log`,
+        `${utcIso()} r148-b: טיימר-דור-ישן פרש (HMR) — לולאה-יחידה עם שער-הכלכלה\n`,
+      );
+    } catch {}
+  }
 }
 
 // ─── מדידות-חיות (הראיות של כל החלטה) ───
@@ -496,6 +596,7 @@ export interface GovernanceCycleResult extends CycleState {
 // ולכן נעילת-ה-globalThis חוסמת את שניהם. בדיקת-הנעילה והצבתה סינכרוניות
 // (בלי await ביניהן) — אטומיות בלולאת-האירועים. try/finally משחרר תמיד.
 export async function runGovernanceCycle(options: { force?: boolean } = {}): Promise<GovernanceCycleResult> {
+  retireStaleLoopTimer(); // r148-b — אם טיימר-דור-ישן (טרם-השער) חי — הוא פורש עכשיו
   // שכבה 1 — נעילת-עיצוב: מחזור כבש רץ עכשיו ⇒ דחייה מיידית בכנות, בלי ביצוע.
   if (g.__govCycleInFlight__) {
     return {
@@ -600,6 +701,34 @@ async function runGovernanceCycleLocked(): Promise<CycleState> {
           );
     const chosen = choice.index !== null ? (na.allowedActions[choice.index] ?? "") : "";
 
+    // r148-b — שער-הכלכלה לפני-ביצוע (FAIL-OPEN): הפעולה-הנבחרת עומדת לרדת
+    // מהמסילה — קודם תקציב-יומי דטרמיניסטי (12/יום) + שיפוט-שבעת-החוקים.
+    // spend=false (תיקון-תקרית-34, מדוד ממאגר allowedActions): פעולות-הלולאה
+    // כולן מידה/ממשל/ראיה — אינן שורפות תקציב-שידורים; השיפוט רץ, התקרה לא
+    // חוסמת. שידורים-אמת נמדדים ונאכפים בשער עם spend=true (ובשירותים עצמם).
+    // ה-actionId הוא ה-decisionId שהמחזור הזה יחתום אם יעבור את השער.
+    const prospectiveDecisionId = `D-${na.version}-${String(state.cycles + 1).padStart(3, "0")}`;
+    const gate = await callEconGate(prospectiveDecisionId, "governance-cycle", chosen || "measure-truth");
+    state.lastGate = gate;
+    // סמנטיקת-השער (r148-b תיקון-שני, מדוד חי): פסק-דין DENY חוסם רק
+    // פעולות-הוצאה (spend=true). הקריאה-מהלולאה היא spend=false — פעולות
+    // מידה/ממשל שאינן שורפות תקציב-שידורים — ולכן השיפוט כאן **עצה נרשמת**:
+    // חי ב-lastGate + ביומן-השער, מעצב בנראות ובממשל — לא מנעול. (מדוד
+    // 13:4xZ: השופט מציין DENY על "לא דווח" בקלטי-מידה טקסטואליים — חסימת
+    // מחזור-מידה על זה הייתה מקפיאה את משטח-האמת של הרשת, המחלה היא גרועה
+    // מהתרופה. חסימת-הוצאה אמת נשארת קשה: השירותים המשדרים קוראים spend=true.)
+    // מדוד (13:4xZ ממאגר allowedActions): אין במאגר פעולות-שידור — כל
+    // הפעולות מידה/ממשל. כשתירכש פעולת-שידור, המסווג כאן יסמן spend=true
+    // וה-DENY יחסום. עכשיו: השיפוט עצה בלבד — הרישום הוא האכיפה.
+    const chosenIsSpendAction = false;
+    if (gate.verdict === "DENY" && chosenIsSpendAction) {
+      recordSealDecision();
+      writeCycleState(state);
+      writeLoopState(state);
+      syncLoopGlobal(state);
+      return state;
+    }
+
     // הרצאה חסומה לפי מה שנבחר
     let detail = "";
     let advanced = false;
@@ -650,7 +779,7 @@ export function startGovernanceLoop(): void {
   if (g.__weaveGovernanceLoop?.started) return;
   const state = readLoopState() ?? readCycleState(); // r143-a — מופע-טרי יורש את האמת מהדיסק
   state.bootedAt = state.bootedAt || utcIso();
-  g.__weaveGovernanceLoop = { timer: null, started: true, state };
+  g.__weaveGovernanceLoop = { timer: null, started: true, state, gen: LOOP_GEN };
 
   const tick = async () => {
     try {
