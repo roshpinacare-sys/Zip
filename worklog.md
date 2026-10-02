@@ -5835,3 +5835,22 @@ Work Log:
 
 Stage Summary:
 - **שלושה-גלגלי-שיניים שנתקעו — חוזרים-לחיים:** (1) מפעל-התוכן חי-ממש (לולאת-מוות נשברה), (2) גיט-ריבוני עם-ריפוי-עצמי קבוע, (3) קיורציה פורסת 3× יותר סטייק (4,285 SP על-6% במקום-2%) — הנתיב-היחיד-שמגדיל-הכנסה-בלי-הון-חדש. התקרות-שהיו משתיקות צמיחה (B-3 3/שבוע) שוחררו-במדידה. פתוחים-לגל-הבא: מדידת-אינגייג'מנט ראשונה-של-המפעל (שעה-אחרי-עלייה), WEAVE_PUBLIC_URL, D-TREASURY, ביקורת-מסחר (−1.119 SBD ממומש — המלצת-הידוק armBuy בסשן-ה-money המקביל).
+
+---
+Task ID: r151
+Agent: main (Z.ai) — גל-"אימוץ-ה-harness + סגירת-פתוחים" (בחן-היטב-ותקן-הכל + learn-harness-engineering)
+
+Task: הוראת-המפעיל: "בחן היטב מה שעשית ושפר היטב, תקן הכל, וודא שאתה בקומיט האחרון, תעדכן היטב מה נעשה; יש עוד דברים פתוחים שיש ליישם ולוודא היטב; בנוסף תבחן היטב ובוא נשתמש כראוי ב- https://github.com/walkinglabs/learn-harness-engineering"
+
+Work Log:
+- **חקר-הקורס:** קלונים-וקריאה (README 44KB · CLAUDE.md · 14 הרצאות · harness-creator skill). המסקנה-המרכזית: 5 מערכות (instructions/state/verification/scope/lifecycle) — לרשת שלנו יש לולאות-ומדידות אבל חסרה שכבת-state קנונית.
+- **ביקורת-בסיס כנה:** validate-harness על הריפו = **28/100**, צוואר-בקבוק state 0/5.
+- **סגור — מדידת-אינגייג'מנט מפעל-התוכן (פתוח-מ-r150):** שורש: measureEngagement מסונן >24ש' (כל-פוסט-חדש מדולג יום), תוצאות ליומן-בלבד, zeroVoteStreak/killLineTripped נתיבים-מתים. תיקון ב-mini-services/content-factory/index.ts: מסנן 24ש'→1ש' · שמירת per-post engagement ב-state · הזנת-שורת-ההרג בפועל (7×0 ⇒ trip) · קצה POST /measure. מדידה-חיה 22:00Z: measured-ledger **10 הצבעות** · agents-at-work **12 הצבעות+1 תגובה+0.006 SBD** — נשמר ב-state, אומת קצה-לקצה.
+- **סגור — ביקורת-מסחר/הידוק armBuy (פתוח-מ-r149):** ניתוח pnl-scan (212 מילויים מ-09-10): 122 קניות avg **0.105574** מול 90 מכירות avg **0.101884**; 104/122 קניות מעל חציון-מכירות — גריד-קונה-גבוה-מוכר-נמוך בשוק-יורד. הידוק ב-2 מקורות-אמת (route.ts + mini-services/money): BID_OFFSETS_BPS [20,40,80,160,320]→[20,40,80,160] · minSbd 0.15→0.30.
+- **סגור — דליפה-אפשרית:** .git-askpass.sh (PAT) בשורש לא-היה ב-gitignore (רק-עותק-fleet-verify כוסה) — תוקן, `git check-ignore` מאומת, ונכנס-כבדיקה-קבועה ל-init.sh.
+- **נבנה — חמשת-המערכות (מהדוגמה-הקנונית של הקורס):** `feature_list.json` (8 features עם status/evidence_path/last_verified_at/description/dependencies) · `progress.md` (Last-Updated/Current-Objective/Recommended-Next-Step + רשומת-גל) · `session-handoff.md` (מצב/חסמים/next-step/מפת-קבצים) · `init.sh` (שער: git-sync+סודות+tsc+eslint+צי-פורטים+מכונות+harness; --fast/--strict) · AGENTS.md ראש-ניתוב (Startup Workflow · Definition of Done · Scope one-feature-at-a-time · End of Session).
+- **מדידת-סיום:** validate-harness = **100/100** · init.sh ירוק ממש (כולל תפיסת-עבר-origin-חי).
+- **גיט-מלחמתי שוב:** קומיט 1db6e32 נתקע בריבייס-משובש (מרוץ-דיבונים — התבנית-מ-r150) → פתרון-מוכח: rebase --quit · checkout -B main origin/main · קציר-כירורגי של 8 קבצי-קוד מהקומיט · קומיט-נקי · דחיפה. עכשיו **local==origin==e0397d4**.
+
+Stage Summary:
+- הרשת קיבלה שכבת-harness קנונית: סוכן-חדש עובד-תוך-דקות (init.sh → handoff → progress → feature_list) ואין-הכרזת-בוצע-בלי-שער-ירוק-וראיה. שני-פריטים-פתוחים-מרכזיים-נסגרו-בראיה (אינגייג'מנט · armBuy) + סתימת-דליפת-סודות. המדידה-האמיתית-של-הכנסת-המפעל-חיה-ונאספת-אוטומטית. פתוחים-חיים: WEAVE_PUBLIC_URL · D-TREASURY · דלק-חדש (B-1, שורת-הרג 2026-10-16) · מדידת-התכנסות-armBuy בעוד-~7-ימים · light-mode-scan.
