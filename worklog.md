@@ -5871,3 +5871,20 @@ Work Log:
 
 Stage Summary:
 - הסוכנים קיבלו זהות-מומחה: לכל קריאת-LLM חיה יש תפקיד-מוגדר מספרייה-ריבונית-מבוקרת, והחוקים-הקשיחים-נשארים-סמכות-עליונה (המדידה-הוכיחה: 0-מספרים-לא-מעוגנים). שלושת-הפתוחים-המרכזיים טופלו: דלק-בדרך-מדידה (02:01Z), WEAVE_PUBLIC_URL-נפסק-כנה, D-TREASURY-עם-המלצה-מוכנה. הצעד-הבא-המדוד: אמת-פריסת-הדלק אחרי-02:01Z וטיק-המפעל-הראשון-עם-שכבת-התפקיד (~03:42Z).
+
+---
+Task ID: r153
+Agent: main (Z.ai) — גל-"שער-ההרג" (טיפול-בפתוחים + ייעול-ריבונות-בעזרת destructive_command_guard)
+
+Task: הוראת-המפעיל: "טפל בכל מה שפתוח; בנוסף בחן כיצד ניתן לייעל את הריבונות והאוטונומיה של הסוכנים בעזרת https://github.com/Dicklesworthstone/destructive_command_guard"
+
+Work Log:
+- **חקר-המאגר (קלון 45MB + קריאה):** dcg = hook-ב-Rust שחוסם-פקודות-הרסניות לסוכני-AI לפני-ביצוע. שמונה-עקרונות-אדפטביליים: whitelist-first · default-allow · zero-false-negatives · packs-מודולריים · context-detection · bounded-failure · explain/scan-modes · JSON-stdout/פאנל-stderr. סטייה-מוצהרת אחת: אין graduated-response — בעידן D-OP-01 אזהרה-שעוברת-לביצוע מרעילה-את-חוק-הראיה; חסימה-בינארית + ראיה.
+- **נבנה scripts/sovereign-guard.mjs (אפס-תלות):** 7 חבילות; 3 מהן-יחידות-לרשת-שלנו ונולדו-מתקלות-אמת: git.race (r150/r151 rebase-משובש-מול-מרוץ-דיבונים → rebase-ללא-autostash נחסם, צורת-ה-recovery --quit/--abort/--continue ב-whitelist) · git.secrets (r151 PAT-near-miss → git add של askpass/pat.env/.env נחסם) · fleet.life (pkill/killall/fuser -k/צינור-lsof→kill — הרג-עיוור היה-מפיל-את-כל-הצי). fs.destroy עם-חוק-הטמפ של dcg + קבצי-אמת-מוגנים · git.history · git.remote · db.destroy. רקורסיה ל-payload של bash -c/node -e.
+- **מדידה-חיה:** selftest 60/60 PASS (תיקון-אחד: branch-whitelist עקף-את-חוק-ה-D — סדר-הבדיקות תוקן) · pre-commit מותקן --install (scan-mode: סודות-מדורגים + שורות-.sh חדשות; fail-closed בגבול-הגיט כסטייה-מתועדת) · ירי-חי: `git reset --hard HEAD~1` → חסם exit 1 + פאנל + ראיה-ראשונה ב-blocked.jsonl 22:49:11Z · `git pull --rebase --autostash` → שקט exit 0 · explain ללא-תופעות-לוואי.
+- **חיווט:** init.sh סעיף 5 חדש (selftest + hook-מותקן + יומן-ראיה) · AGENTS.md חוק-קשיח (משמעויות-קנוניות-מדודות) · feature_list F-10 (ראיה: selftest.json) · progress r153 · handoff מעודכן.
+- **פתוחים-נמדדו-חי (22:37–22:45Z):** (1) דלק-B-1 אוטונומי-לגמרי — פריסה-מנוסה-בקוד (route.ts:804/1142): תשלום-ראשון 02:01:27Z, מוביל-חי-60ש' → הסולם-נפרס-לבד; (2) טיק-התפקיד ~03:42Z; (3) D-TREASURY שער-חתום; (4) WEAVE_PUBLIC_URL חסום-מדידה; (5) armBuy חלון-פתוח (policy-חי: minSbd 0.30); (6) light-mode מיעוט.
+- **גיט:** fetch תפס-התקדמות-origin (58a445f→0ed9890, עוגני-weave) → `git pull --rebase --autostash` (בדיוק-הצורה-שהשער-החדש-מחייב) → local==origin==0ed9890 לפני-עבודה. קומיט-r153 דרך-ה-pre-commit-החדש (דוגמנות-עצמית).
+
+Stage Summary:
+- הרשת קיבלה מערכת-חיסון-עצמי: הסוכנים מוגנים-מהפקודות-ההרסניות-שכבר-שרפו-אותנו-פעמיים (rebase-race) וכמעט-שרפו (PAT), הצי-מוגן-מהרג-עיוור, וכל-חסימה-היא-ראיה-מתועדת — לא אזהרה-שמתאדה. הפתוחים-נסקרו-במדידה-חיה: הדלק מתנהל-אוטונומית (אימות-נחיתה אחרי 02:01Z), שני-השערים-החתומים (D-TREASURY/WEAVE_PUBLIC_URL) ממתינים-למפעיל-כחוק. הצעד-המדוד-הבא: אימות-נחיתת-475.853-STEEM ופריסת-הסולם, וטיק-המפעל-הראשון-עם-שכבת-התפקיד.

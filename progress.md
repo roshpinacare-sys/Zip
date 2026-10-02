@@ -1,9 +1,23 @@
-# progress — יומן-ההתקדמות הקנוני (harness · r152)
+# progress — יומן-ההתקדמות הקנוני (harness · r153)
 
-**Last Updated:** 2026-10-02T23:00Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-02:01Z לאמת שתשלום-ה-powerdown (475.853 STEEM) נפרס-על-הסולם — ואז טיק-המפעל-הראשון-עם-שכבת-התפקיד (~03:42Z).
+**Last Updated:** 2026-10-02T22:55Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-02:01Z לאמת שה-powerdown (475.853 STEEM) נחת-והדלק נפרס-אוטונומית-על-הסולם (חוק-4 — מנוסה-בקוד route.ts:804) — ואז טיק-המפעל-הראשון-עם-שכבת-התפקיד (~03:42Z).
 
 > חוק-אמת: כל רשומה נושאת ראיה (נתיב-קובץ / פלט-מדידה / txid). אין "בוצע" בלי ראיה.
 > סדר: החדש בראש. יומן-העבודה המלא (1.4MB) נשאר ב-worklog.md — כאן רק מה שצריך כדי לחזור-לעבוד.
+
+## r153 · 2026-10-02 · גל-שער-ההרג (destructive_command_guard → ריבונות-הסוכנים) + סקירת-פתוחים
+
+- **חקר-המאגר:** Dicklesworthstone/destructive_command_guard (dcg) — hook-ביצועי-בRust שחוסם-פקודות-הרסניות-לפני-ביצוע לסוכני-AI. העקרונות-שאומצו: whitelist-first · default-allow · zero-false-negatives · packs-מודולריים · context-detection (נתונים-מול-ביצוע) · bounded-failure · explain/scan-modes · JSON-stdout/פאנל-stderr. **סטייה-מוצהרת:** אין graduated-response (WARNING-שעובר מרעיל את חוק-הראיה בעידן D-OP-01) — חסימה-בינארית + ראיה-מלאה.
+- **נבנה — `scripts/sovereign-guard.mjs` (אפס-תלות):** 7 חבילות — git.history · git.remote · **git.race** (נולדה מהתבנית-החוזרת r150/r151: rebase-ללא-autostash מול-מרוץ-דיבונים) · **git.secrets** (מ-r151: PAT-כמעט-נכנס-לקומיט) · fs.destroy (חוק-dcg: rm -rf מחוץ-ל-/tmp; + קבצי-אמת-מוגנים) · **fleet.life** (pkill/killall/fuser -k/צינור-kill — הרג-עיוור היה-מפיל-את-הצי-במכה) · db.destroy. רקורסיה לתוך `bash -c`/`node -e`. אפס-תלות חיצונית.
+- **מדידה-חיה (PASS):** selftest **60/60 מקרים** · pre-commit מותקן (scan-mode: סודות-מדורגים + שורות-.sh-חדשות; fail-closed בגבול-הגיט) · ירי-חי: `git reset --hard HEAD~1` → **חסם exit 1** עם-פאנל+Tip וראיה-ראשונה ב-`sovereign/guard/blocked.jsonl` (22:49:11Z) · allow = שקט exit 0 · explain = אפס-תופעות-לוואי.
+- **חיווט-מלא:** init.sh סעיף 5 (selftest + hook + יומן-ראיה בכל-ריצה) · AGENTS.md חוק-קשיח-חדש (משמעויות-קנוניות: `pull --rebase --autostash` · `push --force-with-lease` · גריטה→/tmp · kill-לפי-PID) · feature_list F-10.
+- **סקירת-הפתוחים — נמדדו-חי (22:37–22:45Z):**
+  1. **דלק (B-1) — אוטונומי-לגמרי:** הפריסה-אינה-תלויה-סוכן: `totalFuel = נזיל+בפקודות−תביעת-עטיפה` (route.ts:1142) והמוביל-פורס-בתוך-מחזור-מהנחיתה (חוק-4, route.ts:804). המוביל-חי: 2,973 פעימות · 60ש'. powerdown: תשלום-ראשון **2026-10-03T02:01:27Z** (475.853 STEEM · נותרו 4). האימות-האמת-אחרי-הנחיתה.
+  2. **טיק-התפקיד (F-9):** מפעל-חי (12 טיקים · שורת-הרג 0 · 12 הצבעות בפוסט-האחרון) — הטיק-עם-שכבת-התפקיד ~03:42Z.
+  3. **D-TREASURY** — שער-חתום: ממתין-מילה-מהמפעיל (המלצת-הרשת v1 מוכנה-במארז).
+  4. **WEAVE_PUBLIC_URL** — נמדד-כנה ב-r152: אין-בסיס-ציבורי-נגיש; נפתח-מחדש-כשהמפעיל-מכריז-דומיין.
+  5. **armBuy** — חלון-המדידה-פתוח (policy-חי במוביל: minSbd 0.30 · offsets [20,40,80,160]).
+  6. **light-mode** — מיעוט-עדיפות (הבית-כאן-נבדק-נקי ב-r152).
 
 ## r152 · 2026-10-02 · גל-prompts.chat + טיפול-בפתוחים
 

@@ -52,7 +52,12 @@ echo "$FH" | grep -q '"ok":true' && ok "מפעל-התוכן: ticks=$(echo "$FH" 
 CH=$(curl -s -m 5 http://localhost:3040/ 2>/dev/null || true)
 echo "$CH" | grep -q '"service":"curation"' && echo "$CH" | grep -q '"armed":true' && ok "קיורציה: armed" || bad "קיורציה לא חמושה"
 
-head "5. ה-harness עצמו"
+head "5. שער-ההרג (sovereign-guard · r153 · אדפטציה של destructive_command_guard)"
+bun scripts/sovereign-guard.mjs --selftest >/dev/null 2>&1 && ok "selftest-השער PASS (60 מקרים)" || bad "selftest-השער נופל — ריצה: bun scripts/sovereign-guard.mjs --selftest"
+[ -x .git/hooks/pre-commit ] && ok "pre-commit-השער מותקן (scan-mode: סודות+sh)" || bad "pre-commit חסר — ריצה: bun scripts/sovereign-guard.mjs --install"
+[ -f sovereign/guard/blocked.jsonl ] && ok "יומן-הראיה חי ($(wc -l < sovereign/guard/blocked.jsonl) אירועים-מתועדים)" || ok "יומן-ראיה ריק (עדיין לא נחסם דבר)"
+
+head "6. ה-harness עצמו"
 for F in feature_list.json progress.md session-handoff.md AGENTS.md; do
   [ -f "$F" ] && ok "$F קיים" || bad "$F חסר"
 done

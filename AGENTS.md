@@ -19,6 +19,13 @@
 
 **Scope · גבולות-היקף:** One feature at a time — `active_feature` יחיד ב-feature_list.json; Stay in scope — אסור לפתוח-feature חדשה לפני סגירת-הפעילה או הקפאתה-בראיה; תלויות מרושמות ב-`dependencies` בכל-feature. אין סודות בגיט (upload/* · *.env · .git-askpass.sh) · אין המצאת-הכרעות-מפעיל (WEAVE_PUBLIC_URL / D-TREASURY) · אין "בוצע" בלי ראיה.
 
+**שער-ההרג · sovereign-guard (r153 · אדפטציה של destructive_command_guard) — חוק-קשיח:**
+- לפני כל פקודה-פוטנציאלית-הרסנית (reset/clean/rebase/push-force/rm-רקורסיבי/pkill/prisma-reset) — הרץ `bun scripts/sovereign-guard.mjs --check "<cmd>"`; exit 1 = חסום, הקפד על-ה-Tip.
+- `--explain "<cmd>"` = ניתוח-בלבד (אפס-תופעות-לוואי) · `--selftest` = טבלת-האמת (60 מקרים; init.sh מאמת) · `--install` = התקנת pre-commit.
+- ה-pre-commit כבר אוטומטי: סודות-מדורגים + שורות-.sh-הרסניות נחסמות בקומיט (fail-closed בגבול-הגיט).
+- המשמעויות-הקנוניות-שעברו-מדידה: `git pull --rebase --autostash` (לא rebase-חשוף — r150/r151) · `git push --force-with-lease` (לא --force) · גריטה → /tmp בלבד · הריגת-תהליך → kill <PID> מ-lsof -t -i:<פורט> (לעולם לא pkill/killall).
+- כל חסימה נרשמת כראיה: `sovereign/guard/blocked.jsonl` + `stats.json`. אסור למחוק/לעקוף את היומן.
+
 **End of Session · לפני-סיום-סשן (רוטינה-קבועה):**
 1. `bash init.sh` ירוק.
 2. עדכון `feature_list.json` + רשומה בראש `progress.md` + עדכון `session-handoff.md`.

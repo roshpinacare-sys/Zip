@@ -1,8 +1,8 @@
 {
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
-  "last_updated": "2026-10-02T23:00:00Z",
-  "active_feature": "r152-role-library-prompts-chat",
+  "last_updated": "2026-10-02T22:55:00Z",
+  "active_feature": "r153-sovereign-guard-dcg",
   "features": [
     {
       "id": "F-1",
@@ -111,6 +111,20 @@
         "F-6"
       ],
       "next_step": "טיק-הייצור הראשון עם-השכבה אחרי-חצות UTC (~03:42Z) — למדוד gate-ואינגייג׳מנט מול-הקודם"
+    },
+    {
+      "id": "F-10",
+      "name": "שער-ההרג הריבוני (destructive_command_guard → sovereign-guard)",
+      "status": "running",
+      "description": "Guard layer adapted from Dicklesworthstone/destructive_command_guard: whitelist-first, default-allow, zero-false-negatives, modular packs, context detection, explain/scan modes, bounded failure, evidence log. Two incident-derived packs unique to this fleet: git.race (rebase autostash discipline from r150/r151 broken rebases) and git.secrets (r151 PAT near-miss) plus fleet.life (blind process kills would nuke the 9-port fleet).",
+      "evidence_path": "sovereign/guard/selftest.json",
+      "last_verified_at": "2026-10-02T22:50:00Z",
+      "evidence": "selftest 60/60 PASS · pre-commit מותקן · ירי-חי: 'git reset --hard HEAD~1' נחסם exit 1 + פאנל + ראיה ב-blocked.jsonl (אירוע-ראשון 22:49:11Z) · allow-שקט exit 0 · explain-ללא-תופעות-לוואי · init.sh סעיף 5 מאמת-השער בכל-ריצה · AGENTS.md חוק-קשיח",
+      "dependencies": [
+        "F-5",
+        "F-6"
+      ],
+      "next_step": "החסימות-האמתיות-של-הסוכנים ייאספו ב-blocked.jsonl — סקירת-המונים בכל-גל; אם-חבילה-מייצרת false-positive חוזר — הקפדה-מנומקת-בראיה"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."
