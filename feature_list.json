@@ -1,8 +1,8 @@
 {
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
-  "last_updated": "2026-10-02T23:10:00Z",
-  "active_feature": "r154-emergence-sovereignty-proof",
+  "last_updated": "2026-10-02T23:18:00Z",
+  "active_feature": "r155-sovereign-index-converge",
   "features": [
     {
       "id": "F-1",
@@ -139,6 +139,20 @@
         "F-6"
       ],
       "next_step": "הרצה-בכל-גל (init.sh); אם-מצב-כישלון-חדש-מתפרסם-במחקר-ההמשך — הוספת-בדיקה-מקבילה-ל-scorecard"
+    },
+    {
+      "id": "F-12",
+      "name": "מפת-האמת האחת (SOVEREIGN-INDEX) + ההתלכדות",
+      "status": "running",
+      "description": "Generated-from-live truth map: one file (SOVEREIGN-INDEX.md) produced by scripts/sovereign-index.mjs from the machines themselves at every init.sh run — fleet health, subsystem-to-state map, measured achievements ledger, one-block work protocol, live open items. Cannot drift from truth because it is measured from truth. Convergence wave r155 also merged the unmerged security-audit-2026-09-28 branch (workflow input hardening + SAOS.md truth corrections) into main and deleted the stale branch.",
+      "evidence_path": "SOVEREIGN-INDEX.md",
+      "last_verified_at": "2026-10-02T23:16:20Z",
+      "evidence": "מיוצר-חי 23:16:20Z · 10/10-שירותים-חיים-נמדדו · 11-features · scorecard 9/9 · guard 1-חסימה-מתועדת · security-branch d99f8dc צורף-ל-main-ב-cherry-pick נקי (7ff3df1) והענף-נמחק",
+      "dependencies": [
+        "F-6",
+        "F-7"
+      ],
+      "next_step": "המפה-מתחדשת-בכל-init.sh; כל-תת-מערכת-חדשה-נרשמת-ב-TRUTH_MAP-של-המנוע — לא-במסמך"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."

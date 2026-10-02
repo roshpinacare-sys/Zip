@@ -3,10 +3,10 @@
 ## ── Startup Workflow · מסלול-הפעלה לסוכן חדש (harness · r151) — קרא-קודם ──
 
 **Before writing code — המסלול (60 שניות):**
-1. `git pull --rebase origin main` — יש סשנים-מקבילים; רץ רק על ראש-השרשרת.
-2. קרא `session-handoff.md` (מצב · חסמים · צעד-הבא) ← קובץ-המסירה הקנוני.
-3. קרא רשומה-אחת ב-`progress.md` (החדשה-בראש) + `feature_list.json` (עוקב-המצב עם ראיות).
-4. `bash init.sh` — שער-האימות: git-sync · סודות · tsc · eslint · צי-הפורטים · המכונות · ה-harness עצמו. **אדום = תיקון-לפני-עבודה-חדשה.**
+1. `git pull --rebase --autostash origin main` — יש סשנים-מקבילים; רץ רק על ראש-השרשרת (**rebase-חשוף נחסם-על-ידי-השער**).
+2. `bash init.sh` — שער-האימות (7 סעיפים): git-sync · סודות · tsc/eslint · הצי · המכונות · שער-ההרג · הוכחת-הריבונות · מפת-האמת. **אדום = תיקון-לפני-עבודה-חדשה.**
+3. קרא `SOVEREIGN-INDEX.md` — מפת-האמת האחת (מיוצרת-מהחי בכל-init.sh: הצי · המפה · ספר-ההישגים · הפרוטוקול · הפתוחים).
+4. קרא `session-handoff.md` (מצב · חסמים · צעד-הבא) + רשומה-אחת ב-`progress.md` + `feature_list.json` (active_feature).
 5. בחר פתוח מ-progress.md או next_step מ-feature_list.json. יומן-העבודה המלא: `worklog.md` (append בלבד).
 
 **Definition of Done · הגדרת-סיום — כל הסעיפים או אין הכרזה:**

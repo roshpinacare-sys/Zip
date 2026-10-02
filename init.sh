@@ -61,7 +61,8 @@ head "6. הוכחת-הריבונות (scorecard מול Emergence World · r154)"
 bun scripts/sovereignty-proof.mjs 2>/dev/null | grep -q '"failed":0' && ok "scorecard: כל-מצבי-הכישלון-של-המחקר חסומים (PROVEN)" || bad "scorecard אדום — ריצה: bun scripts/sovereignty-proof.mjs"
 [ -f sovereign/bloc/EMERGENCE-scorecard.json ] && ok "ראיה: sovereign/bloc/EMERGENCE-scorecard.json"
 
-head "7. ה-harness עצמו"
+head "7. מפת-האמת + ה-harness עצמו"
+bun scripts/sovereign-index.mjs --json >/dev/null 2>&1 && [ -f SOVEREIGN-INDEX.md ] && ok "SOVEREIGN-INDEX.md מיוצר-מהחי (10 שירותים נבדקו)" || bad "מפת-האמת לא נוצרה — ריצה: bun scripts/sovereign-index.mjs"
 for F in feature_list.json progress.md session-handoff.md AGENTS.md; do
   [ -f "$F" ] && ok "$F קיים" || bad "$F חסר"
 done
