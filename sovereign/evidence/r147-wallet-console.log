@@ -1,0 +1,61 @@
+# r147-b wallet forensics — 2026-10-02T11:25:06Z
+# Page: https://roshpinacare-sys.github.io/Console/wallet.html (sha256 be409978… == home console/wallet.html)
+# Reproduction: create wallet -> Register on chain -> state 'Step 2 of 3: signed and queued'
+# MEASURED: after Register -> ZERO new network requests (envelope never leaves the page; relayKick() returns at 'if (!base || !qe) return;' because LIVE.relay.url === null)
+# Published book: saos-live.json generatedAt 2026-10-02T10:24:36.471Z relay={"url":null,"queued":0} (Console + Domain mirror)
+
+## console messages:
+
+## page errors:
+
+## network requests:
+[AD2795BB3228C787F43B8627FFC34E43] GET https://roshpinacare-sys.github.io/Console/wallet.html (Document) 200
+[14415.2] GET https://roshpinacare-sys.github.io/Console/gate-crypto.js (Script) 200
+[14415.4] GET https://roshpinacare-sys.github.io/Console/saos-live.js (Script) 200
+[14415.5] GET https://roshpinacare-sys.github.io/Console/gate-crypto.js (Script) 200
+[14415.6] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790939968262 (Fetch) 200
+[14415.7] GET https://roshpinacare-sys.github.io/Console/mirror.json?t=1790939968597 (Fetch) 200
+[14415.8] GET https://roshpinacare-sys.github.io/Console/saos-live.json?t=1790939968597 (Fetch) 200
+[14415.9] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790939968597 (Fetch) 200
+[6AD65FC04EA2FEEEA5BBBFFA44A5F53D] OPTIONS https://api.steemit.com/ (Other) 200
+[14415.10] POST https://api.steemit.com/ (Fetch) 200
+[14415.11] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940028264 (Fetch) 200
+[14415.12] POST https://api.steemit.com/ (Fetch) 200
+[3CD19A2DCAE67BAA8EA735EA9802424F] OPTIONS https://api.steemit.com/ (Other) 200
+[14415.13] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940088283 (Fetch) 200
+[14415.14] GET https://roshpinacare-sys.github.io/Console/saos-live.json?t=1790940088862 (Fetch) 200
+[14415.15] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940088862 (Fetch) 200
+[14415.16] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940148264 (Fetch) 200
+[14415.17] POST https://api.steemit.com/ (Fetch) 200
+[477FB09C5DEC1A0928BDF8C4D1B10E9A] OPTIONS https://api.steemit.com/ (Other) 200
+[14415.18] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940208264 (Fetch) 200
+[14415.19] GET https://roshpinacare-sys.github.io/Console/saos-live.json?t=1790940208861 (Fetch) 200
+[14415.20] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940208864 (Fetch) 200
+[14415.21] POST https://api.steemit.com/ (Fetch) 200
+[057CBFA71151BA07666E7CF3A3020434] OPTIONS https://api.steemit.com/ (Other) 200
+[14415.22] GET https://roshpinacare-sys.github.io/Console/dex/world.json?t=1790940268264 (Fetch) 200
+# NOTE: console messages were captured pre-clear (HMR/info noise from the earlier :3000 session; ZERO page errors, ZERO warnings from wallet.html itself) — 'console --clear' was run to measure the post-register window cleanly.
+
+# ─── AFTER FIX (r147-b) — local serve of the fixed page + REAL published book ───
+# 2026-10-02T11:31:11Z · http://localhost:4173/wallet.html (fixed wallet.html sha f9ff303b…), book: REAL Console saos-live.json (relay.url=null)
+# PROVEN: truthful state machine replaces the dead-end: why (relay.url=null measured + book age), two real unblock paths, 44px recheck + broadcast buttons
+# PROVEN: recheck button → 'rechecked: the book still declares no hosted relay (relay.url = null)' (honest, measured)
+# PROVEN: i18n fix — status re-renders in Hebrew on language switch (was frozen in English before)
+# console errors after: 0 · page errors after: 0
+
+## page errors after fix:
+## network after fix (register + recheck window):
+[18464.6] GET http://localhost:4173/dex/world.json?t=1790940587901 (Fetch) 200
+[18464.7] GET http://localhost:4173/mirror.json?t=1790940588832 (Fetch) 200
+[18464.8] GET http://localhost:4173/saos-live.json?t=1790940588833 (Fetch) 200
+[18464.9] GET http://localhost:4173/dex/world.json?t=1790940588833 (Fetch) 200
+[6343798404E692CDBF9375515D894C62] OPTIONS https://api.steemit.com/ (Other) 200
+[18464.10] POST https://api.steemit.com/ (Fetch) 200
+[18464.11] GET http://localhost:4173/saos-live.json?t=1790940633638 (Fetch) 200
+[18464.12] GET http://localhost:4173/dex/world.json?t=1790940647915 (Fetch) 200
+
+# ─── FINAL PROOF ON THE LIVE PUBLISHED PAGE (post Console-commit b849368) ───
+# 2026-10-02T11:35:02Z · https://roshpinacare-sys.github.io/Console/wallet.html serves sha f9ff303b… (== home fixed) — measured via GitHub Pages probe at 11:34:18Z
+# full operator flow re-run live: create wallet -> Register on chain -> truthful state (why: relay.url=null measured, book age 11min, two real unblock paths, live recheck button)
+# page errors: 0 · console errors: 0
+# screenshots: r147-wallet-before-gate.png · r147-wallet-waiting-state.png · r147-wallet-waiting-hebrew.png · r147-wallet-fixed-state.png · r147-wallet-fixed-hebrew.png · r147-wallet-fixed-live.png
