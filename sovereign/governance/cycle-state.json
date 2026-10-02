@@ -2,11 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 93,
-  "lastCycleAt": "2026-10-02T12:53:51.891Z",
-  "lastDecisionId": "D-r143-093",
+  "cycles": 95,
+  "lastCycleAt": "2026-10-02T13:31:20.748Z",
+  "lastDecisionId": "D-r143-095",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 5936 דק' · כלכלה: pnl-snapshots seq=6 (realizedSbd=-1.118787 · trips=65 · unrealizedPremiumSbd=unmeasured · orders=0 · בת 77 דק') · מילויי-שרשרת 87 (maxIndex=59761)",
-  "brainUsed": true
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 5974 דק' · כלכלה: pnl-snapshots seq=7 (realizedSbd=-1.118787 · trips=65 · unrealizedPremiumSbd=0.03131 · orders=11 · בת 34 דק') · מילויי-שרשרת 91 (maxIndex=60176)",
+  "brainUsed": true,
+  "lastGate": {
+    "at": "2026-10-02T13:31:16.572Z",
+    "verdict": "ALLOW",
+    "score": 85,
+    "reasonsHe": [
+      "הפעולה דורשת קריאת מצב וביצוע פעולה מאושרת מראש עם עלות-שולית נמוכה",
+      "התקציב-שידורים היום (13/12) מראה עודף של 1 יחידה",
+      "הפעולה כוללת הוספת ראיות ל-DECISION_LOG.jsonl שמגבירה את הערך העתידי",
+      "זו פעולת ממשלת יסוד עם עלות נמוכה והשפעה על המערכת כולה"
+    ],
+    "actionsToday": 13,
+    "cap": 12,
+    "actionId": "D-r143-095"
+  }
 }
