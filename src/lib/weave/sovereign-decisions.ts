@@ -29,7 +29,9 @@ export const NEXT_ACTION_PATH = path.join(GOV_DIR, "NEXT_ACTION.json");
 export const OPEN_DECISIONS_PATH = path.join(GOV_DIR, "OPEN_DECISIONS.json");
 export const DECISION_LOG_PATH = path.join(GOV_DIR, "DECISION_LOG.jsonl");
 
-export type DecisionClass = "governance" | "economy" | "fleet" | "evidence" | "external-leg" | "gate";
+// r145-b — מחלקת-"army": גיוסי-תפקידים שהצבא מבצע בעצמו (audience-analyst,
+// treasury-auditor). ההחלטה נחתמת כמו כל החלטה — chosen+why+boundary+evidence.
+export type DecisionClass = "governance" | "economy" | "fleet" | "evidence" | "external-leg" | "gate" | "army" | "content";
 
 export interface DecisionEntry {
   seq: number;

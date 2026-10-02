@@ -41,7 +41,7 @@ import {
 } from "../../src/lib/weave/curation";
 // r144-i2 — שכבת-מניעת-שכפול-תוכן חוצת-חשבונות (תוספת נקייה: אפס-נגיעה
 // באיש-המת, במכסות ובנתיב-ההצבעה; השער מוסיף זיכרון-תגובות + יומן-דדופ)
-import { contentGate, ensureDedupeLog } from "./dedupe";
+import { contentGate, ensureDedupeLog, type DedupeStatus } from "./dedupe";
 
 const PORT = 3040;
 const TICK_SEC = 15 * 60; // פעימה כל 15 דק' — פרישה טבעית של ההצבעות
@@ -101,6 +101,13 @@ async function tick(): Promise<void> {
   if (ticking) return; // לולאה-יחידה
   ticking = true;
   try {
+    // r145-b — הצריכה החיה של דיג'סט-הקהל (audience-analyst, D-r145-AUD):
+    // הדיבון מביא מ-Domain את latest.json (מסלול-פומבי, נטול-מפתחות) במטמון
+    // 6 שעות, וכותב אותו ל-sovereign/audience/latest-digest.json — מקור
+    // readResonanceTags() בסיור. כשל-הבאה כנה ושקט: הסיור ממשיך מהקובץ הקודם
+    // עד שיתיישן (48ש') ואז חוזר לתגיות-הבסיס בלבד.
+    await refreshAudienceDigest();
+
     // מיזוג שדות-הבקרה לפני כל החלטה — פעולת מפעיל שנכתבה לפנקס בין
     // הפעימות נכנסת לתוקף מיד בפעימה זו, בלי החלטה מיושנת אחת חינם
     mergeControlFromDisk();
@@ -137,7 +144,11 @@ async function tick(): Promise<void> {
     // 2.5) r144-i2 — שער-תוכן חוצת-חשבונות: זיכרון-50-התגובות האחרונות של
     //      כל-החשבונות שלנו, סריקת חפיפה ≥0.6, רישום כנה ב-dedupe-log.json.
     //      כשל-כנה לא נוגע בהצבעה (fail-soft מלא בתוך contentGate).
-    await contentGate(state as CurationState & { dedupe?: unknown });
+    //      r145-b retry: הקאסט הישן (`dedupe?: unknown`) היה שגיאת-tsc קיימת-מראש
+    //      (unknown אינו מוקצה ל-DedupeStatus) — תוקן ל-DedupeStatus. הקאסט נכון:
+    //      contentGate עצמו כותב state.dedupe בסוף-הריצה (שדה-תוספת בפנקס),
+    //      ו-CurationState הממשקי אינו מכריז עליו — מבנה-חלש דורש חפיפה.
+    await contentGate(state as CurationState & { dedupe?: DedupeStatus });
 
     // 3) בקרת-בטיחות: השהיה יזומה
     if (state.paused) {
@@ -283,6 +294,38 @@ if (G_CURATION_SRV.__CURATION_SERVER__) {
 }
 
 ensureDedupeLog(); // r144-i2 — יומן-הדדופ חי מהעלייה הראשונה (גם ריק+כותרת)
+
+// ── r145-b · הבאת דיג'סט-הקהל (audience-analyst → Domain → בית) ─────────
+// מטמון 6 שעות על הקובץ עצמו (mtime) — הדיג'סט עצמו יומי; אפס-לחץ על
+// הרשת, והצריכה נשארת קריאה-בלבד ממסלול-פומבי. אפס סודות כאן.
+const AUDIENCE_FILE = "/home/z/my-project/sovereign/audience/latest-digest.json";
+const AUDIENCE_SRC = "https://raw.githubusercontent.com/roshpinacare-sys/Domain/main/audience/latest.json";
+const AUDIENCE_CACHE_MS = 6 * 3_600_000;
+let audienceFetching: Promise<void> | null = null;
+async function refreshAudienceDigest(): Promise<void> {
+  if (audienceFetching) return audienceFetching;
+  audienceFetching = (async () => {
+    try {
+      const st = fs.existsSync(AUDIENCE_FILE) ? fs.statSync(AUDIENCE_FILE) : null;
+      if (st && Date.now() - st.mtimeMs < AUDIENCE_CACHE_MS) return; // מטמון חי — אפס קריאה
+      const res = await fetch(AUDIENCE_SRC, { signal: AbortSignal.timeout(15_000), cache: "no-store" });
+      if (!res.ok) return; // כשל-הבאה שקט — הדיג'סט הקודם ממשיך עד יעוד 48ש'
+      const digest = (await res.json()) as unknown;
+      fs.mkdirSync("/home/z/my-project/sovereign/audience", { recursive: true });
+      const tmp = `${AUDIENCE_FILE}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify({ fetchedAt: new Date().toISOString(), source: "Domain/audience/latest.json", digest }, null, 2), "utf8");
+      fs.renameSync(tmp, AUDIENCE_FILE);
+      appendCurationHistory("AUDIENCE-DIGEST", `דיג'סט-קהל חי הובא מ-Domain (r145-b) — מזין תגיות-רזוננס בסיור`);
+    } catch {
+      // כשל-הבאה כנה — אפס שינוי; readResonanceTags ידלג כשהקובץ יתיישן
+    } finally {
+      audienceFetching = null;
+    }
+  })();
+  return audienceFetching;
+}
+void refreshAudienceDigest(); // הבאה ראשונה בעלייה — לפני הפעימה הראשונה
+
 saveState();
 console.log(`[curation] חי על פורט ${PORT} · beats=${state.beats} · ${state.armed ? "חמוש" : "גילוי-בלבד (לא חמוש — חימוש בידי המפעיל)"} · הצבעות היום ${state.votesToday}/${CURATION_POLICY.maxVotesPerDay}`);
 tick();

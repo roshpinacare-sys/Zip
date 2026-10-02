@@ -174,6 +174,8 @@ export interface DiscoverResult {
   candidates: CurationCandidate[];
   filtered: Record<string, number>;
   error: string | null;
+  // r145-b — התגיות-בוססות-הרזוננס שנכנסו לסיור הפעימה (ראיה לצריכת-הדיג'סט)
+  resonanceTags?: string[];
 }
 
 // ── עזרים ───────────────────────────────────────────────────────────
@@ -388,6 +390,35 @@ interface RawDiscussion {
 }
 
 /**
+ * r145-b — תגיות-רזוננס מהדיג'סט של audience-analyst (D-r145-AUD) — הצריכה
+ * האמיתית של מדידת-הקהל בשכבת-האוצרות: נושאים שנמדדה עליהם מעורבות-חוץ
+ * נסרקים בסיור בתוספת לתגיות-הבסיס (גג 2). גייטים קשים: הדיג'סט חייב להיות
+ * טרי (≤48ש') ועם מעורבות-חוץ מדודה > 0 — אין דיג'סט / דיג'סט ישן / אפס
+ * רזוננס ⇒ אפס שינוי בהתנהגות (החוק: מדידה מזינה סיור, לא שולטת בו).
+ */
+export function readResonanceTags(maxTags = 2): string[] {
+  try {
+    const f = path.join(HOME, "sovereign", "audience", "latest-digest.json");
+    const wrap = JSON.parse(fs.readFileSync(f, "utf8")) as {
+      fetchedAt?: string;
+      digest?: { topics?: Array<{ tag?: string; externalEngagement?: number }> };
+    };
+    const ageMs = Date.now() - Date.parse(wrap.fetchedAt ?? "");
+    if (!Number.isFinite(ageMs) || ageMs > 48 * 3_600_000) return [];
+    const topics = Array.isArray(wrap.digest?.topics) ? wrap.digest!.topics! : [];
+    const base = CURATION_POLICY.tags as readonly string[];
+    return topics
+      .filter((t) => typeof t?.tag === "string" && Number(t.externalEngagement) > 0)
+      .sort((a, b) => Number(b.externalEngagement || 0) - Number(a.externalEngagement || 0))
+      .map((t) => String(t.tag))
+      .filter((t) => t.length >= 2 && t.length <= 24 && !base.includes(t))
+      .slice(0, maxTags);
+  } catch {
+    return [];
+  }
+}
+
+/**
  * גילוי מועמדים: פיד created לפי תגיות → מסננות-ברזל → ניקוד → מיון.
  * כל דילוג נספר בכנות (filtered) — המפעיל רואה בדיוק למה אף אחד לא עבר.
  * הכפילוּת נמדדת מהשרשרת (active_votes שלנו בפוסט) ומהפנקס (ledger).
@@ -412,13 +443,13 @@ export async function discoverCandidates(ctx?: {
       // איחוד הפידים לפי תגית — dedup לפי author/permlink
       const seen = new Set<string>();
       const posts: RawDiscussion[] = [];
-      for (const tag of CURATION_POLICY.tags) {
+      const pullFeed = async (tag: string) => {
         const feed = await rpcV4<RawDiscussion[]>(
           node,
           "condenser_api.get_discussions_by_created",
           [{ tag, limit: CURATION_POLICY.feedLimitPerTag }]
         );
-        if (!Array.isArray(feed)) continue;
+        if (!Array.isArray(feed)) return;
         for (const p of feed) {
           if (!p?.author || !p?.permlink) continue;
           const key = `${p.author}/${p.permlink}`;
@@ -426,6 +457,14 @@ export async function discoverCandidates(ctx?: {
           seen.add(key);
           posts.push(p);
         }
+      };
+      for (const tag of CURATION_POLICY.tags) {
+        await pullFeed(tag);
+      }
+      // r145-b — תגיות-רזוננס מדיג'סט-הקהל (גג 2, מדוד > 0 — ראה readResonanceTags)
+      const resonanceTags = readResonanceTags();
+      for (const tag of resonanceTags) {
+        await pullFeed(tag);
       }
 
       const candidates: CurationCandidate[] = [];
@@ -533,6 +572,7 @@ export async function discoverCandidates(ctx?: {
         candidates: deduped,
         filtered,
         error: null,
+        resonanceTags,
       };
     } catch (e) {
       // צומת שנפל — הבא בתור; אם כולם נפלו — כנות מלאה בשדה ה-error

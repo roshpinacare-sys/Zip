@@ -189,6 +189,10 @@ async function measureEvidenceFreshness(): Promise<Array<{ file: string; ageMinu
     // החלטה-עיוורת (D-SCALE: PnL מכריע את הצעד הבא).
     `${HOME}/sovereign/economy/pnl-snapshots.json`,
     `${HOME}/sovereign/money/pnl-scan.json`,
+    // r145-b — ראיות-הצבא: דיג'סט-הקהל (audience-analyst · D-r145-AUD) וביקורת-
+    // האוצר (treasury-audit · D-r145-TRS) נכללות במדידת-הטריות של הלולאה
+    `${HOME}/sovereign/audience/latest-digest.json`,
+    `${HOME}/sovereign/treasury-audit/last-audit.json`,
   ];
   const out: Array<{ file: string; ageMinutes: number }> = [];
   const now = Date.now();

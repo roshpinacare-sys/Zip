@@ -37,7 +37,7 @@
       "mission": "daily engagement digest on community-account public content: votes/replies/external-rshares per post, topic resonance by tag, top posts; zero recorded honestly; zero-signal gate after 3 all-zero days",
       "cadence": "daily (cron 37 5 * * * UTC) + workflow_dispatch",
       "pairsWith": "home curation daemon (:3040) consumes audience/latest.json → sovereign/audience/latest-digest.json → readResonanceTags() scouting tags; governance loop evidence freshness includes the digest file",
-      "honestNote": "first run executed locally (node agents/audience-analyst.mjs, exit 0) with measured output; workflow_dispatch via the fleet token returned HTTP 204 (run dispatched on main). Numbers come from the chain, zero keys.",
+      "honestNote": "first run executed locally (node agents/audience-analyst.mjs, exit 0) with measured output; workflow_dispatch via the fleet token returned HTTP 204 and the dispatched run 36942304380 completed SUCCESS (2026-10-01T23:43:31Z) — the recurring rail is proven end-to-end. Numbers come from the chain, zero keys.",
       "firstRun": {
         "executedAt": "2026-10-01T23:38:52Z",
         "method": "local node run + Actions dispatch (HTTP 204)",
