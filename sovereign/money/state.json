@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
   "version": "1.9.0",
-  "bootedAt": "2026-10-01T19:44:23.978Z",
-  "beats": 2375,
+  "bootedAt": "2026-10-01T23:59:24.274Z",
+  "beats": 2420,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -17,7 +17,9 @@
       "offsetsBps": [
         100,
         200,
-        300
+        300,
+        400,
+        500
       ]
     },
     "hive": {
@@ -37,29 +39,29 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-01T23:49:17.021Z",
-  "actionsToday": 9,
-  "actionDay": "2026-10-01",
+  "lastActionAt": "2026-10-02T00:20:14.938Z",
+  "actionsToday": 1,
+  "actionDay": "2026-10-02",
   "acting": false,
   "lastDecision": {
-    "at": "2026-10-01T23:52:16.987Z",
-    "kind": "HONEST-FAIL",
-    "detail": "מדידה חיה נכשלה — לא מתיירים, לא פועלים על נתוני אתמול"
+    "at": "2026-10-02T00:37:57.296Z",
+    "kind": "WAIT-COOLDOWN",
+    "detail": "WAIT-COOLDOWN · עוד 13 דק' · WAIT-COOLDOWN · עוד 13 דק'"
   },
   "canonLast": {
-    "at": "2026-10-01T23:50:09.330Z",
+    "at": "2026-10-02T00:20:41.507Z",
     "ok": true,
-    "path": "reports/money-2026-10-01.md"
+    "path": "reports/money-2026-10-02.md"
   },
-  "fillsSeen": 10,
-  "lastDepositScanAt": "2026-10-01T23:44:24.180Z",
+  "fillsSeen": 1,
+  "lastDepositScanAt": "2026-10-02T00:32:57.307Z",
   "lastStreamDay": "2026-09-27",
-  "lastTotalSteem": 162.845,
+  "lastTotalSteem": 153.471,
   "fleetSeen": {
-    "pulseDay": "2026-10-01",
-    "studentDay": "2026-10-01",
-    "keeperRestartAt": "2026-09-30T21:01:14.832Z"
+    "pulseDay": "2026-10-02",
+    "studentDay": "2026-10-02",
+    "keeperRestartAt": "2026-10-02T00:34:24.246Z"
   },
-  "lastPoolGuardAt": "2026-10-01T23:45:24.184Z",
-  "lastFleetSweepAt": "2026-10-01T23:44:49.828Z"
+  "lastPoolGuardAt": "2026-10-02T00:31:57.306Z",
+  "lastFleetSweepAt": "2026-10-02T00:33:22.046Z"
 }
