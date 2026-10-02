@@ -18,6 +18,7 @@
 import { NextResponse } from "next/server";
 import { appendDecision, readDecisionLog, verifyDecisionLog } from "@/lib/weave/sovereign-decisions";
 import { computePnl, snapshotIfStale, verifySnapshots } from "@/lib/economy/pnl-ledger";
+import { refreshFillsCheckpoint } from "@/lib/weave/grid-pnl"; // r146-d — רענון-צ'קפוינט מילויים לפני המדידה
 import { bookTruth } from "@/lib/weave/book-truth"; // r145-a — אמת-הספרים (SIM vs REAL)
 
 export const runtime = "nodejs";
@@ -67,6 +68,23 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const force = url.searchParams.get("force") === "1";
     const writeEnabled = url.searchParams.get("snapshot") !== "0";
+
+    // r146-d — ספר-ה-FIFO נמדד חי מאחורי האמת: הצ'קפוינט התקדם רק בביקורים
+    // (נמדד פער 8.7ש' — savedAt 01:04 מול מילויים חדשים 09:44). מעתה כל קריאה
+    // מרעננת צ'קפוינט-ישן (>10 דק') דרך מנוע-הסריקה (אינקרמנטלי, בד"כ עמוד אחד)
+    // לפני המדידה — כישלון-רענון לא עוצר: computePnl יקרא את מה שקיים ויחשוף
+    // את גיל-הצ'קפוינט במקור-הראיה (savedAt).
+    try {
+      const cpPath = "/home/z/my-project/sovereign/money/pnl-scan.json";
+      const fs = await import("node:fs");
+      const cp = JSON.parse(fs.readFileSync(cpPath, "utf8")) as { savedAt?: string };
+      const age = cp?.savedAt ? Date.now() - new Date(cp.savedAt).getTime() : Infinity;
+      if (age > 10 * 60_000) {
+        await refreshFillsCheckpoint();
+      }
+    } catch {
+      /* צ'קפוינט לא נקרא — computePnl ידווח כנות (unmeasured/stale) */
+    }
 
     const pnl = await computePnl();
 

@@ -158,6 +158,10 @@ function readState(): MoneyState {
 const G_MONEY = globalThis as unknown as { __MONEY_STATE__?: MoneyState };
 let state: MoneyState = G_MONEY.__MONEY_STATE__ ?? readState();
 G_MONEY.__MONEY_STATE__ = state;
+// r146-d — מדיניות-החוק החיה תמיד בספר: הציר-העולם שומר אובייקט-מצב חוצה-דורות;
+// בלי השורה הזו state.policy היה נתקע על ה-POLICY של העלייה-הקרה הראשונה
+// (נמדד: fillDeploy חסר מה-GET בריאות אחרי hot-reload — החוק פעל, התיעוד ישן).
+state.policy = POLICY;
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/money`, { recursive: true });
