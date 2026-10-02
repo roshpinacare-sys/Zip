@@ -80,7 +80,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  let body: { decisionId?: string; why?: string; boundary?: string; evidenceFiles?: string[]; role?: RecruitRole };
+  let body: { decisionId?: string; why?: string; boundary?: string; evidenceFiles?: string[]; task?: string; agent?: string; role?: RecruitRole };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -89,8 +89,10 @@ export async function POST(req: Request) {
 
   const decisionId = String(body.decisionId ?? "").trim();
   const role = body.role;
-  if (!/^D-r145-[A-Z0-9-]{3,24}$/.test(decisionId)) {
-    return NextResponse.json({ ok: false, error: "decisionId must match D-r145-*" }, { status: 400 });
+  // r146-b — הגיוס ריבוני-גלי: כל גל-מהפכה (D-r14x-*) עובר באותו שער —
+  // המחלקה "army" נשארת אחת, המזהים מסומנים-גל. אותם חוקי-ראיה בדיוק.
+  if (!/^D-r14\d-[A-Z0-9-]{3,24}$/.test(decisionId)) {
+    return NextResponse.json({ ok: false, error: "decisionId must match D-r14x-* (revolution wave)" }, { status: 400 });
   }
   if (!role || typeof role.role !== "string" || role.role.length < 3) {
     return NextResponse.json({ ok: false, error: "role.role missing" }, { status: 400 });
@@ -162,8 +164,9 @@ export async function POST(req: Request) {
   if (idx >= 0) roles[idx] = { ...roles[idx], ...entry };
   else roles.push(entry);
   reg.roles = roles;
-  reg.task = "r145-b";
-  reg.agent = "army-expansion";
+  // r146-b — גל-הגיוס נרשם מגוף-הבקשה (שער-אחד, כל גל), עם ברירות-מחדל כנות
+  reg.task = body.task ?? "r145-b";
+  reg.agent = body.agent ?? "army-expansion";
   reg.at = sealed.at;
   const regWrite = writeRoles(reg);
 

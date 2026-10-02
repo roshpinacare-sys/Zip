@@ -1,7 +1,7 @@
 {
-  "task": "r145-b",
-  "agent": "army-expansion",
-  "at": "2026-10-01T23:49:11.861Z",
+  "task": "r146-b",
+  "agent": "scout-recruitment",
+  "at": "2026-10-02T10:04:22.419Z",
   "roles": [
     {
       "role": "content-reviewer",
@@ -90,6 +90,49 @@
       "status": "not-recruited-duplication-law",
       "at": "2026-10-01T23:50:00Z",
       "reason": "r145-b measured review: the two real risk signals worth watching (ladder valueFloor violations, stale/old open orders) are already first-class checks inside treasury-auditor (:3043, checks ladder-floor + orders-stale) — a separate role would duplicate the auditor 1:1. Re-visit only if a signal class appears that the auditor cannot cover (e.g. account-security or key-custody drift)."
+    },
+    {
+      "role": "scout-market",
+      "status": "recruited",
+      "where": "home mini-service :3044 (mini-services/scout-market · bun --hot · dead-man 60s tick/stall 18h · fleet-guard DAEMONS+ZOMBIE_WATCH registered, guard version r146-b.1)",
+      "mission": "recurring external research scout: (a) STEEM market news + live price context, (b) AI-agent verification/network competitive landscape (honest differentiators, no fabrication), (c) weekly breakthrough-candidate technique via query-family rotation; output = signed hash-chained digest with sources/URLs/timestamps under sovereign/scout/",
+      "cadence": "scout every 6h (21600s) + POST /beat on-demand; weekly breakthrough candidate once per ISO week",
+      "pairsWith": "governance loop (sovereign/scout/latest-digest.json in evidence-freshness set) · OPEN_DECISIONS candidate from digest insight · treasury-auditor (:3043) price cross-check · hunter (:3036) internal-only counterpart",
+      "honestNote": "first searches hit real rate limits (429) on 2 of 4 queries — recorded as error/zero-findings honestly, then root-fixed with sequential 4s-gapped searches + single 429 retry; zero-finding and unmeasured price states are legal measurements, never faked",
+      "firstRun": {
+        "executedAt": "2026-10-02T10:00:19Z",
+        "method": "live daemon boot :3044 (fleet-guard revived pid=4707 at 10:00:03Z after session-attached nohup died — revival law proven on new recruit) + on-demand beats",
+        "conclusion": "success",
+        "measured": {
+          "digestSeqSigned": 4,
+          "chainVerified": "ok brokenAt=null entries=4",
+          "livePriceMeasuredUsd": 0.064509,
+          "steemMarketSources": 12,
+          "competitiveSources": 8,
+          "competitiveDistinctHosts": 8,
+          "breakthroughSources": 8,
+          "totalRealUrls": 28,
+          "insightsSigned": 4,
+          "rateLimitErrorsRecorded": 2,
+          "competitiveTopFind": "Agent Network Protocol (ANP) — agent-network-protocol.com + W3C CG white paper + IETF AIP draft",
+          "breakthroughCandidate": "sybil resistance mechanism design (W40 rotation) — Stanford quadratic-voting paper + arXiv + Cyfrin"
+        },
+        "url": "http://127.0.0.1:3044/digest"
+      },
+      "recruitedAt": "2026-10-02T10:04:22.419Z",
+      "decisionId": "D-r146-SCOUT",
+      "seq": 97
+    },
+    {
+      "role": "scout-vigil",
+      "status": "not-recruited-duplication-law",
+      "at": "2026-10-02T10:10:00Z",
+      "reason": "r146-b measured review (candidate: truth/vigilance scout watching our own public footprint via external web search). Three measured facts rejected it: (1) ZERO-DUPLICATION — its core competency (quality/factual errors in our published content) is already a recruited daily role: content-reviewer (Domain, D-r144-r1 lineage) audits published items against the measured truth baseline, and the r145-c truth-sweep + dedup-corrections machinery extends it; the external-reaction side on-chain is covered by audience-analyst (votes/replies/rshares). A vigil role would duplicate both 1:1. (2) ZERO-SIGNAL measured: real web searches for the footprint (\"SAOS THE WEAVE steem\" num=8, \"headcorner steem account\" num=8) returned 16/16 results ALL irrelevant (biomaterials papers, generic steem directory pages) — the public web index does not yet surface the network's footprint, so a vigil scout would measure zero for the foreseeable future. (3) The watch duty it could add (brand terms on the open web) is a 3-query slice, not a role. Re-visit condition: re-measure brand-term searches after the public content wave grows (>=1 relevant result for \"SAOS THE WEAVE\"/account-name queries) or when an external surface (non-Steem) mentions the network — then the watch graduates into a real role with its own port.",
+      "measuredEvidence": {
+        "search1": "\"SAOS THE WEAVE steem\" -> 8 results, 0 relevant",
+        "search2": "\"headcorner steem account\" -> 8 results, 0 relevant",
+        "relevantResults": 0
+      }
     }
   ],
   "doctrine": "non-exposing by law: public wording says community accounts; no coordination signals in any public artifact (scan-verified clean on agents/content-reviewer.mjs + .github/workflows/content-reviewer.yml). r145-b addition: every recruitment is a signed decision (class army) with first-run measurement as evidence; NO DUPLICATION LAW verified before recruiting."

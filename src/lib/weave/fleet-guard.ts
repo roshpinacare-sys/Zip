@@ -39,7 +39,7 @@ const BOOT_GRACE_MS = 3 * 60_000;
 // של הדור הקודם ממשיך לרוץ עם הקוד הישן (משמר started ב-globalThis). מעתה:
 // דור חם עם גרסה שונה מנקה את הטיימר הישן ומתחמש מחדש — חוק הלולאה-היחידה
 // נשמר (טיימר אחד בדיוק, של הדור החי), והקוד החדש באמת נכנס לפעולה.
-const GUARD_VERSION = "r145-b.1"; // r145-b — צבא-מתרחב: treasury-audit (:3043) נרשם בסיור; הגרסה עלתה כדי שדור-חם יתחמש מחדש עם המצבת-החדשה
+const GUARD_VERSION = "r146-b.1"; // r146-b — סייר-החוץ: scout-market (:3044) נרשם בסיור; הגרסה עלתה כדי שדור-חם יתחמש מחדש עם המצבת-החדשה
 
 // r143-c — סיור-זומבים (הגנה-בעומק): פורט עונה אך הוכחת-החיים של הדיבון
 // עצמו (מונה-הפעימות בקובץ-המצב שהוא כותב) קפואה — זהו זומבי, גם אם ה-HTTP
@@ -58,6 +58,8 @@ const ZOMBIE_WATCH: Array<{ name: string; stateFile: string; staleMs: number }> 
   { name: "governance", stateFile: `${HOME}/sovereign/governance/daemon-state.json`, staleMs: 1_800_000 },
   // r145-b — מבקר-האוצר: beats כל 5 דק' → סף הקפאה 15 דק' (3×קצב-כתיבה)
   { name: "treasury-audit", stateFile: `${HOME}/sovereign/treasury-audit/state.json`, staleMs: 900_000 },
+  // r146-b — סייר-החוץ: סיור כל 6 ש' → סף הקפאה 18 ש' (3×קצב-כתיבה, max(3×period,10min) חוק r143-c)
+  { name: "scout-market", stateFile: `${HOME}/sovereign/scout/state.json`, staleMs: 64_800_000 },
   // fleet-verify: state.json נכתב רק בסיום-ריצת-מאמת (נמדד חי: דיסק beats=10
   //   מול חי 288, mtime ישן 5 שעות על דיבון בריא) — אינו הוכחת-טריות.
   // kpi: כתיבת-דיסק רק כל 30 פעימות (~30 דק') — אינו הוכחת-טריות של 15 דק'.
@@ -77,6 +79,8 @@ const DAEMONS = [
   { name: "governance", port: 3042, dir: `${HOME}/mini-services/governance` },
   // r145-b — מבקר-האוצר: הגיוס הראשון של מחלקת-"army" על פורט-בית חדש
   { name: "treasury-audit", port: 3043, dir: `${HOME}/mini-services/treasury-audit` },
+  // r146-b — סייר-החוץ: חיפוש-רשת אמיתי (web_search) לשוק/תחרות/פריצה — העיניים שמחוץ לרשת
+  { name: "scout-market", port: 3044, dir: `${HOME}/mini-services/scout-market` },
 ];
 
 interface FleetGuardState {

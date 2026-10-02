@@ -1,8 +1,8 @@
 {
   "service": "pulse",
   "version": "1.2.0",
-  "bootedAt": "2026-10-01T19:44:24.013Z",
-  "beats": 5238,
+  "bootedAt": "2026-10-02T09:42:17.866Z",
+  "beats": 5244,
   "checkIntervalSec": 30,
   "policy": {
     "maxPerUtcDay": 1,
@@ -23,9 +23,9 @@
   "broadcasting": false,
   "laneBlockedUntil": "2026-09-30T15:52:38.472Z",
   "lastDecision": {
-    "at": "2026-10-02T01:23:24.091Z",
+    "at": "2026-10-02T09:44:47.898Z",
     "kind": "WAIT",
-    "detail": "ממתין לחלון הבא (2026-10-03) · ניסיונות היום 0/3 · עיגוני צ'רטר 0/4"
+    "detail": "ממתין לחלון הבא (2026-10-03) · ניסיונות היום 0/3 · עיגוני צ'רטר 0/4 · בדיקת-שרשרת נכשלה: Unable to connect. Is the computer able to access the url?"
   },
   "canonLast": {
     "at": "2026-10-02T00:00:34.434Z",
@@ -81,19 +81,19 @@
   "charter": {
     "lastAnchorAt": "2026-09-24T14:59:09.003Z",
     "anchorsToday": 0,
-    "anchorDay": "2026-10-01",
+    "anchorDay": "2026-10-02",
     "lastRoot": "0x0a2da5e72b26be28bac2855d10a05da312fb527c383273bb8167a062a0aed369",
     "lastTxid": "6497e2f5ed55986d142f9bdc72c29cc810a88c63",
     "anchoring": false,
     "lastDecision": {
-      "at": "2026-10-02T01:19:25.790Z",
-      "kind": "CHARTER-COVERED",
-      "detail": "המרשם מכוסה — אין סחף מאז העיגון האחרון (שורש …8e1fd1a8)"
+      "at": "2026-10-02T09:42:49.190Z",
+      "kind": "CHARTER-ANCHOR-FAIL",
+      "detail": "עיגון הצ'רטרים נכשל בכנות: אין פרויקטים במרשם — אין מה לעגן (fail-closed כנה)"
     }
   },
   "windowSeededFromChain": false,
   "lastSeedAt": "2026-09-29T18:11:17.357Z",
-  "seedError": null,
+  "seedError": "Unable to connect. Is the computer able to access the url?",
   "income": {
     "lastDay": "2026-10-02",
     "attemptsToday": 1,

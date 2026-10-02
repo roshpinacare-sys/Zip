@@ -193,6 +193,9 @@ async function measureEvidenceFreshness(): Promise<Array<{ file: string; ageMinu
     // האוצר (treasury-audit · D-r145-TRS) נכללות במדידת-הטריות של הלולאה
     `${HOME}/sovereign/audience/latest-digest.json`,
     `${HOME}/sovereign/treasury-audit/last-audit.json`,
+    // r146-b — ראיית-הסייר: דיג'סט-החוץ של scout-market (D-r146-SCOUT) —
+    // שוק/תחרות/מועמד-פריצה מהרשת הפתוחה; החלטה שלא רואה את-העולם = החלטה-עיוורת
+    `${HOME}/sovereign/scout/latest-digest.json`,
   ];
   const out: Array<{ file: string; ageMinutes: number }> = [];
   const now = Date.now();
