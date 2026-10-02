@@ -55,7 +55,11 @@ const POLICY = {
   // (אותו תקציב 12/יום, אותן מסילות: רצפת-ערך, שער-$100, פרמיות 0..400bps).
   // מטרת-הצינון היא אנטי-שחיקה של ספר-בריא — לא השארת-ספר-ריק אחרי עבודה.
   fillDeploy: { cooldownMin: 5 },
-  armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300, 400, 500] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות (עומק-אמיתי לפי מלאי-חימוש ב-/api/money)
+  // r147-a — סולם-הקנייה צמוד-שוק (D-r147-ECO, מדידה חי): היסטי ה-bidLadderLaw
+  // עברו מ-[100..500] ל-[20,40,80,160,320] bps — אפס מילויי-קנייה מאז-הרחבת r145
+  // מול 12 מילויי-מכירה; הבידים הישנים ישבו 130+bps מאחורי ראש-הספר החי.
+  // אותו מקור-אמת של ה-route (BID_OFFSETS_BPS ב-/api/money) — מדידה אחת.
+  armBuy: { minSbd: 0.15, offsetsBps: [20, 40, 80, 160, 320] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות · r147-a: צמוד-שוק
   hive: { driftBps: 50 },
   stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
   rewards: { saosPerFill: 2, member: "money-mover" }, // R103 — עבודה→מטבע→נזילות
@@ -79,6 +83,7 @@ type MoneyState = {
   lastDecision: Decision | null;
   fillsSeen?: number; // R103 — סימן-מים לתגמול מילויים חדשים
   fillDeployPending?: boolean; // r146-d — מילוי חדש נמדד מאז-הפעולה האחרונה → צינון-מקוצר להצבה הבאה
+  lastActionOk?: boolean; // r147-a — הצינון-המקוצר (5 דק') חל רק אחרי הצלחה; אחרי דחייה — הצינון המלא (הלקח: 7 דחיות NO-FUEL בקצב 5-6 דק')
   lastDepositScanAt?: string | null; // R105 — סריקת הפקדות אחרונה (כל 5 דק')
   lastPoolGuardAt?: string | null;
   lastFleetSweepAt?: string | null; // R108 — סריקת גלגול-צי (כל 5 דק') // R108 — איזון-בריכות אחרון (כל 10 דק')
@@ -124,6 +129,7 @@ function readState(): MoneyState {
       // R108 — שידור-סימני-מים ברילוד: ללא השורות האלה, כל טעינה-חמה של מודול מאפסרת את המאידות של תשלום — והתקרות שערו את הנזק (נתפס חי: שומר שולם 3×2 ברילודים; פרצו-גבול עצרו בדיוק). מתעתה: מי שוחור לצין מי שולח — גם אחרי restart.
       fillsSeen: prev.fillsSeen ?? 0,
       fillDeployPending: prev.fillDeployPending ?? false,
+      lastActionOk: prev.lastActionOk ?? true,
       lastDepositScanAt: prev.lastDepositScanAt ?? null,
       lastStreamDay: prev.lastStreamDay ?? null,
       lastTotalSteem: prev.lastTotalSteem ?? null,
@@ -299,11 +305,15 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   }
   // צינון — r146-d: מילוי-מאומת מאז-הפעולה האחרונה מקצר את הצינון ל-5 דק'
   // (הספר ריק/חסר בדיוק כשהביקוש הוכיח את עצמו; תקציב 12/יום נשאר החוסם-העליון)
+  // r147-a — תיקון-לולאה נמדדת: הצינון-המקוצר חל רק אחרי פעולה שהצליחה.
+  // המדידה: 7 דחיות NO-FUEL רצופות בקצב 5-6 דק' (fillDeployPending נשאר חמוש
+  // תמידי אחרי מילוי, והדחיות הקציבו את הלולאה) — אחרי דחייה הצינון המלא חוזר.
   if (state.lastActionAt) {
     const sinceMin = (now.getTime() - new Date(state.lastActionAt).getTime()) / 60_000;
-    const cooldownNow = state.fillDeployPending ? POLICY.fillDeploy.cooldownMin : POLICY.cooldownMin;
+    const shortCool = state.fillDeployPending && state.lastActionOk !== false;
+    const cooldownNow = shortCool ? POLICY.fillDeploy.cooldownMin : POLICY.cooldownMin;
     if (sinceMin < cooldownNow) {
-      return { act: false, reason: `WAIT-COOLDOWN · עוד ${Math.ceil(cooldownNow - sinceMin)} דק'${state.fillDeployPending ? " · FILL-DEPLOY חמוש (מילוי נמדד)" : ""}` };
+      return { act: false, reason: `WAIT-COOLDOWN · עוד ${Math.ceil(cooldownNow - sinceMin)} דק'${shortCool ? " · FILL-DEPLOY חמוש (מילוי נמדד)" : ""}` };
     }
   }
   // תקציב
@@ -554,6 +564,16 @@ async function act(
   state.actionsToday += 1;
   const finishedAt = new Date().toISOString();
   state.acting = false;
+  // r147-a — אמת-תקציב (המשך D-021): פעולה שנדחתה לפני שידור לא הזיזה כסף —
+  // היא לא שורפת תקציב. נמדד חי: 7 דחיות NO-FUEL שרפו 7/12 מהתקציב היומי על
+  // סירובים. ההחזר כאן (כמו NO-KEY למטה); הצלחה שורפת כרגיל.
+  const refusedPreBroadcast = !(result as any)?.ok && (result as any)?.code !== "GATE-QUEUED";
+  if (refusedPreBroadcast) {
+    state.actionsToday = Math.max(0, state.actionsToday - 1);
+    state.lastActionOk = false; // צינון-מלא לניסיון הבא — אין לולאת-דחיות בקצב 5 דק'
+  } else {
+    state.lastActionOk = true;
+  }
   // r146-d — תג-המילוי נצרך רק בהצלחה: פעולה שנכשלה (וגם NO-KEY) לא שינתה את
   // הספר — חלון-ה-FILL-DEPLOY נשאר חמוש והצינון-המקוצר יחול בניסיון הבא (כנות).
   const r = (result as any) ?? {};

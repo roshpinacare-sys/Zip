@@ -129,9 +129,15 @@ export interface Opportunity {
   number: string | null;
 }
 
+// r147-a — קבועי-הסולם: מקור-אמת אחד לתצוגה ולפעולה (הדיבון money מחזיק תאום-מדוד ב-POLICY שלו).
+// מדידה חי 10:23–11:04Z: היסטי-ביד 100..500 ישבו 130+bps מאחורי ראש-הספר — אפס מילויי-קנייה מאז-הרחבת r145
+// מול 12 מילויי-מכירה · המכירות נמדדו מתרכזות מעל-פאריטה (66..126bps) — אף מכירה לא נשארת בפאריטה.
+export const SELL_PREMIUMS_BPS: number[] = [50, 150, 250, 350, 450];
+export const BID_OFFSETS_BPS: number[] = [20, 40, 80, 160, 320];
+
 export interface MoverReceipt {
   at: string;
-  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY" | "STOCK-SBD" | "FILL-DEPLOY";
+  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY" | "STOCK-SBD" | "FILL-DEPLOY" | "BID-ONLY";
   reason: string;
   parity: number | null;
   cancelled: Array<{ orderid: number; txid: string | null }>;
@@ -186,6 +192,15 @@ export interface MoneySense {
     noteHe: string;
   };
   ladder: LadderLevel[];
+  /** r147-a — חשיפת-דלק מכירה: (נזיל + בפקודות) − תביעת-העטיפה (WSTEEM חברים + רזרבות-בריכות). חוק R111: הסולם לא מוכר את הגיבוי */
+  fuel: {
+    liquidSteem: number;
+    inOrdersSteem: number;
+    arenaClaimWsteem: number | null;
+    totalFuel: number | null;
+    state: "SELL-OK" | "SELL-FROZEN" | "UNMEASURED";
+    noteHe: string;
+  };
   /** r146-d — מדידת-מיצוב: מרחק-הספר-שלנו מהשוק החי (הוכחת-מיצוב לפני/אחרי) */
   positioning: {
     /** הפרש הפאריטה-האורקל מול מרכז-הספר החי (bps) — מקור-המיקום של הסולם */
@@ -835,11 +850,53 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
             : "מיצוב לא נמדד",
   };
 
-  const ladder: LadderLevel[] = [0, 100, 200, 300, 400].map((premiumBps, i) => ({
+  const ladder: LadderLevel[] = SELL_PREMIUMS_BPS.map((premiumBps, i) => ({
     level: (i + 1) as 1 | 2 | 3 | 4 | 5,
     premiumBps,
     price: parity != null ? Math.round(parity * (1 + premiumBps / 10_000) * 1e6) / 1e6 : null,
   }));
+
+  // r147-a — חשיפת-דלק (אותו חישוב של ה-POST · R111): דלק צד-המכירה =
+  // (נזיל + בפקודות-מכירה) − תביעת-העטיפה (WSTEEM של חברים + רזרבות בריכות).
+  // כשהתביעה שווה/גדולה מההון — הסולם יושב על דלק-אפס בכנות, וזו הראיה.
+  const fuel = await (async (): Promise<MoneySense["fuel"]> => {
+    const liquidHere = idleSteem;
+    const inOrdersHere = deployedSteem;
+    let claim: number | null = null;
+    try {
+      const { db } = await import("@/lib/db");
+      const accts = await db.exchangeAccount.findMany();
+      let c = 0;
+      for (const acc of accts) {
+        try {
+          const bal = JSON.parse(acc.balances ?? "{}") as Record<string, unknown>;
+          c += Number(bal.WSTEEM ?? 0) || 0;
+        } catch { /* ספר ישן */ }
+      }
+      const pools = await db.exchangePool.findMany({ where: { assetA: "WSTEEM" } });
+      for (const pool of pools) c += Number(pool.reserveA) || 0;
+      claim = Math.max(0, Math.round(c * 1000) / 1000);
+    } catch {
+      claim = null; // r124 — ספר שלא נקרא אינו אפס
+    }
+    const raw = Math.round((liquidHere + inOrdersHere) * 1000) / 1000;
+    const total = claim != null ? Math.round(Math.max(0, raw - claim) * 1000) / 1000 : null;
+    const state: MoneySense["fuel"]["state"] =
+      total == null ? "UNMEASURED" : total >= 0.004 ? "SELL-OK" : "SELL-FROZEN";
+    return {
+      liquidSteem: liquidHere,
+      inOrdersSteem: inOrdersHere,
+      arenaClaimWsteem: claim,
+      totalFuel: total,
+      state,
+      noteHe:
+        state === "SELL-FROZEN"
+          ? `דלק-מכירה אפס: הון חי ${raw.toFixed(3)} STEEM מאחוריו תביעת-עטיפה ${claim?.toFixed(3)} WSTEEM (חוק R111: הסולם לא מוכר את הגיבוי) — צד-הקנייה ממשיך לעבוד והצד הזה ממתין לדלק חדש`
+          : state === "SELL-OK"
+            ? `דלק-מכירה חי: ${total?.toFixed(3)} STEEM מעל תביעת-העטיפה (${claim?.toFixed(3)} WSTEEM)`
+            : "ספר-הזירה לא נקרא — הדלק לא נמדד (כנות)",
+    };
+  })();
 
   return {
     ok: down.length === 0,
@@ -865,6 +922,7 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     idleSteem,
     valueFloor,
     ladder,
+    fuel,
     positioning,
     powerdown,
     fills: fillsInfo.recent,
@@ -1090,14 +1148,11 @@ async function POST_core(req: Request) {
   // הדלק עצמו (perLevel = fuel/5 · perBid = commitable/רמות-שניתן למלא).
   // צד-הקנייה נשאר חוקי מ-0.15 SBD (רף R97) — עומק-הסולם מתאים את עצמו למלאי
   // החמוש (רמה אחת לכל 0.05 SBD, עד 5) — אין רעב, אין TOO-SMALL שקרי.
-  const premiums = [0, 100, 200, 300, 400]; // סולם המכירה: parity + 1/2/3/4% (חוק 2, מורחב r145-a)
+  // r147-a — הפרמיות וההיסטים עברו לקבועי-המודול SELL_PREMIUMS_BPS / BID_OFFSETS_BPS
+  // (מדידה אחת, מקור-אחת — התצוגה והפעולה קוראים את אותו מספר).
+  const premiums = SELL_PREMIUMS_BPS; // סולם המכירה: parity +50..+450bps (r147-a מהמדידה)
   const perLevel = Math.floor(totalFuel * 1000 / premiums.length) / 1000;
   const perBid = Math.floor(sbdCommitable * 1000 / 3) / 1000; // רק לבדיקת-סף ב-arm-buy; החוק החי ב-bidLadderLaw
-  const BID_OFFSETS_BPS = [100, 200, 300, 400, 500]; // סולם הקנייה: ‎-1% עד -5% מתחת לקו (O1 · מורחב r145-a)
-
-  // r145-a — חוק-סולם-הקנייה החי: עומק = מה שהמלאי החמוש מאפשר (רמה לכל 0.05 SBD,
-  // עד 5 רמות), כל רמה מתחת לפאריטה בהיסט שלה. מקור-אחת ל-arm-buy, לגרירת-הבידים
-  // בתוך reprice, ולתצוגה — אין שני חוקים.
   const bidLadderLaw = (commitable: number, par: number) => {
     const levels = Math.max(1, Math.min(BID_OFFSETS_BPS.length, Math.floor(commitable / 0.05)));
     const per = Math.floor(commitable * 1000 / levels) / 1000;
@@ -1107,12 +1162,42 @@ async function POST_core(req: Request) {
     return { levels, per, prices };
   };
 
-  // בדיקות-חוץ לפי פעולה — לפני השער, כדי שלא לייצר רעש בספר ההכרעות
-  if (action === "reprice" && totalFuel < 0.004) {
-    return bad(`אין דלק לפריסה (נזיל ${liquid.toFixed(3)} + בפקודות ${inOrders.toFixed(3)}) — אין פעולה`, 409, { code: "NO-FUEL" });
-  }
-  if (action === "reprice" && perLevel < 0.001) {
-    return bad("הדלק קטן מרמה אחת — אין פעולה", 409, { code: "TOO-SMALL" });
+  // ── r147-a — חוק-הדלק הדו-צדדי (נמדד חי 10:23–11:04Z) ──────────────────
+  // 7 פעולות REPRICE נדחו רצופות ב-"אין דלק לפריסה" בקצב 5-6 דק' — כל דחייה
+  // שרפה 1/12 מתקציב-היום וכתבה רעש לספר-הקבלות, בזמן שצד-הקנייה (SBD —
+  // לא צורך דלק-STEEM כלל) ישב מיושן בלי תחזוקה. חוק R111 (גיבוי-העטיפה)
+  // מגביל רק את דלק צד-המכירה. מעתה:
+  //   · דלק-מכירה חי → סולם דו-צדדי מלא (כמקודם).
+  //   · דלק-מכירה אפס אך צד-הקנייה מיושן וממומן → תחזוקת-בידים-בלבד
+  //     (אפס דלק-STEEM נשרף; הקבלה נושאת BID-ONLY בכנות).
+  //   · דלק אפס וצד-הקנייה בריא → סירוב כנה (אין פעולה — אין שריפת תקציב).
+  const sellFuelOk = totalFuel >= 0.004 && perLevel >= 0.001;
+  const bidLockedSbdGate = bidOpen.reduce((s, o) => s + (parseFloat(String(o.sell_price?.base ?? "")) || 0), 0);
+  const potentialCommitableGate =
+    Math.floor((parseFloat(account.sbd_balance) + bidLockedSbdGate) * 0.9 * 1000) / 1000;
+  const lawGate = bidLadderLaw(potentialCommitableGate, parity);
+  const bidPricesGate = bidOpen.map((o) => {
+    const b = parseFloat(String(o.sell_price?.base ?? "")) || 0; // SBD
+    const q = parseFloat(String(o.sell_price?.quote ?? "")) || 0; // STEEM
+    return q > 0 ? b / q : 0;
+  });
+  const bidStaleGate =
+    bidOpen.length !== lawGate.levels ||
+    bidPricesGate.some((p) => {
+      if (!(p > 0)) return true;
+      const nearest = lawGate.prices.reduce(
+        (best, lp) => (Math.abs(lp - p) < Math.abs(best - p) ? lp : best),
+        lawGate.prices[0]!,
+      );
+      return Math.abs(nearest - p) / nearest > 0.005; // 50bps — אותו סף-סטייה
+    });
+  const bidOnly = !sellFuelOk && bidStaleGate && lawGate.per >= 0.05;
+  if (action === "reprice" && !sellFuelOk && !bidOnly) {
+    return bad(
+      `אין דלק לפריסה (נזיל ${liquid.toFixed(3)} + בפקודות ${inOrders.toFixed(3)} · תביעת-עטיפה ${arenaClaimWsteem?.toFixed(3) ?? "unmeasured"}) — אין פעולה`,
+      409,
+      { code: "NO-FUEL" },
+    );
   }
   if (action === "arm-buy" && sbdCommitable < 0.15) {
     return bad(`אין SBD חמוש לסולם קנייה (${sbdCommitable.toFixed(3)} < 0.15) — החימוש נפתח רק ממילוי אמיתי`, 409, { code: "NO-SBD" });
@@ -1261,7 +1346,7 @@ async function POST_core(req: Request) {
   const expiration = new Date(Date.now() + 27 * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "");
   const receipt: MoverReceipt = {
     at: new Date().toISOString(),
-    kind: triggerTag ?? (action === "arm-buy" ? "ARM-BUY" : action === "stock-sbd" ? "STOCK-SBD" : inOrders === 0 ? "FUEL-IN" : "REPRICE"),
+    kind: triggerTag ?? (action === "arm-buy" ? "ARM-BUY" : action === "stock-sbd" ? "STOCK-SBD" : bidOnly ? "BID-ONLY" : inOrders === 0 ? "FUEL-IN" : "REPRICE"),
     reason,
     parity,
     cancelled: [],
@@ -1530,6 +1615,10 @@ async function POST_core(req: Request) {
     }
 
     // ═ REPRICE — סולם המכירה (R81; R97: ביטול מכירות בלבד — הקניות לא נפגעות) ═
+    // r147-a — הצד הזה נאטם מאחורי sellFuelOk: בדלק-אפס (חוק R111) הפעולה
+    // ממשיכה לתחזוקת צד-הקנייה בלבד (BID-ONLY) — אפס דלק-STEEM נשרף.
+    const orderDay = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    if (sellFuelOk) {
     // א. ביטול פקודות המכירה הקיימות — במקביל (עצמאיות; הכסף חוזר לנזיל)
     const cancelResults = await Promise.allSettled(
       sellOpen.map((o) =>
@@ -1588,7 +1677,6 @@ async function POST_core(req: Request) {
     // היחס נשמר ביט-מול-ביט) — אין שתי פקודות על אותו מחיר, וכל דלק נפרס.
     // ממוזג או לא: חוק-הרצפה נאכף על המחיר-היעיל הסופי (ממוצע-משוקלל של
     // שני יחסים מעל-הרצפה הוא מעל-הרצפה — אלגברה, לא הנחה).
-    const orderDay = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const ladderPlan: Array<{ premiumBps: number; sell: number; receive: number; effPrice: number }> = [];
     for (let i = 0; i < premiums.length; i++) {
       const price = parity * (1 + premiums[i] / 10_000);
@@ -1672,6 +1760,11 @@ async function POST_core(req: Request) {
       }
       persist(); // קבלה אחרי כל הצבה — לא רק בסוף (לקח הריצה הראשונה)
       await new Promise((r) => setTimeout(r, 400)); // ריווח בין שידורים — נחמד לצומת
+    }
+    } else {
+      // r147-a — כנות: דלק-מכירה אפס (תביעת-העטיפה שווה את ההון החי) —
+      // צד-המכירה לא נוגעים; הפעולה ממשיכה לתחזוקת צד-הקנייה בלבד.
+      noteError(`sell side skipped: NO-FUEL (R111 · נזיל ${liquid.toFixed(3)} + בפקודות ${inOrders.toFixed(3)} · תביעה ${arenaClaimWsteem?.toFixed(3) ?? "unmeasured"} WSTEEM) — BID-ONLY`);
     }
 
     // ═ r145-a — רגל-הקנייה בגרירת-הסולם (D-r145-O2 · הסולם דו-צדדי מאז R97) ═══
@@ -1853,13 +1946,15 @@ async function POST_core(req: Request) {
       issuedBy === "operator" ? "operator" : "policy:autonomous",
       { placed: receipt.placed.length, cancelled: receipt.cancelled.length, verify, gateUsd },
     );
-    const chainOk = (verify?.deployedNow ?? 0) > 0;
+    const chainOk = bidOnly ? (verify?.bidsNow ?? 0) > 0 : (verify?.deployedNow ?? 0) > 0;
     return NextResponse.json({
       ok: chainOk || receipt.placed.length > 0,
       receipt,
       verify,
       receiptPersisted,
-      he: (chainOk
+      he: (bidOnly
+        ? `תחזוקת צד-הקנייה (BID-ONLY · דלק-מכירה אפס על-פי R111): ${receipt.placed.length} הוצבו · ${receipt.cancelled.length} בוטלו · בידים חיות בשרשרת: ${verify?.bidsNow ?? "?"}`
+        : chainOk
         ? `הסולם חי בשרשרת (נמדד): ${verify?.ordersNow} פקודות / ${verify?.deployedNow} STEEM · פאריטה ${parity.toFixed(4)}–${(parity * 1.02).toFixed(4)} · בוטלו ${receipt.cancelled.length}`
         : `הוצבו ${receipt.placed.length} רמות · בוטלו ${receipt.cancelled.length} · אימוש שרשרת לא נקרא`) + (receiptPersisted ? "" : " · אזהרה: כתיבת הקבלה לדיסק נכשלה — הראיה על השרשרת בלבד"),
     });
