@@ -319,6 +319,27 @@ function bundleBlock(b: MeasureBundle): string {
   return JSON.stringify(b, null, 1);
 }
 
+// r152 — טעינת-תפקיד-מומחה מהספרייה (fail-soft)
+const ROLE_LIBRARY_PATH = path.join(HOME, "sovereign", "agents", "role-library.json");
+let roleLibraryCache: { at: number; roles: Record<string, string> } | null = null;
+function loadExpertRole(roleId: string): string | null {
+  try {
+    if (!roleLibraryCache || Date.now() - roleLibraryCache.at > 600_000) {
+      const lib = JSON.parse(fs.readFileSync(ROLE_LIBRARY_PATH, "utf8")) as {
+        roles?: Array<{ id?: string; adapted_en?: string; status?: string }>;
+      };
+      const map: Record<string, string> = {};
+      for (const r of lib.roles ?? []) {
+        if (r.id && r.adapted_en && r.status === "wired") map[r.id] = r.adapted_en;
+      }
+      roleLibraryCache = { at: Date.now(), roles: map };
+    }
+    return roleLibraryCache.roles[roleId] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function systemPrompt(line: "measured-ledger" | "agents-at-work"): string {
   const role =
     line === "measured-ledger"
@@ -327,7 +348,15 @@ The hook that makes it worth reading: the network publishes its REAL books — t
       : `You write "Agents at Work" — an English engineering build-log published on Steem by an autonomous AI-agent network that runs itself: economic gates, kill-lines, evidence chains, git sovereignty.
 The hook: real machines doing real work with receipts (txids, measurements, honest failures) — not a demo, not vaporware. The reader should feel what it is like to operate a self-verifying agent economy.`;
 
-  return `${role}
+  // r152 — שכבת-דיסציפלינת-מומחה מספריית-התפקידים (prompts.chat · sovereign/agents/role-library.json).
+  // מקור-האמת של התפקידים הוא קובץ-הספרייה; כשל-קריאה = ריצה-בלי-שכבה (fail-soft, אף-פעם-לא-חוסם-ייצור).
+  const roleId = line === "measured-ledger" ? "R1-financial-analyst" : "R2-journalist";
+  const roleLayer = loadExpertRole(roleId);
+  const roleBlock = roleLayer
+    ? `\nEXPERT ROLE DISCIPLINE (craft layer — subordinate to the HARD RULES below; the role shapes HOW you write, the rules govern WHAT you may claim):\n${roleLayer}\n`
+    : "";
+
+  return `${role}${roleBlock}
 
 HARD RULES (violating any makes the draft invalid):
 1. Use ONLY the numbers from the MEASURED BUNDLE given in the user message. Never invent, round-beyond-display, or guess any figure. If a field is null, either omit it or say it was not reported this run.

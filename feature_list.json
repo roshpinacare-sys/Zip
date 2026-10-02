@@ -1,8 +1,8 @@
 {
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
-  "last_updated": "2026-10-02T22:05:00Z",
-  "active_feature": "r151-harness-adoption",
+  "last_updated": "2026-10-02T23:00:00Z",
+  "active_feature": "r152-role-library-prompts-chat",
   "features": [
     {
       "id": "F-1",
@@ -44,9 +44,9 @@
       "name": "מנוע-העסקים (business-engine) — תדריך-השוק ו-4 העסקים",
       "status": "running",
       "evidence_path": "sovereign/businesses/engine-state.json",
-      "last_verified_at": "2026-10-02T22:00:41Z",
-      "evidence": "פורט 3045 · 54 ticks · תדריך-שוק על-השרשרת (txid 2628839…) · B-1 RUNNING, B-2..B-5 PILOT · ONE-READ למפעיל: sovereign/businesses/ONE-READ.md",
-      "next_step": "שלושת-השערים הפתוחים עומדים: WEAVE_PUBLIC_URL · D-TREASURY · דלק-חדש (התביעות ממתינות-בשלות)",
+      "last_verified_at": "2026-10-02T23:00:00Z",
+      "evidence": "פורט 3045 · 54+ ticks · תדריך-שוק על-השרשרת (txid 2628839…) · B-1 RUNNING, B-2..B-5 PILOT · r152: דלק-חדש בדרך-מדידה — powerdown פעיל, תשלום-ראשון 475.853 STEEM ב-2026-10-03T02:01Z (4 תשלומים, 1903 STEEM) · WEAVE_PUBLIC_URL: נמדד — אין-בסיס-ציבורי-נגיש בסביבה (:81/:3000 מבחוץ = timeout) · D-TREASURY: המלצת-v1 מוצעת-למפעיל (שער-חתום)",
+      "next_step": "אחרי-02:01Z: לאמת שהדלק החדש נפרס על-הסולם (fuel.totalFuel>0) — סוגר את B-1 עד-שורת-ההרג",
       "description": "Business engine publishes on-chain market brief and runs B-1..B-5 with kill lines and budget gates.",
       "dependencies": [
         "F-2"
@@ -69,7 +69,7 @@
       "status": "running",
       "evidence_path": "feature_list.json",
       "last_verified_at": "2026-10-02T22:05:00Z",
-      "evidence": "ביקורת-פתיחה 28/100 (צוואר-בקבוק: state) → feature_list.json + progress.md + session-handoff.md + init.sh + AGENTS.md-ראש-ניתוב · ביקורת-סיום נמדדת ב-init.sh",
+      "evidence": "ביקורת-פתיחה 28/100 → 100/100 (r151) · r152: הספרייה-החיה-מוחזקת — feature_list/progress/handoff מתעדכנים-בכל-גל כחוק",
       "next_step": "כל סוכן: עדכון feature_list.json בסוף-גל + progress.md + handoff — נאכף ב-init.sh (בדיקת-קיום)",
       "description": "Canonical harness five subsystems adopted from learn-harness-engineering (r151).",
       "dependencies": [
@@ -97,6 +97,20 @@
       "next_step": "להחזיק את המשמעת: אין 'בוצע' בלי ראיה ב-feature_list.json",
       "description": "Study + adoption of walkinglabs learn-harness-engineering; honest critique and economic-thinking extraction documented in progress.md.",
       "dependencies": []
+    },
+    {
+      "id": "F-9",
+      "name": "ספריית-תפקידי-המומחה (prompts.chat → ריבונות)",
+      "status": "running",
+      "description": "Curated expert-role library from github.com/f/prompts.chat (143k stars), adapted to the truth-law (no forecasts, no invention), wired into the content factory LLM prompts and mapped to future LLM paths (B-2, treasury-audit, B-3/B-4).",
+      "evidence_path": "sovereign/agents/role-library.json",
+      "last_verified_at": "2026-10-02T22:55:00Z",
+      "evidence": "R1+R2 wired (חי) ב-mini-services/content-factory/index.ts (loadExpertRole, fail-soft) · מדידה-חיה 22:52Z: PASS — טיוטה JSON-קפדני 2297 תווים · 18 מספרים-עשרוניים 0-לא-מעוגנים · 8.3 שניות (/tmp/measure-role-layer.ts) · R3..R7 ממופים עם תנאי-הפעלה מדודים",
+      "dependencies": [
+        "F-1",
+        "F-6"
+      ],
+      "next_step": "טיק-הייצור הראשון עם-השכבה אחרי-חצות UTC (~03:42Z) — למדוד gate-ואינגייג׳מנט מול-הקודם"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."
