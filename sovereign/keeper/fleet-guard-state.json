@@ -1,8 +1,8 @@
 {
   "service": "fleet-guard",
-  "bootedAt": "2026-10-02T10:15:17.939Z",
-  "cycles": 1395,
-  "lastCycleAt": "2026-10-02T10:44:33.165Z",
+  "bootedAt": "2026-10-02T11:33:50.804Z",
+  "cycles": 1496,
+  "lastCycleAt": "2026-10-02T11:53:35.824Z",
   "lastVerdict": "FLEET-INTACT",
   "revivesLog": [
     {
@@ -166,48 +166,72 @@
       "name": "treasury-audit",
       "ok": true,
       "detail": "fleet-guard הקים את treasury-audit (:3043) pid=7487"
+    },
+    {
+      "at": "2026-10-02T11:46:35.911Z",
+      "name": "fleet-verify",
+      "ok": true,
+      "detail": "fleet-guard הקים את fleet-verify (:3038) pid=22569"
+    },
+    {
+      "at": "2026-10-02T11:51:37.606Z",
+      "name": "keeper",
+      "ok": true,
+      "detail": "fleet-guard הקים את keeper (:3036) pid=23439"
+    },
+    {
+      "at": "2026-10-02T11:51:39.462Z",
+      "name": "weblift",
+      "ok": true,
+      "detail": "fleet-guard הקים את weblift (:3039) pid=23470"
+    },
+    {
+      "at": "2026-10-02T11:52:35.918Z",
+      "name": "pulse",
+      "ok": true,
+      "detail": "fleet-guard הקים את pulse (:3033) pid=24045"
     }
   ],
   "zombieSnapshots": {
-    "pulse": {
-      "beats": 5363,
-      "since": "2026-10-02T10:44:17.907Z"
-    },
     "money": {
-      "beats": 2524,
-      "since": "2026-10-02T10:43:28.348Z"
-    },
-    "weblift": {
-      "beats": 4215,
-      "since": "2026-10-02T10:44:17.886Z"
-    },
-    "keeper": {
-      "beats": 5023,
-      "since": "2026-10-02T10:44:18.662Z"
+      "beats": 2597,
+      "since": "2026-10-02T11:53:30.624Z"
     },
     "curation": {
-      "beats": 168,
-      "since": "2026-10-02T10:43:28.347Z"
+      "beats": 183,
+      "since": "2026-10-02T11:36:26.461Z"
     },
     "hunter": {
-      "beats": 282,
-      "since": "2026-10-02T10:43:28.328Z"
+      "beats": 290,
+      "since": "2026-10-02T11:46:24.914Z"
     },
     "student": {
-      "beats": 289,
-      "since": "2026-10-02T10:43:28.329Z"
+      "beats": 297,
+      "since": "2026-10-02T11:46:26.679Z"
     },
     "governance": {
-      "beats": 54,
-      "since": "2026-10-02T10:43:28.328Z"
+      "beats": 69,
+      "since": "2026-10-02T11:46:20.789Z"
     },
     "treasury-audit": {
-      "beats": 25,
-      "since": "2026-10-02T10:43:28.329Z"
+      "beats": 74,
+      "since": "2026-10-02T11:51:40.862Z"
     },
     "scout-market": {
       "beats": 5,
       "since": "2026-10-02T10:15:20.723Z"
+    },
+    "keeper": {
+      "beats": 5027,
+      "since": "2026-10-02T11:53:17.746Z"
+    },
+    "weblift": {
+      "beats": 4218,
+      "since": "2026-10-02T11:53:17.748Z"
+    },
+    "pulse": {
+      "beats": 5503,
+      "since": "2026-10-02T11:53:17.747Z"
     }
   }
 }

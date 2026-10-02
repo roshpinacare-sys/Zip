@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
   "version": "1.9.0",
-  "bootedAt": "2026-10-02T10:22:47.825Z",
-  "beats": 2524,
+  "bootedAt": "2026-10-02T10:46:17.833Z",
+  "beats": 2597,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -18,11 +18,11 @@
     "armBuy": {
       "minSbd": 0.15,
       "offsetsBps": [
-        100,
-        200,
-        300,
-        400,
-        500
+        20,
+        40,
+        80,
+        160,
+        320
       ]
     },
     "hive": {
@@ -42,30 +42,30 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-02T10:35:15.661Z",
-  "actionsToday": 8,
+  "lastActionAt": "2026-10-02T11:04:17.884Z",
+  "actionsToday": 12,
   "actionDay": "2026-10-02",
   "acting": false,
   "lastDecision": {
-    "at": "2026-10-02T10:39:20.796Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 1 דק' · FILL-DEPLOY חמוש (מילוי נמדד) · WAIT-COOLDOWN · עוד 26 דק'"
+    "at": "2026-10-02T11:53:30.625Z",
+    "kind": "WAIT-BUDGET",
+    "detail": "WAIT-BUDGET · 12/12 פעולות היום — התקציב נאכל · WAIT-BUDGET · 12/12 פעולות היום — התקציב נאכל"
   },
   "canonLast": {
-    "at": "2026-10-02T10:35:18.061Z",
+    "at": "2026-10-02T11:04:20.654Z",
     "ok": true,
     "path": "reports/money-2026-10-02.md"
   },
-  "fillsSeen": 14,
+  "fillsSeen": 13,
   "fillDeployPending": true,
-  "lastDepositScanAt": "2026-10-02T10:34:47.867Z",
+  "lastDepositScanAt": "2026-10-02T11:51:30.623Z",
   "lastStreamDay": "2026-09-27",
   "lastTotalSteem": 12.141,
   "fleetSeen": {
     "pulseDay": "2026-10-02",
     "studentDay": "2026-10-02",
-    "keeperRestartAt": "2026-10-02T10:34:17.809Z"
+    "keeperRestartAt": "2026-10-02T11:34:17.812Z"
   },
-  "lastPoolGuardAt": "2026-10-02T10:38:47.861Z",
-  "lastFleetSweepAt": "2026-10-02T10:35:15.048Z"
+  "lastPoolGuardAt": "2026-10-02T11:46:57.261Z",
+  "lastFleetSweepAt": "2026-10-02T11:52:30.624Z"
 }
