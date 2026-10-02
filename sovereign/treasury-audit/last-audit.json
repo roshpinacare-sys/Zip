@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 267,
-  "at": "2026-10-02T23:05:27.139Z",
-  "verdict": "FAIL",
+  "seq": 270,
+  "at": "2026-10-02T23:20:27.220Z",
+  "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 147 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 148 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 147,
+        "entries": 148,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 9 תמונות (אחרונה seq 9 בת 42 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 9 תמונות (אחרונה seq 9 בת 57 דק')",
       "numbers": {
         "entries": 9,
         "brokenAt": null,
@@ -28,30 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 185 קבלות · 10 עם txid · אחרונה בת 6 דק'",
+      "detail": "ספר-הקבלות תקין — 190 קבלות · 10 עם txid · אחרונה בת 4 דק'",
       "numbers": {
-        "total": 185,
+        "total": 190,
         "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 6
+        "lastAgeMinutes": 4
       }
     },
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (0 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (1 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 0
+        "ordersOpen": 1
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (1 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -60,20 +60,18 @@
     },
     {
       "id": "balances-drift",
-      "status": "fail",
-      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 0.5 · דריפת SBD 3.817 (אנומליה)",
+      "status": "pass",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 0.454 · SBD 0.55 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 1.454,
-        "homeSbd": 4.367,
-        "chainSteem": 0.954,
+        "homeSteem": 0.454,
+        "homeSbd": 0.55,
+        "chainSteem": 0.454,
         "chainSbd": 0.55,
-        "driftSteem": 0.5,
-        "driftSbd": 3.817
+        "driftSteem": 0,
+        "driftSbd": 0
       }
     }
   ],
-  "anomalies": [
-    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 0.5 · דריפת SBD 3.817 (אנומליה)"
-  ]
+  "anomalies": []
 }
