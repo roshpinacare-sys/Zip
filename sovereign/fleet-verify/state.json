@@ -2,7 +2,7 @@
   "service": "fleet-verify",
   "version": "2.0.0",
   "bootedAt": "2026-10-02T21:46:56.155Z",
-  "beats": 67,
+  "beats": 70,
   "patAvailable": true,
   "current": null,
   "jobs": [
@@ -321,10 +321,10 @@
       "layer": "QA",
       "roleHe": "saos-sovereign-foundry הוא בית-היציקה של הרשת — הריפו שממנו נולדו הכלים והעדויות. מ-R109 עד R118 עמד מחוץ לכיסוי המפעל (המאמת העשירי). המאמת מתקין מהנעילה הקפואה, מג'נרט לקוח Prisma ומריץ בדיקת טיפוסים מלאה.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-01T19:53:24.057Z",
-      "durationMs": 14444,
+      "lastRunAt": "2026-10-02T22:55:56.166Z",
+      "durationMs": 4978,
       "checks": {
-        "install": "pass",
+        "install": "cached",
         "prismaGenerate": "pass",
         "typecheck": "pass",
         "productionBuild": "skipped-local"
@@ -333,29 +333,23 @@
       "outputTail": [
         "verdict: PASS (install+typecheck pass (local gate: build skipped by sandbox policy))"
       ],
-      "nextDueAt": "2026-10-02T22:55:56.161Z",
-      "commit": "e1f55f2",
-      "runs": 4,
+      "nextDueAt": "2026-10-03T22:56:02.842Z",
+      "commit": "4ff0f28",
+      "runs": 5,
       "push": {
-        "at": "2026-10-01T19:53:38.501Z",
-        "commit": "935176a",
+        "at": "2026-10-02T22:56:01.145Z",
+        "commit": "11f8165",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · saos-sovereign-foundry@935176a"
+        "detail": "נדחף לגיט · saos-sovereign-foundry@11f8165"
       }
     }
   ],
   "lastDecision": {
-    "at": "2026-10-02T22:52:59.571Z",
+    "at": "2026-10-02T22:56:02.842Z",
     "kind": "PASS",
-    "detail": "platform-selftest: PASS · 2ש' · selftest 12/12, rule layer loads · נדחף לגיט · saos-sovereign-platform@71570a5"
+    "detail": "foundry-selftest: PASS · 5ש' · install+typecheck pass (local gate: build skipped by sandbox policy) · נדחף לגיט · saos-sovereign-foundry@11f8165"
   },
   "history": [
-    {
-      "at": "2026-09-24T03:48:52.087Z",
-      "id": "archive-keeper",
-      "verdict": "PASS",
-      "detail": "2999ms · all archives open cleanly"
-    },
     {
       "at": "2026-09-24T03:48:58.988Z",
       "id": "wallet-verify",
@@ -709,6 +703,12 @@
       "id": "platform-selftest",
       "verdict": "PASS",
       "detail": "1696ms · selftest 12/12, rule layer loads · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-02T22:55:56.166Z",
+      "id": "foundry-selftest",
+      "verdict": "PASS",
+      "detail": "4978ms · install+typecheck pass (local gate: build skipped by sandbox policy) · גיט: נדחף"
     }
   ]
 }

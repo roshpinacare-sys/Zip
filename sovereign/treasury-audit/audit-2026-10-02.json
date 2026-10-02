@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 264,
-  "at": "2026-10-02T22:50:27.202Z",
-  "verdict": "PASS",
+  "seq": 267,
+  "at": "2026-10-02T23:05:27.139Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 145 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 147 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 145,
+        "entries": 147,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 9 תמונות (אחרונה seq 9 בת 27 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 9 תמונות (אחרונה seq 9 בת 42 דק')",
       "numbers": {
         "entries": 9,
         "brokenAt": null,
@@ -28,12 +28,12 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 183 קבלות · 10 עם txid · אחרונה בת 2 דק'",
+      "detail": "ספר-הקבלות תקין — 185 קבלות · 10 עם txid · אחרונה בת 6 דק'",
       "numbers": {
-        "total": 183,
+        "total": 185,
         "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 2
+        "lastAgeMinutes": 6
       }
     },
     {
@@ -60,18 +60,20 @@
     },
     {
       "id": "balances-drift",
-      "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 1.454 · SBD 4.367 (סטייה ≤ 0.001)",
+      "status": "fail",
+      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 0.5 · דריפת SBD 3.817 (אנומליה)",
       "numbers": {
         "measured": true,
         "homeSteem": 1.454,
         "homeSbd": 4.367,
-        "chainSteem": 1.454,
-        "chainSbd": 4.367,
-        "driftSteem": 0,
-        "driftSbd": 0
+        "chainSteem": 0.954,
+        "chainSbd": 0.55,
+        "driftSteem": 0.5,
+        "driftSbd": 3.817
       }
     }
   ],
-  "anomalies": []
+  "anomalies": [
+    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 0.5 · דריפת SBD 3.817 (אנומליה)"
+  ]
 }
