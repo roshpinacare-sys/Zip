@@ -82,9 +82,17 @@ export const CURATION_POLICY = {
   maxVotesPerDay: 10,
   /** משקל כל הצבעה באחוזים (2% = 200 יחידות מ-10000) */
   weightPctPerVote: 2,
-  /** תקרת בזבוז מנה יומית באחוזים — 10×2% = 20% = בדיוק קצב הרגנרציה */
+  /** תקרת בזבוז מנה יומית באחוזים — גג-תקציב כנה; המדידה החיה (r146-a):
+   *  עלות-מנה של הצבעה ≈ VP%×משקל%/432 ⇒ הצבעת-2% ב-VP~75 שורפת ~0.35% מנה,
+   *  כך ש-10 הצבעות/יום שורפות ~3.5% בלבד — הרבה מתחת לרגנרציה של 20%/יום */
   dailyManaSpendPct: 20,
-  /** רצפת כוח-הצבעה — מתחת לזה יום-החזקה */
+  /** r146-a · חוק-הכוח הדו-מדורגי (תיקון-שורש למדידה): עד-היום רצפה אחת קשה
+   *  של 85% קפאה את ההכנסה ל-48ש'+ בכל ירידה מתחת לקו — מדידה ראתה 30+ HOLD
+   *  רצופים, בזמן שכותב-אחר על אותו חשבון ממשיך לשרוף מנה בהצבעות-50%.
+   *  שני-המדורגים: מתחת ל-70% — יום-החזקה כנה (HOLD); מ-70% ומעלה — מצביעים
+   *  ב-2%, והרצפה-הישנה 85% נשארת כגג-המשקל המלא בלבד (לשקיפות-מדיניות). */
+  votingPowerResumePct: 70,
+  /** גג-המשקל-המלא — מעליו המנוע בשכבת-השיא שלו (מתועד ב-rulesEcho) */
   votingPowerFloorPct: 85,
   /** סף הניקוד להצבעה */
   voteScoreThreshold: 60,
@@ -165,6 +173,11 @@ export interface CurationState {
   } | null;
   votingPowerLast: { at: string; pct: number | null; detail?: string } | null;
   lastDecision: Decision | null;
+  /** r146-a · צינור-התגמולים — מצב-התביעה היומי (שדות-תוספת; פנקס-ישן בלעדיהם תקין) */
+  lastClaimDay?: string | null;
+  lastClaimAt?: string | null;
+  lastClaimTxid?: string | null;
+  lastClaimNote?: string | null;
 }
 
 export interface DiscoverResult {
@@ -224,6 +237,10 @@ export function freshCurationState(): CurationState {
     lastDiscovery: null,
     votingPowerLast: null,
     lastDecision: null,
+    lastClaimDay: null,
+    lastClaimAt: null,
+    lastClaimTxid: null,
+    lastClaimNote: null,
   };
 }
 
@@ -252,6 +269,10 @@ export function readCurationState(): CurationState {
       lastDiscovery: prev.lastDiscovery ?? null,
       votingPowerLast: prev.votingPowerLast ?? null,
       lastDecision: prev.lastDecision ?? null,
+      lastClaimDay: prev.lastClaimDay ?? null,
+      lastClaimAt: prev.lastClaimAt ?? null,
+      lastClaimTxid: prev.lastClaimTxid ?? null,
+      lastClaimNote: prev.lastClaimNote ?? null,
     };
   } catch {
     // קובץ שאינו קיים = עלייה ראשונה כנה; קובץ בלתי-קריא = מצב חדש בכנות
@@ -667,6 +688,113 @@ export async function castVote(params: {
   }
 }
 
+// ── r146-a · צינור-התגמולים — מדידה, תביעה, מדד-מיחזור ────────────────
+// החוק: כל תגמול שנצבר (reward_vesting/reward_sbd/reward_steem) נתבע לארנק
+// בהקדם — VESTS נכנסים ל-vesting_shares (SP גדל ⇒ כל הצבעת-אוצרות חזקה
+// יותר: מיחזור-צירוף), STEEM/SBD נופלים ליתרות-הנזילות שהסולם כבר סוחר
+// מהן (מיחזור-נזילות, בלי-קוד-נוסף — הכספת של הסולם היא היעד). התביעה
+// חתומה posting-בלבד, אותו סדר-חוקים של ההצבעה; כל ניסיון — כנות ברשומות.
+
+const REWARDS_LEDGER_FILE = path.join(STATE_DIR, "rewards.json");
+const REWARDS_LEDGER_CAP = 200;
+
+export interface RewardBalances {
+  steem: string;
+  sbd: string;
+  vests: string;
+  steemNum: number;
+  sbdNum: number;
+  vestsNum: number;
+  totalNonZero: boolean;
+}
+
+/** מדידת יתרות-התגמול הממתינות מהשרשרת — השרשרת שופטת, לא הזיכרון. */
+export async function readRewardBalances(account = CURATION_VOTER): Promise<RewardBalances | null> {
+  type ChainAccount = { reward_steem_balance?: string; reward_sbd_balance?: string; reward_vesting_balance?: string };
+  for (const node of STEEM_RPC_NODES) {
+    try {
+      const accounts = await rpcV4<ChainAccount[]>(node, "condenser_api.get_accounts", [[account]]);
+      const a = accounts?.[0];
+      if (!a) return null;
+      const num = (s?: string) => Number((s ?? "0").split(" ")[0]) || 0;
+      const steem = a.reward_steem_balance ?? "0.000 STEEM";
+      const sbd = a.reward_sbd_balance ?? "0.000 SBD";
+      const vests = a.reward_vesting_balance ?? "0.000000 VESTS";
+      const steemNum = num(steem), sbdNum = num(sbd), vestsNum = num(vests);
+      return { steem, sbd, vests, steemNum, sbdNum, vestsNum, totalNonZero: steemNum > 0 || sbdNum > 0 || vestsNum > 0 };
+    } catch {
+      /* הצומת-הבא */
+    }
+  }
+  return null;
+}
+
+function appendRewardsLedger(entry: Record<string, unknown>): void {
+  try {
+    fs.mkdirSync(STATE_DIR, { recursive: true });
+    let arr: Array<Record<string, unknown>> = [];
+    try {
+      arr = JSON.parse(fs.readFileSync(REWARDS_LEDGER_FILE, "utf8")) as Array<Record<string, unknown>>;
+      if (!Array.isArray(arr)) arr = [];
+    } catch { /* עלייה ראשונה */ }
+    arr.push({ at: new Date().toISOString(), ...entry });
+    if (arr.length > REWARDS_LEDGER_CAP) arr = arr.slice(-REWARDS_LEDGER_CAP);
+    const tmp = `${REWARDS_LEDGER_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(arr, null, 2));
+    fs.renameSync(tmp, REWARDS_LEDGER_FILE);
+  } catch { /* רשומות-התגמול אינן תנאי לפעולה — הפנקס וההיסטוריה נושאים את האמת */ }
+}
+
+/** תביעת-התגמולים — סדר-החוקים של castVote בדיוק (key → שופט → RC → שידור).
+ *  כשאין מה לתבוע: ok=true · claimed=false (מדידה כנה, לא כישלון). */
+export async function claimCurationRewards(): Promise<{
+  ok: boolean;
+  claimed: boolean;
+  txid: string | null;
+  note: string;
+  pending?: { steem: string; sbd: string; vests: string };
+}> {
+  try {
+    const pending = await readRewardBalances();
+    if (!pending) return { ok: false, claimed: false, txid: null, note: "REWARDS-MEASURE-FAIL: השרשרת לא ענתה — לא נוגעים" };
+    if (!pending.totalNonZero) {
+      appendRewardsLedger({ kind: "CLAIM-ZERO", account: CURATION_VOTER, pending: { steem: pending.steem, sbd: pending.sbd, vests: pending.vests }, claimed: false, txid: null, note: "אין תגמולים ממתינים — נמדד ורשום" });
+      return { ok: true, claimed: false, txid: null, note: `ZERO-REWARDS: אין מה לתבוע (steem ${pending.steem} · sbd ${pending.sbd} · vests ${pending.vests})`, pending: { steem: pending.steem, sbd: pending.sbd, vests: pending.vests } };
+    }
+    const op: GrapheneOperation = [
+      "claim_reward_balance",
+      { account: CURATION_VOTER, reward_steem: pending.steem, reward_sbd: pending.sbd, reward_vesting: pending.vests },
+    ];
+    const ownerKey = readOwnerKey();
+    if (!ownerKey || ownerKey.account !== CURATION_VOTER) {
+      return { ok: false, claimed: false, txid: null, note: "NO-KEY: מפתח-האב אינו קריא או אינו של המצביע — לא נוגעים" };
+    }
+    const steem = loadSteem();
+    const viaVault = ownerKey.wif ? steemSigningWif("posting", ownerKey.account) : null;
+    if (ownerKey.wif && !viaVault) {
+      return { ok: false, claimed: false, txid: null, note: "NO-SIGNING: מצב-wif — אין רשומת-posting נפתחה מהכספת; לא נוגעים" };
+    }
+    const wif = viaVault ? viaVault.wif : steem.auth.toWif(ownerKey.account, ownerKey.password, "posting");
+    const derivedPub = steem.auth.wifToPublic(wif);
+    type ChainAccount = { posting: { key_auths: Array<[string, number]> } };
+    const accounts = await rpcV4<ChainAccount[]>(STEEM_RPC_NODES[0], "condenser_api.get_accounts", [[CURATION_VOTER]]);
+    const liveKey = accounts?.[0]?.posting?.key_auths?.[0]?.[0];
+    if (!liveKey || derivedPub !== liveKey) {
+      return { ok: false, claimed: false, txid: null, note: "KEY-AUTHORITY-MISMATCH: הנגזר אינו בסמכות ה-posting החיה — לא נוגעים" };
+    }
+    const gate = await steemRcGate(CURATION_VOTER);
+    if (!gate.ok) {
+      return { ok: false, claimed: false, txid: null, note: `RC-GATED: ${gate.reason ?? "?"} — ננסה ביום-הבא`, pending: { steem: pending.steem, sbd: pending.sbd, vests: pending.vests } };
+    }
+    const res = await steemBroadcast([op], wif);
+    if (!res.txid) return { ok: false, claimed: false, txid: null, note: `BROADCAST-FAIL: ${res.note ?? "?"}`, pending: { steem: pending.steem, sbd: pending.sbd, vests: pending.vests } };
+    appendRewardsLedger({ kind: "CLAIMED", account: CURATION_VOTER, pending: { steem: pending.steem, sbd: pending.sbd, vests: pending.vests }, claimed: true, txid: res.txid, note: "תביעה שודרה — VESTS → SP (מיחזור-צירוף) · STEEM/SBD → נזילות-הסולם" });
+    return { ok: true, claimed: true, txid: res.txid, note: `נתבעו ${pending.steem} · ${pending.sbd} · ${pending.vests} → txid ${res.txid}`, pending: { steem: pending.steem, sbd: pending.sbd, vests: pending.vests } };
+  } catch (e) {
+    return { ok: false, claimed: false, txid: null, note: `CLAIM-ERROR: ${String((e as Error).message ?? e).slice(0, 140)}` };
+  }
+}
+
 // ── חוקי התקציב — בדיקות טהורות לפני כל הצבעה ─────────────────────────
 
 /** כל חוקי-המנה בבדיקה אחת טהורה. מחזירה את הסיבה להימנעות, או null אם מותר. */
@@ -679,8 +807,8 @@ export function manaBudgetVerdict(state: CurationState, votingPowerPct: number |
   if (state.votesToday * CURATION_POLICY.weightPctPerVote >= CURATION_POLICY.dailyManaSpendPct) {
     return `BUDGET-MANA: ${state.votesToday}×${CURATION_POLICY.weightPctPerVote}% ≥ תקרת ${CURATION_POLICY.dailyManaSpendPct}% מנה/יום`;
   }
-  if (votingPowerPct != null && votingPowerPct < CURATION_POLICY.votingPowerFloorPct) {
-    return `POWER-FLOOR: כוח-הצבעה ${votingPowerPct.toFixed(1)}% < רצפת ${CURATION_POLICY.votingPowerFloorPct}% — יום-החזקה כנה`;
+  if (votingPowerPct != null && votingPowerPct < CURATION_POLICY.votingPowerResumePct) {
+    return `POWER-FLOOR: כוח-הצבעה ${votingPowerPct.toFixed(1)}% < רצפת-חידוש ${CURATION_POLICY.votingPowerResumePct}% — יום-החזקה כנה (גג-המשקל-המלא: ${CURATION_POLICY.votingPowerFloorPct}%)`;
   }
   return null;
 }

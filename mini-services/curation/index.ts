@@ -11,7 +11,14 @@
 //   · עולה במצב DISCOVER-ONLY (armed=false) — החימוש החלטת מפעיל בלבד
 //     (POST /api/curation {action:"arm"}); עד אז: מגלה, מנקד, מתעד — לא מצביע
 //   · מקסימום הצבעה אחת לפעימה · מקסימום 10/יום · 2% להצבעה · ≤20% מנה/יום
-//   · רצפת כוח-הצבעה 85% — מתחת: יום-החזקה כנה, לא "בכל זאת מצביעים"
+//   · r146-a חוק-הכוח הדו-מדורגי: מתחת ל-70% יום-החזקה כנה; מ-70% ומעלה
+//     מצביעים ב-2% (הרצפה-הישנה 85% נשארה גג-המשקל-המלא). המדידה שהביאה
+//     לתיקון: רצפת-85% קשה קפאה 48ש'+ אחרי כל ירידה, בזמן שכותב-אחר על
+//     אותו חשבון ממשיך לשרוף מנה — ההחזקה לא שימרה כוח ולא הניבה הכנסה.
+//   · r146-a צינור-התגמולים: פעם ביום-UTC נמדדות יתרות-התגמול הממתינות
+//     (reward_vesting/reward_sbd/reward_steem) ונתבעות לארנק — ה-VESTS
+//     מגדילים SP (התחזקות-צירוף של הצבעת-האוצרות), ה-STEEM/SBD נופלים
+//     ליתרות-הנזילות שהסולם כבר סוחר מהן. כל-ניסיון — כנות בפנקס וברשומות.
 //   · אין self, אין אותו פוסט פעמיים, אין 1/מחבר/יום פעמיים, אין ביד-בוטים
 //   · שער-RC לפני כל שידור — דילוג-כנה שנרשם, לא כשל
 //   · כל החלטה — גם דילוג — נרשמת בפנקס ובהיסטוריה (כנות מלאה)
@@ -97,6 +104,52 @@ let ticking = false;
 // r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת בסוף-הקובץ
 let lastBeatAt = Date.now();
 
+// ── r146-a · צינור-התגמולים — ניסיון-תביעה יומי ─────────────────────
+// אותו דפוס פרימיטיב-המפתח של ההצבעה: הדיבון מחליט ומתעד; השידור דרך
+// ה-API (הכספת נפתחת בהקשר Next בלבד). פעם ביום-UTC: מדידה → תביעה או
+// רישום-אפס כנה. כישלון-כנה לא שורף את היום — יינסה שוב בפעימה הבאה.
+let claiming = false;
+async function attemptDailyClaim(day: string): Promise<void> {
+  if (claiming) return;
+  if (state.lastClaimDay === day) return; // ניסיון אחד ליום-UTC
+  claiming = true;
+  try {
+    const res = (await fetch("http://localhost:3000/api/curation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "claim-rewards" }),
+      signal: AbortSignal.timeout(60_000),
+    })
+      .then((x) => x.json() as Promise<{ ok?: boolean; claimed?: boolean; txid?: string | null; note?: string; pending?: { steem: string; sbd: string; vests: string } | null }>)
+      .catch(() => ({ ok: false, claimed: false, txid: null, note: "שער השידור (ה-API) לא ענה — ננסה בפעימה הבאה" }))) as {
+      ok: boolean;
+      claimed: boolean;
+      txid: string | null;
+      note: string;
+      pending?: { steem: string; sbd: string; vests: string } | null;
+    };
+    if (!res.ok && res.note?.includes("לא ענה")) {
+      // ה-API לא ענה — לא סוגרים את היום, הניסיון יחזור בפעימה הבאה
+      decide("CLAIM-SKIP", `תביעת-התגמולים נדחתה: ${res.note}`, true);
+      return;
+    }
+    state.lastClaimDay = day;
+    state.lastClaimAt = new Date().toISOString();
+    state.lastClaimTxid = res.txid ?? null;
+    state.lastClaimNote = res.note ?? null;
+    if (res.ok && res.claimed) {
+      const p = res.pending;
+      decide("CLAIM", `תגמולים נתבעו (${p ? `steem ${p.steem} · sbd ${p.sbd} · vests ${p.vests}` : res.note}) · txid ${res.txid} · מיחזור: VESTS → SP · STEEM/SBD → נזילות-הסולם`, true);
+    } else if (res.ok) {
+      decide("CLAIM-ZERO", `אין תגמולים ממתינים — נמדד ורשום (${res.note}) · הצינור חי ומודד יומית`, true);
+    } else {
+      decide("CLAIM-FAIL", `תביעת-התגמולים נכשלה בכנות: ${res.note} — היום נסגר; המדידה תחזור מחר`, true);
+    }
+  } finally {
+    claiming = false;
+  }
+}
+
 async function tick(): Promise<void> {
   if (ticking) return; // לולאה-יחידה
   ticking = true;
@@ -123,6 +176,9 @@ async function tick(): Promise<void> {
       state.votedAuthorsToday = [];
       decide("DAY-ROLLOVER", `יום-UTC חדש (${day}) — התקציב התאפס (אתמול: ${rolled.votes} הצבעות ב-${rolled.day})`);
     }
+
+    // r146-a — צינור-התגמולים: ניסיון-תביעה יומי (פעם ביום-UTC, לפני ההצבעה)
+    await attemptDailyClaim(day);
 
     // 1) מדידה חיה של כוח-ההצבעה — השרשרת שופטת, לא הזיכרון
     const power = await readVotingPower(CURATION_VOTER);

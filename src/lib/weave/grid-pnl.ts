@@ -187,9 +187,43 @@ function loadCheckpoint(): ScanCheckpoint | null {
 function saveCheckpoint(cp: ScanCheckpoint): void {
   try {
     fs.mkdirSync(path.dirname(SCAN_FILE), { recursive: true });
-    fs.writeFileSync(SCAN_FILE, JSON.stringify(cp, null, 2));
+    // r146-d — חוק הכתיבה-האטומית (אותו חוק של state.json): צ'קפוינט שנקרא
+    // בכל-דקה על-ידי הסנס/הדאימון/המבקר לא יכול להיקרא חצוי — .tmp ואז rename.
+    const tmp = `${SCAN_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(cp, null, 2));
+    fs.renameSync(tmp, SCAN_FILE);
   } catch {
     /* כתיבת-צ'קפוינט נכשלה — הסריקה הבאה פשוט תעשה עבודה חוזרת */
+  }
+}
+
+// r146-d — הצעת-המנוע לצרכנים-תדירים: סריקה אינקרמנטלית מהצ'קפוינט
+// (בד"כ עמוד אחד) + שמירה אטומית. נולד מפער-חי שנמדד: הצ'קפוינט התקדם
+// רק כשמישהו ביקר ב-/api/money/pnl — נמדד פער 8.7ש' (savedAt 01:04 מול
+// מילויים חדשים ב-09:44) וספר-ה-FIFO הרשמי נשאר מאחורי האמת.
+// single-flight לתהליך: הסנס של /api/money קורא את זה בכל-דקה.
+let fillsRefreshInFlight = false;
+export async function refreshFillsCheckpoint(): Promise<{
+  ok: boolean;
+  savedAt: string | null;
+  maxIndex: number | null;
+  fillsTotal: number | null;
+  lastFillIdx: number | null;
+  error?: string;
+}> {
+  if (fillsRefreshInFlight) {
+    const cp = loadCheckpoint();
+    return { ok: !!cp, savedAt: cp?.savedAt ?? null, maxIndex: cp?.maxIndex ?? null, fillsTotal: cp?.fills.length ?? null, lastFillIdx: cp?.maxIndex ?? null, error: "in-flight" };
+  }
+  fillsRefreshInFlight = true;
+  try {
+    const res = await deepFills();
+    const last = res.fills.length ? res.fills[res.fills.length - 1]! : null;
+    return { ok: true, savedAt: new Date().toISOString(), maxIndex: res.maxIndex, fillsTotal: res.fills.length, lastFillIdx: last?.idx ?? null };
+  } catch (e) {
+    return { ok: false, savedAt: null, maxIndex: null, fillsTotal: null, lastFillIdx: null, error: String((e as Error)?.message ?? e).slice(0, 120) };
+  } finally {
+    fillsRefreshInFlight = false;
   }
 }
 

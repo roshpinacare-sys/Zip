@@ -48,6 +48,13 @@ const POLICY = {
   triggers: { parityDriftBps: 50, floorBps: -50, idleTriggerSteem: 1 },
   cooldownMin: 30,
   actionsBudgetPerDay: 12,
+  // r146-d — FILL-DEPLOY (נמדד חי): זמן-בין-מילויים חציוני 29.9 דק' == הצינון
+  // בן 30 הדק' בדיוק — קצב-המילויים היה קשור-צינון, לא קשור-ביקוש. לאחר מילוי
+  // אמיתי (fill_order) הספר יושב ריק עד תום הצינון — אפס הסתברות-מילוי בדיוק
+  // כשהביקוש הוכיח את עצמו. מעתה: מילוי מקצר את הצינון ל-5 דק' להצבה-הבאה
+  // (אותו תקציב 12/יום, אותן מסילות: רצפת-ערך, שער-$100, פרמיות 0..400bps).
+  // מטרת-הצינון היא אנטי-שחיקה של ספר-בריא — לא השארת-ספר-ריק אחרי עבודה.
+  fillDeploy: { cooldownMin: 5 },
   armBuy: { minSbd: 0.15, offsetsBps: [100, 200, 300, 400, 500] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות (עומק-אמיתי לפי מלאי-חימוש ב-/api/money)
   hive: { driftBps: 50 },
   stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
@@ -71,6 +78,7 @@ type MoneyState = {
   acting: boolean;
   lastDecision: Decision | null;
   fillsSeen?: number; // R103 — סימן-מים לתגמול מילויים חדשים
+  fillDeployPending?: boolean; // r146-d — מילוי חדש נמדד מאז-הפעולה האחרונה → צינון-מקוצר להצבה הבאה
   lastDepositScanAt?: string | null; // R105 — סריקת הפקדות אחרונה (כל 5 דק')
   lastPoolGuardAt?: string | null;
   lastFleetSweepAt?: string | null; // R108 — סריקת גלגול-צי (כל 5 דק') // R108 — איזון-בריכות אחרון (כל 10 דק')
@@ -115,6 +123,7 @@ function readState(): MoneyState {
       canonLast: prev.canonLast ?? null,
       // R108 — שידור-סימני-מים ברילוד: ללא השורות האלה, כל טעינה-חמה של מודול מאפסרת את המאידות של תשלום — והתקרות שערו את הנזק (נתפס חי: שומר שולם 3×2 ברילודים; פרצו-גבול עצרו בדיוק). מתעתה: מי שוחור לצין מי שולח — גם אחרי restart.
       fillsSeen: prev.fillsSeen ?? 0,
+      fillDeployPending: prev.fillDeployPending ?? false,
       lastDepositScanAt: prev.lastDepositScanAt ?? null,
       lastStreamDay: prev.lastStreamDay ?? null,
       lastTotalSteem: prev.lastTotalSteem ?? null,
@@ -258,8 +267,11 @@ async function canonPush(path: string, content: string): Promise<boolean> {
 }
 
 // ── החלטה ───────────────────────────────────────────────────────────
-async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream" }> {
+async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream"; tag?: "fill-deploy" }> {
   const now = new Date();
+  // r146-d — תג-מילוי: מילוי נמדד מאז-הפעולה האחרונה → הפעולה הבאה נולדה מעבודה
+  // אמיתית ונושאת FILL-DEPLOY בספר-הקבלות (וצינון-מקוצר — ראה POLICY.fillDeploy).
+  const fillTag: "fill-deploy" | undefined = state.fillDeployPending ? "fill-deploy" : undefined;
   // day roll
   if (state.actionDay !== utcDay(now)) {
     state.actionDay = utcDay(now);
@@ -281,11 +293,13 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
       return { act: false, reason: `LANE-BLOCKED · אין מפתח-אב (D-021: המעבר-החי מוסיף לעבוד) · בדיקה-חוזרת בעוד ${remainMin} דק'` };
     }
   }
-  // צינון
+  // צינון — r146-d: מילוי-מאומת מאז-הפעולה האחרונה מקצר את הצינון ל-5 דק'
+  // (הספר ריק/חסר בדיוק כשהביקוש הוכיח את עצמו; תקציב 12/יום נשאר החוסם-העליון)
   if (state.lastActionAt) {
     const sinceMin = (now.getTime() - new Date(state.lastActionAt).getTime()) / 60_000;
-    if (sinceMin < POLICY.cooldownMin) {
-      return { act: false, reason: `WAIT-COOLDOWN · עוד ${Math.ceil(POLICY.cooldownMin - sinceMin)} דק'` };
+    const cooldownNow = state.fillDeployPending ? POLICY.fillDeploy.cooldownMin : POLICY.cooldownMin;
+    if (sinceMin < cooldownNow) {
+      return { act: false, reason: `WAIT-COOLDOWN · עוד ${Math.ceil(cooldownNow - sinceMin)} דק'${state.fillDeployPending ? " · FILL-DEPLOY חמוש (מילוי נמדד)" : ""}` };
     }
   }
   // תקציב
@@ -377,7 +391,7 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   // טריגר: נזיל
   const idle = Number(meas?.idleSteem ?? 0);
   if (idle >= POLICY.triggers.idleTriggerSteem) {
-    return { act: true, reason: `נזיל ${idle.toFixed(3)} STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)` };
+    return { act: true, tag: fillTag, reason: `נזיל ${idle.toFixed(3)} STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)${fillTag ? " · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון" : ""}` };
   }
   // טריגר: סטיית פאריטה מהמדרגה שהוצבה בפועל (R93).
   // לקח-הבאג החי (נמדד 00:19Z): ה-ladder מה-API הוא הסולם *המומלץ* —
@@ -395,7 +409,8 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
     if (Math.abs(driftBps) > POLICY.triggers.parityDriftBps) {
       return {
         act: true,
-        reason: `הפאריטה זזה ${driftBps > 0 ? "+" : ""}${driftBps}bps מעל הסולם שהוצב (${base.toFixed(6)} → קו ${parity.toFixed(6)}) — הסולם נגרר אליה (חוק 3)`,
+        tag: fillTag,
+        reason: `הפאריטה זזה ${driftBps > 0 ? "+" : ""}${driftBps}bps מעל הסולם שהוצב (${base.toFixed(6)} → קו ${parity.toFixed(6)}) — הסולם נגרר אליה (חוק 3)${fillTag ? " · FILL-DEPLOY" : ""}`,
       };
     }
   }
@@ -413,7 +428,8 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   if (worstBelowBps < -2) {
     return {
       act: true,
-      reason: `חוק-הרצפה (L4): פקודת-מכירה ${worstBelowBps}bps מתחת לערך-החוץ — הסולם נגרר אל הקו (הצינון והקצבה חוסמי-שחיקה)`,
+      tag: fillTag,
+      reason: `חוק-הרצפה (L4): פקודת-מכירה ${worstBelowBps}bps מתחת לערך-החוץ — הסולם נגרר אל הקו (הצינון והקצבה חוסמי-שחיקה)${fillTag ? " · FILL-DEPLOY" : ""}`,
     };
   }
   // טריגר R97 — ARM-BUY: SBD חמוש → סולם קנייה מתחת לפאריטה (O1).
@@ -491,6 +507,7 @@ async function act(
   reason: string,
   action: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream" = "reprice",
   target: "steem" | "hive" = "steem",
+  tag?: "fill-deploy",
 ): Promise<boolean> {
   state.acting = true;
   actStartedAt = Date.now();
@@ -520,7 +537,7 @@ async function act(
     const res = await fetch(target === "hive" ? HIVE_API : API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, reason }),
+      body: JSON.stringify({ action, reason, ...(tag && target === "steem" && action === "reprice" ? { tag } : {}) }),
       signal: ctl.signal,
     });
     result = (await res.json()) as Record<string, unknown>;
@@ -533,10 +550,13 @@ async function act(
   state.actionsToday += 1;
   const finishedAt = new Date().toISOString();
   state.acting = false;
+  // r146-d — תג-המילוי נצרך רק בהצלחה: פעולה שנכשלה (וגם NO-KEY) לא שינתה את
+  // הספר — חלון-ה-FILL-DEPLOY נשאר חמוש והצינון-המקוצר יחול בניסיון הבא (כנות).
+  const r = (result as any) ?? {};
+  if (r?.ok) state.fillDeployPending = false;
   // R93 — תיקון קבלה: ה-API מחזיר {ok, receipt:{placed,cancelled,...}, verify}
   // ולא placed ברמה העליונה. הקבלה תעדוק את האמת מעכשיו (לקח R87 —
   // "הוצבו 0" שקרי — הפעם בצד הדיבון).
-  const r = (result as any) ?? {};
   // r133 · D-021 אמת-תקציב: NO-KEY אינו פעולה — שום דבר לא ניסה לזוז על-השרשרת.
   // מחזירים את מנת-התקציב ומציבים חסימת-מעבר (backoff 4ש', ביטול מיידי כשמפתח חוזר).
   if (!r.ok && r.code === "NO-KEY") {
@@ -664,6 +684,9 @@ async function tick() {
         if (fillsNow > seen) {
           const newFills = fillsNow - seen;
           state.fillsSeen = fillsNow;
+          // r146-d — FILL-DEPLOY: מילוי אמיתי נמדד — ההצבה הבאה זכאית לצינון-מקוצר
+          // (הספר לא נשאר ריק חצי-שעה אחרי שהביקוש הוכיח את עצמו)
+          state.fillDeployPending = true;
           const rew = await fetch(EXCHANGE_API, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -819,7 +842,7 @@ async function tick() {
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {
-      await act(d.reason, d.action ?? "reprice");
+      await act(d.reason, d.action ?? "reprice", "steem", d.tag);
     } else {
       // R101c — חוק-הברזל לשתי הרגליים: צינון + תקציב חלים גם על HIVE.
       // (נלמד מתקרית חיה: ללא השערות האלה הרגל שרפה 28 פעולות ביום —

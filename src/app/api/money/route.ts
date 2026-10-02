@@ -131,7 +131,7 @@ export interface Opportunity {
 
 export interface MoverReceipt {
   at: string;
-  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY" | "STOCK-SBD";
+  kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY" | "STOCK-SBD" | "FILL-DEPLOY";
   reason: string;
   parity: number | null;
   cancelled: Array<{ orderid: number; txid: string | null }>;
@@ -186,6 +186,22 @@ export interface MoneySense {
     noteHe: string;
   };
   ladder: LadderLevel[];
+  /** r146-d — מדידת-מיצוב: מרחק-הספר-שלנו מהשוק החי (הוכחת-מיצוב לפני/אחרי) */
+  positioning: {
+    /** הפרש הפאריטה-האורקל מול מרכז-הספר החי (bps) — מקור-המיקום של הסולם */
+    oracleVsMidBps: number | null;
+    /** רמת-המכירה העליונה שלנו מול הביד החי הטוב ביותר (bps; ≤0 = בתוך-הביד — מילוי-מיידי) */
+    topAskVsBestBidBps: number | null;
+    /** הביד העליון שלנו מול הביד החי הטוב ביותר (bps) — כמה רחוקים מראש-הספר */
+    topBidVsBestBidBps: number | null;
+    /** עומק-המכירה שלנו בתוך 100bps מעל הביד החי (STEEM) — הסיכוי-למילוי המיידי */
+    askDepthNearBidSteem: number;
+    /** סה"כ עומק-מכירה מוצב (STEEM) */
+    askDepthTotalSteem: number;
+    /** סה"כ עומק-קנייה מוצב (SBD) */
+    bidDepthTotalSbd: number;
+    noteHe: string;
+  };
   powerdown: {
     active: boolean | null;
     weeklySteem: number | null;
@@ -338,34 +354,53 @@ async function steemSide(): Promise<{ a: any; openOrders: any[]; book: any }> {
   return { a, openOrders: openOrders ?? [], book };
 }
 
+// r146-d — חוק חלון-האמת (נמדד חי 10:00Z): הסריקה הישנה קראה רק 100 פעולות
+// אחרונות — חלון שמכסה ~9.7 שעות בלבד (נמדד: idx 58947..59047 = 00:13→09:45).
+// התוצאה: fillsWindow24h=9 מול אמת-שרשרת 23 מילויים ב-24ש' — הדאימון שילם
+// תגמולי-עבודה על חלון-חסר והמדידה הרשמית דיווחה נפח-מסחר קטן מהאמת.
+// מעתה: דפדוף אחורה עד קו-24ש' (חסום 6 עמודים × 100 פעולות — עלות-עליונה
+// ידועה), כל מילוי נושא idx-שרשרת (ראיה). אותו מקור-אמת של ה-FIFO.
+const FILL_WINDOW_MS = 24 * 3_600_000;
+const FILL_SCAN_MAX_PAGES = 6;
+
 async function fillsSide(): Promise<{ recent: FillReceipt[]; window24h: number }> {
-  const hist = await steemRpc("condenser_api.get_account_history", [ACCOUNT, -1, 100]);
+  const dayAgoIso = new Date(Date.now() - FILL_WINDOW_MS).toISOString().slice(0, 19);
   const out: FillReceipt[] = [];
-  for (const [, rec] of hist as Array<[number, any]>) {
-    const [type, data] = rec.op;
-    if (type !== "fill_order") continue;
-    const weAreCurrent = data?.current_owner === ACCOUNT;
-    const weAreOpen = data?.open_owner === ACCOUNT;
-    if (!weAreCurrent && !weAreOpen) continue;
-    const paid = weAreCurrent ? String(data.current_pays ?? "") : String(data.open_pays ?? "");
-    const received = weAreCurrent ? String(data.open_pays ?? "") : String(data.current_pays ?? "");
-    const paidN = parseFloat(paid) || 0;
-    const recvN = parseFloat(received) || 0;
-    let price: number | null = null;
-    if (paid.endsWith("STEEM") && received.endsWith("SBD") && paidN > 0) {
-      price = Math.round((recvN / paidN) * 1e6) / 1e6;
-    } else if (paid.endsWith("SBD") && received.endsWith("STEEM") && recvN > 0) {
-      price = Math.round((paidN / recvN) * 1e6) / 1e6;
+  let start = -1;
+  let reachedFloor = false;
+  for (let page = 0; page < FILL_SCAN_MAX_PAGES && !reachedFloor; page++) {
+    const hist = await steemRpc("condenser_api.get_account_history", [ACCOUNT, start, 100]);
+    if (!Array.isArray(hist) || hist.length === 0) break;
+    let minIdx = Infinity;
+    let oldestTs = "";
+    for (const [idx, rec] of hist) {
+      minIdx = Math.min(minIdx, idx as number);
+      const ts = String(rec?.timestamp ?? "");
+      if (!oldestTs || ts < oldestTs) oldestTs = ts;
+      const [type, data] = rec.op;
+      if (type !== "fill_order") continue;
+      const weAreCurrent = data?.current_owner === ACCOUNT;
+      const weAreOpen = data?.open_owner === ACCOUNT;
+      if (!weAreCurrent && !weAreOpen) continue;
+      const paid = weAreCurrent ? String(data.current_pays ?? "") : String(data.open_pays ?? "");
+      const received = weAreCurrent ? String(data.open_pays ?? "") : String(data.current_pays ?? "");
+      const paidN = parseFloat(paid) || 0;
+      const recvN = parseFloat(received) || 0;
+      let price: number | null = null;
+      if (paid.endsWith("STEEM") && received.endsWith("SBD") && paidN > 0) {
+        price = Math.round((recvN / paidN) * 1e6) / 1e6;
+      } else if (paid.endsWith("SBD") && received.endsWith("STEEM") && recvN > 0) {
+        price = Math.round((paidN / recvN) * 1e6) / 1e6;
+      }
+      out.push({ at: (rec.timestamp ?? "") + "Z", side: paid.endsWith("SBD") ? "bought-steem" : "sold-steem", paid, received, price });
     }
-    out.push({ at: (rec.timestamp ?? "") + "Z", side: paid.endsWith("SBD") ? "bought-steem" : "sold-steem", paid, received, price });
+    if (oldestTs.slice(0, 19) <= dayAgoIso || minIdx <= 1 || hist.length < 100) reachedFloor = true;
+    else start = minIdx - 1;
   }
-    out.reverse(); // חדשים לפני ישנים
-    // R128 — ספירת חלון-24ש' מהסריקה המלאה (עד 100 פעולות אחרונות), לפני קיצוץ התצוגה.
-    // רייל R103 (מילוי→SAOS→גלגול) נשען עיקרו על השדה הזה; עד כאן הדאימון קרא שדה שלא היה קיים בתשובה.
-    const dayAgo = Date.now() - 86_400_000;
-    const window24h = out.filter((f) => new Date(f.at).getTime() >= dayAgo).length;
-    return { recent: out.slice(0, 12), window24h };
-  }
+  out.reverse(); // חדשים לפני ישנים
+  const window24h = out.filter((f) => new Date(f.at).getTime() >= Date.now() - FILL_WINDOW_MS).length;
+  return { recent: out.slice(0, 12), window24h };
+}
 
 async function marksSide(): Promise<MoneyMark> {
   const sources: Record<string, string> = {};
@@ -769,6 +804,34 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     });
   }
 
+  // r146-d — מדידת-מיצוב (מרחק-הספר-שלנו מהשוק החי): הסולם ממוקם מהפאריטה-האורקל;
+  // המדידה הזו מוכיחה אם הוא באמת במקום שבו הביקוש עומד. בלי זו, "הסולם מוצב" היתה
+  // טענה בלי מספר-מרחק (חוק הראיה — גם למיצוב).
+  const asksTotal = Math.round(orders.reduce((s, o) => s + o.amount, 0) * 1000) / 1000;
+  const bidsTotal = Math.round(ourBids.reduce((s, b) => s + b.sbd, 0) * 1000) / 1000;
+  const topAskPrice = orders.length > 0 ? Math.min(...orders.map((o) => o.price)) : null;
+  const topBidPrice = ourBids.length > 0 ? Math.max(...ourBids.map((b) => b.price)) : null;
+  const bps = (a: number, b: number) => Math.round((a / b - 1) * 10_000);
+  const positioning = {
+    oracleVsMidBps: parity != null && mid != null && mid > 0 ? bps(parity, mid) : null,
+    topAskVsBestBidBps: topAskPrice != null && bestBid != null && bestBid > 0 ? bps(topAskPrice, bestBid) : null,
+    topBidVsBestBidBps: topBidPrice != null && bestBid != null && bestBid > 0 ? bps(topBidPrice, bestBid) : null,
+    askDepthNearBidSteem:
+      topAskPrice != null && bestBid != null && bestBid > 0
+        ? Math.round(orders.filter((o) => o.price <= bestBid * 1.01).reduce((s, o) => s + o.amount, 0) * 1000) / 1000
+        : 0,
+    askDepthTotalSteem: asksTotal,
+    bidDepthTotalSbd: bidsTotal,
+    noteHe:
+      orders.length === 0
+        ? `צד-המכירה ריק — אפס הסתברות-מילוי בחלון זה${idleSteem > 1 ? ` · ${idleSteem.toFixed(3)} STEEM נזילים מחוץ-לסולם` : ""}`
+        : topAskPrice != null && bestBid != null && topAskPrice <= bestBid
+          ? "רמת-המכירה העליונה בתוך-הביד — מילוי-מיידי צפוי"
+          : topAskPrice != null && bestBid != null
+            ? `רמת-המכירה העליונה ${bps(topAskPrice, bestBid)}bps מעל הביד החי — נדרשת תנועת-שוק`
+            : "מיצוב לא נמדד",
+  };
+
   const ladder: LadderLevel[] = [0, 100, 200, 300, 400].map((premiumBps, i) => ({
     level: (i + 1) as 1 | 2 | 3 | 4 | 5,
     premiumBps,
@@ -799,6 +862,7 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     idleSteem,
     valueFloor,
     ladder,
+    positioning,
     powerdown,
     fills: fillsInfo.recent,
     fillsWindow24h: fillsInfo.window24h,
@@ -905,6 +969,10 @@ async function POST_core(req: Request) {
     return bad("פעולה לא מוכרת — נתמכות: reprice · arm-buy · stock-sbd");
   }
   const reason = typeof payload.reason === "string" ? payload.reason.slice(0, 200) : "manual";
+  // r146-d — תג-מקור לקבלה: הדאימון מדווח FILL-DEPLOY כשההצבה נולדה ממילוי
+  // אמיתי (fill_order) ולא מטריגר-זמן — הפרדת-סוגים בספר-הקבלות, אפס קוד-נוסף
+  // במסלול-הביצוע (אותו reprice, אותם חוקים, רק תג-ראיה שונה).
+  const triggerTag = payload?.tag === "fill-deploy" ? "FILL-DEPLOY" : null;
 
   // המפתח: בזיכרון-ההרצה בלבד
   const ownerKey = readOwnerKey();
@@ -1190,7 +1258,7 @@ async function POST_core(req: Request) {
   const expiration = new Date(Date.now() + 27 * 86_400_000).toISOString().replace(/\.\d{3}Z$/, "");
   const receipt: MoverReceipt = {
     at: new Date().toISOString(),
-    kind: action === "arm-buy" ? "ARM-BUY" : action === "stock-sbd" ? "STOCK-SBD" : inOrders === 0 ? "FUEL-IN" : "REPRICE",
+    kind: triggerTag ?? (action === "arm-buy" ? "ARM-BUY" : action === "stock-sbd" ? "STOCK-SBD" : inOrders === 0 ? "FUEL-IN" : "REPRICE"),
     reason,
     parity,
     cancelled: [],
@@ -1507,7 +1575,18 @@ async function POST_core(req: Request) {
     }
 
     // ב. הצבת הסולם החדש — רצפה נאכפת: כל מחיר ≥ פאריטה
+    // r146-d — חוק-גיאומטריית-הסולם (נמדד חי 09:43:54Z): בגדלים-קטנים ceil3
+    // מקריב את הפרמיות לרשת-0.001 SBD — הראיה: 5 רמות (0..400bps) קרסו
+    // לשני מחירים (0.100251 ×3 רמות · 0.102757 ×2 רמות) כי receive=ceil3(sell×price)
+    // אינו מסוגל לבטא צעדי-פרמיה של ~0.0004 SBD כש-λperLevel=0.399 STEEM.
+    // תוצאה שנמדדה: שלוש פקודות על אותו מחיר בדיוק — ספר כפול-מחיר.
+    // מעתה הסולם נבנה כמערך לפני-השידור: רמה שהמחיר-היעיל שלה זהה לקודמת
+    // מתמזגת אליה (אותו מחיר, עומק-כפול: sell=Σsell · receive=Σreceive —
+    // היחס נשמר ביט-מול-ביט) — אין שתי פקודות על אותו מחיר, וכל דלק נפרס.
+    // ממוזג או לא: חוק-הרצפה נאכף על המחיר-היעיל הסופי (ממוצע-משוקלל של
+    // שני יחסים מעל-הרצפה הוא מעל-הרצפה — אלגברה, לא הנחה).
     const orderDay = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const ladderPlan: Array<{ premiumBps: number; sell: number; receive: number; effPrice: number }> = [];
     for (let i = 0; i < premiums.length; i++) {
       const price = parity * (1 + premiums[i] / 10_000);
       const sell = perLevel;
@@ -1518,6 +1597,18 @@ async function POST_core(req: Request) {
         noteError(`level ${i + 1}: מחיר יעיל ${effPrice.toFixed(6)} מתחת לרצפה — לא הוצב`);
         continue;
       }
+      const prev = ladderPlan[ladderPlan.length - 1];
+      if (prev && prev.receive === receive) {
+        // התנגשות-עיגול: אותו מחיר-יעיל — מיזוג עומק במקום פקודה-כפולה
+        prev.sell = Math.round((prev.sell + sell) * 1000) / 1000;
+        prev.receive = Math.round((prev.receive + receive) * 1000) / 1000;
+        prev.effPrice = Math.round((prev.receive / prev.sell) * 1e6) / 1e6;
+        continue;
+      }
+      ladderPlan.push({ premiumBps: premiums[i]!, sell, receive, effPrice: Math.round(effPrice * 1e6) / 1e6 });
+    }
+    for (let i = 0; i < ladderPlan.length; i++) {
+      const { sell, receive, effPrice } = ladderPlan[i]!;
       const orderid = Number(`${orderDay}${String(i + 1).padStart(2, "0")}`);
       try {
         const res = await broadcastOp<any>(
