@@ -7,6 +7,7 @@
 //       B-1 דלפק-הדלק   → GET /api/money → fuel.{state,totalFuel,arenaClaimWsteem}
 //       B-2 תדריך-השוק  → דיג'סט-הקהל (rshares-חוץ/תגובות של הנושא-המוביל)
 //       B-3 דלפק-האמת   → ביקורת-השכפול האחרונה (זוגות-כמעט-שכפול על הדיסק)
+//       B-5 מפעל-התוכן  → קובץ-מצב המפעל (ticks · פוסטים · הפוסט-האחרון)
 //   · מקור-נכשל מדווח null בכנות — לעולם לא "0 שנראה כמו מדידה".
 // ─────────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,51 @@ function latestDupAudit(): { file: string | null; at: string | null; nearDuplica
     return { file: last, at: j?.at ?? null, nearDuplicatePairs: near };
   } catch {
     return { file: null, at: null, nearDuplicatePairs: null };
+  }
+}
+
+// B-5 מפעל-התוכן (r149) — מדידה-חיה מקובץ-המצב של המפעל (פורט 3046 כותב,
+// כאן קריאה-בלבד). מקור-נכשל ⇒ null בכנות, לעולם לא "0 שנראה כמו מדידה".
+function readFactoryMetrics(): Record<string, unknown> {
+  const EMPTY: Record<string, unknown> = {
+    measuredAt: new Date().toISOString(),
+    source: "sovereign/businesses/content-factory-state.json",
+    ticks: null,
+    postsTotal: null,
+    postsToday: null,
+    capPerDay: 2,
+    lastPost: null,
+    lastError: null,
+    noteHe: "קובץ-מצב המפעל לא נקרא — null בכנות",
+  };
+  try {
+    const raw = readJson(`${HOME}/sovereign/businesses/content-factory-state.json`) as
+      | {
+          ticks?: unknown;
+          budget?: { postsToday?: unknown };
+          posts?: Array<Record<string, unknown>>;
+          lastError?: unknown;
+        }
+      | null;
+    if (!raw) return EMPTY;
+    const posts = Array.isArray(raw.posts) ? raw.posts : [];
+    const last = posts.length > 0 ? posts[posts.length - 1] : null;
+    return {
+      measuredAt: new Date().toISOString(),
+      source: "sovereign/businesses/content-factory-state.json",
+      ticks: typeof raw.ticks === "number" ? raw.ticks : null,
+      postsTotal: posts.length,
+      postsToday: typeof raw.budget?.postsToday === "number" ? raw.budget.postsToday : null,
+      capPerDay: 2,
+      lastPost: last ? { title: last.title ?? null, permlink: last.permlink ?? null, url: last.url ?? null, at: last.at ?? null } : null,
+      lastError: typeof raw.lastError === "string" ? raw.lastError : null,
+      noteHe:
+        posts.length === 0
+          ? "המפעל חי אך טרם פרסם — הטיק הפיק טיוטה ראשונה על שער-הכלכלה"
+          : `פוסטי-מפעל מצטברים: ${posts.length} · האחרון: ${String(last?.title ?? "?").slice(0, 60)}`,
+    };
+  } catch {
+    return EMPTY;
   }
 }
 
@@ -111,6 +157,7 @@ export async function GET() {
           ? "ביקורת-השכפול לא נקראה — null בכנות"
           : `${dup.nearDuplicatePairs} זוגות-כמעט-שכפול בביקורת האחרונה`,
     },
+    "B-5-content-factory": readFactoryMetrics(),
   };
 
   return NextResponse.json({

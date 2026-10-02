@@ -71,6 +71,20 @@
       "budgetCap": "אפס פעולות — קריאה בלבד, מונים בלבד",
       "metricSource": "GET /api/businesses + sovereign/businesses/feed-metrics.json",
       "reviewCadence": "חודשי"
+    },
+    {
+      "id": "B-5-content-factory",
+      "nameHe": "מפעל-התוכן",
+      "stage": "PILOT",
+      "bornAt": "2026-10-02T14:10:00Z",
+      "decisionId": "D-r149-BIZ",
+      "thesisHe": "תגמולי-הפרסום על Steem הם נתיב-ההכנסה היחיד שמתמחק באיכות-ובתשומת-לב-חוץ ולא בהון (ההון 52$ קובע הכנסת-קיורציה של סנטים). המפעל מייצר 2 פוסטים/יום באנגלית לקהילות-השרשרת מחבילת-מדידה-חיה בלבד: 'The Measured Ledger' (שערים+ספרים-אמתיים — הכנות כמותג) ו-'Agents at Work' (יומן-בניין-הנדסי עם קבלות-txid). עלות-שולית ≈0 — רץ על מה שכבר מיוצר (חבילות-המדידה, מסילת-הפרסום, שער-הכלכלה).",
+      "demandEvidence": "קהל-חוץ מדוד: 16 מגיבים-חוץ ב-7 ימים · 25 תגובות-חוץ (sovereign/audience/latest-digest.json דרך יומן-המנוע) · נתיב-הכנסה מוכח בקטן: 5 אירועי-תגמול-פרסום ב-30d (0.451 STEEM · 732 VESTS · sovereign/income/daily-*.json) — הפוטנציאל נמדד, ההגדלה היא איכות-וקצב",
+      "unitEconomics": "עלות-שולית: ≈0 (LLM על חבילת-מדידה קיימת · מסילת-פרסום קיימת · שער-קיים) · הכנסה: תגמולי-פרסום STEEM+SBD אחרי 7 ימים לפוסט שתופס-אוצרים חוץ · יחידת-מדידה: net_votes + pending_payout לפוסט-מפעל (get_content · שעתית) · הכנסה-מתואמת: sovereign/income/daily-*.json author-rewards",
+      "killLine": "7 פוסטי-מפעל רצופים עם 0 הצבעות-חוץ (net_votes=0 מדוד get_content) → FORMAT-REVIEW חתום בשרשרת: הפורמט לא נתפס — מחליפים פורמט, לא מגדילים תקציב",
+      "budgetCap": "גג 2 פוסטים/יום (אחד לכל מוצר) · כל פרסום עובר שער-כלכלה spend=true · כפוף לתקציב-הפעולות הגלובלי 16/יום (D-r149-BUDGET)",
+      "metricSource": "mini-services/content-factory (3046) → sovereign/businesses/content-factory-state.json + content-log.jsonl · engagement: condenser_api.get_content · קבלות: db.publishTask PUBLISHED",
+      "reviewCadence": "מדידת-אינגייג'מנט שעתית · ביקורת-שבועית בלולאת-הממשל · שורת-הרג נקראת בכל טיק"
     }
   ],
   "capacityLawHe": "חוק-הקיבולת (מהלקח מ-governor של clodfarm): הפסקות-קשות מול קצב-רך · אף עסק לא חורג מתקציב-הפעולות הגלובלי · איבוד-מודע לא שורף תקציב (D-r147-ECO) · לעולם לא מעל-התקרה.",
