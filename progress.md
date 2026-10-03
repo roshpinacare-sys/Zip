@@ -126,3 +126,9 @@
 - אומץ-ומוכח-חי: scripts/pre-push-review.mjs — שער-סקירה-ריבוני מעל llm-bridge-3048: פאזה-1 (נתב-מיומנויות מאינדקס-עצל) + פאזה-2 (פסק-דין JSON). ראיות: זרע-רע→BLOCK-6-ממצאים-4-חוסמים-9.5s (כולל תיקון-XTransformPort מוצע) · זרע-נקי→PASS-1.1s-עם-טעינה-סלקטיבית-1-מ-2.
 - רישום-מיומנויות: sovereign/knowledge/review-skills/ (fleet-conventions=חוקי-הצי · nextjs16-conventions=בניסוחנו — next-skills-חסר-רישיון-לא-הועתק).
 - review-doctrine-v1 (REV-1..7: gate-before-push · lazy-skills · verdict-or-record · problem-why-fix · own-llm-only · fail-open-not-stuck · license-clean-skills) · vendor/openreview (PROVENANCE+SKILL).
+
+## r168 — גל-free-claude-code (FCC): לא-לאימוץ-ככלי; מקור-תבניות-לשכבת-ה-LLM
+- FCC=פרוקסי-מקומי (FastAPI) שמחבר 11-סוכני-קידוד ל-59-ספקים-חינמיים (39-מודולי-ספק-נמדדו) — AGPL-3.0-only מאומת (LICENSE+SPDX) → איסור-vendor-verbatim.
+- חסימות-מאומתות: requires-python ==3.14.7-מדויק מול 3.12.14-בסנדבוקס · דורש-מפתחות-ספקים-חיצוניים (MAG-2-אוסר) · הצד-לקוח (Claude-Code/Codex) לא-רלוונטי — הסוכן-שלנו הוא mini-swe-agent · לולאה-סימבולית מעל הגשר-שלנו-עצמו.
+- אומץ-כזיקוק: router-doctrine-v1 (RTC-1..5: classify-before-retry · admission-limits-before-second-upstream · turn-is-the-resilience-unit · history-replay-on-switch · deterministic-interception) + vendor/free-claude-code/PROVENANCE.
+- נתיבי-הפעלה: second-upstream-route-חסום-ריבונות · bridge-hardening-route-מותנה (מעל-סף-תעבורה; כרגע 15-השלמות — מוקדם-מדי לפי MAG-1).

@@ -6147,3 +6147,22 @@ Work Log:
 
 Stage Summary:
 - **עוזר — והפעם-מיד-בתפוקה:** לצי יש-שער-סקירה-ריבוני-חי לפני-push — הסוקר-הוא-ה-LLM-שלנו-עצמו דרך-הגשר, החוקים-הם-החוקים-שלנו (review-skills), והפסק-דין-מכונתי-עם-ראיות. D-OP-01-נשמר: השער-לא-מחכה-לאף-אחד (fail-open-מתועד) אבל-push-שבור/מדליף-נתפס-לפני-שהוא-בכלל-יוצא. שדרוג-ממשל-ישיר-על-גלי-ה-commit-האוטונומיים.
+
+---
+Task ID: r168
+Agent: main (Z.ai) — גל-free-claude-code: המפעיל: "תראה מה עם זה https://github.com/Alishahryar1/free-claude-code"
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) קבלות-מדידה ישירות מה-clone (HEAD 03aca36e · LICENSE-AGPL-3.0-מאומת · requires-python ==3.14.7 · 39-מודולי-ספק · קריאת admission_policy/failure_policy/custom); (2) אין-שינוי-קוד-רץ בגל (רק-זיקוק — כל-מימוש-מועמד נפל במבחן FLO-6/MAG-1) → lint-0-צפוי, audit-17/17-לא-נוגע; (3) router-doctrine.json עובר JSON-parse; (4) קבלת push; (5) census-לא-נגע.
+
+Task: לבחון אם free-claude-code (FCC) יכול לעזור למערכת-הריבונית.
+
+Work Log:
+- **מדידת-מאגר:** HEAD 03aca36e (2026-10-02, PR-#1973 — פעיל-מאוד) · **AGPL-3.0-only מאומת** (LICENSE: "Copyright (c) 2026 Ali Khokhar · SPDX-License-Identifier: AGPL-3.0-only" + pyproject) → איסור-vendor-verbatim (העתקה-הייתה-מטילה-AGPL-על-ההפצה-שלנו).
+- **מה-שהוא:** פרוקסי-מקומי FastAPI שמחבר סוכני-קידוד (Claude-Code · Codex · Cline · Aider · 11) לספקים-חינמיים/בתשלום/מקומיים עם failover-אמצע-תור, דחיסת-פלטי-טרמינל (RTK), ו-interception-דטרמיניסטי לבקשות-שגרתיות.
+- **חסימות-ריצה-מאומתות:** requires-python **==3.14.7-מדויק** מול **3.12.14** בסנדבוקס · תועלת-דורשת-מפתחות-ספקים-חיצוניים (אסור-ריבונות MAG-2) · הצד-לקוח-לא-רלוונטי (הסוכן-שלנו mini-swe-agent) · FCC-מעל-הגשר-שלנו = לולאה-סימבולית (עומס-השהיה + גבול-AGPL + אפס-יכולת-חדשה).
+- **איכות-ארכיטקטונית-נקראה-במקור:** admission_policy.py (ProviderAdmissionLimits-frozen-עם-ולידציה, "בלתי-תלוי-בלקוחות-ובמחזור-חיים-של-הבקר") · failure_policy.py (טקסונומיית-כשלים marker-sets: rate_limit/overload/internal/auth/permission/billing → החלטת-retry-מוסמכת) · request_recovery+stream_recovery+history_replay.
+- **זיקוק:** router-doctrine-v1 (RTC-1..5) · vendor/free-claude-code/PROVENANCE.md · 2-נתיבי-הפעלה (second-upstream-route-חסום-ריבונות · bridge-hardening-route-מותנה-מעל-סף-תעבורה).
+- lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- **לא-עוזר-ככלי — עוזר-כספרות-ביטוח-לשכבת-ה-LLM.** FCC-פותר-בעיה-שבחרנו-לא-להחזיק (טוקנים-חינמיים-של-צד-שלישי) — הריבונות-שלנו-היא-בדיוק-לא-להיות-תלויים-בזה. מה-נשמר-לדורות: טקסונומיית-הכשלים-לפני-retry (RTC-1), חוק-ה-admission-לספק-שני (RTC-2, תאום-של-FLO-2), והתור-כיחידת-עמידות (RTC-3) — כולם-מופעלים-אוטומטית-אם-ספק-שני-מתעורר-יום-אחד (נתיב-laya-onnx-הוא-המועמד-היחיד). דחייה-כנה-עם-3-חסימות-מדידות, אפס-קוד-מועתק.
