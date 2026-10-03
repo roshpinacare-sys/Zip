@@ -6413,3 +6413,48 @@ Work Log:
 
 Stage Summary:
 - **census-V1b-השלים-את-מעגל-השיוך:** הכותב-החוץ-אינו-עוד-ספירה-אלא-ציר-אירועים-מתוארך — כל-ירידת-VP-בעקומת-curation-ניתנת-עכשיו-לשיוך-להצבעה-ספציפית-על-השרשרת. ההשפעה-על-הפרעון-הראשון-מחר-נמדדת-אוטומטית: מה-מנת-ה-VP-ברגע-ההצבעה-קובע-את-הפרעון, והכותב-החוץ-צורך-אותה-בכל-יום.
+
+---
+Task ID: r179-a
+Agent: general-purpose (research)
+Task: מחקר חוץ — state of the art בבלוקצ'יין 2026 לצורך gap analysis של המערכת הריבונית (EVM L2 · אקונומיות סוכני AI · Hive/Steem שוק פנימי · ERC-4337/8004 · EigenLayer · x402). מדיניות: חיפוש בלבד דרך z-ai web_search, סינון דומיינות חשודים, עובדות עם URL.
+
+Work Log:
+- נקראו 100 השורות האחרונות של worklog.md — הקשר: census V1b, money-R111 BID-ONLY, fleet-audit בענן, LOOP-11.
+- 14 חיפושים בוצעו (7 מהמשימה + 7 מחדלונים/חידוד). סוננו דומייני-תוכן-זול (onebullex, coinbureau, hoge.gg, crawlux, oski, zycrypto, easyclaw) — לא שימשו כמקור עובדות.
+- תוצרי אמת עיקריים: developers.hive.io (limit_order_create · מטבעות-מקסימום 28 יום · convert HBD), developers.steem.io (get_order_book עד 500), hive.io (HBD savings 15% APR משתנה — עדכוני peakd 6-7/2026: נחתך ל-14%/12%), beem (holgern/beem ב-GitHub, פעיל 01/2026) — beempy sell לשוק הפנימי.
+- EVM: EIP-7702 חי מ-Pectra (07/05/2025); ERC-4337 EntryPoint+Paymaster סטנדרט; Base=Stage 1 ב-L2Beat; DeGate Stage 2 היחיד ב-ZK; אקסיומת ריכוזיות: פעילות מתרכזת ב-Base/Arbitrum/Optimism (Yahoo Finance 12/2025).
+- סוכני AI: ERC-8004 "Trustless Agents" — שלושה רישומים Identity/Reputation/Validation + agentURI (quicknode · iq.wiki · binance 15/02/2026 · best-practices.8004scan.io · מחקר אמפירי arXiv "Can Trustless Agents Be Trusted?" עד 13/05/2026); Virtuals ACP — acp-node ב-npm, $3M סחר A2A אוטונומי ראשון, EconomyOS 16/05/2026; ERC-8183 (סוכן שוכר ומשלם); ElizaOS (framework פתוח, פלאגין מונטיזציה AGT על Base); Coinbase AgentKit→Agentic Wallets (11/02/2026); x402 — תשלומי USDC דרך HTTP 402 על Base.
+- EigenLayer: slashing חי מ-17/04/2025; TVL צנח ~70% מהשיא ($22.06B→$6.59B) לפי מקור משני (iamuvin 15/09/2026) — מדד עדכני לא אומת ממקור ראשוני.
+- טיפול בהונאות: טענת "L2 TVL צנח מ-$48B ל-$5B" (analyticsinsight) סומנה לא-אמינה ולא הוכנסה לסינתזה; אתרים עם ריח-איירדרופ נזרקו.
+
+Stage Summary:
+- **הפער-מכונן:** העולם בנה שכבת אמון לסוכנים — ERC-8004 (רישומי זהות/מוניטין/ולידציה) + x402 (תשלום) + ACP/ERC-8183 (מסחר) — וכולם דורשים EVM ודלק. THE WEAVE כבר מיישם קונספטואלית את שכבת המוניטין (hash-chain+EIP-712+Merkle) אך עדיין לא מדבר את הסטנדרט.
+- **ייחוד Steem/Hive:** עסקאות ללא עמלות (RC/bandwidth — developers.steem.io) + שוק פנימי עם limit orders (28 יום מקסימום) + HBD savings 12-15% APR — כל אלה נגישים לסוכן בהון אפסי ($0.30) שכן אין דלק; ב-EVM אין כזו אפשרות בלי paymaster חיצוני.
+- **ההזדמנות:** אין אף שחקן גדול (Virtuals/ElizaOS/Coinbase) שפועל על Steem/Hive; ואין פרויקט Hive שמדבר ERC-8004/x402. חיבור שני העולמות — סוכן שמרוויח בשוק הפנימי החינמי ומאמת בסטנדרטי ה-EVM — הוא הפער הפתוח.
+- יש לתכנן: עיגון Merkle-root של ה-WEAVE ל-L2 זול (74 בייטים calldata כבר מוכן), והצטרפות למטא-שיח: ERC-8004 רישום מוניטין, אולי x402 ל-API שלנו.
+
+---
+Task ID: r179
+Agent: main (Z.ai) — גל-ההתלכדות-ההנדסית: המפעיל "תמשיך"+ביקורת-עומק (trace 1a102af5b11fb2c1)
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) כל-טענה-בסינתזה-מגובה-במדידה-חיה-או-במקור-מאומת-עם-URL; (2) איסור-מקורות-חשודים (דוקטרינת-המפעיל); (3) הגל-חייב-להוציא-יכולת-חדשה-חיה-ולא-רק-תוכנית; (4) lint 0 · push-דרך-ה-hook.
+
+Task: ארכיאולוגיית-גיט-עומק + מדידת-מצב-הרשת (Steem/Hive/Z-Chain-EVM) + מחקר-SOTA-ממקורות-אמת + סינתזה-כנה (מה-חסר·למה-איטי) + יישום-פריצה.
+
+Work Log:
+- fetch-before-wave: נקי · ללא-snapshot-חדש.
+- **ארכיאולוגיה נמדדה:** 1,959-commit-מאז-14/09 (19-ימים) · מתוכם 1,291-עיגוני-בוט (66%) · 317-הובלה · 68-סקריפטים · 17-דיבונים · תחומים: fleet/army/agents/grid-pulse/saosnet/defi-seed/capabilities/see/evidence — הקניון-מלא.
+- **מצב-הרשת-נמדד-חי:**
+  - Steem: headcorner-חי (4.787-STEEM-נזיל ≈ $0.30 · 0.5-SBD · 6.37M-VESTS-SP) · VP-71.9%.
+  - Hive: החשבון-קיים-על-השרשרת (id-783644, שלושת-הסמכויות-מאוישות-במפתחות-STM) אבל **מסילת-העיגון-מתה-ממפתח-אחד**: חסר-WIF-posting-של-Hive-בכספת (anchor-מדלג-בכנות: hiveSkipped) — **תלוי-מפעיל, לא-ניתן-לאוטונומיה** (מפתחות-לא-נוצרים-בקוד).
+  - Z-Chain-EVM (Zero-Network, chainId-9369, rpc.zero.tech): **חי** — gasPrice-0-מאומת · 36.2M-בלוקים · nonce-658 · checkpoints+אישורים-עוגנים-בטרנזקציות-אפס-יתרה. מצב-EVM-שלנו: מסילת-אימות-מוכחת, בלי-חוזים-ובלי-הון-על-השרשרת — פער-מול-Base-Stage-1/רולאפים-מלאי-חוזים.
+- **מחקר-SOTA (r179-a, 14-חיפושים, מקורות-אמת-בלבד):** ERC-8004-Trustless-Agents-חי (identity/reputation/validation) · Virtuals-ACP-עד-$3M-A2A · ElizaOS · Coinbase-AgentKit · x402 · EIP-7702-ב-mainnet · L2Beat-Stage-מדדים. התובנה-המכוננת: **ההון-שלנו-הוא-לא-$0.30 — הוא-אפס-הדלק** (עסקאות-Steem/Hive-חינן-במודל-RC; אף-סטאק-סוכנים-EVM-לא-נוכח-שם; אף-פרויקט-Hive-לא-מדבר-ERC-8004/x402).
+- **עדשת-השוק-הפנימי-חיה (ראשונה-בהיסטוריה-של-המפקד):** revenue-census-מודד-עכשיו-ספרי-פקודות-בכל-ריצה — **Steem-פער 188.4bps (ask-0.101972/bid-0.100087 · עומק-ביד-1.95M-STEEM)** · Hive-פער 13.9bps — פי-13.5-רחב-על-Steem = **האלפא-המקומית-של-סוכן-אפס-עמלות**, והפער-המקומי-רחב-פי-3-מתקציב-ה-armBuy-של-money-שכבר-מתוכנת-לפעול-בתוכו.
+- **גשר-הסטנדרטים-נבנה-וחי:** scripts/export-erc8004-registry.mjs → sovereign/agents/erc8004-registry.json — 13-סוכנים-מ-exportים-למטא-דאטה-ERC-8004 (agentURI · registrations-CAIP-2 · supportsTrustlessAgents: identity/reputation=1,251-אישורים-חתומים/validation=checkpoint-anchors) · אפס-סודות · כתיבה-אטומית.
+- fleet-17/17 · דיסק-92% · גשר-ok · lint-0 · push-דרך-ה-hook.
+
+Stage Summary:
+- **התשובה-הכנה ל"למה-איטי":** לא-בגלל-קצב-קוד (103-commit/יום) אלא: (1) **רעב-הון** — $0.30-נזיל גורם-שרצפת-ה-$0.01-לא-נמדדת-עד-הפרעונים-מחר; (2) **תלות-חוץ** — מיכסה-משותפת-429-ומפתח-Hive-חסר (שניהם-מחוץ-לשליטה-המקומית); (3) **רוחב-על-חשבון-עומק** — 17-דיבונים-שכל-אחד-צריך-פעימה; התלכדות-פירושה-לכוון-הכל-אל-הכנסה: עדשת-השוק-נמדדת-עכשיו-אוטומטית, מחר-הפרעונים-הראשונים, ו-money-R111-כבר-חמוש-מול-פער-188bps.
+- **הנתיב-לניצחון-שאינו-תלוי-הון:** אפס-דלק-על-Steem/Hive → אמת-מאומתת-hash-chain → עיגון-EVM-אפס-גז → סטנדרט-ERC-8004. אף-שחקן-גדול-לא-מכסה-את-הצומת-הזה. הרישום-הראשון-הוגש-היום.
+- **חוסמים-הדורשים-מפעיל (רשימה-כנה):** WIF-posting-של-Hive-לכספת (יקום-המסילה-השנייה) · החלטת-רשת-יעד-ל-onchain-registry-אמיתי (Base-מומלצת).

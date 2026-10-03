@@ -171,7 +171,45 @@ for (let page = 0; page < 900; page++) {
   start = oldest - 1;
 }
 
-// 3) סימוני-שוק-חיים (להערכת-שווי — לא לדיוק-מזויף: מקור-מתועד)
+// 3) עדשת-השוק-הפנימי (r179): ספר-הפקודות-נמדד-חי — הפער-הקיים-הוא-האלפא.
+// Steem/Hive-ללא-עמלות-עסקה (מודל-RC) → סוכן-זעיר-הון-מתחרה-בתוך-הפער.
+// מקור: condenser_api.get_order_book (500-עומק-רשמי, developers.steem.io).
+async function orderBook(rpcUrl, asset) {
+  const res = await fetch(rpcUrl, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", method: "condenser_api.get_order_book", params: [10], id: 1 }),
+    signal: AbortSignal.timeout(20000),
+  });
+  const j = await res.json();
+  if (j.error) throw new Error(`order_book: ${j.error.message}`);
+  const b = j.result;
+  const px = (q) =>
+    q.real_price ? parseFloat(String(q.real_price).split(" ")[0])
+    : parseFloat(q[asset.base]) / Math.max(parseFloat(q[asset.quote]), 1e-9);
+  const best = (arr, i) => (arr?.length ? { px: +px(arr[i]).toFixed(6), depth: +parseFloat(arr[i][asset.quote]).toFixed(3) } : null);
+  if (!b?.asks?.length || !b?.bids?.length) return { live: false };
+  const a = px(b.asks[0]), bb = px(b.bids[0]);
+  return {
+    live: true,
+    bestAsk: +a.toFixed(6), bestBid: +bb.toFixed(6),
+    spreadBps: +(((a - bb) / bb) * 10000).toFixed(1),
+    askDepthTop: best(b.asks, 0), bidDepthTop: best(b.bids, 0),
+    at: new Date().toISOString(),
+  };
+}
+let marketLens = null;
+try {
+  const [steemBook, hiveBook] = await Promise.all([
+    orderBook(RPC, { base: "sbd", quote: "steem" }),
+    orderBook("https://api.hive.blog", { base: "hbd", quote: "hive" }),
+  ]);
+  marketLens = { steem: steemBook, hive: hiveBook };
+} catch (e) {
+  console.error(`[revenue-census] market-lens-שגיאה-כנה: ${e.message}`);
+  marketLens = { error: e.message.slice(0, 120) };
+}
+
+// 3b) סימוני-שוק-חיים (להערכת-שווי — לא לדיוק-מזויף: מקור-מתועד)
 let steemUsd = null;
 try {
   const tk = await rpc("condenser_api.get_ticker", []);
@@ -287,7 +325,7 @@ const verdicts = {
   ),
   V5_trading_activity: {
     verdict: "MEASURED",
-    detail: `${Object.values(days).reduce((s, d) => s + d.fills, 0)} fill_order בחלון (הזירה-חיה)`,
+    detail: `${Object.values(days).reduce((s, d) => s + d.fills, 0)} fill_order בחלון (הזירה-חיה)${marketLens?.steem?.live ? ` · עדשת-השוק: Steem-פער ${marketLens.steem.spreadBps}bps${marketLens?.hive?.live ? ` · Hive-פער ${marketLens.hive.spreadBps}bps` : ""} — הפער-הוא-האלפא-של-סוכן-אפס-עמלות` : ""}`,
   },
   V6_revenue_floor: {
     verdict: dailyAvgUsd >= FLOOR_USD ? "PASS" : "BELOW",
@@ -317,6 +355,8 @@ const census = {
   },
   // r178 — V1b: ציר-הזמן-המלא (חדש→ישן, מוגבל-60-אירועים-אחרונים) —
   // כל-אירוע: מתי-ובאיזה-משקל הכותב-החוץ-צרך-VP. המקור: account_history-מהשרשרת.
+  // r179 — עדשת-השוק-הפנימי: ספרי-הפקודות-נמדדים-חי-בכל-ריצת-מפקד.
+  market: marketLens,
   externalVoteTimeline: externalTimeline.slice(0, 60),
   daily: Object.fromEntries(
     Object.entries(days).sort().map(([d, v]) => [d, {
