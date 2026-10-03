@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T16:22:31.929Z",
+  "at": "2026-10-03T16:39:20.483Z",
   "source": "push-range",
-  "diffChars": 15783,
-  "diffStat": "sovereign/keeper/fleet-guard-state.json | 24 +++++-----\n sovereign/keeper/state.json             | 78 ++++++++++++++++-----------------\n sovereign/pulse/state.json              |  4 +-\n sovereign/review-gate/last-review.json  | 28 +++---------\n sovereign/weblift/state.json            |  2 +-\n worklog.md                              |  3 ++\n 6 files changed, 64 insertions(+), 75 deletions(-)",
+  "diffChars": 76570,
+  "diffStat": "progress.md                                    |   6 +\n scripts/revenue-census.mjs                     |  18 +-\n sovereign/businesses/business-log.jsonl        |  28 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/fleet/audit-latest.json              |  20 +-\n sovereign/governance/DECISION_LOG.jsonl        |   1 +\n sovereign/governance/cycle-state.json          |  22 +-\n sovereign/governance/daemon-state.json         |   8 +-\n sovereign/governance/econ-gate.jsonl           |   1 +\n sovereign/governance/loop-state.json           |  22 +-\n sovereign/hunter/state.json                    |  20 +-\n sovereign/keeper/fleet-guard-state.json        |  40 ++--\n sovereign/keeper/state.json                    | 190 +++++++++---------\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  10 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/revenue/census.json                  | 268 +++++++++++++++++++++++--\n sovereign/review-gate/last-review.json         |   8 +-\n sovereign/student/state.json                   | 200 +++++++++---------\n sovereign/treasury-audit/audit-2026-10-03.json |  14 +-\n sovereign/treasury-audit/last-audit.json       |  14 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |   2 +-\n worklog.md                                     |  22 ++\n 24 files changed, 626 insertions(+), 312 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -11,11 +11,23 @@
   "skillsLoaded": [],
   "verdict": "pass",
   "findings": [],
-  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
+  "reason": "",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 933,
-    "llmCalls": 0
+    "totalTookMs": 4471,
+    "phase1TookMs": 845,
+    "phase1Tokens": {
+      "prompt_tokens": 1816,
+      "completion_tokens": 7,
+      "total_tokens": 0
+    },
+    "phase2TookMs": 2657,
+    "phase2Tokens": {
+      "prompt_tokens": 7043,
+      "completion_tokens": 9,
+      "total_tokens": 0
+    },
+    "llmCalls": 2
   }
 }

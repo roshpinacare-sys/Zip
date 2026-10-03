@@ -2,25 +2,24 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 222,
-  "lastCycleAt": "2026-10-03T16:30:07.621Z",
-  "lastDecisionId": "D-r143-222",
+  "cycles": 223,
+  "lastCycleAt": "2026-10-03T16:40:08.590Z",
+  "lastDecisionId": "D-r143-223",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 7593 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 990 דק') · מילויי-שרשרת 259 (maxIndex=62164)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 7603 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 1000 דק') · מילויי-שרשרת 259 (maxIndex=62165)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-03T16:30:04.498Z",
+    "at": "2026-10-03T16:40:05.785Z",
     "verdict": "DENY",
-    "score": 30,
+    "score": 35,
     "reasonsHe": [
-      "פעולה ללא מספרי-עלות/ערך מדודים עוברת על חוק-הראיה-הכלכלית",
-      "הערך הצפוי לא דווח (expectedValue לא דווח)",
-      "העלות המשוערת לא דווח (estimatedCost לא דווח), מה שמפר את חוק-העלות-השולית",
-      "לא דווח אם קיימת שורת-הרג מדודה מראש (killLineAware לא דווח), מה שמפר את חוק-שורת-ההרג"
+      "פעולה ללא מספרי-עלות/ערך מדודים — חוק-הראיה-הכלכלית דורש מדידות לפני השקה",
+      "לא דווח על killLine מדוד — חוק-שורת-ההרג דורש רישום מראש",
+      "פעולת ממשל ללא עסק משויך מפרה את חוק-הקיבולת והפרדת האחריות"
     ],
     "actionsToday": 13,
     "cap": 16,
-    "actionId": "D-r143-222"
+    "actionId": "D-r143-223"
   }
 }
