@@ -31,10 +31,22 @@ const rangeIdx = args.indexOf("--range");
 const RANGE = rangeIdx >= 0 ? [args[rangeIdx + 1], args[rangeIdx + 2]] : null;
 
 function collectPushRange([remoteSha, localSha]) {
-  // New-branch push (all-zero remote) or unresolvable range -> nothing to review here.
+  // New-branch push (all-zero remote) -> nothing to review here.
   if (!localSha || !remoteSha || /^0+$/.test(remoteSha)) return { stat: "", diff: "", source: "push-range" };
-  const stat = git(["diff", "--stat", "--format=", `${remoteSha}..${localSha}`]);
-  const diff = git(["diff", "--format=", `${remoteSha}..${localSha}`]);
+  // The remote sha may be unknown locally when server-side bots (weave-anchor CI)
+  // moved the branch after our last fetch: fetch quietly, then compute.
+  try {
+    gitStrict(["fetch", "origin", "main", "--quiet"]);
+  } catch {
+    /* offline: range computation below will error loudly into verdict=error */
+  }
+  try {
+    gitStrict(["cat-file", "-e", `${remoteSha}^{commit}`]);
+  } catch {
+    throw new Error(`push-range: remote sha ${remoteSha.slice(0, 7)} not resolvable locally (fetch failed?)`);
+  }
+  const stat = gitStrict(["diff", "--stat", `${remoteSha}..${localSha}`]);
+  const diff = gitStrict(["diff", `${remoteSha}..${localSha}`]);
   return { stat, diff, source: "push-range" };
 }
 
@@ -44,6 +56,12 @@ function git(diffArgs) {
   } catch {
     return "";
   }
+}
+
+// r172: like git() but LOUD — a failed range computation must be recorded as
+// verdict=error, never silently dressed up as "no-diff" (REV-3 verdict-or-record).
+function gitStrict(diffArgs) {
+  return execFileSync("git", diffArgs, { cwd: ROOT, encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
 }
 
 function collectDiff(source) {
@@ -138,9 +156,31 @@ function diffTouchesCode(diff) {
 
 async function main() {
   const t0 = Date.now();
-  const { stat, diff, source: effSource } = RANGE
-    ? collectPushRange(RANGE)
-    : collectDiff(SOURCE);
+  let stat, diff, effSource;
+  try {
+    ({ stat, diff, source: effSource } = RANGE
+      ? collectPushRange(RANGE)
+      : collectDiff(SOURCE));
+  } catch (e) {
+    // Range computation failed: record verdict=error (fail-open, REV-6), never silent-pass.
+    const result = {
+      schema: "review-gate-v1",
+      at: new Date().toISOString(),
+      source: RANGE ? "push-range" : SOURCE,
+      diffChars: 0,
+      diffStat: "",
+      skillsAvailable: [],
+      skillsLoaded: [],
+      verdict: "error",
+      findings: [],
+      reason: `range-compute-fail-open: ${e.message}`,
+      evidence: { model: "sovereign-zai", bridge: BRIDGE.replace("http://", ""), llmCalls: 0, totalTookMs: Date.now() - t0 },
+    };
+    mkdirSync(join(ROOT, "sovereign/review-gate"), { recursive: true });
+    writeFileSync(OUT_PATH, JSON.stringify(result, null, 2) + "\n");
+    console.log(`REVIEW-GATE: ERROR (recorded, fail-open) — ${e.message}`);
+    process.exit(0);
+  }
   const skills = loadSkillIndex();
 
   const result = {
