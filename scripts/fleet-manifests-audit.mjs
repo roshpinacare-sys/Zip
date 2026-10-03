@@ -1,22 +1,86 @@
-// fleet-manifests-audit.mjs — r164
+// fleet-manifests-audit.mjs — r164 · r175: --manifests-only (server-side structural mode)
 // Declared-vs-actual audit of the fleet manifest of record
 // (sovereign/fleet/fleet.yaml, modeled on ax.io/v1alpha1).
 // Evidence: probes each declared port/healthPath, maps listeners to pids,
 // reads per-process RSS from /proc, scans 3000-3060 for undeclared listeners
 // (manifest drift), writes sovereign/fleet/audit-latest.json.
-// Exit code: 0 = no violations against declared phases; 1 = violations.
+// r175 --manifests-only: no runtime probes (GitHub-runner safe) — structural
+// validation only: parse, uniqueness, required fields (FLO-2), phases, entry
+// dirs exist, revive-lists ⊆ manifest. Exit: 0 = clean, 1 = violations.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseAllDocuments } from "yaml";
 import { execSync } from "node:child_process";
 
-const ROOT = "/home/z/my-project";
-const MANIFEST = `${ROOT}/sovereign/fleet/fleet.yaml`;
-const OUT = `${ROOT}/sovereign/fleet/audit-latest.json`;
+// ROOT derived from script location — works locally AND on GitHub runners
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const MANIFEST = process.env.FLEET_MANIFEST ?? `${ROOT}/sovereign/fleet/fleet.yaml`;
+const OUT = process.env.FLEET_AUDIT_OUT ?? `${ROOT}/sovereign/fleet/audit-latest.json`;
+const MANIFESTS_ONLY = process.argv.includes("--manifests-only");
 
 const docs = parseAllDocuments(readFileSync(MANIFEST, "utf8"))
   .map((d) => d.toJSON())
   .filter(Boolean);
 const declared = docs.filter((d) => d.kind === "FleetService");
+
+// --- structural validation (r175) — runs always; solo in --manifests-only ---
+const structural = [];
+const VALID_PHASES = new Set(["Running", "Suspended", "Standby"]);
+const names = new Map();
+const ports = new Map();
+for (const svc of declared) {
+  const name = svc?.metadata?.name;
+  const spec = svc?.spec ?? {};
+  if (!name) structural.push("FleetService missing metadata.name");
+  else if (names.has(name)) structural.push(`duplicate service name: ${name}`);
+  else names.set(name, spec);
+  const port = spec.port;
+  if (!Number.isInteger(port) || port < 3000 || port > 3060)
+    structural.push(`${name ?? "?"}: port missing/outside 3000-3060 (${String(port)})`);
+  else if (ports.has(port)) structural.push(`duplicate port ${port}: ${ports.get(port)} & ${name}`);
+  else ports.set(port, name);
+  if (!spec.healthPath) structural.push(`${name ?? "?"}: spec.healthPath missing`);
+  if (!VALID_PHASES.has(spec.phase)) structural.push(`${name ?? "?"}: invalid phase '${String(spec.phase)}'`);
+  const mem = spec.resources?.limits?.memoryMB;
+  if (!Number.isInteger(mem) || mem <= 0)
+    structural.push(`${name ?? "?"}: FLO-2 violation — no declared memory limit`);
+  const entry = String(spec.entry ?? "");
+  if (entry.startsWith("mini-services/")) {
+    const dir = `${ROOT}/${entry.split(" ")[0].replace(/\/$/, "")}`;
+    if (!existsSync(dir)) structural.push(`${name}: entry dir missing: ${dir}`);
+  }
+}
+
+// revive-lists ⊆ manifest by port (drift between the sources of truth).
+// NOTE: names differ across sources ("money" vs "money-mover") — port is the key.
+for (const [file, re] of [
+  ["scripts/daemons-revive.mjs", /name:\s*"([a-z0-9-]+)",\s*port:\s*(\d{4})/g],
+  ["scripts/full-revive.mjs", /name:\s*"([a-z0-9-]+)",\s*port:\s*(\d{4})/g],
+]) {
+  const src = readFileSync(`${ROOT}/${file}`, "utf8");
+  for (const m of src.matchAll(re)) {
+    const [, rn, rp] = m;
+    if (!ports.has(Number(rp)))
+      structural.push(`${file}: revive entry ${rn}:${rp} not declared in fleet.yaml (FLO-1)`);
+  }
+}
+
+if (MANIFESTS_ONLY) {
+  const report = {
+    schema: "fleet-audit-v1",
+    mode: "manifests-only",
+    auditedAt: new Date().toISOString(),
+    declaredServices: declared.length,
+    structuralViolations: structural.length,
+    details: structural,
+    services: declared.map((s) => ({ name: s.metadata?.name, port: s.spec?.port, phase: s.spec?.phase, memoryLimitMB: s.spec?.resources?.limits?.memoryMB ?? null })),
+  };
+  writeFileSync(OUT, JSON.stringify(report, null, 2));
+  console.log(JSON.stringify({ mode: "manifests-only", declared: report.declaredServices, structuralViolations: structural.length, details: structural }, null, 1));
+  process.exit(structural.length ? 1 : 0);
+}
+if (structural.length) console.error("[manifest-structural] warnings (continuing to runtime audit):", structural);
 
 // --- listeners: map port -> {pid, rssMB} -------------------------------------
 let listeners = new Map(); // port -> {pid, rssMB}

@@ -170,3 +170,7 @@
 ## r174 (2026-10-03) — היגיינה-מתמדת: TTL-חי-וחוקים-חדשים
 - fleet-verify-TTL-מומש-ומוכח-אנד-אנד (pruned:1/5MB-על-קלף-מזויף) · שיעור: hot-reload-אינו-פריסה (הפעלה-מחזורית-נדרשת)
 - LOOP-9-fetch-before-wave + LOOP-10-hot-reload-is-not-deploy-ב-doctrine (10-חוקים) · census-מחר: מדידת-תשלום-curation-ראשונה
+
+## r175 (2026-10-03) — ביקורת-עצמאית: fleet-audit-מתוזמן-בענן
+- --manifests-only-מוכח-דו-כיוונית (0-הפרות-אמת / 10-נתפסות-בשיבוש) · ROOT-נגזר-מ-import.meta (באג-runner-נתפס-מוקדם)
+- fleet-audit.yml: cron-6ש'+dispatch · אפס-סודות · R71-מתועד · census-שיוך-לפי-הצבעה-חי-לקראת-04/10 · VP-D-r157-מאומת-בביצוע
