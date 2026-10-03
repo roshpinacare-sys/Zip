@@ -120,3 +120,9 @@
 - ריצת-אמת: הסוכן-יצר-והריץ hello_sovereign.py (עברית מדויקת) ב-5-סבבים-אוטונומיים-מלאים — אפס-מפתחות-חיצוניים.
 - לקחים-מוקפלים-לחוק: MAG-3 (textbased-למודלי-טקסט) · MAG-4 (אין-מחירים-מומצאים). agentloop-doctrine-v1 (MAG-1..5).
 - llm-bridge-רשום-ב-fleet.yaml → audit 17/17-חיים-0-הפרות. נתיב-reef-נפתח-מחדש.
+
+## r167 — גל-openreview (vercel-labs): שער-סקירה-ריבוני לפני push
+- openreview=בוט-סקירת-PR-מבוסס-Claude (Vercel-Sandbox+Workflow+Upstash נדרשים · אין-LICENSE-בפועל · private-beta) → ריצה-חסומה-מאומת; זיקוק-תבניות-בלבד.
+- אומץ-ומוכח-חי: scripts/pre-push-review.mjs — שער-סקירה-ריבוני מעל llm-bridge-3048: פאזה-1 (נתב-מיומנויות מאינדקס-עצל) + פאזה-2 (פסק-דין JSON). ראיות: זרע-רע→BLOCK-6-ממצאים-4-חוסמים-9.5s (כולל תיקון-XTransformPort מוצע) · זרע-נקי→PASS-1.1s-עם-טעינה-סלקטיבית-1-מ-2.
+- רישום-מיומנויות: sovereign/knowledge/review-skills/ (fleet-conventions=חוקי-הצי · nextjs16-conventions=בניסוחנו — next-skills-חסר-רישיון-לא-הועתק).
+- review-doctrine-v1 (REV-1..7: gate-before-push · lazy-skills · verdict-or-record · problem-why-fix · own-llm-only · fail-open-not-stuck · license-clean-skills) · vendor/openreview (PROVENANCE+SKILL).
