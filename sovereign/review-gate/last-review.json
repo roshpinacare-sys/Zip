@@ -1,32 +1,30 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T19:04:37.178Z",
+  "at": "2026-10-03T19:31:24.802Z",
   "source": "push-range",
-  "diffChars": 470365,
-  "diffStat": "console/agents/vault-read.mjs                  |   74 +\n progress.md                                    |    7 +\n scripts/vault-keyring.mjs                      |    1 -\n sovereign/businesses/business-log.jsonl        |   91 +\n sovereign/businesses/engine-state.json         |    4 +-\n sovereign/curation/history.json                |   15 +\n sovereign/curation/state.json                  |  171 +-\n sovereign/governance/DECISION_LOG.jsonl        |    6 +\n sovereign/governance/cycle-state.json          |   23 +-\n sovereign/governance/daemon-state.json         |    8 +-\n sovereign/governance/econ-gate.jsonl           |    6 +\n sovereign/governance/loop-state.json           |   23 +-\n sovereign/hunter/state.json                    |  100 +-\n sovereign/keeper/fleet-guard-state.json        |   40 +-\n sovereign/keeper/state.json                    |  192 +-\n sovereign/kpi/state.json                       |    2 +-\n sovereign/money/pnl-scan.json                  |    6 +-\n sovereign/money/state.json                     |   10 +-\n sovereign/pulse/state.json                     |    6 +-\n sovereign/review-gate/last-review.json         |   67 +-\n sovereign/student/state.json                   | 7168 ++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json |   30 +-\n sovereign/treasury-audit/last-audit.json       |   30 +-\n sovereign/treasury-audit/state.json            |    8 +-\n sovereign/weblift/state.json                   |  108 +-\n src/app/api/arm/seal/route.ts                  |   13 +-\n worklog.md                                     |   22 +\n 27 files changed, 4239 insertions(+), 3992 deletions(-)",
+  "diffChars": 140743,
+  "diffStat": ".github/workflows/weave-anchor-lines.yml       |   1 +\n .github/workflows/weave-anchor.yml             |   1 +\n progress.md                                    |   7 +\n scripts/erc8004-anchor.ts                      | 204 ++++++++++\n scripts/weave-anchor.ts                        |  57 ++-\n sovereign/agents/erc8004-onchain.json          | 157 ++++++++\n sovereign/anchor-report.json                   |  35 +-\n sovereign/businesses/business-log.jsonl        |  47 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/businesses/registry.json             |   2 +-\n sovereign/curation/comment-memory.json         | 142 +++----\n sovereign/curation/history.json                |  10 +\n sovereign/curation/state.json                  | 134 +++----\n sovereign/governance/DECISION_LOG.jsonl        |   3 +\n sovereign/governance/cycle-state.json          |  23 +-\n sovereign/governance/daemon-state.json         |   8 +-\n sovereign/governance/econ-gate.jsonl           |   3 +\n sovereign/governance/loop-state.json           |  23 +-\n sovereign/hunter/state.json                    |  40 +-\n sovereign/keeper/fleet-guard-state.json        |  40 +-\n sovereign/keeper/state.json                    | 182 ++++-----\n sovereign/kpi/state.json                       |   2 +-\n sovereign/ledger.json                          |  38 +-\n sovereign/money/pnl-scan.json                  |  24 +-\n sovereign/money/state.json                     |  14 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/review-gate/last-review.json         |  28 +-\n sovereign/steem-line.json                      |  58 +--\n sovereign/student/state.json                   | 495 +++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json |  30 +-\n sovereign/treasury-audit/last-audit.json       |  30 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |  68 ++--\n src/app/api/money/route.ts                     |  38 +-\n worklog.m",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
-  "skillsLoaded": [
-    "fleet-conventions"
-  ],
+  "skillsLoaded": [],
   "verdict": "pass",
   "findings": [],
   "reason": "",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 5101,
-    "phase1TookMs": 409,
+    "totalTookMs": 3566,
+    "phase1TookMs": 770,
     "phase1Tokens": {
-      "prompt_tokens": 1810,
-      "completion_tokens": 9,
+      "prompt_tokens": 1774,
+      "completion_tokens": 8,
       "total_tokens": 0
     },
-    "phase2TookMs": 3717,
+    "phase2TookMs": 1740,
     "phase2Tokens": {
-      "prompt_tokens": 8172,
+      "prompt_tokens": 7022,
       "completion_tokens": 14,
       "total_tokens": 0
     },
