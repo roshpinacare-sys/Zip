@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T20:32:27.510Z",
+  "at": "2026-10-03T20:40:54.865Z",
   "source": "push-range",
-  "diffChars": 81425,
-  "diffStat": "progress.md                                    |   1 +\n sovereign/businesses/business-log.jsonl        |  17 ++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/curation/history.json                |   5 +\n sovereign/curation/state.json                  | 159 +++++--------------\n sovereign/governance/DECISION_LOG.jsonl        |   1 +\n sovereign/governance/cycle-state.json          |  22 +--\n sovereign/governance/daemon-state.json         |  12 +-\n sovereign/governance/econ-gate.jsonl           |   1 +\n sovereign/governance/loop-state.json           |  22 +--\n sovereign/hunter/state.json                    |  20 +--\n sovereign/keeper/fleet-guard-state.json        |  42 ++---\n sovereign/keeper/state.json                    | 206 ++++++++++++------------\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  14 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/review-gate/last-review.json         |  24 +--\n sovereign/student/state.json                   | 212 ++++++++++++-------------\n sovereign/treasury-audit/audit-2026-10-03.json |  41 +++--\n sovereign/treasury-audit/last-audit.json       |  41 +++--\n sovereign/treasury-audit/state.json            |  15 +-\n sovereign/vault/blurt-rail-proof.json          |  33 ++--\n sovereign/weblift/state.json                   |   2 +-\n src/lib/dex/blurt-wire.ts                      |  78 ++++++---\n 24 files changed, 486 insertions(+), 498 deletions(-)",
+  "diffChars": 1624,
+  "diffStat": "worklog.md | 7 +++++++\n 1 file changed, 7 insertions(+)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -11,23 +11,11 @@
   "skillsLoaded": [],
   "verdict": "pass",
   "findings": [],
-  "reason": "",
+  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 3779,
-    "phase1TookMs": 629,
-    "phase1Tokens": {
-      "prompt_tokens": 1895,
-      "completion_tokens": 7,
-      "total_tokens": 0
-    },
-    "phase2TookMs": 2158,
-    "phase2Tokens": {
-      "prompt_tokens": 7082,
-      "completion_tokens": 14,
-      "total_tokens": 0
-    },
-    "llmCalls": 2
+    "totalTookMs": 950,
+    "llmCalls": 0
   }
 }
