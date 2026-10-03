@@ -63,6 +63,11 @@ const OP_ID = "saos.weave.core.v1";
 const ANCHORS_RING = 32; // טבעת-64 קטנה — הספר הוא האמת, הקובץ רק מראה
 
 const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
+// r180 — הכוננת-הכפולה: לכל-שרשרת-המפתח-שלה. ההוכחה-מ-r179: ה-posting-של-headcorner-
+// שונה-בין-Steem-ל-Hive (STM6u99…-מקומי) — שימוש-ב-WIF-של-Steem-על-Hive-קורס-ב-
+// "Missing Posting Authority". WEAVE_HIVE_WIF-כשקיים — חובה; בהיעדרו-נסוגים-ל-WIF-
+// (התנהגות-היסטורית-לחשבונות-שמפתחותיהם-משותפים) והכשל-נשאר-דילוג-כנה.
+const HIVE_WIF = ((process.env.WEAVE_HIVE_WIF || "") || WIF).trim();
 
 // R75 — המפתח מכריז את חותם הקו: ה-WIF מזוהה מול רשויות ה-posting החיות
 // של חשבונות הצי (קריאה חסרת-מפתחות). השם ב-env (WEAVE_STEEM_ACCOUNT) נשאר
@@ -325,8 +330,12 @@ async function main(): Promise<void> {
     hiveSkipped = gate.reason ?? "rc-gated";
     notes.push(`hive: ${hiveSkipped}`);
     console.log(`[weave-anchor] hive: דילוג-כנה — ${hiveSkipped}`);
+  } else if (HIVE_WIF && HIVE_WIF !== WIF && !wifToStmPub(HIVE_WIF)) {
+    hiveSkipped = "hive-wif-שגוי-מבנית";
+    notes.push(`hive: ${hiveSkipped}`);
+    console.log(`[weave-anchor] hive: סירוב-כנה — WEAVE_HIVE_WIF אינו WIF תקין`);
   } else {
-    const hv = await hiveBroadcast([op], WIF);
+    const hv = await hiveBroadcast([op], HIVE_WIF);
     if (hv.note) notes.push(`hive: ${hv.note}`);
     console.log(
       `[weave-anchor] hive: ${
