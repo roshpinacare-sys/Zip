@@ -1,35 +1,21 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T16:05:37.740Z",
+  "at": "2026-10-03T16:21:47.310Z",
   "source": "push-range",
-  "diffChars": 111656,
-  "diffStat": "mini-services/llm-bridge/index.ts              |  22 +\n progress.md                                    |   5 +\n sovereign/businesses/business-log.jsonl        |  62 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/businesses/registry.json             |   2 +-\n sovereign/curation/comment-memory.json         |  72 +--\n sovereign/curation/history.json                |  10 +\n sovereign/curation/state.json                  |  66 +--\n sovereign/fleet/audit-latest.json              |  28 +-\n sovereign/governance/DECISION_LOG.jsonl        |   3 +\n sovereign/governance/cycle-state.json          |  25 +-\n sovereign/governance/daemon-state.json         |  10 +-\n sovereign/governance/econ-gate.jsonl           |   5 +\n sovereign/governance/loop-state.json           |  25 +-\n sovereign/hunter/state.json                    |  50 +-\n sovereign/keeper/fleet-guard-state.json        |  40 +-\n sovereign/keeper/state.json                    | 184 +++---\n sovereign/kpi/state.json                       |   2 +-\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  10 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/review-gate/last-review.json         |   8 +-\n sovereign/student/state.json                   | 740 ++++++++++++-------------\n sovereign/treasury-audit/audit-2026-10-03.json |  26 +-\n sovereign/treasury-audit/last-audit.json       |  26 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |   2 +-\n worklog.md                                     |  16 +\n 28 files changed, 785 insertions(+), 678 deletions(-)",
+  "diffChars": 96399,
+  "diffStat": "progress.md                                    |   5 +\n sovereign/businesses/business-log.jsonl        |  29 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/curation/history.json                |  10 +\n sovereign/curation/state.json                  |  76 ++----\n sovereign/fleet/audit-latest.json              |  24 +-\n sovereign/governance/DECISION_LOG.jsonl        |   2 +\n sovereign/governance/cycle-state.json          |  24 +-\n sovereign/governance/daemon-state.json         |   8 +-\n sovereign/governance/econ-gate.jsonl           |   2 +\n sovereign/governance/loop-state.json           |  24 +-\n sovereign/hunter/state.json                    |  30 +--\n sovereign/keeper/fleet-guard-state.json        |  40 +--\n sovereign/keeper/state.json                    | 182 +++++++-------\n sovereign/knowledge/selfimprove-doctrine.json  | 177 ++++++-------\n sovereign/kpi/state.json                       |   2 +-\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  10 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/review-gate/last-review.json         |  28 ++-\n sovereign/student/state.json                   | 334 ++++++++++++-------------\n sovereign/treasury-audit/audit-2026-10-03.json |  14 +-\n sovereign/treasury-audit/last-audit.json       |  14 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |  68 ++---\n worklog.md                                     |  21 ++\n 26 files changed, 600 insertions(+), 548 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
-  "skillsLoaded": [
-    "fleet-conventions"
-  ],
+  "skillsLoaded": [],
   "verdict": "pass",
   "findings": [],
-  "reason": "",
+  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 3444,
-    "phase1TookMs": 816,
-    "phase1Tokens": {
-      "prompt_tokens": 1845,
-      "completion_tokens": 12,
-      "total_tokens": 0
-    },
-    "phase2TookMs": 1655,
-    "phase2Tokens": {
-      "prompt_tokens": 7970,
-      "completion_tokens": 14,
-      "total_tokens": 0
-    },
-    "llmCalls": 2
+    "totalTookMs": 956,
+    "llmCalls": 0
   }
 }
