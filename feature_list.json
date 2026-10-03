@@ -2,7 +2,7 @@
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
   "last_updated": "2026-10-02T23:18:00Z",
-  "active_feature": "r157-vp-coordination",
+  "active_feature": "r158-computer-use",
   "features": [
     {
       "id": "F-1",
@@ -181,6 +181,20 @@
         "F-2"
       ],
       "next_step": "אימות-נחיתת-powerdown-ב-02:01Z-דרך-census · פרעונים-ראשונים-04/10→השיוך-הראשון-המדוד-מנוע/חוץ · אחרי-48ש'-עקומת-VP-תחשוף-את-חלון-השיא-היומי"
+    },
+    {
+      "id": "F-15",
+      "name": "כוח-מחשב: לולאת-computer-use + מפקד-יכולות (אימוץ-תבנית trycua/cua)",
+      "status": "running",
+      "description": "Operator-directed capability expansion ('give the sovereign autonomy more capabilities and more power', citing trycua/cua). Adopted: (1) see-verify.mjs — the Computer-Use 2.0 loop (open→screenshot→VLM-judge→evidence-backed verdict, exit-gate) with agent-browser as the computer driver and z-ai vision as eyes; (2) capability-census.mjs — measured inventory of everything the fleet has in its hands (binaries, browser driver, VLM, voice, creation, chains incl. Z-Chain 0x2499, fleet ports, law layer) + machine-readable tools registry (8 tools with usage laws), freshness-gated in init.sh; (3) adoption notes with measured deferrals (no docker/kvm/virtualization in environment — the guard fills the sandbox role). Live demos: local home PASS; steemit.com honest FAIL (Cloudflare wall — proof the loop reports truth, not HTTP codes).",
+      "evidence_path": "sovereign/capabilities/capabilities.json",
+      "last_verified_at": "2026-10-03T01:29:00Z",
+      "evidence": "see-verify-PASS-מקומי (sovereign/see/1790990682344-home-check.png) · see-verify-FAIL-כנה-steemit/Cloudflare (1790990762155-steemit-profile.png) · toolsRegistry-8-כלים-קיימים · z-chain-0x2499-נמדד · fleet-10/10 · sovereign/bloc/CUA-adoption.md",
+      "dependencies": [
+        "F-13",
+        "F-7"
+      ],
+      "next_step": "לולאת-see-verify-כשער-קבוע-לפני-הכרזת-בוצע-על-UI · הרחבת-registry-עם-כלים-חדשים · אם-המפעיל-מכריז-סביבה-עם-VM — אימוץ-סנדבוקסים-אמיתיים"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."

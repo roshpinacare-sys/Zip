@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 280,
-  "at": "2026-10-03T00:10:27.308Z",
+  "seq": 295,
+  "at": "2026-10-03T01:25:27.411Z",
   "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 154 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 162 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 154,
+        "entries": 162,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 10 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 85 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,30 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 11 עם txid · אחרונה בת 5 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 2 דק'",
       "numbers": {
         "total": 200,
-        "withTxid": 11,
+        "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 5
+        "lastAgeMinutes": 2
       }
     },
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (1 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (0 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 1
+        "ordersOpen": 0
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (1 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,

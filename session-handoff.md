@@ -1,6 +1,6 @@
-# session-handoff — מסירת-סשן (harness · r157)
+# session-handoff — מסירת-סשן (harness · r158)
 
-**Last Updated:** 2026-10-03T00:15Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-02:01Z אמת-נחיתת-powerdown (census: withdraw_vesting+fuel-פריסה) · 04/10+ פרעוני-הקיורציה-הראשונים → שיוך-ROI-מנוע/חוץ (F-14) · אחרי-48ש' עקומת-VP-חושפת-חלון-השיא · טיק-מפעל-שכבת-תפקיד ~03:42Z.
+**Last Updated:** 2026-10-03T01:30Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-02:01Z אמת-נחיתת-powerdown (census: withdraw_vesting+fuel-פריסה) · 04/10+ פרעוני-הקיורציה-הראשונים → שיוך-ROI-מנוע/חוץ (F-14) · אחרי-48ש' עקומת-VP-חושפת-חלון-השיא · טיק-מפעל-שכבת-תפקיד ~03:42Z.
 
 > מטרה: כל סשן חדש עובד תוך דקות. עדכן בסוף-כל-סשן. אין סודות בקובץ זה.
 
@@ -8,6 +8,7 @@
 
 - **קומיט:** local==origin==(ראש-השרשרת-החי; תמיד אמת ב-init.sh). תמיד `git pull --rebase --autostash` לפני-עבודה — יש סשנים-מקבילים + עוגנים-אוטומטיים. **rebase-חשוף עתה נחסם-על-ידי-השער (git.race).**
 - **צי-החיים (נמדד 22:37–23:07Z):** 3000 בית · 3034 money-mover (2,999 פעימות · 60ש') · 3038 fleet-verify · 3040 קיורציה · 3041 kpi-scribe · 3042 governance · 3043 treasury-audit · 3044 scout-market · 3045 business-engine (85 ticks) · 3046 מפעל-תוכן (12 ticks · 2 פוסטים · 12 הצבעות בפוסט-האחרון).
+- **כוח-מחשב (r158):** לולאת-computer-use-חיה (see-verify: פתח→צלם→VLM→פסק-דין) · מפקד-יכולות-מהחי-+8-כלים-רשומים · אימוץ-מתועד מ-trycua/cua —
 - **תיאום-VP (r157, אישור-מפעיל):** D-r157-VP-COORD-ביומן-ההחלטות · שיוך-פרעונים-להצבעות-ב-census (V2b) · עקומת-VP-שעתית-במצב-הקיורציה (votingPowerCurve) ·
 - **הכנסה (מדודה-מהשרשרת · r156):** **מפקד-ההכנסות חי** (scripts/revenue-census.mjs · init.sh-4b): 4,286.123 SP-נטו (יחס-חי 1,613.31) · הכנסה-נמדדת-בחלון-9-ימים: 0 USD — **מבני-ומוסבר** (חלון-פרעון-7-ימים: הצבעות-27/09 משתלמות-מ-04/10, פוסטי-מפעל-02/10 משתלמים-מ-09/10) · **כותב-חוץ-על-החשבון נמדד: 146 הצבעות ב-42.3% ממוצע מול 32 של-המנוע (V1b)** — מתחרה-על-ה-VP (נמדד 57.92%) · מיקרו-גריד: PnL ממומש −1.119 SBD — הודק r151, מדידת-השפעה ~2026-10-09.
 - **ריבונות-הסוכנים (r152→r154):** (1) ספריית-תפקידים — R1+R2 wired · (2) שער-ההרג sovereign-guard — selftest 60/60 · pre-commit · חסימות-מתועדות · (3) **הוכחת-הריבונות — PROVEN 9/9 מול Emergence World (מנוע רץ + init.sh סעיף 6)**.
@@ -40,5 +41,7 @@
 | מארזי-הכרעה | sovereign/bloc/D-TREASURY-evidence.md · WEAVE_PUBLIC_URL-one-read.md |
 | מפקד-ההכנסות + שיוך | scripts/revenue-census.mjs · sovereign/revenue/census.json (r156/r157) |
 | עקומת-ה-VP | sovereign/curation/state.json → votingPowerCurve (r157) |
+| כוח-מחשב (see-verify) | scripts/see-verify.mjs · sovereign/see/ (r158) |
+| מפקד-יכולות+רישום-כלים | scripts/capability-census.mjs · sovereign/capabilities/ (r158) |
 | יומן-העבודה המלא | worklog.md (append בלבד) |
 | סודות (מקומי) | upload/pat.env · upload/headcorner.txt — לעולם לא בגיט |
