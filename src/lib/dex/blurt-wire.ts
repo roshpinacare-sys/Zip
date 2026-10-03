@@ -161,35 +161,39 @@ async function blurtDgp(): Promise<{ head_block_number: number; head_block_id: s
   );
 }
 
-// ── r184 — חותמת-הסכמה הרשמית של הרגל ──────────────────────────────────
+// ── r184 — חותמת-הסכמה של הרגל (סקיצה-ב' — מוכחת-ענן) ───────────────────
 // המדידה שהפילה את החשוד-הישן (scripts/lab-blurt-serialize-diff.cjs):
 // steem-js סודר custom_json כ-op-id **18**; Blurt סודר אותו כ-op-id **12**
-// (בייט 11: 0x12 מול 0x0c — הסכמות נפרדות בגלל 6-פעולות שנחתכו במזלג).
-// חתימה על בייטי-Steem מול שרשרת-Blurt = החתימה אינה מכסה את ה-op שהצומת
-// מפרש ⇒ "Missing Active Authority". החוק החדש: הרגל חותמת רק דרך
-// blurtjs (הספרייה הרשמית של השרשרת) — הבייטים שהצומת מפרש הם הבייטים
-// שחתמנו. חוק-החוט המילולי של הנכס (R103) עומד — blurtjs סודר את הנכס
-// מילולית ממילא.
+// (בייט 11: 0x12 מול 0x0c). השורש: Blurt כרתה 6-פעולות מהמזלג של Steem
+// (limit_order_create/cancel, feed_publish, convert, pow, report_over_production)
+// — כל-ה-ids אחריהן זזים. transfer=2 נשאר (לכן העברות-עבדו כבר-מ-R103).
+//
+// החוק הסופי: סדר-הפעולות של Blurt (נמדד מהספרייה-הרשמית, מוכח-חי-על-השרשרת
+// — txid 35f2881734a6…, בלוק 64177707) מוזרק-לסריאליזר של steem-js לזמן-
+// החתימה בלבד (try/finally מחזיר). התוצאה: אותה-חתימה-מוכחת של קווי-
+// Steem/Hive מסדרת בייטי-Blurt מדויקים — ואפס-תלות-חדשה בענן (blurtjs
+// ממשיך-לשמש רק-מעבדות-המדידה).
 
-interface BlurtLib {
-  auth: { signTransaction(tx: unknown, keys: string[]): unknown };
-  config: { get(k: string): unknown; set(k: string, v: unknown): void };
-}
+/** סדר-הפעולות הרשמי של Blurt (47) — נמדד מ-blurtjs, אומת בשרשרת */
+const BLURT_OP_ORDER = [
+  "vote", "comment", "transfer", "transfer_to_vesting", "withdraw_vesting",
+  "account_create", "account_update", "witness_update", "account_witness_vote",
+  "account_witness_proxy", "custom", "delete_comment", "custom_json",
+  "comment_options", "set_withdraw_vesting_route", "claim_account",
+  "create_claimed_account", "request_account_recovery", "recover_account",
+  "change_recovery_account", "escrow_transfer", "escrow_dispute",
+  "escrow_release", "escrow_approve", "transfer_to_savings",
+  "transfer_from_savings", "cancel_transfer_from_savings", "custom_binary",
+  "decline_voting_rights", "reset_account", "set_reset_account",
+  "claim_reward_balance", "delegate_vesting_shares", "witness_set_properties",
+  "create_proposal", "update_proposal_votes", "remove_proposal",
+  "author_reward", "curation_reward", "comment_reward", "fill_vesting_withdraw",
+  "shutdown_witness", "fill_transfer_from_savings", "hardfork",
+  "comment_payout_update", "return_vesting_delegation",
+  "comment_benefactor_reward",
+];
 
-let blurtLibCache: BlurtLib | null = null;
-
-function blurtAuth(): BlurtLib {
-  if (!blurtLibCache) {
-    const nodeRequire = createRequire(path.join(HOME, "package.json"));
-    blurtLibCache = nodeRequire("@blurtfoundation/blurtjs") as BlurtLib;
-    // חוק-השרשרת (R101, נמדד חי מ-get_config; blurtjs נולד עם אותו ערך —
-    // נקבע במפורש: קבוצה-חוקית, לא נגזרת ממצב-ספרייה)
-    blurtLibCache.config.set("chain_id", BLURT_CHAIN_ID);
-  }
-  return blurtLibCache;
-}
-
-/** חתימת עסקת-Blurt בסכמה הרשמית — DGP חי, chain_id קבוע, blurtjs סודר וחותם. */
+/** חתימת עסקת-Blurt — steem-js עם סדר-הפעולות של Blurt ו-chain_id קבוע. */
 export async function blurtSignTx(
   ops: Array<[string, Record<string, unknown>]>,
   wif: string,
@@ -205,7 +209,29 @@ export async function blurtSignTx(
     operations: ops,
     extensions: [] as unknown[],
   };
-  return blurtAuth().auth.signTransaction(tx, [wif]) as Record<string, unknown>;
+  const nodeRequire = createRequire(path.join(HOME, "package.json"));
+  const steemLib = nodeRequire("steem") as {
+    auth: { signTransaction(tx: unknown, keys: string[]): unknown };
+    config: { get(k: string): unknown; set(k: string, v: unknown): void };
+  };
+  const steemOpsLib = nodeRequire("steem/lib/auth/serializer/src/operations") as {
+    operation: { st_operations: Array<{ operation_name: string }> };
+  };
+  const original = steemOpsLib.operation.st_operations;
+  const byName = new Map(original.map((s) => [s.operation_name, s]));
+  const patched = BLURT_OP_ORDER.map((n) => byName.get(n)).filter(Boolean) as typeof original;
+  if (patched.length !== BLURT_OP_ORDER.length) {
+    throw new Error("blurt-op-map-פער: פעולה-מסדרת חסרה בספרייה — סירוב-כנה");
+  }
+  const prev = steemLib.config.get("chain_id");
+  steemLib.config.set("chain_id", BLURT_CHAIN_ID);
+  steemOpsLib.operation.st_operations = patched;
+  try {
+    return steemLib.auth.signTransaction(tx, [wif]) as Record<string, unknown>;
+  } finally {
+    steemLib.config.set("chain_id", prev);
+    steemOpsLib.operation.st_operations = original;
+  }
 }
 
 /**

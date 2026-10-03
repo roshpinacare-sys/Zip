@@ -1,8 +1,8 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 522,
-  "at": "2026-10-03T20:20:27.915Z",
-  "verdict": "WARN",
+  "seq": 524,
+  "at": "2026-10-03T20:30:27.987Z",
+  "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1220 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1230 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,26 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 402 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 412 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 12,
         "outOfOrder": 0,
-        "lastAgeMinutes": 402
+        "lastAgeMinutes": 412
       }
     },
     {
       "id": "ladder-floor",
-      "status": "warn",
-      "detail": "/api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+      "status": "pass",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (11 פקודות פתוחות)",
       "numbers": {
-        "state": "UNMEASURED"
+        "state": "HELD",
+        "asksBelowParity": 0,
+        "worstBps": 0,
+        "maxDriftLossSbd": 0,
+        "ordersOpen": 11
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (11 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -56,15 +60,18 @@
     },
     {
       "id": "balances-drift",
-      "status": "warn",
-      "detail": "יתרות-הבית לא נמדדו מ-/api/money — unmeasured",
+      "status": "pass",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 0.921 · SBD 0.078 (סטייה ≤ 0.001)",
       "numbers": {
-        "measured": false
+        "measured": true,
+        "homeSteem": 0.921,
+        "homeSbd": 0.078,
+        "chainSteem": 0.921,
+        "chainSbd": 0.078,
+        "driftSteem": 0,
+        "driftSbd": 0
       }
     }
   ],
-  "anomalies": [
-    "warn · ladder-floor: /api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
-    "warn · balances-drift: יתרות-הבית לא נמדדו מ-/api/money — unmeasured"
-  ]
+  "anomalies": []
 }

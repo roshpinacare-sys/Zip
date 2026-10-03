@@ -1,23 +1,32 @@
 {
-  "at": "2026-10-03T20:18:36Z",
-  "verdict": "PROVED",
-  "txid": "35f2881734a6ecdd9c8bf1398c95090128ddf17c",
-  "block": 64177707,
-  "trxNum": 0,
+  "at": "2026-10-03T20:40:00Z",
+  "verdict": "PROVED x2",
+  "proofs": [
+    {
+      "path": "blurtjs (official library) — lab path",
+      "txid": "35f2881734a6ecdd9c8bf1398c95090128ddf17c",
+      "block": 64177707,
+      "runner": "r184-blurt-serializer-fix"
+    },
+    {
+      "path": "steem-js + injected BLURT_OP_ORDER (production path, zero new cloud deps)",
+      "txid": "ab676bc3039f7bb6beb443598aae263d25b1f5c4",
+      "block": 64177963,
+      "runner": "r184-patch-order-proof"
+    }
+  ],
   "rpc": "https://rpc.blurt.blog",
   "account": "headcorner",
   "authority": "active",
   "opId": "saos.weave.core.v1",
   "checkpoint": 1250,
   "root": "0x97f3bfe28728cdb661",
-  "attestations": 1260,
-  "commit": "r184-live",
-  "runner": "r184-blurt-serializer-fix",
-  "judge": "condenser_api.get_block(64177707) — txid present in block, op payload read back byte-exact from chain state",
+  "judge": "condenser_api.broadcast_transaction_synchronous + get_block(64177707) — op payload read back byte-exact from chain state",
   "fix": {
-    "law": "blurtjs-schema (custom_json op-id 12) replaces steem-js-schema (op-id 18) for the Blurt rail",
+    "law": "Blurt fork cut 6 ops (limit_order_create/cancel, feed_publish, convert, pow, report_over_production) — every op id after them shifts; custom_json 18→12, transfer stays 2",
     "lab": "scripts/lab-blurt-serialize-diff.cjs — byte 11: 0x0c (blurtjs) vs 0x12 (steem-js)",
-    "note": "r183 'Missing Active Authority' was a signature over steem-schema bytes; Blurt parses a different op ordinal, so the recovered key never matched the active authority"
+    "production": "blurtSignTx injects BLURT_OP_ORDER (47 ops, measured from official lib) into steem-js serializer for the sign duration only (try/finally restore) — same proven signer as Steem/Hive lines",
+    "cloudNote": "blurtjs direct require fails on the cloud runner (bun cache resolve 'Unexpected while resolving bs58') — production path avoids it entirely"
   },
-  "historyNote": "rpc.blurt.blog get_account_history/get_transaction lag or index disabled — get_block is the independent judge (chain state, not indexer)"
+  "historyNote": "rpc.blurt.blog get_account_history/get_transaction lag or index disabled — synchronous broadcast + get_block are the judges (chain state, not indexer)"
 }

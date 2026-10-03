@@ -237,3 +237,4 @@
 - **PROVED על-השרשרת:** cp#1250 (root 0x97f3bfe2…, att 1260) עוגן-Blurt — **txid 35f2881734a6…, בלוק 64177707** (2026-10-03T20:18:36Z) · readback עצמאי מ-get_block: op custom_json · saos.weave.core.v1 · required_auths headcorner · payload בייט-מדויק. קבלה: sovereign/vault/blurt-rail-proof.json.
 - **המעגן שודרג:** שידור-סינכרוני (broadcast_transaction_synchronous) — trx_id+block חוזרים ישירות, בלי-תלות באיחור-ההיסטוריה של rpc.blurt.blog.
 - **שלוש שרשראות מעידות על הספר**: Steem + Hive + Blurt — הזהות-המשולשת של קו-האמת חיה.
+- **התאמת-ענן (r184-b):** blurtjs-ישיר נכשל-ב-runner-הענן (באג-cache של bun על bs58) → החוק-הסופי: BLURT_OP_ORDER (47 פעולות, נמדד-מהרשמית) מוזרק-לסריאליזר-steem-js לזמן-החתימה (try/finally) — אותה-חתימה-מוכחת של שני-הקווים, אפס-תלות-חדשה. הוכחה-שנייה-על-השרשרת: txid ab676bc3… בלוק 64177963.
