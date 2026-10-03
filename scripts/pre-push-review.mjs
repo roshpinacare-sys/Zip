@@ -9,7 +9,8 @@
 // Exit codes: 0 = pass or error (fail-open, recorded — autonomy never deadlocks, REV-6)
 //             1 = block (blocker-severity findings present)
 //
-// Usage: node scripts/pre-push-review.mjs [--source staged|worktree|last-commit]
+// Usage: node scripts/pre-push-review.mjs [--source staged|worktree|last-commit|push-range]
+//        [--range REMOTE_SHA LOCAL_SHA]  (used by .git/hooks/pre-push, r171)
 // Output: sovereign/review-gate/last-review.json (schema review-gate-v1)
 
 import { execFileSync } from "node:child_process";
@@ -26,6 +27,16 @@ const CALL_TIMEOUT_MS = 120000;
 const args = process.argv.slice(2);
 const srcIdx = args.indexOf("--source");
 const SOURCE = srcIdx >= 0 ? args[srcIdx + 1] : "staged";
+const rangeIdx = args.indexOf("--range");
+const RANGE = rangeIdx >= 0 ? [args[rangeIdx + 1], args[rangeIdx + 2]] : null;
+
+function collectPushRange([remoteSha, localSha]) {
+  // New-branch push (all-zero remote) or unresolvable range -> nothing to review here.
+  if (!localSha || !remoteSha || /^0+$/.test(remoteSha)) return { stat: "", diff: "", source: "push-range" };
+  const stat = git(["diff", "--stat", "--format=", `${remoteSha}..${localSha}`]);
+  const diff = git(["diff", "--format=", `${remoteSha}..${localSha}`]);
+  return { stat, diff, source: "push-range" };
+}
 
 function git(diffArgs) {
   try {
@@ -109,7 +120,9 @@ function extractJson(text) {
 
 async function main() {
   const t0 = Date.now();
-  const { stat, diff, source: effSource } = collectDiff(SOURCE);
+  const { stat, diff, source: effSource } = RANGE
+    ? collectPushRange(RANGE)
+    : collectDiff(SOURCE);
   const skills = loadSkillIndex();
 
   const result = {
