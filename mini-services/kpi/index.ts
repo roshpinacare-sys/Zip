@@ -37,6 +37,11 @@ declare const Bun: {
     hostname?: string;
     fetch: (req: Request) => Promise<Response> | Response;
   }) => unknown;
+  // r176 — משמר-המפקד: ריצת-תהליך-אסינכרונית (לא spawnSync — הטיק של-60ש' לא נחסם)
+  spawn: (cmd: string[], opts?: { cwd?: string; stdout?: string; stderr?: string }) => {
+    exited: Promise<number>;
+    kill: () => void;
+  };
 };
 
 const HOME = "/home/z/my-project";
@@ -52,6 +57,17 @@ const RECORD_HOUR_UTC = 12;
 const FETCH_TIMEOUT_MS = 30_000;
 const RECORD_WEDGE_MS = 5 * 60_000; // R112 — טיק תקוע עולה ריצה אחת
 const GRID_FRESH_HOURS = 36;
+
+// r176 — משמר-מפקד-ההכנסות (census-guard):
+// המפקד (revenue-census.mjs) היה מחובר-רק-לשער-init.sh (בזמן-אתחול) — אף-
+// מתזמן-לא-היה-מריץ-אותו. פער-חי-שנתפס-ב-r176: מדידת-התשלומים-האמיתיים
+// (04/10 — הפרעוני-הקיורציה-הראשונים) היתה-תלויה-בזיכרון-סוכנים. מעתה:
+// census-עתיק-מ-26ש' (אותו-סף-כשער-init.sh) → ריצה-אוטומטית-אסינכרונית.
+const CENSUS_FILE = `${HOME}/sovereign/revenue/census.json`;
+const CENSUS_MAX_AGE_MS = 26 * 3_600_000; // טריות-זהה-לשער-init.sh (MAX_AGE_H=26)
+const CENSUS_ATTEMPT_COOLDOWN_MS = 60 * 60_000; // בין-ניסיונות — אין-ספירלה (R110)
+const CENSUS_TIMEOUT_MS = 5 * 60_000; // R112 — לכל-ריצה פסק-זמן
+let censusRunning = false; // מנעול-בזיכרון — אף-שתי-ריצות-במקביל
 
 type CiProof = { id: number | null; conclusion: string; createdAt: string | null };
 
@@ -71,6 +87,14 @@ type ScribeState = {
   secretsBlockDay: string;
   pushes: Array<{ at: string; path: string; ok: boolean; note?: string }>;
   history: Array<{ at: string; kind: string; detail: string }>;
+  // r176 — משמר-מפקד-ההכנסות: הוכחה-נמדדת-של-הריצות-האוטומטיות
+  censusGuard: {
+    lastAttemptAt: string | null;
+    lastExitAt: string | null;
+    lastExitCode: number | null;
+    lastDurationMs: number | null;
+    lastStaleHours: number | null;
+  };
 };
 
 function utcDay(d = new Date()): string {
@@ -94,6 +118,13 @@ function freshState(): ScribeState {
     secretsBlockDay: utcDay(),
     pushes: [],
     history: [],
+    censusGuard: {
+      lastAttemptAt: null,
+      lastExitAt: null,
+      lastExitCode: null,
+      lastDurationMs: null,
+      lastStaleHours: null,
+    },
   };
 }
 
@@ -639,6 +670,55 @@ function dueNow(): { due: boolean; why: string } {
   return { due: false, why: "wait-for-window" };
 }
 
+// r176 — משמר-המפקד: census-עתיק → ריצה-אוטומטית (אסינכרוני, לא-חוסם-טיק)
+function censusGuard() {
+  if (censusRunning) return;
+  const now = Date.now();
+  if (state.censusGuard.lastAttemptAt && now - Date.parse(state.censusGuard.lastAttemptAt) < CENSUS_ATTEMPT_COOLDOWN_MS)
+    return;
+  let ageMs = Number.POSITIVE_INFINITY; // חסר/שבור = הכי-עתיק-שיש
+  try {
+    const at = JSON.parse(fs.readFileSync(CENSUS_FILE, "utf8"))?.at;
+    if (typeof at === "string") ageMs = now - Date.parse(at);
+  } catch {}
+  if (!(ageMs >= CENSUS_MAX_AGE_MS)) return; // טרי (או NaN-מוזר) — לא נוגעים
+  censusRunning = true;
+  const startedAt = Date.now();
+  const staleH = Math.round((ageMs / 3_600_000) * 10) / 10;
+  state.censusGuard = { ...state.censusGuard, lastAttemptAt: new Date().toISOString(), lastStaleHours: staleH };
+  logH("CENSUS-GUARD", `census-עתיק (${staleH}ש') — מריץ-מפקד-ההכנסות`);
+  try {
+    const proc = Bun.spawn(["bun", "scripts/revenue-census.mjs"], { cwd: HOME, stdout: "pipe", stderr: "pipe" });
+    const killer = setTimeout(() => {
+      try {
+        proc.kill();
+      } catch {}
+    }, CENSUS_TIMEOUT_MS);
+    proc.exited
+      .then((code) => {
+        clearTimeout(killer);
+        censusRunning = false;
+        state.censusGuard = {
+          ...state.censusGuard,
+          lastExitAt: new Date().toISOString(),
+          lastExitCode: code ?? -1,
+          lastDurationMs: Date.now() - startedAt,
+        };
+        logH("CENSUS-DONE", `exit=${code} · ${Math.round((Date.now() - startedAt) / 1000)}ש'`);
+        saveState();
+      })
+      .catch(() => {
+        clearTimeout(killer);
+        censusRunning = false;
+        logH("CENSUS-FAIL", "ריצת-המפקד-נכשלה-בהפעלה — נוסה-שוב-אחרי-צינון");
+        saveState();
+      });
+  } catch {
+    censusRunning = false;
+    logH("CENSUS-FAIL", "spawn-נכשל — נוסה-שוב-אחרי-צינון");
+  }
+}
+
 function tick() {
   state.beats += 1;
   lastBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן (הטיק סינכרוני — מתקדם בכל 60ש')
@@ -659,6 +739,9 @@ function tick() {
     logH("SCHEDULE", `ריצה יומית (${why})`);
     runRecord(false).catch(() => {});
   }
+
+  // r176 — משמר-המפקד: אחרי-שכל-השאר-הוגדר — census-עתיק-מתחדש-בעצמו
+  censusGuard();
 
   if (state.beats % 30 === 0) saveState();
 }
@@ -710,6 +793,7 @@ Bun.serve({
         lastResult: state.lastResult,
         recording: state.recording,
         secretsBlockedToday: state.secretsBlockDay === utcDay() ? state.secretsBlockedToday : 0,
+        censusGuard: state.censusGuard, // r176 — השמר-גלוי-לסיור
         recentPushes: state.pushes.slice(-6),
         recentHistory: state.history.slice(-6),
       }),

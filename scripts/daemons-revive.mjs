@@ -18,6 +18,7 @@
 
 import fs from "node:fs";
 import net from "node:net";
+import { spawn as nodeSpawn, execSync } from "node:child_process";
 
 const HOME = "/home/z/my-project";
 
@@ -96,14 +97,31 @@ function spawnDaemon(d) {
   const fd = fs.openSync(`${logDir}/${d.name}-revive.log`, "a");
   // R90 fix: 'bun' is not always in PATH of the dev-server child env —
   // process.execPath is the absolute bun binary that is running right now.
-  const proc = Bun.spawn({
-    cmd: [process.execPath, "--hot", "index.ts"],
+  // r176 — דואליות-רנטון: קריסה-חיה-נתפסה — הרצה-בטעות-תחת-node הפילה-את
+  // המחיה-עצמה (ReferenceError: Bun is not defined) באמצע-ריצה, אחרי-שכבר
+  // נגעה-בחלק-מהצי. אמצעי-הקצה-חייב-לעבוד-בשני-הרנטונים — או-להיכשל-ברמקול.
+  if (typeof Bun !== "undefined") {
+    const proc = Bun.spawn({
+      cmd: [process.execPath, "--hot", "index.ts"],
+      cwd: d.dir,
+      stdin: "ignore",
+      stdout: fd,
+      stderr: fd,
+    });
+    return proc.pid;
+  }
+  // node-fallback (r176): לא-להיות-מת — לאתר-bun-מה-PATH-ולהקים-דרך-child_process.
+  let bunBin;
+  try {
+    bunBin = execSync("command -v bun", { encoding: "utf8" }).trim();
+  } catch {
+    throw new Error(`daemons-revive: רץ-תחת-node-וגם-bun-לא-נמצא-ב-PATH — לא-ניתן-להקים-דיבונים (הרץ: bun run scripts/daemons-revive.mjs)`);
+  }
+  const child = nodeSpawn(bunBin, ["--hot", "index.ts"], {
     cwd: d.dir,
-    stdin: "ignore",
-    stdout: fd,
-    stderr: fd,
+    stdio: ["ignore", fd, fd],
   });
-  return proc.pid;
+  return child.pid;
 }
 
 async function main() {

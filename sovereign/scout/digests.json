@@ -1763,6 +1763,71 @@
       ],
       "prevHash": "eddb4904277aa40019c64bf28898a2905c6c7595334d73e3d828e85833a77925",
       "entryHash": "959972a30c7287ebbc8866709fc2261510eb03f3283d46440717bb1e1665015c"
+    },
+    {
+      "format": "scout-market-digest-v1",
+      "seq": 9,
+      "at": "2026-10-03T15:11:04.436Z",
+      "week": "2026-W40",
+      "durationMs": 38063,
+      "tracks": [
+        {
+          "id": "steem-market",
+          "status": "error",
+          "queries": [
+            {
+              "query": "STEEM price",
+              "resultCount": 0,
+              "error": "Function invoke failed with status 429: {\"error\":\"Too many requests, please try again later\"} (retried: Function invoke failed with status 429: {\"error\":\"Too many requests, please try again later\"})",
+              "recencyDays": 7
+            },
+            {
+              "query": "Steem blockchain news",
+              "resultCount": 0,
+              "error": "Function invoke failed with status 429: {\"error\":\"Too many requests, please try again later\"} (retried: Function invoke failed with status 429: {\"error\":\"Too many requests, please try again later\"})",
+              "recencyDays": 7
+            }
+          ],
+          "sources": [],
+          "note": "חדשות-שוק והקשר-מחיר מהרשת הפתוחה"
+        },
+        {
+          "id": "competitive-landscape",
+          "status": "error",
+          "queries": [
+            {
+              "query": "proof of personhood for AI agents",
+              "resultCount": 0,
+              "error": "Function invoke failed with status 429: {\"error\":\"Too many requests, please try again later\"} (retried: Function invoke failed with status 429: {\"error\":\"Too many requests, please try again later\"})",
+              "recencyDays": null
+            }
+          ],
+          "sources": [],
+          "note": "רוטציית-כיסוי: שאילתת-תחרות אחרת בכל פעימה"
+        }
+      ],
+      "priceContext": {
+        "measured": true,
+        "usd": 0.062931,
+        "source": "coingecko",
+        "note": "STEEM=0.062931 USD (live API)"
+      },
+      "insights": [
+        {
+          "id": "INS-9-MKT",
+          "text": "הקשר-מחיר STEEM: API חי $0.062931 · אזכורי-מחיר בציטוטים: 0",
+          "sourceUrls": [],
+          "numbers": {
+            "apiUsd": 0.062931,
+            "quoteMin": null,
+            "quoteMax": null,
+            "quoteMentions": 0,
+            "sources": 0
+          }
+        }
+      ],
+      "prevHash": "959972a30c7287ebbc8866709fc2261510eb03f3283d46440717bb1e1665015c",
+      "entryHash": "1c727713207c6cc9f759cf2f94a5f003aad1a9a814a3dd70acbcedeb6b495337"
     }
   ]
 }

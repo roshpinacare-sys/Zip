@@ -25,7 +25,7 @@
  *   bun scripts/revenue-census.mjs --check    # שער-init.sh: קיים+טרי?
  */
 
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, renameSync, mkdirSync, existsSync } from "node:fs";
 
 const ACCOUNT = process.env.CENSUS_ACCOUNT || "headcorner";
 const RPC = "https://api.steemit.com";
@@ -337,7 +337,11 @@ const census = {
 };
 
 mkdirSync(OUT_DIR, { recursive: true });
-writeFileSync(OUT_FILE, JSON.stringify(census, null, 2) + "\n");
+// r176 — R107b כתיבה-אטומית (tmp+rename): משמר-המפקד (kpi-scribe) קורא את
+// הקובץ הזה בלולאה; כתיבה-ישירה-היתה-עלולה-לחשוף-שבר-JSON-ולגרום-למשמר-
+// לפרש-טריות-שגויה. אטומיות = מחלקת-המירוץ נסגרת מהשורש.
+writeFileSync(`${OUT_FILE}.tmp`, JSON.stringify(census, null, 2) + "\n");
+renameSync(`${OUT_FILE}.tmp`, OUT_FILE);
 printSummary(census);
 
 function printSummary(c) {
