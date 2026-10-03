@@ -109,3 +109,8 @@
 - fleet.yaml: מניפסט-רשום-ל-16-שירותים (גבולות-זיכרון-נמדדים, phases, workspaces-חמים, suspendPolicy-ל-decision-brain).
 - fleet-manifests-audit.mjs: probe+RSS+סריקת-סטיות → audit-latest.json. ראשונה: 6-לא-מנוהלים+2-healthPath-שגויים+home-בלי-גבול → תוקן. סופית: 16/16-חיים · 0-הפרות.
 - fleet-doctrine-v1 (FLO-1..7) · ה-OOM-של-r163-הפך-לחוק-מניעה · vendor/ax/PROVENANCE.
+
+## r165 — גל-hands-on-ai-engineering: ספר-תבניות, לא-כלי
+- 70-פרויקטים-קהילתיים (MIT-נטען-אך-אין-LICENSE-בפועל · סימני-conflict-שנדחפו-לקוד). לא-רץ: הכל-נעול-על-מפתחות-צד-שלישי; אין-נתיב-הכנסה.
+- אומץ-כזיקוק-תבניות: 6-patterns ממופים לצי (digest→pulse · self-reflective-gate→content-factory · route+fallback→decision-brain · memory+critic→student/keeper · finetune→laya-route · offline-first→חוק-קיים).
+- vendor/hands-on-ai-engineering: PROVENANCE+SKILL-pattern-cookbook. vendor-קוד-נאסר-עקב-רישיון-שברירי.

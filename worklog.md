@@ -6086,3 +6086,21 @@ Work Log:
 
 Stage Summary:
 - הפלטפורמה-של-גוגל-נשארת-חסומה-כאן (דורשת-קלסטר) — אבל-המשמעותי-יושם: **לצי-יש-מניפסט-רשום-ראשון** עם גבולות-זיכרון-נמדדים לכל-שירות, מבקר-declared-vs-actual-רץ, וה-OOM-של-r163-הפך-מתאונה-לחוק (FLO-2). המבקר-בריצה-הראשונה-הוכיח-ערך: תפס-6-שירותים-לא-מנוהלים-ו-2-נתיבי-בריאות-שגויים — הכל-יושר-באותו-גל (FLO-6).
+
+---
+Task ID: r165
+Agent: main (Z.ai) — גל-hands-on-ai-engineering: המפעיל: "תראה זה יכול לעזור https://github.com/Sumanth077/Hands-On-AI-Engineering"
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) קבלות-מדידה ישירות מה-clone (HEAD da0091d6 · 70-פרויקטים · חוסר-LICENSE · סימני-conflict); (2) אין-שינוי-קוד-רץ בגל (רק-זיקוק) → lint-0-צפוי; (3) קבלת push; (4) census-לא-נגע.
+
+Task: לבחון אם Hands-On-AI-Engineering יכול לעזור למערכת-הריבונית.
+
+Work Log:
+- **מדידת-מאגר:** HEAD da0091d6 · README-טוען-MIT אך **קובץ-LICENSE-חסר-בשורש** (נבדק: `handsai/LICENSE` לא-קיים) → איסור-vendor-verbatim; **70-פרויקטים** (requirements/pyproject) ב-6-קטגוריות (סוכנים~40 · RAG-11 · מולטימודל-6 · OCR-4 · אודיו-3 · fine-tuning-1).
+- **דגלים-אדומים-מאומתים:** סימני-merge-conflict-לא-פתורים-שנכנסו-לקבצים (`.env.example`-ב-OCR/image_to_structured_data · OCR/medical_prescription_digitizer · audio/music_explorer מכילים `<<<<<<< HEAD`). מאגר-צבירה-קהילתי-בלי-שער-CI.
+- **כשירות-ריצה:** לא-רץ-כמערכת — כל-פרויקט-נעול-על-מפתחות-API-שלישיים שאין-לנו (Mistral/Gemini/OpenAI/MiniMax/Telnyx/Firecrawl...) ואין-לו-נתיב-הכנסה.
+- **זיקוק (רק-תבניות, לא-קוד):** sovereign/knowledge/vendor/hands-on-ai-engineering/ → PROVENANCE.md + SKILL-pattern-cookbook.md עם 6-תבניות-ממופות-לשירותי-הצי: P1-digest-and-rank→pulse/scout-market · P2-self-reflective-gate→content-factory-QA · P3-route-then-fallback→decision-brain (מיישר-עם-LAY-3/4) · P4-persistent-memory+critic→student/keeper · P5-finetune-on-domain→מאשר-את-fineteune-route-של-laya · P6-offline-first→מיישר-עם-LAY-6+FLO-4.
+- lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- **עוזר — כספר-תבניות, לא-ככלי.** ערך-אמיתי: שש-תבניות-מוכחות-בשדה שכל-אחת-כבר-יש-לה-כתובת-בצי-עם-תנאי-הפעלה. דחייה-כנה-של-הרצה (מפתחות-חסרים) ושל-vendor-קוד (רישיון-חסר-בפועל). שני-הדגלים-האדומים (LICENSE-חסר · conflict-markers-שנדחפו) נרשמו-כראיה-לדורות.
