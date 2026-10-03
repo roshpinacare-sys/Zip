@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 534,
-  "at": "2026-10-03T21:20:27.945Z",
+  "seq": 546,
+  "at": "2026-10-03T22:20:27.944Z",
   "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 272 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 275 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 272,
+        "entries": 275,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1280 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1340 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,30 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 0 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 60 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 12,
         "outOfOrder": 0,
-        "lastAgeMinutes": 0
+        "lastAgeMinutes": 60
       }
     },
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (6 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (7 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 6
+        "ordersOpen": 7
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (6 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (7 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -61,19 +61,19 @@
     {
       "id": "balances-drift",
       "status": "fail",
-      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 20.43 · דריפת SBD -5.096 (אנומליה)",
+      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 2.5 · דריפת SBD -2.035 (אנומליה)",
       "numbers": {
         "measured": true,
-        "homeSteem": 64.429,
-        "homeSbd": 5.56,
-        "chainSteem": 43.999,
-        "chainSbd": 10.656,
-        "driftSteem": 20.43,
-        "driftSbd": -5.096
+        "homeSteem": 12.222,
+        "homeSbd": 6.979,
+        "chainSteem": 9.722,
+        "chainSbd": 9.014,
+        "driftSteem": 2.5,
+        "driftSbd": -2.035
       }
     }
   ],
   "anomalies": [
-    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 20.43 · דריפת SBD -5.096 (אנומליה)"
+    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 2.5 · דריפת SBD -2.035 (אנומליה)"
   ]
 }

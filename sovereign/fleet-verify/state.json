@@ -1,8 +1,8 @@
 {
   "service": "fleet-verify",
   "version": "2.0.0",
-  "bootedAt": "2026-10-03T14:01:15.056Z",
-  "beats": 370,
+  "bootedAt": "2026-10-03T21:54:22.912Z",
+  "beats": 2,
   "patAvailable": true,
   "current": null,
   "jobs": [
@@ -81,8 +81,8 @@
       "layer": "QA",
       "roleHe": "מאמת שכבת ה-SDK: מסמכים ושידורים קיימים, לא ריקים, ומניפסט SHA-256 נבנה על כל התוכן — שינוי נמדד בריצה הבאה.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-02T21:48:56.161Z",
-      "durationMs": 1553,
+      "lastRunAt": "2026-10-03T21:49:15.079Z",
+      "durationMs": 1224,
       "checks": {
         "docsDir": 1,
         "docsFiles": 37,
@@ -96,14 +96,14 @@
       "outputTail": [
         "verdict: PASS (sdk content intact)"
       ],
-      "nextDueAt": "2026-10-03T21:48:59.232Z",
-      "commit": "6756253",
-      "runs": 6,
+      "nextDueAt": "2026-10-04T21:49:17.864Z",
+      "commit": "8437ae6",
+      "runs": 7,
       "push": {
-        "at": "2026-10-02T21:48:57.714Z",
-        "commit": "9b9d6d0",
+        "at": "2026-10-03T21:49:16.304Z",
+        "commit": "130783f",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · Sdk@9b9d6d0"
+        "detail": "נדחף לגיט · Sdk@130783f"
       }
     },
     {
@@ -113,8 +113,8 @@
       "layer": "ENFORCEMENT",
       "roleHe": "בודק שעמודי הנחיתה סגורים כראוי, שאין גליפים אסורים (אימוג'י/חצים/דינגבטים), ושקישורי הרשת שלנו חיים — קישור מת שלנו הוא כשל, חיצוני מדווח בכנות.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-02T21:49:56.161Z",
-      "durationMs": 4606,
+      "lastRunAt": "2026-10-03T21:50:15.078Z",
+      "durationMs": 5122,
       "checks": {
         "landingPages": 9,
         "pagesMissingCloseTag": 0,
@@ -129,14 +129,14 @@
       "outputTail": [
         "verdict: PASS | 5 external links dead (reported, not a failure)"
       ],
-      "nextDueAt": "2026-10-03T21:50:02.414Z",
-      "commit": "9dbd9e9",
-      "runs": 6,
+      "nextDueAt": "2026-10-04T21:50:21.875Z",
+      "commit": "1768398",
+      "runs": 7,
       "push": {
-        "at": "2026-10-02T21:50:00.767Z",
-        "commit": "49af856",
+        "at": "2026-10-03T21:50:20.200Z",
+        "commit": "030019b",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · Adsmarket@49af856"
+        "detail": "נדחף לגיט · Adsmarket@030019b"
       }
     },
     {
@@ -146,8 +146,8 @@
       "layer": "ENFORCEMENT",
       "roleHe": "הריפו מתעד אילו בקרות באמת קיימות ואת תדריך הסוכן. המאמת מוודה שהמסמכים קיימים, לא ריקים, שכל בקרה בסעיף משלה — וסופר את ארכיון השידורים.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-02T21:50:56.161Z",
-      "durationMs": 1345,
+      "lastRunAt": "2026-10-03T21:51:15.080Z",
+      "durationMs": 1603,
       "checks": {
         "controlsDocumentExists": 1,
         "controlsDocumentBytes": 1245,
@@ -161,14 +161,14 @@
       "outputTail": [
         "verdict: PASS (controls documented)"
       ],
-      "nextDueAt": "2026-10-03T21:50:59.234Z",
-      "commit": "16e50b6",
-      "runs": 6,
+      "nextDueAt": "2026-10-04T21:51:18.352Z",
+      "commit": "e1c6eeb",
+      "runs": 7,
       "push": {
-        "at": "2026-10-02T21:50:57.507Z",
-        "commit": "22f3344",
+        "at": "2026-10-03T21:51:16.683Z",
+        "commit": "b0afb9a",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · roshpina@22f3344"
+        "detail": "נדחף לגיט · roshpina@b0afb9a"
       }
     },
     {
@@ -250,8 +250,8 @@
       "layer": "RECOVERY",
       "roleHe": "כל ארכיון חייב להיפתח נקי: המאמת פותח-מבחן כל קובץ zip, בונה מניפסט SHA-256 ומדווח בכנות על כל ארכיון פגום.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-02T21:53:56.161Z",
-      "durationMs": 2398,
+      "lastRunAt": "2026-10-03T21:54:22.979Z",
+      "durationMs": 2684,
       "checks": {
         "archivesTotal": 10,
         "archivesIntact": 10,
@@ -273,14 +273,14 @@
         "OK ./steem-main (1).zip",
         "verdict: PASS (all archives open cleanly)"
       ],
-      "nextDueAt": "2026-10-03T21:54:00.363Z",
-      "commit": "ece8a33",
-      "runs": 6,
+      "nextDueAt": "2026-10-04T21:54:27.410Z",
+      "commit": "c8d8a92",
+      "runs": 7,
       "push": {
-        "at": "2026-10-02T21:53:58.560Z",
-        "commit": "15efab5",
+        "at": "2026-10-03T21:54:25.664Z",
+        "commit": "87a0187",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · Project-files@15efab5"
+        "detail": "נדחף לגיט · Project-files@87a0187"
       }
     },
     {
@@ -290,8 +290,8 @@
       "layer": "WITNESS",
       "roleHe": "ההיסטוריה לא נמחקת לעולם: המאמת בונה מניפסט SHA-256 של כל תוכן ההיסטוריה, משווה לריצה הקודמת ופוסל אם קובץ הוסר. מוסכמת שמות השידורים נבדקת.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-02T21:54:56.161Z",
-      "durationMs": 1277,
+      "lastRunAt": "2026-10-03T21:55:22.920Z",
+      "durationMs": 1518,
       "checks": {
         "files": 67,
         "bytes": 393212,
@@ -304,14 +304,14 @@
       "outputTail": [
         "verdict: PASS (baseline intact)"
       ],
-      "nextDueAt": "2026-10-03T21:54:59.273Z",
-      "commit": "0725b94",
-      "runs": 6,
+      "nextDueAt": "2026-10-04T21:55:26.100Z",
+      "commit": "098a302",
+      "runs": 7,
       "push": {
-        "at": "2026-10-02T21:54:57.440Z",
-        "commit": "a5763f0",
+        "at": "2026-10-03T21:55:24.439Z",
+        "commit": "1c5c853",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · anchor-baseline@a5763f0"
+        "detail": "נדחף לגיט · anchor-baseline@1c5c853"
       }
     },
     {
@@ -345,41 +345,11 @@
     }
   ],
   "lastDecision": {
-    "at": "2026-10-03T14:01:39.370Z",
+    "at": "2026-10-03T21:55:26.100Z",
     "kind": "PASS",
-    "detail": "jumpper-tests: PASS · 6ש' · unit tests pass, package compiles · נדחף לגיט · saos-jummper@b70df10"
+    "detail": "baseline-integrity: PASS · 2ש' · baseline intact · נדחף לגיט · anchor-baseline@1c5c853"
   },
   "history": [
-    {
-      "at": "2026-09-24T03:50:08.865Z",
-      "id": "sdk-verify",
-      "verdict": "PASS",
-      "detail": "1346ms · sdk content intact"
-    },
-    {
-      "at": "2026-09-24T20:09:50.051Z",
-      "id": "baseline-integrity",
-      "verdict": "PASS",
-      "detail": "1545ms · baseline intact · גיט: נדחף"
-    },
-    {
-      "at": "2026-09-24T20:10:50.225Z",
-      "id": "sdk-verify",
-      "verdict": "PASS",
-      "detail": "1469ms · sdk content intact · גיט: נדחף"
-    },
-    {
-      "at": "2026-09-24T20:10:56.730Z",
-      "id": "claims-guard",
-      "verdict": "PASS",
-      "detail": "5486ms · 7 external links dead (reported, not a failure) · גיט: נדחף"
-    },
-    {
-      "at": "2026-09-24T20:11:05.452Z",
-      "id": "controls-audit",
-      "verdict": "PASS",
-      "detail": "1536ms · controls documented · גיט: נדחף"
-    },
     {
       "at": "2026-09-24T20:11:12.031Z",
       "id": "archive-keeper",
@@ -709,11 +679,36 @@
       "id": "jumpper-tests",
       "verdict": "PASS",
       "detail": "5628ms · unit tests pass, package compiles · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T21:49:15.079Z",
+      "id": "sdk-verify",
+      "verdict": "PASS",
+      "detail": "1224ms · sdk content intact · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T21:50:15.078Z",
+      "id": "claims-guard",
+      "verdict": "PASS",
+      "detail": "5122ms · 5 external links dead (reported, not a failure) · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T21:51:15.080Z",
+      "id": "controls-audit",
+      "verdict": "PASS",
+      "detail": "1603ms · controls documented · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T21:54:22.979Z",
+      "id": "archive-keeper",
+      "verdict": "PASS",
+      "detail": "2684ms · all archives open cleanly · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T21:55:22.920Z",
+      "id": "baseline-integrity",
+      "verdict": "PASS",
+      "detail": "1518ms · baseline intact · גיט: נדחף"
     }
-  ],
-  "lastWorkSweep": {
-    "at": "2026-10-03T20:10:15.083Z",
-    "pruned": 1,
-    "freedBytes": 3376124
-  }
+  ]
 }
