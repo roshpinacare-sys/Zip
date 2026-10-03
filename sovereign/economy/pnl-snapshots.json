@@ -1,6 +1,6 @@
 {
   "format": "weave-pnl-snapshots-v1",
-  "savedAt": "2026-10-02T22:23:23.476Z",
+  "savedAt": "2026-10-03T00:00:28.208Z",
   "entries": [
     {
       "seq": 1,
@@ -929,6 +929,106 @@
       ],
       "prevHash": "662d9892c970028b9c4189698d10057443df469c89b38c8a21fba5104e143ed1",
       "entryHash": "48b72f674785aee23f538b42ca774c74f7fe3e642cf1311ffe8fdab684157b20"
+    },
+    {
+      "seq": 10,
+      "at": "2026-10-03T00:00:28.208Z",
+      "account": "headcorner",
+      "realized": {
+        "measured": true,
+        "fillsTotal": 216,
+        "trips": 186,
+        "capturedSbd": -1.372769,
+        "capturedUsd": -0.8914,
+        "netSteem": -869.619,
+        "netSbd": 87.49,
+        "openLongSteem": 0,
+        "firstFillAt": "2026-09-10T20:48:42Z",
+        "lastFillAt": "2026-10-02T23:04:42Z",
+        "note": "FIFO על fill_order אמיתיים מהשרשרת (צ'קפוינט 2026-10-03T00:00:28.207Z) · סבב נסגר רק במכירה שסוגרת קנייה; מלאי פתוח אינו רווח"
+      },
+      "unrealized": {
+        "measured": true,
+        "ordersOpen": 1,
+        "deployedSteem": 0.5,
+        "ladderPremiumSbd": 0.00343,
+        "ladderPremiumUsd": 0.0022,
+        "ordersBelowParity": 0,
+        "openLongMarkSbd": 0,
+        "openLongMarkUsd": 0,
+        "bidsOpenSbd": 15.666,
+        "note": "פרמיית-הסולם = Σ(amount×(price−parity)) על פקודות-המכירה הפתוחות מול הפאריטה החיה (oracle:steemUsd/sbdUsd) · מלאי פתוח מסומן לפאריטה"
+      },
+      "marks": {
+        "parity": 0.09714,
+        "paritySource": "oracle:steemUsd/sbdUsd",
+        "steemUsd": 0.06308,
+        "sbdUsd": 0.649372,
+        "sbdSource": "coingecko:steem-dollars"
+      },
+      "sources": {
+        "fills": "chain:fill_order (steem get_account_history) via sovereign/money/pnl-scan.json checkpoint savedAt=2026-10-03T00:00:28.207Z maxIndex=61097 — כל מילוי נושא אינדקס-ראיה (idx)",
+        "ordersAndMarks": "live /api/money → condenser_api.get_open_orders + get_order_book (כל פקודה נושאת orderid; פאריטה: oracle:steemUsd/sbdUsd)",
+        "receipts": "sovereign/money/history.json (money daemon MoverReceipts — txid לכל cancel/create)",
+        "usdConversion": "SBD→USD בשער-היום בלבד: 0.649372 (coingecko:steem-dollars) — שער היסטורי לא נמדד כאן"
+      },
+      "receipts": {
+        "total": 200,
+        "withTxid": 10,
+        "lastAt": "2026-10-03T00:00:27.791Z",
+        "lastKinds": [
+          "FLEET-COMPOUND",
+          "FLEET-COMPOUND",
+          "POOL-GUARD",
+          "FLEET-COMPOUND",
+          "FLEET-COMPOUND"
+        ],
+        "lastTxids": []
+      },
+      "fillsLast": [
+        {
+          "idx": 61037,
+          "at": "2026-10-02T21:28:48Z",
+          "side": "sold-steem",
+          "price": 0.099979,
+          "steem": 9.552,
+          "sbd": 0.955
+        },
+        {
+          "idx": 61080,
+          "at": "2026-10-02T22:08:36Z",
+          "side": "sold-steem",
+          "price": 0.100035,
+          "steem": 2.859,
+          "sbd": 0.286
+        },
+        {
+          "idx": 61082,
+          "at": "2026-10-02T22:08:39Z",
+          "side": "sold-steem",
+          "price": 0.100035,
+          "steem": 2.859,
+          "sbd": 0.286
+        },
+        {
+          "idx": 61084,
+          "at": "2026-10-02T22:08:39Z",
+          "side": "sold-steem",
+          "price": 0.100035,
+          "steem": 2.859,
+          "sbd": 0.286
+        },
+        {
+          "idx": 61092,
+          "at": "2026-10-02T23:04:42Z",
+          "side": "sold-steem",
+          "price": 0.1,
+          "steem": 0.5,
+          "sbd": 0.05
+        }
+      ],
+      "prevHash": "48b72f674785aee23f538b42ca774c74f7fe3e642cf1311ffe8fdab684157b20",
+      "entryHash": "2130f8d0e477d2f5ae31f92c431476311382058b04a6df871383515085f67c8f"
     }
   ]
 }

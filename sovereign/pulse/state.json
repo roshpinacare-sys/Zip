@@ -2,7 +2,7 @@
   "service": "pulse",
   "version": "1.2.0",
   "bootedAt": "2026-10-02T21:10:26.360Z",
-  "beats": 6334,
+  "beats": 6417,
   "checkIntervalSec": 30,
   "policy": {
     "maxPerUtcDay": 1,
@@ -19,13 +19,13 @@
   },
   "lastPublishUtcDay": "2026-10-02",
   "nextDueAt": "2026-10-03T00:00:00.000Z",
-  "attemptsToday": 0,
+  "attemptsToday": 3,
   "broadcasting": false,
   "laneBlockedUntil": "2026-09-30T15:52:38.472Z",
   "lastDecision": {
-    "at": "2026-10-02T23:21:26.420Z",
-    "kind": "WAIT",
-    "detail": "ממתין לחלון הבא (2026-10-03) · ניסיונות היום 0/3 · עיגוני צ'רטר 0/4 · בדיקת-שרשרת נכשלה: Unable to connect. Is the computer able to access the url?"
+    "at": "2026-10-03T00:02:56.425Z",
+    "kind": "WAIT-BUDGET",
+    "detail": "3/3 ניסיונות נשחקו היום — החלון ייפתח מחר (כנות, לא מתיירים)"
   },
   "canonLast": {
     "at": "2026-10-02T00:00:34.434Z",
@@ -86,23 +86,23 @@
     "lastTxid": "6497e2f5ed55986d142f9bdc72c29cc810a88c63",
     "anchoring": false,
     "lastDecision": {
-      "at": "2026-10-02T23:19:26.515Z",
+      "at": "2026-10-02T23:59:26.457Z",
       "kind": "CHARTER-ANCHOR-FAIL",
       "detail": "עיגון הצ'רטרים נכשל בכנות: אין פרויקטים במרשם — אין מה לעגן (fail-closed כנה)"
     }
   },
   "windowSeededFromChain": false,
   "lastSeedAt": "2026-09-29T18:11:17.357Z",
-  "seedError": "Unable to connect. Is the computer able to access the url?",
+  "seedError": null,
   "income": {
-    "lastDay": "2026-10-02",
+    "lastDay": "2026-10-03",
     "attemptsToday": 1,
-    "day": "2026-10-02",
-    "lastResultAt": "2026-10-02T00:00:44.291Z",
+    "day": "2026-10-03",
+    "lastResultAt": "2026-10-03T00:00:39.547Z",
     "totalsUsd": {
       "usdToday": 0,
-      "usd7d": -0.0482,
-      "usd30d": 0.0313
+      "usd7d": -0.016,
+      "usd30d": -0.016
     },
     "lastError": null
   }

@@ -2,25 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 121,
-  "lastCycleAt": "2026-10-02T23:20:32.156Z",
-  "lastDecisionId": "D-r143-121",
+  "cycles": 125,
+  "lastCycleAt": "2026-10-03T00:00:33.420Z",
+  "lastDecisionId": "D-r143-125",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 6563 דק' · כלכלה: pnl-snapshots seq=9 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0 · orders=0 · בת 57 דק') · מילויי-שרשרת 215 (maxIndex=61091)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 6603 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 0 דק') · מילויי-שרשרת 216 (maxIndex=61097)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-02T23:20:29.196Z",
-    "verdict": "REVIEW",
-    "score": 50,
+    "at": "2026-10-03T00:00:28.926Z",
+    "verdict": "DENY",
+    "score": 35,
     "reasonsHe": [
-      "הפעולה לא דיווחה על עלות/ערך מדודים (חוק-הראיה-הכלכלית)",
-      "הפעולה לא דיווחה על killLine מדוד (חוק-שורת-ההרג)",
-      "הפעולה רצה על תשתית קיימת (מנוע-האמת, דיג'סט) ואינה דורשת הון חדש",
-      "זו פעולת ממשל יסודית שכבר נכללת בתקציב הגלובלי של 16/יום"
+      "חוק-הראיה-הכלכלית: פעולה ללא מספרי-עלות/ערך מדודים (estimatedCost/expectedValue/killLineAware לא דווח) — טענת ביקוש בלי מספר נדחית",
+      "חוק-העלות-השולית: לא ניתן להעריך את העלות השולית של פעולה זו ללא נתונים מדודים",
+      "חוק-הקיבולת: הפעולה לא כלולה בתקציב-הפעולות היומי הגלובלי (0/16), ולא ניתן לקבוע אם היא חורגת מתקרת-התקרה הקשה",
+      "חוק-הגבול-החתום: פעולת ממשל ללא מספרים מדודים חורגת מהגבולות החתומים של שער-הכלכלה"
     ],
-    "actionsToday": 13,
+    "actionsToday": 0,
     "cap": 16,
-    "actionId": "D-r143-121"
+    "actionId": "D-r143-125"
   }
 }
