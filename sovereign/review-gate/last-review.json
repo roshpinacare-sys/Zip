@@ -1,35 +1,21 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T14:04:19.274Z",
+  "at": "2026-10-03T14:39:36.094Z",
   "source": "push-range",
-  "diffChars": 108772,
-  "diffStat": "mini-services/fleet-verify/index.ts            |  71 +++++\n progress.md                                    |   4 +\n sovereign/businesses/business-log.jsonl        |  36 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/businesses/registry.json             |   2 +-\n sovereign/curation/comment-memory.json         |  16 +-\n sovereign/curation/history.json                |   5 +\n sovereign/curation/state.json                  |  88 ++++---\n sovereign/fleet-verify/state.json              |  69 ++---\n sovereign/fleet/audit-latest.json              |  42 +--\n sovereign/governance/DECISION_LOG.jsonl        |   2 +\n sovereign/governance/cycle-state.json          |  19 +-\n sovereign/governance/daemon-state.json         |   8 +-\n sovereign/governance/econ-gate.jsonl           |   2 +\n sovereign/governance/loop-state.json           |  19 +-\n sovereign/hunter/state.json                    |  30 +--\n sovereign/keeper/fleet-guard-state.json        |  40 +--\n sovereign/keeper/state.json                    | 210 +++++++--------\n sovereign/knowledge/selfimprove-doctrine.json  |  16 +-\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  12 +-\n sovereign/pulse/state.json                     |   8 +-\n sovereign/review-gate/last-review.json         |   8 +-\n sovereign/student/state.json                   | 342 ++++++++++++-------------\n sovereign/treasury-audit/audit-2026-10-03.json |  26 +-\n sovereign/treasury-audit/last-audit.json       |  26 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |  68 ++---\n worklog.md                                     |  20 ++\n 29 files changed, 683 insertions(+), 524 deletions(-)",
+  "diffChars": 108087,
+  "diffStat": ".github/workflows/fleet-audit.yml              |  60 +++\n progress.md                                    |   4 +\n scripts/fleet-manifests-audit.mjs              |  74 +++-\n sovereign/businesses/business-log.jsonl        |  64 ++++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/businesses/registry.json             |   2 +-\n sovereign/curation/history.json                |  15 +\n sovereign/curation/state.json                  | 224 +++++-------\n sovereign/fleet/audit-latest.json              |  20 +-\n sovereign/governance/DECISION_LOG.jsonl        |   3 +\n sovereign/governance/cycle-state.json          |  18 +-\n sovereign/governance/daemon-state.json         |  10 +-\n sovereign/governance/econ-gate.jsonl           |   3 +\n sovereign/governance/loop-state.json           |  18 +-\n sovereign/hunter/state.json                    |  38 +-\n sovereign/keeper/fleet-guard-state.json        |  40 +-\n sovereign/keeper/state.json                    | 194 +++++-----\n sovereign/kpi/state.json                       |   2 +-\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  14 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/review-gate/last-review.json         |  28 +-\n sovereign/student/state.json                   | 482 ++++++++++++-------------\n sovereign/treasury-audit/audit-2026-10-03.json |  14 +-\n sovereign/treasury-audit/last-audit.json       |  14 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |  68 ++--\n worklog.md                                     |  20 +\n 28 files changed, 819 insertions(+), 634 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
-  "skillsLoaded": [
-    "fleet-conventions"
-  ],
-  "verdict": "pass",
+  "skillsLoaded": [],
+  "verdict": "error",
   "findings": [],
-  "reason": "",
+  "reason": "phase2-fail-open: bridge HTTP 502",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 3551,
-    "phase1TookMs": 785,
-    "phase1Tokens": {
-      "prompt_tokens": 1768,
-      "completion_tokens": 9,
-      "total_tokens": 0
-    },
-    "phase2TookMs": 1788,
-    "phase2Tokens": {
-      "prompt_tokens": 7985,
-      "completion_tokens": 14,
-      "total_tokens": 0
-    },
+    "totalTookMs": 1031,
     "llmCalls": 2
   }
 }
