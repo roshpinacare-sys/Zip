@@ -2,9 +2,12 @@
   "service": "fleet-verify",
   "version": "2.0.0",
   "bootedAt": "2026-10-03T21:54:22.912Z",
-  "beats": 2,
+  "beats": 55,
   "patAvailable": true,
-  "current": null,
+  "current": {
+    "id": "wallet-verify",
+    "startedAt": "2026-10-03T22:48:22.922Z"
+  },
   "jobs": [
     {
       "id": "jumpper-tests",
@@ -51,7 +54,7 @@
       "titleHe": "שעת האיכות של הארנק",
       "layer": "QA",
       "roleHe": "Saosmartwallet הוא הארנק של הרשת: 7 רשתות חיות, כספת מפתחות ריבונית ושכבת גשרים. המאמת מתקין מהנעילה הקפואה, מג'נרט לקוח Prisma ומריץ בדיקת טיפוסים מלאה.",
-      "verdict": "PASS",
+      "verdict": "RUNNING",
       "lastRunAt": "2026-10-02T22:47:56.166Z",
       "durationMs": 6893,
       "checks": {
@@ -345,9 +348,9 @@
     }
   ],
   "lastDecision": {
-    "at": "2026-10-03T21:55:26.100Z",
-    "kind": "PASS",
-    "detail": "baseline-integrity: PASS · 2ש' · baseline intact · נדחף לגיט · anchor-baseline@1c5c853"
+    "at": "2026-10-03T22:48:22.922Z",
+    "kind": "RUN",
+    "detail": "wallet-verify יוצא לדרך — Saosmartwallet@main"
   },
   "history": [
     {

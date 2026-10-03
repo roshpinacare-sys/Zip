@@ -1,9 +1,23 @@
-# progress — יומן-ההתקדמות הקנוני (harness · r187)
+# progress — יומן-ההתקדמות הקנוני (harness · r188)
 
-**Last Updated:** 2026-10-03T22:40Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** אחרי-00:00Z למדוד את פריסת-סולם-הקנייה-הראשונה-עם-היקף (SBD 9.694 חופשיים) ולאמת fills עם-txid · לחווט את מסילת-TRON-המוכחת לכלי-יתרות/שליחה · החלטת-בעלים על purge-היסטוריית-ה-seed.
+**Last Updated:** 2026-10-03T23:40Z · **Current Objective:** הכנסה-אמת-מעל-$0.01/יום · **Recommended Next Step:** למדוד את פריסת-סולם-הקנייה-הראשונה-עם-היקף (אחרי-00:00Z · SBD-חופשיים-חיים) ולאמת fills עם-txid · קיורציה: פרעון-ראשון-צפוי 04/10 · חיווט-UI-ל-/api/sovereignty/briefing + /api/arm/inspect (יתומים-המתינים) · החלטת-בעלים על purge-היסטוריית-ה-seed.
 
 > חוק-אמת: כל רשומה נושאת ראיה (נתיב-קובץ / פלט-מדידה / txid). אין "בוצע" בלי ראיה.
 > סדר: החדש בראש. יומן-העבודה המלא (1.4MB) נשאר ב-worklog.md — כאן רק מה שצריך כדי לחזור-לעבוד.
+
+## r188 · 2026-10-03 · גל-חיבור-המסילות: TRON-לפיקוח, BLURT-למפעיל, פיקוח-הגוף, ביקורת-רביעית
+
+- **ההוראה (trace 1a103eed92c24c49 — אותו-מסר-בשלישית):** "להחיות הכל, לחבר הכל, וודאי · לתת לריבונות גם לפקח וגם לחפש עוד · אני מחכה להפתעות".
+- **ביקורת-רביעית-מקבילה (r188-a/b/c) — כולם-בעברית-ב-worklog:**
+  - **r188-a (דימומים):** gitleaks-על-העץ-99-ממצאים → **אפס-בקבצים-עקובים** (95-ב-.next/dev-gitignored, askpass-0700, pat.env-FUSE-המוכר) · **ZERO-NEW-BLEED** · כספת 16/16-מפתחות-0600 · tron-custody-proof-טהור · ליקויים-מקומיים-רשומים: work/db-664 (*תוקן-ל-600 בגל*), engineToken-משותף-ב-4-משבצות-כספת (רדיוס-פיצוץ-יחיד — רישום).
+  - **r188-b (מתים/חיבורים):** 113-נתיבי-API → **6-יתומים-מדויקים** (arm/inspect · army/recruit · money/blurt · sovereignty/briefing · charter-artifacts · charter-status) · **0-חוטים-שבורים** · צי **17/17-חי**-עם-pid/port · ארכוב-לא-שבר-כלום · **חירום-שגילה: דיסק 100%-מלא (0-פנויים!)**.
+  - **r188-c (שקרים):** **8/8-טענות-r187-אומתו** — TRON-PROVED-חי-2.000002-TRX · treasury-מדידה-כפולה-בקוד (lines 337-357) seq 562-PASS · VP-שתי-בריכות-חי (66.22% מול 57.98%) · gitleaks-בסיס-1983-קומיטים/ממצא-1 · ארכוב-21+README/55 · armBuy-חמוש · revenuePerDay 0.0029-כנה (powerdown = fuelBurn, לא-הכנסה — חוק-D-012/r132) · HEAD=origin/main. **אפס-שקרים.**
+- **חירום-דיסק-שני:** 0→924MB-פנויים — bun-cache 1.2G · .next/dev/cache 2.5G (רק-ישנים-מ-10דק') · fleet-verify/work 1.5G (ישנים-מ-30דק') · /tmp-שאריות-867M · dev-הרץ-לא-נפגע (200/200-בכל-שכבה).
+- **חיווט-מסילת-TRON (הפתוח-הראשון-מ-r187):** **scripts/tron-balance.ts** — כלי-יתרות-חי: כספת→גזירה (DERIVATION-MATCH ✓) → **TRX 2.000002 + USDT-TRC20 0.000000 מ-trongrid** → ארטיפקט-אטומי-בלי-סודות (sovereign/custody/tron-balance.json) · אפס-שידור.
+- **פיקוח-המסילה-הרביעית:** מבקר-האוצר קיבל בדיקת **tron-rail** קבועה (כל-5דק') — כתובת-מהוכחת-הבעלות, יתרה-מ-trongrid, טריות-כלי-היתרות · רצף 585: **PASS-7/7-כולל-tron-rail** ("מסילת-TRON חיה ונמדדת").
+- **חיווט-היתום-הראשון-לממשק:** **RailsStrip** (רכיב-חדש-ב-money-market/mover) — שתי-כרטיסות-חיות: **BLURT** (verdict RAIL-ARMED · 69.513-BLURT · 7600.869-BP · rpc-316ms · key-match ✓) + **TRON** (PROVED · 2.000002-TRX · 0-USDT · פיקוח-pass) · נתיב-חדש /api/custody/tron (ארטיפקטים-פומביים-בלבד) · **נבחן-בדפדפן-חי** (באג-אחד-נתפס-ותוקן-במקום: rpc-הוא-אובייקט {url,alive,ms} לא-מחרוזת — "Objects are not valid as React child") · צילומים: sovereign/see/r188-rails-strip{,-mobile}.png.
+- **פיקוח-הגוף (keeper):** housekeeping-חדש-בלולאת-הסיור — מדידת-דיסק-כל-פעימה, רף-חירום 1600MB → פינוי-מטמונים-טהורים (work-ישן · .next/dev-cache · bun-cache) בכנות (before→after-מדוד) · **gitleaks-מתוזמן-כל-6ש'**: גיט-היסטוריה (בסיס: ממצא-1-ההיסטורי @0e252dab; ALERT-רק-מעל-1) + עץ-חי (רעש-gitignored-מדוד) · אומת-חי: GITLEAKS-SCAN "גיט 1 ממצא · עץ 23" + DISK-PURGE-כנה (927→927) · state: sovereign/keeper/housekeeping.json.
+- **טריאז'-היתומים (5-נותרו):** army/recruit = שער-פנימי-של-תהליך-ההחלטות (by-design) · charter-artifacts/status = קטלוג-לבונים-חיצוניים (by-design, מתועד-ב-charter/route.ts) · **arm/inspect + sovereignty/briefing = זהב-ממתין-לחיווט-UI (פתוחים-ל-r189)** — ראיה: tool-results/r188-b-api-census-v2.txt.
 
 ## r187 · 2026-10-03 · גל-חיבור-העוצמה: הוכחת-TRON, סגירת-הפער, ייחוס-הדריפה, ארכוב-המתים
 

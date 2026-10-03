@@ -136,6 +136,8 @@ interface MoneySense {
 
 // ── עזרי תצוגה ──────────────────────────────────────────────────────
 
+import { RailsStrip } from "@/components/weave/views/rails-strip";
+
 const f4 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(4));
 const f3 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(3));
 const usd = (x: number | null | undefined) => (x == null ? "—" : `$${x.toFixed(2)}`);
@@ -218,6 +220,8 @@ export function MoneyMoverView({ section }: { section?: string }) {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+      {/* r188 · פס-המסילות — BLURT + TRON חיות למפעיל (חיבור-היתום /api/money/blurt) */}
+      <RailsStrip />
       {/* פתיח */}
       <Section
         wash

@@ -6740,3 +6740,88 @@ Stage Summary:
 - **ארבעה-פתוחים-מ-r186 נסגרו בפועל**: בעלות-TRON-מוכחת-חתימה (המסילה-הרביעית-קיימת-בכיס) · ה-FAIL-העומד-בכספת-נפל-עם-חוק-מדידה-חדש-שמגן-מ-false-FAIL-עתידי · פער-ה-VP-הישן-נסגר-במדידה · היתומים-אורכבו-והבסיס-ל-gitleaks-מקומי-נחתם.
 - הספר-עכשיו-סגור-לכל-חור-שנמדד: אין-שאלה-פתוחה-על-יתרות, VP, דימום-סודות או תהליך-מת.
 - פתוחים-לגל-הבא: מדידת-סולם-הקנייה-הגדול-הראשון (אחרי-00:00Z) · חיווט-TRON-לכלי-יתרות/שליחה · purge-היסטוריה (החלטת-בעלים) · טריאז'-6-נתיבי-יתום.
+---
+Task ID: r188-c
+Agent: Explore (claims-vs-reality — ביקוח r187)
+Task: שקרים-מול-מציאות — ביקוח נקודתי של 8-טענות-המפתח של r187 מול השרשרת-החיה, הקבצים והתהליך-החי (RESEARCH ONLY, אפס-שינויי-קוד).
+
+Work Log:
+- נקרא worklog (המשך r187 מלא) — חולצו-8-טענות-ברות-מדידה לביקוח ביט-מול-שרשרת.
+- TRON-ציות: sovereign/custody/tron-custody-proof.json נפרס — address TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy ✓ · message קשור-ל-cp-root 0x2d8515e4793f…ee (אומת-בהצלבה מול הספר: ה-root האחרון של sovereign/ledger.json — התאמה-מלאה) ✓ · verdict PROVED ✓ · 15-מפתחות-JSON בלבד (schema..verdict) — אפס wif/seed/mnemonic/private/secret; סריקת-תבניות 5J/5K/5H + bip39-מילים + hex64-גולמי = אפס-היטים. יתרה-חיה-מ-trongrid: **2000002-sun = 2.000002-TRX מדויק** ✓.
+- treasury-audit: החוק-בקוד (mini-services/treasury-audit/index.ts:337-357): `if (driftCheck.status === "fail") { await new Promise((r) => setTimeout(r, 8_000)); ... const retry = checkBalancesDrift(money2, chain2); ... transientResolved: true/false, firstDriftSteem/firstDriftSbd }` — מדידה-שנייה-מלאה בפועל, ייחוד-ה-drift-הראשון נשמר. state: seq **562** (≥548 ✓) · lastAuditVerdict **PASS** · last-audit.json seq 562 @ 2026-10-03T22:46:34.952Z. הערה: ה-state-חי ב-sovereign/treasury-audit/ (mini-services מכיל-רק-קוד); התבנית-"8000" מהמשימה לא-תואמת-הקוד שכותב `8_000`.
+- VP-פער: הקוד-אומת — src/lib/weave/curation.ts:323-359 readVotingPower מחשב manabar+רגנרציה (REGEN_SEC=5-ימים, מכנה=מנדטים-אפקטיביים) וגם vpField=השדה-הקנוני; הערת-r161 בשורה 355-357: "שני-בריכות-כוח... המדיניות-משתמשת-בנמוך (שמרני)" · mini-services/curation/index.ts:195-196 מדגים-שתיהן ל-votingPowerCurve · שורה 239: manaBudgetVerdict(state, power.pct) — המנה-השמרנית. מדידה-חיה-עכשיו: שדה voting_power=**66.22%** (r187 מדד 66.77% — רגנרציה-בזמן, אותו-מבנה) מול מנה+רגנרציה לפי-הנוסחה המדויקת של הקוד = **57.98%** — פער-מבני 8.24-נק' קיים-ומוסבר ✓.
+- gitleaks-בסיס: sovereign/audit/gitleaks-baseline.json קיים (524B, 22:29Z) · commitsScanned **1983** · bytesScanned 28,865,949 · findings=**1** (check-tron-connection.mjs @ 0e252dab, כלל bip39-literal-assignment) · note מתעד purge-כהחלטת-בעלים ✓.
+- ארכוב: scripts/archive/ = **22-ערכים** (21-סקריפטים + README.md שקיים) · בחוץ = **55** (75→55 מדויק) · worklog r187-D מתעד ✓.
+- כסף: sovereign/money/state.json — armBuy **{minSbd: 0.3, offsetsBps: [20,40,80,160]}** חמוש ✓ · actionsToday **12** / actionDay 2026-10-03 ✓ · lastDecision **WAIT-BUDGET** @ 22:48:26Z ✓.
+- KPI-כנות: revenuePerDayUsd **0.0029** ✓; חוק-D-012 (r132) ב-kpi/index.ts:434-459 — פאוורדאון-אינו-נספר-כהכנסה אלא fuelBurn נפרד (fuelEngineUsdPerDay 4.2757 · 4-שבועות-נותרו); census.json: powerdownUsd 98.0033 · treasuryFlowUsd 98.0033 · windowRevenueUsd 0 · dailyAvgUsd 0. rg "revenuePerDay" לא-מצא טענת-הכנסה-מנופחת בשום-מקום ✓.
+- גיט: HEAD = origin/main = **91f6b31735dd9c6161a885d854774660b3241e92** ✓ · רשומת-r187 קיימת ב-worklog ✓ · lint-לא-נוגע (אפס-עריכות-קוד במשימה).
+
+Stage Summary:
+- **8/8 טענות-r187 אומתו מול-השרשרת/הקבצים/התהליך — אפס-שקרים.** TRON-ציות PROVED עם-אפס-סודות-בקובץ ויתרה-חיה מדויקת 2.000002-TRX · חוק-המדידה-הכפולה קיים-בקוד-וממתיק את ה-FAIL ההיסטורי (seq562 PASS) · פער-ה-VP אכן פער-שתי-בריכות-שרשרת והמדיניות משתמשת-בנמוך · בסיס-gitleaks 1983-קומיטים/ממצא-אחד · 55+21-ארכוב-מדויק · armBuy-חמוש (0.3 / 20-40-80-160) · WAIT-BUDGET 12/12 · KPI-כן: 0.0029$-בלבד-כהכנסה, הפאוורדאון מדוד-ומדווח-בנפרד כשריפת-הון.
+- הסתייגויות-זוטרות (לא-שקר): (1) שדה-ה-VP עכשיו 66.22 מול-ה-66.77 שנמדד-ב-r187 — דריפת-רגנרציה-צפויה, המהות-נשמרת; (2) נתיב-ה-state-החי של treasury-audit הוא sovereign/treasury-audit/ ולא mini-services/; (3) fuelEngineUsdPerDay 4.2757 מרמז-חלון-פאוורדאון ~23-ימים-קדימה מול ה"9-ימים" שתועדו-ב-r186-c — שני-מספרים-שונים-ולגיטימיים (קצב-שריפה-נוכחי מול-סך-שנמדד-בחלון-העבר), דורש-מיפוי-אחיד בעתיד.
+---
+Task ID: r188-a
+Agent: general-purpose (secrets-bleed recheck — סוכן ביקורת חוזרת)
+Task: בדיקת-דימומים-חוזרת (r188-a) — לאמת שאפס דימום חדש מאז r186/r187 ושתקינות-הכספת מחזיקה: סריקת-gitleaks-על-עץ-העבודה, סריקת-כל-הקבצים-החדשים-מאז b16d5321, ביקורת-כספת (16-מפתחות/0600/MANIFEST/access.log), אימות-העתקי-הכספת-של-upload, הרשאות-env/db, וטריות-הבסיס. מחקר-בלבד — אפס-שינוי-קוד.
+
+Work Log:
+- נקרא worklog (r186-a/b/c, r186, r187) — הקשר: דימום-ה-seed-נאטם (TRON_SEED 16-מפתחות), gitleaks-מקומי v8.24.3 + בסיס-היסטוריה, tron-custody-proof PROVED, ארכוב-21-יתומים.
+- **סריקת-gitleaks --no-git על עץ-העבודה המלא (HEAD 91f6b317, 2.78GB, 2:18דק')**: 99-ממצאים — **אפס-ממצאים בקבצים-נעקבים**. פירוק: 95-ב-.next/dev/** (gitignored — מטמון-turbopack של dev-רץ: .sst + chunks-מינופיים-של-ethers = רעש-generic-api-key + עותקים-שמורים-של-ה-engineToken) · 1-.git-askpass.sh:2 (לא-נעקב, 0700, קיים-מ-02/10) · 1-sovereign/fleet-verify/.git-askpass.sh:2 (לא-נעקב, 0700, 02/10) · 1-work/Saosmartwallet/tools/vault-zk-check.ts:27 (שקר-חיובי — מחרוזת-סיסמת-בדיקה "zk-proof-ceremony…" ל-vault-בזיכרון, לא-אישור) · 1-upload/pat.env:1 (הממצא-המוכר-מ-r186, FUSE-777, עותק-כספת-מאומת). הדוח: /tmp/r188-gitleaks-head.json.
+- **דיף b16d5321..HEAD = 55-קבצים (4A + 30M + 21R100)**: כל-21-הארכובים R100 (שינוי-שם-טהור — תוכן-זהה-למקור-שכבר-נוקה) · A: archive/README · tron-custody.ts · gitleaks-baseline.json · tron-custody-proof.json. גריפת-סודות-רחבה (mnemonic/seed-phrase/מילות-הצמד/wif-52b58/github_pat_/64hex/PEM) על כל-55: **אפס-סודות** — ההיטים-יחידים: כתובות-TRON-פומביות (TYVwwuvd…/TAzZZkrw…), hashes-ספר, ואזכורי-'mnemonic'-טקסטואליים-ב-worklog-היסטורי.
+- **tron-custody-proof.json נסקר-ידנית**: כתובת-פומבית · message-קשור-ל-cp-root 0x2d8515e4 · חתימה (r/s/yParity — נתון-פומבי) · recoveredAddressEvm · יתרה-חיה 2.000002-TRX · verdict PROVED. **אפס-מפתחות-פרטיים/WIF/מילות-זרע** — ארטיפקט-טהור.
+- scripts/check-tron-connection.mjs (עדיין-נעקב): מאומת שקורא TRON_SEED מהכספת fail-closed + רישום-access.log (התיקון-מ-r186, לפני-b16d5321 — לכן-מחוץ-לדיף).
+- **כספת**: 16-מפתחות ב-exactness (13-מקוריים + STEEM_MASTER + PAT_ENV + TRON_SEED) · כולם-0600 · secrets/ ו-vault/ 0700 · MANIFEST.json מפרט-את-כולם-עם-purposes+sealedAt (13@18:51:27Z · 3@22:10:52.133Z) · access.log-חי: 17-רישומים, האחרון 22:44:59Z (קריאות-STEEM_ACTIVE_WIF-ל-custody) — החוק "שם+זמן-בלבד" נשמר.
+- **העתקי-כספת מאומתים ב-hash (ללא-הדפסת-תוכן)**: upload/pat.env ≡ PAT_ENV (sha256 c029b0b7…) · upload/headcorner.txt ≡ STEEM_MASTER (77731758…) — טענת-ה-byte-copy-נכונה. טביעת-אצבע-של-ה-token (github_pat_): כל-7-העותקים-בדיסק/כספת (שני-ה-askpass, pat.env, WEAVE_OPS_PAT, ZIP_PAT, AGENTS_WATCH_TOKEN, PAT_ENV) = **אותו-token-אחד** — אפס-token-לא-מוסבר.
+- **הרשאות**: .env 755 (ללא-creds, לא-חדש) · db/custom.db 644 (ספר-האפליקציה — 1-מופע-'mnemonic'=טקסט-מלאי, אפס-PAT/WIF) · db/wallet-vault.db **600** ✓ (התיקון-מ-r186-מחזיק) · db/session.key 600 ✓ · upload/* 777 (מתועד-FUSE, ללא-שינוי). git-status: אפס-?? — הכל-מגודר (.next:69, upload:5, work:98, .git-askpass.sh:110, db/*.db:14).
+- **בסיס-gitleaks**: קיים-וטרי — 1983-קומיטים/28.87MB · ממצא-היסטורי-יחיד (bip39 · 0e252dab · check-tron-connection.mjs · 2026-09-21) · purge-רשום-כהחלטת-בעלים · הכלל-bip39-literal-assignment-חי-ב-.gitleaks.toml:60.
+
+Stage Summary:
+- **פסק-דין: ZERO-NEW-BLEED בגיט** — אפס-סוד בכל-הקבצים-הנעקבים (99-הממצאים של סריקת-העץ: 96-רעש-סביבתי-gitignored + שקר-חיובי-אחד + pat.env-המוכר; אפס-היטים-נעקבים). הגלים-r186/r187 מחזיקים-במלואם.
+- **תקינות-הכספת מאומתת**: 16/16-מפתחות-0600 · MANIFEST-מסונכרן (חוץ-מ-sub-count ישן localSealed=13 — קוסמטי) · access.log-רושם-חי · העתקי-upload-בתוך-הכספת-בתים-מדויקים.
+- **חולשות-מקומיות-חדשות (לא-גיט)**: (1) מטמון-turbopack ב-.next/dev (664) שומר-עותקים-של-ה-engineToken — מומלץ-ניקוי-מטמון + allowlist-לסריקות-עץ; (2) sovereign/fleet-verify/work/** (נוצר-הלילה-ע"י-דיבון-fleet-verify): העתקי-ריפו-מפעיל-ובתוכם work/Saosmartwallet/db/custom.db-664-ובו-22-שורות-'mnemonic' (לפי-מלאי-r14x-יש-שם-mnemonics-אמיתיים) — מגודר-מגיט-אך-חשוף-מקומית → chmod-600-מומלץ; (3) engineToken-אחד-חוזר-ב-4-משבצות-כספת — רדיוס-פיצוץ-יחיד; (4) purge-היסטוריית-ה-seed-עדיין-פתוח (החלטת-בעלים).
+---
+Task ID: r188-b
+Agent: general-purpose (r188-b dead-wires · orphan-routes audit)
+Task: מפקד-מתים-וחיבורים-שבורים (חלק-2 של r186-b): מפקד ממצה של מסלולי API (יתומים/בשימוש/שבורים), מפת-חיווט UI, בטיחות-ארכיון r187-D, חיות mini-services, ותצורה-מתה ב-workflows.
+
+Work Log:
+- נקרא worklog (r186-a/b/c, r187) — הקשר: 6 נתיבי-יתום לטריאז', חיבור-שבור אחד שנבנה (/api/businesses/log), 21 ארכובים, 12 workflows (10 dispatch-only), ענן-מת מאז 09-20.
+- מפקד-API: **113 route.ts** (112 + businesses/log החדש). סקריפט-מפקד (python; התאמת-דינמיקה [slug]/[hash]/[[...path]] + עדיפות-התאמה מדויקת) סרק את כל מחרוזות /api/... ב-src+mini-services+scripts+console+saos-verify+.github+sovereign — כולל קריאות http://localhost:3000/api/... ו-${HOME_API}/api/... שרגקס-מצוטט-בלבד היה-מפספס (תיקון-שיטה מול r186-b: mini-services/curation קורא /api/curation, content-factory+governance-loop קוראים /api/econ-gate — אלה לא יתומים).
+- תוצאה: **107 USED** (לכל אחד רשימת-קוראים מדויקת — tool-results/r188-b-api-census-v2.txt) · **6 יתומים אמיתיים**: /api/arm/inspect · /api/army/recruit · /api/money/blurt · /api/sovereignty/briefing · /api/charter/projects/[slug]/artifacts · /[slug]/status — אומתו גם rg ידני: אפס-קוראים; artifacts/status מופיעים רק כתיעוד-לבונים-חיצוניים (charter/route.ts:75,102,108) · קטגוריה-נפרדת **catalog-only ללא-צרכן**: /api/kpi (מוזכר רק בקטלוג) · /api/businesses/docs (רק סקריפט-ארכוב r148 + registry.json) · /api/ (אינדקס-עצמי). בדיוק-הרשימה מ-r186-b — ללא-שינוי.
+- **חוטים-שבורים: 0**. 5 מועמדים-שנותרו נבדקו-אחד-אחד ונפסלו: /api/arm/grid (מחרוזת-תיעוד ב-defi/router/route.ts:660 — הנתיב-האמיתי admin/arm-grid; סטיית-שם-בתיעוד-בלבד) + 4 ב-saos-verify/sovereign/genesis.json (נתיבי-ops חיצוניים בנתון-ג'נסיס, לא קריאות). /api/businesses/log — חי ונקרא מ-businesses-view ✓.
+- תקלת-מדידה-שאובחנה ותועדה: פלט-חלק-מהכלים בסנדבוקס מעוות [hash]→ash] (סניטייזר-פלט). אומת מול od -c (בייטים-חיים), ls, ושרת-חי: /api/web/c/[hash]/[[...path]] בריא — curl חי החזיר 404-JSON של ה-handler עצמו ("אין-חותם-על-השרשרת") = ה-route נפתר-ומבוצע. לא-באג-ריפו; אזהרת-מדידה-בלבד.
+- מפת-UI: page.tsx = **הדף-היחיד** (SPA שש-סקציות · 8 tabs: agents/anchor/dashboard/ecosystem/ledger/market/plan/sovereignty) · **63/63 קומפוננטות-weave מיובאות — 0 יתומות-ייבוא** · חיווט-עיקרי: store.tsx (מרכז-SWR: weave/state+attest+checkpoint+tamper, live/*, plan) · businesses-view→businesses+log · browser-view→agent-browser/* · games-view+webnet-view→web/state+c/<hash>+verify/<hash>+publish · admin/*→admin/{server,dispatch,cloud,arm-grid}+arm/{all,seal} · charter-view→charter/{builders,anchor,projects/[slug]} · domains-view→domains+[id]+kit · operator.tsx→auth/{login,session} · sovereignty-cards→sovereignty/{autonomy,decisions,efficiency,lanes} · money-*→money/*+market/cross+exchange*.
+- בטיחות-ארכיון (r187-D): scripts/archive = 22 ערכים (21+README), בחוץ 55 ✓ · rg לשמות-הארכוב מול .github/+package.json+crontab*: **אפס-היטים** · 3 היטים-רחבים נבדקו: mini-services/keeper/index.ts:813 → שם-workflow **seal-adopt.yml בריפו-התאום Domain** (שם-בלבד; הסקריפט-המקומי seal-adopt.mjs הועבר-לארכיון — אם ה-wf אצל-התאום קורא-לנתיב-הישן בריפו-הזה הוא-יישבר-שם; לא-ניתן-לאימות-מהסנדבוקס, אין-gh) · src/lib/dex/blurt-wire.ts:12,165 → הערות-שחזור ל-lab-blurt-wire-law/serialize-diff **שעדיין-בחוץ** ✓ · console/agent/requests.json → נתון-היסטורי בלבד ✓. פסק: **אפס-הפרות-ארכיון-מקומיות**.
+- mini-services: **16/16 חיים + האפ הראשי = 17/17 מאזינים** (3000 next pid 14407 · 3033 pulse 1126 · 3034 money 9074 · 3035 hunter 1115 · 3036 keeper 1036 · 3037 student 1125 · 3038 fleet-verify 7472 · 3039 weblift 1142 · 3040 curation 1556 · 3041 kpi 17567 · 3042 governance 1082 · 3043 treasury-audit 1136 · 3044 scout-market 1105 · 3045 business 1091 · 3046 content-factory 3388 · 3047 decision-brain python 28094 · 3048 llm-bridge 19608) · אפס-מתים · צ'רן-החייאות-ביממה: fleet-verify 1:08ש · llm-bridge 7:08ש · kpi 7:55ש · money 1d00:47ש (הוחזרו-חיים — כנראה keeper/revival) · decision-brain רץ-מ-venv חוץ-פרויקטי /home/z/laya-eval/venv — תלות-חוץ-שבירה-פוטנציאלית.
+- workflows (12): **fleet-audit = ה-cron-היחיד** ('37 */6' + dispatch) אך כל-הריצות-בענן מתות-ב-setup מאז 09-20 (מיצוי-דקות) → ה-cron זומבי-בפועל · gitleaks = push/PR (אותו-ענן-מת; הפיצוי-המקומי מ-r187-E היה-חד-פעמי — **אין-תזמון-מקומי-מחליף**) · 10 dispatch-only (שעוני-הקדנס אצל-התאום Domain — לא-ניתנים-למדידה-מכאן) · אין-crontab-מקומי.
+- **דימום-תשתית-חדש שהתגלה-בדרך**: דיסק rootfs 9.9G = **100% מלא (0 פנוי)** — .next 2.7G צמח-בחזרה (r186 פינה 1.8G לפני-~יום) · /tmp 1.2G (cua-study 500M · prompts-chat 220M · my-project 111M · lhr-study 78M) · node_modules 1.3G. סיכון-מיידי: כתיבות-לדג'ר/SQLite/dev-cache עלולות-להיכשל.
+
+Stage Summary:
+- **חוטים-שבורים: 0/113** — התיקון-מ-r186 מחזיק · **יתומי-API: 6 אמיתיים + 3 catalog-only** — רשימת-r186-b אומתה-בשנית-מכלית, ללא-שינוי (טריאז' נותר-פתוח: לחבר-ל-UI או למחוק/להגיש-פומבית).
+- חיווט-UI בריא: 63/63 קומפוננטות מיובאות תחת-ה-route / היחיד · לכל 107 הנתיבים-בשימוש יש-קורא-קוד מזוהה (UI/server/lib/mini-svc/script).
+- ארכיון r187-D בטוח-מקומית (אפס-הפרות ב-.github/package.json) — שאלה-פתוחה-אחת אצל-התאום: seal-adopt.yml ב-Domain מול הסקריפט-שהועבר-לארכיון.
+- mini-services 17/17 חיים-נמדדים עם pid/port מלא — אפס-מתים; 4-שירותים-הוחיו-ביממה (צ'רן-למעקב) · decision-brain תלוי-venv-חוץ.
+- תצורה-מתה: ה-cron-הענן-היחיד זומבי (מיצוי-דקות מאז 09-20) · gitleaks-ענן מת-ואין-תחליף-מתוזמן-מקומי · 10-workflows תלויים-בשעוני-Domain שלא-נמדדים.
+- שלושת-החוטים-החלשים: ① **דיסק-100%** (הדחוף-ביותר: לפנות .next 2.7G + /tmp כמו ב-r186 — בלי-זה הצי-כולו-על-סף-עצירה) ② **מסילת-Blurt-חיה-מאחורי /api/money/blurt ללא-קורא** + /api/arm/inspect (רופא-המפתחות-חסר-UI מאז-r185) — זהב-רדום-על-נתיבים-מתים ③ **שעון-הרשת-כולו-אצל-תאום-חיצוני-שלא-נמדד** (Domain: קדנסים + seal-adopt.yml) — נקודת-כשל-יחידה-שקופה.
+---
+Task ID: r188
+Agent: THE WEAVE sovereign loop (Z.ai Code — orchestrator)
+Task: המסר-המקורי-בשלישית (trace 1a103eed92c24c49): "להחיות הכל, לחבר הכל, וודאי · ולתת לריבונות גם לפקח וגם לחפש עוד · אני מחכה להפתעות — קדם אותן".
+
+Evaluator (LOOP-3): (1) ביקורת-רביעית-מקבילה-ב-3-סוכנים-על-כל-העץ; (2) מסילת-TRON-מחוברת-כלי-יתרות-חי-ופיקוח-קבוע; (3) היתום-הראשון-מחובר-לממשק-ונבחן-בדפדפן; (4) gitleaks-מתוזמן-ופיקוח-דיסק-ב-keeper; (5) lint 0 · push-דרך-השער.
+
+Work Log:
+- LOOP-9: churn 91f6b317 נדחף ראשון (HEAD=origin/main) · churn-הגל הוקפא ל-stash.
+- **ביקורת-רביעית (r188-a/b/c במקביל):** אפס-דימום-חדש (99-ממצאי-עץ → אפס-עקובים; כספת 16/16-0600) · 113-נתיבים → 6-יתומים-מדויקים · 0-חוטים-שבורים · 17/17-צי-חי · 8/8-טענות-r187-אומתו-מול-שרשרת-והתהליכים — אפס-שקרים.
+- **חירום-דיסק-שני באמצע-הגל:** 0-פנויים (100%)! פינוי-שכבתי: bun-cache 1.2G + /tmp-שאריות 867M + .next/dev/cache (ישנים-מ-10דק') + fleet-verify/work (ישנים-מ-30דק') → 924MB · dev-והצי-חיים-לאורך-כל-הפינוי (curl 200 בין-שכבות).
+- **TRON-ריל-חיווט:** scripts/tron-balance.ts — fail-closed-מהכספת → DERIVATION-MATCH → TRX 2.000002 + USDT 0.000000 (triggerconstantcontract; באג-נתפס: result.result הוא-בוליאני-לא-"SUCCESS" — תוקן-ואומת) → ארטיפקט-אטומי-טהור. מבקר-האוצר: בדיקת-tron-rail-קבועה → רצף 585 PASS-7/7.
+- **חיווט-BLURT+TRON-לממשק:** רכיב RailsStrip ב-money-market/mover + נתיב /api/custody/tron → נבחן-בדפדפן-חי (agent-browser): באג-קריסה-נתפס-במקום (rpc-אובייקט-לא-מחרוזת) → תוקן → רינדור-מלא: RAIL-ARMED · 69.513-BLURT · 7600.869-BP · PROVED · 2.000002-TRX · אפס-שגיאות-קונסולה · צילומי-ראיה דסקטופ+מובייל.
+- **פיקוח-הגוף ב-keeper:** housekeeping (מדידת-דיסק-כל-פעימה · רף-1600MB · פינוי-מטמונים-בכנות) + gitleaks-מתוזמן-6ש' (היסטוריית-גיט=בסיס-אמת-1-ממצא · עץ-חי=רעש-מדוד) · keeper-הוקם-מחדש-פעמיים-ואומת: GITLEAKS-SCAN-גיט-1/עץ-23 · DISK-PURGE-כנה.
+- **טריאז'-יתומים:** blurt-מחובר-לממשק (היתום-המוזהב-הראשון) · army/recruit+charter×2 = by-design-מתועדים · **arm/inspect + sovereignty/briefing — זהב-לחיווט-ב-r189**.
+- lint: 0 errors.
+
+Stage Summary:
+- **המסילה-הרביעית (TRON) עברה-מ-"בעלות-מוכחת" ל"חיה-ונשלטת": כלי-יתרות-חי · פיקוח-אוצר-קבוע · תצוגת-מפעיל — שלוש-שכבות, כל-שכבה-נבחנה-חי.**
+- **הפיקוח-נעשה-גוף-עצמי**: keeper-משגיח-על-הדיסק-שכמעט-הרג-את-הצי-פעמיים-היום, ו-gitleaks-המקומי-רץ-כל-6ש' במקום-הענן-המת-מ-09-20.
+- **הביקורת-הרביעית: אפס-שקרים, אפס-דימום-חדש, 6-יתומים-ממופים-מדויקים — אחד-חובר-היום, שניים-by-design, שניים-זהב-מתוזמנים-ל-r189.**
+- פתוחים: מדידת-סולם-הקנייה-הגדול-אחרי-00:00Z (בגבולות-הגל) · חיווט-UI ל-briefing+arm/inspect · purge-היסטוריה (החלטת-בעלים) · קיורציה 04/10.

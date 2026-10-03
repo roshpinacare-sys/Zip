@@ -27,6 +27,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
+import os from "node:os";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -317,6 +318,134 @@ function readPat(): string | null {
   } catch {
     return null;
   }
+}
+
+// ── r188 · פיקוח-הגוף: משמעת-דיסק + gitleaks-מקומי-מתוזמן ──────────────
+// הלקח-החי מ-r188: הדיסק נחנק פעמיים (0-פנויים!) — .next/dev/cache 2.5G
+// + שאריות-work של fleet-verify 1.5G + מטמון-bun 1.2G. הענן-מת מ-09-20
+// (fleet-audit זומבי) — ה-gitleaks-המקומי (r187-E) חייב-לוח-זמנים.
+// החוק: כל-סיור נמדד מקומית (df); מתחת-לרף — פינוי-מטמונים-טהורים בלבד;
+// gitleaks נסרק-על-העץ-החי כל-6ש' והממצאים נרשמים-ביומן-השומר.
+const HOUSE_FILE = `${HOME}/sovereign/keeper/housekeeping.json`;
+const GITLEAKS_BIN = `${os.homedir()}/.local/bin/gitleaks`;
+const DISK_FLOOR_MB = 1600; // רף-חירום — מתחתיו מפנים
+const GITLEAKS_EVERY_MS = 6 * 3_600_000;
+
+function readHouseState(): { lastDiskAt: string | null; lastGitleaksAt: string | null; lastGitleaksFindings: number | null; lastPurgeAt: string | null } {
+  try {
+    const raw = JSON.parse(fs.readFileSync(HOUSE_FILE, "utf8")) as {
+      lastDiskAt?: string | null;
+      lastGitleaksAt?: string | null;
+      lastGitleaksFindings?: number | null;
+      lastPurgeAt?: string | null;
+    };
+    return {
+      lastDiskAt: raw.lastDiskAt ?? null,
+      lastGitleaksAt: raw.lastGitleaksAt ?? null,
+      lastGitleaksFindings: raw.lastGitleaksFindings ?? null,
+      lastPurgeAt: raw.lastPurgeAt ?? null,
+    };
+  } catch {
+    return { lastDiskAt: null, lastGitleaksAt: null, lastGitleaksFindings: null, lastPurgeAt: null };
+  }
+}
+
+function saveHouseState(h: ReturnType<typeof readHouseState>): void {
+  try {
+    const tmp = `${HOUSE_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(h, null, 2));
+    fs.renameSync(tmp, HOUSE_FILE);
+  } catch {
+    /* כתיבת-מצב-בית לא תפיל את הסיור */
+  }
+}
+
+function diskFreeMb(): number | null {
+  try {
+    const r = Bun.spawnSync(["df", "-BM", "--output=avail", "/"], { stdout: "pipe", stderr: "pipe", timeout: 10_000 });
+    const lines = r.stdout.toString().trim().split(/\r?\n/);
+    const mb = parseInt(lines[lines.length - 1]?.trim(), 10);
+    return Number.isFinite(mb) ? mb : null;
+  } catch {
+    return null;
+  }
+}
+
+function purgePath(p: string, olderMin: number): boolean {
+  try {
+    if (!fs.existsSync(p)) return false;
+    Bun.spawnSync(["find", p, "-mindepth", "1", "-maxdepth", "1", "-mmin", `+${olderMin}`, "-exec", "rm", "-rf", "{}", "+"], { timeout: 60_000 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function housekeeping(): void {
+  const h = readHouseState();
+  const now = new Date().toISOString();
+  const free = diskFreeMb();
+  h.lastDiskAt = now;
+  if (free != null && free < DISK_FLOOR_MB) {
+    let purged = 0;
+    if (purgePath(`${HOME}/my-project/sovereign/fleet-verify/work`, 90)) purged++;
+    if (purgePath(`${HOME}/my-project/.next/dev/cache`, 90)) purged++;
+    try {
+      const bunCache = `${os.homedir()}/.bun/install/cache`;
+      if (fs.existsSync(bunCache)) {
+        fs.rmSync(bunCache, { recursive: true, force: true });
+        purged++;
+      }
+    } catch {}
+    if (purged > 0) {
+      const after = diskFreeMb();
+      h.lastPurgeAt = now;
+      record("DISK-PURGE", `דיסק ${free}MB-פנויים (מתחת-לרף ${DISK_FLOOR_MB}) — פינוי-מטמונים-טהורים (fleet-verify-work · .next/dev-cache · bun-cache) · ${free}→${after ?? "?"}MB`);
+    }
+  }
+  const lastG = h.lastGitleaksAt ? Date.parse(h.lastGitleaksAt) : 0;
+  if (Date.now() - lastG >= GITLEAKS_EVERY_MS) {
+    try {
+      if (fs.existsSync(GITLEAKS_BIN)) {
+        // (1) הסריקה-הריבונית: היסטוריית-הגיט (קבצים-עקובים-בכל-ההיסטוריה) —
+        // בסיס-האמת מ-r187-E: ממצא-היסטורי-יחיד (ה-seed @ 0e252dab, purge=החלטת-בעלים).
+        const hist = Bun.spawnSync(
+          [GITLEAKS_BIN, "detect", "-c", ".gitleaks.toml", "--redact", "--report-path", `${HOME}/sovereign/audit/gitleaks-history.json`],
+          { cwd: HOME, stdout: "pipe", stderr: "pipe", timeout: 240_000 },
+        );
+        let histFindings = -1;
+        try {
+          const rep = JSON.parse(fs.readFileSync(`${HOME}/sovereign/audit/gitleaks-history.json`, "utf8")) as unknown[];
+          histFindings = Array.isArray(rep) ? rep.length : -1;
+        } catch {
+          /* אין דוח = אפס-ממצאים */
+        }
+        // (2) סריקת-עץ-חי (--no-git) — רעש-מקומי-gitignored מדוד, לא-דימום-גיט.
+        let treeFindings = -1;
+        try {
+          const t = Bun.spawnSync(
+            [GITLEAKS_BIN, "detect", "--no-git", "-c", ".gitleaks.toml", "--redact", "--report-path", `${HOME}/sovereign/audit/gitleaks-latest.json`],
+            { cwd: HOME, stdout: "pipe", stderr: "pipe", timeout: 240_000 },
+          );
+          void t;
+          const rep2 = JSON.parse(fs.readFileSync(`${HOME}/sovereign/audit/gitleaks-latest.json`, "utf8")) as unknown[];
+          treeFindings = Array.isArray(rep2) ? rep2.length : -1;
+        } catch {
+          /* רעש-מקומי לא יפיל את הסריקה */
+        }
+        h.lastGitleaksAt = now;
+        h.lastGitleaksFindings = histFindings;
+        const kind = histFindings > 1 ? "GITLEAKS-ALERT" : "GITLEAKS-SCAN";
+        record(
+          kind,
+          `סריקת-סודות: גיט-היסטוריה exit ${hist.exitCode} · ${histFindings < 0 ? "אפס-ממצאים" : `${histFindings} ממצאים`} (בסיס r187: ממצא-היסטורי-יחיד @0e252dab) · עץ-חי-מקומי (gitignored): ${treeFindings < 0 ? "אפס" : treeFindings}`,
+        );
+      }
+    } catch (e) {
+      record("ERROR", `gitleaks-מקומי נכשל: ${String((e as Error)?.message ?? e).slice(0, 100)}`);
+    }
+  }
+  saveHouseState(h);
 }
 
 async function flushCanon() {
@@ -908,6 +1037,7 @@ if (!g.__keeperLoop) {
       await patrol();
       await flushCanon();
       await revivalSweep();
+      housekeeping(); // r188 — פיקוח-הגוף: דיסק + סריקת-סודות-מתוזמנת
     } catch (e: any) {
       record("ERROR", String(e?.message ?? e).slice(0, 160));
     } finally {

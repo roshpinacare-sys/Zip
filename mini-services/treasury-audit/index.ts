@@ -33,6 +33,9 @@ const SNAPSHOTS = path.join(HOME, "sovereign", "economy", "pnl-snapshots.json");
 const RECEIPTS = path.join(HOME, "sovereign", "money", "history.json");
 const MONEY_API = "http://127.0.0.1:3000/api/money";
 const STEEM_RPC = "https://api.steemit.com";
+const TRONRPC = "https://api.trongrid.io";
+const CUSTODY_PROOF = path.join(HOME, "sovereign", "custody", "tron-custody-proof.json");
+const TRON_BALANCE_ART = path.join(HOME, "sovereign", "custody", "tron-balance.json");
 const ACCOUNT = "headcorner";
 const STALE_ORDER_HOURS = 48;
 const BALANCE_DRIFT_EPS = 0.001;
@@ -303,6 +306,47 @@ function checkStaleOrders(orders: Array<Record<string, unknown>>): CheckResult {
   };
 }
 
+// ── r188 · מסילת-TRON הרביעית — פיקוח ציבורי תקופתי ────────────────────
+// אפס-סודות: הכתובת-הציבורית נקראת מארטיפקט-הוכחת-הבעלות (r187-A),
+// היתרה-נמדדת מ-trongrid (RPC ציבורי). כלי-היתרות (scripts/tron-balance.ts)
+// מכתיב ארטיפקט פרטי-שמור; כאן מאמתים שהמסילה חיה ושהכלי טרי.
+async function fetchTronRail(): Promise<{ trx: number | null; exists: boolean | null; address: string | null }> {
+  try {
+    const proof = JSON.parse(fs.readFileSync(CUSTODY_PROOF, "utf8")) as { address?: string };
+    const address = proof.address ?? null;
+    if (!address) return { trx: null, exists: null, address: null };
+    const res = await fetch(`${TRONRPC}/v1/accounts/${address}`, { signal: AbortSignal.timeout(10_000) });
+    const j = (await res.json()) as { data?: Array<{ balance?: number }> };
+    const acc = j.data?.[0];
+    if (!acc) return { trx: 0, exists: false, address };
+    return { trx: (acc.balance ?? 0) / 1e6, exists: true, address };
+  } catch {
+    return { trx: null, exists: null, address: null };
+  }
+}
+
+function checkTronRail(rail: { trx: number | null; exists: boolean | null; address: string | null }): CheckResult {
+  if (!rail.address || rail.trx == null) {
+    return { id: "tron-rail", status: "warn", detail: "מסילת-TRON לא נמדדה הפעם (RPC/ארטיפקט לא נענו) — unmeasured", numbers: { measured: false } };
+  }
+  if (rail.exists === false) {
+    return { id: "tron-rail", status: "fail", detail: `כתובת-המשמרת ${rail.address} נעלמה מהשרשרת — מסילת-TRON נפגעה (אנומליה-ריבונית)`, numbers: { measured: true, trx: rail.trx, exists: false } };
+  }
+  let toolAgeH: number | null = null;
+  try {
+    const art = JSON.parse(fs.readFileSync(TRON_BALANCE_ART, "utf8")) as { at?: string };
+    if (art.at) toolAgeH = Math.round(((Date.now() - Date.parse(art.at)) / 3_600_000) * 10) / 10;
+  } catch {
+    /* אין ארטיפקט כלי — נרשם */
+  }
+  return {
+    id: "tron-rail",
+    status: "pass",
+    detail: `מסילת-TRON חיה ונמדדת — ${rail.address} · ${rail.trx} TRX על-השרשרת · כלי-היתרות בן ${toolAgeH ?? "?"}ש'`,
+    numbers: { measured: true, trx: rail.trx, exists: true, toolAgeHours: toolAgeH },
+  };
+}
+
 function checkBalancesDrift(money: Record<string, unknown> | null, chain: { steem: number | null; sbd: number | null } | null): CheckResult {
   if (!chain) {
     return { id: "balances-drift", status: "warn", detail: "יתרות-השרשרת הציבורית לא נענו — unmeasured בביקורת זו", numbers: { measured: false } };
@@ -354,6 +398,7 @@ async function runAudit(): Promise<AuditArtifact> {
           };
   }
 
+  const tronRail = await fetchTronRail();
   const checks: CheckResult[] = [
     checkDecisionChain(),
     checkSnapshotChain(),
@@ -361,6 +406,7 @@ async function runAudit(): Promise<AuditArtifact> {
     floor,
     checkStaleOrders(orders),
     driftCheck,
+    checkTronRail(tronRail),
   ];
   const anomalies = checks.filter((c) => c.status === "fail").map((c) => `${c.id}: ${c.detail}`);
   const warnings = checks.filter((c) => c.status === "warn").map((c) => `${c.id}: ${c.detail}`);
