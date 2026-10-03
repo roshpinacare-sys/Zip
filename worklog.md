@@ -6064,3 +6064,25 @@ Work Log:
 
 Stage Summary:
 - **תשובות-למפעיל (מספרים, לא-הבטחות):** (1) **ריצה-אוטונומית — כן**: הורדה-חד-פעמית 12ש, ואז-אופליין-מלא (מוכח-בדגל-HF_HUB_OFFLINE); (2) **על-הרשת — כן**: שירות-HTTP-כתוב-ומוכן-בפורט 3047 (חסום-כרגע-לזיכרון-בלבד); (3) **תרומה-לקבלת-החלטות — כן, בשכבה-הנכונה**: מסווג-נושאים/ספאם/דחיפות/איום-נטישה-בעברית ב-~250-450ms-ואפס-טוקנים — שכבת-System-1-תחת-ה-LLM-שלנו; **לא-מוכן**: שער-הצבעה/איכות-בעברית — zero-shot-סותר-את-עצמו, דורש-fine-tuning-על-ההיסטוריה-שלנו (נתיב-שלישי-ב-doctrine). ה-Jev-המוזכר = המתחרה-ה-TypeScript; לפי-המדדים-המפורסמים-הפייתון-אכן-טוב-יותר — צדקת.
+
+---
+Task ID: r164
+Agent: main (Z.ai) — גל-ax: המפעיל: "תבחן את זה גם ויישם מה שניתן וראוי https://github.com/google/ax"
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) קבלת ריצה של fleet-manifests-audit.mjs — סופית: 16/16-חיים · 0-הפרות · 0-לא-מוצהרים (audit-latest.json); (2) fleet-doctrine.json עובר JSON-parse; (3) lint 0; (4) קבלת push; (5) census-לא-נגע.
+
+Task: לבחון את google/ax וליישם את מה שאפשר וראוי. ax = המתזמן הדקלרטיבי החדש של גוגל לסוכנים (kubectl-shaped: Task/Workspace/Model על Kubernetes+Agent Substrate) — לא להתבלבל עם מצע-הניסויים-הישן-בשם-זה.
+
+Work Log:
+- **מדידת-מאגר:** Apache-2.0 · HEAD ac233282 · v1alpha1-יציב-בפיתוח-כבד (אזהרה-רשמית) · Go-CLI · README-מחייב: קלסטר-Kubernetes-עם-Agent-Substrate + ko + registry.
+- **מבחן-ריצה-כנה:** go-לא-קיים · kubectl-לא-קיים · אין-קלסטר → **חסימה-קשה-מאומת** — פלטפורמת-קלסטר, לא-כלי-תהליכי. לא-נבנה-CLI-סמלי-בלבד — אין-למה-לחבר-אותו.
+- **זיקוק-מהמסמכים (concepts/manifests):** Task-עם-requests/limits · lifecycle-phases+conditions (WorkspaceReady/Ready) · Workspace-חימום-דקלרטיבי (git-pinned+MCP+skills+goal) · Model-כמשאב-מנוהל · suspend/resume-במקום-kill.
+- **יישום-מהשרת — מניפסט-הצי:** sovereign/fleet/fleet.yaml (sovereign.io/v1alpha1-על-פי-תבנית-ax): 16-שירותים — פורט+healthPath+entry+**resources.limits.memoryMB**+phase+workspaces-חמים (venv+HF-cache-של-decision-brain) + suspendPolicy. ה-OOM-של-r163-הוא-הראיה-המניעה: שירות-בלי-גבול-מוצהר-הרג-צי.
+- **מבקר-אמת:** scripts/fleet-manifests-audit.mjs — probe-בריאות · מיפוי-port→pid→RSS-מ-/proc · סריקת-3000-3060-למאזינים-לא-מוצהרים · פלט-audit-latest.json.
+- **ריצה-ראשונה-תפסה-אמת:** 2-healthPath-שגויים (money-mover/curation-עונים-ב-/-לא-/health) · home-1596MB-בלי-גבול-מוצהר → תוקן-ל-2000MB · **6-שירותים-לא-מנוהלים** (3033-pulse · 3035-hunter · 3036-keeper · 3037-student · 3038-fleet-verify · 3039-weblift — זוהו-בprobe-שורש) → מניפסטים-נוספו.
+- **ריצה-סופית:** 16-מוצהרים · 16-חיים · **0-הפרות** · 0-לא-מוצהרים · decision-brain=Suspended-idle-18MB-עם-פוליסת-השהיה-מוצהרת.
+- **דוקטרינה:** sovereign/knowledge/fleet-doctrine.json (fleet-doctrine-v1 · status=adapted · FLO-1..FLO-7: declare-before-run · limits-or-no-admission · suspend-not-kill · warm-workspaces · conditions-over-phrases · declared-vs-actual · platform-honesty) + 2-נתיבי-הפעלה (cluster-route · audit-cron-route) + whyNotRevenue-מוצהר.
+- vendor/ax/PROVENANCE.md · lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- הפלטפורמה-של-גוגל-נשארת-חסומה-כאן (דורשת-קלסטר) — אבל-המשמעותי-יושם: **לצי-יש-מניפסט-רשום-ראשון** עם גבולות-זיכרון-נמדדים לכל-שירות, מבקר-declared-vs-actual-רץ, וה-OOM-של-r163-הפך-מתאונה-לחוק (FLO-2). המבקר-בריצה-הראשונה-הוכיח-ערך: תפס-6-שירותים-לא-מנוהלים-ו-2-נתיבי-בריאות-שגויים — הכל-יושר-באותו-גל (FLO-6).

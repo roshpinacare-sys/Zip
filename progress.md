@@ -103,3 +103,9 @@
 - מוכח: מסיווג-נושאים (tech 0.97) · ספאם-כיוון-שלילי (0.999/0.003) · triage-חיוב (billing 1.0 · churn 0.97). לא-מוכח: שער-הצבעה/איכות-בעברית — zero-shot-noul-סותר-עצמו → LAY-2-חוסם-עד-fine-tuning.
 - decision-brain-פורט 3047-כתוב-ורדום (lazy+reaper): /health-חי · /decide-נחתך-OOM-כשהצי-המלא-רץ (2GB-שיא-מול-1.57GB-פנויים) — חסימה-כנה-עם-3-נתיבי-הפעלה (ram/onnx-int8/finetune-על-ההיסטוריה-שלנו).
 - אומץ: vendor/laya (PROVENANCE+SKILL) · decision-doctrine-v1 (LAY-1..7) · status=proven-blocked · evaluator-הוכרז-לפני-העריכה (LOOP-3).
+
+## r164 — גל-ax (גוגל): חסימה-כנה + אימוץ-התבנית-הדקלרטיבית
+- ax=מתזמן-סוכנים-קלסטרי (K8s+Substrate+Go-נדרשים, לא-קיימים כאן) → ריצה-חסומה-מאומת. יושם-מהשרת: התבנית.
+- fleet.yaml: מניפסט-רשום-ל-16-שירותים (גבולות-זיכרון-נמדדים, phases, workspaces-חמים, suspendPolicy-ל-decision-brain).
+- fleet-manifests-audit.mjs: probe+RSS+סריקת-סטיות → audit-latest.json. ראשונה: 6-לא-מנוהלים+2-healthPath-שגויים+home-בלי-גבול → תוקן. סופית: 16/16-חיים · 0-הפרות.
+- fleet-doctrine-v1 (FLO-1..7) · ה-OOM-של-r163-הפך-לחוק-מניעה · vendor/ax/PROVENANCE.
