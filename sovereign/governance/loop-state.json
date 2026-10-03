@@ -2,22 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 217,
-  "lastCycleAt": "2026-10-03T15:30:02.433Z",
-  "lastDecisionId": "D-r143-217",
-  "lastChosen": "Triage degraded fleet agents: classify quota-strangled / operator-gate / code-bug, dispatch revival where pre-approved",
+  "cycles": 219,
+  "lastCycleAt": "2026-10-03T16:00:07.726Z",
+  "lastDecisionId": "D-r143-219",
+  "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "צי מלא חי: 9/9 דיבונים עונים",
-  "brainUsed": false,
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 7563 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 960 דק') · מילויי-שרשרת 259 (maxIndex=62163)",
+  "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-03T15:30:02.332Z",
-    "verdict": "REVIEW",
-    "score": 50,
+    "at": "2026-10-03T16:00:05.001Z",
+    "verdict": "ALLOW",
+    "score": 85,
     "reasonsHe": [
-      "השיפוט לא ענה: API request failed with status 429: {\"error\":\"Too many requests, please try again later\"} — נדרשת עין אנושית/סוכנית"
+      "פעולת ממשל תקציבית על-גבי תשתית קיימת (עלות-שולית ≈0)",
+      "לא דורשת הון חדש או תשתית (spend=false)",
+      "מתבצעת בתוך תקציב-פעולות קיים (13/16)",
+      "פעולת ממשל חיונית לתפקוד הרשת והקצאת משאבים"
     ],
     "actionsToday": 13,
     "cap": 16,
-    "actionId": "D-r143-217"
+    "actionId": "D-r143-219"
   }
 }

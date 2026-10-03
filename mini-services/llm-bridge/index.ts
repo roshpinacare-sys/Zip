@@ -19,6 +19,12 @@ const MODEL_ID = "sovereign-zai";
 
 let zai: any = null;
 let completions = 0;
+// r177 — תצפית-מיכסה: ה-429-היום-היה-בלתי-נראה (חיובי-שקר-ב-health) — מעתה
+// המיכסה-נמדדת: מתי-נחסמנו, כמה-פעמים, וכמה-מתחים-החזירו-אותנו-לחיים.
+let last429At: string | null = null;
+let rateLimitedCount = 0;
+let retriesRecovered = 0;
+let lastUpstreamError: string | null = null;
 
 async function getZai() {
   if (!zai) zai = await ZAI.create();
@@ -61,6 +67,14 @@ const server = Bun.serve({
         engine: "z-ai-web-dev-sdk (backend)",
         model: MODEL_ID,
         completions,
+        // r177 — תצפית-מיכסה (שקיפות-מלאה — גם-חסימה-היא-מצב)
+        quota: {
+          rateLimited: last429At != null && Date.now() - Date.parse(last429At) < 15 * 60_000,
+          last429At,
+          rateLimitedCount,
+          retriesRecovered,
+          lastUpstreamError,
+        },
       });
     }
 
@@ -90,6 +104,7 @@ const server = Bun.serve({
       // 502-רשתי-אמיתי-מקבל-מתח-מהיר; 429-מקבל-המתנה-ארוכה. כישלון-אמיתי-נשאר-כנה (R123).
       let completion: any = null;
       let lastErr: any = null;
+      let usedRetries = false; // r177 — קבלה-כנה: רק-מתח-שבאמת-הציל
       const BACKOFFS_MS = [1_500, 20_000, 45_000];
       for (let attempt = 1; attempt <= BACKOFFS_MS.length + 1; attempt++) {
         try {
@@ -102,7 +117,13 @@ const server = Bun.serve({
           break;
         } catch (e: any) {
           lastErr = e;
+          usedRetries = true;
           const msg = String(e?.message || e);
+          lastUpstreamError = msg.slice(0, 200);
+          if (/429|too many/i.test(msg)) {
+            rateLimitedCount += 1;
+            last429At = new Date().toISOString();
+          }
           if (attempt <= BACKOFFS_MS.length) {
             const wait = /429|too many/i.test(msg) ? BACKOFFS_MS[attempt - 1] : Math.min(BACKOFFS_MS[attempt - 1], 1_500);
             console.log(`[llm-bridge] upstream error (attempt ${attempt}) — retrying in ${Math.round(wait / 1000)}s: ${msg.slice(0, 160)}`);
@@ -112,6 +133,7 @@ const server = Bun.serve({
       }
       try {
         if (lastErr || !completion) throw lastErr ?? new Error("no_completion");
+        if (usedRetries) retriesRecovered += 1; // r177 — קבלה: מתח-החזיר-לחיים
         const content: string = completion?.choices?.[0]?.message?.content ?? "";
         completions++;
         return json(null, 200, {
