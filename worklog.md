@@ -6024,3 +6024,21 @@ Work Log:
 
 Stage Summary:
 - הרגע-הכלכלי-הראשון-של-הרשת-נתפס-בשלוש-ראיות-בלתי-תלויות ובעקבותיו-שלושה-באגי-מדידה-תוקנו-בשורש (קבלה-אמיתית · יחידות-GESTS · הפרדת-הון-מתשואה) — המפקד-מדבר-עכשיו-שפת-קבלות. לוח-האמת: **04/10-פרעוני-קיורציה-ראשונים (מחר)** · 09/10-פרעוני-מפעל · 10-31/10-ארבעת-הפרעוני-powerdown-הנותרים · הכותב-החוץ-פעיל-הבוקר-והעקומה-הדו-בריכתית-עוקבת.
+
+---
+Task ID: r162
+Agent: main (Z.ai) — גל-reef: "זה-גם-מאוד-רלוונטי" — מדידה, הצלבה-עם-הדוקטרינה-שלנו, אימוץ
+
+Task: המפעיל: "אני חושב שזה גם מאוד רלוונטי תבדוק https://github.com/Human-Agent-Society/reef" — אותו-חוק-כמו-r159/r160: מדידה-ישירה, פסק-דין-כנה, אימוץ-מה-שמשרת
+
+Work Log:
+- **מדידת-מאגר:** 7.5k-★ · 694-forks · Apache-2.0 · Python-3.12+ (PyPI reef-infra) · commit 297af97 (2026-10-02 — פעיל) · "Infrastructure for continually self-improving agents" · הלולאה Serve→Observe→Grow→Commit · שני-משטחי-למידה: משקלי-מודל (GPU) והארנס (prompts/rules/skills — בלי-GPU).
+- **הצלבה-עם-הבית:** reef-הוא-המימוש-הייחוס-של-מה-הצי-עושה-ביד: גלי-r=propose · שערי-הראיה=evaluate · עוגני-git+revert=commit/revert · census-26ש'=periodic-recheck. החסר-המבני-שלנו-שהם-פותרים-פורמלית: **פרקים-זוגיים** (candidate מול current-על-אותן-משימות, ניצחון-ברף-מוצהר) + **כשלים-מנפחים-את-סוויטת-המבחן**.
+- **vendor-רדוד (5-מסמכים ל-sovereign/knowledge/vendor/reef/ + PROVENANCE):** evolve-your-harness.rst (תורת-האבולוציה-המלאה: snapshot→mutation→paired-episodes→publish/revert · מדיניות-בחירה · screens · recheck) · write-a-harness-method.rst (חוזה-propose/evaluate) · recipes.rst + recipes-readme.md (קטלוג) · AGENTS.md (משמעת-סוכנים).
+- **זיקוק → sovereign/knowledge/selfimprove-doctrine.json (selfimprove-doctrine-v1 · status=vendored):** 7-כללי-LOOP (four-station-loop · paired-episodes-or-it-is-anecdote · declare-the-evaluator-first · revert-is-cheap · failures-grow-the-suite · periodic-recheck · episodes-in-a-sandbox) + mappingToFleet-מלא (serve/observe/grow/commit/evaluate/revert→השירותים-הקיימים) + 3-נתיבי-הפעלה.
+- **חיווט-מינימלי-ועצמי-מדגים:** מ-r162-כל-רשומת-גל-ב-worklog-מכריזה-על-ה-evaluator-שלה-לפני-העריכה (LOOP-3). זה-הגל-הראשון-שמכריז: evaluator=census-טרי-בלי-התדרדרות-פסקי-דין + lint-0 + קבלות-על-שרשרת-נשמרות.
+- **אי-אימוץ-כנה:** לא-מריצים-reef-infra-כאן — דורש-endpoint-מסגנון-OpenAI-שאנחנו-לא-מארחים + שירות-Python-קבוע-נוסף, בזמן-שהלולאה-קיימת-ב-TypeScript. משקלים=GPU=מחוץ-לסקופ. הכל-רשום-ב-activationRoutes.
+- lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- המפעיל-צדק — זה-רלוונטי: לא-כעוד-כלי-להריץ, אלא-כמראה. reef-מציג-בפורמליזם-מה-שהצי-עושה-אינטואיטיבית, וחושף-שני-חוסרים-מדידים: פרקים-זוגיים-עם-רף-מוצהר (מ-עכשיו: כל-שינוי-מדיניות-נשפט-מול-בזליין-census-מוצהר) וסוויטה-גדלה-מכישלונות (כבר-מתרחש-מ-r156-ועכשיו-זה-חוק). העגינה-המינימלית-הופעלה-בגל-עצמו; ה-infra-ב-watchlist-עם-נתיבי-הפעלה.

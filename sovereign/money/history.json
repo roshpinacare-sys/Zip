@@ -1,32 +1,5 @@
 [
   {
-    "at": "2026-10-02T00:24:15.104Z",
-    "kind": "SAOS-REWARD",
-    "reason": "מילויים ×1",
-    "saos": 2
-  },
-  {
-    "at": "2026-10-02T00:24:15.142Z",
-    "kind": "CHAIN-COMPOUND-FAIL",
-    "reason": "WAIT-COOLDOWN · השרשרת compound רצה לפני 92 דק' — עוד מחכים בסבלנות"
-  },
-  {
-    "at": "2026-10-02T00:27:38.234Z",
-    "kind": "FLEET-COMPOUND",
-    "reason": "גולגלו 0 חברים · 2 מוחזקים (צינון/חסימה)"
-  },
-  {
-    "at": "2026-10-02T00:33:23.285Z",
-    "kind": "FLEET-COMPOUND",
-    "reason": "גולגלו 0 חברים · 2 מוחזקים (צינון/חסימה)"
-  },
-  {
-    "at": "2026-10-02T00:34:57.351Z",
-    "kind": "FLEET-PAY",
-    "reason": "keeper: curation (3040): הוקם — זומבי: פעימות קפואות (hot-reload)",
-    "saos": 2
-  },
-  {
     "at": "2026-10-02T00:39:20.880Z",
     "kind": "FLEET-COMPOUND",
     "reason": "גולגלו 0 חברים · 3 מוחזקים (צינון/חסימה)"
@@ -1917,6 +1890,99 @@
   },
   {
     "at": "2026-10-03T02:47:50.096Z",
+    "kind": "FLEET-COMPOUND",
+    "reason": "גולגלו 0 חברים · 2 מוחזקים (צינון/חסימה)"
+  },
+  {
+    "at": "2026-10-03T02:52:26.266Z",
+    "kind": "SAOS-REWARD-FAIL",
+    "reason": "מילויים ×7",
+    "error": "הקריאה לא נענתה"
+  },
+  {
+    "at": "2026-10-03T02:52:49.032Z",
+    "kind": "FILL-DEPLOY",
+    "reason": "נזיל 14.402 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2) · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון",
+    "parity": 0.096779,
+    "cancelled": [
+      {
+        "orderid": 2026100391,
+        "txid": "ec38c111a650d06b94d95505fc2c989b9f55f31e"
+      },
+      {
+        "orderid": 2026100392,
+        "txid": "15bb23497a4ec5bae194391a4b7244c06d931d5e"
+      },
+      {
+        "orderid": 2026100393,
+        "txid": "e946fda39c51c1a9d2c0ee7ebaa2010cf69e5578"
+      },
+      {
+        "orderid": 2026100394,
+        "txid": "cb4c1e58e670176d09501905ca62eb34a278a34c"
+      },
+      {
+        "orderid": 2026100395,
+        "txid": "766e8dfb6a24f2f43a5821560d4516428ae0921d"
+      },
+      {
+        "orderid": 2100000657,
+        "txid": null
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026100391,
+        "sell": 5.307,
+        "receive": 54.946,
+        "price": 0.096586,
+        "txid": "a4a67d9fa2efba1a86c13990e69c25cf8c18d674"
+      },
+      {
+        "orderid": 2026100392,
+        "sell": 5.307,
+        "receive": 55.056,
+        "price": 0.096393,
+        "txid": "06c4618d93c1cf55acead33f47d6c7b07eaf4d5f"
+      },
+      {
+        "orderid": 2026100393,
+        "sell": 5.307,
+        "receive": 55.278,
+        "price": 0.096006,
+        "txid": "490522888a6cd8e023b013f83c3e25392dc81d54"
+      },
+      {
+        "orderid": 2026100394,
+        "sell": 5.307,
+        "receive": 55.727,
+        "price": 0.095232,
+        "txid": "668e986ff99d211c8c17c4fc8ea4f1c00b86c3c9"
+      }
+    ],
+    "error": "sell side skipped: NO-FUEL (R111 · נזיל 13.902 + בפקודות 1.776 · תביעה 32.287 WSTEEM) — BID-ONLY | cancel-bid 2100000657: unknown key:unknown key:  | rebid place 5: Assert Exception:available >= -delta: Account headcorner does not have sufficient funds for balance ",
+    "verify": {
+      "ordersNow": 9,
+      "deployedNow": 1.776,
+      "bidsNow": 5
+    }
+  },
+  {
+    "at": "2026-10-03T02:53:41.990Z",
+    "kind": "FILL-DEPLOY",
+    "reason": "נזיל 14.402 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2) · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון",
+    "parity": 0.096779,
+    "placed": 4,
+    "cancelled": 6,
+    "error": "sell side skipped: NO-FUEL (R111 · נזיל 13.902 + בפקודות 1.776 · תביעה 32.287 WSTEEM) — BID-ONLY | cancel-bid 2100000657: unknown key:unknown key:  | rebid place 5: Assert Exception:available >= -delta: Account headcorner does not have sufficient funds for balance "
+  },
+  {
+    "at": "2026-10-03T02:54:27.310Z",
+    "kind": "FLEET-COMPOUND",
+    "reason": "גולגלו 0 חברים · 2 מוחזקים (צינון/חסימה)"
+  },
+  {
+    "at": "2026-10-03T02:59:26.464Z",
     "kind": "FLEET-COMPOUND",
     "reason": "גולגלו 0 חברים · 2 מוחזקים (צינון/חסימה)"
   }
