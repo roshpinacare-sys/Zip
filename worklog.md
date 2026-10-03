@@ -5969,3 +5969,21 @@ Work Log:
 
 Stage Summary:
 - לאוטונומיה-הריבונית-יש-עכשיו-כוח-מחשב-קנוני: כל-סוכן-יכול-לפתוח-דף, לצלם, לשאול-את-העיניים-ולקבל-פסק-דין-מגובה-ראיה — "שאל-את-המסך-לא-את-הלוג". מה-יש-בידיים-הוא-קובץ-מיוצר-מהמכונה-עם-registry-מכונתי. הצעד-הבא-המדוד: see-verify-כשער-קבוע-לפני-הכרזות-UI.
+
+---
+Task ID: r159
+Agent: main (Z.ai) — גל-אימוץ-הספרייה: alirezarezvani/claude-skills (הפניית-המפעיל)
+
+Task: המפעיל-שאל "מה לגבי זה" על https://github.com/alirezarezvani/claude-skills — הערכה-מדידה ואימוץ-ממוקד-להכנסות
+
+Work Log:
+- **מדידה-ישירה (rate-limit-API → קלון-רדוד):** 65MB, 388-SKILL.md, 27.3k-כוכבים, 1,499-קומיטים, commit 19392f7a (2026-08-26). MIT. קטגוריות: engineering-93 · marketing-skill-49 · c-level-advisor-46 · engineering-team-53 · ועוד.
+- **בחירה-מסחרת-מ-388 (מסלול-ההכנסה-המדוד):** 5-כישורים-נווזרו-verbatim ל-sovereign/knowledge/vendor/claude-skills/ — copywriting · social-content · content-strategy · marketing-psychology (איכות-כתיבה↔הצבעות↔author-rewards = הטריז-היחידה-בשליטתנו-המלאה) + loop-library (דוקטרינת-ביקורת-לולאות → מועמד-ל-guard-packs-r158+).
+- **PROVENANCE.md:** מקור · commit · רישיון · נימוקי-בחירה · איסור-עריכת-SKILL.md.
+- **זיקוק → sovereign/knowledge/writing-doctrine.json (writing-doctrine-v1 · status=wired):** 8-כללים-מזוקקים-באנגלית (hook-2-שורות-ראשונות · ספציפיות-מספרית-כראיה · תועלת-על-תכונה · רעיון-אחד-לסעיף · בלי-מילות-מילוי · שכנוע-כן-בלבד-איסור-זיוף · שער-שווה-לפרסום · סגירת-תובנה).
+- **חיווט-למפעל (mini-services/content-factory/index.ts):** loadWritingDoctrine() — fail-soft-בדיוק-בדפוס-r152 (cache-10-דק' · כשל-קריאה=ריצה-בלי-שכבה) · הזרקה-כ-doctrineBlock-ל-systemPrompt-אחרי-שכבת-התפקיד-ולפני-HARD-RULES.
+- **ראיה-חיה:** pid-3388=bun---hot (reload-נטען) · import-test-הגיע-עד-bind-ללא-שגיאת-פרסור · doctrine-JSON-תקף (8-כללים · 1,582-תווים) · lint-נקי.
+- **commit 8f24d35 · push-origin-main.**
+
+Stage Summary:
+- הספרייה-נשפטה-לפי-הדוקטרינה: לא-רושם, לא-תיאוריה — מדידה-ישירה ואימוץ-של-מה-שמשרת-הכנסה. הפוסט-הראשון-עם-שכבת-הדוקטרינה-ירד-מהמפעל-החל-מ-03/10; המדידה: netVotes/pendingPayout-לפוסטי-דוקטרינה-מול-בסיס-שלפני (בסיס-חי: 12-הצבעות · 0.006-SBD-pending-על-02/10) — מתאמת-אוטומטית-ב-census (V1/V3). loop-library-נשמר-כשכבת-דוקטרינה-הבאה-לביקורת-לולאות-הצי.

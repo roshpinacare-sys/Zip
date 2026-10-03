@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 295,
-  "at": "2026-10-03T01:25:27.411Z",
-  "verdict": "PASS",
+  "seq": 303,
+  "at": "2026-10-03T02:05:27.557Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 162 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 166 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 162,
+        "entries": 166,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 85 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 125 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,10 +28,10 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 2 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 11 עם txid · אחרונה בת 2 דק'",
       "numbers": {
         "total": 200,
-        "withTxid": 10,
+        "withTxid": 11,
         "outOfOrder": 0,
         "lastAgeMinutes": 2
       }
@@ -60,18 +60,20 @@
     },
     {
       "id": "balances-drift",
-      "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 0.454 · SBD 0.5 (סטייה ≤ 0.001)",
+      "status": "fail",
+      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 200 · דריפת SBD 1.525 (אנומליה)",
       "numbers": {
         "measured": true,
-        "homeSteem": 0.454,
-        "homeSbd": 0.5,
-        "chainSteem": 0.454,
+        "homeSteem": 476.311,
+        "homeSbd": 2.025,
+        "chainSteem": 276.311,
         "chainSbd": 0.5,
-        "driftSteem": 0,
-        "driftSbd": 0
+        "driftSteem": 200,
+        "driftSbd": 1.525
       }
     }
   ],
-  "anomalies": []
+  "anomalies": [
+    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 200 · דריפת SBD 1.525 (אנומליה)"
+  ]
 }
