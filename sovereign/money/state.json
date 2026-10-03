@@ -2,7 +2,7 @@
   "service": "money-mover",
   "version": "1.9.0",
   "bootedAt": "2026-10-02T22:15:26.183Z",
-  "beats": 3312,
+  "beats": 3313,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -41,14 +41,14 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-03T03:53:47.647Z",
+  "lastActionAt": "2026-10-03T04:24:26.245Z",
   "actionsToday": 9,
   "actionDay": "2026-10-03",
-  "acting": false,
+  "acting": true,
   "lastDecision": {
-    "at": "2026-10-03T04:23:26.273Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 1 דק' · WAIT-COOLDOWN · עוד 1 דק'"
+    "at": "2026-10-03T04:24:26.245Z",
+    "kind": "ACTING",
+    "detail": "נזיל 6.287 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2) · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון"
   },
   "canonLast": {
     "at": "2026-10-03T03:23:59.666Z",
@@ -67,5 +67,64 @@
     "keeperRestartAt": "2026-10-02T22:15:26.098Z"
   },
   "lastPoolGuardAt": "2026-10-03T04:17:27.547Z",
-  "lastFleetSweepAt": "2026-10-03T04:22:49.208Z"
+  "lastFleetSweepAt": "2026-10-03T04:22:49.208Z",
+  "lastReceipt": {
+    "at": "2026-10-03T04:24:27.197Z",
+    "kind": "FILL-DEPLOY",
+    "reason": "נזיל 6.287 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2) · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון",
+    "parity": 0.097454,
+    "cancelled": [
+      {
+        "orderid": 2026100391,
+        "txid": "5663e17fc303c67722c34bdd49b654dcb60e0634"
+      },
+      {
+        "orderid": 2026100392,
+        "txid": "802266515acd6195c122447f73c8ac941c0aafdc"
+      },
+      {
+        "orderid": 2026100393,
+        "txid": "f15587e7e91e54d4a85ce42d4f6e8d4faaa54085"
+      },
+      {
+        "orderid": 2026100394,
+        "txid": "12a7955d69cd003bb4c9c5437baed5eb9e2bbeec"
+      },
+      {
+        "orderid": 2026100395,
+        "txid": "e730ebdcb3e10384bf179aa5c2211893aa22d12f"
+      }
+    ],
+    "placed": [
+      {
+        "orderid": 2026100391,
+        "sell": 3.618,
+        "receive": 37.199,
+        "price": 0.097261,
+        "txid": "083b46d2a376b8794e9146b5dd041c4c5153aebc"
+      },
+      {
+        "orderid": 2026100392,
+        "sell": 3.618,
+        "receive": 37.274,
+        "price": 0.097065,
+        "txid": "b3ad1e6add02aae359c228deb6c48eb06cdc16c7"
+      },
+      {
+        "orderid": 2026100393,
+        "sell": 3.618,
+        "receive": 37.424,
+        "price": 0.096676,
+        "txid": "daf789806319e2d0e18cf5575b00a7b67db25e9f"
+      },
+      {
+        "orderid": 2026100394,
+        "sell": 3.618,
+        "receive": 37.728,
+        "price": 0.095897,
+        "txid": "4bf6b6b7d43775405ca53b00b136f089d56dd852"
+      }
+    ],
+    "error": "sell side skipped: NO-FUEL (R111 · נזיל 6.287 + בפקודות 8.891 · תביעה 32.287 WSTEEM) — BID-ONLY"
+  }
 }
