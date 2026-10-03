@@ -83,12 +83,31 @@ const server = Bun.serve({
         return json(null, 400, { error: { message: "messages array required", type: "bad_request" } });
       }
       const t0 = Date.now();
+      // r176 — ניסיון-חוזר-אחד-לשגיאות-שרת-רגעיות: שני-אירועי-502-היום-נתפסו-שניהם
+      // בתוך-~2-דק'-מהתחלה-מחדש-של-הגשר (kill-test-→-push-מיד). כל-502-רגעי
+      // מאלץ-את-ה-gate-ל-fail-open-ומחליש-את-שכבת-הסקירה. מעתה: מתח-אחד-אחרי-1.5ש';
+      // כישלון-אמיתי-ממשיך-ל-502-כנה (R123 — אין "נניח-שהצליח").
+      let completion: any = null;
+      let lastErr: any = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const client = await getZai();
+          completion = await client.chat.completions.create({
+            messages: mapMessages(messages),
+            thinking: { type: "disabled" },
+          });
+          lastErr = null;
+          break;
+        } catch (e: any) {
+          lastErr = e;
+          if (attempt === 1) {
+            console.log(`[llm-bridge] upstream error (attempt 1) — retrying in 1.5s: ${String(e?.message || e).slice(0, 160)}`);
+            await new Promise((r) => setTimeout(r, 1500));
+          }
+        }
+      }
       try {
-        const client = await getZai();
-        const completion = await client.chat.completions.create({
-          messages: mapMessages(messages),
-          thinking: { type: "disabled" },
-        });
+        if (lastErr || !completion) throw lastErr ?? new Error("no_completion");
         const content: string = completion?.choices?.[0]?.message?.content ?? "";
         completions++;
         return json(null, 200, {
