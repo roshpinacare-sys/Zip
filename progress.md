@@ -186,3 +186,8 @@
 - תצפית-מיכסה-בגשר: quota{rateLimited,last429At,rateLimitedCount,retriesRecovered} ב-/health · usedRetries-מונע-ספירת-שווא
 - מפת-צריכה: מפעל-4/יום · סייר-4/יום · student-0 · gate-2-ל-push — הצריבה: gate-בבורסטים + צרכנים-מחוץ-למכונה (חשבון-משותף-לסשנים-אחרות)
 - נצפה-חי: צניחת-VP-2.46pp-ב-15:21 = הצבעת-כותב-החוץ (census-V1b) · curation-החזקה-כנה
+- הוכחה-חיה: gate-phase2-**pass**-דרך-המסלול-המודע-429 (דיפ-111K · 2-השלמות-נקיות) · **חלון-מיכסה-נמדד: ~45-60דק'**
+
+## r178 (2026-10-03) — הוכחת-ענן: fleet-audit-ירוק-על-runner-אמיתי
+- PAT-dispatch→ריצה-#1: **completed-success** · 9-שלבים-ירוקים · הנקודה-הפתוחה-מ-r175-נסגרה
+- LOOP-11-quota-window-aware-push-ב-doctrine (11-חוקים) — חלון-45-60דק' · בדיקת-quota-לפני-push · אין-בורסטים
