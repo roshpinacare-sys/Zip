@@ -24,7 +24,16 @@ const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
 const ACCOUNT = "cashmachine";
 const HASH = "8a9bff7a7e83346e8e05d47d23010d6b86225d29abb5e547ef361bebece52273";
 
-const b64 = fs.readFileSync(path.join(ROOT, "sovereign", "web", "inbox", HASH, "package.b64"), "utf8").trim();
+// Fail-soft honest skip (E3 doctrine: a desk must never break CI when its oracle is
+// unreachable). The probe is hard-wired to one archived package; when the package has
+// been consumed or is absent from the checkout, the honest verdict is "nothing to
+// probe" — NOT a red crash (Task 25: this lane went red daily on ENOENT at :27).
+const PKG_PATH = path.join(ROOT, "sovereign", "web", "inbox", HASH, "package.b64");
+if (!fs.existsSync(PKG_PATH)) {
+  console.log(`[data] package.b64 missing for ${HASH.slice(0, 12)}… — honest skip (nothing to probe, oracle unreachable)`);
+  process.exit(0);
+}
+const b64 = fs.readFileSync(PKG_PATH, "utf8").trim();
 console.log(`[data] b64 len=${b64.length}`);
 
 async function attempt(label: string, ops: GrapheneOperation[], chain: "steem" | "hive"): Promise<void> {

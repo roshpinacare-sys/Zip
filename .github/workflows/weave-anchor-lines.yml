@@ -107,7 +107,11 @@ jobs:
           esac
           if [ -n "$RECOVER_INPUT" ]; then
             case "$RECOVER_INPUT" in
-              *"*|*\'*|*\`*|*\$*|*\;*|*\|*|*\(*|*\)*|*[!0-9a-fA-Fx]*) echo "recover input rejected (audit 2026-09-28: txid must be hex)"; exit 1 ;;
+              # hex-only contract (audit 2026-09-28) — one quote-clean clause covers every
+              # dangerous char: anything outside [0-9a-fA-Fx] (the x allows a 0x prefix).
+              # The old clause list mixed unbalanced quotes into the pattern and was a bash
+              # SYNTAX ERROR (exit 2 at job time — Task 25 caught it via the failure sweep).
+              *[!0-9a-fA-Fx]*) echo "recover input rejected (audit 2026-09-28: txid must be hex)"; exit 1 ;;
             esac
             MODE_FLAG="--recover=$RECOVER_INPUT"
           fi

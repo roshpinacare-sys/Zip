@@ -31,6 +31,7 @@
 2. עדכון `feature_list.json` + רשומה בראש `progress.md` + עדכון `session-handoff.md`.
 3. רישום-גל ב-`worklog.md` (append).
 4. `git add` סלקטיבי (רק מה ששייך-לגל; לעולם לא upload/* · *.env · .git-askpass.sh) → commit → push.
+   - **חוק-הודעות-קומיט (Task 25)**: כל קומיט חייב הודעה תיאורית (מה+למה). הודעת-UUID בלבד (למשל `a4c085c0-fd1b-…`) אסורה — היא נזירות-חד-כיוונית: התוכן נשמר אבל ההיסטוריה מתה לקריאה. דמון שמצרף-מצב אוטומטית מכתיב `[lane]: <מה התרענן> (<תאריך>)` — הדפוס הקיים ב-`[daemon-state] keeper: fleet state refresh (...)` הוא התקן.
 5. ודא local==origin (`git rev-parse --short HEAD` == `origin/main`).
 
 > מה שלהלן — הרישום ההיסטורי-המלא של הסוכנים והמכונות (מקור-עמק, לא נקרא בכל-סשן).
