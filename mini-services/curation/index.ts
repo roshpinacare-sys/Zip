@@ -192,7 +192,8 @@ async function tick(): Promise<void> {
       if (!lastSampleAt || nowMs - Date.parse(lastSampleAt) >= 45 * 60_000) {
         state.votingPowerCurve = [
           ...(state.votingPowerCurve ?? []),
-          { at: new Date(nowMs).toISOString(), pct: Math.round(power.pct * 100) / 100 },
+          // r161 — דגימה-דו-בריכתית: pct=manabar (קונצנזוס, שמרני) · vpField=השדה-הקנוני-מה-UI
+          { at: new Date(nowMs).toISOString(), pct: Math.round(power.pct * 100) / 100, vpField: power.vpField != null ? Math.round(power.vpField * 100) / 100 : null },
         ].slice(-480);
       }
     }

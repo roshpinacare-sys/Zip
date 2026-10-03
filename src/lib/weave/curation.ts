@@ -176,7 +176,7 @@ export interface CurationState {
   } | null;
   votingPowerLast: { at: string; pct: number | null; detail?: string } | null;
   /** r157 · עקומת-VP (D-r157-VP-COORD) — טבעת-דגימה-שעתית (גג-480) למציאת-חלון-השיא-היומי */
-  votingPowerCurve?: { at: string; pct: number }[];
+  votingPowerCurve?: { at: string; pct: number; vpField?: number | null }[];
   lastDecision: Decision | null;
   /** r146-a · צינור-התגמולים — מצב-התביעה היומי (שדות-תוספת; פנקס-ישן בלעדיהם תקין) */
   lastClaimDay?: string | null;
@@ -326,7 +326,7 @@ export function appendCurationHistory(kind: string, reason: string, extra?: Reco
  *  מכנה = מנדטים אפקטיביים (מוחזק + מקבל - מואצל). */
 export async function readVotingPower(
   account = CURATION_VOTER
-): Promise<{ ok: boolean; pct: number | null; detail?: string }> {
+): Promise<{ ok: boolean; pct: number | null; vpField?: number | null; detail?: string }> {
   type ChainAccount = {
     vesting_shares: string;
     received_vesting_shares?: string;
@@ -352,7 +352,11 @@ export async function readVotingPower(
         Number(a.voting_manabar.current_mana) + Math.max(0, now - a.voting_manabar.last_update_time) * (maxMana / REGEN_SEC)
       );
       const pct = Math.round((10000 * mana) / maxMana) / 100;
-      return { ok: true, pct: clamp(pct, 0, 100) };
+      // r161 — שני-בריכות-כוח בשרשרת: ה-manabar (שמחושב-למעלה, מנוע-ה-VP-הקונצנזוס) מול
+      // שדה voting_power (הבריכה-הישנה, מה-UI/condenser). נמדד-יבשת: פער-מבני ~7.5 נק'
+      // (02:34Z: manabar 60.5 מול שדה 67.97) — שניהם-נרשמים, המדיניות-משתמשת-בנמוך-מביניהם (שמרני)
+      const vpField = typeof a.voting_power === "number" ? a.voting_power / 100 : null;
+      return { ok: true, pct: clamp(pct, 0, 100), vpField: vpField != null ? clamp(vpField, 0, 100) : null };
     } catch (e) {
       lastErr = String((e as Error).message ?? e).slice(0, 80);
     }

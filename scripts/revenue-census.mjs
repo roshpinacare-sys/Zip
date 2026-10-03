@@ -10,7 +10,7 @@
  * מדידות (כולן-מהשרשרת):
  *   1. curation_reward ליום  — הפרעוני-קיורציה-בפועל (VESTS → SP → USD)
  *   2. author_reward ליום    — פרעוני-פוסטים (מפעל-התוכן)
- *   3. withdraw_vesting ליום — נחיתות-powerdown-בפועל (אימות 02:01Z!)
+ *   3. fill_vesting_withdraw ליום — נחיתות-powerdown-בפועל (ר161: ה-op-הווירטואלי-הוא-הקבלה; withdraw_vesting=שינוי-לוח-בלבד)
  *   4. fill_order ליום       — פעילות-הזירה (מספר-ביצועים)
  *   5. vote ops ליום         — משקלי-הצבעה-אמת מול-המדיניות (6% r150)
  *   6. מצב-חשבון-חי: SP-נטו (ביחס-החי), יתרות, powerdown-הבא
@@ -105,6 +105,7 @@ const mkDay = (d) =>
     curationVests: 0, curationVestOps: 0,
     authorSbd: 0, authorSteem: 0, authorOps: 0,
     withdrawVestingVests: 0, withdrawOps: 0,
+    powerdownLandSteem: 0, powerdownLandOps: 0, // r161: קבלות-נחיתה-אמיתיות (op-וירטואלי)
     fills: 0,
     votesSent: 0, machineVotes: 0, externalVotes: 0, externalWeightSum: 0,
     voteWeights: [],
@@ -141,6 +142,10 @@ for (let page = 0; page < 900; page++) {
     } else if (kind === "withdraw_vesting") {
       if (!d) continue;
       d.withdrawVestingVests += num(body.vesting_shares); d.withdrawOps++;
+    } else if (kind === "fill_vesting_withdraw") {
+      // r161 — הקבלה-האמיתית: נחיתת-תשלום-שבועי (VESTS→STEEM). withdraw_vesting-לבדו-החמיץ-את-הנחיתה-ב-02:01:27Z
+      if (!d) continue;
+      d.powerdownLandSteem += num(body.deposited); d.powerdownLandOps++;
     } else if (kind === "fill_order") {
       if (!d) continue;
       d.fills++;
@@ -190,18 +195,34 @@ const totalCurationSp = Object.values(days).reduce((s, d) => s + d.curationVests
 const totalAuthorSbd = Object.values(days).reduce((s, d) => s + d.authorSbd, 0);
 const totalAuthorSteem = Object.values(days).reduce((s, d) => s + d.authorSteem, 0);
 const totalWithdrawSp = Object.values(days).reduce((s, d) => s + d.withdrawVestingVests, 0) / vestsPerSp;
+// r161 — נחיתות-בפועל (STEEM-נזיל-שנכנס): הקבלה-האמיתית-של-ה-powerdown. זרם-הון, לא תשואה
+const totalPowerdownLandSteem = Object.values(days).reduce((s, d) => s + d.powerdownLandSteem, 0);
+const totalPowerdownLandOps = Object.values(days).reduce((s, d) => s + d.powerdownLandOps, 0);
 const steemPrice = steemUsd ?? 0.0628; // fallback-מתועד-רק-אם-הטיקר-נפל
 const curationUsd = totalCurationSp * steemPrice;
 const authorUsd = (totalAuthorSbd * 1.0) + (totalAuthorSteem * steemPrice); // SBD≈1USD-עקרון-ערך-הרשת
-const powerdownUsd = totalWithdrawSp * steemPrice;
-const windowRevenueUsd = curationUsd + authorUsd + powerdownUsd;
+// r161 — תיקון-יושרה: powerdown=פירוק-הון (SP→נזיל), לא הכנסה-שוטפת. נמדד-ומדווח-בנפרד, לא-ברצפת-התשואה
+const powerdownUsd = totalPowerdownLandSteem * steemPrice;
+const windowRevenueUsd = curationUsd + authorUsd;
+const treasuryFlowUsd = powerdownUsd;
 const dailyAvgUsd = windowRevenueUsd / HISTORY_DAYS;
 
+// r161 — תיקון-יחידות: to_withdraw/withdrawn-מגיעים-בסקאלת-GESTS (×1e6) ואילו-vesting_withdraw_rate-ב-VESTS.
+// החישוב-הקודם-שילב-סקאלות → 4,000,000-שבועות. עכשיו: GESTS÷1e6=VESTS → יחס-שבועות-אמיתי (4.0009 → 4 + אבק)
+const remainingRawWeeks = num(acc.to_withdraw) > 0 ? (num(acc.to_withdraw) / 1e6) / Math.max(1, num(acc.vesting_withdraw_rate)) : 0;
+const lastLanding = Object.entries(days)
+  .filter(([, v]) => v.powerdownLandOps > 0)
+  .sort((a, b) => b[0].localeCompare(a[0]))[0] ?? null;
 const powerdown = {
   active: num(acc.vesting_withdraw_rate) > 0,
   nextPaymentAt: acc.next_vesting_withdrawal,
   weeklySp: num(acc.vesting_withdraw_rate) / vestsPerSp,
-  remainingWeeks: num(acc.to_withdraw) > 0 ? Math.ceil(num(acc.to_withdraw) / Math.max(1, num(acc.vesting_withdraw_rate))) : 0,
+  remainingWeeks: Math.round(remainingRawWeeks),
+  remainingRawWeeks: +remainingRawWeeks.toFixed(4),
+  landingsWindowSteem: +totalPowerdownLandSteem.toFixed(3),
+  landingsWindowOps: totalPowerdownLandOps,
+  lastLandingAt: lastLanding?.[0] ?? null,
+  lastLandingSteem: lastLanding ? +lastLanding[1].powerdownLandSteem.toFixed(3) : null,
 };
 
 const extVotesTotal = Object.values(days).reduce((s, d) => s + d.externalVotes, 0);
@@ -250,7 +271,7 @@ const verdicts = {
   },
   V4_powerdown_landing: weighVerdict(
     powerdown.active,
-    `powerdown-פעיל: ${powerdown.weeklySp.toFixed(3)} SP/שבוע · הבא: ${powerdown.nextPaymentAt} · נחיתות-בחלון: ${powerdownUsd.toFixed(4)} USD`,
+    `powerdown-פעיל: ${powerdown.weeklySp.toFixed(3)} SP/שבוע · קבלה-אחרונה: ${powerdown.lastLandingAt ?? "—"} ${powerdown.lastLandingSteem ?? 0} STEEM (~${powerdownUsd.toFixed(2)} USD-בחלון) · נותרו-${powerdown.remainingWeeks}-פרעונים · הבא: ${powerdown.nextPaymentAt}`,
     "powerdown-לא-פעיל-על-החשבון"
   ),
   V5_trading_activity: {
@@ -259,7 +280,8 @@ const verdicts = {
   },
   V6_revenue_floor: {
     verdict: dailyAvgUsd >= FLOOR_USD ? "PASS" : "BELOW",
-    detail: `ממוצע-יומי-נמדד ${dailyAvgUsd.toFixed(4)} USD מול-רצפת-המפעיל ${FLOOR_USD} USD${dailyAvgUsd < FLOOR_USD ? " — הפער-מוסבר-ב-pending-פרעונים (04-09/10); אימות-חוזר-אחרי-הפרעונים" : ""}`,
+    // ר161: הרצפה-מודדת-תשואה-שוטפת (קיורציה+אוטור) — פירוק-הון-powerdown-אינו-הכנסה-ולא-יכול-לרצות-את-הרצפה
+    detail: `ממוצע-יומי-נמדד ${dailyAvgUsd.toFixed(4)} USD (תשואה: קיורציה+אוטור) מול-רצפת-המפעיל ${FLOOR_USD} USD${dailyAvgUsd < FLOOR_USD ? " — הפער-מוסבר-ב-pending-פרעונים (04-09/10); אימות-חוזר-אחרי-הפרעונים" : ""}`,
   },
 };
 
@@ -290,6 +312,8 @@ const census = {
       authorSbd: +v.authorSbd.toFixed(3),
       authorSteem: +v.authorSteem.toFixed(3),
       withdrawVestingSp: +(v.withdrawVestingVests / vestsPerSp).toFixed(4),
+      powerdownLandSteem: +v.powerdownLandSteem.toFixed(3),
+      powerdownLandOps: v.powerdownLandOps,
       fills: v.fills,
       votesSent: v.votesSent,
       machineVotes: v.machineVotes,
@@ -301,12 +325,14 @@ const census = {
   totals: {
     curationSp: +totalCurationSp.toFixed(5), curationUsd: +curationUsd.toFixed(4),
     authorUsd: +authorUsd.toFixed(4), powerdownUsd: +powerdownUsd.toFixed(4),
+    treasuryFlowUsd: +treasuryFlowUsd.toFixed(4), // ר161: זרם-הון-נפרד-מהתשואה
     windowRevenueUsd: +windowRevenueUsd.toFixed(4), dailyAvgUsd: +dailyAvgUsd.toFixed(4),
   },
   verdicts,
   notes: [
     curationPending ? nextPayoutNote : null,
     "המקור: סריקת-account_history-מהשרשרת-ישירות — אין-הצהרות",
+    "ר161: הרצפה (V6) מודדת-תשואה-שוטפת-בלבד · נחיתות-powerdown=זרם-הון-נפרד (fill_vesting_withdraw=הקבלה-הקנונית)",
   ].filter(Boolean),
 };
 
@@ -321,7 +347,8 @@ function printSummary(c) {
     const bits = [];
     if (v.curationOps) bits.push(`קיורציה ${v.curationSp}SP (${v.curationOps})`);
     if (v.authorOps) bits.push(`אוטור ${v.authorSbd}SBD+${v.authorSteem}STEEM`);
-    if (v.withdrawVestingSp) bits.push(`powerdown ${v.withdrawVestingSp}SP`);
+    if (v.withdrawVestingSp) bits.push(`powerdown-שינוי-לוח ${v.withdrawVestingSp}SP`);
+    if (v.powerdownLandOps) bits.push(`powerdown-נחת ${v.powerdownLandSteem}STEEM`);
     if (v.fills) bits.push(`fills ${v.fills}`);
     if (v.votesSent) {
       const split = v.machineVotes != null ? ` מנוע ${v.machineVotes} · חוץ ${v.externalVotes ?? 0}` : "";
@@ -329,7 +356,7 @@ function printSummary(c) {
     }
     console.log(`  ${d}: ${bits.join(" · ") || "—"}`);
   }
-  console.log(`  סה"כ-חלון: ${c.totals.windowRevenueUsd} USD · ממוצע-יומי: ${c.totals.dailyAvgUsd} USD`);
+  console.log(`  סה"כ-חלון: ${c.totals.windowRevenueUsd} USD (תשואה) · ממוצע-יומי: ${c.totals.dailyAvgUsd} USD · זרם-הון-powerdown: ${c.totals.treasuryFlowUsd} USD`);
   const a = c.attribution;
   if (a.machineOps + a.externalOps + a.unknownOps > 0)
     console.log(`  שיוך-פרעונים: מנוע ${a.machineSp}SP (${a.machineOps}) · חוץ ${a.externalSp}SP (${a.externalOps}) · לא-משויך ${a.unknownSp}SP (${a.unknownOps})`);

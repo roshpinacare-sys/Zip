@@ -2,7 +2,7 @@
   "service": "money-mover",
   "version": "1.9.0",
   "bootedAt": "2026-10-02T22:15:26.183Z",
-  "beats": 3193,
+  "beats": 3220,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -41,61 +41,31 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-03T02:21:26.384Z",
-  "actionsToday": 4,
+  "lastActionAt": "2026-10-03T02:42:26.528Z",
+  "actionsToday": 7,
   "actionDay": "2026-10-03",
-  "acting": true,
+  "acting": false,
   "lastDecision": {
-    "at": "2026-10-03T02:21:26.384Z",
-    "kind": "ACTING",
-    "detail": "נזיל 190.525 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2) · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון"
+    "at": "2026-10-03T02:50:26.284Z",
+    "kind": "WAIT-COOLDOWN",
+    "detail": "WAIT-COOLDOWN · עוד 23 דק' · WAIT-COOLDOWN · עוד 23 דק'"
   },
   "canonLast": {
-    "at": "2026-10-03T02:03:26.418Z",
+    "at": "2026-10-03T02:42:44.494Z",
     "ok": true,
     "path": "reports/money-2026-10-03.md"
   },
-  "fillsSeen": 134,
-  "fillDeployPending": true,
+  "fillsSeen": 152,
+  "fillDeployPending": false,
   "lastActionOk": true,
-  "lastDepositScanAt": "2026-10-03T02:20:26.227Z",
+  "lastDepositScanAt": "2026-10-03T02:47:26.228Z",
   "lastStreamDay": "2026-09-27",
-  "lastTotalSteem": 390.525,
+  "lastTotalSteem": 33.667,
   "fleetSeen": {
     "pulseDay": "2026-10-02",
     "studentDay": "2026-10-03",
     "keeperRestartAt": "2026-10-02T22:15:26.098Z"
   },
-  "lastPoolGuardAt": "2026-10-03T02:20:51.593Z",
-  "lastFleetSweepAt": "2026-10-03T02:20:49.873Z",
-  "lastReceipt": {
-    "at": "2026-10-03T02:21:27.477Z",
-    "kind": "FILL-DEPLOY",
-    "reason": "נזיל 190.525 STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2) · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון",
-    "parity": 0.096854,
-    "cancelled": [
-      {
-        "orderid": 1790993081,
-        "txid": null
-      },
-      {
-        "orderid": 1790993082,
-        "txid": null
-      },
-      {
-        "orderid": 1790993083,
-        "txid": "a288ce73bca166d4444813db109b579198b69441"
-      }
-    ],
-    "placed": [
-      {
-        "orderid": 2026100301,
-        "sell": 71.647,
-        "receive": 6.974,
-        "price": 0.097338,
-        "txid": "8885e7bbeb5406cda183b5719ae966ff87082ab9"
-      }
-    ],
-    "error": "cancel 1790993081: unknown key:unknown key:  | cancel 1790993082: unknown key:unknown key: "
-  }
+  "lastPoolGuardAt": "2026-10-03T02:41:47.975Z",
+  "lastFleetSweepAt": "2026-10-03T02:47:48.860Z"
 }
