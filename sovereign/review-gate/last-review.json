@@ -1,31 +1,33 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T22:34:34.798Z",
+  "at": "2026-10-03T23:31:35.148Z",
   "source": "push-range",
-  "diffChars": 89284,
-  "diffStat": "scripts/charter-events-restore.ts    | 213 -------------------------------\n scripts/charter-issue.ts             |  20 ---\n scripts/charter-republish.ts         |  67 ----------\n scripts/check-tron-history.mjs       |  72 -----------\n scripts/check-tron-live.mjs          |  49 --------\n scripts/hive-key-prove.mjs           | 189 ----------------------------\n scripts/lab-blurt-anchor-live.ts     | 157 -----------------------\n scripts/lab-blurt-broadcast-proof.ts |  30 -----\n scripts/lab-hive-deposit-proof.ts    |  34 -----\n scripts/r104-saos-rail-proof.mjs     |  46 -------\n scripts/r105-sol-deposit-proof.mjs   |  45 -------\n scripts/r111-chain-orders.mjs        |  41 ------\n scripts/r111-ledger-check.ts         |  20 ---\n scripts/r111-patch-money-daemon.py   |  85 -------------\n scripts/r147a-forensics.mjs          | 128 -------------------\n scripts/r148-sign-decisions.ts       |  90 -------------\n scripts/r148b-judge-probe.ts         |  34 -----\n scripts/seal-adopt.mjs               | 237 -----------------------------------\n scripts/seal-recover-local.ts        | 175 --------------------------\n scripts/test-evm-ext.sh              | 125 ------------------\n scripts/verify-luck-sha.cjs          |  38 ------\n 21 files changed, 1895 deletions(-)",
+  "diffChars": 529823,
+  "diffStat": "mini-services/keeper/index.ts                   |  130 +\n mini-services/treasury-audit/index.ts           |   46 +\n progress.md                                     |   18 +-\n scripts/tron-balance.ts                         |  142 +\n sovereign/audit/gitleaks-history.json           |   23 +\n sovereign/audit/gitleaks-latest.json            |  462 ++\n sovereign/businesses/business-log.jsonl         |   82 +\n sovereign/businesses/engine-state.json          |    4 +-\n sovereign/curation/comment-memory.json          |    2 +-\n sovereign/curation/history.json                 |   15 +\n sovereign/curation/state.json                   |  261 +-\n sovereign/custody/tron-balance.json             |   15 +\n sovereign/fleet-verify/state.json               |   15 +-\n sovereign/governance/DECISION_LOG.jsonl         |    5 +\n sovereign/governance/cycle-state.json           |   24 +-\n sovereign/governance/daemon-state.json          |   12 +-\n sovereign/governance/econ-gate.jsonl            |    5 +\n sovereign/governance/loop-state.json            |   24 +-\n sovereign/hunter/state.json                     |   70 +-\n sovereign/keeper/fleet-guard-state.json         |   58 +-\n sovereign/keeper/housekeeping.json              |    6 +\n sovereign/keeper/self-boot-state.json           |   12 +-\n sovereign/keeper/state.json                     |  261 +-\n sovereign/kpi/state.json                        |    2 +-\n sovereign/money/pnl-scan.json                   |   78 +-\n sovereign/money/state.json                      |   16 +-\n sovereign/pulse/state.json                      |    6 +-\n sovereign/see/r188-rails-strip-mobile.png       |  Bin 0 -> 68074 bytes\n sovereign/see/r188-rails-strip.png              |  Bin 0 -> 139808 bytes\n sovereign/student/state.json                    | 7284 +++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json  |   51 +-\n sovereign/treasury-audit/last-audit.json        |   51 +-\n sovereign/treasury-audit/state.json             |   14 +-\n sovereign/web",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
-  "skillsLoaded": [],
+  "skillsLoaded": [
+    "fleet-conventions"
+  ],
   "verdict": "pass",
   "findings": [],
   "reason": "",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 3041,
-    "phase1TookMs": 573,
+    "totalTookMs": 4213,
+    "phase1TookMs": 628,
     "phase1Tokens": {
-      "prompt_tokens": 1782,
-      "completion_tokens": 4,
+      "prompt_tokens": 1791,
+      "completion_tokens": 9,
       "total_tokens": 0
     },
-    "phase2TookMs": 1536,
+    "phase2TookMs": 2511,
     "phase2Tokens": {
-      "prompt_tokens": 6768,
-      "completion_tokens": 9,
+      "prompt_tokens": 7875,
+      "completion_tokens": 14,
       "total_tokens": 0
     },
     "llmCalls": 2
