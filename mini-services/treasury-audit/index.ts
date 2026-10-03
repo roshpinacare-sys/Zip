@@ -330,13 +330,37 @@ async function runAudit(): Promise<AuditArtifact> {
   const [money, chainBalances] = await Promise.all([fetchMoney(), fetchChainBalances()]);
   const { check: floor, orders } = checkLadderFloor(money);
 
+  // r187-B — ייחוס-דריפה: המדידה-הכפולה. הצי סוחר-חי (cancels/fills בכל-רגע) —
+  // שתי-קריאות-מקבילות (בית-מול-שרשרת) נפרדות-בזמן-ריצה ופעולת-סולם בשידור
+  // ביניהן נראית כ-"דריפה". חוק-האמת: דריפה = מה שנשאר-גם-במדידה-שנייה
+  // (8ש' אחרי). חולפת → pass-עם-ייחוס; מתמדת → fail אמיתי.
+  let driftCheck = checkBalancesDrift(money, chainBalances);
+  if (driftCheck.status === "fail") {
+    await new Promise((r) => setTimeout(r, 8_000));
+    const [money2, chain2] = await Promise.all([fetchMoney(), fetchChainBalances()]);
+    const retry = checkBalancesDrift(money2, chain2);
+    const first = driftCheck.numbers as { driftSteem?: number; driftSbd?: number };
+    driftCheck =
+      retry.status === "pass"
+        ? {
+            ...retry,
+            detail: `דריפה-חולפת — פעולת-סולם בשידור בין-המדידות; מדידה-שנייה (8ש') חזרה לקו — ${retry.detail}`,
+            numbers: { ...retry.numbers, transientResolved: true, firstDriftSteem: first.driftSteem ?? null, firstDriftSbd: first.driftSbd ?? null },
+          }
+        : {
+            ...retry,
+            detail: `אי-התאמה מתמדת (שתי-מדידות בהפרש 8ש') — ${retry.detail}`,
+            numbers: { ...retry.numbers, transientResolved: false, firstDriftSteem: first.driftSteem ?? null, firstDriftSbd: first.driftSbd ?? null },
+          };
+  }
+
   const checks: CheckResult[] = [
     checkDecisionChain(),
     checkSnapshotChain(),
     checkReceiptsBook(),
     floor,
     checkStaleOrders(orders),
-    checkBalancesDrift(money, chainBalances),
+    driftCheck,
   ];
   const anomalies = checks.filter((c) => c.status === "fail").map((c) => `${c.id}: ${c.detail}`);
   const warnings = checks.filter((c) => c.status === "warn").map((c) => `${c.id}: ${c.detail}`);
