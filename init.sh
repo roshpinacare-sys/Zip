@@ -23,7 +23,8 @@ head "1. אמת-מאגר"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   LOCAL=$(git rev-parse --short HEAD)
   git fetch -q origin 2>/dev/null && ORIGIN=$(git rev-parse --short origin/main) || ORIGIN="$LOCAL"
-  [ "$LOCAL" = "$ORIGIN" ] && ok "local==origin==$LOCAL" || bad "local=$LOCAL מאחורי origin=$ORIGIN — ריצה: git pull --rebase"
+  BEHIND=$(git rev-list --count HEAD..origin/main 2>/dev/null)
+  [ "$BEHIND" = "0" ] && ok "local($LOCAL) אינו-מאחורי origin($ORIGIN) — מסונכרן (קדימה: $(git rev-list --count origin/main..HEAD))" || bad "local=$LOCAL מאחורי origin=$ORIGIN ב-$BEHIND-קומיטים — ריצה: git pull --rebase --autostash"
   if git check-ignore -q .git-askpass.sh; then ok "askpass-הבית (PAT) מנוטרל ב-gitignore"; else bad "דליפה: .git-askpass.sh לא-מנוטרל — הוסף ל-.gitignore"; fi
   LEAKS=$(git diff --cached --name-only 2>/dev/null | grep -E "\.git-askpass|pat\.env|headcorner\.txt" | tr '\n' ' ' || true)
   [ -z "$LEAKS" ] && ok "אין סודות ב- staging" || bad "סודות ב-staging: $LEAKS"
@@ -51,6 +52,10 @@ FH=$(curl -s -m 5 http://localhost:3046/health 2>/dev/null || true)
 echo "$FH" | grep -q '"ok":true' && ok "מפעל-התוכן: ticks=$(echo "$FH" | grep -o '"ticks":[0-9]*' | cut -d: -f2) posts=$(echo "$FH" | grep -o '"posts":[0-9]*' | cut -d: -f2)" || bad "מפעל-התוכן לא ירוק"
 CH=$(curl -s -m 5 http://localhost:3040/ 2>/dev/null || true)
 echo "$CH" | grep -q '"service":"curation"' && echo "$CH" | grep -q '"armed":true' && ok "קיורציה: armed" || bad "קיורציה לא חמושה"
+
+head "4b. מפקד-ההכנסות (revenue-census · r156 · אמת-מהשרשרת)"
+CMSG=$(bun scripts/revenue-census.mjs --check 2>/dev/null | sed -n 1p)
+[ -n "$CMSG" ] && ok "${CMSG#census: } · סריקה-מלאה: bun scripts/revenue-census.mjs" || bad "census עתיק/חסר — ריצה: bun scripts/revenue-census.mjs (~40ש')"
 
 head "5. שער-ההרג (sovereign-guard · r153 · אדפטציה של destructive_command_guard)"
 bun scripts/sovereign-guard.mjs --selftest >/dev/null 2>&1 && ok "selftest-השער PASS (60 מקרים)" || bad "selftest-השער נופל — ריצה: bun scripts/sovereign-guard.mjs --selftest"

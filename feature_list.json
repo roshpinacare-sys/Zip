@@ -2,7 +2,7 @@
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
   "last_updated": "2026-10-02T23:18:00Z",
-  "active_feature": "r155-sovereign-index-converge",
+  "active_feature": "r156-revenue-census",
   "features": [
     {
       "id": "F-1",
@@ -153,6 +153,20 @@
         "F-7"
       ],
       "next_step": "המפה-מתחדשת-בכל-init.sh; כל-תת-מערכת-חדשה-נרשמת-ב-TRUTH_MAP-של-המנוע — לא-במסמך"
+    },
+    {
+      "id": "F-13",
+      "name": "מפקד-ההכנסות הריבוני (revenue-census)",
+      "status": "running",
+      "description": "Chain-truth revenue engine: scripts/revenue-census.mjs scans account_history (9-day window, cached 26h) measuring curation_reward, author_reward, withdraw_vesting (powerdown landings incl. the 2026-10-03T02:01Z verification), fill_order activity, and vote-weight disaggregation (sovereign machine vs external second-writer) — all from the chain, zero declarations. Wired into init.sh section 4b (freshness gate). Built after live measurement exposed: 0 revenue collected yet (structural: first votes 27/09 pay out from 04/10; first factory posts 02/10 pay out from 09/10) and an external writer on @headcorner casting 146 votes at avg 42.3% vs machine's 32 votes ≤6% — VP-budget competition now continuously monitored (V1b).",
+      "evidence_path": "sovereign/revenue/census.json",
+      "last_verified_at": "2026-10-02T23:52:00Z",
+      "evidence": "4646-פעולות-נסרקו-ב-46-באצ'ים · SP-נטו 4,286.123-ביחס-החי-1613.31 · הכנסה-נמדדת-בחלון 0.0000-USD-עם-הסבר-מבני (pending-פרעונים 04-09/10) · powerdown-פעיל 475.855SP/שבוע-הבא 02:01:27Z · פיצול-הצבעות: מנוע-32-מול-חוץ-146-ב-42.3%",
+      "dependencies": [
+        "F-3",
+        "F-2"
+      ],
+      "next_step": "אימות-פרעוני-קיורציה-הראשונים (04-07/10) ופרעוני-מפעל (09/10); אימות-נחיתת-powerdown-ב-02:01Z-דרך-withdraw_vesting; מעקב-V1b-אחרי-כותב-החוץ"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."
