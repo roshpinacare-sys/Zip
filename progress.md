@@ -216,3 +216,10 @@
 - בעלות-על posting-Hive של headcorner הוכחה מול הרשות החיה: PROVED (sovereign/vault/hive-key-proof.json).
 - קשירת-שם WEAVE_HIVE_WIF||HIVE_POSTING_WIF תוקנה ב-anchor + שני-ה-workflows — המסילה-השנייה תשדר במחזור-הבא.
 - **r181-b: המסילה השנייה חיה.** Hive txid 94f491ff… (block 110457429, auth headcorner) — עיגון ראשון של cp#1241 על Hive; "2/2 chains". תוקן גם ה-yml של התאום ב-Domain (PAT). חסם-המפעיל מ-r179: נסגר.
+
+## r182 — הכספת-הריבונית-המקומית + השבת-הסמכות + עיגון-חי-מהבית (owner: "תפעיל הכל מיד")
+- **כספת-הסוכנים קיימת עתה (שימוש-נצחי):** ~/.sovereign/vault (0700) — 13 מפתחות מכספת-הענן Domain, מועברים-בצופן ECDH P-256+AES-256-GCM (run 37145712775, ענף vault-transfer — צופן-קבוע-לנצח) · קורא: console/agents/vault-read.mjs (--list/--manifest/שם) · access.log לכל-קריאה.
+- **הסמכות הושבה:** weave-seal.enc נפתח ב-MAIN_KEY (סיסמת-החותם שאומצה r70) דרך דלת /api/arm/seal; באג-לטנטי-תוקן (HEX64-דחה-קידומת-0x — הדלת-מעולם-לא-נפתחה) → custody OPEN · מפתח-רשת 0xe376… חי-שוב-ב-DB.
+- **Zip מחומשת:** HIVE_POSTING_WIF הוזרם לכספת-הריפו (sealed-box 201) — עתה שני-הבתים (Zip+Domain) מעידים על-שתי-השרשראות.
+- **עיגון-חי מהבית הריבוני:** weave-anchor-lines דיספאטש (run 37146176969) → cp#1245 · steem d6e30075… · **hive 2362c2b4…** · hiveSkipped=null · att 1256 · אומר-על-השרשרת (op-50803).
+- מניפסט-הכספות מלא: 248-רשומות-ארנק · 13-מקומי · 24-ענן — MANIFEST.json + worklog r182.

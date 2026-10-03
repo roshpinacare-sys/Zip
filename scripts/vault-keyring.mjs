@@ -194,7 +194,6 @@ if (cmd === "add") {
   const tmpPass = "vault-self-test-pass-r180";
   const tpass = () => tmpPass;
   // מקרה-בדיקה: WIF-אמיתי-מקומי מ-brain-key-בדיקה (הספרייה-הרשמית)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const steem = require(require("path").join(home, "node_modules", "steem"));
   const testWif = steem.auth.toWif("the-weave-vault-self-test-r180");
   const pub = steem.auth.wifToPublic(testWif);

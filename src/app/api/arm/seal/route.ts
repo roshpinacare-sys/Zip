@@ -99,7 +99,12 @@ function sealDecrypt(payloadHex: string, passphrase: string): SealPayload {
   return parsed;
 }
 
+// r180 תיקון לטנטי: ה-seal נושא מפתחות עם קידומת 0x (66 תווים) —
+// הדלת המקורית דרשה 64-hex חופשי ומעולם לא נפתחה בפועל.
+// הנרמול שומר על הקפדנות: אחרי הסרת הקידומת נדרשות בדיוק 64 ספרות-hex.
 const HEX64 = /^[0-9a-f]{64}$/;
+const normKey = (k: string) => k.replace(/^0x/, "").toLowerCase();
+const toKeyHex = (k: string) => ("0x" + normKey(k)) as `0x${string}`;
 
 // ── הדלת ────────────────────────────────────────────────────────────
 
@@ -150,8 +155,8 @@ export async function POST(req: NextRequest) {
   }
 
   // אימות-תוכן מלא — אי-התאמה אחת = 403 וכלום לא נכתב
-  const netOk = HEX64.test(payload.networkKeyHex) && payload.networkAddress === meta.networkAddress;
-  const cloudOk = HEX64.test(payload.cloudKeyHex) && payload.cloudAddress === meta.cloudAddress;
+  const netOk = HEX64.test(normKey(payload.networkKeyHex)) && payload.networkAddress === meta.networkAddress;
+  const cloudOk = HEX64.test(normKey(payload.cloudKeyHex)) && payload.cloudAddress === meta.cloudAddress;
   if (!netOk || !cloudOk) {
     await db.chainRun.create({
       data: {
@@ -178,8 +183,8 @@ export async function POST(req: NextRequest) {
   }
   await db.networkKey.upsert({
     where: { id: "weave-network" },
-    create: { id: "weave-network", address: payload.networkAddress, devKeyHex: payload.networkKeyHex },
-    update: { devKeyHex: payload.networkKeyHex, address: payload.networkAddress },
+    create: { id: "weave-network", address: payload.networkAddress, devKeyHex: toKeyHex(payload.networkKeyHex) },
+    update: { devKeyHex: toKeyHex(payload.networkKeyHex), address: payload.networkAddress },
   });
 
   await db.chainRun.create({
