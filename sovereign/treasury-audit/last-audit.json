@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 339,
-  "at": "2026-10-03T05:05:27.685Z",
-  "verdict": "FAIL",
+  "seq": 342,
+  "at": "2026-10-03T05:20:27.640Z",
+  "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 184 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 185 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 184,
+        "entries": 185,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 305 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 320 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,12 +28,12 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 3 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 1 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 3
+        "lastAgeMinutes": 1
       }
     },
     {
@@ -60,20 +60,18 @@
     },
     {
       "id": "balances-drift",
-      "status": "fail",
-      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 2 · דריפת SBD -0.2 (אנומליה)",
+      "status": "pass",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 5.287 · SBD 0.8 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 8.287,
-        "homeSbd": 0.5,
-        "chainSteem": 6.287,
-        "chainSbd": 0.7,
-        "driftSteem": 2,
-        "driftSbd": -0.2
+        "homeSteem": 5.287,
+        "homeSbd": 0.8,
+        "chainSteem": 5.287,
+        "chainSbd": 0.8,
+        "driftSteem": 0,
+        "driftSbd": 0
       }
     }
   ],
-  "anomalies": [
-    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 2 · דריפת SBD -0.2 (אנומליה)"
-  ]
+  "anomalies": []
 }
