@@ -6629,3 +6629,93 @@ Stage Summary:
 - **אפס-בקשות-מפתח-למפעיל — מעתה חוק-קוד**: "סיסמת משמרת" לא קיימת, לא נדרשה ולא תישאל. כל זהות/חימוש/הפעלה נגזרים מכספת הסוכנים ונשפטים מול השרשרת החיה. המפעיל רואה "מחובר כ-@headcorner" בלי לעשות דבר.
 - שרשרת-הסמכות של השרת עצמו חוזקה (getGhToken 3-מקורות) — כישלון-סמכות-מקומי כבר לא חוסם אטימה-לענן.
 - נפתח-לגל-הבא: EVM_ANCHOR_PK (מסילת-EVM-שנייה) · armBuy בתוך-ה-188bps · מדידת-פאות-ה-curation (04/10).
+---
+Task ID: r186-a
+Agent: Explore (bleeds scanner)
+Task: סריקת-דימומים — סודות בעץ, בהיסטוריה, בהרשאות-קבצים ובלוגים (r186-a)
+
+Work Log:
+- נקרא worklog (r180–r185) — הקשר: כספת-סוכנים 13 מפתחות 0600, עיגון 3 שרשראות, "אפס-ערך בגיט/לוג" נטען-בעבר. מטרה: למדוד את הטענה.
+- סריקת-עץ נעקב (1453 קבצים, git grep): WIF/ghp/github_pat/AWS/PEM/eyJ/0x64hex/מזהי-סודות — כל ההיטים סווגו.
+- **ממצא-קריטי: scripts/check-tron-connection.mjs:32 — mnemonic BIP39 בן 12 מילים מוצק בקוד ("crat…", 74 תווים, checksum תקין לפי הסקריפט עצמו), נעקב-בגיט.** ההערה בקוד: מסך "Back Up Mnemonic" מתמונת המפעיל. נכנס ב-commit 0e252dab (2026-09-21), מעולם לא הוסר → חי בכל-ההיסטוריה ובכל-הקלונים. גזירת-כתובות לא בוצעה (אסור); התאמה לכתובות-צי לא נקבעה.
+- היסטוריה: `--diff-filter=D` על env/secret/key/pat — **אפס קבצים-שנמחקו-פעם**; `ghp_` — אפס-קומיטים-אי-פעם; `-G WIF` — 9 קומיטים וכולם הוסברו (STM5-פומבי · מפתחי-בדיקה-מתועדים · sha512 של bun.lock); `-S'crater talent'` — קומיט-אחד בדיוק (0e252dab); `-G 0x64hex` — ספר-העיגון (roots/txids) בלבד.
+- SAFE-PATTERN שנבדקו-ואושרו: `5JNH…` len52 (lab-broadcast-rejection.cjs:11 — מפתח-הבדיקה-הציבורי של steem-js, "לא שלנו" בקוד) · `5KQw…` len51 (web-probe.ts:27 — fallback מתועד של graphene/"nathan") · קבוע-סדר-העקומה secp256k1 (console/saos-live.js:89) · TRANSFER_TOPIC · PEM=הגדרות-regex בלבד ב-4 סורקים · eyJ=רעש-בינארי ב-PNG (strings: אפס-JWT אמיתי) · STM5/STM8=מפתחות-ציבוריים.
+- הדפסות-לוג: scripts נסרקו — הכל טביעות-אצבע/שמות/אורכים (verify-owner-input fp 6 · check-tron fp 5 · vault-read ל-piping-מעוצב); charter-issue.ts:15 מדפיס-טוקן-בונה-חדש-פעם-אחת BY-DESIGN (hash-stored, stdout-מקומי). dev.log (700KB): אפס WIF/ghp/pat; sovereign/: אפס WIF/ghp — רק leaf/root-hashes ציבוריים (ledger.json 13,405 0x64hex — ספר).
+- כספת-והרשאות: ~/.sovereign/vault 0700 · secrets/ 0700 · כל-13-הקבצים 0600 · transfer.pub 0644=פומבי-מעוצב · ~/.git-askpass.sh 0700 · db/session.key 0600. נעקב-בגיט: אפס vault/סודות/PEM/env-אמיתיים (רק .env.example + sovereign/vault/{README,2-קבלות-ללא-חומר}) — נוקה גם בתבניות.
+- **דימומי-הרשאות בדיסק: upload/headcorner.txt (סיסמת-אב Steem, 52) = 777 · upload/pat.env (PAT) = 777 — עולם-קריא; gitignored-נוקה אבל חשופים מקומית.** db/wallet-vault.db (248 רשומות) = 664 · .env = 755 (DATABASE_URL בלי-creds) · dev.log = 664 (תוכן-נקי).
+- gitleaks: אין בינארי-מקומי. gitleaks.yml: push+PR+dispatch · fetch-depth 0 (היסטוריה-מלאה) · בינארי-מקובע v8.24.3 · --redact · exit1. .gitleaks.toml נעקב: allowlist יחיד RULE-level (ledger.json encKey/keyIv/keyTag, hex-gated, condition=and) — צר-ומתועד. **חששות: (1) כל-הריצות במסילה-הפרטית מתות-ב-setup מאז 09-20 (מיצוי-דקות) — הסריקה מוגדרת ולא-רצה; (2) הכותרת עצמה צופה ממצאים-היסטוריים ("דור-מפתחות ישן") בהתעוררות; (3) חוקי-ברירת-המחדל של gitleaks לא תופסים mnemonic — הממצא-הקריטי היה-עובר-מתחת-לרדאר.**
+
+Stage Summary:
+- **פסק-דין: 3 BLEEDS + 1 קריטי-בולט — לא ZERO.** (1) CRITICAL: mnemonic 12-מילים נעקב-בגיט (check-tron-connection.mjs:32 · commit 0e252dab · "crat…" len74) — נדרש: הסרה + סיבוב-מפתח-ארנק-TRON-שממנו-נגזר + ניקוי-היסטוריה/טריאז'; (2) HIGH-פרמס: headcorner.txt 777 · (3) HIGH-פרמס: pat.env 777 · (4) MEDIUM: wallet-vault.db 664.
+- העץ-הנעקב נקי-מ-WIF/ghp/AWS/PEM/JWT/סיסמאות — הטענה "אפס-ערך-סוד בגיט" נכונה **חוץ-מה-mnemonic** שנפל-בין-הכיסאות (סווג "קלט-בדיקה" ולא "סוד").
+- ההיסטוריה נקייה מכל-דפוס-גבוה-מלבד ה-mnemonic-הבודד; אפס-קבצי-סוד-נמחקים-ששרדו; dev.log ו-sovereign/ נקיים-לחלוטין מחומר-חי.
+- הכספת-הריבונית ממשיכה-לעמוד-בחוק (0600/0700 בכל-השכבות) — פגם-היחיד: ~/.sovereign עצמו 775 (שם-הנתיב נראה, התוכן חסום).
+- gitleaks רדום-בפועל (מיצוי-דקות) וסורק-עיוור ל-seeds — מומלץ כלל-BIP39 מותאם + ריצה-מקומית-תקופתית.
+- לא-נמדד: העלאת-לוגים-של-Actions מהענן (אין-gh/אימות-API), סיווג-פרטיות-הריפו (API 403-מוגבל; עקיף: פרטי), והרצת-גזירת-ה-mnemonic (אסור/מיותר-לפסק).
+
+---
+Task ID: r186-b
+Agent: Explore (dead-things census)
+Task: מפקד-מתים — סקריפטים יתומים, חיבורים-שבורים, תהליכים-מתים מול הצהרות (r186-b)
+
+Work Log:
+- נקרא worklog (r180–r185) + sovereign/capabilities/capabilities.json + sovereign/fleet/fleet.yaml + fleet/audit-latest.json — הצהרות-המוצא: "17 דיבונים חיים", "19 יכולות (11 LIVE · 8 DORMANT)", "5 זהב-רדום".
+- מפקד-סקריפטים: 75 קבצי scripts/ — לכל אחד חיפוש-אזכורים חוץ-עצמיים (workflows, package.json, mini-services, src, console, git-hooks, סקריפטים-אחים). תוצאה: 11 CLOUD-LIVE (מופעלים-ע"י-workflow), 22 LOCAL-WIRED (מחוטים-ל-daemons/routes/git-hook/כלים-רשומים), 42 ORPHAN (אפס-אזכורים חוץ-מ-worklog/מסמכים — ברובם עדויות-חד-פעמיות r10x/r14x/lab-* שכבר-הוכיחו).
+- package.json scripts: 10 יעדים — 9 חיים (dev/build/start/lint/db:*) · verify:book → scripts/weave-verify-book.ts קיים ומחוט גם ל-console/verify. אפס-יעדים-שבורים.
+- ביקורת-12-workflows: אף-אחד לא מפנה לנתיב-חסר — 0 BROKEN-WIRE. טריגרים: fleet-audit בלבד מתוזמן (cron 37 */6) · gitleaks על push/PR · 10 נוספים dispatch-בלבד (הקדנסים הוסרו R71 — התאום ב-Domain נושא את השעון; מהריפו-הזה הם רדומים-למעט-הזנקה). סודות: WEAVE_STEEM_WIF ×5 · WEAVE_SEAL_PASSPHRASE ×5 · WEAVE_OPS_PAT ×3 · WEAVE_HIVE_WIF/HIVE_POSTING_WIF ×2 · BLURT_ACTIVE_WIF ×2. כפילויות-מכוונות: web-probe/web-probe2 (אבחון-חד-פעמי-מול-מדידת-RC) · weave-anchor/anchor-zero מול anchor-lines (קו-ידני-יחיד מול רצף).
+- מפקד-תהליכים-חיים: ps+ss מול המניפסט — 17/17 נמדדו-חיים על הפורטים המדויקים (3000, 3033–3048; decision-brain 3047 python חי-במצב Suspended-idle-כמוצהר). מאזינים-לא-מנוהלים (תשתית-סנדבוקס, לא-שלנו): 81 (Caddy→Next) · 12600 (uvicorn) · 19001/19005/19006 (404-ריקים). אפס-מתים-מוגדרים, אפס-רצים-לא-מוגדרים-משלנו.
+- מפקד-מסלולי-API: 112 route.ts. USED-BY-UI רובן; SERVER-ONLY: /api/curation · /api/econ-gate · /api/saos/relay (console/wallet.html) · /api/kpi (קטלוג-API בלבד). ORPHAN-ROUTE (אפס-קוראים): /api/arm/inspect (רופא-המפתחות — ה-UI-נמחק-ב-r185) · /api/army/recruit · /api/money/blurt (רגל-Blurt-חיה-מאחורי-נתיב-שאף-צד-לא-קורא) · /api/sovereignty/briefing · /api/charter/projects/[slug]/artifacts · /[slug]/status.
+- חיבור-שבור-קדמי (BROKEN FRONT WIRE): businesses-view.tsx:221 קורא /api/businesses/log — המסלול לא-קיים; ה-data שהוא-אמור-להציג (sovereign/businesses/brief-log.jsonl) נכתב-ע"י business-daemon ואין-לו-שום-קורא — כתיבה-לתוך-ריק.
+- צרכני-עץ-הנתונים: כל-מצבי-ה-daemons (money/pulse/curation/hunter/student/weblift/kpi/revenue/scout/treasury-audit/fleet-verify/engine-state/content-factory-state/relay-queue) — יש-כותב-חי+קורא (fleet-guard/sovereign-index/views). מתים: sovereign/state.json (השורש) — אפס-כותבים, אפס-קוראים, קפוא-מ-2026-09-28 (מצב-מורשת-שהוחלף-במצבי-הדיבונים) · sovereign/ops-log.json — יש-כותב (ops.ts) אך-שקט-מ-28/09 (אין-פקודות-מפעיל-בשרשרת — עצל-לא-מת).
+
+Stage Summary:
+- ORPHAN scripts: 42/75 (מהם ~26 עדויות-חד-פעמיות-שהוכיחו וניתן-לארכב; ~8 כלים-שימושיים-חסרי-וו: api-audit.sh, web-publish-local.ts, fold-live-state.mjs, vault-inventory/keyring, sovereign-milestones, scan-diag, mobile-scan) · BROKEN-WIRE workflows: 0/12 (אך 10/12 dispatch-only-בריפו-הזה — השעון-אצל-התאום) · ORPHAN routes: 6 · BROKEN front-wires: 1 (/api/businesses/log) · daemons: 17/17 חיים-נמדד (ההצהרה אמת).
+- זהב-רדום-עליון: EVM_ANCHOR_PK עדיין-אפס-צרכן-קוד; erc8004-anchor.ts (הוכח 13/13) יתום — חיבורו-כקו-רביעי-ל-weave-anchor.
+- החיבורים-הדחופים: ① מסלול /api/businesses/log להגשת brief-log.jsonl (מתקן-את-הקריאה-השבורה-מה-UI) ② /api/money/blurt להזרקה-ל-money-views (הרגל-השלישית-מדודה-ומוכחת-רק-מאחורי-נתיב-מת) ③ api-audit.sh-כ-workflow-קבוע (היה-תופס-את-ה-wire-השבור-אוטומטית) ④ army/recruit+sovereignty/briefing — לחבר-ל-UI-או-למחוק ⑤ ניטור-התאום: התראה-אם-Domain-מפסיק-לשאת-את-הקדנסים (10-קווים-נשענים-על-ריפו-שאינו-כאן).
+---
+Task ID: r186-c
+Agent: Explore (claims-vs-reality)
+Task: אנטי-שקר — ביקוח כל-טענה מול השרשרת והקבצים (r186-c)
+
+Work Log:
+- נקראו r181..r185 מ-worklog + progress.md; חולצו טענות-ברות-הוכחה (txids, מספרים, מצבי-חימוש) לביקוח.
+- LEDGER: sovereign/ledger.json (jq) — attestations 1270 · checkpoints 1260 · agents 13 ✓ · root אחרון cp#1260 = 0x2d8515e4…64hex תקין · 3-האטסטציות האחרונות 20:33–20:38Z (בת ~1.4ש') — לא-ישנות. cp#1259 מקושר אנקור zero-9369 (tx 0xfb3f7d22…) — הספר והקווים חופפים.
+- ERC-8004 על-השרשרת: 2 מתוך 13 txids נבדקו מול rpc.zero.tech (eth_getTransactionReceipt) — 0xc35c908e… status 0x1 בלוק 0x228e0ef=36233455 ✓ · 0x6e4ed5d9… status 0x1 בלוק 0x228e147=36233543 ✓ · EOA→EOA עצמית 0xe376d843… — בדיוק כפי שהקובץ טוען (13/13, blocks 36233455-543).
+- Steem עוגן cp#1258: txid 7dd891c020fe12c6540243329711be2ce3d783c6 מול api.steemit.com — בלוק 110126953 · custom_json saos.weave.core.v1 · required_posting_auths [headcorner] — VERIFIED.
+- Hive עוגן cp#1258: txid c9909a2302fcee52df0f0622bc00ea40c38f2716 מול api.hive.blog — בלוק 110460456 · אותו op — VERIFIED. גם ה-94f491ff… של r181-b (בלוק 110457429) נמצא חי.
+- ZERO עוגן cp#1259: 0xfb3f7d22… מול rpc.zero.tech — status 0x1 · בלוק 0x228f35b=36238171 · gasUsed 0x94e8=38120 · גז 0 — בדיוק כפי ש-zero-line.json רושם. גם הודעות-ה-commit מאומתות: 5502acaa "cp#1258 · 3/3 chains · att 1269" · 4c8fe7a4 "weave-anchor-zero · cp#1259 · att 1270".
+- BLURT: rpc.blurt.blog מחזיר HTTP 500 גם על get_transaction וגם על get_block(64178098); blurt-rpc.saboin.com 500; rpc.blurt.world + blurt.putracipto.my.id אינם מגיבים — העדות-המשולשת לא ניתנת לאימות בלתי-תלוי כרגע (כשל-צומת, לא-כשל-טענה). ede922df…@64178098 נשאר PARTIAL/UNVERIFIABLE-היום.
+- כסף: armBuy חמוש (minSbd 0.30 · offsets 20/40/80/160bps ✓ בקובץ) · beats 4364 · actionsToday 12/12 · census market spread מחושב-מחדש מ-bestAsk 0.101972/bestBid 0.100087 = 188.3bps ✓ טענת-ה-188.4bps מדויקת. history: אין אף רשומת-ביצוע-קניית-סולם (רק ARM-BUY ×6 · BID-ONLY · FILL-DEPLOY) — הסולם חמוש-ולא-ירה.
+- PnL אמיתי: economy/pnl-snapshots.json seq10 (00:00Z): 216 fills · 186 טריפים סגורים · realized capturedSbd **−1.372769 SBD ≈ −$0.89** — המסחר מבוצע אך ה-PnL הממומש שלילי; אף טענת-רווח לא נרשמה ב-r181..r185 — כנות נשמרה. gridExternalFillsLifetimeUsd $0.279 (KPI).
+- קיורציה: pending-מול-השרשרת עכשיו = 0.000 STEEM / 0.000 SBD / 0.000 VESTS — תואם rewards.json (CLAIM-ZERO מ-02/10, txid=null מתועד-כנות) · הצבעה 4cd3f195… (maxart, משקל 200=2%) אומתה על-השרשרת (בלוק 110088789) · votesToday 0 + POWER-FLOOR HOLD כנים · פרעון ראשון צפוי 04/10 מסומן PENDING (V2b) — לא נטען כהכנסה.
+- Fleet/KPI: audit-latest 17/17 alive · 0 violations (16:22Z) ✓ · fleet-verify 10 משימות PASS · KPI: revenuePerDayUsd 0.0029 (מדוד, מתחת ליעד $0.01) · capitalSteemTotal 11.178 תואם money lastTotalSteem ✓ · governance cycle 244 (r183-b דיווח 234 — צומח) · treasury-audit seq542 (22:00Z) verdict **FAIL**: balances-drift (STEEM −0.5 · SBD 2.893 אנומליה מול השרשרת) — הרשת עצמה מדווחת-על-עצמה בכנות.
+- סטיות-תיעוד: worklog r184 אמר "blurt-rail-proof.json (PROVED ×3)" — הקובץ נושא "PROVED x2" (השלישי ede922df חי ב-steem-line+commit, לא בקובץ) · progress.md ישן 22.7ש' (Last Updated 02/10T23:18Z, מכסה עד r155 — חסרים r156..r185).
+- מדידת-חיים: churn limit_order_create/cancel כל-6ש' על headcorner בזמן-אמת (21:54–21:57Z) — הסוכן באמת עומד-על-הספר עכשיו; VP: שדה-השרשרת 66.77% מול מדידת-ה-mana שלנו 59.83% (חישוב-עצמאי שלי: ~58.8%) — הפער הידוע מ-r183 עדיין פתוח.
+
+Stage Summary:
+- VERIFIED 14/16 טענות-מובילות של r181..r185: ledger (1270 att · 1260 cp · 13 agents · root תקין) · ERC-8004 2/2-קבלות 0x1 בבלוקים המדויקים · עוגני Steem+Hive+ZERO עם txids/blocks/op-id/auths מדויקים · 188.4bps · 17/17 fleet · הצבעת-קיורציה על-השרשרת · hive-key-proof PROVED · חישוב-PnL עצמי כן.
+- FAILURES/DISPUTED: (1) Blurt — אי-אימות אפשרי היום (כל-הצמתים 500/שקטים; PARTIAL בלבד, לפי-הערת-r184 עצמה) (2) treasury-audit FAIL עדכני — drift יתרות STEEM −0.5/SBD 2.893 מול השרשרת (רכוש-בספר ≠ רכוש-בשרשרת, פתוח) (3) "PROVED ×3" מול "PROVED x2" בקובץ (עדות-שלישית קיימת בקו, לא בקובץ) (4) progress.md מיושן 22.7ש'.
+- pending-curation-rewards מדוד מהשרשרת (22:01Z): 0.000 STEEM · 0.000 SBD · 0.000 VESTS — הפרעון-הראשון צפוי 04/10; הכנסה-מדודה-עד-היום: powerdown $98.0033 בחלון-9-ימים · מסחר ממומש −$0.89 · קיורציה $0 · KPI $0.0029/יום.
+- gold-dormant כנה: armBuy חמוש-ולא-ירה (אף קניית-סולם ≥0.30 SBD) · EVM_ANCHOR_PK עוד לא-נצרך · WeaveAnchorRegistry לא-פרוס (r183-b דיווח נכון).
+- stale-flags: progress.md 22.7ש' · kpi/state רישום-אחרון 10.0ש' (קצב-יומי — צפוי) · census 4.9ש' · fleet-audit 5.65ש' · curation lastVote 33.3ש' (POWER-FLOOR — מעוצב) · לדג'ר/כסף/קיורציה/אוצר טריים (<1.4ש').
+---
+Task ID: r186
+Agent: THE WEAVE sovereign loop (Z.ai Code — orchestrator)
+Task: "תבחן את כל הגיט ומה התקדמנו ומה לא, איפה החולשות הכי חזקות — חוסר חיבורים, שקרים, דימומים, שבירות, באגים… להחיות הכל, לחבר הכל, וודאי" (trace 1a103bd801b329c5) + "אני מחכה להפתעות — קדם אותן".
+
+Evaluator (LOOP-3): (1) ביקורת-שלישית-מקבילה ב-3-סוכנים: דימומים · מתים/חיבורים · שקרים-מול-שרשרת; (2) כל-דימום-שנמצא-נאטם-בגל; (3) כל-חיבור-שבור-שנמצא-חובר-ונבחן-חי; (4) אפס-קוד-בלי-ראיה · lint 0 · push-דרך-השער.
+
+Work Log:
+- LOOP-9: shoreword 347bed33 נדחף ראשון (LOOP-11) · churn-דיבונים 24-קבצים-הוקפא ב-stash למשך-הגל.
+- **חירום-תשתית שהתגלה-בדרך**: דיסק 210MB-חופשיים (98%) — סכנת-מוות-לצי. פינוי-מטמונים-בטוחים: bun-install-cache 2.1G · puppeteer 653M · huggingface 648M · pip 73M · node-gyp 67M → **1.8GB-חופשיים (81%)**. dev-רץ-לא-נגע.
+- **r186-a (דימומים)**: דימום-קריטי — BIP39-seed שלם עקוב-בגיט מאז 0e252dab (check-tron-connection.mjs:32, יומן-מלא מכיל — purge-היסטוריה נרשם-להחלטה-נפרדת; הריפו-פרטי) · headcorner.txt (סיסמת-אב) + pat.env על-FUSE-777-שדוחה-chmod → הועתקו-לכספת (STEEM_MASTER, PAT_ENV, 0600) · wallet-vault.db→600 · gitleaks-הענן-מת-מאז 09-20 (מיצוי-דקות) + אין-כלל-seed-בברירת-מחדל → נוסף-כלל `bip39-literal-assignment` ל-.gitleaks.toml (נבחן: תופס-ישן, נקי-על-חדש).
+- **תיקון-הדימום**: TRON_SEED-נאטם-בכספת (0600, MANIFEST 16-מפתחות) · הסקריפט-קורא-מהכספת-fail-closed (אפס-סוד-בעץ) · ריצה-חיה-מאומתת: 4/4-רשויות MATCH-LIVE (owner/active/posting/memo).
+- **r186-b (מתים/חיבורים)**: 75-סקריפטים = 11-ענן + 22-מקומי + **42-יתומים** · 12-workflows-0-חוטי-שבורים-בענן (אך 10/12-dispatch-only — השעון-ב-Domain) · צי **17/17-חי-אמת** · **חיבור-שבור-אחד-בממשק**: `/api/businesses/log`-נקרא-מאז-r147-ולא-היה → **נבנה** (tail-120 · streams brief/business · שורות-חתוכות-בכנות) · נבחן-חי: ok:true·count:2-עם-הבריף-של-היום (txid 92c370ff…) · brief-log.jsonl-קיבל-קורא (היה-write-only).
+- **r186-c (שקרים)**: **14/16-אומתו-ביט-מול-שרשרת** (ERC-8004 0x1×2 · cp#1258-Steem-110126953 · Hive-110460456 · 188.3bps-מחושב-מחדש · צי-17/17 · ledger 1270/1260/13) · **אפס-שקרי-רווח**: PnL-ממומש −1.373-SBD-רשום-בכנות · revenuePerDay 0.0029$-מתחת-ליעד-ומדווח · powerdown 98.0033$/9-ימים-ההכנסה-היחידה-המדידה (4-נותרו, הבא 10/10) · כשלים-פתוחים: Blurt-RPC-500-היום (לא-ביקוח) · treasury-drift-FAIL-עצמי (שורש: ספר-money-מתעדך-בפעימות, fills-בין-פעימות-נראים-כדריפה — נרשם-לתיקון-מודע) · progress.md-ישן-22.7ש' → עודכן-עתה-עד-r186.
+- **הפתעה-שהתגלתה (מבחן-הקשר r186-a)**: מפתח-כתובת-המשמרת-TRON (TYVwwuvd…) ≡ 32-הבתים-של STEEM_ACTIVE_WIF — כבר-בכספת; המסילה-קיימת-בגזירה (מאוזן 2.000002-TRX; army-ריקה; outbox 0.19-TRX) — נרשם-זהב-ישן-לחיווט.
+- lint: 0 errors.
+
+Stage Summary:
+- **הביקורת-השלישית-השלימה את התמונה: עץ-אחד, 42-יתומים-ממופים, דימום-סודות-אחד-נאטם-וקוצר-שורשו (כלל-gitleaks-חדש), אפס-שקרי-רווח (הספר-כן-חולם-הפוך: הפסד-מדוד-ומדווח).**
+- **חיבורים-חיים-חדשים**: /api/businesses/log (החוט-השבור-היחיד-בממשק — סגור) · TRON-משמרת-בעלות-מוכחת · 16-מפתחות-בכספת.
+- **פתוחים-חיים-לגל-הבא**: ייחוס-drift-מבוסס-fills ב-treasury-audit · חיווט-masלת-TRON-לכלי-יתרות/שליחה · purge-היסטוריית-ה-seed (החלטת-בעלים) · טריאז'-6-נתיבי-יתום + ארכוב-26-הוכחות · gitleaks-מקומי-מתוזמן-כפיצוי-לענן-המת.

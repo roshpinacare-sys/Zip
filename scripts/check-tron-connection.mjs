@@ -16,7 +16,7 @@
  *  (4) מבחן-הקשר ב': האם סיסמת-האב משמשת כ-passphrase של BIP39 לאותו mnemonic.
  *  (5) השוואת כל הכתובות הנגזרות מול כתובות הצי החיות (משמרת/צבא/פדיון).
  * ───────────────────────────────────────────────────────────────────── */
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync, appendFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -28,8 +28,16 @@ const require = createRequire(import.meta.url);
 const GC = require(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "console", "gate-crypto.js"));
 
 /* ── קלטים ── */
-// ה-mnemonic מהתמונה photo_2026-09-21_23-30-55.jpg (מסך "Back Up Mnemonic" — 12 מילים)
-const MNEMONIC = "crater talent cement deal shell asset elite hybrid crush key moon trumpet";
+// r186-a תיקון-דימום: ה-mnemonic כבר לא בקוד (היה עקוב-בגיט מאז 0e252dab — דימום-סוד).
+// הוא נאטם בכספת הסוכנים (TRON_SEED, 0600) והסקריפט קורא אותו משם בלבד — fail-closed.
+import os from "node:os";
+const VAULT_SEED = path.join(os.homedir(), ".sovereign", "vault", "secrets", "TRON_SEED");
+if (!existsSync(VAULT_SEED)) {
+  console.error("check-tron-connection: TRON_SEED לא נמצא בכספת (~/.sovereign/vault/secrets/TRON_SEED) — כיבוי-סגור, אפס-נפילה-לברירת-מחדל");
+  process.exit(2);
+}
+try { appendFileSync(path.join(os.homedir(), ".sovereign", "vault", "access.log"), `${new Date().toISOString()} read TRON_SEED (check-tron-connection)\n`, { mode: 0o600 }); } catch { /* log never blocks */ }
+const MNEMONIC = readFileSync(VAULT_SEED, "utf8").trim();
 
 const lines = readFileSync(
   path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "upload", "headcorner.txt"),
