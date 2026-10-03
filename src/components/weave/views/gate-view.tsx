@@ -46,7 +46,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -566,31 +565,27 @@ function FullCycleProof() {
 // ── הדלת: הזנת-המפתח ────────────────────────────────────────────────
 
 function ArmDoor({ onArmed }: { onArmed: () => void }) {
-  const [wif, setWif] = useState("");
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ArmResult | null>(null);
 
   const submit = useCallback(async () => {
-    if (!wif.trim()) {
-      toast.error("הזן את ה-WIF של ה-active של המפקד");
-      return;
-    }
+    if (busy) return;
     setBusy(true);
     setResult(null);
     try {
+      // r185 · D-OP-01: אפס קלט — השרת שואב את ה-WIF מכספת הסוכנים בעצמו
       const r = await fetch("/api/arm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wif: wif.trim() }),
+        body: JSON.stringify({}),
       });
       const j = (await r.json()) as ArmResult;
       setResult(j);
       if (j.ok) {
         toast.success(
           j.gridDispatched
-            ? "המפתח אומת מול השרשרת ונחתם כסוד-GitHub. הגריד שוגר."
-            : "המפתח אומת מול השרשרת ונחתם כסוד-GitHub. הגריד לא שוגר מכאן — לוח-הזמנים בענן יריץ.",
+            ? "המפתח נשאב מהכספת, אומת מול השרשרת ונחתם כסוד-GitHub. הגריד שוגר."
+            : "המפתח נשאב מהכספת, אומת מול השרשרת ונחתם כסוד-GitHub. הגריד לא שוגר מכאן — לוח-הזמנים בענן יריץ.",
         );
         onArmed();
       } else {
@@ -600,9 +595,8 @@ function ArmDoor({ onArmed }: { onArmed: () => void }) {
       toast.error(`שגיאת רשת: ${String((e as Error).message).slice(0, 80)}`);
     } finally {
       setBusy(false);
-      setWif("");
     }
-  }, [wif, onArmed]);
+  }, [busy, onArmed]);
 
   return (
     <Card className="border-[#d4af37]/25 bg-gradient-to-b from-[#d4af37]/[0.06] to-transparent">
@@ -614,7 +608,7 @@ function ArmDoor({ onArmed }: { onArmed: () => void }) {
           </div>
           <ul className="space-y-1.5 text-xs leading-relaxed text-zinc-400">
             <li>
-              <span className="text-zinc-200">אימות מול השרשרת:</span> המפתח שיוזן נגזר למפתח-ציבורי ומושווה ביט-מול-ביט מול
+              <span className="text-zinc-200">אימות מול השרשרת:</span> המפתח נשאב מכספת הסוכנים בשרת (r185 — אפס קלט), נגזר למפתח-ציבורי ומושווה ביט-מול-ביט מול
               הסמכות החיה של <span className="font-mono">@headcorner</span> ב-api.steemit.com. אין התאמה — הבקשה נעצרת לפני שנוגעים במשהו.
             </li>
             <li>
@@ -623,51 +617,26 @@ function ArmDoor({ onArmed }: { onArmed: () => void }) {
               <span className="font-mono">STEEM_ACTIVE_WIF</span> בריפו המנוע הפרטי.
             </li>
             <li>
-              <span className="text-zinc-200">ההדלקה מידית:</span> מיד אחרי השמירה משוגר רץ-ה-dex-grid (לא מחכים ל-03:17) —
+              <span className="text-zinc-200">ההדלקה מידית:</span> מיד אחרי האטימה משוגר רץ-ה-dex-grid (לא מחכים ל-03:17) —
               ואפשר לראות את הגריד מתחמש בפומבי.
             </li>
           </ul>
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="arm-wif" className="block text-xs font-semibold text-zinc-400">
-            ה-active WIF של המפקד (מתחיל ב-5, L או K, 52 תווים בדרך-כלל)
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <div className="relative flex-1">
-              <Input
-                id="arm-wif"
-                type={show ? "text" : "password"}
-                value={wif}
-                onChange={(e) => setWif(e.target.value)}
-                placeholder="5J… או L… או K…"
-                autoComplete="off"
-                spellCheck={false}
-                dir="ltr"
-                className="pr-10 font-mono text-xs"
-                disabled={busy}
-              />
-              <button
-                type="button"
-                onClick={() => setShow((s) => !s)}
-                className="absolute inset-y-0 right-2 flex items-center text-zinc-500 hover:text-zinc-300"
-                aria-label={show ? "הסתר מפתח" : "הצג מפתח"}
-              >
-                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </button>
-            </div>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <Button
               onClick={submit}
-              disabled={busy || !wif.trim()}
+              disabled={busy}
               className="gap-2 border-[#d4af37]/40 bg-[#d4af37]/15 text-[#e8cd6e] hover:bg-[#d4af37]/25"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
-              {busy ? "מאמת מול השרשרת…" : "אמת וחמש את הגריד"}
+              {busy ? "שואב מהכספת ומאמת מול השרשרת…" : "אמת וחמש את הגריד — אפס קלט"}
             </Button>
+            <span className="text-[11px] text-zinc-500">
+              אין כאן הזנת-מפתח ולא תהיה: המקור הוא כספת הסוכנים בשרת, והשרשרת היא השופט.
+            </span>
           </div>
-          <p className="text-[11px] text-zinc-500">
-            הערך נמחק מהזיכרון של הדפדפן ברגע שהבקשה מסתיימת. מומלץ להזין מקובץ-מפתחות ולא להדביק ממקור מקוון.
-          </p>
         </div>
 
         {result && (

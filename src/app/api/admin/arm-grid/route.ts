@@ -1,24 +1,30 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/admin/arm-grid — דלת-חימום הגריד החוץ (R37).
+// /api/admin/arm-grid — דלת-חימום הגריד החוץ (R37 · r185-ריבוני).
 //
-// הגריד בנוי ונמדד (פרימיית-SBD חיה של +18%–29% מול קו-הזהות), דלק-
-// ה-powerdown זורם מחר (475 SP/שבוע) — והוא נעול על סוד-ריפו אחד:
-// STEEM_ACTIVE_WIF. דלת זו היא פעולת-המפעיל האחת שמחמשת אותו:
+// r185 · D-OP-01: אף אחד לא שואל את המפעיל דבר. POST בלי key שואב את
+// STEEM_ACTIVE_WIF מכספת-הסוכנים (~/.sovereign/vault), משפט ביט-מול-ביט
+// מול ה-active החי של @headcorner, ואוטם אל כספת-הריפו — אפס קלט.
+// מסלול-ההדבקה (key מלא) נשמר לתאימות-API בלבד.
 //
 //   1. נדרש סשן-מפעיל חתום (כמו כל אזור האדמין).
-//   2. המפתח שהוזן נגזר ומאומת ביט-מול-ביט מול ה-active החי של
-//      @headcorner בשרשרת — מפתח שגוי לא נוגע בכלום.
+//   2. המפתח (מהכספת או מהדבקה) נגזר ומאומת ביט-מול-ביט מול השרשרת —
+//      מפתח שגוי לא נוגע בכלום.
 //   3. המפתח נאטם (libsodium sealed-box מפתח-הציבור של הריפו) ישר
-//      אל הכספת המוצפנת של roshpinacare-sys/saos-dex — GitHub Actions
-//   Secrets. הוא לא נשמר בשום מקום אחר, לא נכתב ללוג ולא חוזר בתשובה.
+//      אל כספת הריפו — GitHub Actions Secrets. הוא לא נשמר בשום מקום
+//      אחר, לא נכתב ללוג ולא חוזר בתשובה.
 //
 // GET  → מצב: האם הסוד קיים (שם בלבד) + המצב החי של הגריד מהקונסולה.
-// POST → אימות + אטימה + אימות-קיום + עדות.
+// POST → אימות → אטימה → אימות-קיום → עדות.
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextRequest, NextResponse } from "next/server";
 import steemLibRaw from "steem";
-import { operatorFromRequest, OPERATOR_ACCOUNT, commanderActiveKey } from "@/lib/operator-auth";
+import {
+  operatorFromRequest,
+  OPERATOR_ACCOUNT,
+  commanderActiveKey,
+  activeWifFromVault,
+} from "@/lib/operator-auth";
 import { listRepoSecrets, putRepoSecret, getGridState } from "@/lib/live/grid-arm";
 import { remoteWorkflowScheduleDesc } from "@/lib/live/workflow-schedule";
 
@@ -107,48 +113,77 @@ export async function POST(req: NextRequest) {
 
   let key = "";
   try {
-    const body = (await req.json()) as { key?: unknown };
+    const body = (await req.json().catch(() => ({}))) as { key?: unknown };
     key = typeof body.key === "string" ? body.key.trim() : "";
   } catch {
-    return NextResponse.json({ ok: false, stage: "body", reason: "גוף בקשה שגוי" }, { status: 400 });
-  }
-  if (!key || key.length < 8 || key.length > 120) {
-    return NextResponse.json(
-      {
-        ok: false,
-        stage: "format",
-        reason: "הקלט קצר מדי או ארוך מדי. צפה WIF (52 תווים המתחיל ב-5/K/L) או סיסמת-אב.",
-      },
-      { status: 400 },
-    );
+    key = "";
   }
 
-  // 1) גזירה — WIF ישירות, אחרת סיסמת-אב (תקן Steemit)
+  // גזירת WIF-האטימה — מהכספת (אוטומטי, r185) או מההדבקה (תאימות)
   let pub = "";
   let wifToSeal = "";
-  const looksLikeWif = /^[5KL][1-9A-HJ-NP-Za-km-z]{39,59}$/.test(key);
-  const attempts: Array<"wif" | "password"> = looksLikeWif ? ["wif"] : ["wif", "password"];
-  for (const mode of attempts) {
+  let armMode: "vault-auto" | "pasted" = "pasted";
+
+  if (!key) {
+    const wif = activeWifFromVault();
+    if (!wif) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "vault-missing",
+          reason: "כספת הסוכנים אינה זמינה כרגע — אין לבקש מפתח מהמפעיל; הסוכנים ישחזרו אותה בעצמם.",
+        },
+        { status: 503 },
+      );
+    }
     try {
-      const wif = mode === "wif" ? key : steemLib.auth.toWif(OPERATOR_ACCOUNT, key, "active");
       pub = steemLib.auth.wifToPublic(wif);
-      if (pub) {
-        wifToSeal = wif;
-        break;
-      }
+      wifToSeal = wif;
     } catch {
       pub = "";
     }
-  }
-  if (!pub || !wifToSeal) {
-    return NextResponse.json(
-      {
-        ok: false,
-        stage: "derive",
-        reason: "לא הצלחתי לגזור מפתח-ציבורי מהקלט. שום דבר לא נשמר ושום דבר לא השתנה.",
-      },
-      { status: 400 },
-    );
+    if (!pub || !wifToSeal) {
+      return NextResponse.json(
+        { ok: false, stage: "derive", reason: "המפתח שבכספת לא נגזר. שום דבר לא נשמר ושום דבר לא השתנה." },
+        { status: 500 },
+      );
+    }
+    armMode = "vault-auto";
+  } else {
+    if (key.length < 8 || key.length > 120) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "format",
+          reason: "הקלט קצר מדי או ארוך מדי. צפה WIF (52 תווים המתחיל ב-5/K/L) או סיסמת-אב.",
+        },
+        { status: 400 },
+      );
+    }
+    const looksLikeWif = /^[5KL][1-9A-HJ-NP-Za-km-z]{39,59}$/.test(key);
+    const attempts: Array<"wif" | "password"> = looksLikeWif ? ["wif"] : ["wif", "password"];
+    for (const mode of attempts) {
+      try {
+        const wif = mode === "wif" ? key : steemLib.auth.toWif(OPERATOR_ACCOUNT, key, "active");
+        pub = steemLib.auth.wifToPublic(wif);
+        if (pub) {
+          wifToSeal = wif;
+          break;
+        }
+      } catch {
+        pub = "";
+      }
+    }
+    if (!pub || !wifToSeal) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "derive",
+          reason: "לא הצלחתי לגזור מפתח-ציבורי מהקלט. שום דבר לא נשמר ושום דבר לא השתנה.",
+        },
+        { status: 400 },
+      );
+    }
   }
 
   // 2) הרשות החיה מהשרשרת — ביט מול ביט
@@ -166,7 +201,10 @@ export async function POST(req: NextRequest) {
       {
         ok: false,
         stage: "authority",
-        reason: `המפתח שהוזן אינו ה-active של @${OPERATOR_ACCOUNT} כפי שרשום בשרשרת כרגע. שום דבר לא נשמר ושום דבר לא השתנה.`,
+        reason:
+          armMode === "vault-auto"
+            ? `המפתח שבכספת אינו ה-active החי של @${OPERATOR_ACCOUNT} — נדחה fail-closed. הסוכנים יתקנו את הכספת, לא המפעיל.`
+            : `המפתח שהוזן אינו ה-active של @${OPERATOR_ACCOUNT} כפי שרשום בשרשרת כרגע. שום דבר לא נשמר ושום דבר לא השתנה.`,
         publicKey: pub.slice(0, 12) + "…",
       },
       { status: 403 },
@@ -211,6 +249,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     stage: "armed",
+    mode: armMode,
     repo: DEX_REPO,
     secret: SECRET_NAME,
     secretUpdatedAt: evidence?.updatedAt ?? null,

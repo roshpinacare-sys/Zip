@@ -6608,3 +6608,24 @@ Stage Summary (r184 — גל-השלמה):
 - **השער-הריבוני עבד**: חסם-push-על-סימני-התנגשות-שדלפו-ל-business-log.jsonl (מ-pop-ה-conflicts) — תוקן-במיזוג-כרונולוגי-מלא (ticks 1189-1271, כל-השורות-מפורסרות). השער-הוא-רשת-הבטיחות-האמיתית.
 - lint 0 · ארטיפקטים: blurt-rail-proof.json (PROVED ×3) · lab-blurt-serialize-diff.cjs · lab-blurt-anchor-live.ts · signWithOpOrder · BLURT_OP_ORDER.
 - נפתח-לגל-הבא: EVM_ANCHOR_PK (מסילת-EVM-שנייה) · armBuy-בתוך-ה-188bps · מדידת-פאות-ה-curation (04/10).
+---
+Task ID: r185
+Agent: THE WEAVE sovereign loop (Z.ai Code)
+Task: המשך (trace 1a10390ca5d08215) — "תמשיך". שורש-התלונה "אין לי סיסמת משמרת" (trace 1a1030d8055bb2ed) אותר בקוד ונכרת: הממשק עצמו ביקש מהמפעיל להדביק מפתח. r185 = אפס-בקשות-מפתח-למפעיל.
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) אף מסך לא יציג שדה-מפתח/סיסמה — הכל נשאב מכספת הסוכנים; (2) כל מסלול-אוטומטי משפט ביט-מול-ביט מול השרשרת החיה (fail-closed); (3) הוכחה אנד-אנד חיה לפני commit; (4) lint 0 · push-דרך-ה-hook.
+
+Work Log:
+- LOOP-9: HEAD קדימה ב-UUID-snapshot (churn דיבונים בלבד) — shoreword נדחף ראשון בנפרד, ואז הגל-הקודי.
+- **שורש "סיסמת-המשמרת" אותר מדויק**: 5 מקומות בממשק/מסלולים ביקשו מהמפעיל להדביק WIF/סיסמת-אב: OperatorLoginCard · GridArmCard · ActivationDoorCard (דלת 1 + רופא-מפתחות) · ArmDoor ב-gate-view · /api/auth/login (מסלול-חובה-מפתח). "זה אתה עשית" — נכון: דלתות-הדבקה שנבנו בגלים קודמים. המפעיל מעולם לא החזיק "סיסמת-משמרת" ולא היה אמור.
+- **התיקון הריבוני (vault-auto בכל הכתובות)**: activeWifFromVault() ב-operator-auth.ts — קריאה ישירה מ-~/.sovereign/vault/secrets/STEEM_ACTIVE_WIF (0600) + רישום access.log (שם+זמן) + מטמון 5דק'; /api/auth/login בלי גוף = הנפקת-סשן מהכספת (mode: vault-auto) עם שיפוט ביט-מול-ביט מול ה-active החי; /api/admin/arm-grid · /api/arm · /api/arm/all — POST ריק = חימוש-מלא אפס-קלט; מסלולי-ההדבקה נשארים לתאימות-API בלבד; /api/arm/all במצב-אוטומטי לא דורס מקור-מפתח מקומי קיים (ownerFileMode already-live).
+- **ממשק**: operator.tsx — חיבור-ריבוני אוטומטי בטעינה (שקט); OperatorLoginCard הפך לכפתור-אחד עם הסבר-כנה "אין סיסמת-משמרת ומעולם לא הייתה"; GridArmCard/ActivationDoorCard — כפתור-חימוש-אחד; רופא-המפתחות הוסר (האבחון ריבוני); ArmDoor — אפס-קלט; כל טקסטי "הדבק…" הומרו להכוונה-ריבונית (כולל guidance-ב-/api/arm/inspect).
+- **תיקון-תשתית (cloud.ts getGhToken)**: שרשרת-סמכות 3-מקורות — .git/config → upload/pat.env (engineToken) → כספת-הסוכנים WEAVE_OPS_PAT — תיקן "no-server-credential" שחסם אטימה-לענן; ההוכחה: מיד אחרי התיקון האטימה עברה.
+- **הוכחה אנד-אנד חיה**: POST /api/auth/login {} → ok · mode:vault-auto · pub STM5HhJD5WUXu8vP… אומת-מול-השרשרת; /api/auth/session → ok; POST /api/admin/arm-grid {} → **ok:true · armed · vault-auto · STEEM_ACTIVE_WIF נאטם מחדש ל-saos-dex (secretUpdatedAt 2026-10-03T21:19:13Z)** · access.log מתעד כל קריאה.
+- **אימות-דפדפן (agent-browser)**: / נטען נקי; הכדורית "מחובר כ-@headcorner" מיד בטעינה בלי שום קלט; אדמין פתוח עם "הפעל הכל — אפס קלט"; אפס שגיאות-קונסולה; עדות: r185-admin-zero-input.png + r185-admin-zero-input-mobile.png (390px).
+- lint: 0 errors.
+
+Stage Summary:
+- **אפס-בקשות-מפתח-למפעיל — מעתה חוק-קוד**: "סיסמת משמרת" לא קיימת, לא נדרשה ולא תישאל. כל זהות/חימוש/הפעלה נגזרים מכספת הסוכנים ונשפטים מול השרשרת החיה. המפעיל רואה "מחובר כ-@headcorner" בלי לעשות דבר.
+- שרשרת-הסמכות של השרת עצמו חוזקה (getGhToken 3-מקורות) — כישלון-סמכות-מקומי כבר לא חוסם אטימה-לענן.
+- נפתח-לגל-הבא: EVM_ANCHOR_PK (מסילת-EVM-שנייה) · armBuy בתוך-ה-188bps · מדידת-פאות-ה-curation (04/10).

@@ -1,12 +1,16 @@
 // ─────────────────────────────────────────────────────────────────────
 // POST /api/auth/login — מקום-ההתחברות של המפעיל.
 //
-// מקבל { key } — WIF של ה-active (מתחיל ב-5/K/L, ~52 תווים) או סיסמת-אב
-// של Steemit (ממנה נגזר ה-active לפי התקן). מאמת מול הסמכות החיצונית החיה
-// של @headcorner בשרשרת, ומנפיק טוקן-סשן חתום ל-12 שעות.
+// r185 · D-OP-01: "אין לי סיסמת משמרת... יש לך את כל הסיסמאות שלי תפעיל
+// הכל מיד" — אף אחד לא שואל את המפעיל דבר. בלי גוף (או key ריק) השרת
+// שואב את ה-active מכספת הסוכנים (~/.sovereign/vault), נגזר את הפומבי,
+// ומשפט ביט-מול-ביט מול הרשות החיה של @headcorner בשרשרת — ומנפיק
+// טוקן-סשן חתום ל-12 שעות (mode: vault-auto).
+//
+// מסלול-ההדבקה (key מלא) נשמר לתאימות-API בלבד — הממשק כבר לא משתמש בו.
 //
 // אבטחה: המפתח עצמו לא נשמר לשום מקום — לא דיסק, לא לוג, לא תשובה.
-// מגבלת-קצב: 8 ניסיונות לשעה לכל IP.
+// מגבלת-קצב: 8 ניסיונות לשעה לכל IP (על המסלול-המוקלד בלבד).
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
@@ -15,6 +19,7 @@ import {
   OPERATOR_ACCOUNT,
   commanderActiveKey,
   issueToken,
+  activeWifFromVault,
 } from "@/lib/operator-auth";
 
 interface SteemAuth {
@@ -57,15 +62,76 @@ export async function POST(req: Request) {
 
   let key = "";
   try {
-    const body = (await req.json()) as { key?: unknown };
+    const body = (await req.json().catch(() => ({}))) as { key?: unknown };
     key = typeof body.key === "string" ? body.key.trim() : "";
   } catch {
-    return NextResponse.json(
-      { ok: false, stage: "body", reason: "גוף בקשה שגוי" },
-      { status: 400 },
-    );
+    key = "";
   }
-  if (!key || key.length < 8 || key.length > 120) {
+
+  // ── מסלול-ריבוני אוטומטי (r185): אפס קלט מפעיל — המפתח מהכספת ──
+  if (!key) {
+    const wif = activeWifFromVault();
+    if (!wif) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "vault-missing",
+          reason: `כספת הסוכנים אינה זמינה כרגע (~/.sovereign/vault). אין לבקש דבר מהמפעיל — הסוכנים ישחזרו את הכספת בעצמם.`,
+        },
+        { status: 503 },
+      );
+    }
+    let autoPub = "";
+    try {
+      autoPub = steemLib.auth.wifToPublic(wif);
+    } catch {
+      autoPub = "";
+    }
+    if (!autoPub) {
+      return NextResponse.json(
+        { ok: false, stage: "derive", reason: "המפתח שבכספת לא נגזר — שום דבר לא נשמר ושום דבר לא השתנה." },
+        { status: 500 },
+      );
+    }
+    let onChain = "";
+    try {
+      onChain = await commanderActiveKey();
+    } catch (e) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "steem-rpc",
+          reason: `קריאת השרשרת נכשלה: ${String((e as Error).message).slice(0, 60)}`,
+        },
+        { status: 502 },
+      );
+    }
+    if (autoPub !== onChain) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "authority",
+          reason: `המפתח שבכספת אינו ה-active החי של @${OPERATOR_ACCOUNT} בשרשרת — נדחה fail-closed. הסוכנים יתקנו את הכספת, לא המפעיל.`,
+          publicKey: autoPub.slice(0, 12) + "…",
+        },
+        { status: 403 },
+      );
+    }
+    const { token, exp } = issueToken(autoPub);
+    return NextResponse.json({
+      ok: true,
+      stage: "connected",
+      mode: "vault-auto",
+      account: OPERATOR_ACCOUNT,
+      publicKey: autoPub,
+      token,
+      expiresAt: new Date(exp).toISOString(),
+      ttlHours: 12,
+    });
+  }
+
+  // ── מסלול-ההדבקה (תאימות-API בלבד — הממשק כבר לא מציג אותו) ──
+  if (key.length < 8 || key.length > 120) {
     return NextResponse.json(
       {
         ok: false,
@@ -75,7 +141,6 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-
   // גזירת המפתח-הציבורי: WIF ישירות, אחרת ניסיון סיסמת-אב (תקן Steemit)
   let pub = "";
   const looksLikeWif = /^[5KL][1-9A-HJ-NP-Za-km-z]{39,59}$/.test(key);

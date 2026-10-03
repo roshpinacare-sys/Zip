@@ -1,25 +1,22 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/arm/all — דלת-ההפעלה האחת (r136). "הדבקה אחת מחמשת הכל".
+// /api/arm/all — דלת-ההפעלה האחת (r136 · r185-ריבוני). "לחיצה אחת מחמשת הכל — אפס קלט".
 //
-// הלקח החי של היום: המפעיל הדביק מפתח בדף שלא הבין — ונדחה בלי
-// הסבר. הדלת הזאת מתקנת את זה מהיסוד: הדבקה אחת של סיסמת-האב
-// (או ה-active) של @headcorner עושה את כל השרשרת בבת-אחת:
+// r185 · D-OP-01: "אין לי סיסמת משמרת... יש לך את כל הסיסמאות שלי תפעיל
+// הכל מיד" — POST בלי key שואב את ה-active מכספת-הסוכנים
+// (~/.sovereign/vault) ומפעיל את כל השרשרת: אימות-מול-שרשרת → כספת-ארנק
+// → אטימת חוט-המפתחות לכספת-הריפו → שיגור dex-grid. אף אחד לא נשאל
+// אף שאלה. מסלול-ההדבקה נשמר לתאימות-API בלבד.
 //
-//   1. מגבלת-קצב (5 לשעה לכל IP — כמו /api/arm).
-//   2. גזירה: WIF ישיר או סיסמת-אב → WIF-שליטה (תקן Steemit).
+//   1. מגבלת-קצב (5 לשעה לכל IP — על המסלול-המוקלד בלבד).
+//   2. המפתח (מהכספת או מהדבקה) → WIF-שליטה (תקן Steemit).
 //   3. שיפוט: הפומבי נבדק ביט-מול-ביט מול ה-active החי של
-//      @headcorner מהשרשרת. אי-התאמה = 403 עם הכוונה מדויקת.
-//   4. אם הודבקה סיסמת-אב — היא נכתבת למקור-המפתח הריבוני
-//      (upload/headcorner.txt — מחוץ-לגיט) וכך כל סטאק-החתימה
-//      המקומי (money · pulse · vault) חוזר לחיים במחזור הבא.
-//   5. פתיחת כספת-הארנק עם WIF-השליטה (אותו קריפטו של נתיב-
-//      הקובץ — scrypt(controlWif, salt) → מפתח-אב → AES-256-GCM).
-//   6. מסירת חוט-המפתחות המלא לכספת-הריפו (saos-dex Actions
-//      Secrets, sealed-box — רק GitHub פותח): STEEM_ACTIVE_WIF ·
-//      STEEM_POSTING_WIF · HIVE_ACTIVE_WIF · HIVE_POSTING_WIF ·
-//      BLURT_ACTIVE_WIF. כל מפתח נשפט מול הרשות החיה של שרשרתו
-//      לפני האטימה — מפתח שלא עובר, לא נאטם, ומדווח בכנות.
-//   7. שיגור dex-grid מיידי — שהחימוש ייראה בפועל באותה דקה.
+//      @headcorner מהשרשרת. אי-התאמה = 403 fail-closed.
+//   4. מקור-המפתח הריבוני (upload/headcorner.txt — מחוץ-לגיט):
+//      במצב-אוטומטי לא דורסים מקור קיים; אם חסר — נכתב במצב-wif.
+//   5. פתיחת כספת-הארנק עם WIF-השליטה.
+//   6. מסירת חוט-המפתחות המלא לכספת-הריפו — כל מפתח נשפט מול
+//      הרשות החיה של שרשרתו לפני האטימה.
+//   7. שיגור dex-grid מיידי.
 //   8. קבלת-ChainRun כנה (בלי שום חומר-סוד בפירוט, לעולם).
 //
 // אבטחה: הקלט חי בזיכרון-הבקשה בלבד. המפתחות שנפתחים מהכספת
@@ -32,7 +29,11 @@ import steemLibRaw from "steem";
 import fs from "node:fs";
 import path from "node:path";
 import { db } from "@/lib/db";
-import { OPERATOR_ACCOUNT, commanderActiveKey } from "@/lib/operator-auth";
+import {
+  OPERATOR_ACCOUNT,
+  commanderActiveKey,
+  activeWifFromVault,
+} from "@/lib/operator-auth";
 import { fetchAuthorities } from "@/lib/live/authorities";
 import { openVaultWithControlWif } from "@/lib/dex/wallet-vault";
 import { DEX_REPO, dexGhToken } from "@/lib/dex-token";
@@ -127,16 +128,34 @@ export async function POST(req: NextRequest) {
   let key = "";
   let wroteOwnerFile = false; // r137 · D-026: נכתב בשני-המצבים (אב או wif)
   try {
-    const body = (await req.json()) as { key?: unknown };
+    const body = (await req.json().catch(() => ({}))) as { key?: unknown };
     key = typeof body.key === "string" ? body.key.trim() : "";
   } catch {
-    return NextResponse.json({ ok: false, stage: "body", reason: "גוף בקשה שגוי" }, { status: 400 });
+    key = "";
   }
-  if (!key || key.length < 8 || key.length > 200) {
+  if (key && (key.length < 8 || key.length > 200)) {
     return NextResponse.json(
-      { ok: false, stage: "format", reason: "הקלט קצר מדי או ארוך מדי. הדבק סיסמת-אב של @headcorner או WIF של ה-active. שום דבר לא נשמר." },
+      { ok: false, stage: "format", reason: "הקלט קצר מדי או ארוך מדי. במקום זה — אין צורך בקלט בכלל: שלח גוף ריק והמפתח יישאב מכספת הסוכנים. שום דבר לא נשמר." },
       { status: 400 },
     );
+  }
+
+  // r185 · מצב-ריבוני אוטומטי: אפס קלט — השליטה נשאבת מכספת הסוכנים
+  let armMode: "vault-auto" | "pasted" = "pasted";
+  if (!key) {
+    const wif = activeWifFromVault();
+    if (!wif) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "vault-missing",
+          reason: "כספת הסוכנים אינה זמינה כרגע — אין לבקש מפתח מהמפעיל; הסוכנים ישחזרו אותה בעצמם.",
+        },
+        { status: 503 },
+      );
+    }
+    key = wif;
+    armMode = "vault-auto";
   }
 
   // 1) גזירת WIF-השליטה
@@ -172,7 +191,7 @@ export async function POST(req: NextRequest) {
       const ownerAuth = await fetchAuthorities("steem", OPERATOR_ACCOUNT);
       const ownerPub = ownerAuth.roles.find((r) => r.role === "owner")?.pub ?? null;
       if (ownerPub && ownerPub === controlPub) {
-        hint = " מה שהודבק הוא מפתח-ה-owner — מפתח-הזהות. הוא לא חותם עסקאות. הדבק את סיסמת-האב או את ה-active.";
+        hint = " מה שהודבק הוא מפתח-ה-owner — מפתח-הזהות. הוא לא חותם עסקאות. במקום להדביק כלום — שלח גוף ריק והשליטה תישאב מכספת הסוכנים.";
       }
     } catch {
       /* ההכוונה היא תוספת — כישלונה לא משנה את פסק-הדין */
@@ -195,10 +214,19 @@ export async function POST(req: NextRequest) {
   //    של "הוא מזהה כ-active אבל הוא לא עובר": החימוש בענן עבר, אבל הבית
   //    נשאר עיוור כי מקור-המפתח לא נכתב. ה-WIF נכתב 0600 מחוץ-לגיט —
   //    אותו סטנדרט-אחסון של סיסמת-האב עצמה, אף-בייט לא בלוג ולא בתשובה.
-  let ownerFileMode: "master" | "wif" | null = null;
+  let ownerFileMode: "master" | "wif" | "already-live" | null = null;
   try {
     fs.mkdirSync(path.dirname(OWNER_FILE), { recursive: true });
-    if (looksLikeWif) {
+    const ownerExists = fs.existsSync(OWNER_FILE);
+    if (armMode === "vault-auto") {
+      // r185 · במצב-אוטומטי לא דורסים מקור קיים (ייתכן שבו סיסמת-אב —
+      // המקור העדיף); אם חסר — נכתב במצב-wif כדי להחיות את החתימה המקומית.
+      ownerFileMode = ownerExists ? "already-live" : "wif";
+      if (!ownerExists) {
+        fs.writeFileSync(OWNER_FILE, `${OPERATOR_ACCOUNT}\nwif:${controlWif}\n`, { mode: 0o600 });
+        wroteOwnerFile = true;
+      }
+    } else if (looksLikeWif) {
       fs.writeFileSync(OWNER_FILE, `${OPERATOR_ACCOUNT}\nwif:${controlWif}\n`, { mode: 0o600 });
       wroteOwnerFile = true;
       ownerFileMode = "wif";
@@ -273,7 +301,7 @@ export async function POST(req: NextRequest) {
     }
   } else {
     for (const d of deliveries) {
-      results.push({ secret: d.secret, chain: d.chain, role: d.role, ok: false, detailHe: "הכספת לא נפתחה — הדבק סיסמת-אב (לא WIF) כדי לפתוח את כל החוט" });
+      results.push({ secret: d.secret, chain: d.chain, role: d.role, ok: false, detailHe: "כספת-הארנק לא נפתחה עם WIF-השליטה — הסוכנים יתקנו מהכספת בעצמם; אין לבקש קלט מהמפעיל" });
     }
   }
 
@@ -309,7 +337,7 @@ export async function POST(req: NextRequest) {
         step: "arm-all",
         firedBy: "operator",
         ok: sealedCount > 0,
-        detail: `דלת-ההפעלה-האחת: active אומת מול השרשרת · ${sealedCount}/${results.length} סודות נאטמו לכספת-הריפו · כספת-ארנק ${vaultOpen ? "נפתחה" : "לא נפתחה"} · מקור-מפתח מקומי ${wroteOwnerFile ? `נכתב (${ownerFileMode})` : "לא נכתב"} · dex-grid חי (Domain) ${dispatched ? "שוגר" : "לא שוגר"} · גיבוי (saos-dex) ${dispatchedBackup ? "שוגר" : "לא שוגר"}`,
+        detail: `דלת-ההפעלה-האחת (mode=${armMode}): active אומת מול השרשרת · ${sealedCount}/${results.length} סודות נאטמו לכספת-הריפו · כספת-ארנק ${vaultOpen ? "נפתחה" : "לא נפתחה"} · מקור-מפתח מקומי ${ownerFileMode ?? (wroteOwnerFile ? "נכתב" : "לא נכתב")} · dex-grid חי (Domain) ${dispatched ? "שוגר" : "לא שוגר"} · גיבוי (saos-dex) ${dispatchedBackup ? "שוגר" : "לא שוגר"}`,
       },
     });
   } catch {
@@ -324,6 +352,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: sealedCount > 0,
     stage: allCore ? "armed" : "partial",
+    mode: armMode,
     sealedCount,
     total: results.length,
     vaultOpen,

@@ -1,11 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/arm — דלת-המפתח של המפעיל. התשובה ל"אין לי איפה להכניס את המפתח".
+// /api/arm — דלת-המפתח (r185-ריבוני). "אין לי סיסמת משמרת... יש לך את
+// כל הסיסמאות שלי תפעיל הכל מיד" — POST בלי wif שואב את STEEM_ACTIVE_WIF
+// מכספת הסוכנים (~/.sovereign/vault) ומחמש בעצמו. אף אחד לא נשאל דבר.
+// מסלול-ההדבקה (wif מלא) נשמר לתאימות-API בלבד.
 //
 // זרימה מאומתת-קריפטוגרפית, אפס-אחסון:
-//   1. מגבלת-קצב (5 ניסיונות לשעה לכל IP).
-//   2. נגזר מפתח-ציבורי מה-WIF שהוזן (steem.auth.wifToPublic).
+//   1. מגבלת-קצב (5 ניסיונות לשעה לכל IP — על המסלול-המוקלד בלבד).
+//   2. נגזר מפתח-ציבורי מה-WIF (מהכספת או מההדבקה) — steem.auth.wifToPublic.
 //   3. נקראת הסמכות החיה של @headcorner מ-api.steemit.com — ה-active
-//      הרשום-בשרשרת. אין התאמה ביט-מול-ביט = 403, שום דבר לא נשמר.
+//      הרשום-בשרשרת. אין התאמה ביט-מול-ביט = 403 fail-closed.
 //   4. התאמה = רק אז: מאוחזר מפתח-הציבורי של סודות-ה-Actions של
 //      ריפו המנוע (saos-dex), ה-WIF נחתם ב-sealed box של libsodium
 //      (crypto_box_seal — רק GitHub יכול לפתוח) ונשמר כסוד
@@ -14,13 +17,14 @@
 //   6. משוגר dex-grid מיד (workflow_dispatch) כדי שההתחמשות תיראה
 //      בפועל באותה דקה, ולא ב-03:17 של מחר.
 //
-// אבטחה: האימות מול השרשרת הוא ההרשאה — רק מי שמחזיק את ה-active
-// האמת של המפקד יכול להשתמש בדלת. מפתח שגוי לא מגיע ל-GitHub כלל.
+// אבטחה: האימות מול השרשרת הוא ההרשאה — מפתח שגוי (מהכספת או מהדבקה)
+// לא מגיע ל-GitHub כלל.
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
 import sodium from "libsodium-wrappers";
 import steemLibRaw from "steem";
+import { activeWifFromVault } from "@/lib/operator-auth";
 import { DEX_REPO, dexGhToken } from "@/lib/dex-token";
 
 interface SteemAuth {
@@ -113,12 +117,30 @@ export async function POST(req: Request) {
 
   let wif = "";
   try {
-    const body = (await req.json()) as { wif?: unknown };
+    const body = (await req.json().catch(() => ({}))) as { wif?: unknown };
     wif = typeof body.wif === "string" ? body.wif.trim() : "";
   } catch {
-    return NextResponse.json({ ok: false, stage: "body", reason: "גוף בקשה שגוי" }, { status: 400 });
+    wif = "";
   }
-  if (!wif || wif.length < 35 || wif.length > 60) {
+
+  // r185 · מצב-ריבוני אוטומטי: אפס קלט — ה-WIF נשאב מכספת הסוכנים
+  let armMode: "vault-auto" | "pasted" = "pasted";
+  if (!wif) {
+    const vaultWif = activeWifFromVault();
+    if (!vaultWif) {
+      return NextResponse.json(
+        {
+          ok: false,
+          stage: "vault-missing",
+          reason: "כספת הסוכנים אינה זמינה כרגע — אין לבקש מפתח מהמפעיל; הסוכנים ישחזרו אותה בעצמם.",
+        },
+        { status: 503 },
+      );
+    }
+    wif = vaultWif;
+    armMode = "vault-auto";
+  }
+  if (wif.length < 35 || wif.length > 60) {
     return NextResponse.json(
       { ok: false, stage: "format", reason: "זה לא נראה כמו WIF (52 תווים בדרך-כלל). שום דבר לא נשמר." },
       { status: 400 },
@@ -152,7 +174,9 @@ export async function POST(req: Request) {
         ok: false,
         stage: "authority",
         reason:
-          "המפתח שהוזן אינו ה-active של @headcorner כפי שרשום בשרשרת כרגע. שום דבר לא נשמר ושום דבר לא השתנה.",
+          armMode === "vault-auto"
+            ? "המפתח שבכספת אינו ה-active החי של @headcorner — נדחה fail-closed. הסוכנים יתקנו את הכספת, לא המפעיל."
+            : "המפתח שהוזן אינו ה-active של @headcorner כפי שרשום בשרשרת כרגע. שום דבר לא נשמר ושום דבר לא השתנה.",
       },
       { status: 403 },
     );
@@ -212,6 +236,7 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     stage: "armed",
+    mode: armMode,
     secretName: SECRET_NAME,
     secretVerified: verified,
     gridDispatched: dispatched,

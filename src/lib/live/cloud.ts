@@ -7,7 +7,8 @@
 // בלבד — אף תשובה לעולם לא מחזירה אותם.
 // ─────────────────────────────────────────────────────────────────────
 
-import { readFile } from "fs/promises";
+import { appendFile, readFile } from "fs/promises";
+import os from "os";
 import path from "path";
 
 const OWNER = "roshpinacare-sys";
@@ -247,7 +248,15 @@ export function getVerifyResults(): Promise<VerifyResultsPublic> {
   );
 }
 
-// ── ה-PAT — מה-remote של הגיט, צד-שרת בלבד ──────────────────────────
+// ── ה-PAT — שרשרת-סמכות ריבונית, צד-שרת בלבד ────────────────────────
+//
+// r185 · D-OP-01 ("יש לך את כל הסיסמאות שלי תפעיל הכל מיד"): אף קריאת-
+// GitHub-כתיבה לא נכשלת עוד מחוסר-סמכות מקומית. שרשרת המקורות:
+//   1. .git/config (x-access-token — דפוס-העבר)
+//   2. upload/pat.env (טוקן-המנוע, מחוץ-לגיט)
+//   3. כספת הסוכנים ~/.sovereign/vault/secrets/WEAVE_OPS_PAT (0600)
+// כל קריאה מהכספת נרשמת access.log (שם+זמן בלבד). הערך לעולם לא בלוג
+// ולא בתשובה — צד-שרת בלבד.
 
 let cachedToken: string | null | undefined;
 
@@ -256,10 +265,43 @@ export async function getGhToken(): Promise<string | null> {
   try {
     const cfg = await readFile(path.join(process.cwd(), ".git/config"), "utf8");
     const m = cfg.match(/x-access-token:([^@]+)@/);
-    cachedToken = m ? m[1] : null;
+    if (m) {
+      cachedToken = m[1];
+      return cachedToken;
+    }
   } catch {
-    cachedToken = null;
+    /* המקור הבא בשרשרת */
   }
+  try {
+    const { engineToken } = await import("@/lib/dex-token");
+    const t = engineToken();
+    if (t) {
+      cachedToken = t;
+      return cachedToken;
+    }
+  } catch {
+    /* המקור הבא בשרשרת */
+  }
+  try {
+    const vaultPat = path.join(os.homedir(), ".sovereign", "vault", "secrets", "WEAVE_OPS_PAT");
+    const t = (await readFile(vaultPat, "utf8")).trim();
+    if (t.length > 20) {
+      try {
+        await appendFile(
+          path.join(os.homedir(), ".sovereign", "vault", "access.log"),
+          `${new Date().toISOString()} read WEAVE_OPS_PAT\n`,
+          { mode: 0o600 },
+        );
+      } catch {
+        /* כישלון-רישום אינו חוסם */
+      }
+      cachedToken = t;
+      return cachedToken;
+    }
+  } catch {
+    /* כנות: אין סמכות */
+  }
+  cachedToken = null;
   return cachedToken;
 }
 

@@ -14,7 +14,8 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import { appendFileSync, existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
+import os from "os";
 import path from "path";
 
 export const OPERATOR_ACCOUNT = "headcorner";
@@ -84,6 +85,39 @@ export function verifyToken(token: string | null | undefined): OperatorSession |
   if (typeof parsed.pub !== "string" || typeof parsed.exp !== "number") return null;
   if (parsed.exp < Date.now()) return null; // פג-תוקף
   return { pub: parsed.pub, exp: parsed.exp };
+}
+
+// ── מפתח-ה-active מכספת-הסוכנים (r185 · D-OP-01) ─────────────────────
+//
+// הוראת-הבעלים המכוננת: "אין לי סיסמת משמרת... יש לך את כל הסיסמאות שלי
+// תפעיל הכל מיד" — אף ממשק לא שואל את המפעיל דבר. המפתח נשאב מ-
+// ~/.sovereign/vault/secrets/STEEM_ACTIVE_WIF (0600, מחוץ-לגיט) — אותה
+// כספת שהסוכנים קוראים דרך vault-read.mjs — ומשפט מול השרשרת החיה
+// לפני כל שימוש. כל קריאה נרשמת access.log (שם+זמן בלבד).
+// קש-משמעות: הערך לעולם לא נכתב ללוג/תשובה/שגיאה — רק נגזר ממנו פומבי.
+
+const VAULT_SECRET_PATH = path.join(os.homedir(), ".sovereign", "vault", "secrets", "STEEM_ACTIVE_WIF");
+const VAULT_ACCESS_LOG = path.join(os.homedir(), ".sovereign", "vault", "access.log");
+const VAULT_WIF_RE = /^[5KL][1-9A-HJ-NP-Za-km-z]{39,59}$/;
+
+let vaultKeyCache: { wif: string; at: number } | null = null;
+
+export function activeWifFromVault(): string | null {
+  if (vaultKeyCache && Date.now() - vaultKeyCache.at < 5 * 60_000) return vaultKeyCache.wif;
+  try {
+    if (!existsSync(VAULT_SECRET_PATH)) return null;
+    const raw = readFileSync(VAULT_SECRET_PATH, "utf8").trim();
+    if (!VAULT_WIF_RE.test(raw)) return null;
+    try {
+      appendFileSync(VAULT_ACCESS_LOG, `${new Date().toISOString()} read STEEM_ACTIVE_WIF\n`, { mode: 0o600 });
+    } catch {
+      /* כישלון-רישום אינו חוסם קריאה */
+    }
+    vaultKeyCache = { wif: raw, at: Date.now() };
+    return raw;
+  } catch {
+    return null;
+  }
 }
 
 // ── שליפת הסשן מבקשה (Authorization: Bearer) ──────────────────────────

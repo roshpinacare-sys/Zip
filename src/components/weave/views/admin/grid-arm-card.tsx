@@ -1,36 +1,33 @@
 "use client";
 
 // ─────────────────────────────────────────────────────────────────────
-// GridArmCard — דלת חימום הגריד החוץ (R37).
+// GridArmCard — דלת חימום הגריד החוץ (R37 · r185-ריבוני).
 //
-// הגריד החיצוני בנוי, נמדד (פרימיית-SBD חיה של +18%–29%) ומתוזמן
-// (יומי 03:17 UTC — תופס את דלק-ה-powerdown של 02:01) — אך נעול על
-// סוד-ריפו אחד. כרטיס זה הוא הדלת: המפעיל מזין את המפתח פעם אחת,
-// השרת מאמת מול השרשרת ואוטם ישר אל הכספת המוצפנת של הריפו.
-// המפתח לא נשמר בשום מקום אחר — לא בסנדבוקס, לא בלוג, לא בתשובה.
+// הגריד החיצוני בנוי, נמדד (פרימיית-SBD חיה של +18%–29%) ומתוזמן.
+// r185 · D-OP-01: אף אחד לא שואל את המפעיל אף מפתח — החימוש שואב את
+// STEEM_ACTIVE_WIF מכספת-הסוכנים בשרת, משפט אותו ביט-מול-ביט מול
+// ה-active החי של @headcorner בשרשרת, ואוטם אל כספת הריפו. לחיצה אחת —
+// אפס קלט. המפתח לא נשמר בשום מקום — לא בסנדבוקס-קליינט, לא בלוג, לא
+// בתשובה.
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
 import {
   CalendarClock,
-  Eye,
-  EyeOff,
   Flame,
   Fuel,
-  KeyRound,
   Loader2,
-  Lock,
   RefreshCw,
   ShieldCheck,
   Swords,
   Unlock,
+  Vault,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useOperator } from "@/components/weave/operator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface ArmGridState {
@@ -71,8 +68,6 @@ export function GridArmCard() {
   const [state, setState] = useState<ArmGridState | null>(null);
   const [loading, setLoading] = useState(false);
   const [arming, setArming] = useState(false);
-  const [keyValue, setKeyValue] = useState("");
-  const [showKey, setShowKey] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -95,18 +90,14 @@ export function GridArmCard() {
     if (status === "in") void load();
   }, [load, status]);
 
+  // r185 · חימוש-ריבוני: אפס קלט — המפתח נשאב בשרת מכספת הסוכנים
   const arm = useCallback(async () => {
-    const key = keyValue.trim();
-    if (!key) {
-      toast.error("הזן את המפתח", { description: "WIF של ה-active (52 תווים) או סיסמת-אב" });
-      return;
-    }
     setArming(true);
     try {
       const res = await authedFetch("/api/admin/arm-grid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key }),
+        body: JSON.stringify({}),
       });
       const j = (await res.json()) as {
         ok: boolean;
@@ -120,9 +111,8 @@ export function GridArmCard() {
       if (!res.ok || !j.ok) {
         throw new Error(j.reason ?? j.error ?? `שלב: ${j.stage ?? res.status}`);
       }
-      setKeyValue("");
       toast.success("הגריד חומש 🔥", {
-        description: `${j.secret} נאטם בכספת ${j.repo}. ההזנקה הידנית זמינה למטה.`,
+        description: `${j.secret} נשאב מכספת הסוכנים, אומת מול השרשרת ונאטם בכספת ${j.repo}. אפס קלט מפעיל.`,
         duration: 7000,
       });
       await load();
@@ -134,11 +124,11 @@ export function GridArmCard() {
     } finally {
       setArming(false);
     }
-  }, [authedFetch, keyValue, load]);
+  }, [authedFetch, load]);
 
   const gridVerdict = state?.grid?.verdict ?? null;
   // r124 · כנות: null = רישום הסודות לא נקרא (כשל-API) — לא “לא קיים”.
-  // במקרה כזה נציג את דלת-החימוש עם הסבר, לא נטען שהסוד נעלם.
+  // במקרה כזה נציג הסבר, לא נטען שהסוד נעלם.
   const armedSecret = state?.secretPresent ?? false;
   const secretListUnread = state != null && state.secretPresent == null;
   const fuel = state?.grid?.fuel ?? null;
@@ -159,8 +149,8 @@ export function GridArmCard() {
                 </Badge>
               ) : (
                 <Badge className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                  <Lock className="size-3" aria-hidden="true" />
-                  נעול — בלי מפתח
+                  <Flame className="size-3" aria-hidden="true" />
+                  לא נאטם — חימוש-ריבוני זמין
                 </Badge>
               )
             ) : null}
@@ -218,54 +208,28 @@ export function GridArmCard() {
             <p className="text-xs leading-relaxed text-muted-foreground">
               הכספת המוצפנת של <span className="font-mono">roshpinacare-sys/saos-dex</span> מחזיקה מעתה את מלוא חוט-המפתחות:{" "}
               <span className="font-mono">STEEM_ACTIVE_WIF + HIVE_ACTIVE_WIF + HIVE_POSTING_WIF + BLURT_ACTIVE_WIF + STEEM_POSTING_WIF</span>{" "}
-              (R99 — נמסרו מכספת-הארנק הריבונית, אומתו ביט-מול-ביט מול הרשויות החיות בשלוש השרשראות לפני האטימה)
+              (נמסרו מכספת-הארנק הריבונית, אומתו ביט-מול-ביט מול הרשויות החיות בשלוש השרשראות לפני האטימה)
               {state?.secretUpdatedAt ? ` (אומת לאחרונה ${new Date(state.secretUpdatedAt).toLocaleString("he-IL")})` : ""}.
               המכונה החיה: התאום הציבורי ב-Domain ({state?.nextScheduledRun ?? "לוח-הזמנים לא נקרא מהענן ברגע זה"}) — רגל-STEEM ורגל-HIVE חיות יחד,
-              כל מילוי-חוץ נספר בכנות בקונסולה הציבורית. אפשר להזניק ריצה ראשונה עכשיו דרך כפתורי ההזנקה למטה.
+              כל מילוי-חוץ נספר בכנות בקונסולה הציבורית. אפשר להזניק ריצה עכשיו דרך כפתורי ההזנקה למטה.
             </p>
           </div>
         ) : (
-          /* דלת החימום */
+          /* חימוש-ריבוני — אפס קלט (r185) */
           <div className="flex flex-col gap-3 rounded-lg border border-amber-500/25 bg-amber-500/[0.03] px-4 py-3">
             <p className="text-xs leading-relaxed text-muted-foreground">
               הגריד בנוי, נמדד (פרימיית-SBD חיה של{" "}
-              <span className="font-mono text-amber-600 dark:text-amber-400">+18%–29%</span> מול קו-הזהות — נמדד 2026-09-24) ומתוזמן יומית —
-              אך לא חותם בלי המפתח. הזן כאן את ה-active של @headcorner: השרת מאמת אותו מול השרשרת ואוטם אותו ישר אל
-              הכספת המוצפנת של הריפו (GitHub Actions Secrets).{" "}
+              <span className="font-mono text-amber-600 dark:text-amber-400">+18%–29%</span> מול קו-הזהות) ומתוזמן יומית —
+              וחימוסו אינו דורש ממך דבר. לחיצה אחת: השרת שואב את ה-active מכספת הסוכנים, משפט אותו מול
+              השרשרת החיה, ואוטם אותו ישר אל כספת הריפו (GitHub Actions Secrets).{" "}
               <span className="font-semibold">
-                המפתח לא נשמר בשום מקום אחר — לא דיסק, לא לוג, לא תשובה.
+                אין סיסמה להזין ולא נשמר כאן כלום — לא דיסק, לא לוג, לא תשובה.
               </span>
             </p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <div className="relative flex-1">
-                <KeyRound className="absolute inset-y-0 right-3 my-auto size-4 text-muted-foreground" aria-hidden="true" />
-                <Input
-                  type={showKey ? "text" : "password"}
-                  value={keyValue}
-                  onChange={(e) => setKeyValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") void arm();
-                  }}
-                  className="border-zinc-700 bg-zinc-900/70 pr-10 pl-10 font-mono text-sm placeholder:text-zinc-600"
-                  placeholder="5K… / L… / סיסמת-אב"
-                  aria-label="מפתח ה-active של המפעיל לחימום הגריד"
-                  dir="ltr"
-                  autoComplete="off"
-                  spellCheck={false}
-                  disabled={arming}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowKey((v) => !v)}
-                  className="absolute inset-y-0 left-2 my-auto rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
-                  aria-label={showKey ? "הסתר מפתח" : "הצג מפתח"}
-                >
-                  {showKey ? <EyeOff className="size-4" aria-hidden="true" /> : <Eye className="size-4" aria-hidden="true" />}
-                </button>
-              </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Button
                 onClick={() => void arm()}
-                disabled={arming || !keyValue.trim()}
+                disabled={arming}
                 className="gap-2 bg-amber-600 text-white hover:bg-amber-500"
               >
                 {arming ? (
@@ -273,12 +237,13 @@ export function GridArmCard() {
                 ) : (
                   <Flame className="size-4" aria-hidden="true" />
                 )}
-                {arming ? "מאמת ואוטם…" : "חמש את הגריד"}
+                {arming ? "שואב מהכספת, מאמת ואוטם…" : "חמש מהכספת — אפס קלט"}
               </Button>
+              <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Vault className="size-3.5" aria-hidden="true" />
+                מקור המפתח: ~/.sovereign/vault (0600, מחוץ-לגיט) · שיפוט: השרשרת החיה
+              </span>
             </div>
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
-              מגבלת-קצה: 8 ניסיונות לשעה. מפתח שגוי נדחה בלי לגעת בכלום — ושום דבר מה שהוזן לא נשמר כאן.
-            </p>
           </div>
         )}
       </CardContent>
