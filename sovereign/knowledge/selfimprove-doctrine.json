@@ -11,7 +11,9 @@
     "provenance": "sovereign/knowledge/vendor/reef/PROVENANCE.md"
   },
   "status": "vendored",
-  "wired": ["worklog.md (r162 onward: every wave entry declares its evaluator — LOOP-3 self-demonstrated)"],
+  "wired": [
+    "worklog.md (r162 onward: every wave entry declares its evaluator — LOOP-3 self-demonstrated)"
+  ],
   "statusRationale": "Reef is the reference implementation of the fleet's own wave loop (serve/observe/grow/commit). Running reef-infra needs an OpenAI-style endpoint we do not host plus another always-on Python service; the doctrine is adopted, the infra is watchlisted.",
   "mappingToFleet": {
     "serve": "fleet mini-services (curation 3040 · content-factory 3046 · money-mover 3034 · …)",
@@ -56,6 +58,13 @@
       "id": "LOOP-7",
       "rule": "episodes-in-a-sandbox",
       "doctrine": "Episodes run without host credentials and without network beyond what the task needs. The learner never holds the keychain. (Ours: sovereign-guard packs; scan/learn targets are clean checkouts — SEC-4.)"
+    },
+    {
+      "id": "LOOP-8",
+      "name": "deep-efficiency-over-activity",
+      "law": "Activity is not progress: every N waves, audit where wall-clock, tokens, disk and commits actually go (r171/r172 method: count-objects, blob-census, bridge-call counts, LLM calls per gate run). Kill waste in place: no-code diffs bypass the gate in 0 LLM calls; eval clones are deleted after distillation; history bloat is rotated before it compounds. Efficiency is measured in before/after numbers, not intentions.",
+      "added": "2026-10-03",
+      "evidence": "r172: gate txt-path 42ms/0-calls (was 1.5-3.3s/2-calls) · git-gc 253M->94M (r171) · eval-space freed 584M"
     }
   ],
   "activationRoutes": [

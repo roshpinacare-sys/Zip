@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T05:31:34.185Z",
-  "source": "push-range",
-  "diffChars": 4784,
-  "diffStat": "progress.md |  9 +++++++++\n worklog.md  | 21 +++++++++++++++++++++\n 2 files changed, 30 insertions(+)",
+  "at": "2026-10-03T05:35:55.456Z",
+  "source": "staged",
+  "diffChars": 3396,
+  "diffStat": "scripts/pre-push-review.mjs | 35 ++++++++++++++++++++++++++++++++++-\n 1 file changed, 34 insertions(+), 1 deletion(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -15,8 +15,19 @@
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 1639,
-    "phase1TookMs": 812,
-    "phase2TookMs": 783
+    "totalTookMs": 1054,
+    "phase1TookMs": 560,
+    "phase1Tokens": {
+      "prompt_tokens": 1124,
+      "completion_tokens": 7,
+      "total_tokens": 0
+    },
+    "phase2TookMs": 486,
+    "phase2Tokens": {
+      "prompt_tokens": 1106,
+      "completion_tokens": 14,
+      "total_tokens": 0
+    },
+    "llmCalls": 2
   }
 }

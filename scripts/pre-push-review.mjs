@@ -103,7 +103,7 @@ async function bridgeCall(messages, maxTokens = 1200) {
     const data = await res.json();
     const content = data?.choices?.[0]?.message?.content;
     if (typeof content !== "string" || !content.trim()) throw new Error("bridge empty content");
-    return { content, tookMs: Date.now() - t0 };
+    return { content, tookMs: Date.now() - t0, usage: data?.usage ?? null };
   } finally {
     clearTimeout(timer);
   }
@@ -116,6 +116,24 @@ function extractJson(text) {
   const end = candidate.lastIndexOf("}");
   if (start < 0 || end <= start) throw new Error(`no JSON object in: ${text.slice(0, 200)}`);
   return JSON.parse(candidate.slice(start, end + 1));
+}
+
+// r172 efficiency: a diff that touches NO code files cannot violate code laws.
+// Short-circuit with zero LLM calls (state/ledger/doc churn bypasses the gate).
+const CODE_EXT = new Set([
+  "js", "jsx", "ts", "tsx", "mjs", "cjs", "py", "sh", "bash", "go", "rs", "rb",
+  "java", "kt", "c", "cc", "cpp", "h", "hpp", "cs", "swift", "php", "sql",
+  "css", "scss", "html", "vue", "svelte", "prisma", "graphql", "ipynb",
+]);
+
+function diffTouchesCode(diff) {
+  const files = [];
+  for (const m of diff.matchAll(/^diff --git a\/(.+?) b\/(.+?)$/gm)) {
+    const path = (m[2] ?? m[1]).trim();
+    const ext = path.includes(".") ? path.split(".").pop().toLowerCase() : "";
+    files.push({ path, ext });
+  }
+  return files.some((f) => CODE_EXT.has(f.ext) || !f.path.includes("."));
 }
 
 async function main() {
@@ -149,6 +167,18 @@ async function main() {
     process.exit(0);
   }
 
+  // r172 short-circuit: no code files in diff → zero LLM calls.
+  if (!diffTouchesCode(diff)) {
+    result.verdict = "pass";
+    result.reason = "no-code-diff (state/doc/config churn) — 0 LLM calls";
+    result.evidence.llmCalls = 0;
+    result.evidence.totalTookMs = Date.now() - t0;
+    mkdirSync(join(ROOT, "sovereign/review-gate"), { recursive: true });
+    writeFileSync(OUT_PATH, JSON.stringify(result, null, 2) + "\n");
+    console.log(`REVIEW-GATE: pass (no-code-diff, 0 LLM calls) → ${OUT_PATH}`);
+    process.exit(0);
+  }
+
   const diffCapped =
     diff.length > DIFF_CAP
       ? diff.slice(0, DIFF_CAP) + `\n... [diff truncated, full ${diff.length} chars; run git diff for the rest]`
@@ -170,6 +200,7 @@ async function main() {
       },
     ]);
     result.evidence.phase1TookMs = p1.tookMs;
+    if (p1.usage) result.evidence.phase1Tokens = p1.usage;
     const parsed = extractJson(p1.content);
     if (Array.isArray(parsed.skills)) picked = parsed.skills.map(String);
   } catch (e) {
@@ -203,6 +234,7 @@ async function main() {
       2400
     );
     result.evidence.phase2TookMs = p2.tookMs;
+    if (p2.usage) result.evidence.phase2Tokens = p2.usage;
     const verdict = extractJson(p2.content);
     if (verdict.verdict === "block" || verdict.verdict === "pass") result.verdict = verdict.verdict;
     if (Array.isArray(verdict.findings)) result.findings = verdict.findings.slice(0, 20);
@@ -218,6 +250,7 @@ async function main() {
   }
 
   result.evidence.totalTookMs = Date.now() - t0;
+  result.evidence.llmCalls = 2;
   mkdirSync(join(ROOT, "sovereign/review-gate"), { recursive: true });
   writeFileSync(OUT_PATH, JSON.stringify(result, null, 2) + "\n");
 
