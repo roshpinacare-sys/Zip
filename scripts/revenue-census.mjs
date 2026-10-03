@@ -117,6 +117,11 @@ let start = -1, oldest = -1, pages = 0, scanned = 0;
 // אינדקס-הצבעות: author/permlink → ההצבעה-האחרונה (הסריקה-חדש→ישן, הראשון-שנראה = האחרון-שנשלח)
 const voteIndex = new Map();
 const rewards = []; // פרעוני-קיורציה-בחלון (לשיוך-להצבעה-המקורית)
+// r178 — V1b-שדרוג: ציר-זמן-מלא של הצבעות-הכותב-החוץ ({at,w} חדש→ישן).
+// r177-חי: ירידות-VP-חדות (2.46pp@15:21Z, 0.51pp@16:21Z) נצפו-בלי-יכולת-שיוך-
+// לאירוע-על-השרשרת. ציר-הזמן-הזה-הוא-השיוך: טיפת-VP-מתוארכת-מול-הצבעה-חוץ-
+// מתוארכת = תחרות-מוכחת, לא-השערה. נמדד-מהשרשרת-ישירות — אין-השערות.
+const externalTimeline = [];
 for (let page = 0; page < 900; page++) {
   const ops = await rpc("condenser_api.get_account_history", [ACCOUNT, start, 100]);
   if (!ops?.length) break;
@@ -156,7 +161,7 @@ for (let page = 0; page < 900; page++) {
       const w = body.weight / 100;
       // סיווג-כתיבה: המנוע-הריבוני-מצביע-עד-משקל-המדיניות; מעל-זה — כותב-חוץ-על-החשבון
       // (הכותב-השני — תועד-ב-r150; כאן-הוא-נהיה-כמות-מנוטרת)
-      if (w > 6.1) { d.externalVotes++; d.externalWeightSum += w; }
+      if (w > 6.1) { d.externalVotes++; d.externalWeightSum += w; externalTimeline.push({ at: op.timestamp, w }); }
       else d.machineVotes++;
       d.voteWeights.push({ w, at: op.timestamp });
     }
@@ -230,6 +235,10 @@ const machineVotesTotal = Object.values(days).reduce((s, d) => s + d.machineVote
 const avgExtWeight = extVotesTotal > 0
   ? Object.values(days).reduce((s, d) => s + d.externalWeightSum, 0) / extVotesTotal
   : 0;
+// r178 — V1b: מנין-האירועים-ב-24ה' (חלון-התאמה-ישיר-מול-עקומת-ה-VP-שב-curation/state.json)
+const extLast24h = externalTimeline.filter(
+  (e) => Date.now() - new Date(e.at).getTime() < 86400_000,
+).length;
 
 // ── שיוך-הכנסה-להצבעה (r157 · D-r157-VP-COORD) ────────────────────
 const attr = { machineSp: 0, externalSp: 0, unknownSp: 0, machineOps: 0, externalOps: 0, unknownOps: 0 };
@@ -250,7 +259,9 @@ const verdicts = {
   ),
   V1b_external_writer_footprint: {
     verdict: "MEASURED",
-    detail: `כותב-חוץ-על-החשבון (הכותב-השני, תועד-r150): ${extVotesTotal} הצבעות במשקל-ממוצע ${avgExtWeight.toFixed(1)}% מול ${machineVotesTotal} של-המנוע — מתחרה-על-מנת-ה-VP. ניטור-שוטף-חי`,
+    detail: extVotesTotal > 0
+      ? `כותב-חוץ-על-החשבון (r150): ${extVotesTotal} הצבעות במשקל-ממוצע ${avgExtWeight.toFixed(1)}% מול ${machineVotesTotal} של-המנוע · ${extLast24h}-אירועי-חוץ-ב-24ה' · אחרונה: ${externalTimeline[0]?.at ?? "—"} — ציר-הזמן (externalVoteTimeline) מאפשר-שיוך-ירידות-VP-לאירועים-על-השרשרת`
+      : `אין-הצבעות-כותב-חוץ-בחלון · מנוע ${machineVotesTotal} הצבעות`,
   },
   V2_curation_payouts: weighVerdict(
     curationPending || totalCurationSp > 0,
@@ -304,6 +315,9 @@ const census = {
     machineOps: attr.machineOps, externalOps: attr.externalOps, unknownOps: attr.unknownOps,
     policy: "D-r157-VP-COORD (אישור-מפעיל 00:04Z): הפרעון-נזקף-להצבעה-המקורית — מנוע ≤6% מול חוץ",
   },
+  // r178 — V1b: ציר-הזמן-המלא (חדש→ישן, מוגבל-60-אירועים-אחרונים) —
+  // כל-אירוע: מתי-ובאיזה-משקל הכותב-החוץ-צרך-VP. המקור: account_history-מהשרשרת.
+  externalVoteTimeline: externalTimeline.slice(0, 60),
   daily: Object.fromEntries(
     Object.entries(days).sort().map(([d, v]) => [d, {
       curationVests: +v.curationVests.toFixed(1),
