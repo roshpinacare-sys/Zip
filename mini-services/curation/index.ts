@@ -183,6 +183,19 @@ async function tick(): Promise<void> {
     // 1) מדידה חיה של כוח-ההצבעה — השרשרת שופטת, לא הזיכרון
     const power = await readVotingPower(CURATION_VOTER);
     state.votingPowerLast = { at: new Date().toISOString(), pct: power.pct, ...(power.ok ? {} : { detail: power.detail }) };
+    // r157 — עקומת-VP (אישור-מפעיל D-r157-VP-COORD): טבעת-דגימה-שעתית — מקור-האמת
+    // לחלון-השיא-היומי מול-הכותב-החוץ (census V1b). הדגימה-מתבצעת-רק-אם-עברו-45 דק'
+    // מהדגימה-הקודמת (פעימות-השירות-צפופות-בהרבה) · גג-480 דגימות (~20 ימים).
+    if (power.ok && power.pct != null) {
+      const nowMs = Date.now();
+      const lastSampleAt = state.votingPowerCurve?.at(-1)?.at;
+      if (!lastSampleAt || nowMs - Date.parse(lastSampleAt) >= 45 * 60_000) {
+        state.votingPowerCurve = [
+          ...(state.votingPowerCurve ?? []),
+          { at: new Date(nowMs).toISOString(), pct: Math.round(power.pct * 100) / 100 },
+        ].slice(-480);
+      }
+    }
 
     // 2) גילוי — הפיד החי + הפנקס (אותו פוסט פעמיים / מחבר-של-היום)
     const votedKeys = new Set(state.votedPosts.map((v) => `${v.author}/${v.permlink}`));

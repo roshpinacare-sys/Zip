@@ -2,25 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 125,
-  "lastCycleAt": "2026-10-03T00:00:33.420Z",
-  "lastDecisionId": "D-r143-125",
+  "cycles": 126,
+  "lastCycleAt": "2026-10-03T00:10:32.401Z",
+  "lastDecisionId": "D-r143-126",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 6603 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 0 דק') · מילויי-שרשרת 216 (maxIndex=61097)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 6613 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 10 דק') · מילויי-שרשרת 216 (maxIndex=61108)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-03T00:00:28.926Z",
-    "verdict": "DENY",
-    "score": 35,
+    "at": "2026-10-03T00:10:29.648Z",
+    "verdict": "REVIEW",
+    "score": 45,
     "reasonsHe": [
-      "חוק-הראיה-הכלכלית: פעולה ללא מספרי-עלות/ערך מדודים (estimatedCost/expectedValue/killLineAware לא דווח) — טענת ביקוש בלי מספר נדחית",
-      "חוק-העלות-השולית: לא ניתן להעריך את העלות השולית של פעולה זו ללא נתונים מדודים",
-      "חוק-הקיבולת: הפעולה לא כלולה בתקציב-הפעולות היומי הגלובלי (0/16), ולא ניתן לקבוע אם היא חורגת מתקרת-התקרה הקשה",
-      "חוק-הגבול-החתום: פעולת ממשל ללא מספרים מדודים חורגת מהגבולות החתומים של שער-הכלכלה"
+      "חוק-הראיה-הכלכלית: לא דווחו מספרי ביקוש או ערך מדודים",
+      "חוק-העלות-השולית: לא דווחה עלות מדודה",
+      "חוק-שורת-ההרג: לא דווחה killLine מדודה",
+      "פעולת ממשל יכולה להיחשב כעלות-שולית כיוון שהיא חלק מהמנגנון הקיים, אך ללא מדידות אין לאמת זאת"
     ],
-    "actionsToday": 0,
+    "actionsToday": 2,
     "cap": 16,
-    "actionId": "D-r143-125"
+    "actionId": "D-r143-126"
   }
 }

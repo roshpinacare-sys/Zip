@@ -175,6 +175,8 @@ export interface CurationState {
     filtered: Record<string, number>;
   } | null;
   votingPowerLast: { at: string; pct: number | null; detail?: string } | null;
+  /** r157 · עקומת-VP (D-r157-VP-COORD) — טבעת-דגימה-שעתית (גג-480) למציאת-חלון-השיא-היומי */
+  votingPowerCurve?: { at: string; pct: number }[];
   lastDecision: Decision | null;
   /** r146-a · צינור-התגמולים — מצב-התביעה היומי (שדות-תוספת; פנקס-ישן בלעדיהם תקין) */
   lastClaimDay?: string | null;
@@ -239,6 +241,7 @@ export function freshCurationState(): CurationState {
     candidatesSeen: 0,
     lastDiscovery: null,
     votingPowerLast: null,
+    votingPowerCurve: [],
     lastDecision: null,
     lastClaimDay: null,
     lastClaimAt: null,
@@ -271,6 +274,7 @@ export function readCurationState(): CurationState {
       candidatesSeen: typeof prev.candidatesSeen === "number" ? prev.candidatesSeen : 0,
       lastDiscovery: prev.lastDiscovery ?? null,
       votingPowerLast: prev.votingPowerLast ?? null,
+      votingPowerCurve: Array.isArray(prev.votingPowerCurve) ? prev.votingPowerCurve : [],
       lastDecision: prev.lastDecision ?? null,
       lastClaimDay: prev.lastClaimDay ?? null,
       lastClaimAt: prev.lastClaimAt ?? null,

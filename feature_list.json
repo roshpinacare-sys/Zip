@@ -2,7 +2,7 @@
   "$schema": "harness-feature-list-v1",
   "$he": "עוקב-המצב הקנוני של הרשת (harness-creator · r151). חוק: אין סטטוס בלי ראיה. כל feature נושא evidence_path + last_verified_at. מעודכן בסוף-כל-גל על-ידי הסוכן הפעיל.",
   "last_updated": "2026-10-02T23:18:00Z",
-  "active_feature": "r156-revenue-census",
+  "active_feature": "r157-vp-coordination",
   "features": [
     {
       "id": "F-1",
@@ -167,6 +167,20 @@
         "F-2"
       ],
       "next_step": "אימות-פרעוני-קיורציה-הראשונים (04-07/10) ופרעוני-מפעל (09/10); אימות-נחיתת-powerdown-ב-02:01Z-דרך-withdraw_vesting; מעקב-V1b-אחרי-כותב-החוץ"
+    },
+    {
+      "id": "F-14",
+      "name": "תיאום-VP + שיוך-הכנסה-להצבעה (D-r157-VP-COORD)",
+      "status": "running",
+      "description": "Operator-approved (explicit 00:04Z approval of the VP-coordination question) governance layer for the shared @headcorner voting account: (1) hourly VP curve ring (480 samples ≈ 20 days) inside the curation machine's state — finds the daily VP peak window vs the external writer's burn pattern; (2) revenue attribution in the census — every curation_reward payout is credited to its originating vote (last vote op before payout), split machine (≤6%) vs external writer — turning the coordination question from theory into per-writer measured ROI starting 2026-10-04.",
+      "evidence_path": "sovereign/revenue/census.json",
+      "last_verified_at": "2026-10-03T00:12:00Z",
+      "evidence": "DECISION_LOG D-r157-VP-COORD (hash 7c18c1bc8c94) · votingPowerCurve-דגימה-ראשונה 00:07:42Z=53.63% (state.json) · census V2b attribution-חי (PENDING-מבני-עד-04/10) · census-V1b: 146@42.3%-חוץ-מול-32@≤6%-מנוע",
+      "dependencies": [
+        "F-13",
+        "F-2"
+      ],
+      "next_step": "אימות-נחיתת-powerdown-ב-02:01Z-דרך-census · פרעונים-ראשונים-04/10→השיוך-הראשון-המדוד-מנוע/חוץ · אחרי-48ש'-עקומת-VP-תחשוף-את-חלון-השיא-היומי"
     }
   ],
   "dependencies_note": "חוק-היקף: one feature at a time — active_feature יחיד; תלות: F-6 דורש F-5; F-1 דורש F-4; F-4 דורש F-2. Stay in scope: אין פתיחת-feature חדשה בלי סגירת-הפעילה או הקפאתה בראיה."

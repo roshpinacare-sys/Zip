@@ -111,8 +111,12 @@ const mkDay = (d) =>
   });
 
 const cutoffDay = daysAgoIso(HISTORY_DAYS);
+const voteIndexDay = daysAgoIso(HISTORY_DAYS + 9); // אינדקס-הצבעות-עמוק: פרעוני-9-ימים ← הצבעות-עד-16-ימים-אחורה
 let start = -1, oldest = -1, pages = 0, scanned = 0;
-for (let page = 0; page < 400; page++) {
+// אינדקס-הצבעות: author/permlink → ההצבעה-האחרונה (הסריקה-חדש→ישן, הראשון-שנראה = האחרון-שנשלח)
+const voteIndex = new Map();
+const rewards = []; // פרעוני-קיורציה-בחלון (לשיוך-להצבעה-המקורית)
+for (let page = 0; page < 900; page++) {
   const ops = await rpc("condenser_api.get_account_history", [ACCOUNT, start, 100]);
   if (!ops?.length) break;
   pages++; scanned += ops.length;
@@ -120,19 +124,29 @@ for (let page = 0; page < 400; page++) {
   for (const [, op] of [...ops].reverse()) {
     const [kind, body] = op.op;
     const day = isoDay(op.timestamp);
-    if (day < cutoffDay) continue;
-    const d = mkDay(day);
+    if (day < voteIndexDay) continue;
+    const inWindow = day >= cutoffDay;
+    const d = inWindow ? mkDay(day) : null;
     if (kind === "curation_reward") {
+      if (!d) continue;
       d.curationVests += num(body.reward); d.curationVestOps++;
+      // r157 — שיוך-הכנסה-להצבעה (D-r157-VP-COORD): הפרעון-נזקף-להצבעה-המקורית
+      // (הצבעה-אחרונה-לפני-הפרעון = המשקל-האפקטיבי; מנוע ≤6% מול חוץ)
+      rewards.push({ day, author: body.author, permlink: body.permlink, vests: num(body.reward), at: op.timestamp });
     } else if (kind === "author_reward") {
+      if (!d) continue;
       d.authorSbd += num(body.sbd_payout || "0");
       d.authorSteem += num(body.steem_payout || "0");
       d.authorOps++;
     } else if (kind === "withdraw_vesting") {
+      if (!d) continue;
       d.withdrawVestingVests += num(body.vesting_shares); d.withdrawOps++;
     } else if (kind === "fill_order") {
+      if (!d) continue;
       d.fills++;
     } else if (kind === "vote" && body.voter === ACCOUNT) {
+      voteIndex.set(`${body.author}/${body.permlink}`, { w: body.weight / 100, at: op.timestamp });
+      if (!d) continue;
       d.votesSent++;
       const w = body.weight / 100;
       // סיווג-כתיבה: המנוע-הריבוני-מצביע-עד-משקל-המדיניות; מעל-זה — כותב-חוץ-על-החשבון
@@ -143,7 +157,7 @@ for (let page = 0; page < 400; page++) {
     }
   }
   oldest = ops[0][0];
-  if (isoDay(ops[0][1].timestamp) < cutoffDay || oldest <= 1) break;
+  if (isoDay(ops[0][1].timestamp) < voteIndexDay || oldest <= 1) break;
   start = oldest - 1;
 }
 
@@ -196,6 +210,17 @@ const avgExtWeight = extVotesTotal > 0
   ? Object.values(days).reduce((s, d) => s + d.externalWeightSum, 0) / extVotesTotal
   : 0;
 
+// ── שיוך-הכנסה-להצבעה (r157 · D-r157-VP-COORD) ────────────────────
+const attr = { machineSp: 0, externalSp: 0, unknownSp: 0, machineOps: 0, externalOps: 0, unknownOps: 0 };
+for (const r of rewards) {
+  const v = voteIndex.get(`${r.author}/${r.permlink}`);
+  const sp = r.vests / vestsPerSp;
+  if (!v) { attr.unknownSp += sp; attr.unknownOps++; }
+  else if (v.w <= 6.1) { attr.machineSp += sp; attr.machineOps++; }
+  else { attr.externalSp += sp; attr.externalOps++; }
+}
+const hasAttr = rewards.length > 0;
+
 const verdicts = {
   V1_curation_policy_live: weighVerdict(
     weightOk,
@@ -211,6 +236,12 @@ const verdicts = {
     curationPending ? nextPayoutNote : `נמדד ${totalCurationSp.toFixed(4)} SP בחלון`,
     "אין-הצבעות-ואין-פרעונים — המנוע-מנותק"
   ),
+  V2b_revenue_attribution: {
+    verdict: hasAttr ? "MEASURED" : "PENDING",
+    detail: hasAttr
+      ? `שיוך-פרעונים-להצבעות: מנוע ${attr.machineSp.toFixed(4)} SP (${attr.machineOps}) · חוץ ${attr.externalSp.toFixed(4)} SP (${attr.externalOps}) · לא-משויך ${attr.unknownSp.toFixed(4)} SP (${attr.unknownOps})`
+      : "אין-עוד-פרעוני-קיורציה-בחלון — השיוך-נטען-אוטומטית-עם-הפרעונים-הראשונים (04/10+)",
+  },
   V3_author_payouts: {
     verdict: "MEASURED",
     detail: totalAuthorSbd + totalAuthorSteem > 0
@@ -246,6 +277,11 @@ const census = {
     votingPower: acc.voting_power / 100,
   },
   powerdown,
+  attribution: {
+    machineSp: +attr.machineSp.toFixed(5), externalSp: +attr.externalSp.toFixed(5), unknownSp: +attr.unknownSp.toFixed(5),
+    machineOps: attr.machineOps, externalOps: attr.externalOps, unknownOps: attr.unknownOps,
+    policy: "D-r157-VP-COORD (אישור-מפעיל 00:04Z): הפרעון-נזקף-להצבעה-המקורית — מנוע ≤6% מול חוץ",
+  },
   daily: Object.fromEntries(
     Object.entries(days).sort().map(([d, v]) => [d, {
       curationVests: +v.curationVests.toFixed(1),
@@ -294,5 +330,12 @@ function printSummary(c) {
     console.log(`  ${d}: ${bits.join(" · ") || "—"}`);
   }
   console.log(`  סה"כ-חלון: ${c.totals.windowRevenueUsd} USD · ממוצע-יומי: ${c.totals.dailyAvgUsd} USD`);
-  for (const [k, v] of Object.entries(c.verdicts)) console.log(`  ${v.verdict === "PASS" ? "✔" : v.verdict === "MEASURED" ? "◆" : "✘"} ${k}: ${v.detail}`);
+  const a = c.attribution;
+  if (a.machineOps + a.externalOps + a.unknownOps > 0)
+    console.log(`  שיוך-פרעונים: מנוע ${a.machineSp}SP (${a.machineOps}) · חוץ ${a.externalSp}SP (${a.externalOps}) · לא-משויך ${a.unknownSp}SP (${a.unknownOps})`);
+  else console.log("  שיוך-פרעונים: ממתין-לפרעונים-הראשונים (04/10+)");
+  for (const [k, v] of Object.entries(c.verdicts)) {
+    const icon = v.verdict === "PASS" ? "✔" : v.verdict === "MEASURED" ? "◆" : v.verdict === "PENDING" ? "◌" : "✘";
+    console.log(`  ${icon} ${k}: ${v.detail}`);
+  }
 }
