@@ -1,30 +1,32 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T16:39:20.483Z",
+  "at": "2026-10-03T17:09:17.774Z",
   "source": "push-range",
-  "diffChars": 76570,
-  "diffStat": "progress.md                                    |   6 +\n scripts/revenue-census.mjs                     |  18 +-\n sovereign/businesses/business-log.jsonl        |  28 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/fleet/audit-latest.json              |  20 +-\n sovereign/governance/DECISION_LOG.jsonl        |   1 +\n sovereign/governance/cycle-state.json          |  22 +-\n sovereign/governance/daemon-state.json         |   8 +-\n sovereign/governance/econ-gate.jsonl           |   1 +\n sovereign/governance/loop-state.json           |  22 +-\n sovereign/hunter/state.json                    |  20 +-\n sovereign/keeper/fleet-guard-state.json        |  40 ++--\n sovereign/keeper/state.json                    | 190 +++++++++---------\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  10 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/revenue/census.json                  | 268 +++++++++++++++++++++++--\n sovereign/review-gate/last-review.json         |   8 +-\n sovereign/student/state.json                   | 200 +++++++++---------\n sovereign/treasury-audit/audit-2026-10-03.json |  14 +-\n sovereign/treasury-audit/last-audit.json       |  14 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |   2 +-\n worklog.md                                     |  22 ++\n 24 files changed, 626 insertions(+), 312 deletions(-)",
+  "diffChars": 63328,
+  "diffStat": "progress.md                             |   8 +\n scripts/export-erc8004-registry.mjs     |  86 +++++++\n scripts/revenue-census.mjs              |  44 +++-\n sovereign/agents/erc8004-registry.json  | 396 ++++++++++++++++++++++++++++++++\n sovereign/curation/history.json         |   5 +\n sovereign/curation/state.json           |  30 +--\n sovereign/governance/DECISION_LOG.jsonl |   1 +\n sovereign/governance/cycle-state.json   |  21 +-\n sovereign/governance/econ-gate.jsonl    |   1 +\n sovereign/governance/loop-state.json    |  21 +-\n sovereign/keeper/fleet-guard-state.json |  16 +-\n sovereign/keeper/state.json             |  78 +++----\n sovereign/kpi/state.json                |   2 +-\n sovereign/money/state.json              |   8 +-\n sovereign/pulse/state.json              |   6 +-\n sovereign/revenue/census.json           |  80 +++++--\n sovereign/review-gate/last-review.json  |  24 +-\n sovereign/weblift/state.json            |   2 +-\n worklog.md                              |  45 ++++\n 19 files changed, 749 insertions(+), 125 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
-  "skillsLoaded": [],
+  "skillsLoaded": [
+    "fleet-conventions"
+  ],
   "verdict": "pass",
   "findings": [],
   "reason": "",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 4471,
-    "phase1TookMs": 845,
+    "totalTookMs": 3568,
+    "phase1TookMs": 906,
     "phase1Tokens": {
-      "prompt_tokens": 1816,
-      "completion_tokens": 7,
+      "prompt_tokens": 1779,
+      "completion_tokens": 9,
       "total_tokens": 0
     },
-    "phase2TookMs": 2657,
+    "phase2TookMs": 1643,
     "phase2Tokens": {
-      "prompt_tokens": 7043,
+      "prompt_tokens": 7705,
       "completion_tokens": 9,
       "total_tokens": 0
     },
