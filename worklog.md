@@ -5987,3 +5987,20 @@ Work Log:
 
 Stage Summary:
 - הספרייה-נשפטה-לפי-הדוקטרינה: לא-רושם, לא-תיאוריה — מדידה-ישירה ואימוץ-של-מה-שמשרת-הכנסה. הפוסט-הראשון-עם-שכבת-הדוקטרינה-ירד-מהמפעל-החל-מ-03/10; המדידה: netVotes/pendingPayout-לפוסטי-דוקטרינה-מול-בסיס-שלפני (בסיס-חי: 12-הצבעות · 0.006-SBD-pending-על-02/10) — מתאמת-אוטומטית-ב-census (V1/V3). loop-library-נשמר-כשכבת-דוקטרינה-הבאה-לביקורת-לולאות-הצי.
+
+---
+Task ID: r160
+Agent: main (Z.ai) — גל-strix: מה-לגבי-זה → מדידה, פסק-דין, אימוץ-ממוקד
+
+Task: המפעיל-שאל "מה לגבי זה https://github.com/usestrix/strix" — הערכה-מדידה-ואימוץ-לפי-דוקטרינת-r159 (מה-שמשרת-המערכת-נאסף, השאר-בכנות-נדחה)
+
+Work Log:
+- **מדידת-מאגר (README + קלון-רדוד):** 66.2k-כוכבים · 7.3k-forks · 842-קומיטים · commit 99c0711 (2026-10-02 — פעיל-מאוד) · Apache-2.0 · PyPI strix-agent. כלי-פנטסטינג-אג'נטי: סוכני-AI-שמוצאים-חורים-ומאמתים-אותם-ב-PoC-חי · multi-agent (Graph-of-Agents) · דוחות-ותיקונים-אוטומטיים · headless-mode. ראוי-לציון: ה-README-שלהם-מציג openrouter/z-ai/glm-5.3 כ-model-ברירת-מחדל.
+- **בדיקת-ישימות-חיה-בסנדבוקס (ראיה-קשה, לא-הנחה):** pip3-install-strix-agent → OK · strix --version → **1.6.2-מותקן-ב-venv** · ניסיון-סריקה-אמיתי (strix -n -t /tmp/strix-test) → **חסום-בבאנר-משלו: "DOCKER NOT INSTALLED"** — מאשר-את-מדידת-הגבול-מ-r158 · אין-LLM_API_KEY-ב-env (ה-SDK-מזדהה-פנימית-ולא-יכול-להזין-מפתח).
+- **פסק-דין-הכנסה (בלי-רומנטיקה):** Bug-bounty-אוטומציה (use-case-אמיתי-שלהם) = חסום-כאן (docker) + דורש-חשבונות-פלטפורמה/סקופ/אישור-משפטי-ופרעון-לא-יומי-מדיד → לא-מנוע-הכנסה-עכשיו · Strix-Cloud = מסירת-עץ-המקור-לצד-שלישי-שמחזיק-מחרוזת-מפתחות → אסור-בלי-אישור-מפעיל-טרי.
+- **מה-כן-משרת-עכשיו (שלמות-מגינה-על-הכנסה):** vendor-של-5-מתוך-9-SKILL.md ל-sovereign/knowledge/vendor/strix/ (find-vulns · penetration-master · ci-gate · owasp-top-10 · fix-then-reprove) + PROVENANCE.md (מקור/commit/רישיון/בחירה/ראיות-חסימה).
+- **זיקוק → sovereign/knowledge/security-doctrine.json (security-doctrine-v1 · status=vendored · wired=[]):** 8-כללים-SEC (scope-before-scan · poc-or-not-a-finding · exit-zero-is-not-clean · clean-checkout-target · diff-gated-review · secrets-and-deps-are-separate · fix-root-cause-then-reprove · sandbox-boundary) + whyNotRevenue-מנומק + 3-נתיבי-הפעלה-מוכנים (docker-נופל-→-ריצה-מיידית · CI-עם-סודות · cloud-רק-באישור-מפעיל-טרי).
+- git-עוגן (pull --rebase --autostash) · commit · push.
+
+Stage Summary:
+- strix-נשפט-לפי-הדוקטרינה-ולא-לפי-ההייפ: כלי-רציני-ברמה-עליונה שה-CLI-שלו-כבר-מותקן-ומוכן-אצלנו (1.6.2), אבל-הסריקות-חסומות-בשער-משלו-בלי-docker — ולכן-היום-הוא-שכבת-ידע-ולא-מנוע-הכנסה. נאספו-8-כללי-אבטחה-שמחזקים-את-שכבת-ה-guards-על-המערכת-שמחזיקה-את-מפתח-@headcorner, ונרשמו-3-נתיבי-הפעלה-מדידים-ליום-שבו-הגבול-נפתח. מהצי-נשאר-בפוקוס: פרעוני-הבכורה-04-09/10 (census) · נחיתת-powerdown-02:01Z · עקומת-VP-שעתית.
