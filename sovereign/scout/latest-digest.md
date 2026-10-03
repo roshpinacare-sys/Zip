@@ -1,49 +1,32 @@
-# דיג'סט-סייר-השוק · seq 6 · 2026-10-02T13:16:27.098Z
+# דיג'סט-סייר-השוק · seq 7 · 2026-10-03T03:10:56.464Z
 
-שבוע: 2026-W40 · משך-סיור: 11s · שרשרת: 1a7c564f6f… → 70e1e3906a…
+שבוע: 2026-W40 · משך-סיור: 30s · שרשרת: 70e1e3906a… → eddb490427…
 
 ## הקשר-מחיר STEEM
-- API חי: **$0.064878** (coingecko)
+- API חי: **$0.062613** (coingecko)
 
 ## steem-market — measured
 - שאילתא: "STEEM price" → 6 תוצאות (חלון 7 ימים)
 - שאילתא: "Steem blockchain news" → 6 תוצאות (חלון 7 ימים)
-- [Steem price today, STEEM to USD live price, marketcap and chart](https://coinmarketcap.com/currencies/steem) — coinmarketcap.com
-  > The live Steem price today is $0.06445 USD with a 24-hour trading volume of $3056077.39 USD. Steem is down 0.38% in the last 24 hours. a live market cap of $36 ...
-- [STEEM/USD Live Price Chart, Market Cap & News Today](https://www.coingecko.com/en/coins/steem) — www.coingecko.com
-  > Price of Steem (STEEM) today is $0.06436 with a 24-hour trading volume of $3053128. Track Steem's live price, market cap, news, and more ...
-- [Convert Steem (STEEM) to US Dollar (USD) - Coinbase](https://www.coinbase.com/converter/steem/usd) — www.coinbase.com
-  > 1 STEEM is currently worth $0.06. The current price of Steem is $0.06416 per STEEM. The last known price of Steem is 0.05033539 USD and is down -0.09 over the ...
-- [0.06466 Trade STEEM/USDT Spot - Binance](https://www.binance.com/en/trade/STEEM_USDT) — www.binance.com
-  > STEEM/USDT Steem Price 0.06466 $ 0.06466000. Market Capitalization $36.16M Fully Diluted Market Cap $36.16M Market Dominance 0.0012% Volume $2.93M Volume/ ...
-- [STEEMUSD - Steem Price Chart - TradingView](https://www.tradingview.com/symbols/STEEMUSD) — www.tradingview.com
-  > The current price of Steem (STEEM) is 0.063419 USD — it has risen 3.24% in the past 24 hours. The current market capitalization of Steem (STEEM) is ‪35.48 M‬ ...
-- [Steem price today, STEEM to USD live price, marketcap and chart](https://www.coindesk.com/price/steem) — www.coindesk.com
-  > The price of Steem (STEEM) is $0.065 today as of Sep 30, 2026, 11:00 am EDT, with a 24-hour trading volume of $3.41M.
+- [Steem Price Today: STEEM to IDR = Rp767.64](https://pluang.com) — pluang.com
+  > 1 STEEM to IDR = Rp767.64 right now . Track Steem price today on Pluang, updated in real time with live charts and market data.
+- [STEEM Live Price, Charts, News](https://crypto.com) — crypto.com
+  > Steem's price today is $0.05625 , with a 24-hour trading volume of $42.76M. STEEM is -14.46% in the last 24 hours. It is currently -34.70% from its 7-day all- ... Read more
+- [Steem Price](https://paybis.com) — paybis.com
+  > STEEM price charts, historical data and currency converter in one place ! Market cap$37,858,962.86 Volume (24h)$16,819,034.02 Highest price (24h)$0.07111 ...
+- [STEEMUSD - Steem Price Chart](https://in.tradingview.com) — in.tradingview.com · Jul 7, 2018
+  > Jul 7, 2018 — What is Steem price today? The current price of Steem (STEEM) is 0.065935 USD — it has risen 3.24% in the past 24 hours. Try placing this info ... Read more
+- [Steem Price Today: Live STEEM Chart, Market Cap & News](https://coincheckup.com) — coincheckup.com
+  > Steem price today is $0.06664 , with a -1.89% change in 24 hours. View live STEEM charts, market cap, trading volume, and latest news.
+- [0.06366 | STEEMUSDT USDⓈ-Margined Perpetual Chart](https://www.binance.com) — www.binance.com
+  > STEEMUSDT Perp 0.06366 ≈ $0.06366000 +0.34% Mark Price 0.06366 24h High 0.06531 24h Vol (STEEM) 38.78M 24h Low 0.06306 24h Vol (USDT) 2.49M Funding (8h)
 
-## competitive-landscape — measured
-- שאילתא: "proof of personhood for AI agents" → 8 תוצאות
-- [How “personhood credentials” could help prove you're a](https://www.media.mit.edu/articles/how-personhood-credentials-could-help-prove-you-re-a-human-online) — www.media.mit.edu
-  > Personhood credentials rely on the fact that AI systems still cannot bypass state-of-the-art cryptographic systems or pass as people in the offline, real world.
-- [When AI Bots Look Human: Why We Need Proof of Personhood](https://www.parity.io/blog/when-ai-bots-look-human-why-we-need-proof-of-personhood) — www.parity.io
-  > A verified person can still use an AI agent, automate their account, lend access to someone else, or act maliciously. Personhood is therefore ...
-- [Proof of Personhood in Action: The First Person Credentials](https://www.lfdecentralizedtrust.org/blog/proof-of-personhood-in-action-the-first-person-credentials-demo-on-hedera) — www.lfdecentralizedtrust.org
-  > Post highlighting a demo of proof of personhood, which verifies human identity through decentralized credentials to enhance trust in digital ...
-- [Proof of Personhood vs ID Verification: What Businesses Need](https://regulaforensics.com/blog/proof-of-personhood) — regulaforensics.com
-  > In brief: Proof of Personhood confirms that a user is a human — not a bot or someone's AI agent. As AI-generated actors become more commonplace, ...
-- [Proof of Personhood Explained: How It Works, Who's Building It](https://passport.human.tech/blog/proof-of-personhood-explained-how-it-works-who-s-building-it-and-why-it-matters-now) — passport.human.tech
-  > Proof of personhood (PoP) verifies a digital identity belongs to a real, unique human without revealing who they are.
-- [People often mistake 'Proof of Personhood' for Digital ID.](https://www.linkedin.com/posts/jamiedsmith_empowermenttech-customerfutures-activity-7307873839240171520-7A73) — www.linkedin.com
-  > “Unlike existing proof of personhood solutions, Billions extends its solution to both humans and AI agents. “While human users can prove ...
+## competitive-landscape — error
+- שאילתא: "AI agent verification network protocol" → 0 תוצאות · שגיאה: Function invoke failed with status 500: {"result":null,"error":"Search failed: request failed with status 429: {\"code\":429,\"data\":null,\ (retried: Function invoke failed with status 500: {"result":null,"error":"Search failed: request failed with status 429: {\"code\":429,\"data\":null,\)
 
 ## תובנות חתומות
-- **INS-6-MKT**: הקשר-מחיר STEEM: API חי $0.064878 · טווח-ציטוטים חוצה-מקורות $0.06..$0.065 (6 אזכורי-מחיר ב-12 מקורות)
-  - מקור: https://coinmarketcap.com/currencies/steem
-  - מקור: https://www.coingecko.com/en/coins/steem
-  - מקור: https://www.coinbase.com/converter/steem/usd
-  - מקור: https://www.binance.com/en/trade/STEEM_USDT
-- **INS-6-COMP**: נוף-תחרות: 8 תוצאות על 8 מארחים נבדלים · מצוטטים-ראשונים: How “personhood credentials” could help prove you're a | When AI Bots Look Human: Why We Need Proof of Personhood | Proof of Personhood in Action: The First Person Credentials
-  - מקור: https://www.media.mit.edu/articles/how-personhood-credentials-could-help-prove-you-re-a-human-online
-  - מקור: https://www.parity.io/blog/when-ai-bots-look-human-why-we-need-proof-of-personhood
-  - מקור: https://www.lfdecentralizedtrust.org/blog/proof-of-personhood-in-action-the-first-person-credentials-demo-on-hedera
-  - מקור: https://regulaforensics.com/blog/proof-of-personhood
+- **INS-7-MKT**: הקשר-מחיר STEEM: API חי $0.062613 · טווח-ציטוטים חוצה-מקורות $0.05625..$0.1759 (5 אזכורי-מחיר ב-10 מקורות)
+  - מקור: https://pluang.com
+  - מקור: https://crypto.com
+  - מקור: https://paybis.com
+  - מקור: https://in.tradingview.com

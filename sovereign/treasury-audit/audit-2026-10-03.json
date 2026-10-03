@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 313,
-  "at": "2026-10-03T02:55:27.629Z",
+  "seq": 319,
+  "at": "2026-10-03T03:25:27.632Z",
   "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 171 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 174 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 171,
+        "entries": 174,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 175 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 205 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -39,19 +39,19 @@
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (6 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (11 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 6
+        "ordersOpen": 11
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (6 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (11 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -61,19 +61,19 @@
     {
       "id": "balances-drift",
       "status": "fail",
-      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM 0.5 · דריפת SBD -1.744 (אנומליה)",
+      "detail": "אי-התאמת יתרות מול השרשרת — דריפת STEEM -1.5 · דריפת SBD 1.673 (אנומליה)",
       "numbers": {
         "measured": true,
-        "homeSteem": 9.287,
-        "homeSbd": 1.372,
-        "chainSteem": 8.787,
-        "chainSbd": 3.116,
-        "driftSteem": 0.5,
-        "driftSbd": -1.744
+        "homeSteem": 6.787,
+        "homeSbd": 2.173,
+        "chainSteem": 8.287,
+        "chainSbd": 0.5,
+        "driftSteem": -1.5,
+        "driftSbd": 1.673
       }
     }
   ],
   "anomalies": [
-    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM 0.5 · דריפת SBD -1.744 (אנומליה)"
+    "balances-drift: אי-התאמת יתרות מול השרשרת — דריפת STEEM -1.5 · דריפת SBD 1.673 (אנומליה)"
   ]
 }

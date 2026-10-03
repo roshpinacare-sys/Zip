@@ -6042,3 +6042,25 @@ Work Log:
 
 Stage Summary:
 - המפעיל-צדק — זה-רלוונטי: לא-כעוד-כלי-להריץ, אלא-כמראה. reef-מציג-בפורמליזם-מה-שהצי-עושה-אינטואיטיבית, וחושף-שני-חוסרים-מדידים: פרקים-זוגיים-עם-רף-מוצהר (מ-עכשיו: כל-שינוי-מדיניות-נשפט-מול-בזליין-census-מוצהר) וסוויטה-גדלה-מכישלונות (כבר-מתרחש-מ-r156-ועכשיו-זה-חוק). העגינה-המינימלית-הופעלה-בגל-עצמו; ה-infra-ב-watchlist-עם-נתיבי-הפעלה.
+
+---
+Task ID: r163
+Agent: main (Z.ai) — גל-laya: המפעיל: "תראה אם אפשר להריץ את הפייטון אוטונומית ואיך הוא יכול לתרום, אני רוצה קבלת החלטות חכמה כמו jev, השאלה אם אפשר להריץ את זה על הרשת, אמרו שהפייטון יותר טוב"
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) קבלות-ריצה בסנדבוקס — test1/test2 עם מספרים בפרוטוקול למטה; (2) decision-doctrine.json עובר JSON-parse; (3) lint 0; (4) קבלת push; (5) census-לא-נגע — אין שינוי מדיניות כלכלית בגל.
+
+Task: לבדוק את NandhaKishorM/laya — מנוע-החלטות-טיפוסיות-לא-אוטורגרסיבי (System-1) בפייתון, המתחרה-של-TypeSafe-Jev (ה-Jev-שהמפעיל-הזכיר: שורת-ההשוואה-ב-README-של-laya-עצמו, "Laya versus TypeSafe Jev" — laya-מנצח-ב-4-מתוך-5-מדדים-המפורסמים, חוץ-מ-AG-News-הפוך-0.953-מול-0.910-לטובת-laya). שאלות-המפעיל: ריצה-אוטונומית? תרומה-לקבלת-החלטות? ריצה-על-הרשת?
+
+Work Log:
+- **פענוח-ה-Jev:** המפעיל-התכוון ל-TypeSafe-Jev — המנוע-המתחרה-ב-TypeScript; laya=הפייתון, ו"הפייתון-יותר-טוב" מאומת-ב-BENCHMARKS.md-של-המאגר-עצמו (typed-decisions 0.766 מול 0.727 · ECE 0.081 מול 0.246 · p50 32.8ms מול 236-276ms).
+- **מדידת-מאגר:** Apache-2.0 · Python 3.10+ · PyPI laya 0.3.24 · HEAD fa9a2a70 · laya-ts-לצד · 41-דוגמאות · docker/MCP/LangChain/CrewAI/LlamaIndex-אינטגרציות · 3-checkpoints: laya (ModernBERT-large 421M/842MB) · laya-multilingual (mmBERT-base 322M/644MB, 100+ שפות, max_len עד 8192) · laya-typed-decisions (fine-tuned 421M/842MB).
+- **התקנה-בסנדבוקס:** venv ב-/home/z/laya-eval (מחוץ-לריפו) · torch 2.14.1+cpu-מה-index-הרשמי (מנע-הורדת-CUDA-3GB) · pip install laya → 0.3.24-OK · דיסק 4GB→2.8GB.
+- **מבחן-אמת 1 (test1.py):** הורדת-checkpoint 644MB ב-12ש · טעינה 23.6ש · קריאה-חמה 447ms-ל-3-שאלות-ב-forward-אחד · **עברית-עובדת**: triage-חיוב בעברית → department=billing p=1.0 · urgency=1.18/2 · churn_noul=0.97 (איום-ביטול-זוהה) · routing-ל-multilingual-אוטומטי.
+- **מבחן-אמת 2 (test2.py) — הכחשת-רומנטיקה:** **אופליין-מוכח**: HF_HUB_OFFLINE=1+TRANSFORMERS_OFFLINE=1 → החלטות-ממשיכות (212-267ms) — רשת-דרושה-פעם-אחת-להורדה, אחר-כך-אוטונומיה-מלאה. **ספאם-כיוון-שלילי-עובד**: ספאם→is_spam=0.999 · יומן→0.003 · טק-אמיתי→0.058. **אבל zero-shot-noul-איכותי-בעברית-סותר-עצמו**: הספאם-קיבל-גם is_quality=0.992; פוסט-טק-אמיתי-קיבל vote_worthy=0.096; choice-הצבעה-על-תוכן-איכותי-טעה (reject=0.59). → כלל-LAY-2: חוסר-אמון-ב-noul-איכות-בעברית-עד-fine-tuning.
+- **מיני-שירות decision-brain (פורט 3047):** server.py-stdlib (ללא-תלות-חדשה) · GET /health · POST /decide {state,questions,model?} · טעינה-עצלנית + reaper-פריקה-אחרי-120ש-idle (הגנת-זיכרון-לצי) · HF_HUB_CACHE-משותף · /health-עובד; POST /decide-נחתך-SIGKILL.
+- **ממצא-חסימה-כנה (OOM ×2):** שיא-טעינת-מודל ~2GB-RSS מול ~1.57GB-פנויים-כש-9-שירותי-הצי-רצים → OOM-killer-SIGKILL-פעמיים (הוכחה: /tmp/decision-brain.log). המנוע-עצמו-מוכח (test1/test2-רצו-עד-גמר-כש-היה-זיכרון). השירות-נשאר-חי-ורדום (lazy, /health-תקין, אפס-זיכרון-ב-idle).
+- **vendor-זיקוק:** sovereign/knowledge/vendor/laya/ → PROVENANCE.md (SHA-מוצהר, רישיון, 8-קבלות-ראיה) + SKILL-decision-triage.md (מה-מוכח/מה-חסום/איך-מפעילים) + sovereign/knowledge/decision-doctrine.json (decision-doctrine-v1 · status=proven-blocked · 7-כללים LAY-1..LAY-7 · wired: decision-brain@3047 · 3-נתיבי-הפעלה: ram-route/onnx-route/finetune-route · whyNotRevenue-מוצהר).
+- lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- **תשובות-למפעיל (מספרים, לא-הבטחות):** (1) **ריצה-אוטונומית — כן**: הורדה-חד-פעמית 12ש, ואז-אופליין-מלא (מוכח-בדגל-HF_HUB_OFFLINE); (2) **על-הרשת — כן**: שירות-HTTP-כתוב-ומוכן-בפורט 3047 (חסום-כרגע-לזיכרון-בלבד); (3) **תרומה-לקבלת-החלטות — כן, בשכבה-הנכונה**: מסווג-נושאים/ספאם/דחיפות/איום-נטישה-בעברית ב-~250-450ms-ואפס-טוקנים — שכבת-System-1-תחת-ה-LLM-שלנו; **לא-מוכן**: שער-הצבעה/איכות-בעברית — zero-shot-סותר-את-עצמו, דורש-fine-tuning-על-ההיסטוריה-שלנו (נתיב-שלישי-ב-doctrine). ה-Jev-המוזכר = המתחרה-ה-TypeScript; לפי-המדדים-המפורסמים-הפייתון-אכן-טוב-יותר — צדקת.
