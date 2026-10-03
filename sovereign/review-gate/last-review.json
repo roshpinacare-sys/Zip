@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T21:21:51.519Z",
+  "at": "2026-10-03T21:22:03.732Z",
   "source": "push-range",
-  "diffChars": 16143,
-  "diffStat": "sovereign/keeper/fleet-guard-state.json |  20 ++---\n sovereign/keeper/state.json             | 140 ++++++++++++++++----------------\n sovereign/pulse/state.json              |   6 +-\n sovereign/review-gate/last-review.json  |  24 ++----\n sovereign/weblift/state.json            |   2 +-\n 5 files changed, 90 insertions(+), 102 deletions(-)",
+  "diffChars": 583390,
+  "diffStat": "progress.md                                        |    6 +\n sovereign/businesses/business-log.jsonl            |   68 +\n sovereign/businesses/engine-state.json             |    4 +-\n sovereign/businesses/registry.json                 |    4 +-\n sovereign/curation/comment-memory.json             |    2 +-\n sovereign/curation/history.json                    |   15 +\n sovereign/curation/state.json                      |  216 +-\n .../evidence/r185-admin-zero-input-mobile.png      |  Bin 0 -> 89834 bytes\n sovereign/evidence/r185-admin-zero-input.png       |  Bin 0 -> 121058 bytes\n sovereign/governance/DECISION_LOG.jsonl            |    4 +\n sovereign/governance/cycle-state.json              |   18 +-\n sovereign/governance/daemon-state.json             |    8 +-\n sovereign/governance/econ-gate.jsonl               |    4 +\n sovereign/governance/loop-state.json               |   18 +-\n sovereign/hunter/state.json                        |   60 +-\n sovereign/keeper/fleet-guard-state.json            |   44 +-\n sovereign/keeper/state.json                        |  196 +-\n sovereign/kpi/state.json                           |    2 +-\n sovereign/money/history.json                       |   23 +-\n sovereign/money/pnl-scan.json                      |   51 +-\n sovereign/money/state.json                         |   12 +-\n sovereign/pulse/state.json                         |    6 +-\n sovereign/review-gate/last-review.json             |    8 +-\n sovereign/scout/digest-2026-10-03.json             |  228 +-\n sovereign/scout/digest-2026-10-03.md               |   51 +-\n sovereign/scout/digests.json                       |  239 +\n sovereign/scout/latest-digest.json                 |  228 +-\n sovereign/scout/latest-digest.md                   |   51 +-\n sovereign/scout/state.json                         |    8 +-\n sovereign/student/state.json                       | 7128 ++++++++++----------\n sovereign/treasury-audit/audit-2026-10-03.json     |   42 +-\n sovereign/treasury-audit/last-audit.j",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -11,11 +11,23 @@
   "skillsLoaded": [],
   "verdict": "pass",
   "findings": [],
-  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
+  "reason": "",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 928,
-    "llmCalls": 0
+    "totalTookMs": 3384,
+    "phase1TookMs": 635,
+    "phase1Tokens": {
+      "prompt_tokens": 1911,
+      "completion_tokens": 4,
+      "total_tokens": 0
+    },
+    "phase2TookMs": 1731,
+    "phase2Tokens": {
+      "prompt_tokens": 7615,
+      "completion_tokens": 14,
+      "total_tokens": 0
+    },
+    "llmCalls": 2
   }
 }
