@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T15:18:41.287Z",
+  "at": "2026-10-03T15:29:57.641Z",
   "source": "push-range",
-  "diffChars": 20354,
-  "diffStat": "mini-services/llm-bridge/index.ts       |  29 ++++++--\n sovereign/businesses/business-log.jsonl |   8 +++\n sovereign/businesses/engine-state.json  |   4 +-\n sovereign/keeper/fleet-guard-state.json |  20 +++---\n sovereign/keeper/state.json             | 118 ++++++++++++++++----------------\n sovereign/money/state.json              |   8 +--\n sovereign/pulse/state.json              |   4 +-\n sovereign/review-gate/last-review.json  |  14 ++--\n sovereign/weblift/state.json            |   2 +-\n 9 files changed, 117 insertions(+), 90 deletions(-)",
+  "diffChars": 71391,
+  "diffStat": "mini-services/llm-bridge/index.ts              |  20 +--\n progress.md                                    |   1 +\n sovereign/businesses/business-log.jsonl        |  16 +++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/curation/history.json                |   5 +\n sovereign/curation/state.json                  |  54 ++++----\n sovereign/governance/DECISION_LOG.jsonl        |   1 +\n sovereign/governance/cycle-state.json          |  14 +-\n sovereign/governance/daemon-state.json         |  10 +-\n sovereign/governance/econ-gate.jsonl           |   1 +\n sovereign/governance/loop-state.json           |  14 +-\n sovereign/hunter/state.json                    |  18 +--\n sovereign/keeper/fleet-guard-state.json        |  40 +++---\n sovereign/keeper/state.json                    | 182 ++++++++++++-------------\n sovereign/money/state.json                     |  10 +-\n sovereign/pulse/state.json                     |   6 +-\n sovereign/review-gate/last-review.json         |   8 +-\n sovereign/student/state.json                   | 182 ++++++++++++-------------\n sovereign/treasury-audit/audit-2026-10-03.json |  14 +-\n sovereign/treasury-audit/last-audit.json       |  14 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/weblift/state.json                   |  68 ++++-----\n worklog.md                                     |  13 ++\n 23 files changed, 375 insertions(+), 328 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -15,7 +15,7 @@
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 4037,
+    "totalTookMs": 134177,
     "llmCalls": 2
   }
 }
