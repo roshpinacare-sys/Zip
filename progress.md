@@ -139,3 +139,10 @@
 - נדחו/חסומים: OpenMontage (AGPL+GPU-נדרש-ואין) · cbmem (710M-C, MCP, סקאלה-לא-שלנו) · Graft (דיסק-100%, לקוחות-שאין-לנו) · Orca (GUI).
 - team-doctrine-v1 (AT-1..5: context-pack · persona-system-prompt · structural-index · stage-media-pipeline · worktree-fanout) + 5-נתיבי-הפעלה (persona-חי · 2-מותנים · חסום · נדחה).
 - תקלת-תשתית: דיסק-התמלא-100% באמצע-הגל → ניקוי-מבוקר (שיבוטי-עבר-מזוקקים) → 888M-פנויים; ראיות-נשמרו-ב-PROVENANCE לפני-מחיקה.
+
+## r170 — גל-AEO-עצמי: אכילת-כלב של persona-route ושל review-gate
+- בוצע נתיב-persona מ-r169: ביקורת-AEO של המשטח-הציבורי → נמצאו-פערים: robots.txt בלי-הנחיות-מפורשות-לסורקי-AI · llms.txt-404 · sitemap-מדולג (אין-דומיין-ציבורי-יציב — לא ממציאים-כתובות).
+- תיקונים: robots.txt עם 13-User-agent-מפורשים למנועי-AI (GPTBot · ClaudeBot · PerplexityBot · Google-Extended ועוד) · public/llms.txt (עברית+English: מה-הצי, אימותים-hash-chained, עוגני-on-chain-9369).
+- אומת בהגשה: robots-200-עם-תוכן-חדש · llms-200-1572B.
+- **דוגמנות-עצמית-ראשונה של review-gate על diff-אמיתי**: PASS · 0-ממצאים · 1478ms · skills=[none] — בחירה-סלקטיבית-נכונה (קבצי-.txt-סטטיים, אין-צורך-בגופי-מיומנות). REV-1-חי.
+- audit: 17/17-חיים · 0-הפרות.

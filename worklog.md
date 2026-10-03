@@ -6186,3 +6186,23 @@ Work Log:
 
 Stage Summary:
 - **הפוסט-מכר-יפה; המדידה-קנתה-נכון.** מתוך-חמישה: אחד-אומץ-בפועל (personas — נכס-ישיר-ל-content-factory/weblift, כולל-AEO-שהוא-שירות-חייב-בשוק), שלושה-נשארים-תבניות-מתועדות (context-pack · code-graph · worktree-fanout), ואחד-נדחה-מוצק (AGPL+GPU). ארבע-הצהרות-הפוסט-תוקנו-מול-המקורות-העצמיים-של-הפרויקטים — השיטה-שלנו-שוב-תפסה-את-הפער-בין-שיווק-למדידה.
+
+---
+Task ID: r170
+Agent: main (Z.ai) — גל-AEO-עצמי: "תמשיך" → ביצוע-נתיב-persona (r169) + דוגמנות-עצמית של review-gate (r167)
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) robots.txt+llms.txt מוגשים-200 עם-התוכן-החדש מ-:3000; (2) review-gate רץ על ה-diff-האמיתי (REV-1-דוגמנות) עם-פסק-דין-מרושם; (3) audit-17/17-לא-נשבר; (4) lint 0 · push-קבלה · census-לא-נוגע.
+
+Task: להמשיך — להפוך את-התבניות-שאומצו לתוצר-חי: AEO-עצמי למשטח-הציבורי שלנו + ריצת-שער-אמיתית.
+
+Work Log:
+- **ביקורת-AEO-עצמית** (לפי שלושת-צעדי ה-persona-מ-r169): robots.txt-היה-מאפשר-הכל-דרך-wildcard אבל-בלי-הצהרות-מפורשות-לסורקי-AI · llms.txt-404 · sitemap.xml-404.
+- **החלטת-יושר:** sitemap-מדולג — אין-דומיין-ציבורי-יציב-במאגר ולא-ממציאים-כתובות (חוק-היושר/MAG-4).
+- **public/robots.txt:** 13-User-agent-מפורשים ל-AI (GPTBot · OAI-SearchBot · ChatGPT-User · ClaudeBot · anthropic-ai · Claude-Web · Google-Extended · PerplexityBot/·User · Applebot-Extended · CCBot · meta-externalagent · Amazonbot) — Allow:/ לכולם + הקלאסיים + wildcard. כותרת-מעקב-מדיניות בראש-הקובץ.
+- **public/llms.txt:** בפורמט-המפרט — כותרת + blockquote-תיאור (עברית וקו-אנגלית) + סעיף-משטח-ציבורי (קישור-יחסי ל-/ — אין-דומיין) + עקרונות (measurement-precedes-claims · sovereignty · declared-manifest) + סעיף-לסוכני-AI. 1572B.
+- **אימות-הגשה:** robots-200-תוכן-חדש · llms-200.
+- **REV-1-דוגמנות-ראשונה:** git-add → pre-push-review.mjs על ה-diff-האמיתי → **PASS · 0-ממצאים · 1478ms · skills=[none]** — הנתב-דילג-נכון על-מיומנויות (קבצים-סטטיים, אין-קוד). פסק-הדין-נרשם last-review.json.
+- audit-מלא: 17/17-חיים · 0-הפרות · 0-לא-מוצהרים. lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- **המשטח-הציבורי-שלנו נהיה-נגיש-לסוכני-AI במפורש** — בדיוק-השירות-ש-weblift-מוכר; עכשיו-אנחנו-רצים-אותו-על-עצמנו. שני-נכסי-r167/r169 ירדו-מהנייר-לקו-ייצור-באותו-גל: persona→תיקון-אמיתי, gate→שער-push-אמיתי. אפס-קידוד-חדש-מעבר-לשני-קבצי-טקסט — ערך-מקסימלי, שטח-פגיעה-מינימלי.
