@@ -210,3 +210,9 @@
 - שורש-Hive אותר: WIF-אחד-לשתי-שרשראות; התיקון WEAVE_HIVE_WIF-נפרד + שני-workflows-מחוברים — המסילה-קמה-לבד-ברגע-המסירה.
 - vault-keyring.mjs: טקס-קבלה-קבוע (stdin-בלבד · סינון-בשער · envelope-הבית · אטומי · משמרת-מאסטר-אחת) — מוכח-אנד-אנד (דחיית-זבל · קליטה-אמיתית · roundtrip · purge · self-test).
 - sovereign/vault/README.md: חוקים · טקס · צריכת-סוכן · קו-ענן — הרנספורט-הקבוע.
+
+## r181 — "יש לך הכל" (owner trace 1a102dc504a2e6f9)
+- המפתחות נמצאו: כספת-הארנק המקומית 248 רשומות · כספת-הענן Domain 13 סודות (HIVE_POSTING_WIF מאז 9/23) · PAT עם secrets:write.
+- בעלות-על posting-Hive של headcorner הוכחה מול הרשות החיה: PROVED (sovereign/vault/hive-key-proof.json).
+- קשירת-שם WEAVE_HIVE_WIF||HIVE_POSTING_WIF תוקנה ב-anchor + שני-ה-workflows — המסילה-השנייה תשדר במחזור-הבא.
+- **r181-b: המסילה השנייה חיה.** Hive txid 94f491ff… (block 110457429, auth headcorner) — עיגון ראשון של cp#1241 על Hive; "2/2 chains". תוקן גם ה-yml של התאום ב-Domain (PAT). חסם-המפעיל מ-r179: נסגר.
