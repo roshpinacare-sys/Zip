@@ -67,7 +67,10 @@ const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
 // שונה-בין-Steem-ל-Hive (STM6u99…-מקומי) — שימוש-ב-WIF-של-Steem-על-Hive-קורס-ב-
 // "Missing Posting Authority". WEAVE_HIVE_WIF-כשקיים — חובה; בהיעדרו-נסוגים-ל-WIF-
 // (התנהגות-היסטורית-לחשבונות-שמפתחותיהם-משותפים) והכשל-נשאר-דילוג-כנה.
-const HIVE_WIF = ((process.env.WEAVE_HIVE_WIF || "") || WIF).trim();
+// r181 — שרשרת-השמות-המלאה: WEAVE_HIVE_WIF || HIVE_POSTING_WIF (השם-בכספת
+// מאז 2026-09-23 — נמדד ב-API) || WIF-ה-Steem. הבעלות-על-המפתח הוכחה
+// מקומית: sovereign/vault/hive-key-proof.json (verdict PROVED, שופט=רשות-חיה).
+const HIVE_WIF = ((process.env.WEAVE_HIVE_WIF || "") || (process.env.HIVE_POSTING_WIF || "") || WIF).trim();
 
 // R75 — המפתח מכריז את חותם הקו: ה-WIF מזוהה מול רשויות ה-posting החיות
 // של חשבונות הצי (קריאה חסרת-מפתחות). השם ב-env (WEAVE_STEEM_ACCOUNT) נשאר

@@ -33,10 +33,18 @@ KEY=$(bun scripts/vault-keyring.mjs get <alias>)   # לצינור-בלבד, לע
 עבור-הענן (Actions): מעבירים-את-המפתח-לסוד-הריפו-דרך `scripts/secret-relay.mjs`
 (טופס-ה-sodium-הקיים) — הכספת-המקומית-היא-המקור, ה-Secret-הוא-העותק-לענן.
 
-## מצב-חי (מדוד r180)
+## מצב-חי (מדוד r180 · עודכן r181)
 
 - טקס-מוכח-אנד-אנד: דחיית-זבל-בשער ✓ · קליטת-WIF-אמיתי (מפתח-ציבורי נגזר) ✓ ·
   status-passMatch ✓ · get-roundtrip ✓ · remove ✓ · self-test (AEAD דוחה-סיסמה-שגויה) ✓
-- **המפתח-הראשון-שמחכה: WEAVE_HIVE_WIF** (posting של headcorner ב-Hive — STM6u99…,
-  שונה-מה-Steem; ההוכחה-ב-r179). הקו-כבר-חמוש: weave-anchor.ts קורא `WEAVE_HIVE_WIF`
-  וה-workflows מעבירים-אותו — **ברגע-ה-owner-ימסור, המסילה-השנייה-תתעורר-במחזור-השעתי-הבא**.
+- **r181 — התשובה לדבר-ה-owner ("יש לך הכל", trace 1a102dc504a2e6f9): המפתח-היה-אצלנו.**
+  · כספת-הארנק המקומית (db/wallet-vault.db): **248 רשומות** — סוויטות-מלאות
+    ל-headcorner/cashmachine/lsa/haran/tov/israelnews ועוד, ב-Steem/Hive/Blurt/BTC/SOL/EVM
+    (`scripts/vault-inventory.mjs` — רשימה-ציבורית-בלבד).
+  · **בעלות על posting של headcorner ב-Hive הוכחה** (שופט=הרשות החיה):
+    `scripts/hive-key-prove.mjs` → `sovereign/vault/hive-key-proof.json` —
+    entryPub ↔ derivedPub ↔ livePub (STM6u99…) · **verdict PROVED**.
+  · הכספת-הענן (Domain): **HIVE_POSTING_WIF שם מאז 2026-09-23** (נמדד ב-API,
+    13 סודות) — r179/r180 חיפשו את השם WEAVE_HIVE_WIF ולא ראו. קשירת-השם
+    תוקנה ב-weave-anchor.ts + שני-ה-workflows.
+  · דחיפה-מקומית-לענן מאומתת: PAT בעל secrets:write על Domain (probe 201/204).
