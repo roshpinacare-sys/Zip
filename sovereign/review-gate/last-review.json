@@ -1,74 +1,21 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T17:34:11.257Z",
+  "at": "2026-10-03T18:08:40.110Z",
   "source": "push-range",
-  "diffChars": 120931,
-  "diffStat": ".github/workflows/weave-anchor-lines.yml       |   1 +\n .github/workflows/weave-anchor.yml             |   1 +\n progress.md                                    |   5 +\n scripts/vault-keyring.mjs                      | 215 +++++++\n scripts/weave-anchor.ts                        |  11 +-\n sovereign/businesses/business-log.jsonl        |  57 ++\n sovereign/businesses/engine-state.json         |   4 +-\n sovereign/curation/history.json                |  10 +\n sovereign/curation/state.json                  |  83 ++-\n sovereign/governance/DECISION_LOG.jsonl        |   3 +\n sovereign/governance/cycle-state.json          |  19 +-\n sovereign/governance/daemon-state.json         |   8 +-\n sovereign/governance/econ-gate.jsonl           |   3 +\n sovereign/governance/loop-state.json           |  19 +-\n sovereign/hunter/state.json                    |  50 +-\n sovereign/keeper/fleet-guard-state.json        |  42 +-\n sovereign/keeper/self-boot-state.json          |  12 +-\n sovereign/keeper/state.json                    | 203 +++----\n sovereign/kpi/state.json                       |   2 +-\n sovereign/money/pnl-scan.json                  |   6 +-\n sovereign/money/state.json                     |  10 +-\n sovereign/pulse/state.json                     |   8 +-\n sovereign/review-gate/last-review.json         |  22 +-\n sovereign/student/state.json                   | 780 +++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json |  14 +-\n sovereign/treasury-audit/last-audit.json       |  14 +-\n sovereign/treasury-audit/state.json            |   8 +-\n sovereign/vault/README.md                      |  42 ++\n sovereign/weblift/state.json                   |  68 +--\n worklog.md                                     |  20 +\n 30 files changed, 1073 insertions(+), 667 deletions(-)",
+  "diffChars": 5514,
+  "diffStat": "progress.md |  6 ++++++\n worklog.md  | 40 ++++++++++++++++++++++++++++++++++++++++\n 2 files changed, 46 insertions(+)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
   "skillsLoaded": [],
   "verdict": "pass",
-  "findings": [
-    {
-      "file": "scripts/vault-keyring.mjs",
-      "line": 89,
-      "severity": "major",
-      "problem": "The script uses `require('steem')` and `require('ethers')` without error handling for missing dependencies.",
-      "why": "This will crash the script if the modules are not installed, breaking the keyring functionality.",
-      "fix": "Add try/catch blocks around the require calls and provide a clear error message to the user about missing dependencies."
-    },
-    {
-      "file": "scripts/vault-keyring.mjs",
-      "line": 110,
-      "severity": "major",
-      "problem": "The `validateMaterial` function does not handle potential errors from `require('steem')` or `require('ethers')`.",
-      "why": "If the required modules are missing, the function will throw an uncaught error, causing the script to fail unexpectedly.",
-      "fix": "Wrap the require calls in try/catch blocks to gracefully handle missing dependencies and inform the user."
-    },
-    {
-      "file": "scripts/vault-keyring.mjs",
-      "line": 144,
-      "severity": "major",
-      "problem": "The `fingerprint` function does not handle potential errors from `require('steem')` or `require('ethers')`.",
-      "why": "Similar to `validateMaterial`, this function will crash if the required modules are not installed, preventing the creation of fingerprints.",
-      "fix": "Implement error handling for the require calls to ensure the script can gracefully handle missing dependencies."
-    },
-    {
-      "file": "scripts/weave-anchor.ts",
-      "line": 68,
-      "severity": "major",
-      "problem": "The `HIVE_WIF` variable falls back to `WIF` without validation.",
-      "why": "If `WEAVE_HIVE_WIF` is not set, it will use `WIF` (Steem's key) for Hive operations, which could lead to 'Missing Posting Authority' errors as mentioned in the comment.",
-      "fix": "Add validation to ensure `HIVE_WIF` is a valid Hive WIF before falling back to `WIF`, and log a clear warning if the fallback is used."
-    },
-    {
-      "file": "scripts/weave-anchor.ts",
-      "line": 73,
-      "severity": "major",
-      "problem": "The `wifToStmPub` function is called without error handling for invalid WIFs.",
-      "why": "If `HIVE_WIF` is an invalid WIF, the function will throw an error, causing the script to crash instead of gracefully skipping the Hive broadcast.",
-      "fix": "Wrap the `wifToStmPub` call in a try/catch block to handle invalid WIFs and log a clear error message."
-    }
-  ],
-  "reason": "",
+  "findings": [],
+  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 10274,
-    "phase1TookMs": 898,
-    "phase1Tokens": {
-      "prompt_tokens": 1777,
-      "completion_tokens": 8,
-      "total_tokens": 0
-    },
-    "phase2TookMs": 8406,
-    "phase2Tokens": {
-      "prompt_tokens": 7129,
-      "completion_tokens": 634,
-      "total_tokens": 0
-    },
-    "llmCalls": 2
+    "totalTookMs": 879,
+    "llmCalls": 0
   }
 }
