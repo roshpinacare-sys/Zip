@@ -322,6 +322,29 @@ function bundleBlock(b: MeasureBundle): string {
 // r152 — טעינת-תפקיד-מומחה מהספרייה (fail-soft)
 const ROLE_LIBRARY_PATH = path.join(HOME, "sovereign", "agents", "role-library.json");
 let roleLibraryCache: { at: number; roles: Record<string, string> } | null = null;
+
+// r157 — דוקטרינת-כתיבה מהספרייה המאווזרת (claude-skills · MIT · commit 19392f7a) — fail-soft,
+// באותו דפוס של שכבת-r152: כשל-קריאה = ריצה-בלי-שכבה, אף-פעם-לא-חוסם-ייצור.
+// מטרה-מדידה: איכות-כתיבה ↔ הצבעות ↔ תגמולי-פרסום (הטריז היחידה שבשליטתנו מלאה).
+const WRITING_DOCTRINE_PATH = path.join(HOME, "sovereign", "knowledge", "writing-doctrine.json");
+let writingDoctrineCache: { at: number; text: string | null } | null = null;
+function loadWritingDoctrine(): string | null {
+  try {
+    if (!writingDoctrineCache || Date.now() - writingDoctrineCache.at > 600_000) {
+      const doc = JSON.parse(fs.readFileSync(WRITING_DOCTRINE_PATH, "utf8")) as {
+        status?: string;
+        adapted_en?: string;
+      };
+      writingDoctrineCache = {
+        at: Date.now(),
+        text: doc.status === "wired" && doc.adapted_en ? doc.adapted_en : null,
+      };
+    }
+    return writingDoctrineCache.text;
+  } catch {
+    return null;
+  }
+}
 function loadExpertRole(roleId: string): string | null {
   try {
     if (!roleLibraryCache || Date.now() - roleLibraryCache.at > 600_000) {
@@ -356,7 +379,12 @@ The hook: real machines doing real work with receipts (txids, measurements, hone
     ? `\nEXPERT ROLE DISCIPLINE (craft layer — subordinate to the HARD RULES below; the role shapes HOW you write, the rules govern WHAT you may claim):\n${roleLayer}\n`
     : "";
 
-  return `${role}${roleBlock}
+  // r157 — שכבת-דוקטרינת-כתיבה (claude-skills · MIT): כללי-איכות מזוקקים — hook, ספציפיות,
+  // תועלת-על-תכונה, רעיון-אחד-לסעיף, שפה-פשוטה, שכנוע-כן-בלבד. fail-soft כמו שכבת-r152.
+  const doctrineLayer = loadWritingDoctrine();
+  const doctrineBlock = doctrineLayer ? `\n${doctrineLayer}\n` : "";
+
+  return `${role}${roleBlock}${doctrineBlock}
 
 HARD RULES (violating any makes the draft invalid):
 1. Use ONLY the numbers from the MEASURED BUNDLE given in the user message. Never invent, round-beyond-display, or guess any figure. If a field is null, either omit it or say it was not reported this run.
