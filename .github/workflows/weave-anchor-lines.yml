@@ -93,6 +93,7 @@ jobs:
           DATABASE_URL: 'file:${{ github.workspace }}/db/custom.db'
           WEAVE_STEEM_WIF: ${{ secrets.WEAVE_STEEM_WIF }}
           WEAVE_HIVE_WIF: ${{ secrets.WEAVE_HIVE_WIF || secrets.HIVE_POSTING_WIF }}   # r181: קשירת-שם — HIVE_POSTING_WIF בכספת מאז 2026-09-23 (נמדד); בהיעדר-שניהם fallback ל-WIF-ה-Steem, דילוג-כנה
+          BLURT_ACTIVE_WIF: ${{ secrets.BLURT_ACTIVE_WIF }}   # r183: המסילה השלישית — הבעלות הוכחה חי (body זהה BLT5HhJD…)
           WEAVE_SEAL_PASSPHRASE: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
           MODE_INPUT: ${{ inputs.mode }}
 

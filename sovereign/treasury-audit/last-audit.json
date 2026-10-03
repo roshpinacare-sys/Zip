@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 507,
-  "at": "2026-10-03T19:05:28.001Z",
+  "seq": 512,
+  "at": "2026-10-03T19:30:27.917Z",
   "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 263 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 266 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 263,
+        "entries": 266,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1145 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1170 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,12 +28,12 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 327 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 352 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 12,
         "outOfOrder": 0,
-        "lastAgeMinutes": 327
+        "lastAgeMinutes": 352
       }
     },
     {
@@ -61,13 +61,13 @@
     {
       "id": "balances-drift",
       "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 1.505 · SBD 0.058 (סטייה ≤ 0.001)",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 0.792 · SBD 0.078 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 1.505,
-        "homeSbd": 0.058,
-        "chainSteem": 1.505,
-        "chainSbd": 0.058,
+        "homeSteem": 0.792,
+        "homeSbd": 0.078,
+        "chainSteem": 0.792,
+        "chainSbd": 0.078,
         "driftSteem": 0,
         "driftSbd": 0
       }

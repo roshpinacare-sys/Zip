@@ -135,6 +135,37 @@ export interface Opportunity {
 export const SELL_PREMIUMS_BPS: number[] = [50, 150, 250, 350, 450];
 export const BID_OFFSETS_BPS: number[] = [20, 40, 80, 160, 320];
 
+// r183 — חיווט census→money (D.2: פס-היצרן ללא-עמלות, מוזן מהמדידה):
+// סולם-הביד אינו עוד קבוע — הוא נגרר אחר פער-הספר המדוד-חי (census market
+// lens, Steem 188.4bps מול Hive 13.9bps נמדדו r179/r183):
+//   · פער-מדוד > 320bps → הסולם מתרחב (עומק-ביד שובה-מוכרים-נסחפים);
+//   · פער-מדוד < 160bps → הזנב (320) מתקצר — הון-טלה שלא ייפגע יושב
+//     מתחת-לפאריטה בחינם.
+// נכשל/חסר/מיושן (>6ש') → ברירת-מחדל הקבועה. fail-closed מן-המדידה.
+export function bidOffsetsAdaptive(now: number = Date.now()): { offsets: number[]; source: string } {
+  try {
+    const census = JSON.parse(
+      fs.readFileSync(path.join(process.cwd(), "sovereign", "revenue", "census.json"), "utf8"),
+    ) as { market?: { steem?: { spreadBps?: number; at?: string } } };
+    const spreadBps = Number(census?.market?.steem?.spreadBps ?? NaN);
+    const measuredAt = Date.parse(String(census?.market?.steem?.at ?? ""));
+    if (!Number.isFinite(spreadBps) || spreadBps <= 0) return { offsets: BID_OFFSETS_BPS, source: "default (no spread)" };
+    if (!Number.isFinite(measuredAt) || now - measuredAt > 6 * 3600_000) {
+      return { offsets: BID_OFFSETS_BPS, source: "default (census stale)" };
+    }
+    if (spreadBps > 320) {
+      const deep = Math.min(640, Math.round((spreadBps * 0.8) / 20) * 20);
+      return { offsets: [...BID_OFFSETS_BPS, deep], source: `census:spread ${spreadBps.toFixed(1)}bps → extended` };
+    }
+    if (spreadBps < 160) {
+      return { offsets: BID_OFFSETS_BPS.slice(0, 4), source: `census:spread ${spreadBps.toFixed(1)}bps → tightened` };
+    }
+    return { offsets: BID_OFFSETS_BPS, source: `census:spread ${spreadBps.toFixed(1)}bps → static band` };
+  } catch {
+    return { offsets: BID_OFFSETS_BPS, source: "default (census unreadable)" };
+  }
+}
+
 export interface MoverReceipt {
   at: string;
   kind: "REPRICE" | "DEPLOY" | "FUEL-IN" | "ARM-BUY" | "STOCK-SBD" | "FILL-DEPLOY" | "BID-ONLY";
@@ -1153,10 +1184,11 @@ async function POST_core(req: Request) {
   const premiums = SELL_PREMIUMS_BPS; // סולם המכירה: parity +50..+450bps (r147-a מהמדידה)
   const perLevel = Math.floor(totalFuel * 1000 / premiums.length) / 1000;
   const perBid = Math.floor(sbdCommitable * 1000 / 3) / 1000; // רק לבדיקת-סף ב-arm-buy; החוק החי ב-bidLadderLaw
+  const { offsets: bidOffsets, source: bidSource } = bidOffsetsAdaptive();
   const bidLadderLaw = (commitable: number, par: number) => {
-    const levels = Math.max(1, Math.min(BID_OFFSETS_BPS.length, Math.floor(commitable / 0.05)));
+    const levels = Math.max(1, Math.min(bidOffsets.length, Math.floor(commitable / 0.05)));
     const per = Math.floor(commitable * 1000 / levels) / 1000;
-    const prices = BID_OFFSETS_BPS.slice(0, levels).map(
+    const prices = bidOffsets.slice(0, levels).map(
       (off) => Math.round(par * (1 - off / 10_000) * 1e6) / 1e6,
     );
     return { levels, per, prices };
@@ -1309,7 +1341,7 @@ async function POST_core(req: Request) {
           : `reprice — סולם 3 רמות מעל הפאריטה · ${totalFuel} STEEM`,
     payload:
       action === "arm-buy"
-        ? { sbdCommitable, parity, offsetsBps: BID_OFFSETS_BPS, reason }
+        ? { sbdCommitable, parity, offsetsBps: bidOffsets, offsetsSource: bidSource, reason }
         : action === "stock-sbd"
           ? { gap: stockGap, bid: stockBid, steemSell: stockSteemSell, parity, premiumCapBps: 200, reason }
           : { liquid, inOrders, totalFuel, parity, premiums, reason },

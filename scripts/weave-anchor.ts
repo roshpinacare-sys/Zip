@@ -40,8 +40,10 @@ import {
   hiveRcGate,
   steemRcGate,
   findInHistory,
+  signGrapheneTx,
   sleep,
 } from "@/lib/weave/graphene";
+import { BLURT_RPC, BLURT_CHAIN_ID } from "@/lib/dex/blurt-wire";
 // GrapheneOperation מיובא מהחבילה עצמה — graphene.ts מגדיר אותו מקומית ולא מייצא
 import type { GrapheneOperation } from "steem";
 
@@ -71,6 +73,10 @@ const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
 // מאז 2026-09-23 — נמדד ב-API) || WIF-ה-Steem. הבעלות-על-המפתח הוכחה
 // מקומית: sovereign/vault/hive-key-proof.json (verdict PROVED, שופט=רשות-חיה).
 const HIVE_WIF = ((process.env.WEAVE_HIVE_WIF || "") || (process.env.HIVE_POSTING_WIF || "") || WIF).trim();
+// r183 — המסילה השלישית: BLURT. הבעלות הוכחה חי (r183): ה-WIF מכספת-הסוכנים
+// גוזר את ה-body הזהה לרשות-ה-active החיה של headcorner (BLT5HhJD5WUXu8… —
+// prefix קוסמטי בגרפינה). שידור-בסמכות-active — custom_json עם required_active_auths.
+const BLURT_WIF = ((process.env.BLURT_WIF || "") || (process.env.BLURT_ACTIVE_WIF || "") || "").trim();
 
 // R75 — המפתח מכריז את חותם הקו: ה-WIF מזוהה מול רשויות ה-posting החיות
 // של חשבונות הצי (קריאה חסרת-מפתחות). השם ב-env (WEAVE_STEEM_ACCOUNT) נשאר
@@ -116,7 +122,7 @@ interface AnchorRecord {
   at: string;
   commit: string;
   account: string;
-  txids: { steem: string | null; hive: string | null };
+  txids: { steem: string | null; hive: string | null; blurt?: string | null };
   hiveNote?: string | null;
   attSeq?: number;
   runner?: string;
@@ -310,7 +316,7 @@ async function main(): Promise<void> {
 
   // 8. שידור — Steem ראשי (חינם), Hive מאחורי שער RC (דילוג-כנה)
   //    (הלקח מהמדידה הראשונה: operations הוא מערך-פעולות — [op] ולא op)
-  const txids: { steem: string | null; hive: string | null } = { steem: null, hive: null };
+  const txids: { steem: string | null; hive: string | null; blurt: string | null } = { steem: null, hive: null, blurt: null };
   const notes: string[] = [];
 
   // שעת RC ל-Steem (Task 25, נולד ממדידת 14:08Z): דילוג-כנה כשהמנה מתחת לרצפה — המחירות האמיתית של חשבון-חינם במחזור שעתי
@@ -349,6 +355,37 @@ async function main(): Promise<void> {
     );
   }
 
+  // r183 — המסילה השלישית: BLURT (אותו חוק כנות, בסמכות-active —
+  // custom_json עם required_active_auths; ה-WIF נמדד חי מול הרשות החיה).
+  let blurtSkipped: string | null = null;
+  if (!BLURT_WIF) {
+    blurtSkipped = "no-blurt-wif (honest skip — key not in env)";
+    notes.push(`blurt: ${blurtSkipped}`);
+    console.log(`[weave-anchor] blurt: דילוג-כנה — אין WIF בסביבה`);
+  } else if (!wifToStmPub(BLURT_WIF)) {
+    blurtSkipped = "blurt-wif-שגוי-מבנית";
+    notes.push(`blurt: ${blurtSkipped}`);
+    console.log(`[weave-anchor] blurt: סירוב-כנה — BLURT_ACTIVE_WIF אינו WIF תקין`);
+  } else {
+    try {
+      // r183 — Blurt בסמכות-active: אותו פורמט-op של buildPostingCustomJson,
+      // עם required_auths=[account] וrequired_posting_auths=[] — ה-active חותם.
+      const blurtOp = buildPostingCustomJson(account, OP_ID, payload) as unknown as [
+        string,
+        { required_auths: string[]; required_posting_auths: string[]; id: string; json: string },
+      ];
+      blurtOp[1].required_auths = [account];
+      blurtOp[1].required_posting_auths = [];
+      const signed = await signGrapheneTx(BLURT_RPC, BLURT_CHAIN_ID, [blurtOp], BLURT_WIF);
+      await rpcV4(BLURT_RPC, "condenser_api.broadcast_transaction", [signed]);
+      notes.push("blurt: broadcast-accepted (await history confirm)");
+      console.log(`[weave-anchor] blurt: השידור התקבל — ממתין לאישור היסטוריה`);
+    } catch (e) {
+      notes.push(`blurt: ${String((e as Error).message ?? e).slice(0, 140)}`);
+      console.log(`[weave-anchor] blurt: נכשל — ${String((e as Error).message ?? e).slice(0, 120)}`);
+    }
+  }
+
   // 9. אישור מההיסטוריה — השופטת היחידה (שני הכיוונים)
   for (let i = 0; i < 5 && !txids.steem && !steemSkipped; i++) {
     await sleep(3000);
@@ -363,12 +400,20 @@ async function main(): Promise<void> {
       txids.hive = await findInHistory(HIVE_RPC, account, OP_ID, at, 2, 100).catch(() => null);
     }
   }
+  // r183 — אישור-היסטוריה גם ל-Blurt (אותה שופטת: condenser API)
+  if (txids.blurt === null && BLURT_WIF && wifToStmPub(BLURT_WIF)) {
+    for (let i = 0; i < 5 && !txids.blurt; i++) {
+      await sleep(3000);
+      txids.blurt = await findInHistory(BLURT_RPC, account, OP_ID, at, 2, 100).catch(() => null);
+    }
+  }
 
-  const landed = [txids.steem, txids.hive].filter(Boolean).length;
+  const landed = [txids.steem, txids.hive, txids.blurt].filter(Boolean).length;
   console.log(
-    `[weave-anchor] עיגון הושלם: ${landed}/2 שרשראות` +
+    `[weave-anchor] עיגון הושלם: ${landed}/3 שרשראות` +
       (txids.steem ? ` · steem ${txids.steem.slice(0, 12)}…` : "") +
-      (txids.hive ? ` · hive ${txids.hive.slice(0, 12)}…` : "")
+      (txids.hive ? ` · hive ${txids.hive.slice(0, 12)}…` : "") +
+      (txids.blurt ? ` · blurt ${txids.blurt.slice(0, 12)}…` : "")
   );
 
   if (landed === 0) {
@@ -550,7 +595,7 @@ async function main(): Promise<void> {
   const marketNote = marketSettlement
     ? ` · market ${marketSettlement.settled.length}s/${marketSettlement.refunded.length}r`
     : "";
-  const msg = `weave-anchor: ${at} · cp#${cp.index} · ${landed}/2 chains · att ${att.seq}${marketNote}`;
+  const msg = `weave-anchor: ${at} · cp#${cp.index} · ${landed}/3 chains · att ${att.seq}${marketNote}`;
   execSync(`git commit -m ${JSON.stringify(msg)}`, { cwd: ROOT, stdio: "ignore" });
   const pushOut = gitPushRetry(ROOT, BRANCH);
   console.log(`[weave-anchor] gitkeeper: ${nFiles} files · ${pushOut.split("\n").slice(-1)[0] || "pushed"}`);
