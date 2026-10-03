@@ -138,6 +138,20 @@ spec:
 apiVersion: sovereign.io/v1alpha1
 kind: FleetService
 metadata:
+  name: llm-bridge
+  notes: OpenAI-compatible endpoint over z-ai-web-dev-sdk (r166). Unlocks litellm/OpenAI-client
+    agents (mini-swe-agent proven live) and the reef-infra activation route — no third-party keys.
+spec:
+  port: 3048
+  healthPath: /health
+  entry: mini-services/llm-bridge (bun)
+  resources:
+    limits: { memoryMB: 300 }
+  phase: Running
+---
+apiVersion: sovereign.io/v1alpha1
+kind: FleetService
+metadata:
   name: pulse
 spec:
   port: 3033

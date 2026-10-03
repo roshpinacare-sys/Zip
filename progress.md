@@ -114,3 +114,9 @@
 - 70-פרויקטים-קהילתיים (MIT-נטען-אך-אין-LICENSE-בפועל · סימני-conflict-שנדחפו-לקוד). לא-רץ: הכל-נעול-על-מפתחות-צד-שלישי; אין-נתיב-הכנסה.
 - אומץ-כזיקוק-תבניות: 6-patterns ממופים לצי (digest→pulse · self-reflective-gate→content-factory · route+fallback→decision-brain · memory+critic→student/keeper · finetune→laya-route · offline-first→חוק-קיים).
 - vendor/hands-on-ai-engineering: PROVENANCE+SKILL-pattern-cookbook. vendor-קוד-נאסר-עקב-רישיון-שברירי.
+
+## r166 — גל-mini-swe-agent: סוכן-אוטונומי-ריבוני חי
+- mini-swe-agent 2.4.6 (MIT מאומת) מותקן; llm-bridge-פורט 3048 (OpenAI-compatible מעל z-ai) נבנה-ויושם.
+- ריצת-אמת: הסוכן-יצר-והריץ hello_sovereign.py (עברית מדויקת) ב-5-סבבים-אוטונומיים-מלאים — אפס-מפתחות-חיצוניים.
+- לקחים-מוקפלים-לחוק: MAG-3 (textbased-למודלי-טקסט) · MAG-4 (אין-מחירים-מומצאים). agentloop-doctrine-v1 (MAG-1..5).
+- llm-bridge-רשום-ב-fleet.yaml → audit 17/17-חיים-0-הפרות. נתיב-reef-נפתח-מחדש.

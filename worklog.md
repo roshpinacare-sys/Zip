@@ -6104,3 +6104,25 @@ Work Log:
 
 Stage Summary:
 - **עוזר — כספר-תבניות, לא-ככלי.** ערך-אמיתי: שש-תבניות-מוכחות-בשדה שכל-אחת-כבר-יש-לה-כתובת-בצי-עם-תנאי-הפעלה. דחייה-כנה-של-הרצה (מפתחות-חסרים) ושל-vendor-קוד (רישיון-חסר-בפועל). שני-הדגלים-האדומים (LICENSE-חסר · conflict-markers-שנדחפו) נרשמו-כראיה-לדורות.
+
+---
+Task ID: r166
+Agent: main (Z.ai) — גל-mini-swe-agent: המפעיל: "תבדוק גם אם זה יכול לעזור לנו https://github.com/swe-agent/mini-swe-agent"
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) קבלת-ריצה אוטונומית אמיתית — מסלול 5-סבבים עם קובץ-מוצר שנשמר (/home/z/mini-proof/hello_sovereign.py, פלט עברי מאומת); (2) agentloop-doctrine.json עובר JSON-parse; (3) audit-17/17-חיים-0-הפרות; (4) lint 0; (5) קבלת push; (6) census-לא-נגע.
+
+Task: לבחון mini-swe-agent (פרינסטון/סטנפורד, צוות SWE-bench) ולבדוק אם הוא עוזר למערכת-הריבונית.
+
+Work Log:
+- **מדידת-מאגר:** HEAD 04d809ce · PyPI 2.4.6 · **MIT מאומת-דרך-PyPI** (© 2025 Lieret & Jimenez) · ~100-שורות-סוכן · bash-only · היסטוריה-לינארית · >74% SWE-bench-verified · מאומץ ע"י Meta/NVIDIA/IBM.
+- **הזיהוי-האסטרטגי:** הסוכן-תומך-בכל-נקודת-קצה-תואמת-OpenAI-דרך-litellm → אם-נבנה-גשר-מעל-ה-LLM-שלנו, אין-צורך-במפתחות-צד-שלישי. זה-גם-פותח-את-נתיב-reef-שנחסם-ב-r162 (בדיוק-בגלל-היעדר-endpoint-כזה).
+- **בניית-llm-bridge (פורט 3048):** mini-services/llm-bridge/index.ts (bun + z-ai-web-dev-sdk-בקצה-האחורי) · POST /v1/chat/completions (מיפוי system→assistant-לפי-ה-SDK) · GET /v1/models · /health · מבחן-ישיר: "BRIDGE-OK"-מדויק ב-412ms · מבחן-litellm-ישיר: 'BRIDGE-OK2'.
+- **התקנת-הסוכן:** pip install mini-swe-agent-2.4.6 (דיסק-נוקה-קודם: 666MB-מ-handsai+clones → 1.5GB-פנוי).
+- **כשל-ראשון-ותיקון:** DefaultAgent-דורש-templates → נטענים-מהקונפיג-הארוז; ברירת-המחדל-v2-מצפה-ל-tool_calls-נייטיב → RepeatedFormatError; **פתרון: LitellmTextbasedModel + mini_textbased.yaml** (פורמט mswea_bash_command). כשל-שני: חישוב-עלות-למודל-לא-ממופה → MSWEA_COST_TRACKING=ignore_errors (הגשר-מדווח-אומדן-chars/4, אין-מחירים-מומצאים).
+- **ריצת-אמת מלאה:** משימה-אוטונומית — יצירת hello_sovereign.py-שמדפיס 'FLEET-ALIVE-HEBREW: שלום מהצי' והרצתו. מסלול: ls → heredoc-יצירה-עם-עברית → cat-אימות → python3-הרצה → פלט-נכון-נתפס → הגשה. 5-סבבי-LLM, 5-פעולות-bash, אפס-התערבות-אנושית, אפס-מפתחות-חיצוניים.
+- **חוקים-חדשים:** sovereign/knowledge/agentloop-doctrine.json (agentloop-doctrine-v1 · status=proven-live · MAG-1..5: minimalism-first · bridge-not-keys · textbased-for-text-models · cost-honesty · register-the-agent) + 2-נתיבי-הפעלה (reef-route · fleet-tasks-route).
+- **רישום-FLO-1:** llm-bridge-נוסף-ל-fleet.yaml (17-שירותים) → audit: 17/17-חיים · 0-הפרות · 0-לא-מוצהרים.
+- vendor/mini-swe-agent/PROVENANCE.md · lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- **עוזר — ובגדול:** לצי יש-עכשיו **יכולת-סוכן-קידוד-אוטונומי-ריבוני** — לולאת-חשיבה+bash-על-ה-LLM-שלנו-עצמו, בלי-מפתחות-צד-שלישי, עם-הוכחת-מסלול-מלאה. שני-אונלוקים-משניים: נתיב-reef-נפתח-מחדש, והתבנית-מאפשרת-משימות-צי-חוזרות-שדורשות-היגיון-על-קבצים (bounded, step_limit). מהירות-התגובה-הכוללת-של-לולאת-הסוכן: ~שניות-ספור-לסבב-דרך-הגשר.
