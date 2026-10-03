@@ -193,7 +193,7 @@ const BLURT_OP_ORDER = [
   "comment_benefactor_reward",
 ];
 
-/** חתימת עסקת-Blurt — steem-js עם סדר-הפעולות של Blurt ו-chain_id קבוע. */
+/** חתימת עסקת-Blurt — steem-js המשותף + סדר-הפעולות של Blurt (r184). */
 export async function blurtSignTx(
   ops: Array<[string, Record<string, unknown>]>,
   wif: string,
@@ -209,29 +209,8 @@ export async function blurtSignTx(
     operations: ops,
     extensions: [] as unknown[],
   };
-  const nodeRequire = createRequire(path.join(HOME, "package.json"));
-  const steemLib = nodeRequire("steem") as {
-    auth: { signTransaction(tx: unknown, keys: string[]): unknown };
-    config: { get(k: string): unknown; set(k: string, v: unknown): void };
-  };
-  const steemOpsLib = nodeRequire("steem/lib/auth/serializer/src/operations") as {
-    operation: { st_operations: Array<{ operation_name: string }> };
-  };
-  const original = steemOpsLib.operation.st_operations;
-  const byName = new Map(original.map((s) => [s.operation_name, s]));
-  const patched = BLURT_OP_ORDER.map((n) => byName.get(n)).filter(Boolean) as typeof original;
-  if (patched.length !== BLURT_OP_ORDER.length) {
-    throw new Error("blurt-op-map-פער: פעולה-מסדרת חסרה בספרייה — סירוב-כנה");
-  }
-  const prev = steemLib.config.get("chain_id");
-  steemLib.config.set("chain_id", BLURT_CHAIN_ID);
-  steemOpsLib.operation.st_operations = patched;
-  try {
-    return steemLib.auth.signTransaction(tx, [wif]) as Record<string, unknown>;
-  } finally {
-    steemLib.config.set("chain_id", prev);
-    steemOpsLib.operation.st_operations = original;
-  }
+  const { signWithOpOrder } = await import("@/lib/weave/graphene");
+  return signWithOpOrder(tx, BLURT_CHAIN_ID, wif, BLURT_OP_ORDER);
 }
 
 /**

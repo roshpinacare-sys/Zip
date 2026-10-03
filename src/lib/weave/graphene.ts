@@ -15,6 +15,12 @@
 
 import steem from "steem";
 import type { GrapheneOperation, SignedGrapheneTransaction } from "steem";
+// r184-b — מודול-הפעולות הפנימי (סדר-ה-op-ids). import-רגיל-במכוון (לא
+// createRequire) — כך-bun מפתר-לאותו-עותק-ממומש-של-node_modules כמו ה-import
+// למעלה (createRequire פותר-ל-cache-של-bun — עותק-שבור-מקישורים, נמדד-חי
+// ב-runner-הענן: "Unexpected while resolving package 'bs58'").
+// @ts-expect-error — למודול הפנימי אין טיפוסים
+import { operation as steemOperation } from "steem/lib/auth/serializer/src/operations";
 
 // R120: steem.61bts.com מת (דומיין-חניה סיני, תשובת-HTML עם BOM — נמדד חי)
 // — הוסר. שני הצמתים הנותרים אומתו חי בזמן ההסרה.
@@ -212,6 +218,39 @@ export function signGrapheneTx(
       steem.config.set("chain_id", prev);
     }
   })();
+}
+
+/**
+ * r184 — חתימה תחת-סדר-פעולות-חלופי (מזלגות-גרפינה: Blurt כרתה 6 פעולות —
+ * כל-ה-ids אחריהן זזים; custom_json 18→12, נמדד בבייט 11 ומוכח-חי-על-השרשרת:
+ * txid 35f28817… בלוק 64177707 · txid ab676bc3… בלוק 64177963).
+ *
+ * המנגנון: סדר-ה-op-ids חי-ב-operation.st_operations (מערך-בר-החלפה).
+ * לזמן-החתימה בלבד המערך מוחלף בסדר-המבוקש (בשמות, מתוך-הסריאליזרים
+ * של-אותה-ספרייה) ומוחזר-ב-finally — שאר-המערכת (Steem/Hive) לא-נוגעת.
+ * החתימה עצמה: אותו-מופע-משותף-של-steem-js — אותו-קוד-מוכח של שני-הקווים.
+ */
+export function signWithOpOrder(
+  tx: Record<string, unknown>,
+  chainId: string,
+  wif: string,
+  opOrder: readonly string[]
+): Record<string, unknown> {
+  const original = (steemOperation as { st_operations: Array<{ operation_name: string }> }).st_operations;
+  const byName = new Map(original.map((s) => [s.operation_name, s]));
+  const patched = opOrder.map((n) => byName.get(n)).filter(Boolean) as typeof original;
+  if (patched.length !== opOrder.length) {
+    throw new Error("op-order-פער: פעולה-מסדרת חסרה בספרייה — סירוב-כנה");
+  }
+  const prev = steem.config.get("chain_id");
+  steem.config.set("chain_id", chainId);
+  (steemOperation as { st_operations: Array<{ operation_name: string }> }).st_operations = patched;
+  try {
+    return steem.auth.signTransaction(tx, [wif]) as Record<string, unknown>;
+  } finally {
+    steem.config.set("chain_id", prev);
+    (steemOperation as { st_operations: Array<{ operation_name: string }> }).st_operations = original;
+  }
 }
 
 /** שידור Steem — steem-js native (העבר מדויק של הצי) */
