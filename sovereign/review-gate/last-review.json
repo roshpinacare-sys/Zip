@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T05:41:19.406Z",
+  "at": "2026-10-03T13:41:18.877Z",
   "source": "push-range",
-  "diffChars": 1141,
-  "diffStat": "progress.md | 1 +\n 1 file changed, 1 insertion(+)",
+  "diffChars": 791916,
+  "diffStat": "progress.md                                    |    5 +\n sovereign/businesses/business-log.jsonl        |  842 +++\n sovereign/businesses/engine-state.json         |    4 +-\n sovereign/businesses/registry.json             |    2 +-\n sovereign/curation/comment-memory.json         |    2 +-\n sovereign/curation/history.json                |  165 +\n sovereign/curation/state.json                  |  343 +-\n sovereign/fleet/audit-latest.json              |   30 +-\n sovereign/governance/DECISION_LOG.jsonl        |   49 +\n sovereign/governance/cycle-state.json          |   25 +-\n sovereign/governance/daemon-state.json         |    8 +-\n sovereign/governance/econ-gate.jsonl           |   49 +\n sovereign/governance/loop-state.json           |   25 +-\n sovereign/hunter/state.json                    |  170 +-\n sovereign/keeper/fleet-guard-state.json        |   46 +-\n sovereign/keeper/self-boot-state.json          |   12 +-\n sovereign/keeper/state.json                    |  208 +-\n sovereign/kpi/history/2026-10-03.json          |  101 +\n sovereign/kpi/state.json                       |   38 +-\n sovereign/money/history.json                   | 1464 +++--\n sovereign/money/pnl-scan.json                  |   24 +-\n sovereign/money/state.json                     |   26 +-\n sovereign/pulse/state.json                     |    8 +-\n sovereign/review-gate/last-review.json         |   26 +-\n sovereign/scout/digest-2026-10-03.json         |  174 +-\n sovereign/scout/digest-2026-10-03.md           |   57 +-\n sovereign/scout/digests.json                   |  215 +\n sovereign/scout/latest-digest.json             |  174 +-\n sovereign/scout/latest-digest.md               |   57 +-\n sovereign/scout/state.json                     |    8 +-\n sovereign/student/state.json                   | 7571 ++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json |   32 +-\n sovereign/treasury-audit/last-audit.json       |   32 +-\n sovereign/treasury-audit/state.json            |    8 +-\n sovereig",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -15,7 +15,7 @@
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 921,
+    "totalTookMs": 1434,
     "llmCalls": 0
   }
 }
