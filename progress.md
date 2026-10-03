@@ -132,3 +132,10 @@
 - חסימות-מאומתות: requires-python ==3.14.7-מדויק מול 3.12.14-בסנדבוקס · דורש-מפתחות-ספקים-חיצוניים (MAG-2-אוסר) · הצד-לקוח (Claude-Code/Codex) לא-רלוונטי — הסוכן-שלנו הוא mini-swe-agent · לולאה-סימבולית מעל הגשר-שלנו-עצמו.
 - אומץ-כזיקוק: router-doctrine-v1 (RTC-1..5: classify-before-retry · admission-limits-before-second-upstream · turn-is-the-resilience-unit · history-replay-on-switch · deterministic-interception) + vendor/free-claude-code/PROVENANCE.
 - נתיבי-הפעלה: second-upstream-route-חסום-ריבונות · bridge-hardening-route-מותנה (מעל-סף-תעבורה; כרגע 15-השלמות — מוקדם-מדי לפי MAG-1).
+
+## r169 — גל-החמישייה-החמה: 5-ריפו-ויראליים נמדדו, 1 אומץ
+- הפוסט-של-המפעיל טען גדול; המדידה-מתקנת: Graft "זול-פי-4" → הטבלה-שלהם: +42%-טוקנים · cbmem ">99%" → המאמר: פי-10 (=90%) · agency "232-סוכנים" → נמדדו-328 · Orca → אפליקציית- GUI-שולחנית.
+- **אומץ: agency-agents (MIT)** — טסט-אמת: persona-aeo-foundations דרך llm-bridge-3048 → תשובה-מדויקת-לתפקיד (robots.txt-מודע-AI · llms.txt · HTML-סמנטי). 6-personas-משימתיים (80K) נעוגו ל-vendor עם-ייחוס.
+- נדחו/חסומים: OpenMontage (AGPL+GPU-נדרש-ואין) · cbmem (710M-C, MCP, סקאלה-לא-שלנו) · Graft (דיסק-100%, לקוחות-שאין-לנו) · Orca (GUI).
+- team-doctrine-v1 (AT-1..5: context-pack · persona-system-prompt · structural-index · stage-media-pipeline · worktree-fanout) + 5-נתיבי-הפעלה (persona-חי · 2-מותנים · חסום · נדחה).
+- תקלת-תשתית: דיסק-התמלא-100% באמצע-הגל → ניקוי-מבוקר (שיבוטי-עבר-מזוקקים) → 888M-פנויים; ראיות-נשמרו-ב-PROVENANCE לפני-מחיקה.

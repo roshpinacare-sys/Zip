@@ -6166,3 +6166,23 @@ Work Log:
 
 Stage Summary:
 - **לא-עוזר-ככלי — עוזר-כספרות-ביטוח-לשכבת-ה-LLM.** FCC-פותר-בעיה-שבחרנו-לא-להחזיק (טוקנים-חינמיים-של-צד-שלישי) — הריבונות-שלנו-היא-בדיוק-לא-להיות-תלויים-בזה. מה-נשמר-לדורות: טקסונומיית-הכשלים-לפני-retry (RTC-1), חוק-ה-admission-לספק-שני (RTC-2, תאום-של-FLO-2), והתור-כיחידת-עמידות (RTC-3) — כולם-מופעלים-אוטומטית-אם-ספק-שני-מתעורר-יום-אחד (נתיב-laya-onnx-הוא-המועמד-היחיד). דחייה-כנה-עם-3-חסימות-מדידות, אפס-קוד-מועתק.
+
+---
+Task ID: r169
+Agent: main (Z.ai) — גל-החמישייה-החמה: המפעיל העביר פוסט-ויראלי עם 5-ריפו ("קחו ותתחילו להשתמש")
+
+Evaluator (LOOP-3 — הוכרז לפני העריכה): (1) חמישה-HEADs-נמדדו מהעתקות-רדודות + רישיונות-מאומתים; (2) טסט-LLM-אמת אחד לפחות — persona דרך llm-bridge עם תשובה-בתחום; (3) תיקון-הצהרות-הפוסט מול-המסמכים-העצמיים-של-הפרויקטים; (4) team-doctrine.json JSON-parse; (5) lint 0 · push-קבלה · audit-לא-נוגע · census-לא-נוגע.
+
+Task: למדוד ולשפוט את חמשת הריפו מהפוסט — Graft · agency-agents · codebase-memory-mcp · OpenMontage · Orca.
+
+Work Log:
+- **מדידה-מקבילה:** 5-שיבוטים — Graft fe30ead/MIT/84M · agency d3f71c4/MIT/7.7M · cbmem 96c3f41/MIT/**808M** (710M-internal-C) · montage 08e2151/**AGPLv3**/162M+requirements-gpu · orca 77ad467e/MIT/**422M-Electron**.
+- **תיקון-פוסט-מול-מציאות:** Graft "זול-פי-4" → הטבלה-העצמית: +46%-פחות-tool-calls · +42%-טוקנים · +60%-זמן · correctness-54→66. cbmem ">99%-טוקנים" → arXiv-שלהם: פי-10-פחות-טוקנים (=90%) · 83%-איכות. agency "232-סוכנים" → **נמדדו-328**. Orca "מנהל-סוכנים" → אפליקציית-שולחן-עם-worktrees.
+- **תקלה-אמיתית-באמצע-הגל:** דיסק-100% (שיבוט-cbmem-ה-808M-חנק) → ניקוי-מבוקר של-שיבוטים-שכבר-נזקקו (cbmem/graft/openreview/freecode) עם-שמירת-READMEs-כראיה → 888M-פנויים.
+- **טסט-אמת (LLM):** persona marketing-aeo-foundations (15.5K, frontmatter+identity/mission) כ-system-prompt מעל llm-bridge-3048 + משימת-דף-נחיתה-עברי → תשובה-בתחום: robots.txt-Allow-לסורקי-AI · /llms.txt · HTML/Markdown-סמנטי · "לפני-SEO". הכוונה-persona-מוכחת-ריבונית.
+- **אימוץ-מינימלי:** 6-personas-משימתיים (80K, MIT, מיוחסים) → sovereign/knowledge/vendor/agency-agents/personas/: aeo-foundations · agentic-search-optimizer · ai-citation-strategist · content-creator · social-media-strategist · sales-offer-lead-gen-strategist.
+- **דוקטרינה:** team-doctrine-v1 (AT-1..5) + 5-נתיבי-הפעלה: persona-חי · context-pack-מותנה · worktree-fanout-מותנה · code-graph-חסום-סקאלה · video-studio-נדחה (AGPL+אין-GPU+יש-לנו-video-skill).
+- vendor/hot-five-2026-10/PROVENANCE.md (טבלת-חמישייה + postVsMeasured) · lint 0 · commit · push-origin-main.
+
+Stage Summary:
+- **הפוסט-מכר-יפה; המדידה-קנתה-נכון.** מתוך-חמישה: אחד-אומץ-בפועל (personas — נכס-ישיר-ל-content-factory/weblift, כולל-AEO-שהוא-שירות-חייב-בשוק), שלושה-נשארים-תבניות-מתועדות (context-pack · code-graph · worktree-fanout), ואחד-נדחה-מוצק (AGPL+GPU). ארבע-הצהרות-הפוסט-תוקנו-מול-המקורות-העצמיים-של-הפרויקטים — השיטה-שלנו-שוב-תפסה-את-הפער-בין-שיווק-למדידה.
