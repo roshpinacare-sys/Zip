@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-03T22:19:36.325Z",
+  "at": "2026-10-03T22:34:34.798Z",
   "source": "push-range",
-  "diffChars": 443,
-  "diffStat": "sovereign/see/r186-businesses-log-mobile.png | Bin 0 -> 50422 bytes\n sovereign/see/r186-businesses-log.png        | Bin 0 -> 117373 bytes\n 2 files changed, 0 insertions(+), 0 deletions(-)",
+  "diffChars": 89284,
+  "diffStat": "scripts/charter-events-restore.ts    | 213 -------------------------------\n scripts/charter-issue.ts             |  20 ---\n scripts/charter-republish.ts         |  67 ----------\n scripts/check-tron-history.mjs       |  72 -----------\n scripts/check-tron-live.mjs          |  49 --------\n scripts/hive-key-prove.mjs           | 189 ----------------------------\n scripts/lab-blurt-anchor-live.ts     | 157 -----------------------\n scripts/lab-blurt-broadcast-proof.ts |  30 -----\n scripts/lab-hive-deposit-proof.ts    |  34 -----\n scripts/r104-saos-rail-proof.mjs     |  46 -------\n scripts/r105-sol-deposit-proof.mjs   |  45 -------\n scripts/r111-chain-orders.mjs        |  41 ------\n scripts/r111-ledger-check.ts         |  20 ---\n scripts/r111-patch-money-daemon.py   |  85 -------------\n scripts/r147a-forensics.mjs          | 128 -------------------\n scripts/r148-sign-decisions.ts       |  90 -------------\n scripts/r148b-judge-probe.ts         |  34 -----\n scripts/seal-adopt.mjs               | 237 -----------------------------------\n scripts/seal-recover-local.ts        | 175 --------------------------\n scripts/test-evm-ext.sh              | 125 ------------------\n scripts/verify-luck-sha.cjs          |  38 ------\n 21 files changed, 1895 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -11,11 +11,23 @@
   "skillsLoaded": [],
   "verdict": "pass",
   "findings": [],
-  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
+  "reason": "",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 911,
-    "llmCalls": 0
+    "totalTookMs": 3041,
+    "phase1TookMs": 573,
+    "phase1Tokens": {
+      "prompt_tokens": 1782,
+      "completion_tokens": 4,
+      "total_tokens": 0
+    },
+    "phase2TookMs": 1536,
+    "phase2Tokens": {
+      "prompt_tokens": 6768,
+      "completion_tokens": 9,
+      "total_tokens": 0
+    },
+    "llmCalls": 2
   }
 }
