@@ -2,58 +2,38 @@
   "service": "weblift",
   "version": "1.0.0",
   "bootedAt": "2026-09-24T22:21:33.328Z",
-  "beats": 6769,
+  "beats": 6812,
   "intervalSec": 2700,
   "alive": true,
   "lifting": false,
-  "lastLiftAt": "2026-10-03T13:06:58.956Z",
-  "nextDueAt": "2026-10-03T13:51:58.956Z",
+  "lastLiftAt": "2026-10-03T13:52:29.058Z",
+  "nextDueAt": "2026-10-03T14:37:29.058Z",
   "lastRun": {
-    "at": "2026-10-03T13:06:58.956Z",
+    "at": "2026-10-03T13:52:29.058Z",
     "exitCode": 0,
     "killedByTimeout": false,
     "summary": "אין דואר נכנס",
     "tail": [
-      "(node:11884) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
+      "(node:13915) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
       "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
       "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
       "(Use `node --trace-warnings ...` to show where the warning was created)",
-      "[weblift-run 2026-10-03T13:06:56.582Z] פותח כספת: steem/cashmachine/posting …",
-      "[weblift-run 2026-10-03T13:06:56.863Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
-      "[weblift-run 2026-10-03T13:06:57.744Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
-      "[weblift-run 2026-10-03T13:06:57.751Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
-      "[web-publish 2026-10-03T13:06:57.859Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
-      "[web-publish 2026-10-03T13:06:58.938Z] RC חי: 48976M / 50763M (96.5%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
-      "[web-publish 2026-10-03T13:06:58.938Z] אין דואר נכנס",
-      "[weblift-run 2026-10-03T13:06:58.949Z] סוכן הסתיים בקוד 0"
+      "[weblift-run 2026-10-03T13:52:26.698Z] פותח כספת: steem/cashmachine/posting …",
+      "[weblift-run 2026-10-03T13:52:26.928Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
+      "[weblift-run 2026-10-03T13:52:27.867Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
+      "[weblift-run 2026-10-03T13:52:27.874Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
+      "[web-publish 2026-10-03T13:52:28.003Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
+      "[web-publish 2026-10-03T13:52:29.039Z] RC חי: 49297M / 50763M (97.1%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
+      "[web-publish 2026-10-03T13:52:29.039Z] אין דואר נכנס",
+      "[weblift-run 2026-10-03T13:52:29.050Z] סוכן הסתיים בקוד 0"
     ]
   },
   "lastDecision": {
-    "at": "2026-10-03T13:06:58.956Z",
+    "at": "2026-10-03T13:52:29.058Z",
     "kind": "LIFT-DONE",
     "detail": "אין דואר נכנס"
   },
   "historyTail": [
-    {
-      "at": "2026-09-30T21:42:04.483Z",
-      "exitCode": 0,
-      "killedByTimeout": false,
-      "summary": "אין דואר נכנס",
-      "tail": [
-        "(node:26208) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
-        "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
-        "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
-        "(Use `node --trace-warnings ...` to show where the warning was created)",
-        "[weblift-run 2026-09-30T21:42:02.148Z] פותח כספת: steem/cashmachine/posting …",
-        "[weblift-run 2026-09-30T21:42:02.397Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
-        "[weblift-run 2026-09-30T21:42:03.272Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
-        "[weblift-run 2026-09-30T21:42:03.280Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
-        "[web-publish 2026-09-30T21:42:03.428Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
-        "[web-publish 2026-09-30T21:42:04.464Z] RC חי: 46381M / 50763M (91.4%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
-        "[web-publish 2026-09-30T21:42:04.464Z] אין דואר נכנס",
-        "[weblift-run 2026-09-30T21:42:04.475Z] סוכן הסתיים בקוד 0"
-      ]
-    },
     {
       "at": "2026-10-01T19:45:27.145Z",
       "exitCode": 0,
@@ -832,6 +812,26 @@
         "[web-publish 2026-10-03T13:06:58.938Z] RC חי: 48976M / 50763M (96.5%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
         "[web-publish 2026-10-03T13:06:58.938Z] אין דואר נכנס",
         "[weblift-run 2026-10-03T13:06:58.949Z] סוכן הסתיים בקוד 0"
+      ]
+    },
+    {
+      "at": "2026-10-03T13:52:29.058Z",
+      "exitCode": 0,
+      "killedByTimeout": false,
+      "summary": "אין דואר נכנס",
+      "tail": [
+        "(node:13915) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
+        "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
+        "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "[weblift-run 2026-10-03T13:52:26.698Z] פותח כספת: steem/cashmachine/posting …",
+        "[weblift-run 2026-10-03T13:52:26.928Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
+        "[weblift-run 2026-10-03T13:52:27.867Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
+        "[weblift-run 2026-10-03T13:52:27.874Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
+        "[web-publish 2026-10-03T13:52:28.003Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
+        "[web-publish 2026-10-03T13:52:29.039Z] RC חי: 49297M / 50763M (97.1%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
+        "[web-publish 2026-10-03T13:52:29.039Z] אין דואר נכנס",
+        "[weblift-run 2026-10-03T13:52:29.050Z] סוכן הסתיים בקוד 0"
       ]
     }
   ]

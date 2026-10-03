@@ -166,3 +166,7 @@
 - 7/7-SHA-של-r167..r172-אומתו-על-origin · סטייה-חיה (behind-30)-רופאה-ב-rebase+reword · חוק-fetch-before-wave
 - דיסק: fleet-verify/work-2.5G-נשאף → 95%→89% (פנוי-1.1G) · רוטציית-ledger-מנותחת-ומתוכננת-עם-טריגר (לא-מרוצה-עדיין)
 - ריבונות: 0-מפתחות · fleet-17/17 · 9/9-doctrines · bridge-30-השלמות · V5-BID-ONLY-חי
+
+## r174 (2026-10-03) — היגיינה-מתמדת: TTL-חי-וחוקים-חדשים
+- fleet-verify-TTL-מומש-ומוכח-אנד-אנד (pruned:1/5MB-על-קלף-מזויף) · שיעור: hot-reload-אינו-פריסה (הפעלה-מחזורית-נדרשת)
+- LOOP-9-fetch-before-wave + LOOP-10-hot-reload-is-not-deploy-ב-doctrine (10-חוקים) · census-מחר: מדידת-תשלום-curation-ראשונה

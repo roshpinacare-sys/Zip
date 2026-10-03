@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 442,
-  "at": "2026-10-03T13:40:29.842Z",
+  "seq": 446,
+  "at": "2026-10-03T14:00:27.745Z",
   "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 236 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 238 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 236,
+        "entries": 238,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 820 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 840 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,30 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 2 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 22 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 12,
         "outOfOrder": 0,
-        "lastAgeMinutes": 2
+        "lastAgeMinutes": 22
       }
     },
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (6 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (7 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 6
+        "ordersOpen": 7
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (6 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (7 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -61,12 +61,12 @@
     {
       "id": "balances-drift",
       "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 4.787 · SBD 0.5 (סטייה ≤ 0.001)",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 4.287 · SBD 0.5 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 4.787,
+        "homeSteem": 4.287,
         "homeSbd": 0.5,
-        "chainSteem": 4.787,
+        "chainSteem": 4.287,
         "chainSbd": 0.5,
         "driftSteem": 0,
         "driftSbd": 0

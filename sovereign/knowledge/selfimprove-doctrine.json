@@ -65,6 +65,20 @@
       "law": "Activity is not progress: every N waves, audit where wall-clock, tokens, disk and commits actually go (r171/r172 method: count-objects, blob-census, bridge-call counts, LLM calls per gate run). Kill waste in place: no-code diffs bypass the gate in 0 LLM calls; eval clones are deleted after distillation; history bloat is rotated before it compounds. Efficiency is measured in before/after numbers, not intentions.",
       "added": "2026-10-03",
       "evidence": "r172: gate txt-path 42ms/0-calls (was 1.5-3.3s/2-calls) · git-gc 253M->94M (r171) · eval-space freed 584M"
+    },
+    {
+      "id": "LOOP-9",
+      "name": "fetch-before-wave",
+      "law": "Every wave opens with git fetch + compare HEAD to origin/main before any work. The server-side anchor bots move origin continuously (measured: behind-30 in one session, r173); working from a stale HEAD manufactures divergence that later costs rebase tax. Waves that forget this law repeat the same preventable mess.",
+      "added": "2026-10-03",
+      "evidence": "r173: live divergence caught (ahead-1/behind-30) healed via rebase+reword with zero conflict (file-ownership disjointness verified first); UUID snapshot commits reworded to honest labels"
+    },
+    {
+      "id": "LOOP-10",
+      "name": "hot-reload-is-not-deploy",
+      "law": "bun --hot re-evaluates the module but the singleton server/timer closures (G.__SRV__ guard) keep serving the OLD code. Any edit to a fleet service is deployed only after a controlled process restart (kill port owner -> daemons-revive). Proof of change = new behavior measured, not a file save.",
+      "added": "2026-10-03",
+      "evidence": "r174: TTL sweep wired in 3 paths, /run/jumpper-tests ran twice with zero pruning while hot-reloaded; after restart the same call pruned 1 dir/5MB and recorded lastWorkSweep"
     }
   ],
   "activationRoutes": [

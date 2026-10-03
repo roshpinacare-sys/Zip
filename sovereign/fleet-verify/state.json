@@ -1,8 +1,8 @@
 {
   "service": "fleet-verify",
   "version": "2.0.0",
-  "bootedAt": "2026-10-02T21:46:56.155Z",
-  "beats": 70,
+  "bootedAt": "2026-10-03T14:01:15.056Z",
+  "beats": 1,
   "patAvailable": true,
   "current": null,
   "jobs": [
@@ -13,8 +13,8 @@
       "layer": "QA",
       "roleHe": "JUMPPER הוא נוטריון ההוכחות של הרשת: כל טענה דיגיטלית הופכת לרשומה ציבורית זולה לאימות. המאמת מריץ את מלוא מבחני היחידה, קומפילציה מלאה והדמו החי מול שרשרות ציבוריות.",
       "verdict": "PASS",
-      "lastRunAt": "2026-10-02T21:46:56.162Z",
-      "durationMs": 2620,
+      "lastRunAt": "2026-10-03T14:01:32.239Z",
+      "durationMs": 5628,
       "checks": {
         "unitTestsRan": 673,
         "unitTestsOk": 1,
@@ -31,18 +31,18 @@
         "test_an_empty_ledger_reconciles (test_xlock.TestTheCheckerDiscriminates.test_an_empty_ledger_reconciles) ... ok",
         "test_an_unlock_citing_its_own_lock_txid_is_not_foreign (test_xlock.TestTheCheckerDiscriminates.test_an_unlock_citing_its_own_lock_txid_is_not_foreign) ... ok",
         "----------------------------------------------------------------------",
-        "Ran 673 tests in 0.120s",
+        "Ran 673 tests in 0.135s",
         "OK",
         "verdict: PASS (unit tests pass, package compiles)"
       ],
-      "nextDueAt": "2026-10-03T21:47:00.407Z",
-      "commit": "2697a14",
-      "runs": 7,
+      "nextDueAt": "2026-10-04T14:01:39.370Z",
+      "commit": "8c5ad46",
+      "runs": 10,
       "push": {
-        "at": "2026-10-02T21:46:58.783Z",
-        "commit": "2702703",
+        "at": "2026-10-03T14:01:37.867Z",
+        "commit": "b70df10",
         "verdict": "PASS",
-        "detail": "נדחף לגיט · saos-jummper@2702703"
+        "detail": "נדחף לגיט · saos-jummper@b70df10"
       }
     },
     {
@@ -345,29 +345,11 @@
     }
   ],
   "lastDecision": {
-    "at": "2026-10-02T22:56:02.842Z",
+    "at": "2026-10-03T14:01:39.370Z",
     "kind": "PASS",
-    "detail": "foundry-selftest: PASS · 5ש' · install+typecheck pass (local gate: build skipped by sandbox policy) · נדחף לגיט · saos-sovereign-foundry@11f8165"
+    "detail": "jumpper-tests: PASS · 6ש' · unit tests pass, package compiles · נדחף לגיט · saos-jummper@b70df10"
   },
   "history": [
-    {
-      "at": "2026-09-24T03:48:58.988Z",
-      "id": "wallet-verify",
-      "verdict": "PASS",
-      "detail": "6500ms · install+typecheck pass (local gate: build skipped by sandbox policy)"
-    },
-    {
-      "at": "2026-09-24T03:49:10.399Z",
-      "id": "control-center-build",
-      "verdict": "PASS",
-      "detail": "5705ms · install+typecheck pass (local gate: build skipped by sandbox policy)"
-    },
-    {
-      "at": "2026-09-24T03:49:52.484Z",
-      "id": "jumpper-tests",
-      "verdict": "PASS",
-      "detail": "6491ms · unit tests pass, package compiles"
-    },
     {
       "at": "2026-09-24T03:50:08.865Z",
       "id": "sdk-verify",
@@ -709,6 +691,29 @@
       "id": "foundry-selftest",
       "verdict": "PASS",
       "detail": "4978ms · install+typecheck pass (local gate: build skipped by sandbox policy) · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T13:55:10.553Z",
+      "id": "jumpper-tests",
+      "verdict": "PASS",
+      "detail": "2750ms · unit tests pass, package compiles · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T14:00:18.688Z",
+      "id": "jumpper-tests",
+      "verdict": "PASS",
+      "detail": "2279ms · unit tests pass, package compiles · גיט: נדחף"
+    },
+    {
+      "at": "2026-10-03T14:01:32.239Z",
+      "id": "jumpper-tests",
+      "verdict": "PASS",
+      "detail": "5628ms · unit tests pass, package compiles · גיט: נדחף"
     }
-  ]
+  ],
+  "lastWorkSweep": {
+    "at": "2026-10-03T14:01:15.062Z",
+    "pruned": 1,
+    "freedBytes": 5242880
+  }
 }

@@ -749,6 +749,8 @@ interface FleetState {
   jobs: JobState[];
   lastDecision: { at: string; kind: string; detail: string } | null;
   history: { at: string; id: string; verdict: string; detail: string }[];
+  // r174 — היגיינת-דיסק: תיעוד-הסוויפ האחרון של ספריות-העבודה
+  lastWorkSweep?: { at: string; pruned: number; freedBytes: number };
 }
 
 function boot(): FleetState {
@@ -810,6 +812,8 @@ const G = globalThis as {
   __FV_HEARTBEAT__?: number;
   // r143-c — מתג-איש-המת (טיימר-יחיד, כמו __FV_TIMER__)
   __FV_DEADMAN__?: ReturnType<typeof setInterval>;
+  // r174 — שער-הסוויפ האחרון (היגיינת-דיסק)
+  __FV_LAST_SWEEP__?: number;
 };
 if (G.__FV_STATE__) {
   try {
@@ -1141,6 +1145,68 @@ async function runJob(def: JobDef): Promise<void> {
 
 // ── מנוע הלולאה ────────────────────────────────────────────────────
 let running = false;
+
+// r174 — היגיינת-דיסק: ספריות-העבודה הן קלוני-אימות זמניים בלבד
+// (ensureWorkdir עושה reclone אוטומטי על היעדר). נמדד ב-r173: 2.5G אשפה
+// נצברה בלי-היגיינה והדיסק הגיע ל-95%. TTL + תקרה — בלי-לגעת בזרימה.
+const WORK_TTL_MS = 6 * 60 * 60 * 1000; // ספרייה לא-נגעת 6 שעות → נמחקת
+const WORK_MAX_TOTAL_BYTES = 3 * 1024 * 1024 * 1024; // תקרת-רוחב: 3GB
+const WORK_SWEEP_INTERVAL_MS = 30 * 60 * 1000; // סוויפ כל 30 דק'
+
+function workDirSize(dir: string): number {
+  let total = 0;
+  try {
+    const entries = fs.readdirSync(dir, { recursive: true });
+    for (const e of entries) {
+      try {
+        const st = fs.statSync(path.join(dir, String(e)));
+        if (st.isFile()) total += st.size;
+      } catch { /* נעלם בין-השורות — ממשיכים */ }
+    }
+  } catch { /* ספרייה נעלמה */ }
+  return total;
+}
+
+// סוויפ-היגיינה: מוחק ספריות-עבודה ישנות (TTL) ואז לפי תקרה (הזקנים קודם).
+// בטוח תמיד: רץ רק כשאין-עבודה בשידור (running=false), וקלון חסר = reclone אוטומטי.
+function sweepWork(): { pruned: number; freedBytes: number } {
+  G.__FV_LAST_SWEEP__ = Date.now();
+  if (running || !fs.existsSync(WORK_ROOT)) return { pruned: 0, freedBytes: 0 };
+  let names: string[] = [];
+  try { names = fs.readdirSync(WORK_ROOT); } catch { return { pruned: 0, freedBytes: 0 }; }
+  const now = Date.now();
+  const cands: { dir: string; mtime: number; size: number }[] = [];
+  for (const n of names) {
+    const dir = path.join(WORK_ROOT, n);
+    try {
+      const st = fs.statSync(dir);
+      if (!st.isDirectory()) continue; // קבצי run-*.sh — לא-נוגעים
+      cands.push({ dir, mtime: st.mtimeMs, size: workDirSize(dir) });
+    } catch { /* נעלם — ממשיכים */ }
+  }
+  let pruned = 0;
+  let freedBytes = 0;
+  const tryRm = (dir: string, size: number) => {
+    try { fs.rmSync(dir, { recursive: true, force: true }); pruned += 1; freedBytes += size; } catch { /* תפוס — יינסה בסוויפ הבא */ }
+  };
+  // 1. TTL — מעבר לגיל
+  for (const c of cands) if (now - c.mtime > WORK_TTL_MS) tryRm(c.dir, c.size);
+  // 2. תקרה — הזקנים קודם, רק אם עדיין מעל הסף
+  let live = cands.filter((c) => fs.existsSync(c.dir)).reduce((a, c) => a + c.size, 0);
+  if (live > WORK_MAX_TOTAL_BYTES) {
+    for (const c of [...cands].sort((a, b) => a.mtime - b.mtime)) {
+      if (live <= WORK_MAX_TOTAL_BYTES) break;
+      if (!fs.existsSync(c.dir)) continue;
+      tryRm(c.dir, c.size);
+      live -= c.size;
+    }
+  }
+  if (pruned > 0) {
+    state.lastWorkSweep = { at: new Date().toISOString(), pruned, freedBytes };
+    saveState();
+  }
+  return { pruned, freedBytes };
+}
 // r143-c — חותמת-הפעימה האחרונה — מזינה את מתג-איש-המת בסוף-הקובץ
 let lastFvBeatAt = Date.now();
 async function tick(): Promise<void> {
@@ -1149,6 +1215,8 @@ async function tick(): Promise<void> {
   state.beats += 1;
   lastFvBeatAt = Date.now(); // r143-c — הוכחת-החיים נמדדת כאן (מתקדמת בכל 60ש' גם בזמן-ריצות)
   if (running) return;
+  // r174 — סוויפ-היגיינה על-גבי הפעימה הקיימת (בלי-טיימר נוסף)
+  if (Date.now() - (G.__FV_LAST_SWEEP__ ?? 0) > WORK_SWEEP_INTERVAL_MS) sweepWork();
   if (!PAT) {
     state.lastDecision = { at: new Date().toISOString(), kind: "WAIT", detail: "אין סמכות (PAT) — המפעל ממתין בכנות" };
     saveState();
@@ -1165,6 +1233,7 @@ async function tick(): Promise<void> {
   } finally {
     running = false;
     saveState();
+    sweepWork(); // r174 — אחרי כל עבודה: הזרימה רגועה, האשפה נשאפת מיד
   }
 }
 
@@ -1192,6 +1261,7 @@ if (!G.__FV_SERVER__) {
         .finally(() => {
           running = false;
           saveState();
+          sweepWork(); // r174 — גם דחיפה-ידנית מנקה (סימטריה ללולאה)
         });
       return Response.json({ ok: true, started: id });
     }
@@ -1206,6 +1276,7 @@ if (!G.__FV_SERVER__) {
         .finally(() => {
           running = false;
           saveState();
+          sweepWork(); // r174 — גם run-next מנקה (סימטריה ללולאה)
         });
       return Response.json({ ok: true, started: def.id });
     }
