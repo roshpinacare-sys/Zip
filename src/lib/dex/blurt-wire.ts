@@ -161,6 +161,53 @@ async function blurtDgp(): Promise<{ head_block_number: number; head_block_id: s
   );
 }
 
+// ── r184 — חותמת-הסכמה הרשמית של הרגל ──────────────────────────────────
+// המדידה שהפילה את החשוד-הישן (scripts/lab-blurt-serialize-diff.cjs):
+// steem-js סודר custom_json כ-op-id **18**; Blurt סודר אותו כ-op-id **12**
+// (בייט 11: 0x12 מול 0x0c — הסכמות נפרדות בגלל 6-פעולות שנחתכו במזלג).
+// חתימה על בייטי-Steem מול שרשרת-Blurt = החתימה אינה מכסה את ה-op שהצומת
+// מפרש ⇒ "Missing Active Authority". החוק החדש: הרגל חותמת רק דרך
+// blurtjs (הספרייה הרשמית של השרשרת) — הבייטים שהצומת מפרש הם הבייטים
+// שחתמנו. חוק-החוט המילולי של הנכס (R103) עומד — blurtjs סודר את הנכס
+// מילולית ממילא.
+
+interface BlurtLib {
+  auth: { signTransaction(tx: unknown, keys: string[]): unknown };
+  config: { get(k: string): unknown; set(k: string, v: unknown): void };
+}
+
+let blurtLibCache: BlurtLib | null = null;
+
+function blurtAuth(): BlurtLib {
+  if (!blurtLibCache) {
+    const nodeRequire = createRequire(path.join(HOME, "package.json"));
+    blurtLibCache = nodeRequire("@blurtfoundation/blurtjs") as BlurtLib;
+    // חוק-השרשרת (R101, נמדד חי מ-get_config; blurtjs נולד עם אותו ערך —
+    // נקבע במפורש: קבוצה-חוקית, לא נגזרת ממצב-ספרייה)
+    blurtLibCache.config.set("chain_id", BLURT_CHAIN_ID);
+  }
+  return blurtLibCache;
+}
+
+/** חתימת עסקת-Blurt בסכמה הרשמית — DGP חי, chain_id קבוע, blurtjs סודר וחותם. */
+export async function blurtSignTx(
+  ops: Array<[string, Record<string, unknown>]>,
+  wif: string,
+): Promise<Record<string, unknown>> {
+  const dgp = await blurtDgp();
+  if (!dgp) throw new Error("NO-DGP: השרשרת לא ענתה — אין חתימה בלי ראש-שרשרת");
+  const tx = {
+    ref_block_num: dgp.head_block_number & 0xffff,
+    ref_block_prefix: Buffer.from(dgp.head_block_id, "hex").readUInt32LE(4),
+    expiration: new Date(new Date(dgp.time + "Z").getTime() + 60_000)
+      .toISOString()
+      .slice(0, 19),
+    operations: ops,
+    extensions: [] as unknown[],
+  };
+  return blurtAuth().auth.signTransaction(tx, [wif]) as Record<string, unknown>;
+}
+
 /**
  * העברת BLURT אמיתית בשרשרת.
  *
@@ -185,30 +232,12 @@ export async function blurtSendTransfer(params: {
     const dgp = await blurtDgp();
     if (!dgp) return { accepted: false, txid: null, note: "NO-DGP: השרשרת לא ענתה" };
 
-    const tx = {
-      ref_block_num: dgp.head_block_number & 0xffff,
-      ref_block_prefix: Buffer.from(dgp.head_block_id, "hex").readUInt32LE(4),
-      expiration: new Date(new Date(dgp.time + "Z").getTime() + 60_000)
-        .toISOString()
-        .slice(0, 19),
-      operations: [["transfer", { from, to, amount: asset, memo: memo ?? "" }]],
-      extensions: [] as unknown[],
-    };
-
-    // חתימה מקומית עם chain_id של BLURT — הדפוס המוכח של HIVE (R101)
-    const nodeRequire = createRequire(path.join(HOME, "package.json"));
-    const steem = nodeRequire("steem") as {
-      auth: { signTransaction(tx: unknown, keys: string[]): unknown };
-      config: { get(k: string): unknown; set(k: string, v: unknown): void };
-    };
-    const prev = steem.config.get("chain_id");
-    steem.config.set("chain_id", BLURT_CHAIN_ID);
-    let signed: Record<string, unknown>;
-    try {
-      signed = steem.auth.signTransaction(tx, [wif]) as Record<string, unknown>;
-    } finally {
-      steem.config.set("chain_id", prev);
-    }
+    // r184 — חתימה דרך blurtSignTx (הסכמה הרשמית; חותמת steem-js היתה
+    // סודרת את ה-op במזהה-שגוי לשרשרת הזאת — נמדד במעבדה)
+    const signed = await blurtSignTx(
+      [["transfer", { from, to, amount: asset, memo: memo ?? "" }]],
+      wif,
+    );
 
     // שידור — הצומת מסדר לאותם בייטים שחתמנו
     const r = await fetch(BLURT_RPC, {

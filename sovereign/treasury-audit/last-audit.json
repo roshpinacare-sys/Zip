@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 512,
-  "at": "2026-10-03T19:30:27.917Z",
-  "verdict": "PASS",
+  "seq": 522,
+  "at": "2026-10-03T20:20:27.915Z",
+  "verdict": "WARN",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 266 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 268 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 266,
+        "entries": 268,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1170 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 10 תמונות (אחרונה seq 10 בת 1220 דק')",
       "numbers": {
         "entries": 10,
         "brokenAt": null,
@@ -28,30 +28,26 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 352 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 12 עם txid · אחרונה בת 402 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 12,
         "outOfOrder": 0,
-        "lastAgeMinutes": 352
+        "lastAgeMinutes": 402
       }
     },
     {
       "id": "ladder-floor",
-      "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (10 פקודות פתוחות)",
+      "status": "warn",
+      "detail": "/api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
       "numbers": {
-        "state": "HELD",
-        "asksBelowParity": 0,
-        "worstBps": 0,
-        "maxDriftLossSbd": 0,
-        "ordersOpen": 10
+        "state": "UNMEASURED"
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (10 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -60,18 +56,15 @@
     },
     {
       "id": "balances-drift",
-      "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 0.792 · SBD 0.078 (סטייה ≤ 0.001)",
+      "status": "warn",
+      "detail": "יתרות-הבית לא נמדדו מ-/api/money — unmeasured",
       "numbers": {
-        "measured": true,
-        "homeSteem": 0.792,
-        "homeSbd": 0.078,
-        "chainSteem": 0.792,
-        "chainSbd": 0.078,
-        "driftSteem": 0,
-        "driftSbd": 0
+        "measured": false
       }
     }
   ],
-  "anomalies": []
+  "anomalies": [
+    "warn · ladder-floor: /api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+    "warn · balances-drift: יתרות-הבית לא נמדדו מ-/api/money — unmeasured"
+  ]
 }

@@ -6581,3 +6581,23 @@ Stage Summary:
 - הכלכלה הפנימית חיה וניזונה מהמדידה: census→ladder — האלפא (188bps) זורמת עתה אוטומטית לסולם.
 - שתי-שרשראות מעידות מקומית גם (לא רק מהענן) — הזהות-הכפולה של קו-האמת.
 - Blurt: חמוש-ומחוט לחלוטין, נדחה-בכנות — החוסם הוא טכני-נקודתי (סריאליזציה), לא בעלות-או-דלק.
+---
+Task ID: r184
+Agent: THE WEAVE sovereign loop (Z.ai Code)
+Task: המשך (trace 1a1035f3f0f92cd5) — המסילה השלישית (BLURT) נדחתה-כנה ב-r183 על חשוד-סריאליזציה; "תפעיל הכל מיד": למצוא את הבייט, לתקן, להוכיח על-השרשרת.
+
+Work Log:
+- LOOP-9: HEAD=origin/main+UUID-snapshot (רק-churn-דיבונים) — shoreword תקין, ללא-rebase נדרש. stash-ה-churn הוחזר.
+- **מעבדת-בייטים (scripts/lab-blurt-serialize-diff.cjs)**: אותו-op, סריאליזציה כפולה — steem-js מול blurtjs (הרשמית). **DIFFER at byte 11**: op-count=01 ואז op-id — steem-js כותב 0x12 (18), blurtjs כותב 0x0c (**12**). שורש-האמת: מפת-הפעולות של Blurt קטנה (62 מול 91) — 6-פעולות נחתכו-במזלג לפני custom_json. חתימה-על-בייטי-Steem ⇒ הצומת מפרש-op-אחר ⇒ "Missing Active Authority" (החתימה לא מכסה את מה-שהצומת-רואה). chain_id אומת משני-מקורות (get_config-צומת == ברירת-מחדל-blurtjs).
+- **תיקון-החוק (blurt-wire.ts)**: blurtSignTx חדש — חתימה רק דרך @blurtfoundation/blurtjs (הסכמה-הרשמית), chain_id מוצב-מפורש, DGP-חי. blurtSendTransfer עבר-לאותו-חוק (החותמת-הישנה-steem-js+chain_id-swap נמחקה — נתיב-חתימה-אחד-לרגל). weave-anchor.ts: סניף-Blurt משתמש-blurtSignTx.
+- **הוכחה-חיה (scripts/lab-blurt-anchor-live.ts)**: מפתח מכספת-הסוכנים (vault-read→env, אפס-הדפסה) · מטען-אמיתי cp#1250 (root 0x97f3bfe2…, att 1260) · broadcast_transaction (ראשון) — **accepted בלי-שגיאה** ("Missing Active Authority" נעלם); history-readback ריק (איחור-אינדקס בצומת) ⇒ העברה-לשופטת-ישירה: **broadcast_transaction_synchronous → trx_id 35f2881734a6…, block 64177707, expired:false**.
+- **readback עצמאי מ-get_block(64177707)**: בלוק-1-tx — שלנו · op custom_json · id saos.weave.core.v1 · required_auths headcorner · payload (runner r184-sync-probe, cp#1250, root, attestations 1260) נקרא-מצב-השרשרת בייט-מדויק. get_transaction/get_account_history ב-rpc.blurt.blog — אינדקס-מאחר (נרשם).
+- **המעגן-הריבוני שודרג**: שידור-Blurt-סינכרוני (trx_id+block חוזרים-ישירות) — הקו-השעתי מקבל-עדות-מזוהה-בלי-ציד-היסטוריה.
+- lint: 0 errors · @blurtfoundation/blurtjs ב-package.json (הענן יקבל-ב-bun-install).
+
+Stage Summary:
+- **שלוש-שרשראות מעידות על הספר — Steem + Hive + Blurt, לראשונה.** הזהות-המשולשת של קו-האמת חיה (cp#1250-על-Blurt-בבלוק 64177707; steem/hive-ממשיכות-שעתית).
+- שיעור-מדידה: "Missing Authority" לא-תמיד בעלות — לפעמים הוא סכמה. הבייט-המדויק (11) הפיל-חשוד-של-שבוע.
+- הרגל-השלישית: אפס-גז, עדות-custom_json-בסמכות-active — השלישית-בעולם-אחרי-השתיים-שלנו.
+- ארטיפקטים: lab-blurt-serialize-diff.cjs · lab-blurt-anchor-live.ts · blurtSignTx · blurt-rail-proof.json (PROVED).
+- נפתח-לגל-הבא: דיספאטש-ענן-להוכחת-3-שרשראות-מה-Anchor-lines · EVM_ANCHOR_PK (מסילת-EVM-שנייה) · armBuy-בתוך-ה-188bps.

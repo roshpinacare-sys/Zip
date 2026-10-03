@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-03T20:18:36Z",
+  "verdict": "PROVED",
+  "txid": "35f2881734a6ecdd9c8bf1398c95090128ddf17c",
+  "block": 64177707,
+  "trxNum": 0,
+  "rpc": "https://rpc.blurt.blog",
+  "account": "headcorner",
+  "authority": "active",
+  "opId": "saos.weave.core.v1",
+  "checkpoint": 1250,
+  "root": "0x97f3bfe28728cdb661",
+  "attestations": 1260,
+  "commit": "r184-live",
+  "runner": "r184-blurt-serializer-fix",
+  "judge": "condenser_api.get_block(64177707) — txid present in block, op payload read back byte-exact from chain state",
+  "fix": {
+    "law": "blurtjs-schema (custom_json op-id 12) replaces steem-js-schema (op-id 18) for the Blurt rail",
+    "lab": "scripts/lab-blurt-serialize-diff.cjs — byte 11: 0x0c (blurtjs) vs 0x12 (steem-js)",
+    "note": "r183 'Missing Active Authority' was a signature over steem-schema bytes; Blurt parses a different op ordinal, so the recovered key never matched the active authority"
+  },
+  "historyNote": "rpc.blurt.blog get_account_history/get_transaction lag or index disabled — get_block is the independent judge (chain state, not indexer)"
+}

@@ -40,10 +40,9 @@ import {
   hiveRcGate,
   steemRcGate,
   findInHistory,
-  signGrapheneTx,
   sleep,
 } from "@/lib/weave/graphene";
-import { BLURT_RPC, BLURT_CHAIN_ID } from "@/lib/dex/blurt-wire";
+import { BLURT_RPC, blurtSignTx } from "@/lib/dex/blurt-wire";
 // GrapheneOperation מיובא מהחבילה עצמה — graphene.ts מגדיר אותו מקומית ולא מייצא
 import type { GrapheneOperation } from "steem";
 
@@ -376,10 +375,25 @@ async function main(): Promise<void> {
       ];
       blurtOp[1].required_auths = [account];
       blurtOp[1].required_posting_auths = [];
-      const signed = await signGrapheneTx(BLURT_RPC, BLURT_CHAIN_ID, [blurtOp], BLURT_WIF);
-      await rpcV4(BLURT_RPC, "condenser_api.broadcast_transaction", [signed]);
-      notes.push("blurt: broadcast-accepted (await history confirm)");
-      console.log(`[weave-anchor] blurt: השידור התקבל — ממתין לאישור היסטוריה`);
+      // r184 — חתימה בסכמה הרשמית (blurtjs): המעבדה הוכיחה ש-steem-js סודר
+      // custom_json כ-op-id 18 בעוד Blurt מצפה ל-12 — הסיבה ל-"Missing Active
+      // Authority". blurtSignTx סודר וחותם בבייטים שהשרשרת מפרשת.
+      const signed = await blurtSignTx([blurtOp], BLURT_WIF);
+      // r184 — שידור-סינכרוני: הצומת מחזיר trx_id+block (ההיסטוריה ב-rpc.blurt.blog
+      // מתעדכנת באיחור — הבלוק עצמו הוא השופטת; הוכחה: blurt-rail-proof.json)
+      const sync = await rpcV4<{ id: string; block_num: number; expired: boolean }>(
+        BLURT_RPC,
+        "condenser_api.broadcast_transaction_synchronous",
+        [signed]
+      );
+      txids.blurt = sync?.id ?? null;
+      if (txids.blurt) {
+        notes.push(`blurt: txid ${txids.blurt} (block ${sync.block_num})`);
+        console.log(`[weave-anchor] blurt: שודר ✓ ${txids.blurt.slice(0, 12)}… (block ${sync.block_num})`);
+      } else {
+        notes.push("blurt: broadcast-accepted (no id returned)");
+        console.log(`[weave-anchor] blurt: השידור התקבל — ממתין לאישור היסטוריה`);
+      }
     } catch (e) {
       notes.push(`blurt: ${String((e as Error).message ?? e).slice(0, 140)}`);
       console.log(`[weave-anchor] blurt: נכשל — ${String((e as Error).message ?? e).slice(0, 120)}`);

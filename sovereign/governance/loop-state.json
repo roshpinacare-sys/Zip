@@ -2,25 +2,24 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 237,
-  "lastCycleAt": "2026-10-03T19:29:41.131Z",
-  "lastDecisionId": "D-r143-237",
+  "cycles": 239,
+  "lastCycleAt": "2026-10-03T20:19:39.299Z",
+  "lastDecisionId": "D-r143-239",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 7772 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 1169 דק') · מילויי-שרשרת 260 (maxIndex=62237)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 7822 דק' · כלכלה: pnl-snapshots seq=10 (realizedSbd=-1.372769 · trips=186 · unrealizedPremiumSbd=0.00343 · orders=1 · בת 1219 דק') · מילויי-שרשרת 262 (maxIndex=62245)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-03T19:29:36.465Z",
+    "at": "2026-10-03T20:19:36.332Z",
     "verdict": "DENY",
-    "score": 30,
+    "score": 35,
     "reasonsHe": [
-      "חוק-הראיה-הכלכלית: פעולה ללא מספרי עלות/ערך מדודים (estimatedCost, expectedValue, killLineAware) — אין ראיה לביקוש או תשואה",
-      "חוק-העלות-השולית: למרות שמדובר בפעולת ממשלה, חסרים מספרים לאימות שהיא רצה על עלות-שולית נמוכה",
-      "חוק-הקיבולת: תקציב-השידורים כבר עומד על 13/16, ופעולה ללא ערך מדוד עלולה להביא לחריגה מהתקרה הקשה של 16",
-      "הדוקטרינה: 'אין עסק בלי ראיה, אין ראיה בלי מספרים' — פעולה זו אינה עומדת בדרישות הבסיסיות"
+      "פעולה ללא מספרי-עלות/ערך מדודים — חוק-הראיה-הכלכלית קובע שאין עסק בלי מספרי-ביקוש מדודים",
+      "לא דווח על killLineAware — חוק-שורת-ההרג דורש שורת-הרג מדודה מראש",
+      "פעולת ממשל ללא ראיית-ערך מדודה — לא ניתן לקבוע את תועלתה לפי חוק-הראיה-הכלכלית"
     ],
     "actionsToday": 13,
     "cap": 16,
-    "actionId": "D-r143-237"
+    "actionId": "D-r143-239"
   }
 }

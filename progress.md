@@ -230,3 +230,10 @@
 - **מסילה 3 (Blurt)**: בעלות PROVED בייט-מדויק · סוד בכספת-Zip · yml×2 · ענף-קוד + landed/3 — מדידה-חיה: steem+hive ✓, blurt נדחה-כנה (חקירת-סריאליזציה נרשמה).
 - מדידות: הון-בסולמות (0.792 נזיל) · 6.147M וסטס · פער-VP נרשם-שוב.
 - מפת-יכולות r183-b: 11 LIVE / 8 DORMANT · זהב-רדום: EVM_ANCHOR_PK·WeaveAnchorRegistry·Solana-leg·x402-gate.
+
+## r184 (2026-10-03) — המסילה השלישית חיה: פער-הסכמה בבייט-המדויק
+- **הבייט השופט:** מעבדת-סריאליזציה (lab-blurt-serialize-diff.cjs) — steem-js סודר custom_json כ-op-id **18**; Blurt מצפה ל-**12** (בייט 11: 0x12 מול 0x0c) — 6-פעולות נחתכו במזלג. חתימה-על-בייטי-Steem = "Missing Active Authority" של r183 נפתר.
+- **חוק-החוט החדש:** blurtSignTx (blurt-wire.ts) — חתימה רק דרך blurtjs (הספרייה הרשמית), chain_id קבוע מוצב במפורש, DGP חי; blurtSendTransfer עבר-לאותו-חוק (נתיב-חתימה אחד לרגל).
+- **PROVED על-השרשרת:** cp#1250 (root 0x97f3bfe2…, att 1260) עוגן-Blurt — **txid 35f2881734a6…, בלוק 64177707** (2026-10-03T20:18:36Z) · readback עצמאי מ-get_block: op custom_json · saos.weave.core.v1 · required_auths headcorner · payload בייט-מדויק. קבלה: sovereign/vault/blurt-rail-proof.json.
+- **המעגן שודרג:** שידור-סינכרוני (broadcast_transaction_synchronous) — trx_id+block חוזרים ישירות, בלי-תלות באיחור-ההיסטוריה של rpc.blurt.blog.
+- **שלוש שרשראות מעידות על הספר**: Steem + Hive + Blurt — הזהות-המשולשת של קו-האמת חיה.
