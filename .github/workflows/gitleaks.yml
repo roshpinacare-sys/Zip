@@ -29,6 +29,33 @@ jobs:
           set -euo pipefail
           curl -sSL -o /tmp/gl.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz
           tar -xzf /tmp/gl.tgz -C /tmp gitleaks
-          /tmp/gitleaks detect --source . --report-format json --report-path /tmp/gl-report.json --redact --no-banner --log-level error
-          COUNT=$(python3 -c "import json;print(len(json.load(open('/tmp/gl-report.json'))))" 2>/dev/null || echo "0")
-          echo "gitleaks findings: ${COUNT}"
+          # DIAGNOSABLE-RED LAW (Z-72): `set -e` + gitleaks exit 1 used to kill this step
+          # BEFORE the count echo — a permanent red box with zero diagnosis (4 consecutive
+          # silent failures 2026-10-03T22:17-22:45Z). The step now ALWAYS prints the triage
+          # table, THEN exits 1 if findings exist. Red stays red — but every red carries its
+          # rule/file/line/commit so the triage is one read away. A TOOL ERROR (rc>1) is
+          # named as such — not a finding, not a green.
+          set +e
+          /tmp/gitleaks detect --source . --report-format json --report-path /tmp/gl-report.json --redact --no-banner --log-level info
+          RC=$?
+          set -euo pipefail
+          if [ -s /tmp/gl-report.json ]; then
+            python3 - <<'PY'
+import json
+rows = json.load(open('/tmp/gl-report.json'))
+print(f'gitleaks findings: {len(rows)}')
+for f in rows[:40]:
+    print(f"  rule={f.get('RuleID')} file={f.get('File')}:{f.get('StartLine')} commit={str(f.get('Commit'))[:8]}")
+PY
+          else
+            echo 'gitleaks findings: 0 (no report written — scan clean or git traversal error, see log above)'
+          fi
+          if [ "$RC" -eq 0 ]; then
+            echo 'gitleaks verdict: CLEAN'
+          elif [ "$RC" -eq 1 ]; then
+            echo 'gitleaks verdict: FINDINGS — red by doctrine, triage table above'
+            exit 1
+          else
+            echo "gitleaks verdict: TOOL ERROR (exit ${RC}) — not a finding, fix the runner"
+            exit "$RC"
+          fi
