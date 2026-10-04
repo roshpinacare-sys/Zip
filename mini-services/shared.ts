@@ -17,6 +17,9 @@
 //   · מתג-איש-מת: טיק 60ש' · שתיקה מעל stallMs ⇒ שורה כנה ביומן-הדיבון
 //     ויציאה exit(1) — fleet-guard מקים תהליך-טרי (r143-c) · משמר-
 //     גלובלי חד-פעמי (R80 — טעינה-חמה לא מכפילה שומרים).
+//     יוצא-מכלל (חוק-r190): מנוע-הגריד (market-maker, :3049) — סמכות-
+//     החייאה-היחידה-עליו היא keeper (:3036), לא fleet-guard; המתג-שלו
+//     רק-מודיע-אמת-ויוצא, וה-keeper-מקים (דילוג-מפורש-גם-ב-fleet-guard).
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -79,6 +82,14 @@ export function writeJsonAtomic(file: string, data: unknown, space: number = 2):
 
 // ── 3) מתג-איש-מת — r143-c · טיק 60ש' · שתיקה ⇒ רישום כן + exit(1) ────
 
+// חוק-r190 — סמכות-החייאה היחידה ל-3049 היא keeper — דילוג-מפורש.
+// מתג-איש-המת אינו-סמכות-החייאה — הוא-חיישן-אמת: רושם-ומוציא (exit 1).
+// לגבי-כל-הדיבונים-מי-שמקים-אחרי-היציאה-הוא-fleet-guard (r143-c) — וכך
+// יישאר. לגבי-מנוע-הגריד (market-maker, :3049) ההקמה-אחרי-היציאה-היא
+// אחריות-ה-keeper-בלבד (mini-services/keeper · mmGuard/MM-REVIVE) — fleet-guard
+// מדלג-עליו-במפורש (חוק-r190 שם). ההתנהגות-עבור-שאר-הדיבונים-ללא-שינוי.
+const SOLE_KEEPER_REVIVAL_PORT: Record<string, number> = { "market-maker": 3049 };
+
 export interface DeadManOptions {
   /** מפתח-המשמר הגלובלי (R80) — טעינה-חמה של אותו דיבון מחליפה את הטיימר, לא מכפילה */
   id: string;
@@ -103,7 +114,11 @@ export function installDeadManWatch(o: DeadManOptions): ReturnType<typeof setInt
   const timer = setInterval(() => {
     const lastMs = o.lastMs();
     if (Number.isFinite(lastMs) && Date.now() - lastMs <= o.stallMs) return;
-    const msg = `dead-man: ${subject} stalled >${Math.round(o.stallMs / 60_000)}min — exiting for revival`;
+    // חוק-r190 — סמכות-החייאה היחידה ל-3049 היא keeper — הכרזה-כנה-בשורת-המוות
+    // (הערה-היסטורית-שגויה-"fleet-guard יקים" אינה-נכונה-עוד-עבור-המנוע)
+    const solePort = SOLE_KEEPER_REVIVAL_PORT[o.id];
+    const soleNote = solePort ? ` — סמכות-החייאה היחידה ל-${solePort} היא keeper — חוק-r190 (לא fleet-guard)` : "";
+    const msg = `dead-man: ${subject} stalled >${Math.round(o.stallMs / 60_000)}min — exiting for revival${soleNote}`;
     try {
       fs.mkdirSync(path.dirname(o.logFile), { recursive: true });
       fs.appendFileSync(o.logFile, `${new Date().toISOString()} ${msg}\n`);

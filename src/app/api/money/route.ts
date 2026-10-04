@@ -82,8 +82,31 @@ export interface BookLevel {
   steem: number;
 }
 
+// ── r190 · חוק-טווח-הפקודות השמור למנוע-הגריד (חוזה-צי משותף עם mini-services/market-maker) ──
+// הטווח [1_000_000_000, 1_500_000_000) שמור בלעדיות למנוע-הגריד; orderid-גריד =
+// 1_000_000_000 + ((⌊ts/1000⌋×16 + level×2 + side) mod 500_000_000). orderid של
+// money-mover הוא סכמת-יום (למשל 2026100491 ≈ 2.02G) — אין-חפיפה.
+// כלל-הברזל: אף ביטול/נגיעה של המוביל בפקודה ש-orderid שלה בתוך הטווח השמור. לעולם.
+// (r189-c נמדד חי: cancel-all של המוביל מחק 10 פקודות-גריד חיות מהשרשרת — ההתנגשות שחוק זה סוגר.)
+// סכמת-המעבר של r189-v1 (ts×16 mod 2^31−1) יצרה ≈0.74–0.9G — מוגנת-גם-היא בתקופת-המעבר,
+// כי פקודות כאלה עשויות-להיות-חיות על השרשרת עד פקיעתן בזמן שהמנוע עובר לטווח השמור.
+export const GRID_ORDERID_BAND = { lo: 1_000_000_000, hi: 1_500_000_000 } as const;
+export const GRID_ORDERID_LEGACY = { lo: 700_000_000, hi: 900_000_000 } as const;
+
+/** r190 · בדיקת-טווח אחת: האם orderid שייך למנוע-הגריד (טווח-שמור או סכמת-מעבר ישנה) */
+export function isGridOrder(orderid: number): boolean {
+  const n = Number(orderid);
+  if (!Number.isFinite(n)) return false;
+  return (
+    (n >= GRID_ORDERID_BAND.lo && n < GRID_ORDERID_BAND.hi) ||
+    (n >= GRID_ORDERID_LEGACY.lo && n < GRID_ORDERID_LEGACY.hi)
+  );
+}
+
 export interface OpenAsk {
   orderid: number;
+  /** r190 · מקור הפקודה לפי טווח-ה-orderid: "grid" = בטווח השמור למנוע-הגריד (לא נוגעים) · "mover" = של המוביל */
+  origin: "grid" | "mover";
   amount: number; // STEEM
   receive: number; // SBD
   price: number; // SBD per STEEM
@@ -98,6 +121,8 @@ export interface OpenAsk {
 // הצעת קנייה פתוחה שלנו — צד ה-SBD של המיקרו-גריד (R97)
 export interface OpenBid {
   orderid: number;
+  /** r190 · מקור הפקודה לפי טווח-ה-orderid: "grid" = בטווח השמור למנוע-הגריד (לא נוגעים) · "mover" = של המוביל */
+  origin: "grid" | "mover";
   sbd: number; // כמה SBD מוצע
   steem: number; // כמה STEEM מתקבל
   price: number; // SBD per STEEM
@@ -178,6 +203,8 @@ export interface MoverReceipt {
     | { ordersNow: number; deployedNow: number; bidsNow?: number }
     | { sbdNow: number; gapClosed: boolean; premiumPaidBps: number | null }
     | null;
+  /** r190 · מספר פקודות-הגריד שנראו בספר ולא נגעו בהן (חוק-טווח-הפקודות השמור) */
+  gridSkipped?: number;
   error?: string;
 }
 
@@ -640,6 +667,9 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
 
   // פקודות פתוחות שלנו — הפרדת צדדים (R97): base=STEEM → מכירה; base=SBD → קנייה.
   // עד R97 היו רק מכירות; מעתה סולם-הקנייה חי — ולכן כל מנה נספרת בנכס שלה.
+  // r190 · תצוגה מלאה וכנה: כל הפקודות בחשבון נשארות כאן, וכל אחת נושאת origin
+  // ("grid" = בטווח-ה-orderid השמור למנוע-הגריד · "mover" = של המוביל). הניהול
+  // (ביטולים/חישובי-דלק ב-POST) רואה רק את של המוביל — התצוגה רואה הכול.
   const allOpen = (steemRes?.openOrders ?? []) as any[];
   const sellOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
   const bidOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"));
@@ -651,6 +681,7 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     const receive = Math.round(amount * price * 1000) / 1000;
     return {
       orderid: o.orderid,
+      origin: isGridOrder(o.orderid) ? ("grid" as const) : ("mover" as const),
       amount,
       receive,
       price: Math.round(price * 1e6) / 1e6,
@@ -668,6 +699,7 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
     const bidPrice = bidQuoteN > 0 ? bidBaseN / bidQuoteN : 0; // SBD per STEEM
     return {
       orderid: o.orderid,
+      origin: isGridOrder(o.orderid) ? ("grid" as const) : ("mover" as const),
       sbd: Math.round(bidBaseN * 1000) / 1000,
       steem: Math.round(bidQuoteN * 1000) / 1000,
       price: Math.round(bidPrice * 1e6) / 1e6,
@@ -1130,6 +1162,12 @@ async function POST_core(req: Request) {
   const allOpen = openOrders as any[];
   const sellOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
   const bidOpen = allOpen.filter((o) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"));
+  // r190 · חוק-טווח-הפקודות: ניהול-המוביל רואה רק פקודות-מוביל. פקודות-הגריד
+  // (טווח-ה-orderid השמור) לא שלו — לא בביטולים, לא בחישובי-דלק, לא בסקרי-האימות.
+  // (r189-c נמדד חי: ה-cancel-all כאן מחק 10 פקודות-גריד חיות — ההתנגשות שמסננים אלה סוגרים.)
+  const sellOpenMover = sellOpen.filter((o) => !isGridOrder(o.orderid));
+  const bidOpenMover = bidOpen.filter((o) => !isGridOrder(o.orderid));
+  const gridProtected = allOpen.length - sellOpenMover.length - bidOpenMover.length;
 
   // R97 — שער-העסקאות: מפעיל שהוציא את הפעולה = השער עצמו; הדיבון אוטונומי
   // רק מתחת לסף (הוראת המפעיל: "רק במקרים של עסקאות באמת גדולות $100 ומעלה")
@@ -1137,7 +1175,9 @@ async function POST_core(req: Request) {
   const issuedBy: "operator" | "daemon" = session ? "operator" : "daemon";
 
   const liquid = parseFloat(account.balance);
-  const inOrders = sellOpen.reduce((s, o) => s + Number(o.for_sale) / 1000, 0); // מכירות בלבד (R97)
+  // r190 · רק פקודות-המוביל: דלק-המוביל אינו כולל את ה-STEEM הנעול בסולם-הגריד
+  // (הטווח השמור) — אחרת המוביל "רואה" דלק שאיננו שלו ומפריס עליו (שורש r189-c).
+  const inOrders = sellOpenMover.reduce((s, o) => s + Number(o.for_sale) / 1000, 0); // מכירות-מוביל בלבד (R97 · r190)
   // R111 — חוק הגיבוי: הסולם לא מוכר את הגיבוי של הזירה.
   // הזירה עוטפת STEEM ל-WSTEEM נגד ההון החי באותו חשבון (וכך גם הפקדות
   // חוץ שנזקפות כ-WSTEEM לחברים) — תביעת הזירה כולה (מאזני חברים +
@@ -1204,17 +1244,19 @@ async function POST_core(req: Request) {
   //     (אפס דלק-STEEM נשרף; הקבלה נושאת BID-ONLY בכנות).
   //   · דלק אפס וצד-הקנייה בריא → סירוב כנה (אין פעולה — אין שריפת תקציב).
   const sellFuelOk = totalFuel >= 0.004 && perLevel >= 0.001;
-  const bidLockedSbdGate = bidOpen.reduce((s, o) => s + (parseFloat(String(o.sell_price?.base ?? "")) || 0), 0);
+  // r190 · השערים נמדדים על פקודות-המוביל בלבד — הסולם של הגריד (הטווח השמור)
+  // אינו קלט לשיקול-הדעת של המוביל (הוא לא "רואה" סולם שאיננו שלו)
+  const bidLockedSbdGate = bidOpenMover.reduce((s, o) => s + (parseFloat(String(o.sell_price?.base ?? "")) || 0), 0);
   const potentialCommitableGate =
     Math.floor((parseFloat(account.sbd_balance) + bidLockedSbdGate) * 0.9 * 1000) / 1000;
   const lawGate = bidLadderLaw(potentialCommitableGate, parity);
-  const bidPricesGate = bidOpen.map((o) => {
+  const bidPricesGate = bidOpenMover.map((o) => {
     const b = parseFloat(String(o.sell_price?.base ?? "")) || 0; // SBD
     const q = parseFloat(String(o.sell_price?.quote ?? "")) || 0; // STEEM
     return q > 0 ? b / q : 0;
   });
   const bidStaleGate =
-    bidOpen.length !== lawGate.levels ||
+    bidOpenMover.length !== lawGate.levels ||
     bidPricesGate.some((p) => {
       if (!(p > 0)) return true;
       const nearest = lawGate.prices.reduce(
@@ -1383,6 +1425,8 @@ async function POST_core(req: Request) {
     parity,
     cancelled: [],
     placed: [],
+    // r190 · שקיפות-כנה: פקודות-הגריד שנראו בספר ונשארו בחיים (חוק-טווח-הפקודות השמור)
+    gridSkipped: gridProtected,
   };
   const errors: string[] = [];
   const noteError = (msg: string) => {
@@ -1428,8 +1472,9 @@ async function POST_core(req: Request) {
       // עודף נמדד מול ערך-חוץ. הגג נאכף בקוד: לעולם לא קונים מעל פאריטה.
       // שוק פנימי שנסחר מתחת לקו ימלא את ההצעות מיד — במחיר העומד,
       // לא במחיר ההצעה; השרשרת היא השופטת.
+      // r190 · רק בידים של המוביל מבוטלות — פקודות-הגריד (טווח-שמור) לא נוגעות לעולם
       const bidCancelResults = await Promise.allSettled(
-        bidOpen.map((o) =>
+        bidOpenMover.map((o) =>
           broadcastOp<any>(
             steem.broadcast.sendAsync(
               { extensions: [], operations: [["limit_order_cancel", { owner: ownerKey.account, orderid: o.orderid }]] },
@@ -1438,7 +1483,7 @@ async function POST_core(req: Request) {
           ).then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
         ),
       );
-      bidOpen.forEach((o, i) => {
+      bidOpenMover.forEach((o, i) => {
         const r = bidCancelResults[i];
         if (r.status === "fulfilled") {
           receipt.cancelled.push(r.value);
@@ -1450,7 +1495,8 @@ async function POST_core(req: Request) {
       persist();
 
       // המתנה שהביטולים ייעלמו מהספר (לקח R94 — ביטול ששודר ≠ ביטול שנכלל)
-      const bidCancelledIds = new Set(bidOpen.map((o) => Number(o.orderid)));
+      // r190 · הסקר מחכה רק לפקודות-המוביל שבוטלו — פקודות-הגריד נשארות בספר בכוונה
+      const bidCancelledIds = new Set(bidOpenMover.map((o) => Number(o.orderid)));
       if (bidCancelledIds.size > 0) {
         for (let poll = 0; poll < 4; poll++) {
           try {
@@ -1542,8 +1588,9 @@ async function POST_core(req: Request) {
             ),
           ),
         );
-        const sells = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
-        const bids = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"));
+        // r190 · המוביל נמדד על פקודותיו בלבד — פקודות-הגריד (טווח-שמור) לא נספרות בהישג-ידו
+        const sells = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM")).filter((o: any) => !isGridOrder(o.orderid));
+        const bids = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("SBD")).filter((o: any) => !isGridOrder(o.orderid));
         bidVerify = {
           ordersNow: after.length,
           deployedNow: Math.round(sells.reduce((s: number, o: any) => s + Number(o.for_sale) / 1000, 0) * 1000) / 1000,
@@ -1652,8 +1699,9 @@ async function POST_core(req: Request) {
     const orderDay = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     if (sellFuelOk) {
     // א. ביטול פקודות המכירה הקיימות — במקביל (עצמאיות; הכסף חוזר לנזיל)
+    // r190 · רק מכירות-המוביל מבוטלות — פקודות-הגריד (טווח-שמור) לא נוגעות לעולם
     const cancelResults = await Promise.allSettled(
-      sellOpen.map((o) =>
+      sellOpenMover.map((o) =>
         broadcastOp<any>(
           steem.broadcast.sendAsync(
             { extensions: [], operations: [["limit_order_cancel", { owner: ownerKey.account, orderid: o.orderid }]] },
@@ -1662,7 +1710,7 @@ async function POST_core(req: Request) {
         ).then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
       ),
     );
-    sellOpen.forEach((o, i) => {
+    sellOpenMover.forEach((o, i) => {
       const r = cancelResults[i];
       if (r.status === "fulfilled") {
         receipt.cancelled.push(r.value);
@@ -1678,7 +1726,8 @@ async function POST_core(req: Request) {
     // עוד הכסף נעול בפקודות הישנות. תנאי-המתנה: ה-orderid שבוטלו
     // נעלמים מ-getOpenOrders (עד 4 סקרים × 5ש׳, קריאה בלבד) — ורק
     // אז מוצב הסולם. סקר שנכשל לא עוצר — הסקר הבא יגיד את האמת.
-    const cancelledIds = new Set(sellOpen.map((o) => Number(o.orderid)));
+    // r190 · הסקר מחכה רק לפקודות-המוביל שבוטלו — פקודות-הגריד נשארות בספר בכוונה
+    const cancelledIds = new Set(sellOpenMover.map((o) => Number(o.orderid)));
     if (cancelledIds.size > 0) {
       for (let poll = 0; poll < 4; poll++) {
         try {
@@ -1805,16 +1854,17 @@ async function POST_core(req: Request) {
     // שהמלאי החמוש מאפשר. בידים בריאות לא נוגעים (R97 נשמר במילואו). תקרות:
     // אותו חוק-גג (כל קנייה < פאריטה), אותו שער-$100 (נמדד על הפעולה כולה למעלה),
     // ו-perBid מהמאזן החי אחרי-הביטולים — השרשרת השופטת, לא חשבון מקומי.
-    const bidLockedSbd = bidOpen.reduce((s, o) => s + (parseFloat(String(o.sell_price?.base ?? "")) || 0), 0);
+    // r190 · מאזן-הבידים נמדד על פקודות-המוביל בלבד — הסולם של הגריד אינו קלט
+    const bidLockedSbd = bidOpenMover.reduce((s, o) => s + (parseFloat(String(o.sell_price?.base ?? "")) || 0), 0);
     const potentialCommitable = Math.floor((sbdLiquid + bidLockedSbd) * 0.9 * 1000) / 1000;
     const lawPre = bidLadderLaw(potentialCommitable, parity);
-    const liveBidPrices = bidOpen.map((o) => {
+    const liveBidPrices = bidOpenMover.map((o) => {
       const baseN = parseFloat(String(o.sell_price?.base ?? "")) || 0; // SBD מוצע
       const quoteN = parseFloat(String(o.sell_price?.quote ?? "")) || 0; // STEEM מתקבל
       return quoteN > 0 ? baseN / quoteN : 0;
     });
     const bidStale =
-      bidOpen.length !== lawPre.levels ||
+      bidOpenMover.length !== lawPre.levels ||
       liveBidPrices.some((p) => {
         if (!(p > 0)) return true;
         const nearest = lawPre.prices.reduce(
@@ -1825,8 +1875,9 @@ async function POST_core(req: Request) {
       });
     if (bidStale && lawPre.per >= 0.05) {
       // א. ביטול הבידים הישנות — במקביל (אותו דפוס של צד-המכירה)
+      // r190 · רק בידים של המוביל מבוטלות — פקודות-הגריד (טווח-שמור) לא נוגעות לעולם
       const bidCancelResults = await Promise.allSettled(
-        bidOpen.map((o) =>
+        bidOpenMover.map((o) =>
           broadcastOp<any>(
             steem.broadcast.sendAsync(
               { extensions: [], operations: [["limit_order_cancel", { owner: ownerKey.account, orderid: o.orderid }]] },
@@ -1835,7 +1886,7 @@ async function POST_core(req: Request) {
           ).then((res) => ({ orderid: o.orderid, txid: res?.id ?? null })),
         ),
       );
-      bidOpen.forEach((o, i) => {
+      bidOpenMover.forEach((o, i) => {
         const r = bidCancelResults[i];
         if (r.status === "fulfilled") {
           receipt.cancelled.push(r.value);
@@ -1847,7 +1898,8 @@ async function POST_core(req: Request) {
       persist();
 
       // ב. המתנה שהביטולים ייעלמו מהספר — ה-SBD חוזר לנזיל רק שם (R94)
-      const bidCancelledIds = new Set(bidOpen.map((o) => Number(o.orderid)));
+      // r190 · הסקר מחכה רק לפקודות-המוביל שבוטלו — פקודות-הגריד נשארות בספר בכוונה
+      const bidCancelledIds = new Set(bidOpenMover.map((o) => Number(o.orderid)));
       if (bidCancelledIds.size > 0) {
         for (let poll = 0; poll < 4; poll++) {
           try {
@@ -1959,12 +2011,19 @@ async function POST_core(req: Request) {
           ),
         ),
       );
-      // R97: deployedNow סופר מכירות בלבד (STEEM); הצעות הקנייה נספרות בנפרד
-      const sells = after.filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"));
+      // R97: deployedNow סופר מכירות בלבד (STEEM); הצעות הקנייה נספרות בנפרד.
+      // r190 · ספירת-מוביל בלבד — פקודות-הגריד (הטווח השמור) אינן הישג-ידו של המוביל
+      // ולא נספרות בהישג-הפעולה שלו; ordersNow נשאר אמת-החשבון המלאה (ראיה שקופה).
+      const sells = after
+        .filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("STEEM"))
+        .filter((o: any) => !isGridOrder(o.orderid));
+      const bids = after
+        .filter((o: any) => String(o.sell_price?.base ?? "").trim().endsWith("SBD"))
+        .filter((o: any) => !isGridOrder(o.orderid));
       verify = {
         ordersNow: after.length,
         deployedNow: Math.round(sells.reduce((s: number, o: any) => s + Number(o.for_sale) / 1000, 0) * 1000) / 1000,
-        bidsNow: after.length - sells.length,
+        bidsNow: bids.length,
       };
     } catch {
       /* אימות הוא שכבת-עדות — כשלו אינו מזים את הקבלה */

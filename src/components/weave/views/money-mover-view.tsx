@@ -48,6 +48,8 @@ import { ErrorBox, FadeIn, MotionCard, Section, StatusBadge } from "@/components
 
 interface OpenAsk {
   orderid: number;
+  /** r190 · מקור הפקודה לפי טווח-ה-orderid: "grid" = טווח-שמור למנוע-הגריד (המוביל לא נוגע) */
+  origin?: "grid" | "mover";
   amount: number;
   receive: number;
   price: number;
@@ -97,7 +99,7 @@ interface MoneySense {
   };
   orders: OpenAsk[];
   // R127 — סולם הקנייה שלנו (הוצב לראשונה חי ב-27/09, חוק אין-רעבת-צד): הבידים הפתוחים שלנו מתחת לקו
-  ourBids: Array<{ orderid: number; sbd: number; steem: number; price: number; created: string; expiration: string; vsParityBps: number | null; usdIfFilled: number | null }>;
+  ourBids: Array<{ orderid: number; origin?: "grid" | "mover"; sbd: number; steem: number; price: number; created: string; expiration: string; vsParityBps: number | null; usdIfFilled: number | null }>;
   deployedSteem: number;
   idleSteem: number;
   // r139-c · רצפת-הערך הנמדדת (מ-/api/money): מחליף טענת-HOLD סטטית במדידה חיה
@@ -327,7 +329,12 @@ export function MoneyMoverView({ section }: { section?: string }) {
                   <div className="rounded-lg border bg-muted/40 p-3">
                     <p className="text-[11px] text-muted-foreground">פרוס בסולם</p>
                     <p className="font-mono text-lg font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{d.diagnosis.whereItSits.inOrders.toFixed(3)} <span className="text-xs font-normal">STEEM</span></p>
-                    <p className="text-[11px] text-muted-foreground">{d.orders.length} פקודות על הקו</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {d.orders.length} פקודות על הקו
+                      {d.orders.filter((o) => o.origin === "grid").length > 0
+                        ? ` · ${d.orders.filter((o) => o.origin === "grid").length} של מנוע-הגריד (טווח-שמור — לא נוגעים)`
+                        : ""}
+                    </p>
                   </div>
                   <div className="rounded-lg border bg-muted/40 p-3">
                     <p className="text-[11px] text-muted-foreground">נזיל</p>
@@ -413,6 +420,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
                         <thead className="sticky top-0 bg-muted/80 backdrop-blur">
                           <tr>
                             <th className="p-2 text-right font-medium">רמה</th>
+                            <th className="p-2 text-right font-medium">מקור</th>
                             <th className="p-2 text-right font-medium">מוכר (STEEM)</th>
                             <th className="p-2 text-right font-medium">מקבל (SBD)</th>
                             <th className="p-2 text-right font-medium">מחיר</th>
@@ -429,6 +437,15 @@ export function MoneyMoverView({ section }: { section?: string }) {
                               return (
                                 <tr key={o.orderid} className="border-t">
                                   <td className="p-2 font-mono">#{i + 1}</td>
+                                  <td className="p-2">
+                                    {o.origin === "grid" ? (
+                                      <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400" title="פקודת מנוע-הגריד — orderid בטווח השמור; המוביל לא נוגע בה (חוק r190)">
+                                        גריד
+                                      </Badge>
+                                    ) : (
+                                      <span className="text-xs text-muted-foreground">מוביל</span>
+                                    )}
+                                  </td>
                                   <td className="p-2 font-mono tabular-nums">{o.amount.toFixed(3)}</td>
                                   <td className="p-2 font-mono tabular-nums">{o.receive.toFixed(3)}</td>
                                   <td className="p-2 font-mono tabular-nums">{o.price.toFixed(6)}</td>
@@ -450,7 +467,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
                             })}
                           {d.orders.length === 0 ? (
                             <tr>
-                              <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                              <td colSpan={8} className="p-6 text-center text-muted-foreground">
                                 אין פקודות פתוחות — המוביל יפרוס את הדלק במחזור הקרוב (טריגר T4)
                               </td>
                             </tr>
@@ -474,6 +491,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
                           <thead className="sticky top-0 bg-muted/80 backdrop-blur">
                             <tr>
                               <th className="p-2 text-right font-medium">רמה</th>
+                              <th className="p-2 text-right font-medium">מקור</th>
                               <th className="p-2 text-right font-medium">מוכר (SBD)</th>
                               <th className="p-2 text-right font-medium">מקבל (STEEM)</th>
                               <th className="p-2 text-right font-medium">מחיר</th>
@@ -490,6 +508,15 @@ export function MoneyMoverView({ section }: { section?: string }) {
                                 return (
                                   <tr key={o.orderid} className="border-t">
                                     <td className="p-2 font-mono">#{i + 1}</td>
+                                    <td className="p-2">
+                                      {o.origin === "grid" ? (
+                                        <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400" title="פקודת מנוע-הגריד — orderid בטווח השמור; המוביל לא נוגע בה (חוק r190)">
+                                          גריד
+                                        </Badge>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">מוביל</span>
+                                      )}
+                                    </td>
                                     <td className="p-2 font-mono tabular-nums">{o.sbd.toFixed(3)}</td>
                                     <td className="p-2 font-mono tabular-nums">{o.steem.toFixed(3)}</td>
                                     <td className="p-2 font-mono tabular-nums">{o.price.toFixed(6)}</td>
@@ -507,7 +534,7 @@ export function MoneyMoverView({ section }: { section?: string }) {
                               })}
                             {(d.ourBids ?? []).length === 0 ? (
                               <tr>
-                                <td colSpan={7} className="p-6 text-center text-muted-foreground">
+                                <td colSpan={8} className="p-6 text-center text-muted-foreground">
                                   אין בידים פתוחים — יוצבו כשה-SBD יגיע לקו החימוש (0.15) במילוי המכירה הבא
                                 </td>
                               </tr>

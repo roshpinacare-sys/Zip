@@ -39,7 +39,16 @@ const BOOT_GRACE_MS = 3 * 60_000;
 // של הדור הקודם ממשיך לרוץ עם הקוד הישן (משמר started ב-globalThis). מעתה:
 // דור חם עם גרסה שונה מנקה את הטיימר הישן ומתחמש מחדש — חוק הלולאה-היחידה
 // נשמר (טיימר אחד בדיוק, של הדור החי), והקוד החדש באמת נכנס לפעולה.
-const GUARD_VERSION = "r146-b.1"; // r146-b — סייר-החוץ: scout-market (:3044) נרשם בסיור; הגרסה עלתה כדי שדור-חם יתחמש מחדש עם המצבת-החדשה
+const GUARD_VERSION = "r190.1"; // r190 — חוק-סמכות-החייאה-היחידה ל-3049: דילוג-מפורש-ב-reviveWithGuards; הגרסה עלתה כדי שדור-חם יתחמש מחדש עם החוק
+
+// חוק-r190 — סמכות-החייאה היחידה ל-3049 היא keeper — דילוג-מפורש.
+// מנוע-הגריד (market-maker, :3049) אינו-מוקם-מחדש כאן — לא-במוות-ולא-בזומבי
+// (ההתנגשות-שנמדדה ב-r189-c: שלוש-סמכויות-החייאה → zombie-holder-עם-טיימר-מת).
+// גם-רישום-עתידי-שלו-ב-DAEMONS/ZOMBIE_WATCH לא-יעקוף-את-החוק — הדילוג
+// חי-בנקודת-החנק-האחת (reviveWithGuards) שכל-הקמה-עוברת-דרכה.
+// הדיבונים-האחרים-נשארים-באחריות-השומר-הזה-כרגיל — אין-שינוי-התנהגות.
+const SOLE_KEEPER_AUTHORITY_NAMES = new Set(["market-maker"]);
+const SOLE_KEEPER_AUTHORITY_PORTS = new Set([3049]);
 
 // r143-c — סיור-זומבים (הגנה-בעומק): פורט עונה אך הוכחת-החיים של הדיבון
 // עצמו (מונה-הפעימות בקובץ-המצב שהוא כותב) קפואה — זהו זומבי, גם אם ה-HTTP
@@ -243,6 +252,13 @@ async function recordChainRun(step: string, ok: boolean, detail: string): Promis
 async function reviveWithGuards(d: (typeof DAEMONS)[number]): Promise<void> {
   const st = g.__weaveFleetGuard;
   if (!st) return;
+  // חוק-r190 — סמכות-החייאה היחידה ל-3049 היא keeper — דילוג-מפורש:
+  // מנוע-הגריד לא-יוקם-מחדש כאן (לא-במוות-ממסלול-ה-DEAD-ולא-בזומבי-מסיור-ה-ZOMBIE_WATCH);
+  // ההקמה-שלו-היא-אחריות-ה-keeper-בלבד (mini-services/keeper · חוקי-MM-REVIVE שם).
+  if (SOLE_KEEPER_AUTHORITY_NAMES.has(d.name) || SOLE_KEEPER_AUTHORITY_PORTS.has(d.port)) {
+    appendLog(`skip ${d.name} (:${d.port}) — סמכות-החייאה היחידה ל-3049 היא keeper — חוק-r190`);
+    return;
+  }
   const now = Date.now();
 
   const lastRevive = [...st.state.revivesLog].reverse().find((r) => r.name === d.name);

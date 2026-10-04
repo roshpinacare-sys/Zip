@@ -29,6 +29,20 @@
 //   · כנות: מדידה שנכשלה נרשמת ככישלון — אין "נניח שבסדר".
 //   · כתיבת-מצב אטומית (tmp+rename) · טיימר-יחיד במשמר-גלובלי ·
 //     שרת-יחיד חוצה-דורות (חוקי weblift/R124 של הצי).
+//
+// חוזה-r190 (זהה-במקביל ל-src/app/api/money — סוכן 1-a):
+//   · טווח-orderid שמור-בלעדי למנוע-הגריד: [1_000_000_000, 1_500_000_000) —
+//     orderid = 1G + ((⌊ts/1000⌋×16 + level×2 + side) mod 500M) ⇒ תמיד-בטווח, לנצח.
+//     הסכמה-הישנה (mod 2^31 → ~739.9M) נשכחה-לפי-חוק: לא מאומצת, לא נספרת באף-חישוב;
+//     פקודות-ישנות-כאלו נמחות ע"י המוביל/פקיעת-24ש'.
+//   · רקונסיליאציה-chain-truth (תיקון-שורש לרציפות-registry שנפגמה ב-r189-c):
+//     בעלייה (לפני-הטיימר) ובכל פעימה — get_open_orders השופט: פקודה-חיה-בטווח ⇒
+//     מאומצת-לרישום כפקודה-אמיתית (side/price/amount מהשרשרת עצמה — אין-סולם-וירטואלי
+//     על-גבי-שרשרת-אמיתית); רישום-מחוץ-לטווח או-שאינו-חי-על-השרשרת ⇒ נמחק.
+//   · RECOVERY-LIVE: אימוץ-חי-בטווח בעלייה ⇒ המנוע חוזר ל-live אוטומטית (המשכיות —
+//     פקודות-על-השרשרת שודרו-חי מלכתחילה; המנדט הקבוע D-OP-01) — אבל: kill-switch
+//     קיים ⇒ נשאר כבוי · SELF-HALT פעיל ⇒ נשאר עצור · מפתח-חסר-מהכספת ⇒ fail-closed.
+//     אין-פקודות-בטווח ואין-רישום ⇒ עלייה-קרה-רגילה ב-dry (COLD-BOOT-SAFE).
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -57,6 +71,14 @@ const TICK_MAX_MS = 90_000;
 const ACCOUNT = "headcorner"; // זהות-החותם — נאמתת-ביט-מול-ביט מול הרשת בכל שידור (R75)
 const RPC_NODES = ["https://api.steemit.com", "https://api.justyy.com"];
 const HIVE_RAIL_NOTE = "רגל HIVE מוגדרת enabled:false בתצורה — לא נבנה כאן כלום עד החלטת-מפעיל";
+
+// ── חוזה-r190 המשותף (זהה-במקביל ל-src/app/api/money — סוכן 1-a) ────
+// טווח-orderid שמור-בלעדי למנוע-הגריד; money-mover מעודכן-במקביל לא-לגעת בו.
+const GRID_ORDERID_BAND_LO = 1_000_000_000;
+const GRID_ORDERID_BAND_HI = 1_500_000_000; // חצי-פתוח [LO, HI)
+function inGridBand(id: number): boolean {
+  return Number.isFinite(id) && id >= GRID_ORDERID_BAND_LO && id < GRID_ORDERID_BAND_HI;
+}
 
 // ── תצורה ───────────────────────────────────────────────────────────
 
@@ -111,6 +133,8 @@ const DEFAULT_CONFIG: Config = {
     driftLaw: "אם המרכז זז מעל 2×levelSpacingBps מאז הפריסה — ביטול+פריסה מחדש",
     fleetChurnLaw: "מופעל רק אחרי אימות-חי של רשות-active לחיילים מהכספת; אין-אימות ⇒ כבוי-בכנות, אין-ממציאים-מפתחות",
     killSwitchLaw: "קובץ ~/.sovereign/mm-kill קיים ⇒ אפס פריסות חדשות; מעבר-ל-live נסרב",
+    orderIdBandLaw: "טווח-orderid שמור-בלעדי למנוע-הגריד [1_000_000_000, 1_500_000_000) — חוזה-r190 זהה-לעורק /api/money; סכמה-ישנה (mod 2^31, ~739.9M) נשכחה: לא מאומצת, לא נספרת",
+    reconcileLaw: "בעלייה-ובכל-פעימה get_open_orders = השופט: פקודה-חיה-בטווח ⇒ מאומצת-לרישום (chain-truth); רישום-מחוץ-לטווח/שאינו-חי ⇒ נמחק. אימוץ-חי-בטווח בעלייה ⇒ RECOVERY-LIVE — כבוי-אם kill-switch/halted/מפתח-חסר",
   },
 };
 
@@ -181,6 +205,7 @@ interface RegistryOrder {
   centerAtPlace: number;
   txid: string | null;
   dry: boolean;
+  adopted?: boolean; // r190: אומץ-מהשרשרת (chain-truth) — side/price/amount מהשרשרת-עצמה; level=0 = רמה-לא-ניתנת-לשחזור
 }
 
 interface MMState {
@@ -222,7 +247,7 @@ function utcDay(d = new Date()): string {
 function freshState(): MMState {
   return {
     service: "market-maker",
-    version: "1.0.0",
+    version: "1.1.0-r190",
     bootedAt: new Date().toISOString(),
     mode: "dry", // חוק: אף-עלייה-קרה לא מתחילה live — רק POST /mode מעביר
     lastTick: null,
@@ -426,6 +451,97 @@ function moverActing(): boolean {
   }
 }
 
+// ── רקונסיליאציה chain-truth (r190 — תיקון-שורש לרציפות-registry של r189-c) ──
+
+/** אימוץ-פקודה-חיה-מהשרשרת: side/price/amount מהשרשרת עצמה — השרשרת שופטת, אין-המצאת-סולם.
+ *  level אינו-ניתן-לשחזור מהשרשרת ⇒ 0 (מסומן-מאומץ); centerAtPlace = מדידה-חיה-בזמן-האימוץ. */
+function adoptChainOrder(o: ChainOrder, center: number | null): RegistryOrder {
+  return {
+    orderid: o.orderid,
+    side: o.side,
+    level: 0,
+    price: o.price,
+    amount: o.amount,
+    total: Math.round(o.amount * o.price * 1e6) / 1e6,
+    placedAt: o.created || new Date().toISOString(),
+    expiration: o.expiration || "",
+    centerAtPlace: center != null && center > 0 ? center : o.price,
+    txid: null, // לא-ידוע-מהשרשרת — הפומבי-על-השרשרת הוא-העדות, לא-ממציאים-txid
+    dry: false,
+    adopted: true,
+  };
+}
+
+/** נקראת-פעם-בעלייה, לפני-אתחול-הטיימר. השרשרת גוברת-תמיד על קובץ-המצב:
+ *  (1) שכחת-הסכמה-הישנה — רישומים-מחוץ-לטווח-השמור נמחקים (לא מאומצים, לא נספרים).
+ *  (2) כל פקודה-חיה-על-החשבון ש-orderid-שלה בטווח [1G,1.5G) = שלנו-חיה ⇒ מאומצת-לרישום.
+ *  (3) רישום-בטווח-שאינו-חי-על-השרשרת ⇒ נמחק.
+ *  (4) אימוץ-חי-בטווח ⇒ RECOVERY-LIVE — אלא-אם kill-switch / SELF-HALT / מפתח-חסר. */
+async function reconcileOnBoot(): Promise<void> {
+  state.killSwitch = fs.existsSync(KILL_FILE);
+  let ours: ChainOrder[] | null = null;
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= 3 && ours === null; attempt++) {
+    try {
+      ours = (await ourOpenOrders()).ours;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < 3) await new Promise((r) => setTimeout(r, 2_500));
+    }
+  }
+  if (ours === null) {
+    decision("BOOT-RECONCILE-FAILED", `get_open_orders נכשל 3× (${String((lastErr as Error)?.message ?? lastErr).slice(0, 110)}) — עולה על רישום-הקובץ-בלבד, אין-אימוץ-עיוור; הטיימר-ימשיך-למדוד`);
+    return;
+  }
+  const centerAtBoot = await bookMid().then((b) => b.mid).catch(() => null); // מדידה-חיה; נכשל ⇒ null (כנות)
+  let purged = 0;
+  for (const [k, reg] of Object.entries(state.registry)) {
+    if (!inGridBand(reg.orderid)) {
+      delete state.registry[k];
+      purged += 1;
+    }
+  }
+  let adopted = 0;
+  for (const o of ours) {
+    if (!inGridBand(o.orderid)) continue; // פקודות-המוביל/הסכמה-הישנה — לא-שלנו, לא-נוגעים
+    if (!state.registry[String(o.orderid)]) {
+      state.registry[String(o.orderid)] = adoptChainOrder(o, centerAtBoot);
+      adopted += 1;
+    }
+  }
+  let dead = 0;
+  for (const reg of Object.values(state.registry)) {
+    if (!ours.some((o) => o.orderid === reg.orderid)) {
+      delete state.registry[String(reg.orderid)];
+      dead += 1;
+    }
+  }
+  state.openOrders = Object.values(state.registry).sort((a, b) => b.price - a.price);
+  state.coordination.ourOrders = ours.filter((o) => state.registry[String(o.orderid)]).length;
+  state.coordination.moverOrders = ours.length - state.coordination.ourOrders;
+  decision(
+    "BOOT-RECONCILE",
+    `chain-truth: ${ours.length} פקודות-חיות-על-החשבון · בטווח-השמור: ${adopted} אומצו · רישום: ${purged} מחוץ-לטווח נשכחו (סכמה-ישנה) + ${dead} לא-חיים-על-השרשרת נמחקו · מרכז-נמדד ${centerAtBoot ?? "לא-נמדד"}`,
+  );
+  if (adopted > 0) {
+    if (state.killSwitch) {
+      decision("RECOVERY-BLOCKED-KILL", `${adopted} פקודות-בטווח-חיות-על-השרשרת אך קובץ-ההרג קיים (~/.sovereign/mm-kill) — נשאר כבוי; רישום-אומץ-בלבד`);
+    } else if (state.halted) {
+      decision("RECOVERY-BLOCKED-HALT", `${adopted} פקודות-בטווח-חיות-על-השרשרת אך SELF-HALT פעיל (תקרת-הפסד) — נשאר עצור; רישום-אומץ-בלבד`);
+    } else if (!fs.existsSync(path.join(VAULT, "secrets", "STEEM_ACTIVE_WIF"))) {
+      decision("RECOVERY-FAIL-CLOSED", `${adopted} פקודות-בטווח-חיות-על-השרשרת אך מפתח-החתימה חסר-מהכספת — fail-closed, נשאר dry; רישום-אומץ-בלבד`);
+    } else {
+      const from = state.mode;
+      state.mode = "live"; // המשכיות-ולא-הפעלה-חדשה: פקודות-על-השרשרת שודרו-חי מלכתחילה (D-OP-01)
+      cfg.rails.steem.mode = "live";
+      writeJsonAtomic(CONFIG_FILE, cfg);
+      state.lastModeChange = { at: new Date().toISOString(), from, to: "live", by: "recovery:chain-band" };
+      decision("RECOVERY-LIVE", `${adopted} פקודות-בטווח-חיות-על-השרשרת — המנוע חוזר ל-live אוטומטית (המשכיות-רציפות, המנדט D-OP-01)`);
+    }
+  }
+  saveState();
+}
+
 // ── fleetChurn — אימות-חי של יכולת-active לחיילים (אין-ממציאים-מפתחות) ─
 
 let fleetChecked = false;
@@ -540,11 +656,14 @@ async function chainPlaceOrder(o: { orderid: number; side: "buy" | "sell"; amoun
   return res?.id ?? null;
 }
 
-/** orderid = (ts × 16 + level×2 + side) mod 2^31 — נגזר-מרמה+זמן, ייחודי-בפועל; הרישום ב-state הוא מקור-האמת לביטולים. */
+/** חוזה-r190 (זהה-לעורק /api/money): orderid = 1_000_000_000 + ((⌊ts/1000⌋×16 + level×2 + side) mod 500_000_000)
+ *  ⇒ תמיד בתוך הטווח-השמור [1.0G, 1.5G), לנצח. הסכמה-הישנה (mod 2^31 → ~739.9M) הייתה מחזורית
+ *  והפקידה פקודות מחוץ-לכל-טווח-מוכר — אלו נשכחות-לפי-חוק (לא מאומצות, לא נספרות; נמחות ע"י המוביל/פקיעה).
+ *  הרישום ב-state.registry נשאר מקור-האמת לביטולים; השרשרת-עצמה שופטת (רקונסיליאציה). */
 function deriveOrderid(side: "buy" | "sell", level: number): number {
   const ts = Math.floor(Date.now() / 1000);
   const raw = ts * 16 + level * 2 + (side === "sell" ? 1 : 0);
-  return raw % 2147483647;
+  return GRID_ORDERID_BAND_LO + (raw % 500_000_000);
 }
 
 // ── מילויים — סקר fill_order בין הבלוק-שנראה לראש ──────────────────
@@ -725,15 +844,27 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
       const fills = await pollFills();
       for (const f of fills) recordFill(f);
       if (fills.length > 0) decision("FILLS", `${fills.length} מילויים חדשים נספרו מהשרשרת (Σ24ש' volume ${state.volume24hSbd.toFixed(3)} SBD)`);
-      // כילוי-רישום: פקודה שנמחקה מהשרשרת כבר לא פתוחה
+      // חוק-chain-truth (r190): פקודה-חיה-בטווח-השמור שאינה-ברישום = שלנו-ששודרה-חי-מלכתחילה ⇒ מאומצת
       const { ours } = await ourOpenOrders();
       const liveIds = new Set(ours.map((o) => o.orderid));
+      let adoptedTick = 0;
+      for (const o of ours) {
+        if (!inGridBand(o.orderid) || state.registry[String(o.orderid)]) continue;
+        state.registry[String(o.orderid)] = adoptChainOrder(o, state.centerPrice);
+        adoptedTick += 1;
+      }
+      // כילוי-רישום: פקודה שנמחקה מהשרשרת כבר לא פתוחה; מחוץ-לטווח = סכמה-ישנה — נשכחת
       for (const reg of Object.values(state.registry)) {
+        if (!inGridBand(reg.orderid)) {
+          delete state.registry[String(reg.orderid)];
+          continue;
+        }
         if (reg.dry) continue; // פקודות-יבשה לא חיות על השרשרת — נכחדות רק בגרירה/תפוגה/החלפה
         if (!liveIds.has(reg.orderid)) {
           delete state.registry[String(reg.orderid)];
         }
       }
+      if (adoptedTick > 0) decision("ADOPTED", `${adoptedTick} פקודות-חיות-בטווח אומצו מהשרשרת לרישום (chain-truth — השרשרת שופטת)`);
       state.openOrders = Object.values(state.registry).sort((a, b) => b.price - a.price);
       state.coordination.ourOrders = ours.filter((o) => state.registry[String(o.orderid)]).length;
       state.coordination.moverOrders = ours.length - state.coordination.ourOrders;
@@ -897,6 +1028,8 @@ if (!G_MM_SRV.__MM_SERVER__) {
           port: PORT,
           state,
           config: { rails: cfg.rails, dailyLossCapSbd: cfg.dailyLossCapSbd, tickSec: cfg.tickSec, _docs: cfg._docs },
+          orderIdBand: { schema: "r190", lo: GRID_ORDERID_BAND_LO, hi: GRID_ORDERID_BAND_HI, registryInBand: Object.values(state.registry).filter((o) => inGridBand(o.orderid)).length },
+          persistence: { stateFile: STATE_FILE, mtimeMs: fs.existsSync(STATE_FILE) ? fs.statSync(STATE_FILE).mtimeMs : null },
           now: new Date().toISOString(),
         });
       }
@@ -936,26 +1069,58 @@ if (!G_MM_SRV.__MM_SERVER__) {
   });
 }
 
-// ── טיימר-יחיד (חוק R111) + שומר-פעימה (R112) ──────────────────────
-
-const G = globalThis as unknown as { __MM_TIMER__?: ReturnType<typeof setInterval> };
-if (G.__MM_TIMER__) clearInterval(G.__MM_TIMER__);
-G.__MM_TIMER__ = setInterval(() => {
-  const nowMs = Date.now();
-  if (ticking && tickStartedAt && nowMs - tickStartedAt > TICK_MAX_MS) {
-    ticking = false;
-    console.log(`[market-maker] שומר-פעימה: tick נעול >${Math.round(TICK_MAX_MS / 60_000)} דק' — שוחרר בכנות (כל-ה-fetches deadline-bound)`);
+// ── רקונסיליאציה-בעלייה — chain-truth לפני-הטיימר (r190; תיקון-שורש ל-r189-c) ──
+try {
+  await reconcileOnBoot();
+} catch (e) {
+  // כשל-רקונסיליאציה לא משאיר עלייה-שקטה: נרשם בכנות, המנוע ממשיך dry על רישום-הקובץ
+  console.error(`[market-maker] רקונסיליאציה-בעלייה נכשלה — כנות: ${String((e as Error)?.message ?? e)}`);
+  try {
+    decision("BOOT-RECONCILE-ERROR", String((e as Error)?.message ?? e).slice(0, 120));
+  } catch {
+    /* הלוג-לעולם לא חוסם */
   }
-  void tick();
-}, Math.max(30, cfg.tickSec || TICK_SEC) * 1000);
+}
+
+// ── טיימר-יחיד (חוק R111) + שומר-פעימה (R112) — אתחול-אידמפוטנטי-מוגן (לקח r189-c) ──
+
+const G = globalThis as unknown as { __MM_TIMER__?: ReturnType<typeof setInterval>; __MM_TIMER_GEN__?: number };
+if (G.__MM_TIMER__) {
+  clearInterval(G.__MM_TIMER__);
+  G.__MM_TIMER_GEN__ = (G.__MM_TIMER_GEN__ ?? 0) + 1;
+  console.log(`[market-maker] טיימר-קודם-נמצא (דור-חם #${G.__MM_TIMER_GEN__}) — הוחלף-אידמפוטנטית; רק-טיימר-אחד-חי`);
+}
+const TICK_INTERVAL_MS = Math.max(30, cfg.tickSec || TICK_SEC) * 1000;
+try {
+  G.__MM_TIMER__ = setInterval(() => {
+    try {
+      const nowMs = Date.now();
+      if (ticking && tickStartedAt && nowMs - tickStartedAt > TICK_MAX_MS) {
+        ticking = false;
+        console.log(`[market-maker] שומר-פעימה: tick נעול >${Math.round(TICK_MAX_MS / 60_000)} דק' — שוחרר בכנות (כל-ה-fetches deadline-bound)`);
+      }
+      void tick();
+    } catch (e) {
+      // פעימה-שנפלה לא משאירה טיימר-מת-בשקט: הכישלון נרשם והטיימר-ממשיך
+      console.error(`[market-maker] שגיאת-פעימה (${String((e as Error)?.message ?? e)}) — הטיימר-חי; הפעימה-הבאה-ממשיכה`);
+    }
+  }, TICK_INTERVAL_MS);
+  console.log(`[market-maker] טיימר-חי: פעימה כל ${Math.round(TICK_INTERVAL_MS / 1000)}ש'`);
+} catch (e) {
+  console.error(`[market-maker] אתחול-טיימר נכשל — כנות: ${String((e as Error)?.message ?? e)} (אין-טיימר-מת-שקט)`);
+}
 
 // r143-c — מתג-איש-מת: שתיקת-פעימות מעל 15 דק' ⇒ יציאה לתחייה (fleet-guard יקים)
-installDeadManWatch({
-  id: "market-maker",
-  lastMs: () => (state.lastTick ? new Date(state.lastTick).getTime() : state.bootedAt ? new Date(state.bootedAt).getTime() : 0),
-  stallMs: 15 * 60_000,
-  logFile: `${HOME}/sovereign/keeper/logs/market-maker-daemon.log`,
-});
+try {
+  installDeadManWatch({
+    id: "market-maker",
+    lastMs: () => (state.lastTick ? new Date(state.lastTick).getTime() : state.bootedAt ? new Date(state.bootedAt).getTime() : 0),
+    stallMs: 15 * 60_000,
+    logFile: `${HOME}/sovereign/keeper/logs/market-maker-daemon.log`,
+  });
+} catch (e) {
+  console.error(`[market-maker] אתחול-מתג-איש-מת נכשל — כנות: ${String((e as Error)?.message ?? e)}`);
+}
 
 saveState();
 console.log(`[market-maker] חי על פורט ${PORT} · mode=${state.mode} (dry=ברירת-מחדל, live רק ב-POST /mode) · רגל-HIVE: ${HIVE_RAIL_NOTE}`);

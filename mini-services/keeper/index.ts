@@ -24,6 +24,20 @@
 //     חיה: bun --hot הקפיא את הטיימרים של כל הצי — כולם "UP" בסיור
 //     בזמן שאף אחד לא תיקתק. מעתה: פעימות שלא התקדמו מעבר ל-3× מחזור
 //     הדיבון + חסד = פסילת-זומבי → אותן 3 פסילות ואותה הקמה.
+//
+// r190 — שתי עבודות-שומר (נולדו מ-r189-c: dev-server מת מ-OOM פעמיים ב-RSS
+// 1.7–1.9GB על קונטיינר 4GB, ומנוע-הגריד :3049 היה עם שלוש-סמכויות-החייאה
+// מתנגשות — ידני · fleet-guard-zombie-revive · dead-man-watch — עד
+// zombie-holder-עם-טיימר-מת):
+//   · פיקוח-RAM בכל פעימה (בדפוס חוק-הדיסק r188): מדידה כנה (os.totalmem/
+//     freemem + VmRSS מ-/proc לתהליכים קריטיים) ב-housekeeping.json; רף 80%
+//     → לוג-אמת + פינוי-מטמונים-בטוחים בלבד. אין-הרג-תהליכים — הרג-תהליך
+//     הוא מעשה-מפקד, לא שומר. אזהרה-מוקדמת: next-server RSS > 1.5GB.
+//   · סמכות-החייאה יחידה ל-:3049: מנוע-הגריד נרשם כשירות-מנוהל; כשל-
+//     בריאות (/status בטיימאוט או פעימות-קפואות) → החייאה-כבולה (מקס-3-
+//     ניסיונות/שעה + צינון) — אחרי שערי kill-switch (~/.sovereign/mm-kill)
+//     ו-SELF-HALT (הכיבוי-מכוון אינו מחייה). fleet-guard ומתג-איש-המת
+//     מדלגים על :3049 במפורש — החוק כתוב שם בקוד (חוק-r190).
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -33,7 +47,7 @@ import os from "node:os";
 declare const Bun: {
   serve: (opts: { port: number; hostname?: string; fetch: (req: Request) => Promise<Response> | Response }) => unknown;
   spawnSync: (cmd: string[], opts?: { cwd?: string; stdout?: string; stderr?: string; timeout?: number }) => { exitCode?: number; stdout?: Buffer | null; stderr?: Buffer | null };
-  spawn: (opts: { cmd: string[]; cwd?: string; stdin?: string; stdout?: number; stderr?: number }) => unknown;
+  spawn: (opts: { cmd: string[]; cwd?: string; stdin?: string; stdout?: number | "ignore"; stderr?: number | "ignore" }) => unknown;
 };
 
 const HOME = "/home/z/my-project";
@@ -67,6 +81,23 @@ const WEB_FAIL_THRESHOLD = 2; // שתי בדיקות שכנות (~60ש') לפנ�
 const WEB_REVIVE_COOLDOWN_MS = 3 * 60 * 1000;
 const WEB_ROLLING_WINDOW_MS = 6 * 3_600_000;
 const WEB_ROLLING_WINDOW_CAP = 4;
+// r190 — פיקוח-RAM (המדד-שהרג-את-ה-dev-פעמיים)
+const RAM_USED_FLOOR_MB = 3200; // 80% מ-4GB — מעליו: לוג-אמת + פינוי-מטמונים-בטוחים-בלבד
+const RAM_PURGE_COOLDOWN_MS = 10 * 60_000; // צינון-פינוי — המטמונים נבנים-מחדש לאט
+const OOM_WARN_NEXT_RSS_MB = 1536; // next-server RSS 1.5GB — המדד-שהרג-פעמיים (dmesg r189-c)
+const OOM_WARN_COOLDOWN_MS = 30 * 60_000; // אזהרה-אחת-לחצי-שעה — אמת, לא רעש
+// r190 — סמכות-החייאה-היחידה למנוע-הגריד (:3049)
+const MM_PORT = 3049;
+const MM_STATUS_TIMEOUT_MS = 5_000; // טיימאוט-בריאות /status
+const MM_FAIL_THRESHOLD = 2; // שני סיורים (~60ש') בלי-מענה לפני החייאה — לא מריצים על פסילה-יחידה
+const MM_REVIVE_COOLDOWN_MS = 3 * 60_000; // צינון אחרי ניסיון — המנוע-הטרי-עוד-עולה
+const MM_ATTEMPTS_WINDOW_MS = 3_600_000; // חלון-שעה-נע
+const MM_ATTEMPTS_CAP = 3; // מקס-3-ניסיונות-החייאה/שעה — bounded, אין-ספירלה
+const MM_STALE_TICK_MS = 20 * 60_000; // /status חי אך פעימות-קפואות מעל 20דק' = זומבי (הלקח r189-c: holder-עם-טיימר-מת)
+const MM_KILL_FILE = `${os.homedir()}/.sovereign/mm-kill`; // קובץ-ההרג — כיבוי-מכוון, אין-החייאה
+const MM_STATE_FILE = `${HOME}/sovereign/market-maker/state.json`; // שם חי SELF-HALT (halted=true)
+// ההפעלה-היציבה-הקנונית של המנוע (דפוס-הסוכנים; execPath אבסולוטי — לקח R90)
+const MM_START_CMD = `cd ${HOME}/mini-services/market-maker && (setsid nohup ${process.execPath} --hot index.ts >> /tmp/mm-3049.log 2>&1 &)`;
 
 type FleetEntry = {
   name: string;
@@ -125,9 +156,24 @@ type KeeperState = {
     failStreak: number;
     nextAllowedAt: string | null;
   };
+  // r190 — השירות-המנוהל: מנוע-הגריד (:3049). סמכות-החייאה-היחידה שלו היא
+  // keeper — לא fleet-guard, לא מתג-איש-המת, לא יד (חוק-r190; הדילוג-המפורש
+  // כתוב בשני-המקומות-האחרים).
+  mm: ManagedHealth;
 };
 
 type WebGuard = KeeperState["web"];
+
+// r190 — בריאות-שירות-מנוהל (מנוע-הגריד :3049) — אותו-דפוס-כנות כמו שומר-הרשת
+// ההבדל: החייאה-כבולה בחלון-שעה-נע, ושערי-kill-switch/SELF-HALT לפני כל ניסיון.
+type ManagedHealth = {
+  lastCheckAt: string | null;
+  lastHealthyAt: string | null;
+  consecutiveFails: number;
+  lastReviveAt: string | null;
+  attemptsLog: string[]; // חותמות-זמן של ניסיונות-החייאה — חלון-השעה-הנע נשען עליו
+  lastVerdict: string | null;
+};
 
 function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);
@@ -190,10 +236,21 @@ function freshWeb(): WebGuard {
   };
 }
 
+function freshMM(): ManagedHealth {
+  return {
+    lastCheckAt: null,
+    lastHealthyAt: null,
+    consecutiveFails: 0,
+    lastReviveAt: null,
+    attemptsLog: [],
+    lastVerdict: null,
+  };
+}
+
 function readState(): KeeperState {
   const base: KeeperState = {
     service: "keeper",
-    version: "1.3.0",
+    version: "1.4.0", // r190 — פיקוח-RAM + סמכות-החייאה-יחידה ל-3049
     bootedAt: new Date().toISOString(),
     beats: 0,
     patrolIntervalSec: PATROL_INTERVAL_SEC,
@@ -207,6 +264,7 @@ function readState(): KeeperState {
     canonDay: utcDay(),
     web: freshWeb(),
     push: freshPush(),
+    mm: freshMM(), // r190 — מנוע-הגריד כשירות-מנוהל
   };
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8"));
@@ -267,6 +325,15 @@ function readState(): KeeperState {
         lastAhead: typeof prev.push?.lastAhead === "number" ? prev.push.lastAhead : 0,
         failStreak: typeof prev.push?.failStreak === "number" ? prev.push.failStreak : 0,
         nextAllowedAt: prev.push?.nextAllowedAt ?? null,
+      },
+      // r190 — מנוע-הגריד: נשיאת-היסטוריית-החייאות בין אתחולים; ספירת-הפסילות
+      // מתחילה מחדש בכל סשן-שומר (מדידה-טרייה — כמו הצי למעלה)
+      mm: {
+        ...freshMM(),
+        lastHealthyAt: prev.mm?.lastHealthyAt ?? null,
+        lastReviveAt: prev.mm?.lastReviveAt ?? null,
+        attemptsLog: Array.isArray(prev.mm?.attemptsLog) ? prev.mm.attemptsLog : [],
+        lastVerdict: prev.mm?.lastVerdict ?? null,
       },
     };
   } catch {
@@ -331,22 +398,41 @@ const GITLEAKS_BIN = `${os.homedir()}/.local/bin/gitleaks`;
 const DISK_FLOOR_MB = 1600; // רף-חירום — מתחתיו מפנים
 const GITLEAKS_EVERY_MS = 6 * 3_600_000;
 
-function readHouseState(): { lastDiskAt: string | null; lastGitleaksAt: string | null; lastGitleaksFindings: number | null; lastPurgeAt: string | null } {
+// r190 — מדידת-RAM: אותה-כנות-דיסק, על הגוף. המבנה נשמר ב-housekeeping.json
+// (אותו-קובץ — פיקוח-הגוף אחד: דיסק + RAM + סודות).
+type HouseRamProcs = Record<string, { pid: number | null; rssMB: number | null }>;
+type HouseState = {
+  lastDiskAt: string | null;
+  lastGitleaksAt: string | null;
+  lastGitleaksFindings: number | null;
+  lastPurgeAt: string | null;
+  ram: {
+    at: string | null; // mtime-המדידה
+    totalMB: number | null;
+    usedMB: number | null; // totalmem − freemem (כנות: freemem הוא פנוי-אמיתי, לא זמין-מובטח)
+    availMB: number | null;
+    procs: HouseRamProcs; // top-RSS לכל תהליך-נעקב
+    purgeAt: string | null; // צינון-הפינוי
+    lastOomWarnAt: string | null; // צינון-האזהרה-המוקדמת
+  };
+};
+
+function freshRam(): HouseState["ram"] {
+  return { at: null, totalMB: null, usedMB: null, availMB: null, procs: {}, purgeAt: null, lastOomWarnAt: null };
+}
+
+function readHouseState(): HouseState {
   try {
-    const raw = JSON.parse(fs.readFileSync(HOUSE_FILE, "utf8")) as {
-      lastDiskAt?: string | null;
-      lastGitleaksAt?: string | null;
-      lastGitleaksFindings?: number | null;
-      lastPurgeAt?: string | null;
-    };
+    const raw = JSON.parse(fs.readFileSync(HOUSE_FILE, "utf8")) as Partial<HouseState>;
     return {
       lastDiskAt: raw.lastDiskAt ?? null,
       lastGitleaksAt: raw.lastGitleaksAt ?? null,
       lastGitleaksFindings: raw.lastGitleaksFindings ?? null,
       lastPurgeAt: raw.lastPurgeAt ?? null,
+      ram: { ...freshRam(), ...(raw.ram ?? {}), procs: raw.ram?.procs ?? {} },
     };
   } catch {
-    return { lastDiskAt: null, lastGitleaksAt: null, lastGitleaksFindings: null, lastPurgeAt: null };
+    return { lastDiskAt: null, lastGitleaksAt: null, lastGitleaksFindings: null, lastPurgeAt: null, ram: freshRam() };
   }
 }
 
@@ -363,7 +449,7 @@ function saveHouseState(h: ReturnType<typeof readHouseState>): void {
 function diskFreeMb(): number | null {
   try {
     const r = Bun.spawnSync(["df", "-BM", "--output=avail", "/"], { stdout: "pipe", stderr: "pipe", timeout: 10_000 });
-    const lines = r.stdout.toString().trim().split(/\r?\n/);
+    const lines = (r.stdout?.toString() ?? "").trim().split(/\r?\n/);
     const mb = parseInt(lines[lines.length - 1]?.trim(), 10);
     return Number.isFinite(mb) ? mb : null;
   } catch {
@@ -381,6 +467,122 @@ function purgePath(p: string, olderMin: number): boolean {
   }
 }
 
+// ── r190 · פיקוח-RAM בכל פעימה (בדפוס חוק-הדיסק r188) ─────────────
+// הלקח-החי מ-r189-c: ה-dev-server מת מ-OOM פעמיים (next-server ב-RSS
+// 1.7–1.9GB על קונטיינר 4GB) בלי שאף שומר ימדוד את הגוף. מעתה כל פעימה
+// מודדת: os.totalmem/freemem + VmRSS מ-/proc/<pid>/status לתהליכים
+// הקריטיים (next-server, money, מנוע-הגריד, השומר-עצמו) — המדידה נרשמת
+// ב-housekeeping.json. שני-מסלולי-פעולה, שניהם-רפים:
+//   · used ≥ 3200MB (80%) → לוג-אמת + פינוי-מטמונים-בטוחים-בלבד (אותו-
+//     סוג-פינוי כמו חוק-הדיסק: .next/dev-cache ישן, bun-cache, /tmp ישן).
+//     אין-הרג-תהליכים — הרג-תהליך הוא מעשה-מפקד, לא שומר.
+//   · next-server RSS > 1.5GB → אזהרת-קרב-OOM מתועדת — המדד-שהרג-פעמיים.
+
+// RSS אמיתי של תהליך מ-/proc/<pid>/status (kB → MB) — המדידה-הכנה, לא-הנחה
+function procRssMb(pid: number): number | null {
+  try {
+    const st = fs.readFileSync(`/proc/${pid}/status`, "utf8");
+    const m = /VmRSS:\s+(\d+)\s+kB/.exec(st);
+    const kb = m ? parseInt(m[1]!, 10) : NaN;
+    return Number.isFinite(kb) ? Math.round(kb / 1024) : null;
+  } catch {
+    return null; // תהליך-נעלם בין-השורות — כנות: null, לא 0
+  }
+}
+
+// pid-המאזין על פורט מתוך-פלט-ss אחד (מדידה-אחת לכל-היעדים — לא ספון-לכל-פורט)
+function listenerPidFromSs(snapshot: string, port: number): number | null {
+  const line = snapshot.split(/\r?\n/).find((l) => new RegExp(`:${port}\\s`).test(l));
+  const m = line?.match(/pid=(\d+)/);
+  const pid = m ? parseInt(m[1]!, 10) : NaN;
+  return Number.isFinite(pid) && pid > 0 ? pid : null;
+}
+
+// פינוי-/tmp-ישן בלבד — בטוח: רק רמה-עליונה, רק ישן-מעל הסף, ומדלג-על
+// שקעים-נסתרים/סוקטים-מערכתיים (.X11-unix ודומיו). יומנים-חיים (mm-3049.log
+// וכד') הם-טריים-ולא-ייגעו. אין-תהליכים, אין-דברים-בעלי-משמעות.
+function tmpPurgeOld(olderMin: number): boolean {
+  try {
+    const now = Date.now();
+    let touched = false;
+    for (const entry of fs.readdirSync("/tmp")) {
+      if (entry.startsWith(".")) continue; // שקעים-נסתרים — לא שלנו
+      const p = `/tmp/${entry}`;
+      try {
+        const st = fs.statSync(p);
+        if (now - st.mtimeMs > olderMin * 60_000) {
+          fs.rmSync(p, { recursive: true, force: true });
+          touched = true;
+        }
+      } catch {}
+    }
+    return touched;
+  } catch {
+    return false;
+  }
+}
+
+function ramWatch(h: HouseState): void {
+  // r190 — המדידה כותבת-אל h-החי-של-housekeeping() בלבד — שמירה-אחת-בסוף-הפעימה.
+  // הלקח-חי-ברגע-ההפעלה: ramWatch-ששמר-בעצמו-נדרס-מיד-על-ידי-saveHouseState(h)
+  // החיצוני (שתי-כתיבות-לאותו-קובץ-באותה-פעימה) — המדידה-נעלמה-מהדיסק.
+  const now = new Date().toISOString();
+  const totalMB = Math.round(os.totalmem() / 1_048_576);
+  const freeMB = Math.round(os.freemem() / 1_048_576);
+  const usedMB = totalMB - freeMB;
+  // תהליכים-קריטיים — מתאים-למה-שקיים-בפועל: המאזין-על הפורט הוא-התהליך-שמחזיק-את-השירות.
+  let ssSnap = "";
+  try {
+    ssSnap = Bun.spawnSync(["ss", "-tlnp"], { stdout: "pipe", stderr: "pipe", timeout: 10_000 }).stdout?.toString() ?? "";
+  } catch {}
+  const targets: Array<[string, number | null]> = [
+    ["web-next-server-3000", listenerPidFromSs(ssSnap, 3000)], // המדד-שהרג-פעמיים
+    ["money-3034", listenerPidFromSs(ssSnap, 3034)],
+    ["market-maker-3049", listenerPidFromSs(ssSnap, MM_PORT)],
+    ["keeper-3036-עצמו", process.pid],
+  ];
+  const procs: HouseRamProcs = {};
+  for (const [name, pid] of targets) {
+    procs[name] = { pid, rssMB: pid != null ? procRssMb(pid) : null };
+  }
+  h.ram = { ...h.ram, at: now, totalMB, usedMB, availMB: freeMB, procs };
+
+  // אזהרה-מוקדמת מתועדת — next-server RSS — לא הרג, לא פעולה-על-תהליך
+  const webRss = procs["web-next-server-3000"]?.rssMB ?? null;
+  const lastWarn = h.ram.lastOomWarnAt ? Date.parse(h.ram.lastOomWarnAt) : 0;
+  if (webRss != null && webRss > OOM_WARN_NEXT_RSS_MB && Date.now() - lastWarn >= OOM_WARN_COOLDOWN_MS) {
+    h.ram.lastOomWarnAt = now;
+    record(
+      "OOM-WARN",
+      `קרב-OOM: next-server (:3000) ב-RSS ${webRss}MB (מעל רף-${OOM_WARN_NEXT_RSS_MB}) — המדד-שהרג-את-השרת-פעמיים (r189-c) · RAM-בשימוש ${usedMB}/${totalMB}MB · זו-אזהרה-בלבד: הרג-תהליך הוא-מעשה-מפקד`,
+      true,
+    );
+  }
+
+  // רף-פעולה — פינוי-מטמונים-בטוחים-בלבד (אותו-סוג-פינוי כמו חוק-הדיסק)
+  if (usedMB >= RAM_USED_FLOOR_MB && Date.now() - (h.ram.purgeAt ? Date.parse(h.ram.purgeAt) : 0) >= RAM_PURGE_COOLDOWN_MS) {
+    let purged = 0;
+    if (purgePath(`${HOME}/.next/dev/cache`, 90)) purged++;
+    try {
+      const bunCache = `${os.homedir()}/.bun/install/cache`;
+      if (fs.existsSync(bunCache)) {
+        fs.rmSync(bunCache, { recursive: true, force: true });
+        purged++;
+      }
+    } catch {}
+    if (tmpPurgeOld(720)) purged++; // /tmp ישן-מעל-12ש' בלבד
+    h.ram.purgeAt = now;
+    if (purged > 0) {
+      const afterMB = totalMB - Math.round(os.freemem() / 1_048_576);
+      record(
+        "RAM-PURGE",
+        `RAM ${usedMB}MB-בשימוש (מעל רף-${RAM_USED_FLOOR_MB} מתוך ${totalMB}) — פינוי-מטמונים-בטוחים-בלבד (.next/dev-cache · bun-cache · /tmp-ישן-12ש') · ${usedMB}→${afterMB}MB · אין-הרג-תהליכים`,
+        true,
+      );
+    }
+  }
+}
+
 function housekeeping(): void {
   const h = readHouseState();
   const now = new Date().toISOString();
@@ -388,8 +590,10 @@ function housekeeping(): void {
   h.lastDiskAt = now;
   if (free != null && free < DISK_FLOOR_MB) {
     let purged = 0;
-    if (purgePath(`${HOME}/my-project/sovereign/fleet-verify/work`, 90)) purged++;
-    if (purgePath(`${HOME}/my-project/.next/dev/cache`, 90)) purged++;
+    // r190 — תיקון-כנות: הנתיבים היו `${HOME}/my-project/...` (לא-קיים — פינוי-שקט-שלא-קרה);
+    // הנתיבים-האמיתיים נמדדו-חי (fleet-verify/work 1.4G · .next/dev/cache 1.1G)
+    if (purgePath(`${HOME}/sovereign/fleet-verify/work`, 90)) purged++;
+    if (purgePath(`${HOME}/.next/dev/cache`, 90)) purged++;
     try {
       const bunCache = `${os.homedir()}/.bun/install/cache`;
       if (fs.existsSync(bunCache)) {
@@ -403,6 +607,8 @@ function housekeeping(): void {
       record("DISK-PURGE", `דיסק ${free}MB-פנויים (מתחת-לרף ${DISK_FLOOR_MB}) — פינוי-מטמונים-טהורים (fleet-verify-work · .next/dev-cache · bun-cache) · ${free}→${after ?? "?"}MB`);
     }
   }
+  // r190 — פיקוח-RAM בכל-פעימה (מדידה-כנה אל h-החי; נשמר-עם-הדיסק-בשמירה-אחת)
+  ramWatch(h);
   const lastG = h.lastGitleaksAt ? Date.parse(h.lastGitleaksAt) : 0;
   if (Date.now() - lastG >= GITLEAKS_EVERY_MS) {
     try {
@@ -670,6 +876,140 @@ async function patrolWeb(parts: string[]): Promise<void> {
   );
 }
 
+// r190 — סמכות-החייאה-היחידה למנוע-הגריד (:3049) — חוק-r190 ──────────
+// ההקשר (r189-c): שלוש-סמכויות-החייאה מתנגשות (ידני · fleet-guard-zombie-
+// revive · dead-man-watch) הביאו ל-zombie-holder-עם-טיימר-מת. מעתה החוק:
+// keeper-בלבד מחייה את :3049, בחייאה-כבולה (מקס-3-ניסיונות/שעה + צינון),
+// אחרי שערי-כנות: kill-switch (~/.sovereign/mm-kill) ו-SELF-HALT
+// (sovereign/market-maker/state.json halted=true) = הכיבוי-מכוון — לא-מחייה.
+// fleet-guard ומתג-איש-המת מדלגים-על :3049 במפורש (הדילוג-כתוב-בהם).
+
+// החיית-המנוע: ניקוי-פורט תחילה (הלקח r189-c: holder-זומבי-מחזיק-פורט →
+// EADDRINUSE ליורש) ואז ההפעלה-היציבה-הקנונית — setsid nohup → /tmp/mm-3049.log.
+function reviveMarketMaker(): boolean {
+  try {
+    const doomed = pidsOnPort(MM_PORT);
+    for (const pid of doomed) {
+      try { process.kill(pid, "SIGTERM"); } catch {}
+    }
+    if (doomed.length > 0) {
+      setTimeout(() => {
+        // רק ה-pid-ים-שנתפסו-לפני-ההקמה — הזקנים-שסירבו-למות (חוק-היילוד R110)
+        for (const pid of doomed) {
+          try { process.kill(pid, "SIGKILL"); } catch {}
+        }
+      }, 1500).unref?.();
+    }
+    Bun.spawn({
+      cmd: ["/bin/sh", "-c", MM_START_CMD],
+      cwd: HOME,
+      stdin: "ignore",
+      stdout: "ignore",
+      stderr: "ignore",
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// סיור-השירות-המנוהל: בריאות /status של מנוע-הגריד בכל-פעימה + זומבי-פעימות
+async function mmGuard(parts: string[]): Promise<void> {
+  const now = new Date();
+  state.mm.lastCheckAt = now.toISOString();
+  let ok = false;
+  let body: any = null;
+  let staleTick = false; // /status-חי-אך-פעימות-קפואות — נמדד-בענף-ה-UP למטה
+  try {
+    const res = await fetch(`http://127.0.0.1:${MM_PORT}/status`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(MM_STATUS_TIMEOUT_MS), // r112 — אין-המתנה-בלתי-חסומה
+    });
+    body = await res.json().catch(() => null);
+    ok = res.ok && !!body?.ok;
+  } catch {
+    ok = false;
+  }
+
+  const killSwitch = fs.existsSync(MM_KILL_FILE); // נבדק-בכל-סיור — הקובץ-יכול-להופיע-בכל-רגע
+  // SELF-HALT ב-state של המנוע — תקרת-אובדן; רק-איפוס-תצורה-מחזיר
+  let selfHalted = false;
+  try {
+    const mmState = JSON.parse(fs.readFileSync(MM_STATE_FILE, "utf8")) as { halted?: boolean };
+    selfHalted = mmState?.halted === true;
+  } catch {
+    /* אין-קובץ-מצב — לא-חוסם-כלום */
+  }
+  // זומבי-פעימות: תצפית-אחת-על-סף-20-דק' היא-ראיה-כבדה (לא-רעש-רגעי
+  // כמו-פסילת-HTTP-אחת) — היא-פעילה-מיד, בלי-חכיה-לסף-הפסילות (נמדד-למעלה)
+
+  if (ok) {
+    // זומבי-פעימות: /status עונה אך state.lastTick קפוא — הלקח-r189-c
+    // (holder-עם-טיימר-מת). טריות = max(lastTick, bootedAt) — כפי-שמתג-איש-
+    // המת-של-המנוע-עצמו מודד. הסף 20דק' — מעל ה-15דק' שלו, כדי-שהוא-יהיה-הראשון.
+    const lastTickMs = Math.max(
+      typeof body?.state?.lastTick === "string" ? Date.parse(body.state.lastTick) || 0 : 0,
+      typeof body?.state?.bootedAt === "string" ? Date.parse(body.state.bootedAt) || 0 : 0,
+    );
+    const stale = lastTickMs > 0 && now.getTime() - lastTickMs > MM_STALE_TICK_MS;
+    const wasDown = state.mm.consecutiveFails > 0;
+    if (!stale) {
+      state.mm.consecutiveFails = 0;
+      state.mm.lastHealthyAt = now.toISOString();
+      state.mm.lastVerdict = "UP";
+      if (wasDown) record("MM-UP", `מנוע-הגריד (:${MM_PORT}) עונה ב-/status ופעימותיו חיות — חי`, false);
+      parts.push("mm:UP");
+      return;
+    }
+    // /status-חי-אך-קפוא — מטופל-ככשל-בריאות (המשך-למטה), בלי-כניסה-לספירת-UP
+    state.mm.lastVerdict = "STALE-TICK";
+    staleTick = true;
+    parts.push("mm:STALE");
+  } else {
+    state.mm.consecutiveFails += 1;
+    state.mm.lastVerdict = `FAIL-${state.mm.consecutiveFails}`;
+    parts.push(`mm:FAIL-${state.mm.consecutiveFails}`);
+  }
+
+  // שער-1: kill-switch — הכיבוי-מכוון, אין-החייאה (כנות)
+  if (killSwitch) {
+    state.mm.lastVerdict = "SKIP-KILL-SWITCH";
+    parts.push("mm:SKIP-KILL");
+    if (state.mm.consecutiveFails === 1)
+      record("MM-SKIP", `מנוע-הגריד (:${MM_PORT}) אינו-בריא אך קובץ-ההרג קיים (~/.sovereign/mm-kill) — הכיבוי-מכוון, אין-החייאה (חוק-r190: גם-הסמכות-היחידה-מכבדת-את-ההרג)`, true);
+    return;
+  }
+  // שער-2: SELF-HALT — תקרת-אובדן; רק-איפוס-תצורה (mtime-חדש-של-config.json) מחזיר
+  if (selfHalted) {
+    state.mm.lastVerdict = "SKIP-SELF-HALT";
+    parts.push("mm:SKIP-HALT");
+    if (state.mm.consecutiveFails === 1)
+      record("MM-SKIP", `מנוע-הגריד (:${MM_PORT}) אינו-בריא אך state.halted=true (SELF-HALT — תקרת-אובדן) — אין-החייאה; רק-איפוס-תצורה-מחזיר`, true);
+    return;
+  }
+
+  if (!staleTick && state.mm.consecutiveFails < MM_FAIL_THRESHOLD) return; // פסילה-בודדת — ממתינים לסיור-הבא (זומבי-פעימות: פועל-מיד)
+  const sinceReviveMs = state.mm.lastReviveAt ? now.getTime() - Date.parse(state.mm.lastReviveAt) : Infinity;
+  if (sinceReviveMs < MM_REVIVE_COOLDOWN_MS) return; // צינון — הניסיון-הקודם-עוד-עולה
+  // חלון-השעה-הנע — הגבול-הקשיח: 3 ניסיונות/שעה
+  state.mm.attemptsLog = state.mm.attemptsLog.filter((t) => now.getTime() - Date.parse(t) < MM_ATTEMPTS_WINDOW_MS);
+  if (state.mm.attemptsLog.length >= MM_ATTEMPTS_CAP) {
+    state.mm.lastVerdict = "HOLD-WINDOW";
+    record("MM-HOLD", `מנוע-הגריד (:${MM_PORT}) בהסגר-חלון-הניסיונות (${state.mm.attemptsLog.length}/${MM_ATTEMPTS_CAP} בשעה-נעה) — כנות, לא-ספירלה`, true);
+    return;
+  }
+  const attemptN = state.mm.attemptsLog.length + 1;
+  const started = reviveMarketMaker();
+  state.mm.lastReviveAt = now.toISOString();
+  state.mm.attemptsLog.push(now.toISOString());
+  state.mm.consecutiveFails = 0; // המדידה-מתחדשת — הסיורים-הבאים-ימדדו-את-התוצאה
+  record(
+    started ? "MM-REVIVE" : "MM-REVIVE-FAIL",
+    `מנוע-הגריד (:${MM_PORT}) לא-בריא (${state.mm.lastVerdict === "STALE-TICK" ? "פעימות-קפואות" : "אין-מענה-ב-/status"}) — ניסיון-החייאה ${attemptN}/${MM_ATTEMPTS_CAP} (חלון-שעה) ${started ? "שוגר (ניקוי-פורט → setsid-nohup → /tmp/mm-3049.log)" : "נכשל-בשיגור"} · חוק-r190: keeper היא-סמכות-החייאה-היחידה`,
+    true,
+  );
+}
+
 // ── ערוץ-הדחיפה של הבית (r135) ────────────────────────────────────
 // הלקח החי של 2026-09-29: הצי רץ, מדיד ורושם — אבל קומיטים מקומיים
 // נשארו תקועים בלי דוחף (חיווט-האישורים אבד במיחזור-סנדבוקס), והעולם
@@ -906,9 +1246,10 @@ async function patrol() {
     record(ok ? "RESTART" : "RESTART-FAIL", `${d.name} (${d.port}): ${ok ? `הוקם — ${reason}` : `ההקמה נכשלה — ${reason}`}`, true);
   }
   await patrolWeb(parts);
+  await mmGuard(parts); // r190 — בריאות-מנוע-הגריד + סמכות-החייאה-היחידה
   await pushLane(parts);
-  // R113 — אמת מלאה במילה: "סיור תקין" רק כשגם שרת-הרשת עונה
-  const allUp = state.fleet.every((d) => d.state === "UP" || d.state === "BUSY") && state.web.consecutiveFails === 0;
+  // R113 — אמת מלאה במילה: "סיור תקין" רק כשגם שרת-הרשת עונה וגם מנוע-הגריד בריא (r190)
+  const allUp = state.fleet.every((d) => d.state === "UP" || d.state === "BUSY") && state.web.consecutiveFails === 0 && state.mm.consecutiveFails === 0;
   if (state.history.length === 0 || state.history[state.history.length - 1].detail !== parts.join(" · ")) {
     record("PATROL", allUp ? `סיור תקין — ${parts.map((p) => p.replace(/:(FAIL|BUSY)-?\d*/, (m) => (m.includes("BUSY") ? m : "DOWN"))).join(" · ")}` : `התערבות — ${parts.join(" · ")}`, false);
   }
