@@ -285,8 +285,10 @@ async function pricesUsdRaw(): Promise<Record<string, number | null>> {
   return out;
 }
 
-/** מטריצת-המטמון: קריאות מורדות מקבלות את המדידה הטרייה; מקור-מידה אחד לכל 5 דקות. */
-async function pricesUsd(): Promise<Record<string, number | null>> {
+/** מטריצת-המטמון: קריאות מורדות מקבלות את המדידה הטרייה; מקור-מידה אחד לכל 5 דקות.
+ *  r192-c — מיוצאת לשער-הסוכנים (/api/exchange/agent): נוטינאל-עסקה ב-$ לקפסות
+ *  L4 ולעמלת-x402 מוצהרת נמדדים מאותה מטריצה — מדידה אחת לכל הנתיבים. */
+export async function pricesUsd(): Promise<Record<string, number | null>> {
   if (priceCache && Date.now() - priceCache.at < PRICE_CACHE_TTL_MS) return priceCache.prices;
   const fresh = await pricesUsdRaw();
   // מיזוג כן: שדה שנעלם במקור הטרי אבל היה חי במטמון — משומר (מדידה טרייה עדיפה על אין-מדידה)
@@ -535,6 +537,66 @@ export async function swap(params: {
     return { ok: true, detail: `הוחלף ${params.amountIn} ${assetIn} ← ${q.expectedOut} ${assetOut} (עמלה ${pool.feeBps}bps לבריכה)`, event: ev, quote: q };
   } catch (e) {
     return { ok: false, detail: "SWAP-ERROR: " + String((e as Error).message ?? e).slice(0, 120) };
+  }
+}
+
+// ── r192-c — סליקת-סוופ-סוכן: עמלת-x402 לאוצר + רישום-נוטינאל לקפסות ───
+
+/** סליקת סוופ-סוכן (שער /api/exchange/agent):
+ *  1) חיוב-עמלת-x402 מחבר-הסוכן וזיכוי-האוצר (בספר, בנכס העמלה שהוצהר) —
+ *     אירוע FEE עם usdValue נספר כהכנסה אמיתית ב-income.ts.
+ *  2) אירוע AGENT_SWAP עם usdValue = נוטינאל-הקלט ב-$ — זה המקור שממנו
+ *     נמדדת תקרת-היום לסוכן (L4) — מהספר, לא מזיכרון-שרת.
+ *  אם אין לסוכן מספיק נכס-עמלה אחרי הסוופ — אירוע FEE_DUE בכנות (חוב
+ *  מתועד), הסוופ עצמו נשאר תקף. */
+export async function agentSwapSettle(params: {
+  agentId: string;
+  member: string; // agent:<name> — חבר-הספר של הסוכן
+  feeAsset: "USDS" | "SAOS";
+  feeAmount: number;
+  feeUsd: number | null;
+  notionalUsd: number | null;
+  pair: string;
+  side: "A2B" | "B2A";
+  swapSeq: number | null; // seq של אירוע ה-SWAP שקדם — קישור-ביקורת
+}): Promise<SwapResult> {
+  try {
+    if (!(params.feeAmount > 0)) return { ok: false, detail: "BAD-FEE: עמלה חייבת להיות חיובית" };
+    await adjust(params.member, params.feeAsset, -params.feeAmount);
+    await adjust("treasury", params.feeAsset, params.feeAmount);
+    await chainEvent("FEE", params.member, {
+      source: "x402-agent-api",
+      agentId: params.agentId,
+      pair: params.pair,
+      side: params.side,
+      asset: params.feeAsset,
+      fee: params.feeAmount,
+      swapSeq: params.swapSeq,
+      note: `עמלת-x402 ${params.feeAmount} ${params.feeAsset} מ-${params.member} → אוצר (מוצהר בציטוט, נגבה בפועל)`,
+    }, params.feeUsd);
+    const rec = await chainEvent("AGENT_SWAP", params.member, {
+      agentId: params.agentId,
+      pair: params.pair,
+      side: params.side,
+      notionalUsd: params.notionalUsd,
+      swapSeq: params.swapSeq,
+      note: "נוטינאל-קלט ב-$ — מדד תקרת-היום לסוכן (L4), נמדד מהספר",
+    }, params.notionalUsd);
+    return { ok: true, detail: `עמלת-x402 ${params.feeAmount} ${params.feeAsset} → אוצר · נוטינאל נרשם לקפסות`, event: rec };
+  } catch (e) {
+    const msg = String((e as Error).message ?? e);
+    try {
+      await chainEvent("FEE_DUE", params.member, {
+        source: "x402-agent-api",
+        agentId: params.agentId,
+        pair: params.pair,
+        asset: params.feeAsset,
+        feeDue: params.feeAmount,
+        error: msg.slice(0, 100),
+        note: "חוב-עמלה מתועד בכנות — הסוופ בוצע אך החיוב נכשל",
+      }, null);
+    } catch { /* הספר עצמו נפל — נחזיר את השגיאה המקורית */ }
+    return { ok: false, detail: "SETTLE-ERROR: " + msg.slice(0, 140) };
   }
 }
 

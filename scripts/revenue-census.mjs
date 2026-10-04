@@ -14,6 +14,9 @@
  *   4. fill_order ליום       — פעילות-הזירה (מספר-ביצועים)
  *   5. vote ops ליום         — משקלי-הצבעה-אמת מול-המדיניות (6% r150)
  *   6. מצב-חשבון-חי: SP-נטו (ביחס-החי), יתרות, powerdown-הבא
+ *   7. get_conversion_requests (r192-a) — תור-ההמרות SBD→STEEM הפתוח (קריאה-בלבד,
+ *      keyless): ספירה · סה"כ SBD · הערכת-STEEM-בפיד-החי · התפלגות-בשלות לפי יום —
+ *      הקלט-לתכנון-הדליים של גל-ה-convert (חוק-ר192 §192-a · נחיתה-אמיתית נמדדת-רק-ב-fill_convert)
  *
  * שער-ריצה: --check → exit 0-אם-המפקד-קיים-וטרי (< MAX_AGE_H שעות)
  * cache: ברירת-מחדל משתמש-במפקד-קיים-אם-טרי; --force = סריקה-מלאה-מחדש.
@@ -216,6 +219,46 @@ try {
   steemUsd = num(tk.latest);
 } catch { /* צומת-לא-מחזיר-טיקר — מדווח-null-כנה */ }
 
+// 3c) תור-ההמרות (r192-a — פלומבינג-גל-ה-convert): condenser_api.get_conversion_requests —
+// קריאה-בלבד (keyless, ללא-שידור). ההמרה-עצמה מתבצעת-על-השרשרת ביום-הבשלות; כאן-מדידה
+// + הערכה-מוצהרת בפיד-החי (get_current_median_history_price) — אין-המצאת-שער.
+let conversionQueue = null;
+try {
+  const [reqs, feed] = await Promise.all([
+    rpc("condenser_api.get_conversion_requests", [ACCOUNT]),
+    rpc("condenser_api.get_current_median_history_price", []).catch(() => null),
+  ]);
+  let feedSbdPerSteem = null;
+  if (feed?.base && feed?.quote) {
+    const fb = num(feed.base), fq = num(feed.quote);
+    const fBase = String(feed.base).split(" ")[1], fQuote = String(feed.quote).split(" ")[1];
+    if (fBase === "SBD" && fQuote === "STEEM" && fb > 0 && fq > 0) feedSbdPerSteem = fb / fq;
+  }
+  const byMaturity = {};
+  let sbdTotal = 0;
+  for (const r of reqs ?? []) {
+    const day = String(r?.conversion_date ?? "").slice(0, 10) || "unknown";
+    byMaturity[day] = +((byMaturity[day] ?? 0) + num(r?.amount)).toFixed(3);
+    sbdTotal += num(r?.amount);
+  }
+  const maturityDays = Object.keys(byMaturity).sort();
+  conversionQueue = {
+    live: true,
+    count: (reqs ?? []).length,
+    sbdTotal: +sbdTotal.toFixed(3),
+    feedSbdPerSteem: feedSbdPerSteem != null ? +feedSbdPerSteem.toFixed(6) : null,
+    steemEstAtFeed: feedSbdPerSteem ? +(sbdTotal / feedSbdPerSteem).toFixed(1) : null, // הערכה-מוצהרת — הנחיתה-האמיתית נמדדת-ב-fill_convert
+    usdEstAtSbd1: +(sbdTotal * 1.0).toFixed(2), // SBD≈USD עיקרון-ערך-הרשת
+    byMaturityDay: byMaturity,
+    earliest: maturityDays[0] ?? null,
+    latest: maturityDays[maturityDays.length - 1] ?? null,
+    measuredAt: new Date().toISOString(),
+  };
+} catch (e) {
+  console.error(`[revenue-census] conversion-queue-שגיאה-כנה: ${e.message.slice(0, 120)}`);
+  conversionQueue = { live: false, error: e.message.slice(0, 120) };
+}
+
 // ── verdicts ────────────────────────────────────────────────────────
 const policySrc = readFileSync("src/lib/weave/curation.ts", "utf8");
 const policyWeight = Number(policySrc.match(/weightPctPerVote:\s*(\d+)/)?.[1] ?? 6);
@@ -332,6 +375,14 @@ const verdicts = {
     // ר161: הרצפה-מודדת-תשואה-שוטפת (קיורציה+אוטור) — פירוק-הון-powerdown-אינו-הכנסה-ולא-יכול-לרצות-את-הרצפה
     detail: `ממוצע-יומי-נמדד ${dailyAvgUsd.toFixed(4)} USD (תשואה: קיורציה+אוטור) מול-רצפת-המפעיל ${FLOOR_USD} USD${dailyAvgUsd < FLOOR_USD ? " — הפער-מוסבר-ב-pending-פרעונים (04-09/10); אימות-חוזר-אחרי-הפרעונים" : ""}`,
   },
+  V7_convert_queue: conversionQueue?.live
+    ? {
+        verdict: conversionQueue.count > 0 ? "MEASURED" : "EMPTY",
+        detail: conversionQueue.count > 0
+          ? `תור-המרות SBD→STEEM פתוח: ${conversionQueue.count} בקשות · ${conversionQueue.sbdTotal} SBD → ~${conversionQueue.steemEstAtFeed} STEEM (בפיד-החי ${conversionQueue.feedSbdPerSteem} SBD/STEEM — הערכה-מוצהרת) · בשלות: ${conversionQueue.earliest}→${conversionQueue.latest} · הקלט-לדליים §192-a`
+          : "אין-בקשות-המרה-פתוחות — הגל-כבר-נחת (נמדד-ב-fill_convert)"
+      }
+    : { verdict: "UNAVAILABLE", detail: `מדידת-תור-ההמרות נכשלה-כנה: ${conversionQueue?.error ?? "unknown"}` },
 };
 
 // ── emit ────────────────────────────────────────────────────────────
@@ -348,6 +399,9 @@ const census = {
     votingPower: acc.voting_power / 100,
   },
   powerdown,
+  // r192-a — תור-ההמרות (קריאה-בלבד): הקלט-לתכנון-הדליים של גל-ה-convert (~1,266 STEEM מתוכנן 10-06/07).
+  // הערכת-ה-STEEM בפיד-החי מוצהרת-כהערכה; הנחיתה-האמיתית תימדד-ב-fill_convert ביום-הבשלות.
+  conversionQueue,
   attribution: {
     machineSp: +attr.machineSp.toFixed(5), externalSp: +attr.externalSp.toFixed(5), unknownSp: +attr.unknownSp.toFixed(5),
     machineOps: attr.machineOps, externalOps: attr.externalOps, unknownOps: attr.unknownOps,
@@ -415,6 +469,8 @@ function printSummary(c) {
     console.log(`  ${d}: ${bits.join(" · ") || "—"}`);
   }
   console.log(`  סה"כ-חלון: ${c.totals.windowRevenueUsd} USD (תשואה) · ממוצע-יומי: ${c.totals.dailyAvgUsd} USD · זרם-הון-powerdown: ${c.totals.treasuryFlowUsd} USD`);
+  if (c.conversionQueue?.live)
+    console.log(`  תור-המרות (r192-a): ${c.conversionQueue.count} בקשות · ${c.conversionQueue.sbdTotal} SBD → ~${c.conversionQueue.steemEstAtFeed ?? "?"} STEEM בפיד-החי · בשלות ${c.conversionQueue.earliest}→${c.conversionQueue.latest}`);
   const a = c.attribution;
   if (a.machineOps + a.externalOps + a.unknownOps > 0)
     console.log(`  שיוך-פרעונים: מנוע ${a.machineSp}SP (${a.machineOps}) · חוץ ${a.externalSp}SP (${a.externalOps}) · לא-משויך ${a.unknownSp}SP (${a.unknownOps})`);

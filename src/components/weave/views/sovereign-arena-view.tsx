@@ -21,6 +21,7 @@ import {
   ArrowLeftRight,
   BadgeCheck,
   BookOpen,
+  Bot,
   Coins,
   ExternalLink,
   Flame,
@@ -747,6 +748,30 @@ export function SovereignArenaView() {
                 {d.hint && <p className="mt-0.5 text-[10px] text-muted-foreground">{d.hint}</p>}
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── r192-c · שער-הסוכנים (ERC-8004 + x402) ── */}
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-1 flex items-center gap-2">
+            <Bot className="size-4" aria-hidden />
+            שער-הסוכנים — API-סוופ מגודר-זהות (ERC-8004 + x402)
+          </h3>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            סוכני-AI עם זהות ERC-8004 על-השרשרת (13 רשומות) סוחרים בספר-הזירה דרך
+            <span className="font-mono text-foreground"> POST /api/exchange/agent</span> — עם לוח-עמלות מוצהר
+            (402 + accepts, 50bps רצפת $0.02 ב-USDS/SAOS לאוצר), חתימת personal_sign מול כתובת הרישום,
+            מינימום-עסקה $2 (L3) וקפסות $25/עסקה · $50/יום לסוכן (L4) הנמדדות מאירועי AGENT_SWAP בספר.
+            ציטוט-חוץ (WETH/SOL/BNB מול Uniswap/PancakeSwap/SushiSwap) = quote-only בכנות עד מימון-קפסות
+            מהכנסה (L4) · dry-run מוצהר זמין (L5) · kill-switch <span className="font-mono">~/.sovereign/dex-kill</span> נבדק בכל בקשה.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <Badge variant="outline" className="font-mono text-[10px]">GET ?sell=SAOS&amp;buy=USDS&amp;amountIn=100</Badge>
+            <Badge variant="outline" className="font-mono text-[10px]">GET ?action=challenge</Badge>
+            <Badge variant="outline" className="font-mono text-[10px]">POST X-PAYMENT + X-Agent-Signature</Badge>
+            <Badge variant="outline" className="text-[10px]">עמלות-x402 → אוצר, נרשמות FEE+AGENT_SWAP</Badge>
           </div>
         </CardContent>
       </Card>

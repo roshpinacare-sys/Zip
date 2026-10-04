@@ -7076,3 +7076,137 @@ Stage Summary:
 - **גבול-מוצהר (רשום-גם-בדוח):** לא תיבנה אוטומציית-רישום-המונים-לפלטפורמות-צד-שלישי-דרך-מספרים-זמניים — עוקף-אמצעי-אימות-ומפר-תנאי-שימוש; כלכלית-גם-שלילי (חסימות-מהירות=כסף-שרוף). ה-API והזיכוי-המוכח זמינים-להחלטת-המפעיל.
 - ל-r191-המשך: ציר-הרווח (מיקום-סולם-הגריד-סביב-פאריטה — ה-PnL-השלילי-מ-r190) נשאר-העורק-הראשי.
 
+---
+---
+Task ID: 192-c
+Agent: Z.ai Code (r192-c · agent-swap-gate)
+Task: /api/exchange/agent — שער-סוופ לסוכני-AI: ERC-8004 identity-gated + x402-style paid swap על הזירה הריבונית (היתרון-הייחודי: נזילות מגודרת-זהות עם תמחור-מוצהר)
+
+Work Log:
+- נקראו: worklog (זנב-300), r192-dex-plan במלואו (L1–L6 BLOCKER), sovereign-exchange.ts (ספר/USDS/W-assets/swap/agentSwapSettle), exchange-router.ts (ציטוטי-חוץ quote-only), erc8004-registry.json (13 זהויות, כולן עם כתובת eip155:9369).
+- חדש: src/lib/weave/agent-exchange.ts — ליבה עצמאית (node+ethers בלבד, ניתנת-ליבוא ישירות ב-bun לבדיקות): kill-switch readKillSwitch (~/.sovereign/dex-kill, fail-closed), טעינת-רישום ERC-8004 (מטמון 60s), מתמטיקת-עמלה agentFeeUsd (50bps, רצפת $0.02), קפסות capDecision ($25/עסקה · $50/יום — מוגדר-קוד L4), מינימום $2 (L3), buildIntentMessage קנוני + verifyAgentSignature (personal_sign → ethers.verifyMessage → השוואה לכתובת הרישום; טריות ≤10 דק'; nonce single-use best-effort בזיכרון — סכמה קלה מתועדת בכנות, EIP-712/EIP-3009 כהמשך-דרך), parsePaymentHeader (base64url/JSON).
+- חדש: src/app/api/exchange/agent/route.ts — GET (תיאור-שירות · ?action=agents/13-זהויות · ?action=challenge-nonce · ?action=usage-מהספר · ציטוט פנימי בר-ביצוע עם לוח-x402 מוצהר · ציטוט-חוץ quote-only) + POST (סדר-שערים: 503 kill → 402 אין/פגם-תשלום בצורת-x402 סטנדרטית {x402Version, accepts:[{scheme:"exact", asset:"USDS", maxAmountRequired, payTo:"treasury"}]} → 401/403 זהות → 400 זוג/כוונה → 400 MIN-NOTIONAL L3 → 429 TX-CAP/DAY-CAP L4 (שער-מקדים קריאה-בלבד, לפני-חתימה — מתועד) → 401 חתימה → 402 FEE-MOVED (תקרת-עמלה) → dryRun מוצהר L5 עם bookPlan מלא | ביצוע: swap() בספר + agentSwapSettle → עמלה נחסמת מ-agent:<id> ומזוקפת לאוצר, אירועי FEE(x402)+AGENT_SWAP(נוטינאל) בשרשרת-הספר).
+- sovereign-exchange.ts — שינויי-מינימום: export pricesUsd (מטריצת-מדידה אחת לקפסות ולעמלה) + agentSwapSettle חדשה (חיוב-עמלה → אוצר, FEE+AGENT_SWAP, FEE_DUE כנה על חוב-עמלה במקרה-קצה).
+- ציטוט-חוץ: זיווג לקבוצות-התחרות של composeExchangeRouter (ETH/USD · BNB/USD · SOL/USD · USDT/USDC, כולל כיוון-הפוך ו-WBNB) — mode:"quote-only", execution.allowed:false עם סיבת L4, אפס ביצוע, אפס גבייה; סנפט 90s.
+- בדיקות /tmp/r192-c-tests.mjs (bun; HTTP מול :3000 + יבוא-ישיר של הליבה): 44/44 PASS (13 קבוצות: descriptor, ציטוט SAOS/USDS+WSTEEM/WSBD כולל התאמת-מתמטיקת-עמלה, 402-צורה, 403 זר, 401 אין-זהות, 429 TX-CAP, 400 MIN-NOTIONAL, kill-switch 503 GET+POST+התאוששות, quote-only חוץ חי (ETH≈$2,691 מ-6 ערוצים), challenge ±, ליבה: עמלה/קפסות/חתימה-שגויה/טריות, ניקיון-ספר: usage=0 — אף כתיבה).
+- Frontend: כרטיס "שער-הסוכנים" סטטי (קצר) נוסף ל-sovereign-arena-view.tsx — מסמך את ה-endpoints, העמלות, הקפסות והזהות למבקר-הזירה.
+- bun run lint: נקי (0 שגיאות). tsc --noEmit: 0 שגיאות בקבצים שנגעו (agent-exchange.ts · api/exchange/agent/route.ts · sovereign-exchange.ts · sovereign-arena-view.tsx); שאר השגיאות במאגר קדומות (mini-services/scripts.archive/curation/graphene — לא-שלי, לא נגעתי).
+- dev.log: אין שגיאות-ראוט; כל בקשות-הבדיקה חוזרות 200/צפוי.
+
+Stage Summary:
+- שער-הסוכנים חי: ציטוט ציבורי מפרסם לוח-x402; POST מגודר-זהות-ERC-8004 (13/13), נגבה עמלה מוצהרת בספר לאוצר (USDS/SAOS), ומאכף L3/L4 בקוד.
+- החלטות: קפסות לפני-חתימה (שער-מקדים קריאה-בלבד — מתועד ונבדק); צבירה-יומית נמדדת מאירועי AGENT_SWAP בספר (לא מזיכרון — עמיד-הפעלה-מחדש); אין-שער-מדידה → סירוב-ביצוע (NO-PRICE כנה); חתימה קלה personal_sign (טריות+nonce best-effort) מתועדת ככזו — חיזוק EIP-712/EIP-3009 כהמשך.
+- אמת-מבחנים: אפס ביצוע-סוופ בבדיקות (dry-run/שערים בלבד), אפס כתיבת-ספר (usage=0 מאומת), kill-file זמני נוצר ונמחק באותו-רגע (ובדיקת-קדם-קיום מונעת מחיקת kill אמיתי), אפס סודות בלוגים.
+- מגבלה-מוצהרת: חשבונות agent:<id> ממתינים למימון-אוצר (רייל-ההפקדות wx: מיועד-לחברים אנושיים) — ביצוע-חי-ראשון דורש זיכוי-אוצר לסוכן ואז עובר באותם שערים שנבדקו.
+- ארטיפקטים: src/lib/weave/agent-exchange.ts · src/app/api/exchange/agent/route.ts · sovereign-exchange.ts (+agentSwapSettle) · sovereign-arena-view.tsx (כרטיס) · /tmp/r192-c-tests.mjs (44/44) · עותק: sovereign/tmp/r192-c-tests.mjs.
+---
+
+---
+---
+Task ID: 192-d
+Agent: 192-d (saos-dex restore + network-arbitrage detector, גל r192)
+Task: שחזור-clone saos-dex מהכספת (dex-token authority) + גלאי-ארביטראז-רישתי קריאה-בלבד על :3050 (r192-d סעיפים 1–2).
+
+Work Log:
+- נקראו worklog (300-שורות-אחרונות) + sovereign/strategy/r192-dex-plan.md במלואו (חוקים L1–L6) + src/lib/dex-token.ts + mini-services/shared.ts + price-feeds.ts + sovereign-exchange.ts (quoteSwap/pricesUsdRaw — קנון-העמלות והפאריטה).
+- **שחזור-clone:** הטוקן-מהכספת upload/pat.env (בדפוס dex-token.ts; לא-נדפס, לא-נרשם) → `git clone https://x-access-token:***@github.com/roshpinacare-sys/saos-dex.git /home/z/saos-dex` — **הצלחה**, HEAD ad5613d ("llm-bridge Z-85"), remote משוחזר בפורמט x-access-token (הנפילה של dexGhToken() תעבוד).
+- **מלאי-הריפו:** lib/dex-קרנל = src/lib/dex (16,665 ש' — kernel 38-ops · book escrow · amm 30bps · mm · relay · guard · fleet · hivemarket · realmarket · rail) · workflows: dex-beat/dex-grid/gitleaks/llm-bridge/mm-supremacy · כניסת-הדמון קיימת וברורה: `next dev -p 3010 -H 127.0.0.1` (DATABASE_URL=file:/home/z/my-project/saos-dex/db/dex.db, דורש bun-install + prisma-generate/push).
+- **הדמון-3010 לא הוקם — רישום-כנה:** בעת-ההתחלה free -m: 3435/4042MB בשימוש, keeper (:3036) עם OOM-WARN פעיל (next-server :3000 ב-RSS ~2.1GB) והיסטוריית-OOM-הרג-פעמיים (r189-c) — דמון-Next-dev-שני + bun-install + prisma על אותה-קופסה = סיכון-OOM-ישיר למנועים-החיים (mm:3049-live · money:3034). הועדף-עומק-כנה על-פני-הקמה-מסוכנת; אין-פקודת-הקמה מהמפעיל. פקודת-ההקמה-המתועדת לראש-חדש: cd /home/z/saos-dex && bun install && prisma generate && db:push && (setsid nohup bun run dev >> /tmp/saosdex-3010.log 2>&1 &) — רק-מעל-ראש-RAM-בטוח.
+- **גלאי-הארביטראז (mini-services/arbitrage, :3050, bun --hot, pid 26414, מאזין-יחיד):** קריאה-בלבד מוצהר-בכל-תשובה (`mode: READ-ONLY`) — אפס-מפתחות, אפס-POST-לביצוע, אפס-שידורים; הסריקה כל-60ש': (a) ספר-Steem condenser_api.get_order_book(100) על api.steemit.com←api.justyy.com (קנון-הריפו) (b) ספר-Hive על api.hive.blog (c) GET /api/exchange מ-127.0.0.1:3000 (בריכות+רזרבות+feeBps חי) (d) CEX-ייחוד price-feeds של הריפו (Binance←Gate←OKX, R105) (e) SBD/HBD-USD לפי-קנון pricesUsdRaw: CoinGecko תחילה, נפילה-ריבונית CEX÷פאריטה.
+- מתמטיקה-טהורה ב-lib.ts: הליכת-ספר VWAP (walkBuy/walkSell), CPMM זהה-ל-quoteSwap, עמלות-פר-רגל (שוק-פנימי 75bps לפי-החוזה — כנות: Hive-בפועל 25bps וה-75 הוא-השמרני · בריכה feeBps-חי · CEX-ייחוס 10bps מסומן cexReference · peg-1:1 מסומן peg · דלק≈0). סוגי-הזדמנויות: book-vs-cex (Steem/Hive, שני-הכיוונים) · crosschain-parity (ספר-Steem↔ספר-Hive דרך-צלב-CEX-ייחוס) · book-vs-exchange (ספר-Steem↔WSTEEM/WSBD דרך-peg-1:1) · exchange-vs-cex. שערי-חוק: **L1** — הזדמנות רק עם עומק בר-ביצוע בכל רגל-ספר (maxFeasibleUsd נמדד, בריכת-אבק ⇒ null כנה) · **L3** — רצפת-$2, נטו-אחרי-עמלות בלבד · **L5** — רגלי-CEX מסומנות-ייחוס.
+- מצב: זיכרון + state.json אטומי (writeJsonAtomic מ-shared) · מתג-איש-מת מ-shared (stall 10דק' → יומן sovereign/keeper/logs/arbitrage-daemon.log ו-exit(1); **לא-נרשם ב-fleet-guard מפקודת-המפעיל — ההקמה-מחדש ידנית**) · נקודות-קצה: GET /status · /opps · /history?n=.
+- בדיקות: /tmp/r192-d-tests.mjs — 33/33 עברו (VWAP-שתי-רמות · עומק-חסר ⇒ L1-null · CPMM מול quoteSwap-ערך-יד · netBps-יד לכל-סוג-הזדמנות כולל-ארגמקס-גודל · L3-רווח-שלילי ⇒ null · בריכת-אבק ⇒ null · pickBest · parityBps/bookMid) · tsc --noEmit --strict על שני-הקבצים: 0-שגיאות · `bun run lint` (eslint .): exit-0 (mini-services מוחרגים מתצורת-ה-eslint של-הריפו) · סריקת-סודות על-התיקייה: נקייה.
+- חי: scan#1 07:31:53Z — שוקי-סטים: steem/hive/cex/exchange=ok · stableUsd=derived (CoinGecko-SBD $0.6019 + HBD-נגזר) · פאריטה-נמדדה: Steem-book-mid מול-CEX −200→−88bps (הספר-הפנימי-מת-מעט-מתחת-לפאריטה — מידע-ישיר-למיקום-הסולם-של-r191) · הזדמנות-שולית-אחת (+1.3bps @$2, כנה — בקושי-חיובית אחרי-75bps) ולאחר-מכן 0 · העתקת-הקוד בזמן-ריצה נבחנה-חי (bun --hot, מצב-נשמר, מאזין-יחיד).
+- אפס-commit/push · אפס-סודות בלוגים/קוד · אפס-רישום ב-fleet-guard · טווח-orderid השמור לא-נגע (אין-פקודות בכלל).
+
+Stage Summary:
+- **saos-dex חזר לדיסק (/home/z/saos-dex @ ad5613d, 16.6K-ש'-קרנל) עם-remote-x-access-token-תקין — הסמכות dex-token שבה לעבוד; הדמון-3010 לא-הוקם מסיבת-RAM-מתועדת-במלואה (keeper OOM-WARN חי) עם-פקודת-הקמה-מוכנה לראש-חדש.**
+- **גלאי-הארביטראז-הרישתי חי על 127.0.0.1:3050 — מודיעין-קריאה-בלבד בכנות-L1/L3/L5: ספרי-Steem/Hive מול בריכות-ה-exchange מול CEX-ייחוס, נטו-bps-אחרי-עמלות-פר-רגל עם עומק-בר-ביצוע בכל-רגל; אפס-ביצוע — הביצוע נשאר במנועים-הקיימים תחת קפסות-L4.**
+- ממצא-ראשון-כנה: אין-ארביטראז-אמיתי-כרגע (הזדמנויות ±1-2bps-שוליות, עומקי-הבריכות-אבק $0.03 — המדידה-מציגה-את-זה-ולא-ממציאה); הפאריטה-החיה (−88..−200bps) היא-הקלט-הישיר-למיקום-הסולם-של-מנוע-הגריד (חוק-הרווחיות-r191).
+- פתוחים למתאם: (1) הקמת-הדמון-3010 בחלון-RAM-בטוח (2) בריכות-W-assets זעירות — שוק-ה-exchange טרם-נותן-עומק-ארביטראז (3) ההזדמנויות-השוליות-מתחת-לרצפת-הרווחיות — הגלאי-מדווח-והמנועים-מחליטים.
+---
+---
+Task ID: 192-b
+Agent: 192-b (W1 DEX core builder)
+Task: פריסת ליבת-W1 DEX על Zero-9369 בגז-$0 (חוזים + בדיקות-מראה + סימולציה + ניסיון-פריסה + PoR)
+
+Work Log:
+- נקראו worklog + r192-dex-plan (חוקים L1–L6) + zero.ts + r189 §5 (W1: UniV2 מינימלי). אומת חי: chainId 9369 · gasPrice 0 wei · block ~36.27M · חותם 0xe376…F1b2 (self-verify מה-seal, המפתח לא נדפס) · יתרה 0 · nonce 687 · solc 0.8.37 ב-package.json.
+- חוזים (contracts/w1/, Solidity 0.8.37, ללא-תלות-חוץ): WrappedToken.sol (ERC20 עם mint/burn מוגבל-אופרטור-יחיד — חוק L1) · Pair.sol (Factory + Pair: x·y=k, עמלה 30bps = 21bps-LP/9bps-אוצר לפי קונבנציית saos-dex, deadline+minOut ב-pair וב-router, viaIR) · Router.sol (addLiquidity/removeLiquidity/swapExactTokensForTokens) · Sim.sol (הרנס-SIM-ONLY לסימולציית-קצה-בקצה). קומפילציה נקייה (0 אזהרות) → artifacts/JSON. תפיסת-באג-עצמית בשלב-הבדיקות: נוסחת-ה-out הראשונה הכפילה-סקאלה (rIn·10000 במכנה) — תוקנה ל-(rIn+eff) ≡ הצורה-הקלאסית, לפני-כל-שידור.
+- בדיקות-מראה-דטרמיניסטיות (/tmp/r192-b-tests.mjs ≡ scripts/r192b-tests.mjs, BigInt, PRNG-מוזרע): **713/713 PASS** — k-invariant עם חשבונות-wei מדויק (Δk == lpFee·(rOut−out)+שארית-החלוקה) · פיצול-עמלה 70/30 מדויק · דחיית minOut/deadline · סינון-אופרטור ל-mint/burn · מקרי-קצה-שלמים (אבק, פיצול-מדויק ללא-היפוך, √(a·b) ראשון, LP-פרופורציונלי) · יחס-אופטימלי ב-router · שומרי-factory · סימולציית-חיים 60-החלפות+ניקוז-LP מלא · מקרה-PoR-כנה (backing=0, supply>0 ⇒ NOT ok).
+- סימולציית-eth_call מול rpc.zero.tech (scripts/r192b-simulate.mjs): **השער-נמדד חי — נדחה**: "You are not authorized… eth_call:selector:0x60808060" (קדם-ה-init של Solidity לא על רשימת-ההיתר); גם eth_estimateGas נדחה (0x60a03461/0x60a06040).
+- ניסיון-פריסה במסילת-החתימה-המוכחת (scripts/r192b-deploy.mjs — seal/vault, self-verify, שערי-chainId/gas/כסף, ערך=0): טרנזקציית-creation חתומה של ה-Factory נדחתה בשער ה-RPC: "eth_sendRawTransaction:selector:0x60a03461" — **הטרנזקציה מעולם לא נכנסה לשרשרת** (nonce עמד על 687, $0 שולמו, אפס-מצב-נגע). עצירה-כנה לפי ההוראות; אין-כתובות-חוזים על השרשרת ואין-לראות את ה-core כחי (L1).
+- PoR-feed (scripts/w1-por.ts → sovereign/w1-por.json): הורץ — {backing: 0, supply: 0, ok: true, verdict: W1-POR-TRIVIAL} — מצב-ריק-כן (אין-wrapper, אין-חוב).
+- רישום: סעיף w1 נוסף ל-sovereign/zero-line.json (status HONEST-STOP + כל-המדידות). zscan: אין-מה-לאמת — אף-tx לא-נכנס. אפס-commit/push.
+- lint: `bun run lint` נקי (אפס-ממצאים) · tsc --noEmit: 0 שגיאות בקבצים-ששונו (26 שורות-שגיאה קדם-קיימות ב-mini-services/archive/src — לא-מהגל-הזה).
+
+Stage Summary:
+- **ליבת-W1 בנויה-ומוכחת-מקומית אך פריסת-החוזים על Zero-9369 חסומה-בכנות: שער-rpc.zero.tech מאשר רק calldata של transfer/approve (0xa9059cbb/0x095ea7b3) — נמדד-חי בשלוש-הרמות (eth_call, eth_estimateGas, eth_sendRawTransaction) ונרשם ב-zero-line.json §w1.** החסם הוא הרשאה, לא כסף (הגז נמדד 0).
+- תוצרים עומדים: 4 חוזים-מקומפלים (solc 0.8.37 viaIR) + 713/713 בדיקות-מראה + Sim-harness + מסילת-פריסה-מוכנה-שנדחתה-בלבד-בשער + PoR-feed חי (0/0 כנה). ההמשך-המוכח: רמפת-פריסה-מורשית (API-key/multi-sig-של הרשת או רשימת-היתר-מורחבת) — ואז החוזים עולים אפס-שינוי.
+- החלטה-מבנית: אין-פריסה-חלקית-מתוקשרת (אין-factory-בלי-createPair שניתן-להחזירו-כ"שוק-חי") — השרשרת נשארה נקייה, אפס-סודות-נדפסו, אפס-כסף-נשרף.
+---
+---
+Task ID: 192-a
+Agent: 192-a (פסי-השוק: אבחון + סולם-פאריטה + רגל-Hive + convert-queue)
+Task: אבחון 28→3 chain-truth + סולם-פאריטה-מרווח (חוק-L3) חי-מחדש + פרופיל-Hive-DRY + פלומבינג-גל-ה-convert
+
+Work Log:
+- נקראו worklog (זנב-250) + sovereign/strategy/r192-dex-plan.md במלואו (L1–L6 BLOCKER); נבדקו mini-services/market-maker/index.ts (1,484 ש', v1.3.0-r192) · sovereign/market-maker/state.json · scripts/revenue-census.mjs · קנון-ה-RPC של-הריפו (api.steemit.com ← api.justyy.com).
+- **אבחון 28→3 (קריאה-בלבד · 76 באצ'ים/7,676 פעולות עד 09-30 · get_open_orders + get_account_history):** 3-הפקודות-החיות-כרגע כולן של-המוביל (orderid 2100002302/03/04 ≥2G · sell 0.5 STEEM @0.106/0.108/0.11) · **0 בטווח-הגריד** [1G,1.5G) · 0 סכמה-ישנה. בחלון: 58 creates-בטווח (היום 04:00–05:19Z) → **53 בוטלו-ע"י-המנוע-עצמו** (מחזורי-מרכוז/גרירה ~כל-10 דק' — כל-הביטולים-חתומים-ע"י-headcorner-בלבד, אין-יריבה) · **5 מילויים-אמיתיים** (4.194 STEEM נמכרו @0.102–0.10385) · 0 פקיעות · העידן-הישן (385 creates-סכמה-<1G, 10-01..03) נמחה-בפקיעה/ביטול — הוא+המוביל הרכיבו-את-ה-28 ההיסטורי. 05:38:05Z עלייה-קרה → חוק-הברזל: dry (RECOVERY-LIVE לא-נדרך — לא-היו-פקודות-בטווח-באותו-רגע) ⇒ 0 פקודות-גריד-מאז. מסקנה: **אין-כשל-מנוע ואין-יריב — הקריסה = ביטולי-מחזור + מילויים + עלייה-קרה-ל-dry + חסימת-L3-על-ספר-משופע**. פלט: /tmp/r192-a-diagnosis.json (+collapseExplanation+postDiagnosisActions).
+- **סולם-פאריטה (חוק-L3) — אומת-בקוד-ובחי:** מרכז = get_current_median_history_price (נמדד-חי 0.1041 SBD/STEEM ⇒ 9.6062 STEEM/SBD · centerSource=feed · פיד-נפל ⇒ נפילה-כנה-למרכז-הספר) · רצפת-עמלה = 3×פרוקסי-CEX = 75bps · ספרד-אפקטיבית = max(120,75) · ×1.5 על |skew|>0.4 · L3-SKEW-HALT על >0.6 · רצפת-נוטיונל $2/פקודה · רצפת-הרווח-120bps-ופנקס-הלוטות-FIFO לא-נגעו · חוק-טווח-orderid לא-נשבר. **תיקון-r192-a: sellShift-ב-planLadder היה-עוגן-על-הרמה-הגבוהה (symSell[last]) — כשרצפת-הרווח-נופלת-בין-הרמות, 4-רמות-תחתונות-נשארות-מתחת-לרצפה ⇒ profit-guard-היה-מחליף-אותן-בכל-פעימה (churn-שידורים-אמיתי) ברגע-שלוטות-ראשונות; תוקן-לעוגן-על-הרמה-הנמוכה (symSell[0]) — version 1.3.1-r192, hot-reload חי-אומת.**
+- **רגל-Hive (קוד+בדיקות-לוגיות-בלבד — אפס-שידור):** פרופיל-מלא-בתצורה (HBD:HIVE · api.hive.blog · account headcorner · enabled:false/mode:dry — 0.034 HIVE=אבק) · **הקבוע-המתועד: HIVE_GRID_ORDERID_BAND = [1_000_000_000, 1_500_000_000)** חצי-פתוח, במרחב-orderid-הפרטי-של-ספר-Hive (ספר-חשבונות-נפרד ⇒ אי-התנגשות-מבנית-מול-Steem) · deriveHiveOrderid = 1G + ((⌊ts/1000⌋×16 + level×2 + side) mod 500M) · מתועד ב-_docs.hiveBandLaw + /status.hiveBand.
+- **Convert-queue (פלומבינג-קריאה-בלבד):** scripts/revenue-census.mjs הורחב — V7_convert_queue + census.conversionQueue מול condenser_api.get_conversion_requests: **נמדד-חי: 25 בקשות · 131.856 SBD → ~1,266.6 STEEM בפיד-החי 0.1041 · בשלות 2026-10-06→10-07** (census.json עודכן-אטומית). תוכנית-דליים (הצעה-מנומקת — המדידה-המחייבת-תיעשה-ב-fill_convert, דפוס-ר161): **60%≈760 STEEM → דלק-סולם-הגריד (notional/רמה≈$9.5 ≥ $2-L3) · 25%≈317 → רזרבת-W-assets (פדיון-אמיתי-1:1/L1+PoR) · 15%≈190 → עתודה-שמורה** — נרשמה-כהערת-טקסט-ב-plan §192-a.
+- **הרמה-מחדש (רק-אחרי-אבחון-בריאות: kill אין · halted=false):** ריסטרט-תהליך-מתועד (הריצה-החיה-החזיקה-orderCap=1-ישן-מדור-קודם; הדיסק-כבר-25) → **POST /mode {live} + POST /tick דרך-API-המנוע-בלבד** (07:56Z): mode=live · מרכז-פאריטה-מהפיד · **L3-SKEW-HALT-כנה (skew 0.923: עומק-בידים 410,369 SBD מול-אסקים 16,442 SBD)** — המנוע-מזוין-חי-וממתין-לירידת-skew-מתחת-ל-0.6-ולדלק-גל-ה-convert; **אפס-שידורים-על-השרשרת-בכל-התהליך** (אבחון+הרמה).
+- בדיקות: /tmp/r192-a-tests.mjs — **52/52 PASS** (7 שקיפות-מקור · טווחי-orderid Steem+Hive עם-1,000-נגזרות · פיד-הפאריטה · L3 · planLadder-כולל-רגרסיית-רצפה-בין-הרמות · FIFO-PnL · אימות-חי-קריאה-בלבד-מול-השרשרת-והמנוע) · `bun run lint` נקי (0 ממצאים) · tsc: אין-שגיאות-חדשות בקבצים-ששונו (22-קדומות-בקבצים-אחרים).
+
+Stage Summary:
+- **ה-28→3 מוסבר-מהשרשרת: לא-פגיעה-ולא-יריב — 53 ביטולי-מרכוז-של-המנוע-עצמו + 5 מילויים-אמיתיים + עלייה-קרה-ל-dry ב-05:38Z + חסימת-L3-על-ספר-משופע; 3-הפקודות-החיות-הן-של-המוביל. המנוע בריא ומזוין-חי (1.3.1-r192, mode=live) — פריסה-אוטומטית-כש-skew<0.6 והדלק-ינחת (10-06/07).**
+- **באג-אמיתי-נתפס-ונסגר-לפני-הדלק: עוגן-הזחת-המכירות-ב-planLadder (symSell[last]→symSell[0]) — התיקון מונע-churn-שידורים-שהיה-נפתח-עם-הלוטות-הראשונות; רגרסיה-נבדקת.**
+- **רגל-Hive מוכנה-על-הנייר: HIVE_GRID_ORDERID_BAND=[1G,1.5G) במרחב-ה-orderid-של-Hive + פרופיל-מלא — DRY-מלאה עד דלק-ומפתח-active-מאומת.**
+- **גל-ה-convert מפוקח-במפקד: census V7 חי (25 בקשות · 131.856 SBD · ~1,266.6 STEEM · 10-06/07) + תוכנית-דליים 60/25/15 ב-plan §192-a.**
+- ארטיפקטים: /tmp/r192-a-diagnosis.json · /tmp/r192-a-tests.mjs (52/52) · scripts/revenue-census.mjs (V7) · r192-dex-plan.md §192-a-דליים · index.ts v1.3.1-r192 (תיקון-עוגן). אפס-commit/push · אפס-סודות-בלוגים · שידורים: 0.
+---
+
+---
+Task ID: 192-b
+Agent: 192-b (W1 DEX core — re-verification session)
+Task: בדיקה-חוזרת-חיה של פריסת ליבת-W1 על Zero-9369 (חוזים+בדיקות+סימולציה+שידור+PoR) — אימות מחדש של תוצרי הרצה קודמת עם מדידות-שער טריות
+
+Work Log:
+- נקראו worklog (כולל רישום 192-b הקודם — סבב-הרצה שני של אותה-משימה) + r192-dex-plan (L1–L6) + zero.ts + r189 §5. תוצרי-הסבב הקודם עומדים (contracts/w1 · scripts/r192b-* · w1-por · zero-line §w1) — הסבב-הזה אימת-הכול מחדש-חי, לא-שחזר.
+- מדידה-חיה-טרייה: chainId 9369 · gasPrice 0 wei · בלוק 36,275,408 · יתרה 0 · nonce 687 — ה-nonce זהה לפני-ואחרי הבדיקה (השרשרת נקייה).
+- בדיקות-מראה הורצו מחדש (/tmp/r192-b-tests.mjs ≡ scripts/r192b-tests.mjs): **713/713 PASS** — k-invariant · פיצול-עמלה 70/30 · דחיית minOut/deadline · סינון-אופרטור ל-mint/burn (L1) · מקרי-קצה-שלמים · מחזור-חיים-מוזרע.
+- מדידת-שער טרייה בשלוש-הרמות (r192b-simulate.mjs + r192b-deploy.mjs): eth_call של init-code **נדחה** ("You are not authorized… eth_call:selector:0x60808060") · eth_estimateGas **נדחה** (0x60a03461/0x60a06040) · טרנזקציית-creation חתומה (Factory, to=null, value=0, gasPrice=0) נשלחה-פעם-אחת-מדודה ו**נדחתה** ("eth_sendRawTransaction:selector:0x60a03461") — **כלום-לא-נכנס-לשרשרת, $0-הוצאו, nonce-687-לא-נצרך**.
+- חיפוש-רמפה-חלופית: בדיקות-keyless של נקודות-קצה-מועמדות (api.zero.tech · rpc.zscan.live · zscan.live/rpc ועוד) — אף-אחת-לא-עונה eth_chainId; **rpc.zero.tech נשאר השער-הציבורי-היחיד** (web-search נתקע-429 — הבדיקה-הישירה-היא-הראיה).
+- PoR-feed הורץ מחדש (scripts/w1-por.ts → sovereign/w1-por.json): {at 2026-10-04T07:45:54Z, backing 0, supply 0, ok true, W1-POR-TRIVIAL} — מצב-ריק-כן.
+- zero-line.json §w1: בלוק reVerified חדש עם כל-המדידות-הטריות. zscan: אין-tx-לאמת. אפס-commit/push · אפס-סודות-נדפסו (self-verify מה-seal בלבד).
+- lint: `bun run lint` exit-0 · tsc --noEmit: 22-שגיאות-קדם-קיימות בקבצים-אחרים (graphene/archive/market-maker/tron-balance/curation) — **0 שגיאות בקבצי-W1/zero**.
+
+Stage Summary:
+- **עצירה-כנה נאמת-מחדש-חי: פריסת-חוזים על Zero-9369 חסומה-בהרשאה (רשימת-היתר-הסלקטורים של השער — transfer/approve בלבד), לא-בכסף (גז-0-נמדד); נמדד-טרי בשלוש-הרמות כולל שידור-חתום-אחד-חינם.** אין-כתובות-חוזים על-השרשרת; L1 — אין-להציג-את-ה-core כחי.
+- תוצרים-עומדים-ומאומתים: 4-חוזים-מקומפלים (solc 0.8.37 viaIR) · 713/713-בדיקות · מסילת-פריסה-מוכנה-שנדחית-רק-בשער · PoR-חי (0/0 כן) · רישום-מדוד ב-zero-line §w1. ההמשך-המוכח נשאר: רמפת-פריסה-מורשית מהרשת (הרחבת-רשימת-היתר/API-key/multi-sig) — ואז החוזים עולים אפס-שינוי.
+---
+
+---
+---
+Task ID: r192
+Agent: THE WEAVE sovereign loop (Z.ai Code — orchestrator)
+Task: הוראת-מפעיל (trace 1a105a70ad865c85) — גל-ה-DEX הריבוני: "החלפות לכמה שיותר רשתות · קודם steem/hive/blurt · גרידים-מתנגדים · ארביטראז רישתי · פדיון-אמיתי-ולא-שקר · השבוע-זה-חייב-לעמוד · בצע היקף נרחב". מתווה: sovereign/strategy/r192-dex-plan.md (חוקי L1–L6) — נכתב-מתוך-שלושה-סיורים (a/b/c) ואז ארבעה-סוכני-ביצוע.
+
+Evaluator (LOOP-3): (1) אבחון-28→3 על-אמת-שרשרת (2) סולם-פאריטה-L3 חי (3) Hive-פס-מוכן-dry (4) convert-queue-ב-census + דליים (5) W1-חוזים-מקומפלים+מבדקים, פריסה-לפי-רשות-הרשת (6) API-סוכנים-8004+x402-חי עם-בדיקות (7) גלאי-ארביטראז-חי-קריאה-בלבד (8) saos-dex-משוחזר (9) push-יחיד-דרך-השער.
+
+Work Log:
+- סיורים: r192-a (מפת-קוד: Sovereign-Exchange-1,946L-עם-פדיון-אמיתי-בקוד · router-quote-only · W1-plan-only) · r192-b (כספים: convert-queue 131.856-SBD→~1,266-STEEM-10-06/07 · powerdown-475.9SP/wk-עוד-4 · מלאי-מדוד) · r192-c (מחקר: v4-hooks/דמי-דינמיים · דגם-WBTC/Lido-לפדיון · אגרגטורים-ללא-גשר-משלנו · סיכוני-גשרים-$3.1B-2025 → דירוג: 8004+x402 היתרון-הייחודי).
+- **192-a:** אבחון-כן: 53-ביטולי-מחזור-עצמיים + 5-מילויים-אמיתיים (4.194-STEEM) + עלייה-קרה→dry — אין-כשל-מנוע; סולם-פאריטה v1.3.1-r192 (מרכז=פיד 0.1041 · רצפת-עמלה 75bps · ×1.5-על-skew>0.4 · HALT>0.6 · תיקון-עוגן-symSell[0]) — **L3-SKEW-HALT-כנה-חי (skew 0.923: 410K-SBD-בידים מול-16K-אסקים) — מזוין, נפרס-אוטומטית כשהספר-מאוזן**; Hive-פס-מוגדר (HIVE_GRID_ORDERID_BAND=[1G,1.5G)-dry) · census-V7-כולל-conversion_requests · דליים 60/25/15. בדיקות 52/52 · lint-נקי.
+- **192-b:** W1-חוזים (WrappedToken/Pair/Router, solc-0.8.37) — **713/713-בדיקות**; פריסה-נדחית-ע"י-שער-Zero-9369 (רשימת-היתר-סלקטורים: transfer/approve-בלבד) — נמדד-טרי-בשלוש-רמות-כולל-שידור-חתום-חינם; **$0-הוצאו, השרשרת-נקייה, nonce-לא-נצרך**; PoR-חי (0/0-כן); רישום-מלא ב-zero-line §w1. עצירה-כנה: נדרשת-רמפת-פריסה-מורשית-מהרשת.
+- **192-c:** **API-סוופ-לסוכנים חי** (/api/exchange/agent GET/POST): 402-x402-סטנדרטי · שער-זהות-8004 (13-זהויות, personal_sign) · קפסות $25/tx·$50/יום·מינימום-$2 · עמלה-50bps-רצפת-$0.02-לאוצר (FEE+AGENT_SWAP-בספר) · quote-only-לחוץ (חי: ETH≈$2,691-מ-6-ערוצים) · kill-switch ~/.sovereign/dex-kill · כרטיס-שער-הסוכנים-ב-arena. בדיקות 44/44 · lint-נקי.
+- **192-d:** saos-dex-שוחזר (/home/z/saos-dex, 16,665-שורות-קרנל; daemon-3010-לא-הוקם — RAM 3435/4042-בהקמה, החלטה-כנה-להגן-על-המנועים-החיים) · **גלאי-ארביטראז-חי :3050** (סריקה-60ש' · Steem/Hive/exchange/CEX · נטו-אחרי-עמלים · L1-עומק-שער · קריאה-בלבד) — 41-סריקות-0-שגיאות; מדידה-חיה: **ספרד-Steem-מול-CEX −88…−200bps** (קלט-ישיר-למיקום-הסולם); הזדמנות-שולית-1.3bps-בלבד — כנות-מלאה. בדיקות 33/33.
+- מתאם: lint-משולב עבר קודם-לכן פר-סוכן · **דפדפן-חי: /-עולה-200-נקי (r192-agent-gate.png) · אפס-שגיאות-עמוד** · נקודות-הקצה-נבדקו-חי (quote-SAOS/USDS-עם-עמלה-30bps · :3050-status-ok · :3049-כולל-l3/parity/hiveBand).
+
+Stage Summary:
+- **גל-r192 סגור-בקוד-ובחיים: סולם-פאריטה-מזוין-עם-משמעת-skew · API-סוכנים-8004+x402-חי (היתרון-הייחודי-בשוק) · גלאי-ארביטראז-חי · saos-dex-משוחזר · W1-מקומפל-713/713-ממתין-רק-לרשות-פריסה-מ-Zero.**
+- **העובדה-הפיננסית-המכתיבה-הכול: ה-exchange-pools-אבק (490-SAES/0.02-USDS-עומק-$0.03) — בלי-זריעה-אין-נזילות-ואין-ארביטראז-לבצע; גל-ה-convert (~1,266-STEEM, 10-06/07) הוא-הזריעה-המתוכננת (דליים 60/25/15) — מדידת-fill_convert-מחייבת-אחרי-הנחיתה.**
+- פתוחים: רמפת-פריסה-מורשית-על-Zero (חסימה-רשתית-אמיתית, לא-כספית) · הקמת-daemon-3010-בחלון-RAM-בטוח · פריסת-סולם-בפועל-כש-skew<0.6 · L3-על-Hive-אחרי-דלק.
+---
+
+

@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-04T06:22:13.875Z",
+  "at": "2026-10-04T06:23:38.240Z",
   "source": "push-range",
-  "diffChars": 3390,
-  "diffStat": "worklog.md | 23 +++++++++++++++++++++++\n 1 file changed, 23 insertions(+)",
+  "diffChars": 524080,
+  "diffStat": "sovereign/businesses/business-log.jsonl        |  125 +\n sovereign/businesses/engine-state.json         |    4 +-\n sovereign/businesses/registry.json             |    2 +-\n sovereign/curation/history.json                |   20 +\n sovereign/curation/state.json                  |  267 +-\n sovereign/governance/DECISION_LOG.jsonl        |    5 +\n sovereign/governance/cycle-state.json          |   16 +-\n sovereign/governance/daemon-state.json         |   10 +-\n sovereign/governance/econ-gate.jsonl           |    7 +\n sovereign/governance/loop-state.json           |   16 +-\n sovereign/hunter/state.json                    |   70 +-\n sovereign/keeper/fleet-guard-state.json        |   40 +-\n sovereign/keeper/housekeeping.json             |  244 +-\n sovereign/keeper/state.json                    |  262 +-\n sovereign/kpi/state.json                       |    2 +-\n sovereign/market-maker/config.json             |    4 +-\n sovereign/market-maker/dry-run-log.jsonl       |   70 +\n sovereign/market-maker/state.json              |  366 +-\n sovereign/money/history.json                   |  534 +-\n sovereign/money/pnl-scan.json                  |   60 +-\n sovereign/money/state.json                     |   24 +-\n sovereign/pulse/state.json                     |    6 +-\n sovereign/review-gate/last-review.json         |   14 +-\n sovereign/student/state.json                   | 7294 ++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-04.json |   32 +-\n sovereign/treasury-audit/last-audit.json       |   32 +-\n sovereign/treasury-audit/state.json            |    8 +-\n sovereign/weblift/state.json                   |   68 +-\n 28 files changed, 5091 insertions(+), 4511 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -15,7 +15,7 @@
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 954,
+    "totalTookMs": 899,
     "llmCalls": 0
   }
 }

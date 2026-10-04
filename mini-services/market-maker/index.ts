@@ -54,6 +54,19 @@
 //     minProfitBps=120 חייב-לעלות על העמלה-המוערכת feeRate=75bps. אין-לוטות ⇒ סימטריה-כמו-בעבר
 //     (guardBasis:"no-lots"). קניות-לעולם-לא-מעל-הבסיס-הממוצע. מכירות-חיות-שנפלו-מתחת-לרצפה
 //     ⇒ ביטול+פריסה-מעל-הרצפה — אף-הצעת-הפסד-מובטח לא יושבת-בספר.
+//
+// חוזה-r192 (סולם-פאריטה + L3 + רגל-Hive):
+//   · סולם-פאריטה (parityLadder, ברירת-מחדל-דלוקה ל-Steem): מרכז-הסולם = מחיר-הפיד החי
+//     (condenser_api.get_current_median_history_price — אותו-צינור-RPC-של-המנוע), לא מרכז-הספר.
+//     פיד-נפל ⇒ נפילה-כנה-למרכז-הספר (מתועד-ב-state.centerSource). רצפת-הרווח-120bps
+//     ופנקס-הלוטות-FIFO נותרו-בלי-שינוי — הפאריטה מזיזה-את-המרכז, לא-את-הרצפה.
+//   · חוק-L3 עמלה-דינמית: רצפת-עמלה = 3×פרוקסי-ספרד-CEX (מוצהר-בתצורה — אין-הזנה-חיה);
+//     הספרד-האפקטיבית לא-תהיה-מתחת-לרצפה; |skew|>40% ⇒ הרחבת-ספרד-סימטרית ×1.5;
+//     |skew|>60% ⇒ השהיית-פריסה (L3-SKEW-HALT); רצפת-נוטיונל $2 לפקודה (SBD≈USD עיקרון-ערך-הרשת).
+//     דלק-מתחת-לרצפה ⇒ NO-BUDGET-כנה — הסולם ייפרס-אוטומטית-בהגיע-גל-ה-convert (~1,266 STEEM).
+//   · רגל-Hive: פרופיל-תצורה-מלא + טווח-orderid-שמור-משלה על ספר-orderid-הנפרד של Hive —
+//     HIVE_GRID_ORDERID_BAND = [1_000_000_000, 1_500_000_000) (חוק-L2 במרחב-Hive — ספר-חשבונות
+//     נפרד, אותה-סכמת-נגזרת). הרגל DRY מלאה (enabled:false, mode:dry) — אפס-שידור-Hive עד דלק.
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -77,7 +90,7 @@ const KILL_FILE = path.join(os.homedir(), ".sovereign", "mm-kill");
 const VAULT = path.join(os.homedir(), ".sovereign", "vault");
 const MOVER_STATE = `${HOME}/sovereign/money/state.json`;
 const PORT = 3049;
-const VERSION = "1.2.0-r191";
+const VERSION = "1.3.1-r192";
 // חוק-רווחיות r191: רצפת-מכירה = בסיס×(1+minProfitBps/10000) — חייבת-לעלות על העמלה-המוערכת
 // (feeRate=0.0075=75bps); השוק-הפנימי-של-Steem למעשה-לא-גובה-עמלת-לימיט — feeRate נשאר-הערכה-שמרנית.
 const DEFAULT_MIN_PROFIT_BPS = 120;
@@ -85,7 +98,8 @@ const TICK_SEC = 60;
 const TICK_MAX_MS = 90_000;
 const ACCOUNT = "headcorner"; // זהות-החותם — נאמתת-ביט-מול-ביט מול הרשת בכל שידור (R75)
 const RPC_NODES = ["https://api.steemit.com", "https://api.justyy.com"];
-const HIVE_RAIL_NOTE = "רגל HIVE מוגדרת enabled:false בתצורה — לא נבנה כאן כלום עד החלטת-מפעיל";
+const HIVE_RAIL_NOTE = "רגל HIVE: פרופיל-תצורה-מלא (r192) + טווח-orderid-שמור משלה במרחב-Hive — DRY מלאה (enabled:false) עד דלק-ומפתח-active-מאומתים; 0.034 HIVE = אבק";
+const L3_WIDEN_FACTOR = 1.5; // חוק-L3: הרחבת-ספרד-סימטרית על-skew>40%
 
 // ── חוזה-r190 המשותף (זהה-במקביל ל-src/app/api/money — סוכן 1-a) ────
 // טווח-orderid שמור-בלעדי למנוע-הגריד; money-mover מעודכן-במקביל לא-לגעת בו.
@@ -93,6 +107,22 @@ const GRID_ORDERID_BAND_LO = 1_000_000_000;
 const GRID_ORDERID_BAND_HI = 1_500_000_000; // חצי-פתוח [LO, HI)
 function inGridBand(id: number): boolean {
   return Number.isFinite(id) && id >= GRID_ORDERID_BAND_LO && id < GRID_ORDERID_BAND_HI;
+}
+
+// ── חוזה-r192: רגל-HIVE — טווח-orderid שמור משלה (חוק-L2 במרחב-Hive) ──
+// Hive הוא ספר-חשבונות נפרד ובו מרחב-orderid עצמאי מ-Steem — אותה-סכמת-נגזרת
+// (⌊ts/1000⌋×16 + level×2 + side mod 500M) חוזרת על המרחב-הפרטי-של-Hive, כך
+// שאף-התנגשות-בין-השרשרות אי-אפשרית מבנית. הרגל DRY מלאה — הנגזרת כאן
+// לבדיקות-לוגיות-ולנראות-/status-בלבד; שידור-Hive ייפתח-רק-אחרי-דלק-ומפתח-מאומתים.
+const HIVE_GRID_ORDERID_BAND_LO = 1_000_000_000;
+const HIVE_GRID_ORDERID_BAND_HI = 1_500_000_000; // חצי-פתוח [LO, HI) — במרחב-Hive
+function inHiveBand(id: number): boolean {
+  return Number.isFinite(id) && id >= HIVE_GRID_ORDERID_BAND_LO && id < HIVE_GRID_ORDERID_BAND_HI;
+}
+function deriveHiveOrderid(side: "buy" | "sell", level: number): number {
+  const ts = Math.floor(Date.now() / 1000);
+  const raw = ts * 16 + level * 2 + (side === "sell" ? 1 : 0);
+  return HIVE_GRID_ORDERID_BAND_LO + (raw % 500_000_000);
 }
 
 // ── תצורה ───────────────────────────────────────────────────────────
@@ -110,11 +140,25 @@ interface RailSteemConfig {
   refreshHours: number; // גיל-מקסימלי לפקודה — ישנה ⇒ ביטול+פריסה מחדש
   feeRate: number; // הערכת-עמלה לספר (לא חוסם-שידור)
   minProfitBps: number; // חוק-רווחיות r191: רצפת-מכירה = בסיס×(1+minProfitBps/10000) — מעל-העמלה-המוערכת
+  parityLadder: boolean; // חוק-r192: מרכוז-הסולם סביב מחיר-הפיד החי (ברירת-מחדל-דלוקה לפס-Steem-החי)
+  cexSpreadProxyBps: number; // פרוקסי-ספרד-CEX מוצהר (אין-הזנה-חיה) — רצפת-העמלה = 3×זה (חוק-L3)
+  minNotionalUsd: number; // חוק-L3: רצפת-נוטיונל לפקודה (SBD≈USD עיקרון-ערך-הרשת)
+  skewWidenAt: number; // חוק-L3: |skew|>זה ⇒ ספרד-מתרחבת ×1.5
+  skewHaltAt: number; // חוק-L3: |skew|>זה ⇒ השהיית-פריסה
   fleetChurn: boolean; // חיילי-הצי — רק עם יכולת-active מאומתת (ראה fleetVerify)
   churnSize: number; // גודל-פקודת-חיול ב-STEEM
 }
+
+// חוזה-r192: פרופיל-רגל-Hive — מבנה-זהה ל-Steem + טווח-orderid-משלה; הרגל DRY מלאה.
+interface RailHiveConfig extends Omit<RailSteemConfig, "fleetChurn" | "churnSize"> {
+  reason: string;
+  account: string;
+  rpc: string;
+  orderIdBand: { lo: number; hi: number };
+}
+
 interface Config {
-  rails: { steem: RailSteemConfig; hive: { enabled: boolean; reason: string } };
+  rails: { steem: RailSteemConfig; hive: RailHiveConfig };
   dailyLossCapSbd: number;
   tickSec: number;
   _docs?: Record<string, string>;
@@ -129,16 +173,46 @@ const DEFAULT_CONFIG: Config = {
       gridLevels: 5,
       spreadBps: 120,
       levelSpacingBps: 60,
-      orderCap: 1.0,
+      // r192: התקרה הישנה (1.0 STEEM ≈ $0.10) הייתה-מונעת-לנצח פריסה-שמקיימת-את
+ // רצפת-הנוטיונל של L3 ($2 ≈ 19.2 STEEM בשער-הפיד) — הועלתה-כדי-שהחוק יתממש
+      orderCap: 25,
       minOrder: 0.05,
       budgetPct: 0.35,
       refreshHours: 24,
       feeRate: 0.0075,
       minProfitBps: DEFAULT_MIN_PROFIT_BPS,
+      parityLadder: true,
+      cexSpreadProxyBps: 25, // רצפת-עמלה-נגזרת = 75bps ≥ feeRate=75bps — החוק מתקיים
+      minNotionalUsd: 2,
+      skewWidenAt: 0.4,
+      skewHaltAt: 0.6,
       fleetChurn: true,
       churnSize: 0.05,
     },
-    hive: { enabled: false, reason: "no-verified-active-key-or-liquidity-yet" },
+    // חוזה-r192: רגל-Hive — פרופיל-מלא, DRY מלאה עד דלק-ומפתח-active-מאומתים
+    hive: {
+      enabled: false,
+      reason: "no-verified-active-key-or-liquidity-yet (0.034 HIVE = אבק — DRY עד דלק-מגל-ה-convert)",
+      mode: "dry",
+      pair: "HBD:HIVE",
+      account: "headcorner",
+      rpc: "https://api.hive.blog",
+      gridLevels: 5,
+      spreadBps: 120,
+      levelSpacingBps: 60,
+      orderCap: 25,
+      minOrder: 0.05,
+      budgetPct: 0.35,
+      refreshHours: 24,
+      feeRate: 0.0075,
+      minProfitBps: DEFAULT_MIN_PROFIT_BPS,
+      parityLadder: true,
+      cexSpreadProxyBps: 25,
+      minNotionalUsd: 2,
+      skewWidenAt: 0.4,
+      skewHaltAt: 0.6,
+      orderIdBand: { lo: 1_000_000_000, hi: 1_500_000_000 }, // חוק-L2 במרחב-Hive — ספר-נפרד
+    },
   },
   dailyLossCapSbd: 0.5,
   tickSec: 60,
@@ -153,6 +227,8 @@ const DEFAULT_CONFIG: Config = {
     orderIdBandLaw: "טווח-orderid שמור-בלעדי למנוע-הגריד [1_000_000_000, 1_500_000_000) — חוזה-r190 זהה-לעורק /api/money; סכמה-ישנה (mod 2^31, ~739.9M) נשכחה: לא מאומצת, לא נספרת",
     reconcileLaw: "בעלייה-ובכל-פעימה get_open_orders = השופט: פקודה-חיה-בטווח ⇒ מאומצת-לרישום (chain-truth); רישום-מחוץ-לטווח/שאינו-חי ⇒ נמחק. אימוץ-חי-בטווח בעלייה ⇒ RECOVERY-LIVE — כבוי-אם kill-switch/halted/מפתח-חסר",
     profitLaw: "חוק-רווחיות r191 (רווחיות-גם-אם-קטנה): פנקס-לוטות-FIFO — קנייה-ממולאת פותחת-לוט-במחיר-המילוי, מכירה-ממולאת צורכת-לוטות-FIFO ומממשת (מחיר-מכירה − עלות-לוט)×כמות − עמלה-מוערכת. רצפת-מכירה = basisBlended×(1+minProfitBps/10000) — minProfitBps=120 חייב-לעלות על feeRate=75bps; השוק-הפנימי-של-Steem למעשה-לא-גובה-עמלת-לימיט ולכן feeRate נשאר-הערכה-שמרנית-בחישוב-PnL-בלבד. מכירות-ללא-לוטות (מלאי-שקדם-לעידן-המנוע) אינן-נספרות-ב-PnL-ממומש — היקף-כנה — ונספרות-ב-unmatchedSellSteem/unmatchedSellSbd. אין-לוטות ⇒ סולם-סימטרי (guardBasis:no-lots). קניות-לעולם-לא-מעל-הבסיס-הממוצע (ממוצע-מטה-מותר, תחום-בתקרת-הפסד-היומית); מכירות-חיות-שנפלו-מתחת-לרצפה מוחלפות-בפעימה-הבאה — אין-הצעות-הפסד-מובטח",
+    parityLaw: "חוזה-r192 (סולם-פאריטה, חוק-L3): parityLadder=true ⇒ מרכז-הסולם = מחיר-הפיד החי מ-get_current_median_history_price (1 SBD ≈ 9.6062 STEEM ⇒ 0.1041 SBD/STEEM) — לא מרכז-הספר; פיד-נפל ⇒ נפילה-כנה-למרכז-הספר (centerSource=book). רצפת-עמלה = 3×cexSpreadProxyBps (פרוקסי-מוצהר — אין-הזנת-CEX-חיה); הספרד-האפקטיבית = max(spreadBps, רצפת-העמלה) ומתרחבת ×1.5 על |skew|>skewWidenAt (40%); |skew|>skewHaltAt (60%) ⇒ L3-SKEW-HALT — אפס-פריסה-וביטול בפעימה. רצפת-נוטיונל minNotionalUsd=$2 לפקודה (SBD≈USD עיקרון-ערך-הרשת) — דלק-מתחת-לרצפה ⇒ NO-BUDGET-כנה-עד-נחיתת-גל-ה-convert. orderCap הועלה ל-25 STEEM כי-הישן (1.0 ≈ $0.10) היה-מונע-לנצח פריסה-שמקיימת-את-הרצפה. רצפת-הרווח-120bps-ופנקס-הלוטות-FIFO נותרו-ללא-שינוי — הפאריטה מזיזה-את-המרכז, לא-את-הרצפה",
+    hiveBandLaw: "חוזה-r192 — רגל-HIVE (חוק-L2 במרחב-Hive): Hive הוא ספר-חשבונות-נפרד ובו מרחב-orderid עצמאי — HIVE_GRID_ORDERID_BAND = [1_000_000_000, 1_500_000_000) (חצי-פתוח) עם-אותה-סכמת-נגזרת: deriveHiveOrderid = 1G + ((⌊ts/1000⌋×16 + level×2 + side) mod 500M) — אי-התנגשות-בין-השרשרות מובטחת-מבנית. הרגל DRY מלאה (enabled:false, mode:dry): 0.034 HIVE = אבק — אפס-שידור-Hive עד דלק-מגל-ה-convert ומפתח-active-מאומת-בכספת; הנגזרות-כאן לבדיקות-לוגיות-ולנראות-/status",
   },
 };
 
@@ -269,6 +345,9 @@ interface MMState {
   fleetChurn: { configured: boolean; effective: boolean; verified: boolean; reason: string; soldiersChecked: number };
   coordination: { moverActing: boolean; moverCheckedAt: string | null; ourOrders: number; moverOrders: number };
   balances: { steemFree: number; sbdFree: number; measuredAt: string | null };
+  parityCenterSbd: number | null; // r192: מחיר-הפיד החי (SBD ל-STEEM) — נמדד בכל פעימה כשהדגל דלוק
+  centerSource: "feed" | "book" | null; // r192: מקור-המרכז בפעימה האחרונה (פיד-נפל ⇒ book — כנות)
+  l3: { feeFloorBps: number; spreadBpsEffective: number; widened: boolean; skew: number; halted: boolean; bidDepthSbd: number; askDepthSbd: number } | null; // r192: פרמטרי-L3 של הפעימה האחרונה
   lastModeChange: { at: string; from: string; to: string; by: string } | null;
 }
 
@@ -341,6 +420,9 @@ function freshState(): MMState {
     fleetChurn: { configured: false, effective: false, verified: false, reason: "טרם-נבדק", soldiersChecked: 0 },
     coordination: { moverActing: false, moverCheckedAt: null, ourOrders: 0, moverOrders: 0 },
     balances: { steemFree: 0, sbdFree: 0, measuredAt: null },
+    parityCenterSbd: null,
+    centerSource: null,
+    l3: null,
     lastModeChange: null,
   };
 }
@@ -384,6 +466,9 @@ function readState(): MMState {
       fleetChurn: prev.fleetChurn ?? base.fleetChurn,
       coordination: prev.coordination ?? base.coordination,
       balances: prev.balances ?? base.balances,
+      parityCenterSbd: typeof prev.parityCenterSbd === "number" ? prev.parityCenterSbd : null,
+      centerSource: prev.centerSource === "feed" || prev.centerSource === "book" ? prev.centerSource : null,
+      l3: (prev.l3 as MMState["l3"]) ?? null,
       lastModeChange: prev.lastModeChange ?? null,
     };
     // נגזרות-פנקס-הלוטות מחושבות-תמיד-מהלוטות-עצמן — לא-מהקובץ (אמת-אחת)
@@ -423,6 +508,20 @@ if (typeof cfg.rails.steem.minProfitBps !== "number") {
   writeJsonAtomic(CONFIG_FILE, cfg);
   console.log("[market-maker] מיזוג-תצורה-חם: minProfitBps נוסף-מברירת-המחדל (חוק-רווחיות r191)");
 }
+// מיזוג-r192: שדות-L3/פאריטה-ופרופיל-Hive-חסרים — מילוי-מברירות-המחדל (מתועד-בלוג)
+if (typeof cfg.rails.steem.parityLadder !== "boolean" || typeof cfg.rails.steem.cexSpreadProxyBps !== "number" || typeof cfg.rails.steem.minNotionalUsd !== "number" || typeof cfg.rails.steem.skewWidenAt !== "number" || typeof cfg.rails.steem.skewHaltAt !== "number") {
+  cfg.rails.steem = { ...DEFAULT_CONFIG.rails.steem, ...cfg.rails.steem };
+  writeJsonAtomic(CONFIG_FILE, cfg);
+  console.log("[market-maker] מיזוג-תצורה-חם: שדות-L3/פאריטה (r192) נוספו-מברירות-המחדל");
+}
+if (cfg.rails.hive?.orderIdBand == null) {
+  cfg.rails.hive = { ...DEFAULT_CONFIG.rails.hive, ...cfg.rails.hive } as RailHiveConfig;
+  writeJsonAtomic(CONFIG_FILE, cfg);
+  console.log("[market-maker] מיזוג-תצורה-חם: פרופיל-Hive (r192, DRY) נוסף-מברירת-המחדל");
+}
+if (typeof state.parityCenterSbd !== "number") state.parityCenterSbd = null;
+if (state.centerSource !== "feed" && state.centerSource !== "book") state.centerSource = null;
+if (!state.l3 || typeof state.l3 !== "object") state.l3 = null;
 refreshLotAggregates();
 
 function saveState() {
@@ -477,16 +576,66 @@ async function steemRpc(method: string, params: unknown[]): Promise<any> {
 
 // ── מדידות חיות ─────────────────────────────────────────────────────
 
-async function bookMid(): Promise<{ mid: number; bestBid: number; bestAsk: number }> {
+/** עומקי-הספר + skew (r192/חוק-L3): הסטייה-בין-עומק-הבידים-לעומק-האסקים ב-SBD,
+ *  מנורמלת ל-[−1,1] — חיוב = עודף-ביקוש (בידים-כבדים), שלילי = עודף-היצע. */
+async function bookState(): Promise<{ mid: number; bestBid: number; bestAsk: number; bidDepthSbd: number; askDepthSbd: number; skew: number }> {
   const j = await steemRpc("condenser_api.get_order_book", [10]);
-  const bids: Array<{ real_price: string }> = j?.bids ?? [];
-  const asks: Array<{ real_price: string }> = j?.asks ?? [];
+  const bids: Array<{ real_price: string; sbd?: string }> = j?.bids ?? [];
+  const asks: Array<{ real_price: string; sbd?: string }> = j?.asks ?? [];
   const bestBid = Math.max(...bids.map((b) => parseFloat(b.real_price)).filter((n) => n > 0));
   const bestAsk = Math.min(...asks.map((a) => parseFloat(a.real_price)).filter((n) => n > 0));
   if (!(bestBid > 0) || !(bestAsk > 0) || bestAsk < bestBid) throw new Error("book-empty-or-crossed");
   const mid = Math.round(((bestBid + bestAsk) / 2) * 1e6) / 1e6;
   if (!(mid > 0.001) || mid >= 1000) throw new Error("mid-out-of-range");
-  return { mid, bestBid, bestAsk };
+  const bidDepthSbd = Math.round(bids.reduce((s, b) => s + (parseFloat(b?.sbd ?? "") || 0), 0) * 1000) / 1000;
+  const askDepthSbd = Math.round(asks.reduce((s, a) => s + (parseFloat(a?.sbd ?? "") || 0), 0) * 1000) / 1000;
+  const depthTotal = bidDepthSbd + askDepthSbd;
+  const skew = depthTotal > 0 ? Math.round(((bidDepthSbd - askDepthSbd) / depthTotal) * 10000) / 10000 : 0;
+  return { mid, bestBid, bestAsk, bidDepthSbd, askDepthSbd, skew };
+}
+
+async function bookMid(): Promise<{ mid: number; bestBid: number; bestAsk: number }> {
+  const b = await bookState();
+  return { mid: b.mid, bestBid: b.bestBid, bestAsk: b.bestAsk };
+}
+
+/** מחיר-הפיד החי (r192 — סולם-הפאריטה): אותו-צינור-RPC-של-המנוע, keyless.
+ *  get_current_median_history_price מחזיר {base: "x SBD", quote: "y STEEM"} —
+ *  היחס base/quote = SBD ל-STEEM (נמדד-חי 04/10: 0.1041 ⇒ 1 SBD ≈ 9.6062 STEEM).
+ *  כנות: פיד-נפל/פורמט-שונה ⇒ null — הקורא נופל-למרכז-הספר-ומתעד. */
+async function feedPrice(): Promise<{ sbdPerSteem: number; steemPerSbd: number } | null> {
+  try {
+    const j = await steemRpc("condenser_api.get_current_median_history_price", []);
+    const base = parseAsset(j?.base ?? "");
+    const quote = parseAsset(j?.quote ?? "");
+    if (base.asset === "SBD" && quote.asset === "STEEM" && base.amount > 0 && quote.amount > 0) {
+      const sbdPerSteem = Math.round((base.amount / quote.amount) * 1e6) / 1e6;
+      const steemPerSbd = Math.round((quote.amount / base.amount) * 1e4) / 1e4;
+      if (sbdPerSteem > 0.001 && sbdPerSteem < 1000 && steemPerSbd > 0.001 && steemPerSbd < 100000) {
+        return { sbdPerSteem, steemPerSbd };
+      }
+    }
+    return null;
+  } catch {
+    return null; // כנות: אין-המצאת-שער
+  }
+}
+
+/** חוק-L3 (r192): פרמטרי-הספרד-הדינמיים לפעימה.
+ *  רצפת-עמלה = 3×cexSpreadProxyBps (פרוקסי-מוצהר-בתצורה — אין-הזנת-CEX-חיה);
+ *  הספרד-האפקטיבית = max(spreadBps, רצפת-העמלה); |skew|>skewWidenAt ⇒ ×1.5;
+ *  |skew|>skewHaltAt ⇒ השהיית-פריסה (הקורא מחזיר-לפני-כל-פעולת-ספר). */
+function l3Params(c: RailSteemConfig, skew: number): { feeFloorBps: number; spreadBps: number; widened: boolean; halted: boolean } {
+  const proxy = typeof c.cexSpreadProxyBps === "number" && c.cexSpreadProxyBps > 0 ? c.cexSpreadProxyBps : 25;
+  const feeFloorBps = 3 * proxy;
+  const widenAt = typeof c.skewWidenAt === "number" && c.skewWidenAt > 0 ? c.skewWidenAt : 0.4;
+  const haltAt = typeof c.skewHaltAt === "number" && c.skewHaltAt > widenAt ? c.skewHaltAt : 0.6;
+  const a = Math.abs(typeof skew === "number" && Number.isFinite(skew) ? skew : 0);
+  const widened = a > widenAt;
+  const halted = a > haltAt;
+  const baseSpread = Math.max(c.spreadBps, feeFloorBps);
+  const spreadBps = widened ? Math.round(baseSpread * L3_WIDEN_FACTOR) : baseSpread;
+  return { feeFloorBps, spreadBps, widened, halted };
 }
 
 function parseAsset(s: string): { amount: number; asset: string } {
@@ -904,9 +1053,10 @@ interface PlannedOrder {
   total: number; // SBD
 }
 
-function planLadder(mid: number, steemFree: number, sbdFree: number): { planned: PlannedOrder[]; note: string; guardBasis: "basis" | "no-lots"; floor: number | null } {
+function planLadder(center: number, steemFree: number, sbdFree: number, l3: { spreadBps: number; minNotionalUsd: number; centerSource: string }): { planned: PlannedOrder[]; note: string; guardBasis: "basis" | "no-lots"; floor: number | null; notionalCut: number } {
   const c = cfg.rails.steem;
-  const half = c.spreadBps / 2;
+  const half = l3.spreadBps / 2;
+  const minNotional = typeof l3.minNotionalUsd === "number" && l3.minNotionalUsd > 0 ? l3.minNotionalUsd : 0;
   const steemBudget = steemFree * c.budgetPct; // חוק-אחוות-הסוחרים: יתרה-חופשית בלבד
   const sbdBudget = sbdFree * c.budgetPct;
   // חוק-רווחיות r191: רצפת-מכירה = בסיס-ממוצע × (1+minProfitBps/10000); minProfitBps חייב-לעלות
@@ -917,24 +1067,35 @@ function planLadder(mid: number, steemFree: number, sbdFree: number): { planned:
   const guardBasis: "basis" | "no-lots" = floor != null ? "basis" : "no-lots";
   const planned: PlannedOrder[] = [];
   let trimmed = 0;
-  // מחירי-הסולם-הסימטריים-סביב-המרכז (כמו-תמיד) — ואז-הזחות-כנות:
+  let notionalCut = 0; // חוק-L3: רמות-שנחתכו-מתחת-רצפת-הנוטיונל — נמדדות-ומדווחות-בכנות
+  // מחירי-הסולם-הסימטריים-סביב-המרכז (r192: המרכז = מחיר-הפיד כשסולם-הפאריטה-דלוק) — ואז-הזחות-כנות:
   //   מכירות-מוזחות-למעלה עד-שהרמה-הנמוכה-מגיעה-לרצפה (לעולם-לא-מטה); קניות-מוזחות-למטה
   //   עד-שהרמה-הגבוהה-מגיעה-לבסיס (ממוצע-מטה-מותר — קנייה-מעל-הבסיס-אסור).
   const symSell: number[] = [];
   const symBuy: number[] = [];
   for (let i = 0; i < c.gridLevels; i++) {
     const offsetBps = half + i * c.levelSpacingBps;
-    symSell.push(mid * (1 + offsetBps / 10_000));
-    symBuy.push(mid * (1 - offsetBps / 10_000));
+    symSell.push(center * (1 + offsetBps / 10_000));
+    symBuy.push(center * (1 - offsetBps / 10_000));
   }
-  const sellShift = floor != null && symSell.length > 0 ? Math.max(0, floor - symSell[symSell.length - 1]) : 0;
+  // תיקון-r192-a (חוק-רווחיות r191, כפי-שנכתב-בהערה): הזחת-המכירות-למעלה נמדדת-מול הרמה-הנמוכה
+  //  (symSell[0] = המכירה-הקרובה-למרכז — המחיר-הנמוך-ביותר של-הסולם). הקודם (symSell[last] —
+  //  הרמה-הגבוהה) היה-משאיר-רמות-תחתונות-מתחת-לרצפה כשהרצפה-נופלת-בין-הרמות ⇒ profit-guard
+  //  היה-מחליף-אותן-בכל-פעימה (churn-שידורים). אחרי-התיקון: הרמה-הנמוכה = הרצפה בדיוק —
+  //  כל-הסולם מעל-הרצפה, לעולם-לא-מטה.
+  const sellShift = floor != null && symSell.length > 0 ? Math.max(0, floor - symSell[0]) : 0;
   const buyShift = basis != null && symBuy.length > 0 ? Math.max(0, symBuy[0] - basis) : 0;
   for (let i = 0; i < c.gridLevels; i++) {
     // מכירה מעל המרכז — התקציב ב-STEEM
     let sellAmt = Math.min(steemBudget / c.gridLevels, c.orderCap);
     if (sellAmt >= c.minOrder && sellAmt <= steemBudget) {
       const price = Math.round((symSell[i] + sellShift) * 1e6) / 1e6;
-      planned.push({ side: "sell", level: i + 1, price, amount: Math.round(sellAmt * 1000) / 1000, total: Math.round(sellAmt * price * 1000) / 1000 });
+      const total = Math.round(sellAmt * price * 1000) / 1000;
+      if (minNotional > 0 && total < minNotional) {
+        notionalCut++; // חוק-L3: רצפת-נוטיונל — הדלק-לא-מספיק לרמה-הזאת
+      } else {
+        planned.push({ side: "sell", level: i + 1, price, amount: Math.round(sellAmt * 1000) / 1000, total });
+      }
     } else trimmed++;
     // קנייה מתחת למרכז — התקציב ב-SBD
     const price = Math.round((symBuy[i] - buyShift) * 1e6) / 1e6;
@@ -944,18 +1105,24 @@ function planLadder(mid: number, steemFree: number, sbdFree: number): { planned:
     }
     let buyAmt = Math.round(Math.min(sbdBudget / c.gridLevels / price, c.orderCap) * 1000) / 1000;
     if (buyAmt >= c.minOrder && buyAmt * price <= sbdBudget) {
-      planned.push({ side: "buy", level: i + 1, price, amount: buyAmt, total: Math.round(buyAmt * price * 1000) / 1000 });
+      const total = Math.round(buyAmt * price * 1000) / 1000;
+      if (minNotional > 0 && total < minNotional) {
+        notionalCut++; // חוק-L3: רצפת-נוטיונל — הדלק-לא-מספיק לרמה-הזאת
+      } else {
+        planned.push({ side: "buy", level: i + 1, price, amount: buyAmt, total });
+      }
     } else trimmed++;
   }
   const guardNote =
     floor != null
-      ? `guardBasis: basis ${basis!.toFixed(6)} · רצפה ${floor.toFixed(6)} (+${minProfitBps}bps מעל-הבסיס) · הזחת-מכירות ${Math.round((sellShift / mid) * 10_000)}bps · הזחת-קניות ${Math.round((buyShift / mid) * 10_000)}bps`
+      ? `guardBasis: basis ${basis!.toFixed(6)} · רצפה ${floor.toFixed(6)} (+${minProfitBps}bps מעל-הבסיס) · הזחת-מכירות ${Math.round((sellShift / center) * 10_000)}bps · הזחת-קניות ${Math.round((buyShift / center) * 10_000)}bps`
       : "guardBasis: no-lots — אין-לוטות, סימטריה-מלאה-סביב-המרכז";
+  const l3Note = `מרכז ${center.toFixed(6)} (${l3.centerSource}) · ספרד-אפקטיבית ${l3.spreadBps}bps${minNotional > 0 ? ` · רצפת-נוטיונל L3 $${minNotional}` : ""}`;
   const note =
-    trimmed > 0
-      ? `${trimmed} רמות נחתכו בכנות — תקציב-צד/תקרת-פקודה/מינימום לא התקיימו (תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD) · ${guardNote}`
-      : `תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD × ${c.budgetPct} · ${guardNote}`;
-  return { planned, note, guardBasis, floor };
+    trimmed > 0 || notionalCut > 0
+      ? `${trimmed} רמות נחתכו בכנות (תקציב-צד/תקרת-פקודה/מינימום) · ${notionalCut} רמות-מתחת-רצפת-הנוטיונל L3 (תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD) · ${l3Note} · ${guardNote}`
+      : `תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD × ${c.budgetPct} · ${l3Note} · ${guardNote}`;
+  return { planned, note, guardBasis, floor, notionalCut };
 }
 
 // ── פעימה ───────────────────────────────────────────────────────────
@@ -1033,12 +1200,19 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     }
 
     // מיד ויתרות
-    const { mid, bestBid, bestAsk } = await bookMid();
+    const { mid, bestBid, bestAsk, skew, bidDepthSbd, askDepthSbd } = await bookState();
     const bal = await balances();
     state.balances = { steemFree: bal.steemFree, sbdFree: bal.sbdFree, measuredAt: new Date().toISOString() };
     state.centerPrice = mid;
     refreshLotAggregates(); // סימון-לשוק r191: בסיס+unrealizedPnlSbd מתעדכנים-בכל-פעימה-שהמרכז-נמדד
     state.spreadBps = Math.round(((bestAsk - bestBid) / mid) * 10_000);
+    // חוק-L3 (r192): פרמטרי-ספרד-דינמיים + מרכז-פאריטה — רק-כשהדגל-דלוק; פיד-נפל ⇒ נפילה-כנה-למרכז-הספר
+    const l3p = c.parityLadder ? l3Params(c, skew) : null;
+    const feed = c.parityLadder ? await feedPrice() : null;
+    state.parityCenterSbd = feed?.sbdPerSteem ?? null;
+    state.centerSource = c.parityLadder ? (feed ? "feed" : "book") : null;
+    state.l3 = l3p ? { feeFloorBps: l3p.feeFloorBps, spreadBpsEffective: l3p.spreadBps, widened: l3p.widened, skew, halted: l3p.halted, bidDepthSbd, askDepthSbd } : null;
+    const centerNow = c.parityLadder ? (feed?.sbdPerSteem ?? mid) : mid; // מרכז-הסולם-בפעימה-הזאת
     state.lastTick = new Date().toISOString();
 
     // שערים-קשים לפני פריסה
@@ -1069,6 +1243,13 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     }
     state.coordination.moverActing = false;
 
+    // חוק-L3 (r192): השהייה על-skew>60% — הספר משופע-קיצונית; אפס-פריסה/ביטול עד-התייצבות
+    if (l3p?.halted) {
+      decision("L3-SKEW-HALT", `skew ${skew} חורג-מסף-ההשהיה ${c.skewHaltAt} (עומק בידים ${bidDepthSbd} SBD מול אסקים ${askDepthSbd} SBD) — אפס-פעולת-ספר בפעימה (חוק-L3)`);
+      saveState();
+      return { ok: true, detail: "l3-skew-halt" };
+    }
+
     // חוק-רווחיות r191: ניטור-רצפה על-הסולם-החי — מכירה-חיה-מתחת-לרצפה = הצעת-הפסד-מובטח
     // שיושבת-בספר ⇒ חייבת-החלפה. הרצפה = בסיס×(1+minProfitBps/10000); אין-לוטות ⇒ no-lots.
     const minProfitBps = typeof c.minProfitBps === "number" && Number.isFinite(c.minProfitBps) && c.minProfitBps > 0 ? c.minProfitBps : DEFAULT_MIN_PROFIT_BPS;
@@ -1076,9 +1257,9 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     const sellsUnderFloor = guardFloor != null ? state.openOrders.filter((o) => o.side === "sell" && o.price < guardFloor) : [];
     state.profitGuard = { minProfitBps, basis: state.basisBlendedSbd, floor: guardFloor, guardBasis: guardFloor != null ? "basis" : "no-lots", sellsUnderFloor: sellsUnderFloor.length, updatedAt: new Date().toISOString() };
 
-    // סטיית-מרכז: הקו זז מעל 2×מרווח מאז-הפריסה ⇒ גרירת-הסולם
+    // סטיית-מרכז: הקו זז מעל 2×מרווח מאז-הפריסה ⇒ גרירת-הסולם (r192: המדידה-מול-מרכז-הפאריטה-החי)
     const placedCenter = state.openOrders.length > 0 ? state.openOrders.reduce((s, o) => s + o.centerAtPlace, 0) / state.openOrders.length : null;
-    const driftBps = placedCenter != null && placedCenter > 0 ? Math.round(((mid - placedCenter) / placedCenter) * 10_000) : 0;
+    const driftBps = placedCenter != null && placedCenter > 0 ? Math.round(((centerNow - placedCenter) / placedCenter) * 10_000) : 0;
     const needRecenter = placedCenter != null && Math.abs(driftBps) > 2 * cfg.rails.steem.levelSpacingBps;
 
     // פקודות-ישנות מעבר ל-refreshHours ⇒ גרירה
@@ -1094,19 +1275,19 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
           : sellsUnderFloor.length > 0
             ? `profit-guard: ${sellsUnderFloor.length} מכירות-חיות מתחת-לרצפה ${guardFloor!.toFixed(6)} (בסיס ${state.basisBlendedSbd!.toFixed(6)}) — ביטול+פריסה-מעל-הרצפה, אין-הצעות-הפסד-מובטח`
             : needRecenter
-              ? `המרכז זז ${driftBps > 0 ? "+" : ""}${driftBps}bps מאז-הפריסה (${placedCenter!.toFixed(6)} → ${mid.toFixed(6)}) — ביטול+פריסה-מחדש`
+              ? `המרכז זז ${driftBps > 0 ? "+" : ""}${driftBps}bps מאז-הפריסה (${placedCenter!.toFixed(6)} → ${centerNow.toFixed(6)}) — ביטול+פריסה-מחדש`
               : stale.length > 0
                 ? `${stale.length} פקודות ישנות מעבר ל-${cfg.rails.steem.refreshHours}ש' — גרירה`
                 : null;
 
     if (!reason) {
-      decision("ON-GRID", `הסולם על הקו: ${state.openOrders.length} פקודות · drift ${driftBps}bps · מרכז ${mid.toFixed(6)} · רצפת-רווחיות ${guardFloor != null ? guardFloor.toFixed(6) : "no-lots"} · תקציב ${bal.sbdFree.toFixed(3)} SBD חופשיים`);
+      decision("ON-GRID", `הסולם על הקו: ${state.openOrders.length} פקודות · drift ${driftBps}bps · מרכז ${centerNow.toFixed(6)} (${state.centerSource ?? "book"}${c.parityLadder ? `/פיד-רצפת-עמלה ${l3p!.feeFloorBps}bps` : ""}) · רצפת-רווחיות ${guardFloor != null ? guardFloor.toFixed(6) : "no-lots"} · תקציב ${bal.sbdFree.toFixed(3)} SBD חופשיים`);
       saveState();
       return { ok: true, detail: "on-grid" };
     }
 
-    // תכנון-הסולם החדש
-    const { planned, note } = planLadder(mid, bal.steemFree, bal.sbdFree);
+    // תכנון-הסולם החדש (r192: מרכז-פאריטה + ספרד-L3 + רצפת-נוטיונל)
+    const { planned, note } = planLadder(centerNow, bal.steemFree, bal.sbdFree, { spreadBps: l3p ? l3p.spreadBps : c.spreadBps, minNotionalUsd: c.minNotionalUsd, centerSource: state.centerSource ?? "book" });
     if (planned.length === 0) {
       decision("NO-BUDGET", `אין-מה-לפרוס: ${note}`);
       saveState();
@@ -1125,7 +1306,7 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
       const expiration = new Date(now + cfg.rails.steem.refreshHours * 3_600_000).toISOString();
       for (const o of planned) {
         const orderid = deriveOrderid(o.side, o.level);
-        state.registry[String(orderid)] = { orderid, side: o.side, level: o.level, price: o.price, amount: o.amount, total: o.total, placedAt: new Date(now).toISOString(), expiration, centerAtPlace: mid, txid: null, dry: true };
+        state.registry[String(orderid)] = { orderid, side: o.side, level: o.level, price: o.price, amount: o.amount, total: o.total, placedAt: new Date(now).toISOString(), expiration, centerAtPlace: centerNow, txid: null, dry: true };
         dryLog({ action: "place", side: o.side, level: o.level, price: o.price, amount: o.amount, total: o.total, orderid, expiration, note });
       }
       state.openOrders = Object.values(state.registry).sort((a, b) => b.price - a.price);
@@ -1156,7 +1337,7 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
       const orderid = deriveOrderid(o.side, o.level);
       try {
         const txid = await chainPlaceOrder({ orderid, side: o.side, amount: o.amount, price: o.price, expiration });
-        state.registry[String(orderid)] = { orderid, side: o.side, level: o.level, price: o.price, amount: o.amount, total: o.total, placedAt: new Date().toISOString(), expiration, centerAtPlace: mid, txid, dry: false };
+        state.registry[String(orderid)] = { orderid, side: o.side, level: o.level, price: o.price, amount: o.amount, total: o.total, placedAt: new Date().toISOString(), expiration, centerAtPlace: centerNow, txid, dry: false };
         placed += 1;
         console.log(`[market-maker] place ${o.side} L${o.level} ${o.amount}STEEM @${o.price} orderid=${orderid} txid=${txid ?? "chain-judge"}`);
       } catch (e) {
@@ -1196,6 +1377,9 @@ if (!G_MM_SRV.__MM_SERVER__) {
           service: "market-maker",
           port: PORT,
           state,
+          l3: { parityLadder: cfg.rails.steem.parityLadder, ...state.l3 },
+          parity: { centerSbd: state.parityCenterSbd, source: state.centerSource },
+          hiveBand: { lo: HIVE_GRID_ORDERID_BAND_LO, hi: HIVE_GRID_ORDERID_BAND_HI, enabled: cfg.rails.hive.enabled, note: HIVE_RAIL_NOTE },
           config: { rails: cfg.rails, dailyLossCapSbd: cfg.dailyLossCapSbd, tickSec: cfg.tickSec, _docs: cfg._docs },
           orderIdBand: { schema: "r190", lo: GRID_ORDERID_BAND_LO, hi: GRID_ORDERID_BAND_HI, registryInBand: Object.values(state.registry).filter((o) => inGridBand(o.orderid)).length },
           persistence: { stateFile: STATE_FILE, mtimeMs: fs.existsSync(STATE_FILE) ? fs.statSync(STATE_FILE).mtimeMs : null },
