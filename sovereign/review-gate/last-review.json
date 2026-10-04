@@ -1,9 +1,9 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-04T08:14:14.530Z",
+  "at": "2026-10-04T10:15:07.107Z",
   "source": "push-range",
-  "diffChars": 1021713,
-  "diffStat": "contracts/w1/Pair.sol                              |  259 +\n contracts/w1/Router.sol                            |  160 +\n contracts/w1/Sim.sol                               |  136 +\n contracts/w1/WrappedToken.sol                      |   91 +\n contracts/w1/artifacts/Actor.json                  |   81 +\n contracts/w1/artifacts/Factory.json                |  142 +\n contracts/w1/artifacts/IERC20.json                 |   79 +\n contracts/w1/artifacts/IERC20W1.json               |  103 +\n contracts/w1/artifacts/IFactoryW1.json             |   31 +\n contracts/w1/artifacts/IPair.json                  |   33 +\n contracts/w1/artifacts/IPairW1.json                |  203 +\n contracts/w1/artifacts/Pair.json                   |  592 ++\n contracts/w1/artifacts/Router.json                 |  346 +\n contracts/w1/artifacts/Sim.json                    |  108 +\n contracts/w1/artifacts/WrappedToken.json           |  349 +\n mini-services/arbitrage/index.ts                   |  400 ++\n mini-services/arbitrage/lib.ts                     |  417 ++\n mini-services/arbitrage/package.json               |    7 +\n mini-services/arbitrage/state.json                 |  461 ++\n mini-services/market-maker/index.ts                |  246 +-\n scripts/r192b-compile.mjs                          |   47 +\n scripts/r192b-deploy.mjs                           |  170 +\n scripts/r192b-probe.mjs                            |   40 +\n scripts/r192b-simulate.mjs                         |  138 +\n scripts/r192b-tests.mjs                            |  451 ++\n scripts/revenue-census.mjs                         |   56 +\n scripts/w1-por.ts                                  |   98 +\n sovereign/businesses/business-log.jsonl            |  222 +\n sovereign/businesses/engine-state.json             |    4 +-\n sovereign/curation/comment-memory.json             |    2 +-\n sovereign/curation/history.json                    |   35 +\n sovereign/curation/state.json                      |  334 +-\n sovereign/governance/DECISION_LOG.jsonl",
+  "diffChars": 115050,
+  "diffStat": "mini-services/arbitrage/index.ts                   |  33 +-\n mini-services/dex-grid/config.json                 |  11 +\n mini-services/dex-grid/index.ts                    | 644 ++++++++++++++++++++\n mini-services/dex-grid/package.json                |   7 +\n sovereign/strategy/r193-dex-intel.md               |  60 ++\n sovereign/tmp/r193-tests.mjs                       | 112 ++++\n src/app/api/dex-grid/route.ts                      |  38 ++\n src/app/api/exchange/agent/arb/route.ts            | 172 ++++++\n src/app/api/exchange/plan/route.ts                 |  34 ++\n src/components/weave/views/defi-router-view.tsx    |   4 +\n .../weave/views/sovereign-dex-section.tsx          | 404 +++++++++++++\n src/lib/weave/dex-route-planner.ts                 | 645 +++++++++++++++++++++\n worklog.md                                         |  45 ++\n 13 files changed, 2208 insertions(+), 1 deletion(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
@@ -15,7 +15,7 @@
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 134189,
+    "totalTookMs": 134203,
     "llmCalls": 2
   }
 }

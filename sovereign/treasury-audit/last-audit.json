@@ -1,7 +1,7 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 691,
-  "at": "2026-10-04T08:16:42.904Z",
+  "seq": 715,
+  "at": "2026-10-04T10:16:42.958Z",
   "verdict": "PASS",
   "checks": [
     {
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 11 תמונות (אחרונה seq 11 בת 496 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 11 תמונות (אחרונה seq 11 בת 616 דק')",
       "numbers": {
         "entries": 11,
         "brokenAt": null,
@@ -28,30 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 5 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 4 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 5
+        "lastAgeMinutes": 4
       }
     },
     {
       "id": "ladder-floor",
       "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (3 פקודות פתוחות)",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (7 פקודות פתוחות)",
       "numbers": {
         "state": "HELD",
         "asksBelowParity": 0,
         "worstBps": 0,
         "maxDriftLossSbd": 0,
-        "ordersOpen": 3
+        "ordersOpen": 7
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (3 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (7 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -61,12 +61,12 @@
     {
       "id": "balances-drift",
       "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 14.926 · SBD 0.366 (סטייה ≤ 0.001)",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 13.971 · SBD 0.366 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 14.926,
+        "homeSteem": 13.971,
         "homeSbd": 0.366,
-        "chainSteem": 14.926,
+        "chainSteem": 13.971,
         "chainSbd": 0.366,
         "driftSteem": 0,
         "driftSbd": 0
@@ -75,12 +75,12 @@
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 9ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 11ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 9
+        "toolAgeHours": 11
       }
     }
   ],
