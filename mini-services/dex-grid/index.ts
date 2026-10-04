@@ -123,6 +123,7 @@ interface DexGridState {
   markets: Record<string, string>;
   lastError: string | null;
   configVersion: string;
+  drills: Array<{ at: string; verdict: string; fails: string }>;
 }
 
 function today(): string {
@@ -131,7 +132,8 @@ function today(): string {
 
 function initState(): DexGridState {
   return {
-    version: "1.0.0-r193",
+    version: "1.1.0-r194",
+    drills: [],
     service: "dex-grid",
     port: PORT,
     bootedAt: new Date().toISOString(),
@@ -156,6 +158,23 @@ function initState(): DexGridState {
 const G = globalThis as unknown as { __DEX_GRID_STATE__?: DexGridState };
 const state: DexGridState = G.__DEX_GRID_STATE__ ?? initState();
 G.__DEX_GRID_STATE__ = state;
+
+// r194 — שחזור-מצב מהדיסק: הפעלה-מחדש (--watch/עלייה) לא תאפס את
+// מוני-היום (ווליום/אובדן) ולא תאבד את ה-PnL המצטבר — בטיחות-L4.
+function restoreState(): void {
+  try {
+    const raw = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) as Partial<DexGridState>;
+    if (!raw || typeof raw !== "object") return;
+    if (raw.day === today()) {
+      state.ticks = Math.max(state.ticks, Number(raw.ticks ?? 0));
+      state.dailyVolumeUsd = Number(raw.dailyVolumeUsd ?? 0);
+      state.dailyLossUsd = Number(raw.dailyLossUsd ?? 0);
+      if (Array.isArray(raw.fills)) state.fills = raw.fills.slice(0, 50);
+    }
+    if (typeof raw.realizedPnlUsd === "number") state.realizedPnlUsd = raw.realizedPnlUsd;
+  } catch { /* עלייה-ראשונה — כנה */ }
+}
+restoreState();
 
 function log(msg: string): void {
   try {
@@ -220,21 +239,60 @@ async function jpost(url: string, body: unknown, ms: number): Promise<any | null
   } catch { return null; }
 }
 
+// r194 — CoinGecko עם ניסיון-חוזר אחד (מדידת-r194-b: 429→ניסיון-נוסף→200)
+// ומטמון-מוארך בהצלחה (5ד') וקצר בכישלון (45ש') — לא לשרוף-משקל.
 let geckoCache: { at: number; v: Record<string, number> | null } | null = null;
 async function coingeckoUsd(): Promise<Record<string, number> | null> {
-  if (geckoCache && Date.now() - geckoCache.at < 60_000) return geckoCache.v;
+  if (geckoCache && Date.now() - geckoCache.at < (geckoCache.v ? 300_000 : 45_000)) return geckoCache.v;
+  const pull = async (): Promise<Record<string, number> | null> => {
+    try {
+      const res = await fetch(
+        "https://api.coingecko.com/api/v3/simple/price?ids=steem,steem-dollars,hive,hive_dollar,blurt&vs_currencies=usd",
+        { cache: "no-store", signal: AbortSignal.timeout(5_000), headers: UA },
+      );
+      if (!res.ok) return null;
+      const j = (await res.json()) as Record<string, { usd?: number }>;
+      const v: Record<string, number> = {};
+      for (const [k, o] of Object.entries(j)) if (typeof o?.usd === "number") v[k] = o.usd;
+      return Object.keys(v).length ? v : null;
+    } catch { return null; }
+  };
+  let v: Record<string, number> | null = await pull();
+  if (v == null) {
+    await new Promise<void>((r) => setTimeout(r, 900));
+    v = await pull();
+  }
+  geckoCache = { at: Date.now(), v };
+  return v;
+}
+
+// r194 — גיבוי-מרכז-BLURT: SWAP.BLURT על Hive-Engine (מדידת-r194-b:
+// ווליום 2,363/24h · דו-צדדי) — מחיר-אחרון ב-SWAP.HIVE × מחיר-HIVE ב-USD.
+export function parseHeMetricsBlurtPerHive(rows: Array<Record<string, unknown>>): number | null {
+  const row = rows.find((r) => String(r?.symbol ?? "") === "SWAP.BLURT");
+  const last = Number(row?.lastPrice ?? row?.last ?? NaN);
+  return Number.isFinite(last) && last > 0 ? last : null;
+}
+
+let heBlurtCache: { at: number; priceHive: number | null } | null = null;
+async function hiveEngineBlurtPerHive(): Promise<number | null> {
+  if (heBlurtCache && Date.now() - heBlurtCache.at < 120_000) return heBlurtCache.priceHive;
+  let out: number | null = null;
   try {
-    const res = await fetch(
-      "https://api.coingecko.com/api/v3/simple/price?ids=steem,steem-dollars,hive,hive_dollar,blurt&vs_currencies=usd",
-      { cache: "no-store", signal: AbortSignal.timeout(5_000), headers: UA },
-    );
-    if (!res.ok) { geckoCache = { at: Date.now(), v: null }; return null; }
-    const j = (await res.json()) as Record<string, { usd?: number }>;
-    const v: Record<string, number> = {};
-    for (const [k, o] of Object.entries(j)) if (typeof o?.usd === "number") v[k] = o.usd;
-    geckoCache = { at: Date.now(), v: Object.keys(v).length ? v : null };
-    return geckoCache.v;
-  } catch { geckoCache = { at: Date.now(), v: null }; return null; }
+    const res = await fetch("https://api.hive-engine.com/rpc/contracts", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...UA },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "find", params: { contract: "market", table: "metrics", query: { symbol: "SWAP.BLURT" }, limit: 5, offset: 0, indexes: [] }, id: 1 }),
+      signal: AbortSignal.timeout(5_000),
+      cache: "no-store",
+    });
+    if (res.ok) {
+      const j: any = await res.json();
+      out = parseHeMetricsBlurtPerHive(Array.isArray(j?.result) ? j.result : []);
+    }
+  } catch { /* כנה */ }
+  heBlurtCache = { at: Date.now(), priceHive: out };
+  return out;
 }
 
 async function steemFeedSbdPerSteem(): Promise<{ value: number | null; source: string }> {
@@ -298,7 +356,14 @@ async function centerFor(pair: string, cfgPair: any, snapPrices: Record<string, 
   if (src === "hive-feed") return hiveFeedHbdPerHive();
   if (src === "coingecko-blurt") {
     const p = snapPrices["blurt"] ?? gecko?.blurt ?? null;
-    return p != null ? { value: p, source: "שרשרת-המחירים-הריבונית (BLURT/USD)" } : { value: null, source: "אין-מרכז-BLURT (CoinGecko-429/אין-CEX) — כנה" };
+    if (p != null) return { value: p, source: "שרשרת-המחירים-הריבונית (BLURT/USD)" };
+    // r194 — גיבוי-חי: SWAP.BLURT×HIVE מבריכת Hive-Engine (דקה — מתויגת-כך)
+    const he = await hiveEngineBlurtPerHive();
+    const hive = snapPrices["hive"] ?? gecko?.hive ?? null;
+    if (he != null && hive != null && hive > 0) {
+      return { value: he * hive, source: `SWAP.BLURT×HIVE (בריכת-HE דקה · ${he.toFixed(8)}×${hive.toFixed(6)})` };
+    }
+    return { value: null, source: "אין-מרכז-BLURT (CoinGecko-429+אין-HE) — כנה" };
   }
   return { value: null, source: `מרכז-לא-מוכר (${src})` };
 }
@@ -507,6 +572,106 @@ async function tick(): Promise<void> {
   log(`tick #${state.ticks} ok ${Date.now() - t0}ms · mode=${state.effectiveMode} · oppose=${state.oppose.active} · fills=${state.fills.length}`);
 }
 
+// ── r194 — סדרת-הדלקה (drill): הוכחת-המסלול-החי בלי-כסף ────────────────
+
+export interface DrillCheck { name: string; pass: boolean; detail: string }
+
+/** מתמטיקת-הדלקה טהורה: האם-ביצוע-התיקון בסטייה-זו מרוויח-מול-המרכז (אחרי-עמלת-בריכה). */
+export function drillPnlPositive(devBps: number, stepBps: number, side: "A2B" | "B2A" | null, amountIn: number, expectedOut: number, center: number): boolean | null {
+  if (!side || !(center > 0) || !(amountIn > 0) || !(expectedOut > 0)) return null;
+  if (Math.abs(devBps) < stepBps) return true; // בתוך-הסולם — לא-יבוצע, תקין
+  return pnlAtCenter(side, amountIn, expectedOut, center) > 0;
+}
+
+async function drill(): Promise<{ verdict: string; checks: DrillCheck[] }> {
+  const checks: DrillCheck[] = [];
+  const add = (name: string, pass: boolean, detail: string) => checks.push({ name, pass, detail });
+  const cfg = loadConfig();
+  const caps = cfg.caps ?? {};
+
+  const st = selftest();
+  add("selftest-טהור", st.ok, `${st.passed} עברו · כשלים: ${st.failed.join(",") || "אף-אחד"}`);
+  add("kill-switch", !killSwitchOn(), killSwitchOn() ? "קיים — חסימה" : "כבוי");
+  const capsSane = Number(caps.maxTxUsd ?? 0) > 0 && Number(caps.maxDailyVolumeUsd ?? 0) > 0 && Number(caps.maxDailyLossUsd ?? 0) > 0;
+  add("config-מזוין+קפסות", String(cfg.mode) === "armed" && capsSane, `mode=${String(cfg.mode)} · קפסות ${capsSane ? "תקינות" : "חסרות/אפס"}`);
+
+  const snap = await jget(EXCHANGE_URL, 6_000);
+  const pools: any[] = Array.isArray(snap?.pools) ? snap.pools : [];
+  add("דלפק-ההחלפה", !!snap?.ok && pools.length > 0, `${pools.length} בריכות · ok=${!!snap?.ok}`);
+
+  const snapPrices: Record<string, number | null> = (snap?.prices ?? {}) as Record<string, number | null>;
+  const gecko = await coingeckoUsd();
+  for (const [pair, cp] of Object.entries<any>(cfg.pairs ?? {})) {
+    if (!cp?.enabled) continue;
+    const c = await centerFor(pair, cp, snapPrices, gecko);
+    add(`מרכז ${pair}`, c.value != null && c.value > 0, `${c.value ?? "—"} (${c.source})`);
+  }
+
+  const pool = pools.find((p) => p.pair === "WSTEEM/WSBD");
+  if (pool && Number(pool.reserveA) > 0 && Number(pool.reserveB) > 0) {
+    const amountIn = Number(pool.reserveA) * 0.02; // 2% מהעומק — בתוך-הגנות
+    const q = await jget(`${EXCHANGE_URL}?with=quote&pair=WSTEEM/WSBD&side=A2B&amountIn=${amountIn}`, 6_000);
+    const out = Number(q?.quote?.expectedOut ?? NaN);
+    add("quote-חי-A2B", Number.isFinite(out) && out > 0, `${Number(amountIn).toFixed(6)} WSTEEM→${Number.isFinite(out) ? out : "—"} WSBD`);
+    const center = state.centers["WSTEEM/WSBD"]?.value ?? Number(pool.reserveB) / Number(pool.reserveA);
+    const poolMid = Number(pool.reserveB) / Number(pool.reserveA);
+    const devBps = calcDevBps(poolMid, center) ?? 0;
+    const side = decideSide(poolMid, center);
+    const stepBps = Math.round(Number(cfg.pairs?.["WSTEEM/WSBD"]?.stepPct ?? 0.006) * 1e4);
+    const pnlOk = drillPnlPositive(devBps, stepBps, side, amountIn, out, center);
+    add("PnL-תיקון-מדומה", pnlOk === true, `side=${side ?? "—"} dev=${devBps}bps · ${pnlOk == null ? "מתמטיקה-לא-חוקית" : pnlOk ? (Math.abs(devBps) < stepBps ? "בתוך-הסולם — לא-יבוצע (תקין)" : "מרוויח-מול-המרכז אחרי-עמלה") : "מפסיד — נחסם"}`);
+  } else {
+    add("quote-חי", false, "בריכת-WSTEEM אבק — הדלקה חסומה-כנה עד-הזריעה (גל-ה-convert/פאוורדאון)");
+  }
+
+  const mm = await jget(MM_STATUS_URL, 3_000);
+  add("שכן-הגריד-על-הספר (:3049)", !!mm?.ok, mm?.ok ? "חי" : "לא-עונה");
+
+  const fails = checks.filter((c) => !c.pass).map((c) => c.name);
+  const verdict = fails.length === 0 ? "ready" : "blocked";
+  state.drills.unshift({ at: new Date().toISOString(), verdict, fails: fails.join(",") || "—" });
+  if (state.drills.length > 5) state.drills.length = 5;
+  return { verdict, checks };
+}
+
+async function igniteReport(): Promise<Record<string, unknown>> {
+  const cfg = loadConfig();
+  const snap = await jget(EXCHANGE_URL, 6_000);
+  const pools: any[] = Array.isArray(snap?.pools) ? snap.pools : [];
+  const wsteemPool = pools.find((p) => p.pair === "WSTEEM/WSBD");
+  const depth = Number(wsteemPool?.depthUsd ?? 0);
+  const threshold = Number(cfg.arm?.minPoolDepthUsd ?? 20);
+  const st = selftest();
+  const reasons: string[] = [];
+  if (killSwitchOn()) reasons.push("kill-switch פעיל");
+  if (String(cfg.mode) !== "armed") reasons.push(`mode=${String(cfg.mode)} (דרוש armed)`);
+  if (!(depth >= threshold)) reasons.push(`עומק-בריכה ${depth.toFixed(4)}$ < סף-זריעה ${threshold}$ (ממתין-לגל-ה-convert/פאוורדאון)`);
+  if (!st.ok) reasons.push("selftest נכשל");
+  if (!snap?.ok) reasons.push("דלפק-ההחלפה לא-חי");
+  if (state.centers["WSTEEM/WSBD"]?.value == null) reasons.push("אין-מרכז WSTEEM/WSBD");
+  return {
+    ok: true,
+    at: new Date().toISOString(),
+    ready: reasons.length === 0,
+    reasons,
+    ignitionChain: {
+      configMode: cfg.mode,
+      depthUsd: Math.round(depth * 1e4) / 1e4,
+      thresholdUsd: threshold,
+      autoFlip: "armed + depth≥סף → live אוטומטי בפעימה הבאה — ללא-יד-אנושית",
+      fuelSources: ["גל-ה-convert (~1,266 STEEM בתור-ההמרות)", "שרשרת stream: פאוורדאון→20% לעומק", "שרשרת sbd-mint: מילויים→עטיפה→הטבעה"],
+      lastDrill: state.drills[0] ?? null,
+    },
+    receiveAddresses: {
+      steem: "headcorner",
+      hive: "headcorner",
+      blurt: "headcorner",
+      tron: "TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy",
+      note: "כתובות-קבלה ציבוריות — הראוטר מקבל בכל רשת ומחליף דרך דלפק-הזירה (/api/exchange/plan)",
+    },
+  };
+}
+
 // ── selftest — טהור, אפס-רשת ─────────────────────────────────────────
 
 function selftest(): { ok: boolean; passed: number; failed: string[] } {
@@ -537,19 +702,28 @@ function selftest(): { ok: boolean; passed: number; failed: string[] } {
   t("קפסה-יומי", capSizeUsd(5, { maxTxUsd: 2, maxDailyVolumeUsd: 20 }, 19) === 1);
   t("קפסה-מותשת", capSizeUsd(5, { maxTxUsd: 2, maxDailyVolumeUsd: 20 }, 20) === 0);
   t("קפסה-שלילי-אפס", capSizeUsd(5, { maxTxUsd: 2, maxDailyVolumeUsd: 20 }, 25) === 0);
+  // r194 — מתמטיקת-ההדלקה וגיבוי-BLURT
+  t("drill-מרוויח-מעל-צעד", drillPnlPositive(100, 60, "A2B", 1, 0.100697, 0.1) === true);
+  t("drill-בתוך-הסולם-תקין", drillPnlPositive(30, 60, "A2B", 1, 0.1, 0.1) === true);
+  t("drill-מפסיד-נחסם", drillPnlPositive(200, 60, "A2B", 1, 0.1, 0.101) === false);
+  t("drill-null-בלי-צד", drillPnlPositive(100, 60, null, 1, 0.1, 0.1) == null);
+  t("blurt-HE-parse", parseHeMetricsBlurtPerHive([{ symbol: "SWAP.BLURT", lastPrice: "0.01747165" }, { symbol: "X" }]) === 0.01747165);
+  t("blurt-HE-parse-ריק", parseHeMetricsBlurtPerHive([]) == null);
+  t("blurt-HE-parse-שלילי-נפסל", parseHeMetricsBlurtPerHive([{ symbol: "SWAP.BLURT", lastPrice: "-1" }]) == null);
 
   return { ok: failed.length === 0, passed, failed };
 }
 
 // ── שרת ──────────────────────────────────────────────────────────────
 
-function handle(req: Request): Response {
+async function handle(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const p = url.pathname.replace(/\/+$/, "") || "/";
   if (p === "/" || p === "/status") {
     return Response.json({
       ok: true,
       service: "dex-grid",
+      version: state.version,
       port: PORT,
       mode: state.effectiveMode,
       configMode: String(loadConfig().mode ?? "?"),
@@ -569,6 +743,7 @@ function handle(req: Request): Response {
       markets: state.markets,
       lastError: state.lastError,
       configVersion: state.configVersion,
+      drills: state.drills,
       caps: loadConfig().caps ?? null,
     });
   }
@@ -612,10 +787,18 @@ function handle(req: Request): Response {
     const r = selftest();
     return Response.json({ ...r, at: new Date().toISOString() }, { status: 200 });
   }
-  return Response.json({ ok: false, error: "not-found", endpoints: ["/status", "/grid", "/fills?n=", "/pnl", "/selftest"] }, { status: 404 });
+  if (p === "/drill") {
+    const d = await drill();
+    persist();
+    return Response.json({ ok: true, version: state.version, ...d, checks: d.checks }, { status: 200 });
+  }
+  if (p === "/ignite") {
+    return Response.json(await igniteReport(), { status: 200 });
+  }
+  return Response.json({ ok: false, error: "not-found", endpoints: ["/status", "/grid", "/fills?n=", "/pnl", "/selftest", "/drill", "/ignite"] }, { status: 404 });
 }
 
-// ── עלייה ────────────────────────────────────────────────────────────
+// ── עלייה (r194: מגן-עלייה — reload חם לא מכפיל פעימות/שרתים) ────────
 
 try {
   const cfg = loadConfig();
@@ -635,10 +818,16 @@ const B = globalThis as unknown as {
   };
 };
 
-B.Bun?.serve({ port: PORT, hostname: "127.0.0.1", fetch: handle });
-log(`dex-grid up :${PORT} · mode=${state.effectiveMode} · r193 — הגריד-המתנגד על הרשת שלנו`);
+const BOOT = globalThis as unknown as { __DEX_GRID_BOOTED__?: boolean };
+if (BOOT.__DEX_GRID_BOOTED__) {
+  log("boot-guard: המודול נטען-שנית — המנוע כבר-רץ, לא מכפיל-פעימות (r194 — תיקון-ה-TypeError המוערם)");
+} else {
+  BOOT.__DEX_GRID_BOOTED__ = true;
+  B.Bun?.serve({ port: PORT, hostname: "127.0.0.1", fetch: handle });
+  log(`dex-grid up :${PORT} · mode=${state.effectiveMode} · ${state.version} — הגריד-המתנגד על הרשת שלנו`);
 
-const timer = setInterval(() => { void tick().catch((e) => { state.lastError = String(e).slice(0, 200); log(`tick ERR: ${e}`); persist(); }); }, TICK_MS);
-timer.unref?.();
+  const timer = setInterval(() => { void tick().catch((e) => { state.lastError = String(e).slice(0, 200); log(`tick ERR: ${e}`); persist(); }); }, TICK_MS);
+  timer.unref?.();
 
-void tick().catch((e) => { state.lastError = String(e).slice(0, 200); log(`first-tick ERR: ${e}`); });
+  void tick().catch((e) => { state.lastError = String(e).slice(0, 200); log(`first-tick ERR: ${e}`); });
+}

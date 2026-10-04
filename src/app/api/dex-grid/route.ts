@@ -13,7 +13,7 @@ const GRID_URL = "http://127.0.0.1:3051";
 
 export async function GET(req: NextRequest) {
   const sub = (new URL(req.url).searchParams.get("with") ?? "status").replace(/[^a-z]/g, "");
-  const path = sub === "grid" ? "/grid" : sub === "pnl" ? "/pnl" : "/status";
+  const path = sub === "grid" ? "/grid" : sub === "pnl" ? "/pnl" : sub === "drill" ? "/drill" : sub === "ignite" ? "/ignite" : sub === "selftest" ? "/selftest" : "/status";
   try {
     const res = await fetch(`${GRID_URL}${path}`, {
       cache: "no-store",

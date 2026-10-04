@@ -18,7 +18,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowRightLeft, Bot, Radar, Route as RouteIcon, Split, Waypoints } from "lucide-react";
+import { ArrowRightLeft, Bot, Flame, Radar, Route as RouteIcon, Split, Waypoints } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -87,6 +87,18 @@ interface ArbResponse {
   caps: { perTxUsd: number; dailyUsd: number; minNotionalUsd: number; feeBps: number };
   markets: string; note: string;
 }
+
+interface IgniteResponse {
+  ok: boolean; at: string; ready: boolean; reasons: string[];
+  ignitionChain: {
+    configMode: string; depthUsd: number; thresholdUsd: number;
+    autoFlip: string; fuelSources: string[];
+    lastDrill: { at: string; verdict: string; fails: string } | null;
+  };
+  receiveAddresses: { steem: string; hive: string; blurt: string; tron: string; note: string };
+}
+interface DrillCheck { name: string; pass: boolean; detail: string }
+interface DrillResponse { ok: boolean; verdict: string; checks: DrillCheck[] }
 
 function bps(v: number | null | undefined): string {
   if (v == null || !Number.isFinite(v)) return "—";
@@ -381,19 +393,117 @@ function AgentArbPanel() {
   );
 }
 
+// ── כוננות-ההדלקה (r194) ────────────────────────────────────────────
+
+function IgnitePanel() {
+  const [ignite, setIgnite] = useState<IgniteResponse | null>(null);
+  const [drill, setDrill] = useState<DrillResponse | null>(null);
+  const [drilling, setDrilling] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dex-grid?with=ignite", { cache: "no-store" });
+      setIgnite((await res.json()) as IgniteResponse);
+    } catch (e) { setErr(String((e as Error)?.message ?? e).slice(0, 100)); }
+  }, []);
+
+  useEffect(() => {
+    const kick = setTimeout(() => void load(), 0);
+    return () => clearTimeout(kick);
+  }, [load]);
+
+  const runDrill = useCallback(async () => {
+    setDrilling(true);
+    setDrill(null);
+    try {
+      const res = await fetch("/api/dex-grid?with=drill", { cache: "no-store" });
+      setDrill((await res.json()) as DrillResponse);
+      void load();
+    } catch (e) { setErr(String((e as Error)?.message ?? e).slice(0, 100)); }
+    finally { setDrilling(false); }
+  }, [load]);
+
+  if (err) return <p className="text-xs text-destructive">{err}</p>;
+  if (!ignite) return <div className="h-20 animate-pulse rounded-lg bg-muted/40" />;
+  const ic = ignite.ignitionChain;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Flame className="h-4 w-4 text-orange-500" aria-hidden />
+        <p className="text-xs font-semibold">כוננות-ההדלקה — מחר-הכסף-נוחת, המנוע-מזוין</p>
+        <Badge variant="outline" className={`text-[10px] ${ignite.ready ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"}`}>
+          {ignite.ready ? "מוכן-להדלקה" : "ממתין-לזריעה"}
+        </Badge>
+        <Button size="sm" variant="outline" onClick={() => void runDrill()} disabled={drilling} className="h-7 text-[11px]">
+          {drilling ? "מריץ-סדרה…" : "סדרת-הדלקה יבשה"}
+        </Button>
+      </div>
+      {ignite.reasons.length > 0 && (
+        <ul className="space-y-0.5 text-[11px] text-muted-foreground">
+          {ignite.reasons.map((r, k) => <li key={k}>· חוסם: {r}</li>)}
+        </ul>
+      )}
+      <div className="flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+        <Badge variant="outline" className="font-mono text-[10px]">מצב: {ic.configMode}</Badge>
+        <Badge variant="outline" className="font-mono text-[10px]">עומק: ${ic.depthUsd} / סף: ${ic.thresholdUsd}</Badge>
+        {ic.lastDrill && (
+          <Badge variant="outline" className={`text-[10px] ${ic.lastDrill.verdict === "ready" ? "border-emerald-500/40 text-emerald-700 dark:text-emerald-400" : "border-amber-500/40"}`}>
+            סדרה-אחרונה: {ic.lastDrill.verdict} ({ic.lastDrill.at.slice(11, 19)})
+          </Badge>
+        )}
+      </div>
+      <p className="text-[11px] text-muted-foreground">{ic.autoFlip}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {ic.fuelSources.map((f, k) => (
+          <Badge key={k} variant="outline" className="text-[10px] border-orange-500/30 bg-orange-500/5">דלק: {f}</Badge>
+        ))}
+      </div>
+      <div className="rounded-md border bg-muted/30 p-2.5">
+        <p className="text-[11px] font-semibold">כתובות-קבלה — הראוטר מקבל בכל רשת ומחליף דרך הזירה</p>
+        <div className="mt-1 flex flex-wrap gap-1.5" dir="ltr">
+          {(["steem", "hive", "blurt"] as const).map((c) => (
+            <Badge key={c} variant="outline" className="font-mono text-[10px]">{c}: {ignite.receiveAddresses[c]}</Badge>
+          ))}
+          <Badge variant="outline" className="font-mono text-[10px] max-w-72 truncate" title={ignite.receiveAddresses.tron}>tron: {ignite.receiveAddresses.tron}</Badge>
+        </div>
+      </div>
+      {drill && (
+        <Card className="bg-muted/30"><CardContent className="p-3 space-y-1">
+          <div className="flex items-center gap-2">
+            <Badge variant={drill.verdict === "ready" ? "default" : "destructive"} className="text-[10px]">סדרה: {drill.verdict}</Badge>
+            <p className="text-[11px] text-muted-foreground">{drill.checks.filter((c) => c.pass).length}/{drill.checks.length} בדיקות עברו</p>
+          </div>
+          <div className={`space-y-0.5 ${scrollBoxClass} max-h-44`}>
+            {drill.checks.map((c, k) => (
+              <p key={k} className={`text-[11px] ${c.pass ? "text-muted-foreground" : "text-destructive"}`}>
+                {c.pass ? "✓" : "✗"} {c.name}: {c.detail}
+              </p>
+            ))}
+          </div>
+        </CardContent></Card>
+      )}
+    </div>
+  );
+}
+
 // ── ה-section המלא ───────────────────────────────────────────────────
 
 export function SovereignDexSection() {
   return (
     <FadeIn className="mt-10">
       <Section
-        title="ה-DEX הריבוני — ראוטר-עומק · גריד-מתנגד · ארביטראז-רישתי (r193)"
-        description="מתכנן-מסלולים רב-רגלי על כל הנכסים (בריכות + פגי-פדיון-אמת + ספרי-Steem/Hive + תור-ההמרות), הגריד-המתנגד על בריכות-הרשת שלנו שמטה את צדו מול סקיו-ספר-השרשרת, ופלייבוק-ארביטראז לסוכנים דרך שער ERC-8004+x402. הכול מדידות-חיות בכנות — אין-עומק-מדומה, אין-פדיון-שקר."
+        title="ה-DEX הריבוני — ראוטר-עומק · גריד-מתנגד · ארביטראז-רישתי (r194)"
+        description="מתכנן-מסלולים רב-רגלי על כל הנכסים (בריכות + פגי-פדיון-אמת + ספרי-Steem/Hive + תור-ההמרות), הגריד-המתנגד מזוין-וממתין-לדלק (הדלקה-אוטומטית כשהעומק-נוחת), שוק-ארביטראז לסוכנים דרך שער ERC-8004+x402, מניפסט-MCP לסוכני-AI (/api/exchange/mcp), וכוננות-הדלקה חיה. הכול מדידות-חיות בכנות — אין-עומק-מדומה, אין-פדיון-שקר."
         icon={<RouteIcon />}
       >
         <PlanPanel />
         <div className="mt-4">
           <CounterGridPanel />
+        </div>
+        <div className="mt-4">
+          <IgnitePanel />
         </div>
         <div className="mt-4">
           <AgentArbPanel />

@@ -7255,3 +7255,71 @@ Stage Summary:
 - **שוק-הארביטראז-הרישתי לסוכנים חי: פלייבוק-מבוצע-דרך-שער-ERC-8004+x402 — "סוחרים-גם-פה-וגם-שם": הגלאי-מוצא, הסוכנים-מבצעים-את-רגל-הרשת-שלנו, הריבון-מבצע-את-רגלי-השרשרת-דרך-מנועיו.**
 - כנות-מלאה: בריכות-האבק-מדווחות-את-עצמן (מחזורים-פנימיים-שליליים-מפורסמים); אין-נזילות-מדומה, אין-פדיון-שקר; הדלק-המתוכנן (גל-ה-convert ~1,266-STEEM + פאוורדאון) הוא-הזריעה — המכונה-כולה-מאומתת-וממתינה.
 - ארטיפקטים: dex-route-planner.ts · /api/exchange/plan · /api/exchange/agent/arb · /api/dex-grid · sovereign-dex-section.tsx · mini-services/dex-grid (:3051) · גלאי-+Blurt · r193-dex-intel.md · r193-tests.mjs (40/40).
+
+---
+Task ID: r194-b
+Agent: general-purpose (live measurements)
+Task: מדידות-חיות r194-b
+
+Work Log:
+- נקרא worklog (זנב-100) + sovereign/strategy/r193-dex-intel.md §6 (מפת-המדידות-החוזרת) — הריצה-הזאת היא טרייה-מלאה, 2026-10-04T10:59–11:05Z, keyless/קריאה-בלבד, timeout 6–7ש', ניסיון-אחד-לכל-קריאה.
+- **M1 BLURT/SBD-מקורות-מחיר**: CoinPaprika ticker blurt-blurt→404 (search: id-קיים, is_active:false, BEP20 0xb045…7dcc) · sbd-steem-dollars→is_active:false/404 · CryptoCompare BLURT/SBD/STEEM→**401 "API key required" (מדיניות-השתנתה מאז-r193)** · CoinCap v2→אין-חיבור (שירות-נפל) · MEXC/Poloniex/Binance BLURT→400 אין-רישום · Coinlore→לא-קיים · DexScreener-BEP20→pairs:null · GeckoTerminal-BEP20→טוקן-קיים, price:null, reserve-$31.46-אבק.
+- **CoinGecko-נפתח-בחלון-זה** (הראשון-429-כנה, ריטרי-אחד→200): **BLURT $0.00130526 · SBD $0.600405 · STEEM $0.063274 · HIVE $0.05633** — המקור-היחיד-החי-למרכז-BLURT; חציית-אימות: paprika-STEEM-פעיל ($0.06330) → גזירת-SBD = 0.06330÷0.10410 = **$0.608** (Δ1.3% מ-CG) · paprika-HIVE-פעיל ($0.05628).
+- **M2 ספר-Steem** (api.steemit.com): פיד 0.10410 SBD/STEEM (58.269M/559.747M — זהה-ל-r193) · spread **417.6bps** · top-5: bids 3,934.8-STEEM/393.7-SBD מול asks **65.8-STEEM/6.9-SBD** (סקיו-מכירות-חמור-מ-baseline) · get_volume 2,408.3-STEEM/247.6-SBD.
+- **M2 ספר-Hive** (api.hive.blog): פיד 0.056 HBD/HIVE · spread **15.5bps** (bid 0.056202/ask 0.056290) · top-5: bids 154.4-HIVE/8.7-HBD, asks 452.2-HIVE/25.5-HBD · get_volume 9,016.9-HIVE/507.5-HBD — עדיין-הספר-הנושם-היחיד.
+- **M3 Hive-Engine** (market.metrics, 200-שווקים): Σ-ווליום-כפי-שדווח (יחידות-מעורבות) **39,146.6** (מול 33.4K ב-r193) · top: DEC 12,507 · SWAP.LTC 9,491 · SWAP.BTC 3,503 · **SWAP.BLURT 2,363.7** · BEE 1,791.8 · SWAP.HBD 986.9 · SWAP.STEEM 504.5 · **SWAP.BLURT bid 0.01747396/ask 0.01748521 HIVE** (~0.6bps-נומינלית) — מחיר-BLURT-החי-היחיד-על-הרשתות · SWAP.HIVE-אין-שורת-metrics (שלילה-נמדדת) · SWAP.HBD 17.67-HIVE ↔ פיד-17.86-עקבי.
+- **M4 TRON** (trongrid, keyless, הכתובת-הציבורית-מה-worklog — לא-נגעו-בקבצי-מפתחות): TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy → **2.000002 TRX · trc20:[] (אפס-USDT)**.
+- **M4 Gateway 127.0.0.1:3000 (קריאה-בלבד)**: /api/health→200 (account cashmachine · headBlock **110,144,185** · db-23-טבלאות · כל-הבדיקות-ok) · /api/sovereign→timeout>6ש' — דולג-בכנות · Zero-9369-דולג-לפי-הנחיה (אין-שער-חי-חדש-לבדוק-מעבר-ל-r192-b).
+- תוצר: **sovereign/strategy/r194-measurements.md** (44-שורות, עברית, כל-טענה-מדודה) + דאמפים/סקריפטים ב-sovereign/tmp: r194b-m1..m5.mjs · r194b-prices.json · r194b-prices-extra.json · r194b-prices-dex.json · r194b-center.json · r194b-coingecko-retry.json · r194b-steem-book.json · r194b-hive-book.json · r194b-hive-engine.json · r194b-tron.json · r194b-gateway.json.
+- אפס-שינוי-קוד · אפס-שידורים · אפס-restart · אפס-סודות (שום-גישה-ל-vault).
+
+Stage Summary:
+- **מרכז-BLURT-להמרעת-WBLURT/USDS נמצא: CoinGecko-חי ($0.00130526) — המקור-היחיד-שעובד-keyless; CryptoCompare-נשבר-ל-API-key, Paprika-משבית-BLURT/SBD, CoinCap-מת, אין-CEX-רישום; גזירת-חירום: SWAP.BLURT(0.017472-HIVE)×paprika-HIVE($0.05628)≈$0.00098 (Δ~25% — ספר-דק).**
+- **הצלבה-פיננסית-עקבית: SBD-מוסח ~$0.60 (CG 0.6004 ↔ גזירה-מהפיד 0.608, Δ1.3%) — לא-$1; ייחוס-USDS=L5-מחויב.**
+- **ספר-Steem: 417.6bps-וסקיו-מכירות-עומק (asks-$6.9 בלבד ב-top-5) — L3-SKEW-HALT-צודק, ה-convert-ינחת-על-ספר-ריק-ממכירות → הגריד-שלנו-הוא-הנזילות · ספר-Hive-נושם-ב-15.5bps.**
+- **Hive-Engine-התעורר-מעט (Σ39.1K) ו-SWAP.BLURT-עם-ווליום-אמיתי 2,363.7 — מקור-הצלבה-ויעד-גריד-שני-אפשרי · TRON-ריק (2-TRX, אפס-USDT) — רגל-TRC-20-דורשת-זריעת-גז-קודם.**
+---
+Task ID: r194-a
+Agent: general-purpose (web research)
+Task: גל-שאילתות רשת r194-a
+
+Work Log:
+- נקרא worklog (זנב-160) + sovereign/strategy/r193-dex-intel.md (61-ש') + README של z-ai-web-dev-sdk (פונקציות web_search ו-page_reader מאומתות מהדוק).
+- נכתב והורץ sovereign/tmp/r194a-search.mjs: 7-שאילתות-החובה (v4-hooks · 1inch-Fusion-MCP · x402 · ERC-7683 · Hive-DEX · Blurt · grid-AMM) × 3-ניסיונות עם-השהיה-גדלה (2s/4s) — **21/21 ניסיונות נדחו 429-מיידי (4–32ms)**, 10:58:47–10:59:36Z.
+- נפילה-לגיבוי לפי-ההנחיה: sovereign/tmp/r194a-reader.mjs על 6-כתובות-קנון (docs.uniswap.org/hooks · docs.1inch.io/fusion · x402.org · eips.ethereum.org/EIP-7683 · docs.steer.finance · docs.cow.fi/intents) × 3-ניסיונות — **18/18 נדחו 429-מיידי**, 11:01:39–11:02:21Z.
+- בדיקת-ביקורת-סופית: sovereign/tmp/r194a-final-probe.mjs אחרי-צינון-180ש' — web_search+page_reader שוב 429 (~11:06Z). סה"כ **42-ניסיונות-כנים · 0-הצלחות** — שני-הערוצים-מתים-גל-שני-ברציפות; עצירה-לפי-ההנחיה "שניים-נכשלו → רושמים-בכנות-ועוצרים".
+- נכתב הארטיפקט sovereign/strategy/r194-web-intel.md (30-ש', עברית): אפס-טענות-תוכן-רשת-חדשות (אף-URL-לא-נשלף-בגל-זה) · הקנון-העומד נשאר r193-dex-intel.md (URLs-שנשלפו-שם-בלבד) · המשמעות-לראוטר: אין-אותות-חדשים ⇒ אין-שינוי-החלטות; סטטיסטיקות-x402-מ-r193 מזדקנות ודורשות-ניכוס-גיל · ערוץ-המודיעין-המוכח-היחיד הוא מדידות-RPC-ישירות (ר193 §6) · סיכונים: עיוורון-מודיעיני-מצטבר, תלות-שער-יחידה (web_search+page_reader מאותו-שער).
+- ראיות-גולמיות הועתקו ל-sovereign/tmp/ (r194a-search-results.json · r194a-reader-results.json · r194a-final-probe.json) — כל-ניסיון עם-חותמת-זמן-ומשך-מילי-שניות.
+- אפס-שינויי-קוד-במקורות · אפס-הקמות/ריסטרטים · אפס-שידורים · קריאות-keyless בלבד · לא נגעו בקבצי-כספת או סודות.
+
+Stage Summary:
+- **web-search נכשל-שוב-כנה: 42/42 ניסיונות 429 (כולל page_reader ובדיקת-צינון-180ש') — השבתת-ערוץ-הרשת היא עתה מצב-מתמשך-של-שני-גלים, לא תקלה-רגעית; תוצאה-זו רשומה-כנה כתוצר-תקף של הגל.**
+- **ארטיפקט: sovereign/strategy/r194-web-intel.md — אפס-טענות-תוכן-חדשות בכוונה (כל-טענה-בלי-שליפה-בפועל = אסור); בסיס-החלטות מוצהר: עד-חזרת-הערוץ, מודיעין-חדש יתקבל רק-ממדידה-ישירה-keyless.**
+- **סקריפטי-בדיקה-חוזרת מוכנים (r194a-search/reader/final-probe .mjs) — גל-מודיעין-הבא יריץ אותם קודם (דקה) וב-429 יעבור מיד למדידות-RPC — חוסך בזבוז-ניסיונות ומונע-המצאת-תוכן.**
+- סיכון-מרכזי-שנרשם: ההחלטות-האסטרטגיות (ראוטר-סוכנים-על-עורק-x402 · EIP-7683-ראוטינג) נשענות על מודיעין-מ-r193 שלא-ניתן-לאימות-מחדש — לא-לקחת-החלטות-מבניות-על-בסיסו בלבד.
+
+---
+Task ID: r194
+Agent: main (Z.ai — lead engineer) + r194-a (web) + r194-b (measurements)
+Task: גל-DEX r194 (trace 1a1068761637cf9d) — זרוע · מרכז-BLURT-חי · סדרת-הדלקה · כוננות · מניפסט-MCP
+
+Work Log:
+- **LOOP-9 fetch**: אותרו-פגמים-חיים ב-dex-grid :3051 — (1) TypeError חוזר `snapPrices.steem` מסגרי-r192 שהוערמו באותו-תהליך דרך bun --hot (פעימות-מרובות-בתהליך-אחד) (2) מרכז-WBLURT/USDS=null (CoinGecko-429) (3) mode=dry בלי-הזרעה-מתוכננת.
+- **r194-a (מחקר)**: web_search+page_reader 42-ניסיונות-כנים — 429-מתמשך בגל-שני (evidence: r194a-*.json); בסיס-r193-ממשיך-לעמוד; סקריפטים-לשימוש-חוזר. תוצר: sovereign/strategy/r194-web-intel.md.
+- **r194-b (מדידות-חי)**: CoinGecko נפתח — BLURT=$0.00130526 · SBD=$0.6004 · STEEM=$0.0633 · HIVE=$0.0563; CryptoCompare=401-חדש; ספר-Hive-נושם 15.5bps; ספר-Steem 417bps-רעב-למוכרים; HE: SWAP.BLURT-ווליום 2,363/24h; TRON-ארנק: 2-TRX/אפס-USDT. תוצר: sovereign/strategy/r194-measurements.md + 10-דמפים.
+- **דיבון-dex-grid v1.1.0-r194**: (1) מגן-עלייה `__DEX_GRID_BOOTED__` — reload-חם לא-מכפיל-פעימות (תיקון-שורש-ה-TypeError) (2) שחזור-מצב-מהדיסק — עלייה-מחדש לא-מאפסת מוני-יום/אובדן (בטיחות-L4) (3) CoinGecko-ניסיון-חוזר+מטמון-5ד (4) גיבוי-מרכז-BLURT: SWAP.BLURT×HIVE מ-Hive-Engine (parseHeMetricsBlurtPerHive) (5) **/drill** — סדרת-הדלקה יבשה 10-בדיקות (selftest+kill+קפסות+דלפק+מרכזים+quote-חי+PnL-מדומה+שכן-:3049) (6) **/ignite** — דוח-כוננות: חוסם-יחיד-כנה=עומק $0.0253<$20 + שרשרת-דלק + כתובות-קבלה (steem/hive/blurt=headcorner · tron=TYVw…) (7) selftest-מורחב 23→30.
+- **הזרוע**: config.json mode=dry→**armed** — הדלקה-אוטומטית כשעומק-הבריכה חוצה $20 (גל-ה-convert ~1,266-STEEM + פאוורדאון — זריעת-r192). קפסות-L4-קשות-ללא-שינוי ($2/tx · $20/יום · אובדן $1 · ספרד-1%).
+- **הפעלה-מחדש-נקייה**: תהליך-יחיד (הישן-חוסל; --watch→index.ts-ישיר) · fix: handle→async (drill/ignite-ממתינים).
+- **מניפסט-MCP** /api/exchange/mcp: 6-כלים (quote/plan/arb/grid/ignite/drill) + כתובות-קבלה + חוקי-כנות L1/L3/L4/L5 — דפוס-1inch "AI-ready", מודיעין-r193 §4.2-מוגש.
+- **חזית**: IgnitePanel-חדש ב-sovereign-dex-section (כוננות+סדרה-בלחיצה+כתובות) · proxy-:3051 הורחב (drill/ignite/selftest) · כותרת-r194.
+- **תיקונים-עצמיים-שתפסו-הבדיקות**: שורת-ניסיון-חוזר-מסובכת→נכתבה-מחדש-פשוטה · handle-סינכרוני-חסם-await→async · שדה-version-חסר-ב-/status→נוסף.
+- **שרת-dev**: Turbopack-קאש-הושחת (קבצי-.sst-חסרים משני-מופעים-מתחרים) → rm-.next + העלאה-יחידה-נקייה.
+- **בדיקות**: sovereign/tmp/r194-tests.mjs — **28/28-PASS** (גרסה·armed·אפס-שגיאות·מרכז-BLURT-חי-0.00130526·selftest-30·drill-ready-10/10·quote-חי·PnL-חיובי-מול-מרכז·ignite-כנה·proxy·MCP-6-כלים·רגרסיות-plan/arb·שחזור-ticks-1010+) · lint-נקי.
+- **דפדפן-חי**: נתיבי-DeFi→ה-DEX-הריבוני-מוצג · לחיצת-סדרת-הדלקה→**"סדרה: ready"**-חי-בממשק · מרכזי-פאריטה-שניהם-חיים · אפס-שגיאות-קונסולה · צילומים r194-dex-*.png.
+
+Stage Summary:
+- **הגריד-המתנגד מזוין-מלא**: מחר-כשגל-ה-convert/הפאוורדאון-נוחתים-על-הבריכות — הדלקה-אוטומטית-בפעימה-הבאה-בלי-יד-אנושית; סדרת-ההדלקה-הוכיחה-את-המסלול-החי-כולו (quote→PnL-חיובי-מול-מרכז-ב-dev-567bps).
+- **העיניים-נפתחו**: מרכז-BLURT-חי (CoinGecko-נפתח · גיבוי-SWAP.BLURT×HIVE) — הגריד-השני-כבר-לא-עיוור; גם-בריכת-WBLURT-מדווחת-עצמה-כאבק-כנה.
+- **ה-DEX-פתוח-לסוכני-AI**: מניפסט-MCP-ראשון-על-הפסים — quote/plan/arb/כוננות/סדרה + כתובות-קבלה-לכל-רשת (ראוטר-מקבל-בכל-פס).
+- כנות-מלאה: /ignite מציג-את-החוסם-היחיד-בלבד (עומק) · drill-blocked-כשהדלפק-נופל (נמדד-בשרת-dev-שנפל-ותוקן) · אפס-שידורי-כסף-בגל-זה · אפס-סודות-נגעו · web-429-מתועד-כנה-בגל-שני.
+- ארטיפקטים: mini-services/dex-grid/index.ts-v1.1.0-r194 · config-armed · /drill+/ignite · src/app/api/exchange/mcp/route.ts · IgnitePanel · r194-tests.mjs (28/28) · r194-web-intel.md · r194-measurements.md.
