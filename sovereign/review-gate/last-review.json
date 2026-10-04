@@ -1,50 +1,21 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-04T00:42:17.115Z",
+  "at": "2026-10-04T00:42:54.949Z",
   "source": "push-range",
-  "diffChars": 545994,
-  "diffStat": ".github/workflows/gitleaks.yml                 |   33 +-\n console-live                                   |    1 +\n sovereign/brain-restore-report.json            |    2 +-\n sovereign/businesses/brief-log.jsonl           |    1 +\n sovereign/businesses/business-log.jsonl        |  123 +\n sovereign/businesses/engine-state.json         |   12 +-\n sovereign/businesses/feed-metrics.json         |    4 +-\n sovereign/businesses/registry.json             |    2 +-\n sovereign/curation/comment-memory.json         |    2 +-\n sovereign/curation/history.json                |   35 +\n sovereign/curation/state.json                  |  271 +-\n sovereign/economy/pnl-snapshots.json           |  109 +-\n sovereign/governance/DECISION_LOG.jsonl        |    7 +\n sovereign/governance/cycle-state.json          |   26 +-\n sovereign/governance/daemon-state.json         |   12 +-\n sovereign/governance/econ-gate.jsonl           |    7 +\n sovereign/governance/loop-state.json           |   26 +-\n sovereign/hunter/state.json                    |   82 +-\n sovereign/income/daily-2026-10-04.json         |   86 +\n sovereign/keeper/fleet-guard-state.json        |   40 +-\n sovereign/keeper/housekeeping.json             |    2 +-\n sovereign/keeper/revival-sweep.json            |   30 +-\n sovereign/keeper/state.json                    |  228 +-\n sovereign/kpi/state.json                       |    2 +-\n sovereign/ledger.json                          |    2 +-\n sovereign/money/history.json                   |  386 +-\n sovereign/money/pnl-scan.json                  |   69 +-\n sovereign/money/state.json                     |   34 +-\n sovereign/pulse/state.json                     |   24 +-\n sovereign/reports/ecosystem-dup-latest.json    |  810 +--\n sovereign/review-gate/last-review.json         |   28 +-\n sovereign/see/r188-ladder-deployed.png         |  Bin 0 -> 3420 bytes\n sovereign/student/state.json                   | 7228 ++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json |   34 +-\n",
+  "diffChars": 508496,
+  "diffStat": "sovereign/businesses/brief-log.jsonl           |    1 +\n sovereign/businesses/business-log.jsonl        |  123 +\n sovereign/businesses/engine-state.json         |   12 +-\n sovereign/businesses/feed-metrics.json         |    4 +-\n sovereign/businesses/registry.json             |    2 +-\n sovereign/curation/comment-memory.json         |    2 +-\n sovereign/curation/history.json                |   35 +\n sovereign/curation/state.json                  |  271 +-\n sovereign/economy/pnl-snapshots.json           |  109 +-\n sovereign/governance/DECISION_LOG.jsonl        |    7 +\n sovereign/governance/cycle-state.json          |   26 +-\n sovereign/governance/daemon-state.json         |   12 +-\n sovereign/governance/econ-gate.jsonl           |    7 +\n sovereign/governance/loop-state.json           |   26 +-\n sovereign/hunter/state.json                    |   82 +-\n sovereign/income/daily-2026-10-04.json         |   86 +\n sovereign/keeper/fleet-guard-state.json        |   40 +-\n sovereign/keeper/housekeeping.json             |    2 +-\n sovereign/keeper/revival-sweep.json            |   30 +-\n sovereign/keeper/state.json                    |  262 +-\n sovereign/kpi/state.json                       |    2 +-\n sovereign/money/history.json                   |  386 +-\n sovereign/money/pnl-scan.json                  |   69 +-\n sovereign/money/state.json                     |   34 +-\n sovereign/pulse/state.json                     |   24 +-\n sovereign/review-gate/last-review.json         |   43 +-\n sovereign/see/r188-ladder-deployed.png         |  Bin 0 -> 99994 bytes\n sovereign/student/state.json                   | 7228 ++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-03.json |   34 +-\n sovereign/treasury-audit/audit-2026-10-04.json |   93 +\n sovereign/treasury-audit/last-audit.json       |   55 +-\n sovereign/treasury-audit/state.json            |   14 +-\n sovereign/weblift/state.json                   |  108 +-\n 33 files changed, 5036 insertions(+), 4193 deletions(-)",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
   "skillsLoaded": [],
   "verdict": "pass",
-  "findings": [
-    {
-      "file": ".github/workflows/gitleaks.yml",
-      "line": 36,
-      "severity": "major",
-      "problem": "The gitleaks command now uses `--log-level error` which will suppress informational messages and only show errors.",
-      "why": "This reduces visibility into gitleaks' scanning process and may hide important diagnostic information when troubleshooting issues.",
-      "fix": "Change `--log-level error` back to `--log-level info` to maintain visibility into the scanning process."
-    },
-    {
-      "file": ".github/workflows/gitleaks.yml",
-      "line": 38,
-      "severity": "major",
-      "problem": "The new script fails to handle the case where the JSON report file is empty or invalid, which would cause the python command to fail.",
-      "why": "If `/tmp/gl-report.json` is empty or malformed, `json.load()` will raise an exception, causing the script to crash instead of gracefully reporting 0 findings.",
-      "fix": "Add error handling to the python command to catch JSON parsing errors and default to 0 findings, similar to the previous implementation."
-    }
-  ],
-  "reason": "",
+  "findings": [],
+  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 7734,
-    "phase1TookMs": 508,
-    "phase1Tokens": {
-      "prompt_tokens": 1857,
-      "completion_tokens": 4,
-      "total_tokens": 0
-    },
-    "phase2TookMs": 5838,
-    "phase2Tokens": {
-      "prompt_tokens": 7565,
-      "completion_tokens": 288,
-      "total_tokens": 0
-    },
-    "llmCalls": 2
+    "totalTookMs": 912,
+    "llmCalls": 0
   }
 }
