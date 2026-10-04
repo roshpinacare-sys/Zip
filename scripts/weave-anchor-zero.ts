@@ -648,6 +648,18 @@ async function main(): Promise<void> {
 main()
   .then(() => process.exit(0))
   .catch((e) => {
-    console.error("ANCHOR-ZERO-ERROR:", e instanceof Error ? e.message : e);
+    // DIAGNOSABLE-RED LAW (Z-74): ה-catch הקודם בלע את ה-stack — שגיאה כמו
+    // "JSON Parse error: Unrecognized token '<'" נשארה עיוורת (ריצה 00:01:10Z
+    // נכשלה בלי שום ציון מקור). מעתה: stack מלא + cause + שם-השגיאה, ובמקרה
+    // של פענוח-JSON — גם 80 הבייטים הראשונים של הקלט (לעולם לא סודות: רק
+    // קבצי-ספר/קו ציבוריים עוברים כאן; ה-seal לעולם לא נדפס).
+    if (e instanceof Error) {
+      console.error("ANCHOR-ZERO-ERROR:", e.name + ": " + e.message);
+      if (e.stack) console.error("ANCHOR-ZERO-STACK:", e.stack.split("\n").slice(1, 12).join("\n"));
+      const cause = (e as Error & { cause?: unknown }).cause;
+      if (cause) console.error("ANCHOR-ZERO-CAUSE:", cause instanceof Error ? cause.message : String(cause));
+    } else {
+      console.error("ANCHOR-ZERO-ERROR:", e);
+    }
     process.exit(1);
   });

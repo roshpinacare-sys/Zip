@@ -1,0 +1,55 @@
+name: workflow-yaml-guard
+
+# חוק-השמרה (Z-74, 2026-10-04): קובץ workflow שבור-שורות-קוד נולד בשקט פעמיים —
+# gitleaks.yml 362..371 נכשלו אפס-שלבים 13 שעות בגלל heredoc בעמודה-1 שקטע בלוק `run: |`.
+# מעתה: כל push מריץ YAML-parse על כל קובץ ב-.github/workflows/ — קובץ שבור נוחת
+# אדום-מנומק (מספר שורה + סיבה) בריצה הראשונה שלו, לעולם לא שוב אפס-שלבים עיוורים.
+# זה זול (שניות-בודדות) וקודם-לכל: ה-guard רץ גם כשהקובץ החדש עצמו שבור, כי הוא
+# לא תלוי בקבצים שהוא בודק.
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: YAML-parse every workflow file (diagnosable-red law)
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import glob, sys
+          try:
+              import yaml
+          except ImportError:
+              sys.exit('PyYAML unavailable on runner — guard cannot run (tool error, not a finding)')
+          files = sorted(glob.glob('.github/workflows/*.yml') + glob.glob('.github/workflows/*.yaml'))
+          if not files:
+              sys.exit('no workflow files found — unexpected estate shape')
+          bad = 0
+          print(f'workflow-yaml-guard: scanning {len(files)} files')
+          for f in files:
+              try:
+                  yaml.safe_load(open(f, encoding='utf-8'))
+                  print(f'  OK   {f}')
+              except Exception as e:
+                  bad += 1
+                  first = str(e).split('\n')[0]
+                  line = getattr(e, 'problem_mark', None)
+                  loc = f'line {line.line + 1}' if line else 'line ?'
+                  print(f'  FAIL {f} — {loc}: {first}')
+          if bad:
+              print(f'workflow-yaml-guard verdict: {bad} BROKEN FILE(S) — red by doctrine, triage above')
+              sys.exit(1)
+          print('workflow-yaml-guard verdict: ALL CLEAN')
+          PY

@@ -4,10 +4,13 @@ name: gitleaks-secret-scan
 # 11-f (2026-09-30): וריאנט-בינארי-ישיר למסילה-הפרטית (קנון Defi R75):
 # gitleaks-action@v2 נכשל 92/92 על מסילות-פרטיות בלי לוגים שנשמרים —
 # הבינארי המקובע (v8.24.3) רץ ישירות; ממצאים ⇒ exit 1 ⇒ אדום-כן.
-# הערת-מכסה (2026-09-30, אמת-מדודה): מאז 09-20 כל-ריצות-ה-Actions על המסילה-הפרטית
-# נכשלות בשלב-ההקמה (אפס-שלבים, אפס-לוגים) בכל הריפואים-הפרטיים — תמונת-מיצוי-דקות
-# ה-Actions של החשבון (תיקון-בעלים ברמת-החיוב). כשהדקות חוזרות — הסריקה קמה לבד,
-# ועשויים להתגלות ממצאים-היסטוריים ידועים (דור-מפתחות ישן) שדורשים-טריאז' X-1.
+# הערת-מכסה — תוקנת (Z-74, 2026-10-04, אמת-מדוד): הריצות 362..371 (22:17Z→01:12Z) נכשלו
+# אפס-שלבים לא בגלל מיצוי-דקות — אלא כי הגרסה הקודמת של הקובץ הזה נולדה שבורה: גוף ה-heredoc
+# של פייתון (import json…) נכתב בעמודה-1 וקטע את בלוק `run: |` — YAML לא תקין ⇒ כל ריצה
+# מתה בהקמה בלי jobs. הראיה: fleet-audit/weave-brain-restore/web-probe2 רצו ירוקים על אותו
+# הריפו באותו חלון בדיוק. שתי התרופות: (1) גוף ה-heredoc הוזח בבסיס-הבלוק (10 רווחים);
+# (2) workflow-yaml-guard.yml חדש — כל קובץ workflow נבדק YAML בכל push, קובץ שבור לעולם
+# לא נוחת שוב בשקט. עשויים להתגלות ממצאים-היסטוריים ידועים (דור-מפתחות ישן) — טריאז' X-1.
 
 on:
   push:
@@ -41,12 +44,12 @@ jobs:
           set -euo pipefail
           if [ -s /tmp/gl-report.json ]; then
             python3 - <<'PY'
-import json
-rows = json.load(open('/tmp/gl-report.json'))
-print(f'gitleaks findings: {len(rows)}')
-for f in rows[:40]:
-    print(f"  rule={f.get('RuleID')} file={f.get('File')}:{f.get('StartLine')} commit={str(f.get('Commit'))[:8]}")
-PY
+          import json
+          rows = json.load(open('/tmp/gl-report.json'))
+          print(f'gitleaks findings: {len(rows)}')
+          for f in rows[:40]:
+              print(f"  rule={f.get('RuleID')} file={f.get('File')}:{f.get('StartLine')} commit={str(f.get('Commit'))[:8]}")
+          PY
           else
             echo 'gitleaks findings: 0 (no report written — scan clean or git traversal error, see log above)'
           fi
