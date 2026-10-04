@@ -1,10 +1,10 @@
 {
   "service": "market-maker",
   "version": "1.3.1-r192",
-  "bootedAt": "2026-10-04T20:12:49.681Z",
+  "bootedAt": "2026-10-04T22:15:48.816Z",
   "mode": "dry",
-  "lastTick": "2026-10-04T21:20:51.837Z",
-  "ticks": 603,
+  "lastTick": null,
+  "ticks": 668,
   "centerPrice": 0.102168,
   "spreadBps": 405,
   "openOrders": [],
@@ -30,15 +30,15 @@
   "pnlDay": "2026-10-04",
   "fillsSeen": 0,
   "internalFills": 0,
-  "lastFillBlock": 110156112,
+  "lastFillBlock": 110156719,
   "halted": false,
   "haltedAt": null,
   "haltedConfigMtimeMs": null,
   "killSwitch": false,
   "lastDecision": {
-    "at": "2026-10-04T21:20:51.837Z",
-    "kind": "L3-SKEW-HALT",
-    "detail": "skew 0.9194 חורג-מסף-ההשהיה 0.6 (עומק בידים 469344 SBD מול אסקים 19721 SBD) — אפס-פעולת-ספר בפעימה (חוק-L3)"
+    "at": "2026-10-04T22:23:49.940Z",
+    "kind": "AUTONOMY-PAUSED",
+    "detail": "שער-העצירה סגור — אין פריסה/ביטול/שימוש-בחיילים בגריד · הוראת המפעיל (trace 1a108e334b3129a9): עצור ובחן מה הסוכנים עושים — האוטונומיה רצה אוטומטית בלי חשיב"
   },
   "lastError": null,
   "registry": {},
@@ -46,7 +46,7 @@
     "configured": true,
     "effective": false,
     "verified": false,
-    "reason": "SA_FLEET_KEYS לא בכספת — אין-יכולת-חיול מאומתת",
+    "reason": "שימוש-בחיילים כבוי — חוק-העצירה r197 (PAUSED)",
     "soldiersChecked": 0
   },
   "coordination": {
@@ -58,7 +58,7 @@
   "balances": {
     "steemFree": 3.286,
     "sbdFree": 0.015,
-    "measuredAt": "2026-10-04T21:20:51.627Z"
+    "measuredAt": "2026-10-04T22:00:01.089Z"
   },
   "parityCenterSbd": 0.1041,
   "centerSource": "feed",
@@ -66,10 +66,10 @@
     "feeFloorBps": 75,
     "spreadBpsEffective": 180,
     "widened": true,
-    "skew": 0.9194,
+    "skew": 0.9197,
     "halted": true,
     "bidDepthSbd": 469344,
-    "askDepthSbd": 19721
+    "askDepthSbd": 19635
   },
   "lastModeChange": {
     "at": "2026-10-04T07:56:31.930Z",
