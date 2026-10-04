@@ -9,6 +9,10 @@
 // פותח את כספת-הארנק, מאטים את חוט-המפתחות לכספת-הריפו ומשגר את
 // dex-grid — אפס קלט, אפס שאלות. רופא-המפתחות (שביקש הדבקה ידנית)
 // הוסר — האבחון כולו ריבוני: המפתחות כבר בכספת ונשפטים ממנה.
+//
+// r189 · מפקח-המפתחות חוזר ככלי-אבחון בלבד (KeyDoctorPanel ← /api/arm/inspect):
+// לא שער-הפעלה ולא תנאי לשום דבר — אבחנה מיידית של ערך-סוד מול הרשויות החיות
+// בשלוש-השרשראות, בעוד דלת-ההפעלה עצמה נשארת ריבונית לחלוטין (אפס קלט).
 // ─────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useState } from "react";
@@ -19,6 +23,7 @@ import {
   KeyRound,
   Loader2,
   ShieldCheck,
+  Stethoscope,
   Vault,
   XCircle,
   Zap,
@@ -27,6 +32,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface ArmResultRow {
@@ -144,6 +150,191 @@ function HouseLiveStatus() {
           </Badge>
         )}
       </div>
+    </div>
+  );
+}
+
+// r189 · מפקח-המפתחות (חיווט-היתום /api/arm/inspect): כלי-אבחון בלבד —
+// לא שער-הפעלה. המפעיל מדביק ערך סוד ומקבל אבחנה מיידית מול הרשויות החיות
+// בשלוש-השרשראות. הערך חי בזיכרון-הבקשה בלבד — לא נשמר, לא נכתב, לא בלוג,
+// ולא חוזר בשום תשובה (ה-route מחזיר פסק-דין בלבד).
+
+interface InspectVerdict {
+  chain: string;
+  role: string;
+  matched: boolean;
+  source: string;
+}
+
+interface InspectResult {
+  ok: boolean;
+  valueKind: "wif" | "password";
+  matchedCount: number;
+  opensVault: boolean | null;
+  verdicts: InspectVerdict[];
+  guidanceHe: string;
+  noteHe: string;
+}
+
+export function KeyDoctorPanel() {
+  const [value, setValue] = useState("");
+  const [inspecting, setInspecting] = useState(false);
+  const [result, setResult] = useState<InspectResult | null>(null);
+  const [errorHe, setErrorHe] = useState<string | null>(null);
+
+  const inspect = useCallback(async () => {
+    const v = value.trim();
+    if (v.length < 8) {
+      setErrorHe("הערך קצר מדי לאבחנה — שום דבר לא נשלח ולא נשמר.");
+      return;
+    }
+    setInspecting(true);
+    setErrorHe(null);
+    try {
+      const res = await fetch("/api/arm/inspect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: v }),
+      });
+      const j = (await res.json()) as InspectResult & { error?: string; detail?: string };
+      if (!res.ok || !j.ok) {
+        const heError =
+          j.error === "rate-limited"
+            ? "הגעת למגבלת-הקצה — 10 אבחנות לשעה. נסה שוב מאוחר יותר."
+            : j.detail ?? "האבחון לא בוצע — שום דבר לא נשמר ושום דבר לא השתנה.";
+        setErrorHe(heError);
+        setResult(null);
+        return;
+      }
+      setResult(j);
+    } catch {
+      setErrorHe("מקור-האבחון לא ענה — שום דבר לא נשמר. נסה שוב.");
+      setResult(null);
+    } finally {
+      setInspecting(false);
+    }
+  }, [value]);
+
+  const matched = result?.matchedCount ?? 0;
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border px-4 py-3" dir="rtl">
+      <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+        <Stethoscope className="size-3.5 text-emerald-500" aria-hidden="true" />
+        מפקח-המפתחות — אבחון חי של ערך סוד
+      </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">
+        כלי-אבחון בלבד — אין צורך להדביק כלום כדי להפעיל: דלת-ההפעלה למעלה ריבונית.
+        הדבקת ערך → אבחנה מיידית: מה הערך שבידך, לאילו תפקידים באילו שרשראות הוא שולט
+        (נשפט ביט-מול-ביט מול השרשרת החיה), והאם הוא פותח את כספת-הארנק.
+      </p>
+
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <Input
+          type="password"
+          dir="ltr"
+          autoComplete="off"
+          className="font-mono"
+          placeholder="הדבק ערך סוד לאבחון — לא נשמר ולא יוצג"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !inspecting) void inspect();
+          }}
+        />
+        <Button
+          onClick={() => void inspect()}
+          disabled={inspecting || value.trim().length < 8}
+          variant="outline"
+          className="gap-2 shrink-0"
+        >
+          {inspecting ? (
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Stethoscope className="size-4" aria-hidden="true" />
+          )}
+          {inspecting ? "מאבחן מול השרשרת…" : "אבחן"}
+        </Button>
+      </div>
+
+      {errorHe && (
+        <p className="rounded-md border border-amber-500/25 bg-amber-500/5 px-2 py-1 text-[11px] leading-relaxed text-amber-700 dark:text-amber-300" dir="auto">
+          {errorHe}
+        </p>
+      )}
+
+      {result && (
+        <div className="flex flex-col gap-2 rounded-md border bg-card/70 px-3 py-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Badge variant="outline" className="gap-1 text-[10px]">
+              {result.valueKind === "wif" ? "סוג: WIF ישיר" : "סוג: סיסמת-אב"}
+            </Badge>
+            <Badge
+              variant="outline"
+              className={cn(
+                "gap-1 text-[10px]",
+                matched > 0
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                  : "text-muted-foreground",
+              )}
+            >
+              {matched > 0 ? `${matched} התאמות חיות` : "אף התאמה חיה"}
+            </Badge>
+            {result.opensVault === true ? (
+              <Badge variant="outline" className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-700 dark:text-emerald-400">
+                <Vault className="size-3" aria-hidden="true" />
+                פותח את כספת-הארנק
+              </Badge>
+            ) : result.opensVault === false ? (
+              <Badge variant="outline" className="gap-1 text-[10px] text-muted-foreground">
+                <Vault className="size-3" aria-hidden="true" />
+                לא פותח את הכספת
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="gap-1 border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-700 dark:text-amber-400">
+                <Vault className="size-3" aria-hidden="true" />
+                יכולת-הכספת לא נמדדה
+              </Badge>
+            )}
+          </div>
+
+          <p
+            className={cn(
+              "rounded-md border px-2 py-1 leading-relaxed",
+              matched > 0
+                ? "border-emerald-500/25 bg-emerald-500/5 text-emerald-700 dark:text-emerald-300"
+                : "border-amber-500/25 bg-amber-500/5 text-amber-700 dark:text-amber-300",
+            )}
+            dir="auto"
+          >
+            {result.guidanceHe}
+          </p>
+
+          <div className="max-h-96 overflow-y-auto rounded-md border bg-card/60 p-2">
+            <ul className="flex flex-col gap-1">
+              {result.verdicts.map((v) => (
+                <li key={`${v.chain}-${v.role}`} className="flex items-center gap-1.5">
+                  {v.matched ? (
+                    <BadgeCheck className="size-3.5 shrink-0 text-emerald-500" aria-hidden="true" />
+                  ) : (
+                    <XCircle className="size-3.5 shrink-0 text-muted-foreground/50" aria-hidden="true" />
+                  )}
+                  <span className="font-mono text-muted-foreground" dir="ltr">
+                    {v.chain}/{v.role}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground" dir="auto">
+                    — {v.source}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-[10px] leading-relaxed text-muted-foreground" dir="auto">
+            {result.noteHe}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -306,6 +497,9 @@ export function ActivationDoorCard() {
 
         {/* r137 · מצב-החי — ההוכחה שהחימוש עבר עד-הבית */}
         <HouseLiveStatus />
+
+        {/* r189 · מפקח-המפתחות — אבחון ערך-סוד מול השרשרת החיה (arm/inspect) */}
+        <KeyDoctorPanel />
 
         {/* מה זה ה-seal */}
         <div className="flex items-start gap-2 rounded-lg border px-4 py-3 text-xs leading-relaxed text-muted-foreground">

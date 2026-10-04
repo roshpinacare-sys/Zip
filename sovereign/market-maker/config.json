@@ -1,0 +1,33 @@
+{
+  "rails": {
+    "steem": {
+      "enabled": true,
+      "mode": "live",
+      "pair": "SBD:STEEM",
+      "gridLevels": 5,
+      "spreadBps": 120,
+      "levelSpacingBps": 60,
+      "orderCap": 1,
+      "minOrder": 0.05,
+      "budgetPct": 0.35,
+      "refreshHours": 24,
+      "feeRate": 0.0075,
+      "fleetChurn": true,
+      "churnSize": 0.05
+    },
+    "hive": {
+      "enabled": false,
+      "reason": "no-verified-active-key-or-liquidity-yet"
+    }
+  },
+  "dailyLossCapSbd": 0.5,
+  "tickSec": 60,
+  "_docs": {
+    "budgetLaw": "budget = free_balance × budgetPct · היתרה-החופשית (get_accounts) כבר מנוכה את כל הפקודות-הנעולות — שלנו ושל money-mover — לכן שני-הסוחרים לא מתחרים על אותם כספים",
+    "cancelLaw": "ביטול רק לפי orderid מרישום-המנוע עצמו (state.registry) — פקודות money-mover נוגעות-אסור",
+    "ladderLaw": "5 מכירות מעל המרכז + 5 קניות מתחתיו; רמה-ראשונה ב-±spreadBps/2, אחריהן צעדים של levelSpacingBps",
+    "driftLaw": "אם המרכז זז מעל 2×levelSpacingBps מאז הפריסה — ביטול+פריסה מחדש",
+    "fleetChurnLaw": "מופעל רק אחרי אימות-חי של רשות-active לחיילים מהכספת; אין-אימות ⇒ כבוי-בכנות, אין-ממציאים-מפתחות",
+    "killSwitchLaw": "קובץ ~/.sovereign/mm-kill קיים ⇒ אפס פריסות חדשות; מעבר-ל-live נסרב"
+  }
+}

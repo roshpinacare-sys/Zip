@@ -38,7 +38,7 @@ import { WeaveCanvas } from "../weave-canvas";
 import { StatusBadge } from "../shared";
 import { IncomeMissionCard } from "./income-card";
 import { MissionLadderCard } from "./mission-ladder-card";
-import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard, LanesCard } from "./sovereignty-cards";
+import { AutonomyLedgerCard, ArrayEfficiencyCard, SovereigntyDecisionsCard, LanesCard, SovereignBriefingCard } from "./sovereignty-cards";
 import { GovernanceCard } from "./governance-card";
 import { ActivationDoorCard } from "./admin/activation-door-card";
 
@@ -418,6 +418,7 @@ export function HomeView() {
           <ArrayEfficiencyCard />
           <AutonomyLedgerCard />
           <LanesCard />
+          <SovereignBriefingCard />
           <ActivationDoorCard />
         </div>
       </section>

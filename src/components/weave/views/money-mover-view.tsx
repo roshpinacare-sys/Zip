@@ -137,6 +137,7 @@ interface MoneySense {
 // ── עזרי תצוגה ──────────────────────────────────────────────────────
 
 import { RailsStrip } from "@/components/weave/views/rails-strip";
+import { MarketMakerView } from "@/components/weave/views/market-maker-view";
 
 const f4 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(4));
 const f3 = (x: number | null | undefined) => (x == null ? "—" : x.toFixed(3));
@@ -222,6 +223,8 @@ export function MoneyMoverView({ section }: { section?: string }) {
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       {/* r188 · פס-המסילות — BLURT + TRON חיות למפעיל (חיבור-היתום /api/money/blurt) */}
       <RailsStrip />
+      {/* Task 2-b · לוח-מנוע-הגריד — הסוחר השני (SBD:STEEM דו-צדדי, פורט 3049) */}
+      <MarketMakerView />
       {/* פתיח */}
       <Section
         wash

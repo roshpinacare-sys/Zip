@@ -13,7 +13,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Activity, Gavel, ScrollText, ShieldCheck, Waypoints } from "lucide-react";
+import { Activity, Gavel, NotebookText, ScrollText, ShieldCheck, Waypoints } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -607,6 +607,175 @@ export function LanesCard() {
         <p className="mt-auto text-[11px] leading-relaxed text-muted-foreground" dir="auto">
           <ShieldCheck className="mr-1 inline size-3" aria-hidden="true" />
           D-023 — ערוץ חסום מדווח על עצמו: מצב, ראיה, נתיב-שחרור. אף ערוץ לא שותק בשקט שוב.
+        </p>
+      </Card>
+    </motion.div>
+  );
+}
+
+// ── כרטיס 5: בריפינג-ריבוני (r189 · חיווט-היתום /api/sovereignty/briefing) ──
+// עצרת-מדידה אחת חיה: התקדמות-24ש׳, ניסויים, כסף, אפשרויות-רווח ושאילתות —
+// כל ערך נושא מקור, ומה שלא נמדד נכתב כלא-נמדד (חוק-הטון D-013).
+
+interface BriefingState {
+  ok: boolean;
+  at: string;
+  format: string;
+  honestyHe: string;
+  progress24h: {
+    attestations: number;
+    chainRuns: Array<{ step: string; ok: boolean; firedBy: string; at: string }>;
+    chainRunCount: number;
+    lastCheckpoint: { index: number; createdAt: string; anchorStatus: string } | null;
+  };
+  experiments: {
+    grid: {
+      verdict: string;
+      armed: boolean;
+      publishedAt: string;
+      inventory: { steem: number; sbd: number } | null;
+      marks: { steemUsd: number; sbdUsd: number; paritySbdPerSteem: number } | null;
+    } | null;
+    fleet: { noteHe: string };
+  };
+  money: {
+    fills7d: number;
+    bought7d: { steem: number; sbd: number };
+    sold7d: { steem: number; sbd: number };
+    lastFill: { idx: number; at: string; side: string; price: number; steem: number; sbd: number; maker: boolean } | null;
+    pnlScanAt: string | null;
+  };
+  profitOptions: Array<{ titleHe: string; basisHe: string; source: string; state: string }>;
+  queries: { attestationTotal: number; agentTotal: number; lastCheckpointIndex: number | null; bookHeadHe: string };
+  anchor: { at: string | null; mode: string | null; checkpoint: number | null } | null;
+}
+
+function profitStateBadge(state: string) {
+  if (state === "חי")
+    return (
+      <Badge variant="outline" className="border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+        {state}
+      </Badge>
+    );
+  if (state === "נמדד")
+    return <Badge variant="outline" className="text-foreground/80">{state}</Badge>;
+  return <Badge variant="outline" className="text-muted-foreground">{state}</Badge>;
+}
+
+export function SovereignBriefingCard() {
+  const { data, loading } = useLiveJson<BriefingState>("/api/sovereignty/briefing");
+  const reduced = useReducedMotion();
+
+  const p = data?.progress24h;
+  const m = data?.money;
+  const grid = data?.experiments?.grid ?? null;
+  const options = data?.profitOptions ?? [];
+  const lastRun = p?.chainRuns?.[0] ?? null;
+  const lastFill = m?.lastFill ?? null;
+
+  const gridBadge = loading ? (
+    <Skeleton className="h-5 w-24" />
+  ) : grid?.verdict ? (
+    <Badge variant="outline" className="font-mono" dir="ltr">
+      {grid.verdict}
+    </Badge>
+  ) : (
+    <Badge variant="outline" className="text-amber-600 dark:text-amber-300">לא נמדד</Badge>
+  );
+
+  return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+      className="h-full min-w-0"
+    >
+      <Card className="flex h-full flex-col gap-4 p-6 transition-colors hover:border-emerald-500/30">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <NotebookText className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+            בריפינג-ריבוני
+          </div>
+          {gridBadge}
+        </div>
+
+        {data?.at && (
+          <p className="font-mono text-[11px] leading-relaxed text-muted-foreground" dir="ltr">
+            briefing-v1 · {data.at.slice(11, 16)}Z
+          </p>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <EffTile
+            label="אימותים 24ש'"
+            value={p ? String(p.attestations) : "…"}
+            sub={data ? `סה\"כ בספר: ${data.queries.attestationTotal}` : undefined}
+          />
+          <EffTile
+            label="ריצות שרשרת 24ש'"
+            value={p ? String(p.chainRunCount) : "…"}
+            sub={lastRun ? `אחרונה: ${lastRun.step} ← ${lastRun.firedBy}` : "אין ריצות נמדדות"}
+          />
+          <EffTile
+            label="מילויים 7 ימים"
+            value={m ? String(m.fills7d) : "…"}
+            sub={m ? `נקנה ${m.bought7d.steem.toFixed(1)} · נמכר ${m.sold7d.steem.toFixed(1)} STEEM` : undefined}
+          />
+          <EffTile
+            label="ראש-הספר"
+            value={data ? data.queries.bookHeadHe : "…"}
+            sub={
+              data?.anchor?.mode
+                ? `עיגון אחרון: ${data.anchor.mode}${data.anchor.checkpoint != null ? ` · cp#${data.anchor.checkpoint}` : ""}`
+                : "עיגון לא נמדד"
+            }
+          />
+        </div>
+
+        {options.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground" dir="auto">
+              אפשרויות-רווח — רק מה שנמדד
+            </p>
+            <div className={`${scrollBoxClass} max-h-60 rounded-lg border bg-card/60 p-3`}>
+              <ul className="flex flex-col gap-2">
+                {options.map((o, i) => (
+                  <li key={`${o.titleHe}-${i}`} className="flex items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium leading-snug text-foreground/90" dir="auto">
+                        {o.titleHe}
+                      </p>
+                      <p className="text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+                        {o.basisHe}
+                        <span className="mr-1.5 font-mono text-[10px]" dir="ltr">
+                          [{o.source}]
+                        </span>
+                      </p>
+                    </div>
+                    {profitStateBadge(o.state)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {lastFill && (
+          <p className="font-mono text-[11px] leading-relaxed text-muted-foreground" dir="ltr">
+            last fill: {lastFill.side} {lastFill.steem} STEEM @ {lastFill.price} {lastFill.maker ? "maker" : "taker"}
+          </p>
+        )}
+
+        {!data && !loading && (
+          <p className="text-xs leading-relaxed text-amber-600 dark:text-amber-300" dir="auto">
+            הבריפינג לא נמדד כרגע — מקור-המדידה לא ענה.
+          </p>
+        )}
+
+        <p className="mt-auto text-[11px] leading-relaxed text-muted-foreground" dir="auto">
+          <ScrollText className="mr-1 inline size-3" aria-hidden="true" />
+          {data?.honestyHe ?? "עצרת-מדידה שלא ענתה מוצגת כלא-נמדדת — לעולם לא כהצלחה שנטענת."}
         </p>
       </Card>
     </motion.div>
