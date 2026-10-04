@@ -43,6 +43,17 @@
 //     פקודות-על-השרשרת שודרו-חי מלכתחילה; המנדט הקבוע D-OP-01) — אבל: kill-switch
 //     קיים ⇒ נשאר כבוי · SELF-HALT פעיל ⇒ נשאר עצור · מפתח-חסר-מהכספת ⇒ fail-closed.
 //     אין-פקודות-בטווח ואין-רישום ⇒ עלייה-קרה-רגילה ב-dry (COLD-BOOT-SAFE).
+//
+// חוזה-r191 (חוק-המפעיל, מחייב: "רווחיות-גם-אם-קטנה"):
+//   · פנקס-לוטות FIFO במצב: קנייה-ממולאת פותחת-לוט במחיר-המילוי; מכירה-ממולאת צורכת-לוטות
+//     FIFO ומממשת PnL אמיתי = (מחיר-מכירה − עלות-לוט) × כמות − עמלה-מוערכת. נוסחת
+//     "מרחק-ממרכז-הפריסה" (מדידת-נייר שגרמה ל-PnL-שלילי-כנה ב-r190) — בוטלה.
+//   · מכירות-ללא-לוטות (מלאי-שקדם-לעידן-המנוע) אינן-נספרות ב-PnL-ממומש — היקף-כנה;
+//     נספרות-בכנות ב-unmatchedSellSteem/unmatchedSellSbd בלבד.
+//   · חוק-רווחיות (profit-guard): אף-מכירה-מתוכננת מתחת לרצפה basisBlended×(1+minProfitBps/10000);
+//     minProfitBps=120 חייב-לעלות על העמלה-המוערכת feeRate=75bps. אין-לוטות ⇒ סימטריה-כמו-בעבר
+//     (guardBasis:"no-lots"). קניות-לעולם-לא-מעל-הבסיס-הממוצע. מכירות-חיות-שנפלו-מתחת-לרצפה
+//     ⇒ ביטול+פריסה-מעל-הרצפה — אף-הצעת-הפסד-מובטח לא יושבת-בספר.
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -66,6 +77,10 @@ const KILL_FILE = path.join(os.homedir(), ".sovereign", "mm-kill");
 const VAULT = path.join(os.homedir(), ".sovereign", "vault");
 const MOVER_STATE = `${HOME}/sovereign/money/state.json`;
 const PORT = 3049;
+const VERSION = "1.2.0-r191";
+// חוק-רווחיות r191: רצפת-מכירה = בסיס×(1+minProfitBps/10000) — חייבת-לעלות על העמלה-המוערכת
+// (feeRate=0.0075=75bps); השוק-הפנימי-של-Steem למעשה-לא-גובה-עמלת-לימיט — feeRate נשאר-הערכה-שמרנית.
+const DEFAULT_MIN_PROFIT_BPS = 120;
 const TICK_SEC = 60;
 const TICK_MAX_MS = 90_000;
 const ACCOUNT = "headcorner"; // זהות-החותם — נאמתת-ביט-מול-ביט מול הרשת בכל שידור (R75)
@@ -94,6 +109,7 @@ interface RailSteemConfig {
   budgetPct: number; // חלק מהיתרה-החופשית שמוקצה לסולם (ראה חוק-אחוות-הסוחרים בראש הקובץ)
   refreshHours: number; // גיל-מקסימלי לפקודה — ישנה ⇒ ביטול+פריסה מחדש
   feeRate: number; // הערכת-עמלה לספר (לא חוסם-שידור)
+  minProfitBps: number; // חוק-רווחיות r191: רצפת-מכירה = בסיס×(1+minProfitBps/10000) — מעל-העמלה-המוערכת
   fleetChurn: boolean; // חיילי-הצי — רק עם יכולת-active מאומתת (ראה fleetVerify)
   churnSize: number; // גודל-פקודת-חיול ב-STEEM
 }
@@ -118,6 +134,7 @@ const DEFAULT_CONFIG: Config = {
       budgetPct: 0.35,
       refreshHours: 24,
       feeRate: 0.0075,
+      minProfitBps: DEFAULT_MIN_PROFIT_BPS,
       fleetChurn: true,
       churnSize: 0.05,
     },
@@ -135,6 +152,7 @@ const DEFAULT_CONFIG: Config = {
     killSwitchLaw: "קובץ ~/.sovereign/mm-kill קיים ⇒ אפס פריסות חדשות; מעבר-ל-live נסרב",
     orderIdBandLaw: "טווח-orderid שמור-בלעדי למנוע-הגריד [1_000_000_000, 1_500_000_000) — חוזה-r190 זהה-לעורק /api/money; סכמה-ישנה (mod 2^31, ~739.9M) נשכחה: לא מאומצת, לא נספרת",
     reconcileLaw: "בעלייה-ובכל-פעימה get_open_orders = השופט: פקודה-חיה-בטווח ⇒ מאומצת-לרישום (chain-truth); רישום-מחוץ-לטווח/שאינו-חי ⇒ נמחק. אימוץ-חי-בטווח בעלייה ⇒ RECOVERY-LIVE — כבוי-אם kill-switch/halted/מפתח-חסר",
+    profitLaw: "חוק-רווחיות r191 (רווחיות-גם-אם-קטנה): פנקס-לוטות-FIFO — קנייה-ממולאת פותחת-לוט-במחיר-המילוי, מכירה-ממולאת צורכת-לוטות-FIFO ומממשת (מחיר-מכירה − עלות-לוט)×כמות − עמלה-מוערכת. רצפת-מכירה = basisBlended×(1+minProfitBps/10000) — minProfitBps=120 חייב-לעלות על feeRate=75bps; השוק-הפנימי-של-Steem למעשה-לא-גובה-עמלת-לימיט ולכן feeRate נשאר-הערכה-שמרנית-בחישוב-PnL-בלבד. מכירות-ללא-לוטות (מלאי-שקדם-לעידן-המנוע) אינן-נספרות-ב-PnL-ממומש — היקף-כנה — ונספרות-ב-unmatchedSellSteem/unmatchedSellSbd. אין-לוטות ⇒ סולם-סימטרי (guardBasis:no-lots). קניות-לעולם-לא-מעל-הבסיס-הממוצע (ממוצע-מטה-מותר, תחום-בתקרת-הפסד-היומית); מכירות-חיות-שנפלו-מתחת-לרצפה מוחלפות-בפעימה-הבאה — אין-הצעות-הפסד-מובטח",
   },
 };
 
@@ -208,6 +226,13 @@ interface RegistryOrder {
   adopted?: boolean; // r190: אומץ-מהשרשרת (chain-truth) — side/price/amount מהשרשרת-עצמה; level=0 = רמה-לא-ניתנת-לשחזור
 }
 
+// פנקס-לוטות (r191): לוט-יחיד = קנייה-ממולאת-אחת-של-המנוע (רישום-מקושר-בלבד)
+interface LotEntry {
+  steem: number; // כמות-שנותרה בלוט (STEEM)
+  costSbdPerSteem: number; // עלות-אחזקה (SBD ל-STEEM) — מחיר-מילוי-הקנייה
+  openedAt: string;
+}
+
 interface MMState {
   service: string;
   version: string;
@@ -221,6 +246,13 @@ interface MMState {
   fills24h: number;
   volume24hSteem: number;
   volume24hSbd: number;
+  lots: LotEntry[]; // פנקס-לוטות FIFO (r191) — רק-קניות-ממולאות-של-המנוע
+  lotsCount: number;
+  basisBlendedSbd: number | null; // עלות-ממוצעת-משוקללת של הלוטות — null כשאין-לוטות
+  unrealizedPnlSbd: number; // Σ(mid − עלות-לוט) × כמות — סימון-לשוק-פעימתי
+  unmatchedSellSteem: number; // מכירות-ללא-לוטות (מלאי-שקדם-לעידן-המנוע) — מחוץ-להיקף-ה-PnL
+  unmatchedSellSbd: number;
+  profitGuard: { minProfitBps: number; basis: number | null; floor: number | null; guardBasis: "basis" | "no-lots"; sellsUnderFloor: number; updatedAt: string | null };
   realizedPnlSbd: number;
   dailyPnlSbd: number;
   pnlDay: string;
@@ -244,10 +276,38 @@ function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
+/** אגרגציות-פנקס-הלוטות (r191): נגזרות-טהורות — בסיס-ממוצע-משוקלל + סימון-לשוק. */
+function lotAggregates(lots: LotEntry[], mid: number | null): { lotsCount: number; basisBlendedSbd: number | null; unrealizedPnlSbd: number } {
+  let totalSteem = 0;
+  let totalCost = 0;
+  for (const l of lots) {
+    totalSteem += l.steem;
+    totalCost += l.steem * l.costSbdPerSteem;
+  }
+  const basis = totalSteem > 1e-9 ? Math.round((totalCost / totalSteem) * 1e6) / 1e6 : null;
+  const unreal = basis != null && mid != null ? Math.round((mid - basis) * totalSteem * 1e6) / 1e6 : 0;
+  return { lotsCount: lots.length, basisBlendedSbd: basis, unrealizedPnlSbd: unreal };
+}
+
+function refreshLotAggregates() {
+  const a = lotAggregates(state.lots, state.centerPrice);
+  state.lotsCount = a.lotsCount;
+  state.basisBlendedSbd = a.basisBlendedSbd;
+  if (state.centerPrice != null) state.unrealizedPnlSbd = a.unrealizedPnlSbd; // סימון-לשוק רק-כשהמרכז-נמדד
+}
+
+/** סנן-לוטות-תקין: רשומות-פגומות/אבק-נזרקים-בכנות (הגירה-מ-r191-קודם ואחרי-כל-צריכה). */
+function validLots(raw: unknown): LotEntry[] {
+  if (!Array.isArray(raw)) return [];
+  return (raw as unknown[])
+    .filter((l): l is LotEntry => !!l && typeof (l as LotEntry).steem === "number" && (l as LotEntry).steem > 0 && typeof (l as LotEntry).costSbdPerSteem === "number" && (l as LotEntry).costSbdPerSteem > 0)
+    .map((l) => ({ steem: l.steem, costSbdPerSteem: l.costSbdPerSteem, openedAt: String(l.openedAt ?? "") }));
+}
+
 function freshState(): MMState {
   return {
     service: "market-maker",
-    version: "1.1.0-r190",
+    version: VERSION,
     bootedAt: new Date().toISOString(),
     mode: "dry", // חוק: אף-עלייה-קרה לא מתחילה live — רק POST /mode מעביר
     lastTick: null,
@@ -258,6 +318,13 @@ function freshState(): MMState {
     fills24h: 0,
     volume24hSteem: 0,
     volume24hSbd: 0,
+    lots: [],
+    lotsCount: 0,
+    basisBlendedSbd: null,
+    unrealizedPnlSbd: 0,
+    unmatchedSellSteem: 0,
+    unmatchedSellSbd: 0,
+    profitGuard: { minProfitBps: DEFAULT_MIN_PROFIT_BPS, basis: null, floor: null, guardBasis: "no-lots", sellsUnderFloor: 0, updatedAt: null },
     realizedPnlSbd: 0,
     dailyPnlSbd: 0,
     pnlDay: utcDay(),
@@ -285,7 +352,7 @@ function readState(): MMState {
   try {
     const prev = JSON.parse(fs.readFileSync(STATE_FILE, "utf8")) as Partial<MMState>;
     // המשכיות-אמת: רישום-פקודות, ספר-מילויים ומונים שורדים restart/hot-reload (לקח R84)
-    return {
+    const merged: MMState = {
       ...base,
       mode: "dry", // חוק-הברזל: עלייה-קרה תמיד עולה dry; המפעיל מעביר ב-POST /mode
       bootedAt: base.bootedAt,
@@ -296,6 +363,12 @@ function readState(): MMState {
       fills24h: typeof prev.fills24h === "number" ? prev.fills24h : 0,
       volume24hSteem: typeof prev.volume24hSteem === "number" ? prev.volume24hSteem : 0,
       volume24hSbd: typeof prev.volume24hSbd === "number" ? prev.volume24hSbd : 0,
+      // הגירה-r191: שדות-פנקס-הלוטות — ברירות-מחדל-בטוחות; רישום/פקודות/מונים-שורדים-תמיד
+      lots: validLots(prev.lots),
+      unrealizedPnlSbd: typeof prev.unrealizedPnlSbd === "number" ? prev.unrealizedPnlSbd : 0,
+      unmatchedSellSteem: typeof prev.unmatchedSellSteem === "number" ? prev.unmatchedSellSteem : 0,
+      unmatchedSellSbd: typeof prev.unmatchedSellSbd === "number" ? prev.unmatchedSellSbd : 0,
+      profitGuard: prev.profitGuard ?? { minProfitBps: DEFAULT_MIN_PROFIT_BPS, basis: null, floor: null, guardBasis: "no-lots", sellsUnderFloor: 0, updatedAt: null },
       realizedPnlSbd: typeof prev.realizedPnlSbd === "number" ? prev.realizedPnlSbd : 0,
       dailyPnlSbd: prev.pnlDay === utcDay() && typeof prev.dailyPnlSbd === "number" ? prev.dailyPnlSbd : 0,
       pnlDay: utcDay(),
@@ -313,6 +386,12 @@ function readState(): MMState {
       balances: prev.balances ?? base.balances,
       lastModeChange: prev.lastModeChange ?? null,
     };
+    // נגזרות-פנקס-הלוטות מחושבות-תמיד-מהלוטות-עצמן — לא-מהקובץ (אמת-אחת)
+    const agg = lotAggregates(merged.lots, merged.centerPrice);
+    merged.lotsCount = agg.lotsCount;
+    merged.basisBlendedSbd = agg.basisBlendedSbd;
+    merged.unrealizedPnlSbd = agg.unrealizedPnlSbd;
+    return merged;
   } catch {
     return base;
   }
@@ -325,6 +404,26 @@ let state: MMState = coldBoot ? readState() : G_MM.__MM_STATE__;
 G_MM.__MM_STATE__ = state;
 let cfg: Config = G_MM.__MM_CONFIG__ ?? loadConfig();
 G_MM.__MM_CONFIG__ = cfg;
+
+// הגירה-במקום (דור-חם, r191): אובייקט-מצב-חי-ששרד-hot-reload עשוי-להיות-חסר-שדות-חדשים —
+// מילוי-ברירות-מחדל-בכנות בלי-לגעת ברישום/פקודות/מונים (המשכיות-אמת, לקח-R84)
+if (state.version !== VERSION) {
+  state.version = VERSION;
+  console.log(`[market-maker] הגירה-במקום: version → ${VERSION}`);
+}
+state.lots = validLots(state.lots);
+if (typeof state.unrealizedPnlSbd !== "number") state.unrealizedPnlSbd = 0;
+if (typeof state.unmatchedSellSteem !== "number") state.unmatchedSellSteem = 0;
+if (typeof state.unmatchedSellSbd !== "number") state.unmatchedSellSbd = 0;
+if (!state.profitGuard || typeof state.profitGuard !== "object") state.profitGuard = { minProfitBps: DEFAULT_MIN_PROFIT_BPS, basis: null, floor: null, guardBasis: "no-lots", sellsUnderFloor: 0, updatedAt: null };
+// תצורה-שורדת-דור-חם עשויה-להיות-חסרת-minProfitBps — מיזוג-חסרים-חד-פעמי-וכנה
+if (typeof cfg.rails.steem.minProfitBps !== "number") {
+  cfg.rails.steem = { ...DEFAULT_CONFIG.rails.steem, ...cfg.rails.steem };
+  cfg._docs = { ...(DEFAULT_CONFIG._docs ?? {}), ...(cfg._docs ?? {}) };
+  writeJsonAtomic(CONFIG_FILE, cfg);
+  console.log("[market-maker] מיזוג-תצורה-חם: minProfitBps נוסף-מברירת-המחדל (חוק-רווחיות r191)");
+}
+refreshLotAggregates();
 
 function saveState() {
   writeJsonAtomic(STATE_FILE, state);
@@ -678,7 +777,9 @@ interface LedgerFill {
   feeEst: number; // SBD
   internal: boolean;
   txid: string;
-  pnlSbd: number;
+  pnlSbd: number; // r191: מימוש-אמיתי (0-בקנייה; FIFO-לוטות-במכירה)
+  matchedSteem?: number; // r191: מכירה — כמות-שנצרכה-מלוטות
+  unmatchedSteem?: number; // r191: מכירה — כמות-ללא-לוטות (מלאי-קודם-עידן-המנוע)
 }
 
 async function pollFills(): Promise<LedgerFill[]> {
@@ -705,9 +806,9 @@ async function pollFills(): Promise<LedgerFill[]> {
       const weOpen = data?.open_owner === ACCOUNT;
       if (!weCurrent && !weOpen) continue;
       // רק מילויים של פקודות-מרישום-שלנו — המילויים של money-mover לא שייכים לספר הזה
+      // (ולכן פנקס-הלוטות-וה-PnL מתייחסים-למנוע-בלבד — היקף-כנה)
       const myOrderId = weCurrent ? Number(data.current_orderid) : Number(data.open_orderid);
-      const reg = state.registry[String(myOrderId)];
-      if (!reg) continue;
+      if (!state.registry[String(myOrderId)]) continue;
       const paid = weCurrent ? parseAsset(data.current_pays) : parseAsset(data.open_pays);
       const recv = weCurrent ? parseAsset(data.open_pays) : parseAsset(data.current_pays);
       let side: "buy" | "sell";
@@ -725,8 +826,8 @@ async function pollFills(): Promise<LedgerFill[]> {
       if (!(amount > 0) || !(price > 0)) continue;
       const total = Math.round(amount * price * 1e6) / 1e6;
       const feeEst = Math.round(total * cfg.rails.steem.feeRate * 1e6) / 1e6;
-      // PnL-ממומש-מוערך: כמה רחוק המילוי ממרכז-הפריסה שלו, פחות העמלה-המוערכת
-      const pnlSbd = Math.round(((side === "sell" ? price - reg.centerAtPlace : reg.centerAtPlace - price) * amount - feeEst) * 1e6) / 1e6;
+      // r191: החשבונאות-האמיתית נעשית ב-recordFill מול פנקס-הלוטות (FIFO) —
+      // נוסחת-"מרחק-ממרכז-הפריסה" (מדידת-נייר-שגרמה-ל-PnL-שלילי) בוטלה. כאן-רק-מדידת-השרשרת.
       const internal = weCurrent && weOpen && data.open_owner === data.current_owner;
       fills.push({
         ts: `${String(rec.timestamp ?? "")}Z`,
@@ -739,7 +840,7 @@ async function pollFills(): Promise<LedgerFill[]> {
         internal,
         // מילויים-וירטואליים אין-להם trx_id — עדות-שרשרת כנה: בלוק+מיקום
         txid: String(rec?.trx_id ?? "") || `block:${block}#${rec?.op_in_trx ?? 0}`,
-        pnlSbd,
+        pnlSbd: 0, // יושלם-ב-recordFill מול-פנקס-הלוטות
       });
     }
     // כיסוי-מלא של הפער: אם העמוד הקודם עוד לא חזר אחורה מעבר לסימן-המים — דפדוף נוסף
@@ -753,7 +854,36 @@ async function pollFills(): Promise<LedgerFill[]> {
 }
 
 function recordFill(f: LedgerFill) {
-  appendJsonl(LEDGER_FILE, f);
+  // חשבונאות-r191 (FIFO-לוטות): קנייה פותחת-לוט-במחיר-המילוי; מכירה צורכת-לוטות-FIFO
+  // ומממשת PnL אמיתי = Σ(מחיר-מכירה − עלות-לוט)×כמות − עמלה-מוערכת-יחסית.
+  if (f.side === "buy") {
+    state.lots.push({ steem: f.amount, costSbdPerSteem: f.price, openedAt: f.ts });
+    f.pnlSbd = 0; // קנייה אינה-מממשת — רק-פותחת-לוט (העמלה-נצרפת-בחשבון-המכירה-הנגדית)
+  } else {
+    let need = f.amount;
+    let matched = 0;
+    let gain = 0;
+    for (const lot of state.lots) {
+      if (need <= 1e-9) break;
+      const take = Math.min(lot.steem, need);
+      if (!(take > 0)) continue;
+      gain += (f.price - lot.costSbdPerSteem) * take;
+      lot.steem = Math.round((lot.steem - take) * 1e6) / 1e6;
+      need = Math.round((need - take) * 1e6) / 1e6;
+      matched = Math.round((matched + take) * 1e6) / 1e6;
+    }
+    state.lots = state.lots.filter((l) => l.steem > 1e-6); // לוטות-מרוקנות נזרקות
+    const feeMatched = Math.round(f.feeEst * (f.amount > 0 ? matched / f.amount : 0) * 1e6) / 1e6;
+    f.pnlSbd = Math.round((gain - feeMatched) * 1e6) / 1e6;
+    f.matchedSteem = matched;
+    f.unmatchedSteem = Math.round((f.amount - matched) * 1e6) / 1e6;
+    if (f.unmatchedSteem > 0) {
+      // מלאי-שקדם-לעידן-המנוע (אין-לוטות) — מחוץ-להיקף-ה-PnL-הממומש (היקף-כנה), נספר-לנראות
+      state.unmatchedSellSteem = Math.round((state.unmatchedSellSteem + f.unmatchedSteem) * 1e6) / 1e6;
+      state.unmatchedSellSbd = Math.round((state.unmatchedSellSbd + f.unmatchedSteem * f.price) * 1e6) / 1e6;
+    }
+  }
+  appendJsonl(LEDGER_FILE, f); // ראיה-כנה אחרי-החשבונאות: pnlSbd = מימוש-אמיתי
   state.fillsSeen += 1;
   state.fills24h += 1;
   state.volume24hSteem = Math.round((state.volume24hSteem + f.amount) * 1e6) / 1e6;
@@ -761,6 +891,7 @@ function recordFill(f: LedgerFill) {
   state.realizedPnlSbd = Math.round((state.realizedPnlSbd + f.pnlSbd) * 1e6) / 1e6;
   state.dailyPnlSbd = Math.round((state.dailyPnlSbd + f.pnlSbd) * 1e6) / 1e6;
   if (f.internal) state.internalFills += 1;
+  refreshLotAggregates();
 }
 
 // ── בניית-הסולם ─────────────────────────────────────────────────────
@@ -773,33 +904,58 @@ interface PlannedOrder {
   total: number; // SBD
 }
 
-function planLadder(mid: number, steemFree: number, sbdFree: number): { planned: PlannedOrder[]; note: string } {
+function planLadder(mid: number, steemFree: number, sbdFree: number): { planned: PlannedOrder[]; note: string; guardBasis: "basis" | "no-lots"; floor: number | null } {
   const c = cfg.rails.steem;
   const half = c.spreadBps / 2;
   const steemBudget = steemFree * c.budgetPct; // חוק-אחוות-הסוחרים: יתרה-חופשית בלבד
   const sbdBudget = sbdFree * c.budgetPct;
+  // חוק-רווחיות r191: רצפת-מכירה = בסיס-ממוצע × (1+minProfitBps/10000); minProfitBps חייב-לעלות
+  // על העמלה-המוערכת (75bps). אין-לוטות (בסיס-null) ⇒ סימטריה-כמו-בעבר (guardBasis:"no-lots").
+  const minProfitBps = typeof c.minProfitBps === "number" && Number.isFinite(c.minProfitBps) && c.minProfitBps > 0 ? c.minProfitBps : DEFAULT_MIN_PROFIT_BPS;
+  const basis = state.basisBlendedSbd;
+  const floor = basis != null && basis > 0 ? Math.round(basis * (1 + minProfitBps / 10_000) * 1e6) / 1e6 : null;
+  const guardBasis: "basis" | "no-lots" = floor != null ? "basis" : "no-lots";
   const planned: PlannedOrder[] = [];
   let trimmed = 0;
+  // מחירי-הסולם-הסימטריים-סביב-המרכז (כמו-תמיד) — ואז-הזחות-כנות:
+  //   מכירות-מוזחות-למעלה עד-שהרמה-הנמוכה-מגיעה-לרצפה (לעולם-לא-מטה); קניות-מוזחות-למטה
+  //   עד-שהרמה-הגבוהה-מגיעה-לבסיס (ממוצע-מטה-מותר — קנייה-מעל-הבסיס-אסור).
+  const symSell: number[] = [];
+  const symBuy: number[] = [];
   for (let i = 0; i < c.gridLevels; i++) {
     const offsetBps = half + i * c.levelSpacingBps;
+    symSell.push(mid * (1 + offsetBps / 10_000));
+    symBuy.push(mid * (1 - offsetBps / 10_000));
+  }
+  const sellShift = floor != null && symSell.length > 0 ? Math.max(0, floor - symSell[symSell.length - 1]) : 0;
+  const buyShift = basis != null && symBuy.length > 0 ? Math.max(0, symBuy[0] - basis) : 0;
+  for (let i = 0; i < c.gridLevels; i++) {
     // מכירה מעל המרכז — התקציב ב-STEEM
     let sellAmt = Math.min(steemBudget / c.gridLevels, c.orderCap);
     if (sellAmt >= c.minOrder && sellAmt <= steemBudget) {
-      const price = Math.round(mid * (1 + offsetBps / 10_000) * 1e6) / 1e6;
+      const price = Math.round((symSell[i] + sellShift) * 1e6) / 1e6;
       planned.push({ side: "sell", level: i + 1, price, amount: Math.round(sellAmt * 1000) / 1000, total: Math.round(sellAmt * price * 1000) / 1000 });
     } else trimmed++;
     // קנייה מתחת למרכז — התקציב ב-SBD
-    const price = Math.round(mid * (1 - offsetBps / 10_000) * 1e6) / 1e6;
+    const price = Math.round((symBuy[i] - buyShift) * 1e6) / 1e6;
+    if (!(price > 0)) {
+      trimmed++; // רצפה-גבוהה-מהסולם — אין-מחיר-קנייה-חוקי (כנות: הרמה-נחתכת)
+      continue;
+    }
     let buyAmt = Math.round(Math.min(sbdBudget / c.gridLevels / price, c.orderCap) * 1000) / 1000;
     if (buyAmt >= c.minOrder && buyAmt * price <= sbdBudget) {
       planned.push({ side: "buy", level: i + 1, price, amount: buyAmt, total: Math.round(buyAmt * price * 1000) / 1000 });
     } else trimmed++;
   }
+  const guardNote =
+    floor != null
+      ? `guardBasis: basis ${basis!.toFixed(6)} · רצפה ${floor.toFixed(6)} (+${minProfitBps}bps מעל-הבסיס) · הזחת-מכירות ${Math.round((sellShift / mid) * 10_000)}bps · הזחת-קניות ${Math.round((buyShift / mid) * 10_000)}bps`
+      : "guardBasis: no-lots — אין-לוטות, סימטריה-מלאה-סביב-המרכז";
   const note =
     trimmed > 0
-      ? `${trimmed} רמות נחתכו בכנות — תקציב-צד/תקרת-פקודה/מינימום לא התקיימו (תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD)`
-      : `תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD × ${c.budgetPct}`;
-  return { planned, note };
+      ? `${trimmed} רמות נחתכו בכנות — תקציב-צד/תקרת-פקודה/מינימום לא התקיימו (תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD) · ${guardNote}`
+      : `תקציב ${steemBudget.toFixed(3)} STEEM / ${sbdBudget.toFixed(3)} SBD × ${c.budgetPct} · ${guardNote}`;
+  return { planned, note, guardBasis, floor };
 }
 
 // ── פעימה ───────────────────────────────────────────────────────────
@@ -843,7 +999,10 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     try {
       const fills = await pollFills();
       for (const f of fills) recordFill(f);
-      if (fills.length > 0) decision("FILLS", `${fills.length} מילויים חדשים נספרו מהשרשרת (Σ24ש' volume ${state.volume24hSbd.toFixed(3)} SBD)`);
+      if (fills.length > 0) {
+        const batchPnl = Math.round(fills.reduce((s, x) => s + x.pnlSbd, 0) * 1e6) / 1e6;
+        decision("FILLS", `${fills.length} מילויים חדשים נספרו מהשרשרת (Σ24ש' volume ${state.volume24hSbd.toFixed(3)} SBD · PnL-ממומש-באצווה ${batchPnl >= 0 ? "+" : ""}${batchPnl.toFixed(3)} SBD · לוטות ${state.lotsCount} · בסיס ${state.basisBlendedSbd != null ? state.basisBlendedSbd.toFixed(6) : "אין"})`);
+      }
       // חוק-chain-truth (r190): פקודה-חיה-בטווח-השמור שאינה-ברישום = שלנו-ששודרה-חי-מלכתחילה ⇒ מאומצת
       const { ours } = await ourOpenOrders();
       const liveIds = new Set(ours.map((o) => o.orderid));
@@ -878,6 +1037,7 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     const bal = await balances();
     state.balances = { steemFree: bal.steemFree, sbdFree: bal.sbdFree, measuredAt: new Date().toISOString() };
     state.centerPrice = mid;
+    refreshLotAggregates(); // סימון-לשוק r191: בסיס+unrealizedPnlSbd מתעדכנים-בכל-פעימה-שהמרכז-נמדד
     state.spreadBps = Math.round(((bestAsk - bestBid) / mid) * 10_000);
     state.lastTick = new Date().toISOString();
 
@@ -909,6 +1069,13 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     }
     state.coordination.moverActing = false;
 
+    // חוק-רווחיות r191: ניטור-רצפה על-הסולם-החי — מכירה-חיה-מתחת-לרצפה = הצעת-הפסד-מובטח
+    // שיושבת-בספר ⇒ חייבת-החלפה. הרצפה = בסיס×(1+minProfitBps/10000); אין-לוטות ⇒ no-lots.
+    const minProfitBps = typeof c.minProfitBps === "number" && Number.isFinite(c.minProfitBps) && c.minProfitBps > 0 ? c.minProfitBps : DEFAULT_MIN_PROFIT_BPS;
+    const guardFloor = state.basisBlendedSbd != null && state.basisBlendedSbd > 0 ? Math.round(state.basisBlendedSbd * (1 + minProfitBps / 10_000) * 1e6) / 1e6 : null;
+    const sellsUnderFloor = guardFloor != null ? state.openOrders.filter((o) => o.side === "sell" && o.price < guardFloor) : [];
+    state.profitGuard = { minProfitBps, basis: state.basisBlendedSbd, floor: guardFloor, guardBasis: guardFloor != null ? "basis" : "no-lots", sellsUnderFloor: sellsUnderFloor.length, updatedAt: new Date().toISOString() };
+
     // סטיית-מרכז: הקו זז מעל 2×מרווח מאז-הפריסה ⇒ גרירת-הסולם
     const placedCenter = state.openOrders.length > 0 ? state.openOrders.reduce((s, o) => s + o.centerAtPlace, 0) / state.openOrders.length : null;
     const driftBps = placedCenter != null && placedCenter > 0 ? Math.round(((mid - placedCenter) / placedCenter) * 10_000) : 0;
@@ -924,14 +1091,16 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
         ? `מעבר-dry→live: ${virtualInLive} פקודות-וירטואליות-יבשה מוחלפות בפריסה-חיה על-השרשרת`
         : state.openOrders.length === 0
           ? "סולם-ריק — פריסה-ראשונה"
-          : needRecenter
-            ? `המרכז זז ${driftBps > 0 ? "+" : ""}${driftBps}bps מאז-הפריסה (${placedCenter!.toFixed(6)} → ${mid.toFixed(6)}) — ביטול+פריסה-מחדש`
-            : stale.length > 0
-              ? `${stale.length} פקודות ישנות מעבר ל-${cfg.rails.steem.refreshHours}ש' — גרירה`
-              : null;
+          : sellsUnderFloor.length > 0
+            ? `profit-guard: ${sellsUnderFloor.length} מכירות-חיות מתחת-לרצפה ${guardFloor!.toFixed(6)} (בסיס ${state.basisBlendedSbd!.toFixed(6)}) — ביטול+פריסה-מעל-הרצפה, אין-הצעות-הפסד-מובטח`
+            : needRecenter
+              ? `המרכז זז ${driftBps > 0 ? "+" : ""}${driftBps}bps מאז-הפריסה (${placedCenter!.toFixed(6)} → ${mid.toFixed(6)}) — ביטול+פריסה-מחדש`
+              : stale.length > 0
+                ? `${stale.length} פקודות ישנות מעבר ל-${cfg.rails.steem.refreshHours}ש' — גרירה`
+                : null;
 
     if (!reason) {
-      decision("ON-GRID", `הסולם על הקו: ${state.openOrders.length} פקודות · drift ${driftBps}bps · מרכז ${mid.toFixed(6)} · תקציב ${bal.sbdFree.toFixed(3)} SBD חופשיים`);
+      decision("ON-GRID", `הסולם על הקו: ${state.openOrders.length} פקודות · drift ${driftBps}bps · מרכז ${mid.toFixed(6)} · רצפת-רווחיות ${guardFloor != null ? guardFloor.toFixed(6) : "no-lots"} · תקציב ${bal.sbdFree.toFixed(3)} SBD חופשיים`);
       saveState();
       return { ok: true, detail: "on-grid" };
     }

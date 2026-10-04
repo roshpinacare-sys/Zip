@@ -38,6 +38,18 @@
 //     ניסיונות/שעה + צינון) — אחרי שערי kill-switch (~/.sovereign/mm-kill)
 //     ו-SELF-HALT (הכיבוי-מכוון אינו מחייה). fleet-guard ומתג-איש-המת
 //     מדלגים על :3049 במפורש — החוק כתוב שם בקוד (חוק-r190).
+//
+// r191 — כלב-הרווחיות (profit-watchdog): ההוראה-המחייבת — "רווחיות-גם-אם-קטנה"
+//   ו-"ריבונות-אוטונומית שבודקת משפרת ומתקנת את עצמה כל הזמן". בכל פעימה
+//   השומר קורא את state.json של מנוע-הגריד (sovereign/market-maker/state.json)
+//   ורושם ל-housekeeping.json בלוק profitWatch כנה: PnL-ממומש · יומי · לא-ממומש
+//   · בסיס-ממוזג · לוטות · מילויים-24ש' · ווליום-24ש'. שער-הכנות guardOk:
+//   גרסת-המנוע ≥ 1.2.0-r191 (השוואה-נומרית של-קידומת-הגרסה — לא מחרוזות)
+//   וגם (basisBlendedSbd נמדד או lotsCount===0) — לא-ידוע ⇒ false עם סיבה.
+//   פילוסופיית-WARN-בלבד: גרסה-ישנה/שדות-חסרים ⇒ אזהרה מתועדת בצינון-30דק'
+//   — אף-החייאה-ואף-הרג מסיבות-PnL. המנוע מעצים-עצמו ב-dailyLossCap; mmGuard
+//   מחיה רק תהליכים-מתים — הגבול-הקדוש נשמר. מגמה: profitTrend24hTicks
+//   (48-דגימות-אחרונות) + trend מחושב — הדשבורד/מתאם יראה "PnL-מתהפך-לחיובי".
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
@@ -98,6 +110,10 @@ const MM_KILL_FILE = `${os.homedir()}/.sovereign/mm-kill`; // קובץ-ההרג 
 const MM_STATE_FILE = `${HOME}/sovereign/market-maker/state.json`; // שם חי SELF-HALT (halted=true)
 // ההפעלה-היציבה-הקנונית של המנוע (דפוס-הסוכנים; execPath אבסולוטי — לקח R90)
 const MM_START_CMD = `cd ${HOME}/mini-services/market-maker && (setsid nohup ${process.execPath} --hot index.ts >> /tmp/mm-3049.log 2>&1 &)`;
+// r191 — כלב-הרווחיות: שער-הגרסה-המזערי ל-guardOk + צינוני-אזהרה (WARN-בלבד)
+const PROFIT_GUARD_MIN_VERSION = "1.2.0-r191"; // מ-מנוע v1.2.0-r191 (סוכן-אח r191-1-a: FIFO profit-guard)
+const PROFIT_WARN_COOLDOWN_MS = 30 * 60_000; // אזהרת-כנות אחת-לחצי-שעה — אמת, לא רעש (דפוס OOM-WARN r190)
+const PROFIT_TREND_CAP = 48; // 48 דגימות אחרונות של ה-PnL — ציר-מגמה לדשבורד/מתאם
 
 type FleetEntry = {
   name: string;
@@ -250,7 +266,7 @@ function freshMM(): ManagedHealth {
 function readState(): KeeperState {
   const base: KeeperState = {
     service: "keeper",
-    version: "1.4.0", // r190 — פיקוח-RAM + סמכות-החייאה-יחידה ל-3049
+    version: "1.5.0", // r191 — כלב-הרווחיות (profit-watchdog) בכל פעימה + אימות-ספי-RAM
     bootedAt: new Date().toISOString(),
     beats: 0,
     patrolIntervalSec: PATROL_INTERVAL_SEC,
@@ -399,8 +415,27 @@ const DISK_FLOOR_MB = 1600; // רף-חירום — מתחתיו מפנים
 const GITLEAKS_EVERY_MS = 6 * 3_600_000;
 
 // r190 — מדידת-RAM: אותה-כנות-דיסק, על הגוף. המבנה נשמר ב-housekeeping.json
-// (אותו-קובץ — פיקוח-הגוף אחד: דיסק + RAM + סודות).
+// (אותו-קובץ — פיקוח-הגוף אחד: דיסק + RAM + סודות + רווחיות-r191).
 type HouseRamProcs = Record<string, { pid: number | null; rssMB: number | null }>;
+// r191 — דגימת-מגמת-PnL (ציר-זמן לדשבורד: "PnL מתהפך לחיובי")
+type ProfitTrendSample = { at: string; realizedPnlSbd: number | null; dailyPnlSbd: number | null };
+type ProfitWatch = {
+  checkedAt: string | null;
+  engineVersion: string | null;
+  mode: string | null;
+  realizedPnlSbd: number | null; // PnL-ממומש — המדד-שהמפעיל-הציב (רווחיות-גם-אם-קטנה)
+  dailyPnlSbd: number | null;
+  unrealizedPnlSbd: number | null; // שדה-חדש v1.2.0-r191 — null בהיעדרו (כנות)
+  basisBlendedSbd: number | null; // שדה-חדש v1.2.0-r191 — בסיס-ממוזג של הלוטות
+  lotsCount: number | null; // שדה-חדש v1.2.0-r191 — כמות-הלוטות הפתוחות
+  fills24h: number | null;
+  volume24hSbd: number | null;
+  guardOk: boolean | null; // true רק כשהגרסה ≥ 1.2.0-r191 והבסיס-נמדד (או אין-לוטות)
+  guardReason: string | null; // כנות: לא-ידוע ⇒ false + סיבה
+  warn: { at: string; reason: string } | null; // אזהרה-אחרונה (צינון-30דק') — WARN-בלבד
+  trend: string | null; // improving | worsening | flat | unknown
+  profitTrend24hTicks: ProfitTrendSample[]; // 48 דגימות אחרונות
+};
 type HouseState = {
   lastDiskAt: string | null;
   lastGitleaksAt: string | null;
@@ -409,16 +444,40 @@ type HouseState = {
   ram: {
     at: string | null; // mtime-המדידה
     totalMB: number | null;
-    usedMB: number | null; // totalmem − freemem (כנות: freemem הוא פנוי-אמיתי, לא זמין-מובטח)
+    usedMB: number | null; // totalmem − freemem
     availMB: number | null;
     procs: HouseRamProcs; // top-RSS לכל תהליך-נעקב
     purgeAt: string | null; // צינון-הפינוי
     lastOomWarnAt: string | null; // צינון-האזהרה-המוקדמת
+    thresholdsVerifiedAt: string | null; // r191 — אימות-ספי-רף (חד-פעמי לדור-תהליך)
+    thresholdsVerdict: string | null; // r191 — פסק-הדין המתועד של אימות-הספיים
   };
+  profitWatch: ProfitWatch; // r191 — כלב-הרווחיות
 };
 
 function freshRam(): HouseState["ram"] {
-  return { at: null, totalMB: null, usedMB: null, availMB: null, procs: {}, purgeAt: null, lastOomWarnAt: null };
+  return { at: null, totalMB: null, usedMB: null, availMB: null, procs: {}, purgeAt: null, lastOomWarnAt: null, thresholdsVerifiedAt: null, thresholdsVerdict: null };
+}
+
+// r191 — מצב-פתיחה של כלב-הרווחיות — הכל null/לא-ידוע עד המדידה הראשונה (כנות)
+function freshProfitWatch(): ProfitWatch {
+  return {
+    checkedAt: null,
+    engineVersion: null,
+    mode: null,
+    realizedPnlSbd: null,
+    dailyPnlSbd: null,
+    unrealizedPnlSbd: null,
+    basisBlendedSbd: null,
+    lotsCount: null,
+    fills24h: null,
+    volume24hSbd: null,
+    guardOk: null,
+    guardReason: "not-yet-measured",
+    warn: null,
+    trend: "unknown",
+    profitTrend24hTicks: [],
+  };
 }
 
 function readHouseState(): HouseState {
@@ -429,10 +488,22 @@ function readHouseState(): HouseState {
       lastGitleaksAt: raw.lastGitleaksAt ?? null,
       lastGitleaksFindings: raw.lastGitleaksFindings ?? null,
       lastPurgeAt: raw.lastPurgeAt ?? null,
-      ram: { ...freshRam(), ...(raw.ram ?? {}), procs: raw.ram?.procs ?? {} },
+      ram: {
+        ...freshRam(),
+        ...(raw.ram ?? {}),
+        procs: raw.ram?.procs ?? {},
+        thresholdsVerifiedAt: raw.ram?.thresholdsVerifiedAt ?? null,
+        thresholdsVerdict: raw.ram?.thresholdsVerdict ?? null,
+      },
+      // r191 — נשיאת-בלוק-הרווחיות בין אתחולים (המגמה חייבת לשרוד הקמות-שומר)
+      profitWatch: {
+        ...freshProfitWatch(),
+        ...(raw.profitWatch ?? {}),
+        profitTrend24hTicks: Array.isArray(raw.profitWatch?.profitTrend24hTicks) ? raw.profitWatch!.profitTrend24hTicks : [],
+      },
     };
   } catch {
-    return { lastDiskAt: null, lastGitleaksAt: null, lastGitleaksFindings: null, lastPurgeAt: null, ram: freshRam() };
+    return { lastDiskAt: null, lastGitleaksAt: null, lastGitleaksFindings: null, lastPurgeAt: null, ram: freshRam(), profitWatch: freshProfitWatch() };
   }
 }
 
@@ -530,6 +601,15 @@ function ramWatch(h: HouseState): void {
   const totalMB = Math.round(os.totalmem() / 1_048_576);
   const freeMB = Math.round(os.freemem() / 1_048_576);
   const usedMB = totalMB - freeMB;
+  // r191 — אימות-ספי-הרף (חד-פעמי לדור-תהליך): הספיים נגזרו מחדש מ-/proc/meminfo
+  // חי (r191-1-c): MemTotal 4041MB · MemAvailable ~692-784MB. הרף-3200MB-used
+  // = ~80% עם ראש-חופשי של ~840MB — מוצדק בקונטיינר-4GB שבו next-server חוקי
+  // עד ~1.8GB; ורף-1536MB-RSS ל-next-server נותן ~200MB אזהרה-מוקדמת לפני
+  // אזור-ההרג-שנמדד-פעמיים (1.7–1.9GB · dmesg r189-c). שני-הספיים נשארים.
+  if (!h.ram.thresholdsVerifiedAt) {
+    h.ram.thresholdsVerifiedAt = now;
+    h.ram.thresholdsVerdict = `r191: ספיים-נגזרו-מחדש-מ-/proc/meminfo — warn-used=${RAM_USED_FLOOR_MB}MB (~80% מ-${totalMB}) · oom-warn-next-rss=${OOM_WARN_NEXT_RSS_MB}MB — שניהם-מוצדקים, לא-שונו`;
+  }
   // תהליכים-קריטיים — מתאים-למה-שקיים-בפועל: המאזין-על הפורט הוא-התהליך-שמחזיק-את-השירות.
   let ssSnap = "";
   try {
@@ -546,6 +626,11 @@ function ramWatch(h: HouseState): void {
     procs[name] = { pid, rssMB: pid != null ? procRssMb(pid) : null };
   }
   h.ram = { ...h.ram, at: now, totalMB, usedMB, availMB: freeMB, procs };
+  // r191 — הבהרה-נמדדה (כנות-תיעוד, אין-שינוי-התנהגות): os.freemem() ב-Bun חוזר
+  // כ-MemAvailable מ-/proc/meminfo (נמדד חי: freemem 691-693MB ↔ MemAvailable
+  // 692MB ב-04:22Z, בעוד MemFree-האמיתי 167MB). המשמעות: usedMB = total −
+  // MemAvailable — מדד-יחסית-לזמין, שהוא המדד-הנכון-לסיכון-OOM; ההערה-הישנה
+  // ("freemem הוא פנוי-אמיתי") הייתה-לא-מדויקת-עבור-Bun — מתוקנת-בטיפוס למעלה.
 
   // אזהרה-מוקדמת מתועדת — next-server RSS — לא הרג, לא פעולה-על-תהליך
   const webRss = procs["web-next-server-3000"]?.rssMB ?? null;
@@ -583,6 +668,146 @@ function ramWatch(h: HouseState): void {
   }
 }
 
+// ── r191 · כלב-הרווחיות (profit-watchdog) בכל פעימה ─────────────────
+// נולד מהוראת-המפעיל המחייבת: "רווחיות-גם-אם-קטנה" + "ריבונות-אוטונומית
+// שבודקת משפרת ומתקנת את עצמה כל הזמן". המדידה הכנה מ-r190-1-d: PnL-ממומש
+// שלילי (−1.362-SBD) — מעתה השומר מודד את הרווחיות בכל פעימה ורושם
+// ל-housekeeping.json, כדי שהמתאם/הדשבורד יראו את ה-PnL מתהפך לחיובי.
+// גבולות-החוק (קדושים):
+//   · WARN-בלבד — אף-החייאה ואף-הרג מסיבות-PnL. המנוע מעצים-עצמו
+//     ב-dailyLossCap; mmGuard מחיה רק תהליכים-מתים — אין-סמכות-PnL.
+//   · כנות: שדה-חסר/מצב-חסר = null עם סיבה — לא-הנחה, לא-המצאה.
+//   · כתיבה-אל h-החי בלבד — שמירה-אחת-בסוף-הפעימה (הלקח-החי של ramWatch r190).
+
+// פענוח-נומרי-חסון של קידומת-הגרסה: "1.2.0-r191" → [1,2,0]. השוואת-מחרוזות
+// כוזבת ("1.2.10" < "1.2.9") — המדידה-הכנה היא טאפל-נומרי ואז השוואה-טאפלית.
+function parseEngineVersion(v: unknown): [number, number, number] | null {
+  if (typeof v !== "string") return null;
+  const m = /^(\d+)\.(\d+)\.(\d+)/.exec(v.trim());
+  if (!m) return null;
+  const t = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if (!t.every((n) => Number.isFinite(n))) return null;
+  return [t[0]!, t[1]!, t[2]!];
+}
+
+function engineVersionAtLeast(v: unknown, floor: [number, number, number]): boolean {
+  const t = parseEngineVersion(v);
+  if (!t) return false;
+  for (let i = 0; i < 3; i++) {
+    if (t[i] !== floor[i]) return t[i]! > floor[i]!;
+  }
+  return true; // טאפל-שווה = "לפחות"
+}
+
+function profitWatchRun(h: HouseState): void {
+  const now = new Date().toISOString();
+  const pw = h.profitWatch;
+  const prevReason = pw.guardReason;
+  const floorTuple = parseEngineVersion(PROFIT_GUARD_MIN_VERSION) ?? ([0, 0, 0] as [number, number, number]);
+  const num = (x: unknown): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
+
+  // המנוע עשוי להיות באמצע-שדרוג (סוכן-אח r191-1-a): קובץ-חסר/חצוי/שדות-חסרים —
+  // כנות: null + סיבה. השדות-החדשים (unrealizedPnlSbd/basisBlendedSbd/lotsCount)
+  // יופיעו כשהמנוע יהיה v1.2.0-r191 — עד-אז guardOk=false כנה.
+  let engine: any = null;
+  try {
+    engine = JSON.parse(fs.readFileSync(MM_STATE_FILE, "utf8"));
+  } catch {
+    engine = null;
+  }
+
+  if (!engine || typeof engine !== "object") {
+    pw.checkedAt = now;
+    pw.engineVersion = null;
+    pw.mode = null;
+    pw.realizedPnlSbd = null;
+    pw.dailyPnlSbd = null;
+    pw.unrealizedPnlSbd = null;
+    pw.basisBlendedSbd = null;
+    pw.lotsCount = null;
+    pw.fills24h = null;
+    pw.volume24hSbd = null;
+    pw.guardOk = false;
+    pw.guardReason = "engine-state-unreadable";
+    pw.trend = "unknown";
+  } else {
+    const ver = typeof engine.version === "string" ? engine.version : null;
+    pw.checkedAt = now;
+    pw.engineVersion = ver;
+    pw.mode = typeof engine.mode === "string" ? engine.mode : null;
+    pw.realizedPnlSbd = num(engine.realizedPnlSbd);
+    pw.dailyPnlSbd = num(engine.dailyPnlSbd);
+    pw.unrealizedPnlSbd = num(engine.unrealizedPnlSbd);
+    pw.basisBlendedSbd = num(engine.basisBlendedSbd);
+    pw.lotsCount = num(engine.lotsCount);
+    pw.fills24h = num(engine.fills24h);
+    pw.volume24hSbd = num(engine.volume24hSbd);
+
+    // שער-הכנות guardOk: גרסה ≥ 1.2.0-r191 (השוואה-נומרית) וגם
+    // (basisBlendedSbd נמדד או lotsCount===0 — אין-לוטות, אין-בסיס-למדוד)
+    let reason: string;
+    if (ver == null) {
+      reason = "version-missing";
+    } else if (!engineVersionAtLeast(ver, floorTuple)) {
+      reason = `version-old: ${ver} (< ${PROFIT_GUARD_MIN_VERSION})`;
+    } else if (pw.basisBlendedSbd == null && pw.lotsCount !== 0) {
+      reason = "guard-fields-missing: basisBlendedSbd/lotsCount";
+    } else {
+      reason = "ok";
+    }
+    pw.guardOk = reason === "ok";
+    pw.guardReason = reason;
+
+    // מגמת-PnL: דגימה בכל פעימה · 48-דגימות אחרונות · כיוון-מחושב
+    // (המגמה נשמרת ב-housekeeping.json ושורדת הקמות-שומר)
+    if (pw.realizedPnlSbd != null) {
+      pw.profitTrend24hTicks = [
+        ...pw.profitTrend24hTicks,
+        { at: now, realizedPnlSbd: pw.realizedPnlSbd, dailyPnlSbd: pw.dailyPnlSbd },
+      ].slice(-PROFIT_TREND_CAP);
+    }
+    const t = pw.profitTrend24hTicks;
+    if (t.length >= 2) {
+      const first = t[0]?.realizedPnlSbd ?? null;
+      const last = t[t.length - 1]?.realizedPnlSbd ?? null;
+      const eps = 1e-9;
+      pw.trend =
+        first != null && last != null
+          ? last - first > eps
+            ? "improving"
+            : first - last > eps
+              ? "worsening"
+              : "flat"
+          : "unknown";
+    } else {
+      pw.trend = "unknown";
+    }
+  }
+
+  // WARN-בלבד: אזהרה מתועדת בצינון-30דק' (או כשהסיבה-משתנה) — אף-פעולה-על-המנוע.
+  if (pw.guardOk) {
+    if (prevReason != null && prevReason !== "ok" && prevReason !== "not-yet-measured") {
+      pw.warn = null;
+      record(
+        "PROFIT-GUARD-OK",
+        `כלב-הרווחיות: שער-הכנות חזר אמיתי — מנוע ${pw.engineVersion ?? "?"} (≥ ${PROFIT_GUARD_MIN_VERSION}) · mode=${pw.mode ?? "?"} · realizedPnl=${pw.realizedPnlSbd ?? "?"} SBD · trend=${pw.trend} — רישום-התאוששות בלבד, אף-פעולה`,
+        false,
+      );
+    }
+    return;
+  }
+  const lastWarnMs = pw.warn ? Date.parse(pw.warn.at) : NaN;
+  const reasonChanged = pw.guardReason !== prevReason;
+  if (reasonChanged || !pw.warn || !Number.isFinite(lastWarnMs) || Date.now() - lastWarnMs >= PROFIT_WARN_COOLDOWN_MS) {
+    pw.warn = { at: now, reason: pw.guardReason ?? "unknown" };
+    record(
+      "PROFIT-WARN",
+      `כלב-הרווחיות: guardOk=false (${pw.guardReason}) — מנוע ${pw.engineVersion ?? "לא-מדווח"} · mode=${pw.mode ?? "?"} · realizedPnl=${pw.realizedPnlSbd ?? "לא-מדווח"} SBD · unrealized=${pw.unrealizedPnlSbd ?? "לא-מדווח"} · lots=${pw.lotsCount ?? "לא-מדווח"} · fills24h=${pw.fills24h ?? "לא-מדווח"} · volume24h=${pw.volume24hSbd ?? "לא-מדווח"} SBD · WARN-בלבד: אף-החייאה-ואף-הרג מסיבות-PnL (המנוע מעצים-עצמו ב-dailyLossCap · mmGuard מחיה רק-תהליכים-מתים — הגבול-קדוש)`,
+      false,
+    );
+  }
+}
+
 function housekeeping(): void {
   const h = readHouseState();
   const now = new Date().toISOString();
@@ -609,6 +834,8 @@ function housekeeping(): void {
   }
   // r190 — פיקוח-RAM בכל-פעימה (מדידה-כנה אל h-החי; נשמר-עם-הדיסק-בשמירה-אחת)
   ramWatch(h);
+  // r191 — כלב-הרווחיות בכל-פעימה (מדידה-כנה אל h-החי; WARN-בלבד — אף-פעולה-על-המנוע)
+  profitWatchRun(h);
   const lastG = h.lastGitleaksAt ? Date.parse(h.lastGitleaksAt) : 0;
   if (Date.now() - lastG >= GITLEAKS_EVERY_MS) {
     try {

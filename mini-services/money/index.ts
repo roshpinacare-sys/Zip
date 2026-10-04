@@ -610,6 +610,10 @@ async function act(
     ? normList(r.cancelled)
     : normList(r.receipt?.cancelled);
   const parityAt = r.parity ?? r.receipt?.parity ?? null;
+  // r191 · חוק-ייחוס-פקודות: פקודות-זרות שהמוביל ראה חיות בספר ודילג עליהן —
+  // עולה להחלטה ולספרים בכנות (שקיפות-התיאום-בין-הסוכנים)
+  const foreignSkippedCount = Number((r.receipt as any)?.foreignSkipped?.count ?? 0) || 0;
+  const foreignSkippedNote = foreignSkippedCount > 0 ? ` · דולגו ${foreignSkippedCount} זרות (חוק-הייחוס r191)` : "";
   // R97: קבלה מבחינה סוג-פעולה; GATE-QUEUED היא הכרעה, לא כישלון —
   // הפעולה מעל סף האוטונומיה וממתינה למפעיל בשער-העסקאות.
   const actionKind = r.ok
@@ -627,7 +631,7 @@ async function act(
     at: finishedAt,
     kind: actionKind,
     detail: r.ok
-      ? `הוצבו ${placed.length} · בוטלו ${cancelled.length} · ${reason}`
+      ? `הוצבו ${placed.length} · בוטלו ${cancelled.length}${foreignSkippedNote} · ${reason}`
       : r.code === "GATE-QUEUED"
         ? `הפעולה (${typeof r.usdValue === "number" ? r.usdValue.toFixed(2) : "?"}$) ≥ סף $${r.threshold} — ממתינה לאישור המפעיל בשער העסקאות. שום כסף לא זז.`
         : `כישלון כנה: ${String(r.error ?? r.receipt?.error ?? "לא ידוע").slice(0, 120)}`,
@@ -639,6 +643,8 @@ async function act(
     parity: parityAt,
     placed: placed.length, // counts only - no fake arrays (R101c receipt-honesty fix)
     cancelled: cancelled.length,
+    // r191 · חוק-ייחוס-פקודות: ספירת-פקודות-זרות שדולגו (כנות-תיאום בין-סוכנים)
+    foreignSkipped: foreignSkippedCount,
     error: r.error ?? r.receipt?.error ?? null,
   });
   // קבלה לקנון אחרי כל פעולה (שער-סודות בפנים)
@@ -647,6 +653,7 @@ async function act(
     "",
     `- **סיבה**: ${reason}`,
     `- **תוצאה**: ${state.lastDecision.kind} · הוצבו ${placed.length} · בוטלו ${cancelled.length}`,
+    `- **דילוג-זרות (חוק-הייחוס r191)**: ${foreignSkippedCount} — פקודות שלא ניתן לייחסן למוביל לא נגעו לעולם`,
     `- **פאריטה בזמן הפעולה**: ${parityAt ?? "לא נמדד"}`,
     `- **פעולות היום**: ${state.actionsToday}/${POLICY.actionsBudgetPerDay}`,
     `- **כנות**: ${r.error ?? r.receipt?.error ? `שגיאה: ${String(r.error ?? r.receipt?.error).slice(0, 200)}` : "אין"}`,
