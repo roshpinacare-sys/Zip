@@ -1,21 +1,21 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-04T02:40:48.776Z",
+  "at": "2026-10-04T04:06:03.166Z",
   "source": "push-range",
-  "diffChars": 3626,
-  "diffStat": "progress.md |  2 ++\n worklog.md  | 16 ++++++++++++++++\n 2 files changed, 18 insertions(+)",
+  "diffChars": 681922,
+  "diffStat": "mini-services/keeper/index.ts                      |  371 +-\n mini-services/market-maker/index.ts                |  207 +-\n mini-services/shared.ts                            |   17 +-\n progress.md                                        |   14 +-\n sovereign/businesses/business-log.jsonl            |  147 +\n sovereign/businesses/content-log.jsonl             |    3 +\n sovereign/businesses/engine-state.json             |    4 +-\n sovereign/curation/comment-memory.json             |   44 +-\n sovereign/curation/history.json                    |   25 +\n sovereign/curation/state.json                      |  333 +-\n sovereign/governance/DECISION_LOG.jsonl            |    6 +\n sovereign/governance/cycle-state.json              |   27 +-\n sovereign/governance/daemon-state.json             |   10 +-\n sovereign/governance/econ-gate.jsonl               |    7 +\n sovereign/governance/loop-state.json               |   27 +-\n sovereign/hunter/state.json                        |  130 +-\n sovereign/keeper/fleet-guard-state.json            |   46 +-\n sovereign/keeper/housekeeping.json                 |   30 +-\n sovereign/keeper/self-boot-state.json              |   12 +-\n sovereign/keeper/state.json                        |  362 +-\n .../review-skills/fleet-conventions/SKILL.md       |    6 +-\n sovereign/kpi/state.json                           |    2 +-\n sovereign/market-maker/config.json                 |    4 +-\n sovereign/market-maker/dry-run-log.jsonl           |   20 +\n sovereign/market-maker/state.json                  |  350 +-\n sovereign/money/history.json                       |  272 +-\n sovereign/money/pnl-scan.json                      |   42 +-\n sovereign/money/state.json                         |   18 +-\n sovereign/pulse/state.json                         |    6 +-\n sovereign/scout/digest-2026-10-04.json             |  231 +\n sovereign/scout/digest-2026-10-04.md               |   49 +\n sovereign/scout/digests.json                       |  231 +\n sovereign/scout/latest-di",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
   "skillsLoaded": [],
-  "verdict": "pass",
+  "verdict": "error",
   "findings": [],
-  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
+  "reason": "phase2-fail-open: bridge HTTP 502",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 896,
-    "llmCalls": 0
+    "totalTookMs": 134099,
+    "llmCalls": 2
   }
 }
