@@ -52,6 +52,7 @@ const BOOK_LIMIT = 100;
 interface ScanMarkets {
   steem: "ok" | "fail";
   hive: "ok" | "fail";
+  blurt: "ok" | "empty" | "fail";
   cex: "ok" | "fail";
   exchange: "ok" | "fail" | "skipped";
   stableUsd: "ok" | "derived" | "fail";
@@ -152,6 +153,23 @@ async function fetchHiveBook(): Promise<Book> {
   return normalizeLevels(await rpcBook(HIVE_RPC, "condenser_api.get_order_book"), "hbd", "hive");
 }
 
+// r193 — מחיר-BLURT/USD מ-CoinGecko (אין-CEX-ואין-ספר-פנימי — נמדד-חי)
+let blurtUsdCache: { at: number; v: number | null } | null = null;
+async function fetchBlurtUsd(): Promise<number | null> {
+  if (blurtUsdCache && Date.now() - blurtUsdCache.at < 60_000) return blurtUsdCache.v;
+  try {
+    const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=blurt&vs_currencies=usd", {
+      signal: AbortSignal.timeout(5_000),
+      headers: { "user-agent": "saos-sovereign/1.0" },
+    });
+    if (!res.ok) { blurtUsdCache = { at: Date.now(), v: null }; return null; }
+    const j = (await res.json()) as { blurt?: { usd?: number } };
+    const v = typeof j?.blurt?.usd === "number" ? j.blurt.usd : null;
+    blurtUsdCache = { at: Date.now(), v };
+    return v;
+  } catch { blurtUsdCache = { at: Date.now(), v: null }; return null; }
+}
+
 interface CexFeed {
   steem: number | null;
   hive: number | null;
@@ -228,7 +246,7 @@ async function scan(): Promise<void> {
   const t0 = Date.now();
   const at = new Date().toISOString();
   const opps: Opportunity[] = [];
-  const markets: ScanMarkets = { steem: "fail", hive: "fail", cex: "fail", exchange: "skipped", stableUsd: "fail" };
+  const markets: ScanMarkets = { steem: "fail", hive: "fail", blurt: "fail", cex: "fail", exchange: "skipped", stableUsd: "fail" };
   let steemDevBps: number | null = null;
   let hiveDevBps: number | null = null;
   try {
@@ -309,6 +327,19 @@ async function scan(): Promise<void> {
     if (wsteemPool && cex.steem && stable.sbd) {
       const o = oppExchangePoolVsCex(wsteemPool, cex.steem, stable.sbd, at);
       if (o) opps.push(o);
+    }
+    // r193 — רגל-Blurt: אין-ספר-פנימי (rpc.blurt.blog — get_order_book חסר, נמדד-חי);
+    // המחיר היחיד הוא CoinGecko → הזדמנות בריכת-WBLURT/USDS מול ייחוס-USD (peg=1).
+    const wblurtPool = poolFromSnapshot(exchangeSnap, "WBLURT/USDS");
+    const blurtUsd = await fetchBlurtUsd();
+    markets.blurt = blurtUsd != null ? "ok" : "fail";
+    if (wblurtPool && blurtUsd != null) {
+      const o = oppExchangePoolVsCex(wblurtPool, blurtUsd, 1, at);
+      if (o) opps.push(o);
+    } else if (wblurtPool && blurtUsd == null) {
+      markets.blurt = "fail";
+    } else if (blurtUsd != null) {
+      markets.blurt = "empty"; // בריכת-אבק — כנה
     }
 
     opps.sort((a, b) => b.netBps - a.netBps);

@@ -51,6 +51,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ExchangeRouterSection } from "@/components/weave/views/exchange-router-section";
+import { SovereignDexSection } from "@/components/weave/views/sovereign-dex-section";
 import {
   FadeIn,
   HashChip,
@@ -306,6 +307,9 @@ export function DefiRouterView({ section = "router" }: { section?: string }) {
 
       {/* ── שכבה 0: ראוטר ההחלפות — ציטוטים חיים מ-4 רשתות (R96) ── */}
       <ExchangeRouterSection router={data} />
+
+      {/* ── שכבה 0.5: ה-DEX הריבוני — ראוטר-עומק · גריד-מתנגד · ארביטראז-רישתי (r193) ── */}
+      <SovereignDexSection />
 
       {/* ── שכבה 1: מנוע הניתוב ──────────────────────────────────── */}
       <div
