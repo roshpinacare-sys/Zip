@@ -13,10 +13,27 @@
 // כל הכרעה נשמרת עם קבלה — האמת במדידה, לא בזיכרון.
 // ─────────────────────────────────────────────────────────────────────
 
+import fs from "node:fs";
 import { db } from "@/lib/db";
 
 /** הסף היחיד — כתוב פעם אחת, נאכף בכל מקום (הוראת המפעיל) */
 export const GATE_THRESHOLD_USD = 100;
+
+/**
+ * r197 — חוק-העצירה והחשיבה: קובץ-אמת אחד (sovereign/autonomy/GATE.json).
+ * fail-closed: קובץ קרוע/לא-קריא ⇒ PAUSED — היעדר-אמת אינו היתר.
+ * השרת הוא שכבת-ההגנה העצמאית: גם אם דיבון חסר-משמעת ינסה — כאן זה נעצר.
+ */
+function readGlobalAutonomy(): { mode: "PAUSED" | "THINKING" | "ACTIVE"; reason: string } {
+  try {
+    const raw = JSON.parse(fs.readFileSync("/home/z/my-project/sovereign/autonomy/GATE.json", "utf8")) as { mode?: string; reason?: string };
+    if (raw?.mode === "ACTIVE") return { mode: "ACTIVE", reason: String(raw.reason ?? "") };
+    if (raw?.mode === "THINKING") return { mode: "THINKING", reason: String(raw.reason ?? "") };
+    return { mode: "PAUSED", reason: String(raw?.reason ?? "שער-לא-תקין") };
+  } catch {
+    return { mode: "PAUSED", reason: "fail-closed: קובץ-השער לא נקרא (חוק-r197)" };
+  }
+}
 
 export type GateVerdict = "ALLOWED" | "QUEUED" | "REFUSED";
 
@@ -48,6 +65,33 @@ export async function evaluateGate(input: GateInput): Promise<GateDecision> {
     usdBasis: input.usdBasis.slice(0, 250),
     reason: input.reason.slice(0, 250),
   };
+
+  // r197 — חוק-העצירה והחשיבה (הוראת-המפעיל trace 1a108e334b3129a9):
+  //   PAUSED   → פעולת-דיבון נסרבת תמיד; רק המפעיל עצמו עובר (המפעיל הוא השער).
+  //   THINKING → פעולת-דיבון עוברת רק עם רשות-דיון מלאה ב-payload
+  //              (claim/why/expected/risk/rollback — "לחשוב לפני שעושים").
+  //   ACTIVE   → המשך לשער-ה-$100 הרגיל.
+  const autonomy = readGlobalAutonomy();
+  if (input.issuedBy === "daemon" && autonomy.mode !== "ACTIVE") {
+    if (autonomy.mode === "PAUSED") {
+      const r = await db.txGate.create({
+        data: { ...base, usdValue: input.usdValue ?? 0, verdict: "REFUSED", decidedBy: "autonomy:PAUSED",
+          reason: `האוטונומיה עוצרה על-ידי המפעיל — אף פעולה אוטומטית לא זזה · ${autonomy.reason.slice(0, 160)}`, decidedAt: new Date() },
+      });
+      return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: input.usdValue };
+    }
+    // THINKING — דורשים דיון מלא; דיון חסר/קרוע = סירוב (fail-closed)
+    const d = (input.payload ?? {}) as { deliberation?: Record<string, unknown> };
+    const delib = d?.deliberation;
+    const delibOk = !!delib && ["claim", "why", "expected", "risk", "rollback"].every((k) => typeof (delib as Record<string, unknown>)[k] === "string" && String((delib as Record<string, unknown>)[k]).trim().length >= 8);
+    if (!delibOk) {
+      const r = await db.txGate.create({
+        data: { ...base, usdValue: input.usdValue ?? 0, verdict: "REFUSED", decidedBy: "autonomy:NO-DELIBERATION",
+          reason: "THINKING — פעולה בלי דיון מלא (מה/למה/צפי/סיכון/רולבק) נסרבת — לחשוב לפני שעושים (חוק-r197)", decidedAt: new Date() },
+      });
+      return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: input.usdValue };
+    }
+  }
 
   // שער שלמות-מדידה: לעולם לא מפרשים "לא נמדד" כ"קטן מהסף" —
   // אותו חוק כמו רצפת-הפאריטה: אין שער, אין מסחר.

@@ -30,6 +30,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
+import { readGate, autonomyVerdict, appendDeliberation } from "../autonomy";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -91,6 +92,8 @@ type MoneyState = {
   lastTotalSteem?: number; // R111 — חתימת הון-כולל לטריגר הגל (נזיל+פרוס)
   noKeySince?: string | null; // r133 · D-021: המעבר חסום בכנות — אין מפתח-אב בסנדבוקס; backoff 4ש' + ביטול מיידי כשמפתח חוזר
   fleetSeen?: { keeperRestartAt?: string; pulseDay?: string; studentDay?: string }; // R108 — סימני-מים לגוב-הצי
+  autonomyMode?: string; // r197 — מצב-שער-האוטונומיה הגלובלי (PAUSED/THINKING/ACTIVE) — נמדד בכל פעימה
+  autonomyHeldCount?: number; // r197 — כמה פעולות נעצרו על-ידי שער-העצירה (כנות)
   canonLast: { at: string; ok: boolean; path: string } | null;
   history?: Array<Record<string, unknown>>;
 };
@@ -136,6 +139,8 @@ function readState(): MoneyState {
       fleetSeen: prev.fleetSeen ?? {},
       lastPoolGuardAt: prev.lastPoolGuardAt ?? null,
       lastFleetSweepAt: prev.lastFleetSweepAt ?? null,
+      autonomyMode: prev.autonomyMode ?? null,
+      autonomyHeldCount: prev.autonomyHeldCount ?? 0,
     };
   } catch (e: any) {
     // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
@@ -198,6 +203,15 @@ function appendHistory(entry: Record<string, unknown>, cap = 200) {
     // R123 — כנות: כישלון כתיבת-דיסק נרשם ביומן, לא נבלע בשקט (כמו ב-weblift)
     console.error(`[money-mover] appendHistory נכשל — קבלה לא נשמרה לדיסק: ${String((e as Error)?.message ?? e)}`);
   }
+}
+
+// r197 — שער-האוטונומיה לפעולת-כסף: דיון נכתב לפני, ההכרעה נמדדת, סירוב נרשם בכנות — ואז הפעולה לא רצה.
+function gateFleetAction(action: string, d: { claim: string; why: string; expected: string; risk: string; rollback: string }): { allowed: boolean; why: string } {
+  try {
+    appendDeliberation({ action, actor: "money-mover", ...d });
+  } catch { /* רישום-דיון לא מפיל את הפעימה */ }
+  const v = autonomyVerdict(action, "money-mover");
+  return { allowed: v.allowed, why: v.why };
 }
 
 // ── שער-סודות לקנון: שום מפתח לא עובר ─────────────────────────────
@@ -708,6 +722,22 @@ async function tick() {
       saveState();
       return;
     }
+    // r197 — חוק-העצירה והחשיבה (הוראת-המפעיל trace 1a108e334b3129a9):
+    // PAUSED → אף פעולה אוטונומית לא זזה: לא תגמולים, לא גוב-צי, לא גלגולים,
+    // לא סולם. המדידה חיה והכנות חיות — הכסף קפוא עד שהשער נפתח.
+    // THINKING → הפעולות רצות רק עם רשות-דיון מלאה שנכתבת קודם.
+    const gate = readGate();
+    state.autonomyMode = gate.mode;
+    if (gate.mode === "PAUSED") {
+      state.autonomyHeldCount = (state.autonomyHeldCount ?? 0) + 1;
+      state.lastDecision = {
+        at: new Date().toISOString(),
+        kind: "AUTONOMY-PAUSED",
+        detail: `שער-העצירה סגור (${state.autonomyHeldCount} פעימות עצורות) — הוראת המפעיל: לעצור ולבחון לפני שעושים · ${gate.reason.slice(0, 100)}`,
+      };
+      saveState();
+      return;
+    }
     // R103 — רייל התגמול: מילויים חדשים בחלון = עבודה אמיתית = SAOS לזירה.
     // הספירה היא סימן-מים עולה: ירידת החלון לא מתגמלת פעמיים.
     try {
@@ -729,6 +759,19 @@ async function tick() {
           // r146-d — FILL-DEPLOY: מילוי אמיתי נמדד — ההצבה הבאה זכאית לצינון-מקוצר
           // (הספר לא נשאר ריק חצי-שעה אחרי שהביקוש הוכיח את עצמו)
           state.fillDeployPending = true;
+          // r197 — דיון לפני תגמול: למה משלמים, כמה, מה הסיכון
+          appendDeliberation({
+            action: "reward-pay", actor: "money-mover",
+            claim: `לשלם ${Math.max(1, newFills * POLICY.rewards.saosPerFill)} SAOS ל-${POLICY.rewards.member} על ${newFills} מילויי-גריד נמדדים`,
+            why: "עבודה אמיתית נמדדה (סימן-מים עולה) — חוק עבודה→מטבע→נזילות R103",
+            expected: "מאזן-הזירה של החבר עולה; האוצר יורד; הספר מתעד",
+            risk: `תקרת-יום בשרת (REWARD_DAILY_CAPS) עוצרת דילול; שער-החוק: ${gate.mode}`,
+            rollback: "הקבלה בספר hash-chained — אין היפוך-תגמול; התקרה חוסמת חזרות",
+          });
+          const avRew = autonomyVerdict("reward-pay", "money-mover");
+          if (!avRew.allowed) {
+            appendHistory({ kind: "AUTONOMY-HELD", reason: avRew.why });
+          } else {
           const rew = await fetch(EXCHANGE_API, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -762,6 +805,7 @@ async function tick() {
             // R123 — כנות: תגמול על עבודה מוכחת שנכשל — נרשם, לא נבלע
             appendHistory({ kind: "SAOS-REWARD-FAIL", reason: `מילויים ×${newFills}`, error: String(rew?.error ?? "הקריאה לא נענתה").slice(0, 120) });
           }
+          } // r197 — סוף ענף-התגמול המותר (השער האוטונומי)
         } else if (fillsNow < seen) {
           state.fillsSeen = fillsNow; // החלון התנקה — סימן-המים בעקבות האמת
         }
@@ -807,6 +851,10 @@ async function tick() {
           if (isNew) {
             wm.keeperRestartAt = last.at;
             state.fleetSeen = wm;
+            const gK = gateFleetAction("reward-pay", { claim: `לשלם 2 SAOS ל-keeper על החייה: ${last.detail.slice(0, 60)}`, why: "RESTART אמיתי בהיסטוריית השומר — עבודה נמדדת", expected: "מאזן keeper +2 מהאוצר; הספר מתעד", risk: "כפילות-רילוד — סימן-מים + תקרת-יום 6 חוסמים", rollback: "קבלה בספר; התקרה חוסמת חזרות" });
+            if (!gK.allowed) {
+              appendHistory({ kind: "AUTONOMY-HELD", reason: gK.why });
+            } else {
             const rew = await fetch(EXCHANGE_API, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -814,6 +862,7 @@ async function tick() {
               signal: AbortSignal.timeout(30_000),
             }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
             if (rew?.ok) appendHistory({ kind: "FLEET-PAY", reason: `keeper: ${last.detail.slice(0, 100)}`, saos: 2 });
+            } // r197 — סוף ענף-התשלום המותר
           }
         }
       }
@@ -822,6 +871,10 @@ async function tick() {
       if (ps?.lastPublishUtcDay && ps.lastPublishUtcDay !== wm.pulseDay) {
         wm.pulseDay = ps.lastPublishUtcDay;
         state.fleetSeen = wm;
+        const gP = gateFleetAction("reward-pay", { claim: `לשלם 2 SAOS ל-pulse על שידור יומי ${ps.lastPublishUtcDay}`, why: "שידור-שרשרת יומי מוכח במצב-הדופק — עבודה נמדדת", expected: "מאזן pulse +2 מהאוצר; הספר מתעד", risk: "כפילות-יום — סימן-מים pulseDay + תקרת-יום 4 חוסמים", rollback: "קבלה בספר; התקרה חוסמת חזרות" });
+        if (!gP.allowed) {
+          appendHistory({ kind: "AUTONOMY-HELD", reason: gP.why });
+        } else {
         const rew = await fetch(EXCHANGE_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -829,6 +882,7 @@ async function tick() {
           signal: AbortSignal.timeout(30_000),
         }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
         if (rew?.ok) appendHistory({ kind: "FLEET-PAY", reason: `pulse: שידור ${ps.lastPublishUtcDay}`, saos: 2 });
+        } // r197 — סוף ענף-התשלום המותר
       }
       // (ג) תלמיד — סיור-בחינות רציף (פעם ביום — התדירות היא העבודה)
       const ss = readJson(`${HOME}/sovereign/student/state.json`);
@@ -838,6 +892,10 @@ async function tick() {
         if (fresh && examDay !== wm.studentDay) {
           wm.studentDay = examDay;
           state.fleetSeen = wm;
+          const gS = gateFleetAction("reward-pay", { claim: `לשלם 1 SAOS ל-student על סיור-בחינות ${examDay}`, why: "בחינה חיה בשעתיים האחרונות — התדירות היא העבודה", expected: "מאזן student +1 מהאוצר; הספר מתעד", risk: "כפילות-יום — סימן-מים studentDay + תקרת-יום 2 חוסמים", rollback: "קבלה בספר; התקרה חוסמת חזרות" });
+          if (!gS.allowed) {
+            appendHistory({ kind: "AUTONOMY-HELD", reason: gS.why });
+          } else {
           const rew = await fetch(EXCHANGE_API, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -845,6 +903,7 @@ async function tick() {
             signal: AbortSignal.timeout(30_000),
           }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
           if (rew?.ok) appendHistory({ kind: "FLEET-PAY", reason: `student: סיור ${examDay}`, saos: 1 });
+          } // r197 — סוף ענף-התשלום המותר
         }
       }
       // (ד) גלגול-צי — כל 5 דקות (סריקת המאזנים כבדה; חלונות במים במקומץ)
@@ -857,6 +916,10 @@ async function tick() {
         (m) => !["treasury", "reserve", "operator"].includes(m.member) && (m.balances?.SAOS ?? 0) >= 4,
       );
       if (compoundable.length > 0) {
+        const gFC = gateFleetAction("fleet-compound", { claim: `לגלגל ${compoundable.length} מאזני-צי (≥4 SAOS) לעומק-בריכות`, why: "סריקת-מאזנים חיה מצאה יתרות-עבודה מעל הסף", expected: "SAOS מומר ל-USDS; עומק-בריכות עולה; מניות-LP מתעדות", risk: "דילול-אוצר — ההמרה מגובה במחיר-חי; שער-$100 חוסם חריגה", rollback: "מניות-LP מתועדות לכל מי שהפקיד — ניתנות למשיכה" });
+        if (!gFC.allowed) {
+          appendHistory({ kind: "AUTONOMY-HELD", reason: gFC.why });
+        } else {
         const fc = await fetch(EXCHANGE_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -864,6 +927,7 @@ async function tick() {
           signal: AbortSignal.timeout(60_000),
         }).then((x) => x.json() as Promise<Record<string, unknown>>).catch(() => null);
         if (fc?.ok) appendHistory({ kind: "FLEET-COMPOUND", reason: String(fc.detail ?? "").slice(0, 120) });
+        } // r197 — סוף ענף-הגלגול המותר
       }
       } // סוף שער הגלגול-צי
       // (ה) איזון-בריכות — סטיות נמדדות ונסגרות (R108) — כל 10 דק'
@@ -884,7 +948,13 @@ async function tick() {
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {
-      await act(d.reason, d.action ?? "reprice", "steem", d.tag);
+      const gA = gateFleetAction("grid-act", { claim: `להריץ ${d.action ?? "reprice"} על רגל-steem: ${d.reason.slice(0, 90)}`, why: "טריגר נמדד חי בפעימה (סטיית-פאריטה/רצפה/גל) — מדידה חיה", expected: "הסולם מתיישר לפאריטה; מילויים אפשריים; הספר חי", risk: "שחיקת-ספר בסטייה — רצפת-ערך + תקרת-יום 12 חוסמים; שער-$100 בשרת", rollback: "cancel-all זמין; קבלות עם txids בספר" });
+      if (!gA.allowed) {
+        state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gA.why };
+        saveState();
+      } else {
+        await act(d.reason, d.action ?? "reprice", "steem", d.tag);
+      }
     } else {
       // R101c — חוק-הברזל לשתי הרגליים: צינון + תקציב חלים גם על HIVE.
       // (נלמד מתקרית חיה: ללא השערות האלה הרגל שרפה 28 פעולות ביום —
@@ -913,7 +983,13 @@ async function tick() {
         const hive = await measureHive();
         const dh = await decideHive(hive);
         if (dh.act) {
-          await act(dh.reason, "reprice", "hive");
+          const gH = gateFleetAction("grid-act", { claim: `להריץ reprice על רגל-hive: ${dh.reason.slice(0, 90)}`, why: "סטיית-פאריטה נמדדה חי ברגל-hive", expected: "המיקרו-גריד מתיישר לפאריטה; הספר חי", risk: "שחיקת-ספר — צינון + תקציב חלים גם על hive; שער-$100 בשרת", rollback: "cancel-all זמין; קבלות בספר" });
+          if (!gH.allowed) {
+            state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gH.why };
+            saveState();
+          } else {
+            await act(dh.reason, "reprice", "hive");
+          }
         } else {
           state.lastDecision = {
             at: new Date().toISOString(),

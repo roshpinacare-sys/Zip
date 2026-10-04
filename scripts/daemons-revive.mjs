@@ -34,6 +34,7 @@ const DAEMONS = [
   { name: "kpi", port: 3041, dir: `${HOME}/mini-services/kpi` }, // Z-9: מפקיד ה-KPI — הספר היומי הנמדד של משימת $1,000
   { name: "governance", port: 3042, dir: `${HOME}/mini-services/governance` }, // r142: דיבון-הממשל — פעימת-ההחלטות (D-OP-01): קורא למחזור החלטה בבית כל 10 דק'
   { name: "llm-bridge", port: 3048, dir: `${HOME}/mini-services/llm-bridge` }, // r175: השער-הלשוני-היחיד — בלי-כיסוי-החייאה-היה-נקודת-כשל-יחידה (נמדד: 502-חד-פעמי-ב-gate-r175)
+  { name: "dex-grid", port: 3051, dir: `${HOME}/mini-services/dex-grid` }, // r197: הגריד-המתנגד — היה-חוץ-לספר-ההחייאות-ומת-בשקט (נמדד); השער-האוטונומי שלו חי-בקוד
 ];
 
 function httpOk(port, timeoutMs = 2500) {

@@ -27,6 +27,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { installDeadManWatch, writeJsonAtomic } from "../shared";
+import { readGate } from "../autonomy";
 
 const PORT = Number(process.env.DEX_GRID_PORT || 3051);
 const TICK_MS = 30_000;
@@ -413,6 +414,22 @@ async function tick(): Promise<void> {
     state.effectiveMode = "dry";
     state.markets = { ...state.markets, kill: "KILL — ~/.sovereign/dex-grid-kill קיים" };
     pushDecision("*", "kill-switch פעיל — אפס-פעולה");
+    persist();
+    return;
+  }
+
+  // r197 — שער-העצירה והחשיבה (הוראת-המפעיל): PAUSED → אף דלקה/הצבה/גלגול לא זזים.
+  // THINKING → רק עם רשות-דיון טרייה; ACTIVE → רגיל. fail-closed — קריאה-כושלת = עצירה.
+  let gateMode: string = "PAUSED";
+  try {
+    gateMode = readGate().mode;
+  } catch { gateMode = "PAUSED"; }
+  if (gateMode !== "ACTIVE") {
+    state.effectiveMode = "dry";
+    state.markets = { ...state.markets, autonomy: gateMode };
+    pushDecision("*", gateMode === "PAUSED"
+      ? "שער-העצירה סגור (חוק-r197) — אפס-דלקה/הצבה; קריאה-ומדידה בלבד"
+      : "THINKING (חוק-r197) — פעולה רק עם דיון טרי; אפס-דלקה בפעימה-זו");
     persist();
     return;
   }

@@ -24,6 +24,7 @@ import {
 import { toast } from "sonner";
 import { AdminGate, useOperator } from "@/components/weave/operator";
 import { GridArmCard } from "@/components/weave/views/admin/grid-arm-card";
+import { AutonomyGateCard } from "@/components/weave/views/admin/autonomy-gate-card";
 import { ActivationDoorCard } from "@/components/weave/views/admin/activation-door-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -140,6 +141,9 @@ export function AdminCommandView() {
           רענן
         </Button>
       </div>
+
+      {/* שער-העצירה והחשיבה — הוראת-המפעיל r197: קודם חושבים, אחר-כך עושים */}
+      <AutonomyGateCard />
 
       {/* חימום הגריד החוץ — עורק הכסף האמיתי */}
       <ActivationDoorCard />

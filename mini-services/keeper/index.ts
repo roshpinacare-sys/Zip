@@ -54,6 +54,7 @@
 
 import fs from "node:fs";
 import os from "node:os";
+import { readGate } from "../autonomy";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -453,6 +454,7 @@ type HouseState = {
     thresholdsVerdict: string | null; // r191 — פסק-הדין המתועד של אימות-הספיים
   };
   profitWatch: ProfitWatch; // r191 — כלב-הרווחיות
+  autonomy?: { mode: string; checkedAt: string; note: string }; // r197 — שער-העצירה: המצב נמדד בכל סיור
 };
 
 function freshRam(): HouseState["ram"] {
@@ -501,6 +503,7 @@ function readHouseState(): HouseState {
         ...(raw.profitWatch ?? {}),
         profitTrend24hTicks: Array.isArray(raw.profitWatch?.profitTrend24hTicks) ? raw.profitWatch!.profitTrend24hTicks : [],
       },
+      autonomy: raw.autonomy ?? undefined,
     };
   } catch {
     return { lastDiskAt: null, lastGitleaksAt: null, lastGitleaksFindings: null, lastPurgeAt: null, ram: freshRam(), profitWatch: freshProfitWatch() };
@@ -811,6 +814,23 @@ function profitWatchRun(h: HouseState): void {
 function housekeeping(): void {
   const h = readHouseState();
   const now = new Date().toISOString();
+  // r197 — שער-העצירה והחשיבה: המצב נמדד בכל סיור ונרשם בכנות. השומר הוא
+  // חיים-בסיסיים (סיור והקמה) — אינו פעולת-כסף/האצלה, לכן ממשיך גם ב-PAUSED;
+  // המצב נרשם כדי שהמפעיל יראה בכל רגע מי עצור ומי חושב.
+  try {
+    const gate = readGate();
+    h.autonomy = {
+      mode: gate.mode,
+      checkedAt: now,
+      note: gate.mode === "PAUSED"
+        ? `עצור — חיים-בסיסיים בלבד; סיבת-המפעיל: ${gate.reason.slice(0, 90)}`
+        : gate.mode === "THINKING"
+          ? "חשיבה — כל פעולה דורשת דיון מלא לפני (חוק-r197)"
+          : "פעיל — מצב-רגיל",
+    };
+  } catch {
+    h.autonomy = { mode: "PAUSED", checkedAt: now, note: "fail-closed: קריאת-השער נכשלה — מניחים עצור (חוק-r197)" };
+  }
   const free = diskFreeMb();
   h.lastDiskAt = now;
   if (free != null && free < DISK_FLOOR_MB) {

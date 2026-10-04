@@ -1,140 +1,155 @@
 // ─────────────────────────────────────────────────────────────────────
-// /api/autonomy — מצב הדופק (R80 · PULSE).
+// THE WEAVE · AUTONOMY GATE API — שער-העצירה והחשיבה (r197, trace 1a108e334b3129a9)
 //
-// הדופק הוא mini-service עצמאי (mini-services/pulse · פורט 3033)
-// שמחליט מתי לשדר לשרשרת — בלי אדם בלולאה. ה-API הזה הוא העדה
-// הכנה של האפליקציה: הוא קורא את מצב הדופק מ-localhost:3033
-// (צד-שרת בלבד — הדפדפן לא נוגע לפורט), ממזג עם הקבלות מה-DB,
-// ומדווח בכנות אם הדופק לא נמדד (השירות כבוי/הסנדבוקס התאפס).
+// הוראת-המפעיל: "חייב לעצור ולבחון מה הסוכנים עושים ושיחשבו תמיד לפני
+// שהם עושים דברים כי הכל רץ אוטומטית בלי שכל ואינטילגנציה".
 //
-// דוקטרינה: שום סטטוס מומצא. דופק שלא ענה תוך 2.5 שניות מדווח
-// כלא-נמדד — לא כ"כנראה בסדר", לא כטעות, אלא בדיוק מה שקרה.
+// GET  → מצב-השער + הדיונים האחרונים + סטטיסטיקות-עצירה (כנות מלאה).
+// POST → המפעיל משנה מצב: PAUSED | THINKING | ACTIVE (עם סיבה; הכל מתועד
+//        ביומן-ההחלטות הריבוני באותו קנון-גיבוב, ובספר-הדיונים).
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
+import fs from "node:fs";
+import { createHash } from "node:crypto";
+import {
+  GATE_FILE,
+  DELIB_FILE,
+  AUTONOMY_DIR,
+  readGate,
+  writeGate,
+  readDeliberations,
+  validDeliberation,
+  appendDeliberation,
+} from "@/lib/autonomy-law";
 import { db } from "@/lib/db";
-import { swrGet, cacheHeader } from "@/lib/live/swr";
 
-const PULSE_URL = process.env.PULSE_URL || "http://localhost:3033";
+export const dynamic = "force-dynamic";
 
-interface PulseStatus {
-  ok: boolean;
-  service: string;
-  version: string;
-  alive: boolean;
-  bootedAt: string;
-  uptimeSec: number;
-  beats: number;
-  checkIntervalSec: number;
-  policy: {
-    maxPerUtcDay: number;
-    rotation: string[];
-    attemptsBudget: number;
-    truthSource: string;
-  };
-  lastPublishUtcDay: string | null;
-  nextDueAt: string | null;
-  msToNext: number | null;
-  attemptsToday: number;
-  broadcasting: boolean;
-  lastDecision: { at: string; kind: string; detail: string };
-  canonLast: { at: string; ok: boolean; path: string; error?: string } | null;
-  // R113 — הדיבון v1.2.0 (חוק הטיימר-היחיד) כותב historyTail; ה-API מנרמל ל-history
-  // כדי לשמר את החוזה הפומבי. שדות שידור יכולים להיות null (חלון שטרם שודר).
-  history: Array<{
-    at: string;
-    utcDay: string;
-    draftId: string;
-    kind: string;
-    title: string;
-    permlink: string | null;
-    txid: string | null;
-    url: string | null;
-    attempt: number;
-    canon: { pushed: boolean; path: string; error?: string } | null;
-  }>;
-}
+const DECISION_LOG = "/home/z/my-project/sovereign/governance/DECISION_LOG.jsonl";
 
-// רשומת-זנב כפי שדיבון pulse v1.2.0 באמת כותב אותה (בלי canon, permlink/url nullables).
-interface PulseTailEntry {
-  at: string;
-  utcDay: string;
-  draftId: string;
-  kind: string;
-  title: string;
-  permlink: string | null;
-  txid: string | null;
-  url: string | null;
-  attempt: number;
-  canon?: { pushed: boolean; path: string; error?: string } | null;
-}
-
-async function fetchPulse(): Promise<PulseStatus | null> {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 2500);
+/** רישום ההחלטה ביומן-ההחלטות הריבוני — אותו קנון-גיבוב של הממשל (סדר-שדות-דיסק נשמר) */
+function appendDecisionLog(entry: { decisionId: string; chosen: string; why: string; boundary: string }): void {
   try {
-    const res = await fetch(`${PULSE_URL}/`, { signal: ctl.signal, cache: "no-store" });
-    if (!res.ok) return null;
-    const raw = (await res.json()) as Partial<PulseStatus> & { historyTail?: PulseTailEntry[] };
-    // R113 — נורמליזציה: הדיבון שינה את שם השדה (history → historyTail) בחוק הטיימר-היחיד
-    // (R112). בלי המיפוי הזה השדה היה undefined — והתצוגה קרסה על .length של undefined.
-    const history = Array.isArray(raw.history)
-      ? raw.history
-      : (raw.historyTail ?? []).map((e) => ({ ...e, canon: e.canon ?? null }));
-    return { ...raw, history } as PulseStatus;
+    const raw = fs.readFileSync(DECISION_LOG, "utf8").trim();
+    const lines = raw ? raw.split("\n") : [];
+    const last = lines.length > 0 ? (JSON.parse(lines[lines.length - 1]!) as { seq?: number; entryHash?: string }) : null;
+    const e = {
+      seq: (last?.seq ?? 0) + 1,
+      at: new Date().toISOString(),
+      decisionId: entry.decisionId,
+      class: "autonomy",
+      chosen: entry.chosen,
+      why: entry.why,
+      boundary: entry.boundary,
+      prevHash: last?.entryHash ?? "GENESIS",
+    };
+    e.entryHash = createHash("sha256").update(JSON.stringify(e)).digest("hex");
+    fs.appendFileSync(DECISION_LOG, `${JSON.stringify(e)}\n`, "utf8");
   } catch {
-    return null;
-  } finally {
-    clearTimeout(t);
+    /* כשל-יומן לא חוסם את השער — קובץ-האמת (GATE.json) כבר נכתב */
   }
 }
 
-async function composeState() {
-  const [pulse, tasks] = await Promise.all([
-    fetchPulse(),
-    db.publishTask.findMany({ orderBy: { queuedAt: "desc" }, take: 40 }),
-  ]);
-
-  const receipts = tasks
-    .filter((t) => t.status === "PUBLISHED")
-    .map((t) => ({
-      id: t.id,
-      title: t.title,
-      kind: t.kind,
-      lang: t.lang,
-      permlink: t.permlink,
-      txid: t.txid,
-      url: t.url,
-      publishedAt: t.publishedAt ? t.publishedAt.toISOString() : null,
-      by: "agent",
-    }));
-
-  return {
-    ok: true,
-    at: new Date().toISOString(),
-    daemon: pulse, // null = לא נמדד, בכנות
-    daemonDown: pulse == null,
-    daemonDownHe:
-      pulse == null
-        ? "הדופק לא נמדד בסנדבוקס הזה — השירות (mini-services/pulse · פורט 3033) אינו זמין כרגע. זו מדידה, לא כישלון מוסתר: הקנון והשרשרת הם האמת."
-        : null,
-    receipts,
-    // R122 · חוק ה-null: כשהדיבון לא נמדד — אין מדיניות-מוצגת מהזיכרון.
-    // המדיניות האמיתית חיה בדיבון עצמו; daemonDown מגלה בגלוי למה.
-    policy: pulse?.policy ?? null,
-    doctrine: [
-      "הדופק מחליט מתי — הקול (R79) מחליט איך — המפתח לא נמצא באף אחד מהם.",
-      "מקסימום פוסט אחד ליום-UTC: ריבונות פירושה משמעות, לא רעש.",
-      "מקור האמת למועד הפרסום האחרון הוא השרשרת (last_root_post) — לא שום קובץ מקומי.",
-      "תקציב 3 ניסיונות ליום: כישלון כנה נספר, לא מוסתר, ולא מנוסה עד אינסוף.",
-    ],
-  };
+export async function GET() {
+  try {
+    const gate = readGate();
+    const deliberations = readDeliberations(25).reverse(); // החדש ראשון
+    const valid = deliberations.filter(validDeliberation).length;
+    let refusedByAutonomy = 0;
+    try {
+      refusedByAutonomy = await db.txGate.count({
+        where: { verdict: "REFUSED", decidedBy: { startsWith: "autonomy:" } },
+      });
+    } catch {
+      refusedByAutonomy = -1; // כנות: ספירה נכשלה — לא ממציאים אפס
+    }
+    const daemonStates: Record<string, string | null> = {};
+    for (const [name, p] of [
+      ["money-mover", "/home/z/my-project/sovereign/money/state.json"],
+      ["market-maker", "/home/z/my-project/sovereign/market-maker/state.json"],
+      ["dex-grid", "/home/z/my-project/mini-services/dex-grid/state.json"],
+    ] as const) {
+      try {
+        const s = JSON.parse(fs.readFileSync(p, "utf8")) as Record<string, unknown>;
+        const ld = s.lastDecision as Record<string, unknown> | null;
+        daemonStates[name] =
+          (s.autonomyMode as string) ??
+          (ld?.kind as string | undefined) ??
+          String(ld?.detail ?? "").slice(0, 90) ??
+          null;
+      } catch {
+        daemonStates[name] = null;
+      }
+    }
+    return NextResponse.json({
+      ok: true,
+      gate,
+      deliberationsTotal: readDeliberationsTotal(),
+      deliberationsValid: valid,
+      deliberations,
+      refusedByAutonomy,
+      daemonStates,
+      law: {
+        file: GATE_FILE,
+        dir: AUTONOMY_DIR,
+        modes: ["PAUSED", "THINKING", "ACTIVE"],
+        rule: "PAUSED=אף פעולה אוטונומית · THINKING=פעולה רק עם דיון מלא · ACTIVE=רגיל · fail-closed=PAUSED",
+      },
+    });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: String((e as Error)?.message ?? e).slice(0, 200) }, { status: 500 });
+  }
 }
 
-export async function GET() {
-  const { value, meta } = await swrGet("autonomy:state", 15_000, composeState);
-  return NextResponse.json(
-    { ...value, cached: meta.cached, stale: meta.stale, cacheAgeSec: meta.cacheAgeSec, refreshing: meta.refreshing },
-    { headers: { "X-SAOS-Cache": cacheHeader(meta) } },
-  );
+function readDeliberationsTotal(): number {
+  try {
+    const raw = fs.readFileSync(DELIB_FILE, "utf8").trim();
+    return raw ? raw.split("\n").length : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = (await req.json().catch(() => ({}))) as { mode?: string; reason?: string; by?: string };
+    const mode = String(body?.mode ?? "").toUpperCase();
+    if (mode !== "PAUSED" && mode !== "THINKING" && mode !== "ACTIVE") {
+      return NextResponse.json({ ok: false, error: "BAD-MODE: PAUSED|THINKING|ACTIVE בלבד" }, { status: 400 });
+    }
+    const reason = String(body?.reason ?? "").trim();
+    if (reason.length < 4) {
+      return NextResponse.json({ ok: false, error: "REASON-REQUIRED: סיבה מחייבת — כל שינוי-שער מתועד" }, { status: 400 });
+    }
+    const by = String(body?.by ?? "operator").slice(0, 60);
+    const prev = readGate();
+    const gate = writeGate({ mode, reason, setBy: by });
+
+    appendDecisionLog({
+      decisionId: `D-r197-GATE-${gate.since.replace(/[-:.TZ]/g, "").slice(0, 14)}`,
+      chosen: `autonomy-gate: ${prev.mode} → ${gate.mode}`,
+      why: reason.slice(0, 250),
+      boundary: "הוראת-מפעיל · קובץ-אמת יחיד GATE.json · fail-closed",
+    });
+
+    // דיון על שינוי-השער עצמו — השער חושב גם על עצמו
+    try {
+      appendDeliberation({
+        action: "gate-change",
+        actor: by,
+        claim: `שינוי שער-האוטונומיה ${prev.mode} → ${gate.mode}`,
+        why: reason.slice(0, 380),
+        expected: gate.mode === "PAUSED" ? "אף פעולה אוטונומית לא זזה בכל הצי" : gate.mode === "THINKING" ? "כל פעולה דורשת דיון מלא לפני" : "הרשת חוזרת לעבוד רגיל עם רישום-דיון",
+        risk: gate.mode === "ACTIVE" ? "הפעולות האוטונומיות חוזרות — התקרות והשערים הקיימים נשארים" : "אפס-סיכון-כסף; עלות-הזדמנות בלבד",
+        rollback: `שינוי-חזרה ל-${prev.mode} דרך אותו שער`,
+      });
+    } catch {
+      /* רישום-דיון לא חוסם */
+    }
+
+    return NextResponse.json({ ok: true, prev: prev.mode, gate });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: String((e as Error)?.message ?? e).slice(0, 200) }, { status: 500 });
+  }
 }

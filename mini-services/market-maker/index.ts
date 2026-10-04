@@ -74,6 +74,7 @@ import path from "node:path";
 import os from "node:os";
 import { createRequire } from "node:module";
 import { writeJsonAtomic, installDeadManWatch } from "../shared";
+import { readGate, autonomyVerdict, appendDeliberation } from "../autonomy";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו ב-money-mover)
 declare const Bun: {
@@ -1137,6 +1138,15 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
   try {
     state.ticks += 1;
     state.killSwitch = fs.existsSync(KILL_FILE);
+    // r197 — חוק-העצירה והחשיבה (הוראת-המפעיל): PAUSED → אין פריסה/גרירה/שימוש-בחיילים בגריד.
+    // המדידה חיה וההחלטה כנה — הכסף קפוא עד שהשער נפתח. THINKING → פריסה רק עם דיון (בהמשך הפעימה).
+    const gateNow = readGate();
+    if (gateNow.mode === "PAUSED") {
+      decision("AUTONOMY-PAUSED", `שער-העצירה סגור — אין פריסה/ביטול/שימוש-בחיילים בגריד · ${gateNow.reason.slice(0, 100)}`);
+      state.fleetChurn = { configured: cfg.rails.steem.fleetChurn, effective: false, verified: false, reason: "שימוש-בחיילים כבוי — חוק-העצירה r197 (PAUSED)", soldiersChecked: 0 };
+      saveState();
+      return { ok: false, detail: "autonomy-paused" };
+    }
     // גלגול-יום: מוני-היום מתאפסים בחצות-UTC
     if (state.pnlDay !== utcDay()) {
       state.pnlDay = utcDay();
@@ -1152,7 +1162,11 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
         decision("UNHALTED", "התצורה אופסה מאז-העצירה — המנוע חוזר לעבוד (החלטת-מפעיל נמדדה מ-mtime)");
       }
     }
-    await fleetVerify();
+    if (gateNow.mode === "THINKING") {
+      state.fleetChurn = { configured: cfg.rails.steem.fleetChurn, effective: false, verified: false, reason: "THINKING — שימוש-בחיילים בגריד דורש דיון מלא ואישור; לא בשימוש (חוק-r197)", soldiersChecked: 0 };
+    } else {
+      await fleetVerify();
+    }
 
     const c = cfg.rails.steem;
     if (!c.enabled) {
@@ -1313,6 +1327,26 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
       decision("DRY-LADDER", `DRY: ${planned.length} פקודות (${reason}) — ${note} · אפס-שידור`);
       saveState();
       return { ok: true, detail: `dry:${planned.length}` };
+    }
+
+    // r197 — THINKING: פריסה-חיה רצה רק עם דיון מלא שנכתב לפני (מה/למה/צפי/סיכון/רולבק)
+    if (gateNow.mode === "THINKING") {
+      try {
+        appendDeliberation({
+          action: "grid-place", actor: "market-maker",
+          claim: `לפרוס סולם-חי ${planned.length} פקודות על SBD/STEEM (${reason.slice(0, 80)})`,
+          why: `מרכז ${centerNow.toFixed(6)} נמדד מ-${state.centerSource ?? "book"}; תקציב ${bal.sbdFree.toFixed(3)} SBD`,
+          expected: `ספר חי דו-צדדי סביב הפאריטה; מילויים עם PnL-חיובי מעל רצפת-הרווחיות`,
+          risk: `שחיקת-ספר בסטייה; תקרת-אובדן-יומי ${cfg.dailyLossCapSbd} SBD + רצפת-ערך + ספרד-L3 חוסמים`,
+          rollback: `cancel-all זמין; רישום-הפקודות ב-registry עם txids לראיה`,
+        });
+      } catch { /* רישום-דיון לא מפיל את הפעימה */ }
+      const avPlace = autonomyVerdict("grid-place", "market-maker");
+      if (!avPlace.allowed) {
+        decision("AUTONOMY-HELD", avPlace.why);
+        saveState();
+        return { ok: false, detail: "autonomy-held" };
+      }
     }
 
     // LIVE — ביטול-ישן (רק-רישום-שלנו) ואז פריסה
