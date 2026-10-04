@@ -1,0 +1,93 @@
+{
+  "format": "treasury-audit-v1",
+  "seq": 600,
+  "at": "2026-10-04T00:41:50.634Z",
+  "verdict": "FAIL",
+  "checks": [
+    {
+      "id": "decision-chain",
+      "status": "pass",
+      "detail": "יומן-ההחלטות מאומת — 289 רשומות, שרשרת sha256 תקינה",
+      "numbers": {
+        "entries": 289,
+        "brokenAt": null,
+        "ok": true
+      }
+    },
+    {
+      "id": "pnl-snapshot-chain",
+      "status": "pass",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 11 תמונות (אחרונה seq 11 בת 41 דק')",
+      "numbers": {
+        "entries": 11,
+        "brokenAt": null,
+        "ok": true,
+        "lastSeq": 11
+      }
+    },
+    {
+      "id": "receipts-book",
+      "status": "pass",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 13 עם txid · אחרונה בת 2 דק'",
+      "numbers": {
+        "total": 200,
+        "withTxid": 13,
+        "outOfOrder": 0,
+        "lastAgeMinutes": 2
+      }
+    },
+    {
+      "id": "ladder-floor",
+      "status": "pass",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (11 פקודות פתוחות)",
+      "numbers": {
+        "state": "HELD",
+        "asksBelowParity": 0,
+        "worstBps": 0,
+        "maxDriftLossSbd": 0,
+        "ordersOpen": 11
+      }
+    },
+    {
+      "id": "orders-stale",
+      "status": "pass",
+      "detail": "אין פקודות-ישנות מעל 48ש' (11 פקודות נבדקו)",
+      "numbers": {
+        "staleCount": 0,
+        "thresholdHours": 48,
+        "oldestHours": null
+      }
+    },
+    {
+      "id": "balances-drift",
+      "status": "fail",
+      "detail": "אי-התאמה מתמדת (שתי-מדידות בהפרש 8ש') — אי-התאמת יתרות מול השרשרת — דריפת STEEM -1 · דריפת SBD 0 (אנומליה)",
+      "numbers": {
+        "measured": true,
+        "homeSteem": 16.065,
+        "homeSbd": 1.358,
+        "chainSteem": 17.065,
+        "chainSbd": 1.358,
+        "driftSteem": -1,
+        "driftSbd": 0,
+        "transientResolved": false,
+        "firstDriftSteem": -1,
+        "firstDriftSbd": 0
+      }
+    },
+    {
+      "id": "tron-rail",
+      "status": "pass",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 1.5ש'",
+      "numbers": {
+        "measured": true,
+        "trx": 2.000002,
+        "exists": true,
+        "toolAgeHours": 1.5
+      }
+    }
+  ],
+  "anomalies": [
+    "balances-drift: אי-התאמה מתמדת (שתי-מדידות בהפרש 8ש') — אי-התאמת יתרות מול השרשרת — דריפת STEEM -1 · דריפת SBD 0 (אנומליה)"
+  ]
+}
