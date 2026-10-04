@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 756,
-  "at": "2026-10-04T22:22:21.103Z",
-  "verdict": "FAIL",
+  "seq": 762,
+  "at": "2026-10-04T22:52:21.150Z",
+  "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 325 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 328 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 325,
+        "entries": 328,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 11 תמונות (אחרונה seq 11 בת 1342 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 11 תמונות (אחרונה seq 11 בת 1372 דק')",
       "numbers": {
         "entries": 11,
         "brokenAt": null,
@@ -28,23 +28,23 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 103 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 133 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 9,
         "outOfOrder": 0,
-        "lastAgeMinutes": 103
+        "lastAgeMinutes": 133
       }
     },
     {
       "id": "ladder-floor",
-      "status": "fail",
-      "detail": "חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -127bps · חשיפה 0.0042 SBD",
+      "status": "pass",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (3 פקודות פתוחות)",
       "numbers": {
-        "state": "DRIFT",
-        "asksBelowParity": 2,
-        "worstBps": -127,
-        "maxDriftLossSbd": 0.0042,
+        "state": "HELD",
+        "asksBelowParity": 0,
+        "worstBps": 0,
+        "maxDriftLossSbd": 0,
         "ordersOpen": 3
       }
     },
@@ -75,16 +75,14 @@
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 23.1ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 23.6ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 23.1
+        "toolAgeHours": 23.6
       }
     }
   ],
-  "anomalies": [
-    "ladder-floor: חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -127bps · חשיפה 0.0042 SBD"
-  ]
+  "anomalies": []
 }
