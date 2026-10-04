@@ -2,25 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 260,
-  "lastCycleAt": "2026-10-04T00:40:32.854Z",
-  "lastDecisionId": "D-r143-260",
+  "cycles": 264,
+  "lastCycleAt": "2026-10-04T02:00:32.810Z",
+  "lastDecisionId": "D-r143-264",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 8083 דק' · כלכלה: pnl-snapshots seq=11 (realizedSbd=-1.362068 · trips=246 · unrealizedPremiumSbd=0.021678 · orders=13 · בת 40 דק') · מילויי-שרשרת 334 (maxIndex=65196)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 8163 דק' · כלכלה: pnl-snapshots seq=11 (realizedSbd=-1.362068 · trips=246 · unrealizedPremiumSbd=0.021678 · orders=13 · בת 120 דק') · מילויי-שרשרת 343 (maxIndex=65287)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-04T00:40:28.730Z",
-    "verdict": "REVIEW",
-    "score": 45,
+    "at": "2026-10-04T02:00:29.520Z",
+    "verdict": "DENY",
+    "score": 35,
     "reasonsHe": [
-      "פעולת ממשל ללא מספרי עלות/ערך מדודים (estimatedCost: לא דווח, expectedValue: לא דווח)",
-      "חסרה ראיה לביקוש מדוד לפי חוק-הראיה-הכלכלית",
-      "לא דווח על שורת-הרג (killLineAware: לא דווח) לפי חוק-ההרג",
-      "הפעולה עלולה להשפיע על תקציב-הפעולות הגלובלי אך לא דווח על עלות-שולית מדודה"
+      "פעולה ללא מספרי-ביקוש מדודים (expectedValue לא דווח) — עוברת על חוק-הראיה-הכלכלית",
+      "לא דווח על killLineAware — חסר נתונים להערכת סיכונים",
+      "פעולת ממשל ללא עלות מדודה (estimatedCost לא דווח) — חסרה תכנון כלכלי",
+      "פעולה חדשה בלי ראיית-ביקוש מדודה (expectedValue לא דווח) — חוק-העלות-השולית לא מאפשר הקצאה ללא הוכחת ביקוש"
     ],
-    "actionsToday": 2,
+    "actionsToday": 3,
     "cap": 16,
-    "actionId": "D-r143-260"
+    "actionId": "D-r143-264"
   }
 }
