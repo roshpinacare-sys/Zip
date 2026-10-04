@@ -1,55 +1,37 @@
-name: workflow-yaml-guard
+# WORKFLOW-YAML-GUARD — חוק-Z74 מופץ (ריבוני, אפס-actions-צד-ג)
+# כל-push מפרק-YAML את-כל-קבצי-ה-workflows; קובץ-שבור נופל-כאדום-על-שמו
+# (קובץ+שורה+סיבה) בדיוק-ב-push שהכניס-אותו.
+# שורש-הלקח (נמדד ב-Zip 2026-10-03): גוף-heredoc בעמודה-1 פיצל את-בלוק `run: |`
+# → 10 ריצות-מוות-בפרסור שזויפו-כ"מכסת-דקות". עוד-קובץ-workflow לא נוחת שבור-בשקט.
 
-# חוק-השמרה (Z-74, 2026-10-04): קובץ workflow שבור-שורות-קוד נולד בשקט פעמיים —
-# gitleaks.yml 362..371 נכשלו אפס-שלבים 13 שעות בגלל heredoc בעמודה-1 שקטע בלוק `run: |`.
-# מעתה: כל push מריץ YAML-parse על כל קובץ ב-.github/workflows/ — קובץ שבור נוחת
-# אדום-מנומק (מספר שורה + סיבה) בריצה הראשונה שלו, לעולם לא שוב אפס-שלבים עיוורים.
-# זה זול (שניות-בודדות) וקודם-לכל: ה-guard רץ גם כשהקובץ החדש עצמו שבור, כי הוא
-# לא תלוי בקבצים שהוא בודק.
+name: workflow-yaml-guard
 
 on:
   push:
-    paths:
-      - '.github/workflows/**'
   pull_request:
-    paths:
-      - '.github/workflows/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: workflow-yaml-guard
+  cancel-in-progress: false
+
 jobs:
   guard:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - name: YAML-parse every workflow file (diagnosable-red law)
+      - name: sovereign-clone (git native — אפס-תלות)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import glob, sys
-          try:
-              import yaml
-          except ImportError:
-              sys.exit('PyYAML unavailable on runner — guard cannot run (tool error, not a finding)')
-          files = sorted(glob.glob('.github/workflows/*.yml') + glob.glob('.github/workflows/*.yaml'))
-          if not files:
-              sys.exit('no workflow files found — unexpected estate shape')
-          bad = 0
-          print(f'workflow-yaml-guard: scanning {len(files)} files')
-          for f in files:
-              try:
-                  yaml.safe_load(open(f, encoding='utf-8'))
-                  print(f'  OK   {f}')
-              except Exception as e:
-                  bad += 1
-                  first = str(e).split('\n')[0]
-                  line = getattr(e, 'problem_mark', None)
-                  loc = f'line {line.line + 1}' if line else 'line ?'
-                  print(f'  FAIL {f} — {loc}: {first}')
-          if bad:
-              print(f'workflow-yaml-guard verdict: {bad} BROKEN FILE(S) — red by doctrine, triage above')
-              sys.exit(1)
-          print('workflow-yaml-guard verdict: ALL CLEAN')
-          PY
+          git clone --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+
+      - name: yaml-parse-every-workflow (שער-על-שמו)
+        run: |
+          set -euo pipefail
+          cd repo
+          python3 .github/scripts/yaml_guard.py
