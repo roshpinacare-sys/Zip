@@ -965,4 +965,3 @@ if (cfg.rails.steem.mode === "live" && state.mode === "dry") {
   decision("COLD-BOOT-SAFE", "התצורה מבקשת live אך עלייה-קרה תמיד עולה dry — נדרש POST /mode {\"mode\":\"live\"} מהמפעיל");
 }
 void tick();
-

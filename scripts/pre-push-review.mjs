@@ -21,7 +21,7 @@ const ROOT = "/home/z/my-project";
 const SKILLS_DIR = join(ROOT, "sovereign/knowledge/review-skills");
 const OUT_PATH = join(ROOT, "sovereign/review-gate/last-review.json");
 const BRIDGE = "http://127.0.0.1:3048/v1/chat/completions";
-const DIFF_CAP = 24000;
+const DIFF_CAP = 64000;
 const CALL_TIMEOUT_MS = 120000;
 
 const args = process.argv.slice(2);
@@ -154,6 +154,22 @@ function diffTouchesCode(diff) {
   return files.some((f) => CODE_EXT.has(f.ext) || !f.path.includes("."));
 }
 
+// r189 root-fix for the hallucination class: the reviewer was reading 24K of a 620K diff —
+// 90% state-JSON churn — and inventing findings about file tails it never saw ("missing
+// newline", "missing 'use client'" at nonexistent lines). Code files only, wider cap:
+// the reviewer now sees REAL code coverage; state churn was already out-of-scope by law.
+function codeOnlyDiff(diff) {
+  const blocks = diff.split(/^diff --git /m).filter((b) => b.trim().length > 0);
+  const kept = blocks.filter((b) => {
+    const m = b.match(/^a\/(.+?) b\/(.+?)(?:\n|$)/);
+    if (!m) return false;
+    const path = (m[2] ?? m[1]).trim();
+    const ext = path.includes(".") ? path.split(".").pop().toLowerCase() : "";
+    return CODE_EXT.has(ext) || !path.includes(".");
+  });
+  return kept.map((b) => "diff --git " + b).join("");
+}
+
 async function main() {
   const t0 = Date.now();
   let stat, diff, effSource;
@@ -219,10 +235,11 @@ async function main() {
     process.exit(0);
   }
 
+  const diffCode = codeOnlyDiff(diff);
   const diffCapped =
-    diff.length > DIFF_CAP
-      ? diff.slice(0, DIFF_CAP) + `\n... [diff truncated, full ${diff.length} chars; run git diff for the rest]`
-      : diff;
+    diffCode.length > DIFF_CAP
+      ? diffCode.slice(0, DIFF_CAP) + `\n... [code-diff truncated, full ${diffCode.length} chars (of ${diff.length} raw incl. state churn); run git diff for the rest]`
+      : diffCode;
 
   // Phase 1 — lazy skill selection (openreview loadSkill pattern)
   const indexList = skills.map((s) => `- ${s.name}: ${s.description}`).join("\n");
@@ -268,7 +285,7 @@ async function main() {
         },
         {
           role: "user",
-          content: `${skillBodies ? `Loaded skills:\n${skillBodies}\n\n` : ""}Diff (source: ${effSource}):\n${stat}\n${diffCapped}`,
+          content: `${skillBodies ? `Loaded skills:\n${skillBodies}\n\n` : ""}CODE-ONLY diff (state/doc churn stripped; source: ${effSource}):\n${stat}\n${diffCapped}`,
         },
       ],
       2400
