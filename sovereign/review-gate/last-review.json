@@ -1,21 +1,21 @@
 {
   "schema": "review-gate-v1",
-  "at": "2026-10-04T06:23:38.240Z",
+  "at": "2026-10-04T08:14:14.530Z",
   "source": "push-range",
-  "diffChars": 524080,
-  "diffStat": "sovereign/businesses/business-log.jsonl        |  125 +\n sovereign/businesses/engine-state.json         |    4 +-\n sovereign/businesses/registry.json             |    2 +-\n sovereign/curation/history.json                |   20 +\n sovereign/curation/state.json                  |  267 +-\n sovereign/governance/DECISION_LOG.jsonl        |    5 +\n sovereign/governance/cycle-state.json          |   16 +-\n sovereign/governance/daemon-state.json         |   10 +-\n sovereign/governance/econ-gate.jsonl           |    7 +\n sovereign/governance/loop-state.json           |   16 +-\n sovereign/hunter/state.json                    |   70 +-\n sovereign/keeper/fleet-guard-state.json        |   40 +-\n sovereign/keeper/housekeeping.json             |  244 +-\n sovereign/keeper/state.json                    |  262 +-\n sovereign/kpi/state.json                       |    2 +-\n sovereign/market-maker/config.json             |    4 +-\n sovereign/market-maker/dry-run-log.jsonl       |   70 +\n sovereign/market-maker/state.json              |  366 +-\n sovereign/money/history.json                   |  534 +-\n sovereign/money/pnl-scan.json                  |   60 +-\n sovereign/money/state.json                     |   24 +-\n sovereign/pulse/state.json                     |    6 +-\n sovereign/review-gate/last-review.json         |   14 +-\n sovereign/student/state.json                   | 7294 ++++++++++++------------\n sovereign/treasury-audit/audit-2026-10-04.json |   32 +-\n sovereign/treasury-audit/last-audit.json       |   32 +-\n sovereign/treasury-audit/state.json            |    8 +-\n sovereign/weblift/state.json                   |   68 +-\n 28 files changed, 5091 insertions(+), 4511 deletions(-)",
+  "diffChars": 1021713,
+  "diffStat": "contracts/w1/Pair.sol                              |  259 +\n contracts/w1/Router.sol                            |  160 +\n contracts/w1/Sim.sol                               |  136 +\n contracts/w1/WrappedToken.sol                      |   91 +\n contracts/w1/artifacts/Actor.json                  |   81 +\n contracts/w1/artifacts/Factory.json                |  142 +\n contracts/w1/artifacts/IERC20.json                 |   79 +\n contracts/w1/artifacts/IERC20W1.json               |  103 +\n contracts/w1/artifacts/IFactoryW1.json             |   31 +\n contracts/w1/artifacts/IPair.json                  |   33 +\n contracts/w1/artifacts/IPairW1.json                |  203 +\n contracts/w1/artifacts/Pair.json                   |  592 ++\n contracts/w1/artifacts/Router.json                 |  346 +\n contracts/w1/artifacts/Sim.json                    |  108 +\n contracts/w1/artifacts/WrappedToken.json           |  349 +\n mini-services/arbitrage/index.ts                   |  400 ++\n mini-services/arbitrage/lib.ts                     |  417 ++\n mini-services/arbitrage/package.json               |    7 +\n mini-services/arbitrage/state.json                 |  461 ++\n mini-services/market-maker/index.ts                |  246 +-\n scripts/r192b-compile.mjs                          |   47 +\n scripts/r192b-deploy.mjs                           |  170 +\n scripts/r192b-probe.mjs                            |   40 +\n scripts/r192b-simulate.mjs                         |  138 +\n scripts/r192b-tests.mjs                            |  451 ++\n scripts/revenue-census.mjs                         |   56 +\n scripts/w1-por.ts                                  |   98 +\n sovereign/businesses/business-log.jsonl            |  222 +\n sovereign/businesses/engine-state.json             |    4 +-\n sovereign/curation/comment-memory.json             |    2 +-\n sovereign/curation/history.json                    |   35 +\n sovereign/curation/state.json                      |  334 +-\n sovereign/governance/DECISION_LOG.jsonl",
   "skillsAvailable": [
     "fleet-conventions",
     "nextjs16-conventions"
   ],
   "skillsLoaded": [],
-  "verdict": "pass",
+  "verdict": "error",
   "findings": [],
-  "reason": "no-code-diff (state/doc/config churn) — 0 LLM calls",
+  "reason": "phase2-fail-open: bridge HTTP 502",
   "evidence": {
     "model": "sovereign-zai",
     "bridge": "127.0.0.1:3048/v1/chat/completions",
-    "totalTookMs": 899,
-    "llmCalls": 0
+    "totalTookMs": 134189,
+    "llmCalls": 2
   }
 }
