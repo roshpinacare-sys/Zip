@@ -5,12 +5,14 @@
 **Before writing code — המסלול (60 שניות):**
 1. `git pull --rebase --autostash origin main` — יש סשנים-מקבילים; רץ רק על ראש-השרשרת (**rebase-חשוף נחסם-על-ידי-השער**).
 2. `bash init.sh` — שער-האימות (7 סעיפים): git-sync · סודות · tsc/eslint · הצי · המכונות · שער-ההרג · הוכחת-הריבונות · מפת-האמת. **אדום = תיקון-לפני-עבודה-חדשה.**
-3. קרא `SOVEREIGN-INDEX.md` — מפת-האמת האחת (מיוצרת-מהחי בכל-init.sh: הצי · המפה · ספר-ההישגים · הפרוטוקול · הפתוחים).
-4. קרא `session-handoff.md` (מצב · חסמים · צעד-הבא) + רשומה-אחת ב-`progress.md` + `feature_list.json` (active_feature).
-5. בחר פתוח מ-progress.md או next_step מ-feature_list.json. יומן-העבודה המלא: `worklog.md` (append בלבד).
+3. **שער-ההוכחות (R208P · חוק-קשיח):** `bun run scripts/proof-gate.ts` — טוען את ספר-ההוכחות, מאמת שרשרת+עדויות, ומדפיס מיון: **PROVEN (אסור-לפתוח-מחדש — רק להפרך; ההפרכה נרשמת) · OPEN · REFUTED**. יציאה≠0 = אין עבודה. ראש-הספר מושווה לראש-העדות בספר-הרשת — אי-התאמה = נדרש `proof-book-attest`. הצטת: `--reprove` מריץ את פקודות-השחזור החי.
+4. קרא `SOVEREIGN-INDEX.md` — מפת-האמת האחת (מיוצרת-מהחי בכל-init.sh: הצי · המפה · ספר-ההישגים · הפרוטוקול · הפתוחים).
+5. קרא `session-handoff.md` (מצב · חסמים · צעד-הבא) + רשומה-אחת ב-`progress.md` + `feature_list.json` (active_feature).
+6. בחר פתוח מ-progress.md או next_step מ-feature_list.json. יומן-העבודה המלא: `worklog.md` (append בלבד).
 
 **Definition of Done · הגדרת-סיום — כל הסעיפים או אין הכרזה:**
 - [ ] הקוד עובר `bash init.sh` ירוק (tsc 0 · eslint 0 · הצי חי).
+- [ ] `bun run scripts/proof-gate.ts` ירוק בפתיחת-המושב **ובסיומו** (R208P): שרשרת-ספר-ההוכחות תקינה, אפס-סטיות-עדות-חיות. הוכחה-חדשה שנבנתה בסבב ⇒ נרשמת ב-`scripts/proof-seed.ts`/`proof-revisions.ts` דרך `appendProof` + עדות-ראש לספר-הרשת (`scripts/proof-book-attest.ts`).
 - [ ] לכל טענה יש **ראיה מדודה**: נתיב-state / txid / פלט-API — אפס מספרים מהזיכרון.
 - [ ] `feature_list.json` עודכן (status + evidence_path + last_verified_at) · `progress.md` רשומה-חדשה · `session-handoff.md` עדכני.
 - [ ] commit + push על ראש-השרשרת (ריבייס אם נדרש) · worklog.md סעיף-גל.

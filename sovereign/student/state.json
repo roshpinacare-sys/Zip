@@ -2,1862 +2,80 @@
   "service": "student",
   "version": "1.5.0",
   "bootedAt": "2026-10-05T09:04:41.677Z",
-  "beats": 408,
+  "beats": 435,
   "cycleSec": 600,
   "alive": true,
   "examining": false,
-  "lastExamAt": "2026-10-05T18:44:42.681Z",
+  "lastExamAt": "2026-10-05T23:14:44.431Z",
   "probes": [
     {
       "probe": "app:health",
       "ok": true,
-      "ms": 868,
-      "at": "2026-10-05T18:44:42.605Z"
+      "ms": 2052,
+      "at": "2026-10-05T23:14:43.801Z"
     },
     {
       "probe": "app:money",
       "ok": true,
-      "ms": 24,
-      "at": "2026-10-05T18:44:42.629Z"
+      "ms": 160,
+      "at": "2026-10-05T23:14:43.961Z"
     },
     {
       "probe": "app:crossmarket",
       "ok": true,
-      "ms": 9,
-      "at": "2026-10-05T18:44:42.638Z"
+      "ms": 94,
+      "at": "2026-10-05T23:14:44.055Z"
     },
     {
       "probe": "app:exchange-router",
       "ok": true,
-      "ms": 8,
-      "at": "2026-10-05T18:44:42.646Z"
+      "ms": 103,
+      "at": "2026-10-05T23:14:44.158Z"
     },
     {
       "probe": "app:charter",
       "ok": true,
-      "ms": 8,
-      "at": "2026-10-05T18:44:42.654Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-05T18:44:42.655Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-05T18:44:42.655Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-05T18:44:42.655Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-05T18:44:42.656Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-05T18:44:42.656Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-05T18:44:42.657Z"
-    }
-  ],
-  "probeHistory": [
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:31:36.545Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:31:36.545Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:31:36.545Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:31:36.545Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:31:36.546Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:31:36.546Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:31:36.546Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:31:36.547Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:31:36.547Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:41:36.569Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:41:36.569Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:41:36.569Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:41:36.569Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:41:36.569Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:41:36.570Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:41:36.570Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:41:36.570Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:41:36.571Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:41:36.571Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:41:36.572Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:51:36.570Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:51:36.570Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:51:36.570Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:51:36.570Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T18:51:36.570Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:51:36.570Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:51:36.571Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:51:36.571Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:51:36.572Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T18:51:36.572Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T18:51:36.573Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:01:36.578Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:01:36.578Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:01:36.578Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:01:36.578Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:01:36.579Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:01:36.579Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:01:36.579Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:01:36.580Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:01:36.580Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:01:36.581Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:01:36.581Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:11:36.596Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:11:36.596Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:11:36.596Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:11:36.596Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:11:36.596Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:11:36.597Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:11:36.597Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:11:36.598Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:11:36.598Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:11:36.599Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:11:36.599Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:21:36.605Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:21:36.605Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:21:36.605Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:21:36.605Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:21:36.605Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:21:36.606Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:21:36.606Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:21:36.607Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:21:36.607Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:21:36.608Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:21:36.608Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:31:36.606Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:31:36.606Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:31:36.606Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:31:36.606Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T19:31:36.606Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:31:36.607Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:31:36.607Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:31:36.607Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:31:36.608Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:31:36.608Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:31:36.609Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 891,
-      "at": "2026-09-30T19:41:37.497Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 23,
-      "at": "2026-09-30T19:41:37.521Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 1205,
-      "at": "2026-09-30T19:41:38.726Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 3159,
-      "at": "2026-09-30T19:41:41.885Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 83,
-      "at": "2026-09-30T19:41:41.968Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:41:41.969Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:41:41.969Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:41:41.970Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:41:41.970Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:41:41.970Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:41:41.971Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 917,
-      "at": "2026-09-30T19:51:37.523Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 24,
-      "at": "2026-09-30T19:51:37.547Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 20,
-      "at": "2026-09-30T19:51:37.567Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 26,
-      "at": "2026-09-30T19:51:37.593Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 45,
-      "at": "2026-09-30T19:51:37.638Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:51:37.638Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:51:37.639Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:51:37.640Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T19:51:37.640Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:51:37.641Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T19:51:37.642Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 941,
-      "at": "2026-09-30T20:01:37.547Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 21,
-      "at": "2026-09-30T20:01:37.568Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 13,
-      "at": "2026-09-30T20:01:37.581Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-30T20:01:37.591Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 8,
-      "at": "2026-09-30T20:01:37.599Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:01:37.599Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:01:37.600Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:01:37.600Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:01:37.601Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:01:37.601Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:01:37.602Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 885,
-      "at": "2026-09-30T20:11:37.491Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 25,
-      "at": "2026-09-30T20:11:37.516Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 8,
-      "at": "2026-09-30T20:11:37.524Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 8,
-      "at": "2026-09-30T20:11:37.532Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 7,
-      "at": "2026-09-30T20:11:37.539Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:11:37.540Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:11:37.540Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:11:37.541Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:11:37.541Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:11:37.541Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:11:37.542Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 842,
-      "at": "2026-09-30T20:21:37.448Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 26,
-      "at": "2026-09-30T20:21:37.474Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 12,
-      "at": "2026-09-30T20:21:37.486Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-30T20:21:37.496Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 8,
-      "at": "2026-09-30T20:21:37.504Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:21:37.505Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:21:37.505Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:21:37.506Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:21:37.506Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:21:37.506Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:21:37.507Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 757,
-      "at": "2026-09-30T20:25:52.275Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 30,
-      "at": "2026-09-30T20:25:52.305Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 40,
-      "at": "2026-09-30T20:25:52.345Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 67,
-      "at": "2026-09-30T20:25:52.412Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 85,
-      "at": "2026-09-30T20:25:52.497Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:25:52.497Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:25:52.498Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:25:52.498Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:25:52.499Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:25:52.499Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:25:52.500Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 1319,
-      "at": "2026-09-30T20:28:30.035Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 24,
-      "at": "2026-09-30T20:28:30.059Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 29,
-      "at": "2026-09-30T20:28:30.088Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-30T20:28:30.098Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 34,
-      "at": "2026-09-30T20:28:30.132Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:28:30.132Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:28:30.133Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:28:30.133Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:28:30.133Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:28:30.134Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:28:30.135Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 956,
-      "at": "2026-09-30T20:34:02.924Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 30,
-      "at": "2026-09-30T20:34:02.954Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 27,
-      "at": "2026-09-30T20:34:02.981Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 32,
-      "at": "2026-09-30T20:34:03.013Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 31,
-      "at": "2026-09-30T20:34:03.044Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:34:03.044Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:34:03.044Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:34:03.045Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:34:03.046Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:34:03.046Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:34:03.047Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 878,
-      "at": "2026-09-30T20:44:02.846Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 25,
-      "at": "2026-09-30T20:44:02.871Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 66,
-      "at": "2026-09-30T20:44:02.937Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 93,
-      "at": "2026-09-30T20:44:03.030Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 122,
-      "at": "2026-09-30T20:44:03.152Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:44:03.153Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:44:03.153Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:44:03.154Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:44:03.154Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": false,
-      "ms": null,
-      "at": "2026-09-30T20:44:03.154Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:44:03.155Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 845,
-      "at": "2026-09-30T20:54:02.813Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 32,
-      "at": "2026-09-30T20:54:02.845Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 13,
-      "at": "2026-09-30T20:54:02.858Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-30T20:54:02.868Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 16,
-      "at": "2026-09-30T20:54:02.884Z"
+      "ms": 239,
+      "at": "2026-10-05T23:14:44.397Z"
     },
     {
       "probe": "fleet:pulse",
       "ok": true,
       "ms": 2,
-      "at": "2026-09-30T20:54:02.886Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:54:02.886Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T20:54:02.886Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:54:02.887Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:54:02.888Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T20:54:02.889Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 843,
-      "at": "2026-09-30T21:04:02.812Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 23,
-      "at": "2026-09-30T21:04:02.836Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 15,
-      "at": "2026-09-30T21:04:02.851Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 9,
-      "at": "2026-09-30T21:04:02.860Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 12,
-      "at": "2026-09-30T21:04:02.872Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:04:02.872Z"
+      "at": "2026-10-05T23:14:44.399Z"
     },
     {
       "probe": "fleet:money",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-30T21:04:02.873Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:04:02.873Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:04:02.873Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:04:02.874Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:04:02.875Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 842,
-      "at": "2026-09-30T21:14:02.811Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 19,
-      "at": "2026-09-30T21:14:02.830Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 23,
-      "at": "2026-09-30T21:14:02.853Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 23,
-      "at": "2026-09-30T21:14:02.876Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 24,
-      "at": "2026-09-30T21:14:02.900Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:14:02.901Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:14:02.901Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:14:02.901Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:14:02.902Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:14:02.902Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:14:02.903Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 882,
-      "at": "2026-09-30T21:24:02.853Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 21,
-      "at": "2026-09-30T21:24:02.874Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 7,
-      "at": "2026-09-30T21:24:02.881Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 8,
-      "at": "2026-09-30T21:24:02.889Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 6,
-      "at": "2026-09-30T21:24:02.895Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:24:02.896Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:24:02.896Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:24:02.896Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:24:02.897Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:24:02.897Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:24:02.898Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 901,
-      "at": "2026-09-30T21:34:02.873Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 23,
-      "at": "2026-09-30T21:34:02.896Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 29,
-      "at": "2026-09-30T21:34:02.925Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 13,
-      "at": "2026-09-30T21:34:02.938Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 7,
-      "at": "2026-09-30T21:34:02.945Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:34:02.946Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:34:02.946Z"
+      "at": "2026-10-05T23:14:44.400Z"
     },
     {
       "probe": "fleet:hunter",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-30T21:34:02.947Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:34:02.947Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:34:02.948Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:34:02.949Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 924,
-      "at": "2026-09-30T21:44:02.897Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 26,
-      "at": "2026-09-30T21:44:02.923Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 15,
-      "at": "2026-09-30T21:44:02.938Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 8,
-      "at": "2026-09-30T21:44:02.946Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 6,
-      "at": "2026-09-30T21:44:02.952Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:44:02.952Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:44:02.953Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:44:02.953Z"
+      "at": "2026-10-05T23:14:44.401Z"
     },
     {
       "probe": "fleet:keeper",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-30T21:44:02.954Z"
+      "at": "2026-10-05T23:14:44.402Z"
     },
     {
       "probe": "fleet:verify",
       "ok": true,
       "ms": 0,
-      "at": "2026-09-30T21:44:02.954Z"
+      "at": "2026-10-05T23:14:44.402Z"
     },
     {
       "probe": "fleet:weblift",
       "ok": true,
       "ms": 1,
-      "at": "2026-09-30T21:44:02.955Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 929,
-      "at": "2026-09-30T21:54:02.903Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 27,
-      "at": "2026-09-30T21:54:02.930Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 10,
-      "at": "2026-09-30T21:54:02.940Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 22,
-      "at": "2026-09-30T21:54:02.962Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 18,
-      "at": "2026-09-30T21:54:02.980Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:54:02.981Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:54:02.981Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:54:02.981Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:54:02.982Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T21:54:02.982Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T21:54:02.983Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 910,
-      "at": "2026-09-30T22:04:02.884Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 26,
-      "at": "2026-09-30T22:04:02.910Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 7,
-      "at": "2026-09-30T22:04:02.917Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 7,
-      "at": "2026-09-30T22:04:02.924Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 17,
-      "at": "2026-09-30T22:04:02.941Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T22:04:02.942Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T22:04:02.942Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T22:04:02.943Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T22:04:02.943Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T22:04:02.944Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T22:04:02.944Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 861,
-      "at": "2026-09-30T22:14:02.837Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 21,
-      "at": "2026-09-30T22:14:02.858Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 7,
-      "at": "2026-09-30T22:14:02.865Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 6,
-      "at": "2026-09-30T22:14:02.871Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 6,
-      "at": "2026-09-30T22:14:02.877Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T22:14:02.878Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T22:14:02.878Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T22:14:02.878Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T22:14:02.879Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-09-30T22:14:02.879Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-09-30T22:14:02.880Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.929Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.930Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.930Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.930Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.930Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.930Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.930Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 4,
-      "at": "2026-10-01T19:44:23.934Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.934Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.934Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": false,
-      "ms": null,
-      "at": "2026-10-01T19:44:23.934Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 1150,
-      "at": "2026-10-01T19:54:25.064Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 26,
-      "at": "2026-10-01T19:54:25.090Z"
-    },
-    {
-      "probe": "app:crossmarket",
-      "ok": true,
-      "ms": 1271,
-      "at": "2026-10-01T19:54:26.361Z"
-    },
-    {
-      "probe": "app:exchange-router",
-      "ok": true,
-      "ms": 2983,
-      "at": "2026-10-01T19:54:29.344Z"
-    },
-    {
-      "probe": "app:charter",
-      "ok": true,
-      "ms": 393,
-      "at": "2026-10-01T19:54:29.737Z"
-    },
-    {
-      "probe": "fleet:pulse",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-01T19:54:29.738Z"
-    },
-    {
-      "probe": "fleet:money",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-01T19:54:29.739Z"
-    },
-    {
-      "probe": "fleet:hunter",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-01T19:54:29.739Z"
-    },
-    {
-      "probe": "fleet:keeper",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-01T19:54:29.740Z"
-    },
-    {
-      "probe": "fleet:verify",
-      "ok": true,
-      "ms": 1,
-      "at": "2026-10-01T19:54:29.741Z"
-    },
-    {
-      "probe": "fleet:weblift",
-      "ok": true,
-      "ms": 0,
-      "at": "2026-10-01T19:54:29.741Z"
-    },
-    {
-      "probe": "app:health",
-      "ok": true,
-      "ms": 1031,
-      "at": "2026-10-01T20:04:24.944Z"
-    },
-    {
-      "probe": "app:money",
-      "ok": true,
-      "ms": 23,
-      "at": "2026-10-01T20:04:24.967Z"
-    },
+      "at": "2026-10-05T23:14:44.403Z"
+    }
+  ],
+  "probeHistory": [
     {
       "probe": "app:crossmarket",
       "ok": true,
@@ -12075,6 +10293,1788 @@
       "ok": true,
       "ms": 1,
       "at": "2026-10-05T18:44:42.657Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 262,
+      "at": "2026-10-05T18:54:41.999Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 29,
+      "at": "2026-10-05T18:54:42.028Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 12,
+      "at": "2026-10-05T18:54:42.040Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 11,
+      "at": "2026-10-05T18:54:42.051Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T18:54:42.059Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T18:54:42.060Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T18:54:42.060Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T18:54:42.061Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T18:54:42.061Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T18:54:42.062Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T18:54:42.062Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 899,
+      "at": "2026-10-05T19:04:42.637Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 21,
+      "at": "2026-10-05T19:04:42.658Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 9,
+      "at": "2026-10-05T19:04:42.667Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T19:04:42.675Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 27,
+      "at": "2026-10-05T19:04:42.702Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 2,
+      "at": "2026-10-05T19:04:42.704Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 6,
+      "at": "2026-10-05T19:04:42.710Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 5,
+      "at": "2026-10-05T19:04:42.715Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:04:42.716Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:04:42.716Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 3,
+      "at": "2026-10-05T19:04:42.719Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 912,
+      "at": "2026-10-05T19:14:42.650Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-05T19:14:42.672Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 16,
+      "at": "2026-10-05T19:14:42.688Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 17,
+      "at": "2026-10-05T19:14:42.705Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 27,
+      "at": "2026-10-05T19:14:42.732Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:14:42.732Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:14:42.733Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:14:42.734Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:14:42.734Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:14:42.735Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:14:42.735Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 1023,
+      "at": "2026-10-05T19:24:42.762Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-05T19:24:42.784Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 10,
+      "at": "2026-10-05T19:24:42.794Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 11,
+      "at": "2026-10-05T19:24:42.805Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T19:24:42.813Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:24:42.814Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:24:42.814Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:24:42.814Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:24:42.815Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:24:42.815Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:24:42.816Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 969,
+      "at": "2026-10-05T19:34:42.708Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-05T19:34:42.730Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 17,
+      "at": "2026-10-05T19:34:42.747Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T19:34:42.755Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 7,
+      "at": "2026-10-05T19:34:42.762Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:34:42.763Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:34:42.763Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:34:42.763Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:34:42.764Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:34:42.764Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:34:42.765Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 901,
+      "at": "2026-10-05T19:44:42.640Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 24,
+      "at": "2026-10-05T19:44:42.664Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 7,
+      "at": "2026-10-05T19:44:42.671Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 9,
+      "at": "2026-10-05T19:44:42.680Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 7,
+      "at": "2026-10-05T19:44:42.687Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:44:42.687Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:44:42.687Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:44:42.688Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:44:42.688Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:44:42.689Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:44:42.689Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 922,
+      "at": "2026-10-05T19:54:42.661Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 19,
+      "at": "2026-10-05T19:54:42.680Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 7,
+      "at": "2026-10-05T19:54:42.687Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T19:54:42.695Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 6,
+      "at": "2026-10-05T19:54:42.701Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:54:42.701Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:54:42.702Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:54:42.702Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:54:42.702Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T19:54:42.703Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T19:54:42.703Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 879,
+      "at": "2026-10-05T20:04:42.620Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 25,
+      "at": "2026-10-05T20:04:42.645Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 1369,
+      "at": "2026-10-05T20:04:44.014Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 9124,
+      "at": "2026-10-05T20:04:53.138Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 250,
+      "at": "2026-10-05T20:04:53.388Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:04:53.389Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:04:53.390Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:04:53.390Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:04:53.391Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:04:53.391Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:04:53.392Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 921,
+      "at": "2026-10-05T20:14:42.663Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 25,
+      "at": "2026-10-05T20:14:42.688Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 9,
+      "at": "2026-10-05T20:14:42.697Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 9,
+      "at": "2026-10-05T20:14:42.706Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T20:14:42.714Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:14:42.715Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:14:42.715Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:14:42.716Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:14:42.716Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 4740,
+      "at": "2026-10-05T20:14:47.456Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:14:47.457Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 913,
+      "at": "2026-10-05T20:24:42.655Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 34,
+      "at": "2026-10-05T20:24:42.689Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 1252,
+      "at": "2026-10-05T20:24:43.941Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 9160,
+      "at": "2026-10-05T20:24:53.101Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 97,
+      "at": "2026-10-05T20:24:53.198Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:24:53.199Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:24:53.200Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:24:53.200Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:24:53.201Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:24:53.201Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:24:53.202Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 943,
+      "at": "2026-10-05T20:34:42.685Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 19,
+      "at": "2026-10-05T20:34:42.704Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 12,
+      "at": "2026-10-05T20:34:42.716Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 14,
+      "at": "2026-10-05T20:34:42.730Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 15,
+      "at": "2026-10-05T20:34:42.745Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:34:42.745Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:34:42.746Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:34:42.746Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:34:42.747Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:34:42.747Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:34:42.747Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 958,
+      "at": "2026-10-05T20:44:42.700Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-05T20:44:42.722Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 9,
+      "at": "2026-10-05T20:44:42.731Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 8,
+      "at": "2026-10-05T20:44:42.739Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 15,
+      "at": "2026-10-05T20:44:42.754Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:44:42.754Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:44:42.754Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:44:42.755Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:44:42.755Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:44:42.755Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:44:42.756Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 959,
+      "at": "2026-10-05T20:54:42.701Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 27,
+      "at": "2026-10-05T20:54:42.728Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 22,
+      "at": "2026-10-05T20:54:42.750Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 12,
+      "at": "2026-10-05T20:54:42.762Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 44,
+      "at": "2026-10-05T20:54:42.806Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:54:42.806Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:54:42.807Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:54:42.807Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T20:54:42.807Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:54:42.808Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T20:54:42.809Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:04:41.743Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:04:41.743Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:04:41.743Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:04:41.743Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:04:41.743Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:04:41.744Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:04:41.744Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:04:41.745Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:04:41.745Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:04:41.746Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:04:41.746Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:14:41.743Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:14:41.743Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:14:41.743Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:14:41.743Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:14:41.743Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:14:41.744Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:14:41.744Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:14:41.744Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:14:41.745Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:14:41.745Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:14:41.746Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:24:41.744Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:24:41.744Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:24:41.744Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:24:41.744Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:24:41.744Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:24:41.745Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:24:41.745Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:24:41.746Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:24:41.746Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:24:41.747Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:24:41.748Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:34:41.745Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:34:41.745Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:34:41.745Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:34:41.745Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:34:41.745Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:34:41.746Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:34:41.746Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:34:41.746Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:34:41.747Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:34:41.747Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:34:41.748Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:44:41.746Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:44:41.746Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:44:41.746Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:44:41.746Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:44:41.746Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:44:41.747Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:44:41.747Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:44:41.747Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:44:41.748Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:44:41.748Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:44:41.749Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:54:41.747Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:54:41.747Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:54:41.747Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:54:41.747Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T21:54:41.747Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:54:41.748Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:54:41.748Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:54:41.749Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:54:41.749Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T21:54:41.750Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T21:54:41.750Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:04:41.747Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:04:41.748Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:04:41.748Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:04:41.748Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:04:41.748Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:04:41.748Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:04:41.749Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:04:41.749Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:04:41.750Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:04:41.751Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:04:41.752Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:14:41.748Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:14:41.748Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:14:41.748Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:14:41.748Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:14:41.748Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:14:41.748Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:14:41.749Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:14:41.749Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:14:41.750Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:14:41.750Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:14:41.751Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:24:41.749Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:24:41.749Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:24:41.749Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:24:41.749Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": false,
+      "ms": null,
+      "at": "2026-10-05T22:24:41.749Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:24:41.750Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:24:41.750Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:24:41.750Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:24:41.751Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:24:41.751Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:24:41.752Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 915,
+      "at": "2026-10-05T22:34:42.664Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 19,
+      "at": "2026-10-05T22:34:42.684Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 1250,
+      "at": "2026-10-05T22:34:43.934Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 3154,
+      "at": "2026-10-05T22:34:47.088Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 80,
+      "at": "2026-10-05T22:34:47.168Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:34:47.168Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:34:47.169Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:34:47.169Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:34:47.169Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:34:47.170Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:34:47.170Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 869,
+      "at": "2026-10-05T22:44:42.618Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 21,
+      "at": "2026-10-05T22:44:42.639Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 46,
+      "at": "2026-10-05T22:44:42.685Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 28,
+      "at": "2026-10-05T22:44:42.713Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 54,
+      "at": "2026-10-05T22:44:42.767Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:44:42.767Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:44:42.768Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:44:42.768Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:44:42.768Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:44:42.769Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:44:42.769Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 905,
+      "at": "2026-10-05T22:54:42.654Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 27,
+      "at": "2026-10-05T22:54:42.681Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 26,
+      "at": "2026-10-05T22:54:42.707Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 10,
+      "at": "2026-10-05T22:54:42.717Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 15,
+      "at": "2026-10-05T22:54:42.732Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:54:42.732Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:54:42.733Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:54:42.733Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:54:42.733Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T22:54:42.734Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T22:54:42.734Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 913,
+      "at": "2026-10-05T23:04:42.662Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 44,
+      "at": "2026-10-05T23:04:42.706Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 1353,
+      "at": "2026-10-05T23:04:44.059Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 2560,
+      "at": "2026-10-05T23:04:46.619Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 433,
+      "at": "2026-10-05T23:04:47.052Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:04:47.053Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:04:47.054Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:04:47.055Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:04:47.056Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T23:04:47.056Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:04:47.057Z"
+    },
+    {
+      "probe": "app:health",
+      "ok": true,
+      "ms": 2052,
+      "at": "2026-10-05T23:14:43.801Z"
+    },
+    {
+      "probe": "app:money",
+      "ok": true,
+      "ms": 160,
+      "at": "2026-10-05T23:14:43.961Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "ok": true,
+      "ms": 94,
+      "at": "2026-10-05T23:14:44.055Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "ok": true,
+      "ms": 103,
+      "at": "2026-10-05T23:14:44.158Z"
+    },
+    {
+      "probe": "app:charter",
+      "ok": true,
+      "ms": 239,
+      "at": "2026-10-05T23:14:44.397Z"
+    },
+    {
+      "probe": "fleet:pulse",
+      "ok": true,
+      "ms": 2,
+      "at": "2026-10-05T23:14:44.399Z"
+    },
+    {
+      "probe": "fleet:money",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:14:44.400Z"
+    },
+    {
+      "probe": "fleet:hunter",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:14:44.401Z"
+    },
+    {
+      "probe": "fleet:keeper",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:14:44.402Z"
+    },
+    {
+      "probe": "fleet:verify",
+      "ok": true,
+      "ms": 0,
+      "at": "2026-10-05T23:14:44.402Z"
+    },
+    {
+      "probe": "fleet:weblift",
+      "ok": true,
+      "ms": 1,
+      "at": "2026-10-05T23:14:44.403Z"
     }
   ],
   "recurring": [
@@ -12197,219 +12197,249 @@
       "since": "2026-10-05T17:34:41.736Z",
       "count": 2,
       "resolvedAt": "2026-10-05T17:44:52.190Z"
+    },
+    {
+      "probe": "app:health",
+      "since": "2026-10-05T21:24:41.744Z",
+      "count": 2,
+      "resolvedAt": "2026-10-05T22:34:42.664Z"
+    },
+    {
+      "probe": "app:money",
+      "since": "2026-10-05T21:24:41.744Z",
+      "count": 2,
+      "resolvedAt": "2026-10-05T22:34:42.684Z"
+    },
+    {
+      "probe": "app:crossmarket",
+      "since": "2026-10-05T21:24:41.744Z",
+      "count": 2,
+      "resolvedAt": "2026-10-05T22:34:43.934Z"
+    },
+    {
+      "probe": "app:exchange-router",
+      "since": "2026-10-05T21:24:41.744Z",
+      "count": 2,
+      "resolvedAt": "2026-10-05T22:34:47.088Z"
+    },
+    {
+      "probe": "app:charter",
+      "since": "2026-10-05T21:24:41.744Z",
+      "count": 2,
+      "resolvedAt": "2026-10-05T22:34:47.168Z"
     }
   ],
   "coverage": [
     {
-      "repo": "saos-sovereign-foundry",
-      "role": "CI חוזים — האמת לפי הריצה האחרונה (לא הזיכרון)",
-      "pushedAt": "2026-10-04T21:09:56Z",
-      "pushAgeH": 20.748656944444445,
+      "repo": "saos-jummper",
+      "role": "סוויטת נוטריון",
+      "pushedAt": "2026-10-05T20:12:46Z",
+      "pushAgeH": 2.7012655555555556,
       "workflows": 3,
       "lastRun": {
         "name": "gitleaks-secret-scan",
-        "conclusion": "success",
-        "createdAt": "2026-10-04T21:09:58Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Adsmarket",
-      "role": "שמירת-טענות שיווק",
-      "pushedAt": "2026-10-05T06:37:14Z",
-      "pushAgeH": 11.291263055555556,
-      "workflows": 3,
-      "lastRun": {
-        "name": "claims-guard",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T06:37:04Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "anchor-baseline",
-      "role": "שלמות בסיס-קו",
-      "pushedAt": "2026-10-05T07:30:03Z",
-      "pushAgeH": 10.411214722222223,
-      "workflows": 3,
-      "lastRun": {
-        "name": "baseline-integrity",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T07:29:57Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "roshpina",
-      "role": "ביקורת בקרות",
-      "pushedAt": "2026-10-05T08:37:25Z",
-      "pushAgeH": 9.289692777777777,
-      "workflows": 3,
-      "lastRun": {
-        "name": "controls-audit",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T08:37:18Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Sdk",
-      "role": "אימות SDK",
-      "pushedAt": "2026-10-05T09:40:31Z",
-      "pushAgeH": 8.239764166666667,
-      "workflows": 3,
-      "lastRun": {
-        "name": "sdk-verify",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T09:40:24Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-jummper",
-      "role": "סוויטת נוטריון",
-      "pushedAt": "2026-10-05T10:41:53Z",
-      "pushAgeH": 7.215935555555555,
-      "workflows": 3,
-      "lastRun": {
-        "name": "jumpper-tests",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T10:41:39Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Project-files",
-      "role": "שומר-ארכיון",
-      "pushedAt": "2026-10-05T11:46:41Z",
-      "pushAgeH": 6.135026111111111,
-      "workflows": 3,
-      "lastRun": {
-        "name": "archive-keeper",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T11:46:30Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-control-center",
-      "role": "בניית מרכז-בקרה",
-      "pushedAt": "2026-10-05T12:54:44Z",
-      "pushAgeH": 5.001306944444444,
-      "workflows": 3,
-      "lastRun": {
-        "name": "control-center-build",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T12:53:50Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "saos-sovereign-platform",
-      "role": "מנוע-קצה",
-      "pushedAt": "2026-10-05T13:54:07Z",
-      "pushAgeH": 4.012503888888889,
-      "workflows": 4,
-      "lastRun": {
-        "name": "platform-selftest",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T13:53:57Z"
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T20:12:48Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Saosmartwallet",
       "role": "אימות ארנק",
-      "pushedAt": "2026-10-05T15:00:38Z",
-      "pushAgeH": 2.9041175,
+      "pushedAt": "2026-10-05T20:15:21Z",
+      "pushAgeH": 2.6589930555555554,
       "workflows": 3,
       "lastRun": {
-        "name": "wallet-verify",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T14:58:52Z"
+        "name": "gitleaks-secret-scan",
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T20:15:23Z"
       },
       "verdict": "AGENTED"
     },
     {
-      "repo": "Zip",
-      "role": "בית ריבוני — ספר, סקריפטים, worklog",
-      "pushedAt": "2026-10-05T17:25:38Z",
-      "pushAgeH": 0.48825944444444447,
-      "workflows": 11,
+      "repo": "saos-control-center",
+      "role": "בניית מרכז-בקרה",
+      "pushedAt": "2026-10-05T20:16:02Z",
+      "pushAgeH": 2.6463394444444446,
+      "workflows": 3,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T20:16:04Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "saos-sovereign-platform",
+      "role": "מנוע-קצה",
+      "pushedAt": "2026-10-05T21:16:49Z",
+      "pushAgeH": 1.6343283333333334,
+      "workflows": 4,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T21:16:51Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "saos-sovereign-foundry",
+      "role": "CI חוזים — האמת לפי הריצה האחרונה (לא הזיכרון)",
+      "pushedAt": "2026-10-05T21:18:09Z",
+      "pushAgeH": 1.6118883333333334,
+      "workflows": 3,
+      "lastRun": {
+        "name": "workflow-yaml-guard",
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T21:18:11Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Sdk",
+      "role": "אימות SDK",
+      "pushedAt": "2026-10-05T21:49:44Z",
+      "pushAgeH": 1.086176111111111,
+      "workflows": 3,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-05T21:49:46Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Adsmarket",
+      "role": "שמירת-טענות שיווק",
+      "pushedAt": "2026-10-05T21:51:48Z",
+      "pushAgeH": 1.0486697222222223,
+      "workflows": 3,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-05T21:51:50Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "roshpina",
+      "role": "ביקורת בקרות",
+      "pushedAt": "2026-10-05T21:52:44Z",
+      "pushAgeH": 1.034456388888889,
+      "workflows": 3,
       "lastRun": {
         "name": "workflow-yaml-guard",
         "conclusion": "success",
-        "createdAt": "2026-10-05T17:25:40Z"
+        "createdAt": "2026-10-05T21:52:46Z"
       },
       "verdict": "AGENTED"
     },
     {
-      "repo": "steem",
-      "role": "כלי רשות העוגן",
-      "pushedAt": "2026-10-05T17:32:23Z",
-      "pushAgeH": 0.3755452777777778,
-      "workflows": 6,
+      "repo": "Project-files",
+      "role": "שומר-ארכיון",
+      "pushedAt": "2026-10-05T21:55:51Z",
+      "pushAgeH": 0.9822811111111112,
+      "workflows": 3,
       "lastRun": {
-        "name": "cognition-beat",
+        "name": "workflow-yaml-guard",
         "conclusion": "success",
-        "createdAt": "2026-10-05T17:31:37Z"
+        "createdAt": "2026-10-05T21:55:53Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "anchor-baseline",
+      "role": "שלמות בסיס-קו",
+      "pushedAt": "2026-10-05T21:56:44Z",
+      "pushAgeH": 0.9666661111111111,
+      "workflows": 3,
+      "lastRun": {
+        "name": "gitleaks-secret-scan",
+        "conclusion": "success",
+        "createdAt": "2026-10-05T21:56:46Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Defi",
       "role": "ריפו-קנון — דוחות וקבלות",
-      "pushedAt": "2026-10-05T17:40:14Z",
-      "pushAgeH": 0.24195527777777778,
+      "pushedAt": "2026-10-05T22:29:11Z",
+      "pushAgeH": 0.42628166666666667,
       "workflows": 3,
       "lastRun": {
         "name": "gitleaks-secret-scan",
         "conclusion": "success",
-        "createdAt": "2026-10-05T17:40:16Z"
-      },
-      "verdict": "AGENTED"
-    },
-    {
-      "repo": "Console",
-      "role": "קונסולה ציבורית — אתר, זרימות, גשר-סוכנים",
-      "pushedAt": "2026-10-05T17:48:08Z",
-      "pushAgeH": 0.11006194444444445,
-      "workflows": 11,
-      "lastRun": {
-        "name": "agents-watch",
-        "conclusion": null,
-        "createdAt": "2026-10-05T17:52:13Z"
+        "createdAt": "2026-10-05T22:29:13Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "saos-dex",
       "role": "מנוע הדקס",
-      "pushedAt": "2026-10-05T17:48:39Z",
-      "pushAgeH": 0.102915,
+      "pushedAt": "2026-10-05T22:45:41Z",
+      "pushAgeH": 0.15239666666666668,
       "workflows": 8,
       "lastRun": {
         "name": "arb-scan",
-        "conclusion": "success",
-        "createdAt": "2026-10-05T17:36:16Z"
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T22:34:03Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Zip",
+      "role": "בית ריבוני — ספר, סקריפטים, worklog",
+      "pushedAt": "2026-10-05T22:45:55Z",
+      "pushAgeH": 0.15034194444444443,
+      "workflows": 11,
+      "lastRun": {
+        "name": "workflow-yaml-guard",
+        "conclusion": "failure",
+        "createdAt": "2026-10-05T22:45:57Z"
       },
       "verdict": "AGENTED"
     },
     {
       "repo": "Domain",
       "role": "מראה ציבורית — המכונה (20 זרימות)",
-      "pushedAt": "2026-10-05T17:52:14Z",
-      "pushAgeH": 0.04229027777777778,
+      "pushedAt": "2026-10-05T22:52:38Z",
+      "pushAgeH": 0.035665277777777775,
       "workflows": 55,
       "lastRun": {
-        "name": "web-publish",
+        "name": "pages build and deployment",
         "conclusion": "success",
-        "createdAt": "2026-10-05T17:54:24Z"
+        "createdAt": "2026-10-05T22:52:39Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "steem",
+      "role": "כלי רשות העוגן",
+      "pushedAt": "2026-10-05T22:53:20Z",
+      "pushAgeH": 0.026505833333333333,
+      "workflows": 6,
+      "lastRun": {
+        "name": "cognition-beat",
+        "conclusion": "success",
+        "createdAt": "2026-10-05T22:29:52Z"
+      },
+      "verdict": "AGENTED"
+    },
+    {
+      "repo": "Console",
+      "role": "קונסולה ציבורית — אתר, זרימות, גשר-סוכנים",
+      "pushedAt": "2026-10-05T22:54:15Z",
+      "pushAgeH": 0.008287222222222222,
+      "workflows": 11,
+      "lastRun": {
+        "name": "pages build and deployment",
+        "conclusion": "success",
+        "createdAt": "2026-10-05T22:54:16Z"
       },
       "verdict": "AGENTED"
     }
   ],
-  "coverageAt": "2026-10-05T17:54:56.529Z",
+  "coverageAt": "2026-10-05T22:54:57.426Z",
   "findings": [
     {
       "id": "P1",
@@ -12488,13 +12518,13 @@
     }
   ],
   "lessons": {
-    "rounds": 370,
+    "rounds": 372,
     "liveBugsCaught": 8,
-    "fixedMentions": 506,
-    "honestyMentions": 417,
-    "parsedAt": "2026-10-05T18:04:42.817Z",
+    "fixedMentions": 512,
+    "honestyMentions": 421,
+    "parsedAt": "2026-10-05T23:04:47.064Z",
     "note": [
-      "370 סבבי-עבודה תועדו מאז הפתיחה — כל אחד בנוי על קודמו",
+      "372 סבבי-עבודה תועדו מאז הפתיחה — כל אחד בנוי על קודמו",
       "8 אזכורי \"באג חי\" — באגים שנתפסו בשידור חי ותוקנו בשורש, לא טואטאו",
       "לקח-הדורות (נלמד מהספר): ההיסטוריה מפגרת אחרי השרשרת — אימות שידור דורש חלון + דה-דופ (R87/R91)",
       "לקח-הדורות: bun --hot מקפיא טיימרים — בריאות דיבון נמדדת לפי טריות פעימות, לא פורט פתוח (R91)",
@@ -12502,14 +12532,14 @@
     ]
   },
   "economics": {
-    "at": "2026-10-05T18:44:42.673Z",
+    "at": "2026-10-05T23:04:48.153Z",
     "fillsTotal": 368,
     "roundTrips": 274,
     "capturedSbd": -1.509569,
     "openLongSteem": 16.31,
     "regime": "VALUE-TRAP",
-    "midVsParityBps": -571,
-    "ladderVsMidBps": 693,
+    "midVsParityBps": -751,
+    "ladderVsMidBps": 907,
     "deployedSteem": 9.415,
     "sbdBalance": 0.015
   },
@@ -12736,14 +12766,14 @@
     }
   ],
   "exchange": {
-    "at": "2026-10-05T18:44:42.681Z",
+    "at": "2026-10-05T23:14:44.430Z",
     "channels": 11,
     "verified": 10,
     "deviant": 1,
     "down": 0,
     "chainsLive": 4,
     "bestEthDex": "Uniswap v3",
-    "worstDevBps": -1320,
+    "worstDevBps": -1348,
     "topYield": "sky-lending 3.60%"
   },
   "exchangeHistory": [
@@ -12819,6 +12849,11 @@
     },
     {
       "at": "2026-10-02T14:06:01.799Z",
+      "kind": "ROUTE-DOWN",
+      "detail": "ROUTE-DOWN: 0→1 ערוצי ציטוט נפלו — נבדק שוב במחזור הבא"
+    },
+    {
+      "at": "2026-10-05T20:14:47.470Z",
       "kind": "ROUTE-DOWN",
       "detail": "ROUTE-DOWN: 0→1 ערוצי ציטוט נפלו — נבדק שוב במחזור הבא"
     }
@@ -13010,201 +13045,11 @@
     "day": "2026-10-05"
   },
   "lastDecision": {
-    "at": "2026-10-05T18:44:42.681Z",
+    "at": "2026-10-05T23:14:44.430Z",
     "kind": "EXAMINE",
     "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
   },
   "history": [
-    {
-      "at": "2026-10-05T15:34:42.840Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T15:44:42.779Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T15:54:56.803Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T16:04:42.744Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T16:16:26.758Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T16:26:26.757Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T16:34:41.737Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
-    },
-    {
-      "at": "2026-10-05T16:34:41.738Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:health נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T16:34:41.738Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:money נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T16:34:41.738Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:crossmarket נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T16:34:41.738Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:exchange-router נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T16:34:41.738Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:charter נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T16:44:48.489Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T16:44:48.489Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:health התאושש — ההישנות נסגרה ונלמדה (2026-10-05T16:44:41.994Z)"
-    },
-    {
-      "at": "2026-10-05T16:44:48.489Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:money התאושש — ההישנות נסגרה ונלמדה (2026-10-05T16:44:42.018Z)"
-    },
-    {
-      "at": "2026-10-05T16:44:48.489Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:crossmarket התאושש — ההישנות נסגרה ונלמדה (2026-10-05T16:44:43.380Z)"
-    },
-    {
-      "at": "2026-10-05T16:44:48.489Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:exchange-router התאושש — ההישנות נסגרה ונלמדה (2026-10-05T16:44:46.916Z)"
-    },
-    {
-      "at": "2026-10-05T16:44:48.489Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:charter התאושש — ההישנות נסגרה ונלמדה (2026-10-05T16:44:47.083Z)"
-    },
-    {
-      "at": "2026-10-05T16:54:57.259Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T17:04:42.049Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T17:14:41.739Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T17:24:41.739Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T17:34:41.739Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
-    },
-    {
-      "at": "2026-10-05T17:34:41.739Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:health נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T17:34:41.739Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:money נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T17:34:41.739Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:crossmarket נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T17:34:41.739Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:exchange-router נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T17:34:41.739Z",
-      "kind": "LEARN",
-      "detail": "RECURRING: app:charter נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
-    },
-    {
-      "at": "2026-10-05T17:44:53.355Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T17:44:53.355Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:health התאושש — ההישנות נסגרה ונלמדה (2026-10-05T17:44:42.644Z)"
-    },
-    {
-      "at": "2026-10-05T17:44:53.355Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:money התאושש — ההישנות נסגרה ונלמדה (2026-10-05T17:44:42.668Z)"
-    },
-    {
-      "at": "2026-10-05T17:44:53.355Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:crossmarket התאושש — ההישנות נסגרה ונלמדה (2026-10-05T17:44:45.792Z)"
-    },
-    {
-      "at": "2026-10-05T17:44:53.355Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:exchange-router התאושש — ההישנות נסגרה ונלמדה (2026-10-05T17:44:52.125Z)"
-    },
-    {
-      "at": "2026-10-05T17:44:53.355Z",
-      "kind": "LEARN",
-      "detail": "RESOLVED: app:charter התאושש — ההישנות נסגרה ונלמדה (2026-10-05T17:44:52.190Z)"
-    },
-    {
-      "at": "2026-10-05T17:54:56.539Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T18:04:42.827Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T18:14:42.448Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
-    {
-      "at": "2026-10-05T18:24:42.953Z",
-      "kind": "EXAMINE",
-      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
-    },
     {
       "at": "2026-10-05T18:34:42.753Z",
       "kind": "EXAMINE",
@@ -13212,6 +13057,196 @@
     },
     {
       "at": "2026-10-05T18:44:42.681Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T18:54:57.700Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T19:04:42.744Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T19:14:42.746Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T19:24:42.832Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T19:34:42.765Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T19:44:42.711Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T19:54:56.576Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T20:04:54.437Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T20:14:47.471Z",
+      "kind": "EXCHANGE",
+      "detail": "ROUTE-DOWN: 0→1 ערוצי ציטוט נפלו — נבדק שוב במחזור הבא"
+    },
+    {
+      "at": "2026-10-05T20:14:47.471Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T20:24:54.171Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T20:34:42.748Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T20:44:42.774Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T20:54:57.657Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T21:04:41.758Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T21:14:41.747Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T21:24:41.748Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T21:24:41.748Z",
+      "kind": "LEARN",
+      "detail": "RECURRING: app:health נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
+    },
+    {
+      "at": "2026-10-05T21:24:41.748Z",
+      "kind": "LEARN",
+      "detail": "RECURRING: app:money נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
+    },
+    {
+      "at": "2026-10-05T21:24:41.748Z",
+      "kind": "LEARN",
+      "detail": "RECURRING: app:crossmarket נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
+    },
+    {
+      "at": "2026-10-05T21:24:41.748Z",
+      "kind": "LEARN",
+      "detail": "RECURRING: app:exchange-router נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
+    },
+    {
+      "at": "2026-10-05T21:24:41.748Z",
+      "kind": "LEARN",
+      "detail": "RECURRING: app:charter נכשל 4× רצוף — מסומן ככשל-חוזר עד ריפוי"
+    },
+    {
+      "at": "2026-10-05T21:34:41.749Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T21:44:41.750Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T21:54:55.551Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T22:04:41.762Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T22:14:41.751Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T22:24:41.753Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 6/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן · כשלים חוזרים פתוחים"
+    },
+    {
+      "at": "2026-10-05T22:34:47.171Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T22:34:47.171Z",
+      "kind": "LEARN",
+      "detail": "RESOLVED: app:health התאושש — ההישנות נסגרה ונלמדה (2026-10-05T22:34:42.664Z)"
+    },
+    {
+      "at": "2026-10-05T22:34:47.171Z",
+      "kind": "LEARN",
+      "detail": "RESOLVED: app:money התאושש — ההישנות נסגרה ונלמדה (2026-10-05T22:34:42.684Z)"
+    },
+    {
+      "at": "2026-10-05T22:34:47.171Z",
+      "kind": "LEARN",
+      "detail": "RESOLVED: app:crossmarket התאושש — ההישנות נסגרה ונלמדה (2026-10-05T22:34:43.934Z)"
+    },
+    {
+      "at": "2026-10-05T22:34:47.171Z",
+      "kind": "LEARN",
+      "detail": "RESOLVED: app:exchange-router התאושש — ההישנות נסגרה ונלמדה (2026-10-05T22:34:47.088Z)"
+    },
+    {
+      "at": "2026-10-05T22:34:47.171Z",
+      "kind": "LEARN",
+      "detail": "RESOLVED: app:charter התאושש — ההישנות נסגרה ונלמדה (2026-10-05T22:34:47.168Z)"
+    },
+    {
+      "at": "2026-10-05T22:44:43.830Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T22:54:57.437Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T23:04:48.153Z",
+      "kind": "EXAMINE",
+      "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
+    },
+    {
+      "at": "2026-10-05T23:14:44.430Z",
       "kind": "EXAMINE",
       "detail": "בחינה: 11/11 מערכות תקינות · כיסוי רשת: 16/16 מתקדמים עם סוכן"
     }

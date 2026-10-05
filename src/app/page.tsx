@@ -28,6 +28,7 @@ import { EcosystemTab } from "@/components/weave/tabs/ecosystem-tab";
 import { LedgerTab } from "@/components/weave/tabs/ledger-tab";
 import { MarketTab } from "@/components/weave/tabs/market-tab";
 import { PlanTab } from "@/components/weave/tabs/plan-tab";
+import { ProofsView } from "@/components/weave/views/proofs-view";
 import { SovereigntyTab } from "@/components/weave/tabs/sovereignty-tab";
 import { BrainView } from "@/components/weave/views/brain-view";
 import { BrowserView } from "@/components/weave/views/browser-view";
@@ -131,6 +132,8 @@ function SectionBody({ view, section, query }: Route) {
           return <WebNetView />;
         case "ledger":
           return <LedgerTab />;
+        case "proofs":
+          return <ProofsView />;
         case "anchor":
           return <AnchorTab />;
         case "ecosystem":

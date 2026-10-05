@@ -39,7 +39,20 @@ import { appendExperience, runAdaptation, readLearnedBackoff, applyMisattributio
 // advisory-only · חד-כיוונית-שמרנית (יכולה רק לדכא פעולה ל-WAIT — לעולם לא לכפות) ·
 // אוצר-מילים סגור · שופט-חוץ (ראיות מספרים-שהמודול לא כותב) · תפוגת-תוקף + שחרור ב-3 מדידות-סותרות.
 // כשל-מודול = אפס-העדפות = חוק-הבסיס שלפני-r207 (fail-open לדיכוי-בלבד).
-import { notePreferenceCondition, activeDown, rebuildFromBook } from "../preferences";
+import { notePreferenceCondition, activeDown, rebuildFromBook, resetConditionStreak } from "../preferences";
+import {
+  appendIntent,
+  closeIntent,
+  bootReconcileIntents,
+  isSuppressed,
+  verifyIntentsBook,
+} from "./intents"; // R208P — ספר-כוונות write-ahead: חלון-הכפילות intent-last נסגר (הכרעת trace 1a10e219d0860c0d)
+// r208 — חוזה-צריכת-מטרות (trace 1a10d7a051e822d1): המודל נטען-מאומת דרך
+// ממשק-צר בלבד; גבול-הגל הוא פונקציה-טהורה ניתנת-לשחזור; תחזית-טרום-פעולה
+// (§VII) נכתבת לפני-ההכרעה. המודל משפיע על העדפה בלבד — הסמכות נשארת בשער.
+import { appendPrediction, closePrediction, objectiveDecisionView, predictWaveDecision, getArmingThresholdSbd } from "../objective-consumer";
+import { waveDecision } from "../wave-decision";
+import { createHash } from "node:crypto";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -115,10 +128,22 @@ function utcDay(d = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
+const sha256s = (s: string): string => createHash("sha256").update(s).digest("hex");
+
+// §IX R208R (trace 1a10dda614a62251) — חישוב-האש-המשולב מחדש על בייטס-הדיסק
+// הנוכחיים (אותו-נוסחה כמו objectiveSnapshotHash). null ⇒ קריאה-נכשלה (כנות).
+const MODEL_FILES_AUDIT = ["objectives.json", "options.json", "capabilities.json", "authority-map.json"] as const;
+function loadModelHashesForAudit(): string | null {
+  try {
+    const parts = MODEL_FILES_AUDIT.map((f) => sha256s(fs.readFileSync(`${HOME}/sovereign/objectives/${f}`, "utf8")));
+    return sha256s(parts.join("|"));
+  } catch { return null; }
+}
+
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.12.0", // r207 — שכבת-העדפות-נלמדות (advisory-only) · תיקון-חיישן powerdown · איטום F-1
+    version: "1.13.0", // r208 — צריכת-מטרות חוזית בגבול-הגל (ממשק-צר + תחזית-טרום-פעולה) · המודל משפיע-עדפה, לא סמכות
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -187,6 +212,24 @@ G_MONEY.__MONEY_STATE__ = state;
 // בלי השורה הזו state.policy היה נתקע על ה-POLICY של העלייה-הקרה הראשונה
 // (נמדד: fillDeploy חסר מה-GET בריאות אחרי hot-reload — החוק פעל, התיעוד ישן).
 state.policy = POLICY;
+
+// R208P · intent-first — יישוב-עלייה: כל כוונה-פתוחה שנותרה מהדור-הקודם
+// נסגרת כ-UNRESOLVED-AT-BOOT (תוצאת-חוץ = UNKNOWN — לעולם לא מומצאת)
+// ומושתק ירי-חוזר של אותה (action,target) עד שקט-עולם (30 דק').
+{
+  const rec = bootReconcileIntents();
+  if (rec.closed > 0) {
+    state.lastDecision = {
+      at: new Date().toISOString(),
+      kind: "INTENT-RECONCILED",
+      detail: `כוונות-פתוחות מהדור-הקודם: ${rec.closed} (${rec.suppressed.join(", ")}) — נסגרו UNKNOWN-כנה · ירי-חוזר מושתק 30 דק' (intent-first R208P)`,
+    };
+    saveState();
+  }
+  if (!verifyIntentsBook()) {
+    console.error("[intents] שרשרת-ספר-הכוונות שבורה — דרוש ניפוי; הפעולות נמשכות אך ההפרה נרשמת");
+  }
+}
 
 function saveState() {
   fs.mkdirSync(`${HOME}/sovereign/money`, { recursive: true });
@@ -467,17 +510,107 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
     idleNow >= POLICY.liquidityStream.waveSteem &&
     state.lastStreamDay !== today
   ) {
-    // r207 — צרכן-ההעדפות (I3: advisory-בלבד): זרימת-הנזילות מזריעה עומק-בריכות.
-    // העדפה-נלמדת grid-pool-seed DOWN (ראיות מעוגנות: sovereign/objectives/options.json
-    // #unitErrorCorrection — סף-הזריעה האמיתי ~160 WSTEEM ולא 96 · צד-SBD בלתי-ממומן)
-    // דוכאת את הזרימה עד שהרג'ים יתהפך (3 מדידות SBD≥3.0 רצופות) או תפוגת-תוקף.
-    // ההעדפה לעולם לא כופה פעולה — רק מצמצמת ל-WAIT; כשל-קריאה = אין-העדפה = חוק-בסיס.
+    // r208 — צריכת-מטרות חוזית (trace 1a10d7a051e822d1): המודל נטען ונאומת
+    // (סכמה/היוחסות/זקנה/אסמכתאות-חתומות/מפריך/משאב-דרוש) דרך ממשק-צר בלבד.
+    // סדר-ההכרעה בגבול: סמכות (§V) → העדפה (I3, r207) → מודל (WAIT-MODEL) →
+    // ברירת-מחדל-בטוחה על מודל-פגום (§XIII/XVII) → חוק-הבסיס (r103).
+    // תחזית-טרום-פעולה (§VII) נכתבת לספר ומרוסקת-לדיסק לפני-ההכרעה, ונסגרת
+    // מולה — סתירה בין חוזה-התחזית להכרעה נרשמת כ-PREDICTION-DIVERGENCE.
+    // המודל לעולם לא מעניק סמכות — רק מדכא/מתייג; כשל-חוזה = חוק-הבסיס.
     try {
-      const prefDown = activeDown("grid-pool-seed");
-      if (prefDown) {
-        return { act: false, reason: `WAIT-PREFERENCE · גל-דלק נמדד אך הזרעה-לבריכות דכויה בהעדפה-נלמדת grid-pool-seed DOWN (seq ${prefDown.seq} · ראיות: ${prefDown.evidence.map((e) => e.book.split("/").pop()).join(", ")}) · פוגה ${prefDown.expiresAt} · הדלק נשאר נזיל` };
+      const prefEntry = activeDown("grid-pool-seed");
+      const prefDown = prefEntry
+        ? {
+            seq: prefEntry.seq,
+            expiresAt: String(prefEntry.expiresAt ?? ""),
+            evidenceBooks: (prefEntry.evidence ?? []).map((e) => e.book.split("/").pop() ?? e.book),
+            confidence: String(prefEntry.confidence ?? "medium"),
+          }
+        : null;
+      const sbdRaw = (meas as any)?.sbdArming?.balance;
+      // כנות-חיישן (§XV): מדידה-חסרה היא null — לא אפס. ההכרעה דורשת מדידה
+      // ⇒ UNKNOWN ⇒ דחייה וברירת-מחדל-בטוחה. אין הופכים חוסר-מידה ל-0.000.
+      const sbdNow = typeof sbdRaw === "number" && Number.isFinite(sbdRaw)
+        ? { value: sbdRaw, at: String((meas as any)?.at ?? (meas as any)?.measuredAt ?? new Date().toISOString()), unit: "SBD" }
+        : null;
+      const { view, reject, detail } = objectiveDecisionView("grid-pool-seed", {
+        measuredSbd: sbdNow,
+        prefEvidence: prefEntry?.evidence ?? [],
+        requireResource: true, // §IV: ההכרעה דורשת מדידת-SBD — UNKNOWN ⇒ דחייה
+      });
+      const waveFires = true; // הגענו לגבול — הסף נבדק למעלה
+      const expectedDecision = predictWaveDecision({
+        waveFires,
+        prefDown: !!prefDown,
+        view,
+        viewRejectReason: reject,
+        authorityForbidden: view?.authorityStatus?.forbidden === true,
+      });
+      const prediction = appendPrediction({
+        kind: "PREDICTION",
+        predictionId: `PRED-R208-${Date.now()}`,
+        boundary: "money-mover/decide#liquidity-wave",
+        objectiveId: view?.objectiveId ?? "UNAVAILABLE",
+        objectiveSnapshotHash: view ? sha256s(Object.values(view.modelHashes).join("|")) : undefined,
+        resourceSnapshotHash: sha256s(JSON.stringify({ idleNow, totalSteemNow, waveDelta, sbdNow })),
+        decisionInputHash: sha256s(JSON.stringify({ waveFires, prefDown: !!prefDown, reject, seedVerdict: view?.priority?.verdictForSeed ?? null, authorityForbidden: view?.authorityStatus?.forbidden ?? null })),
+        expectedDecision,
+        expectedReason: view ? `${view.priority.rank} → ${view.priority.verdictForSeed}` : `reject=${reject}:${String(detail).slice(0, 120)}`,
+        expectedOutcome: view?.falsifier?.delta ?? "שורת-החלטה אחת עם תוצאה-מפורשת",
+        falsifier: "PREDICTION-DIVERGENCE: ההכרעה בפועל ≠ expectedDecision · receipt.ok=false ⇒ תחזית-התוצאה מופרכת",
+        confidence: "medium",
+      });
+      const wd = waveDecision({
+        now: new Date().toISOString(),
+        today,
+        measCredible,
+        waveDelta,
+        idleNow,
+        totalSteemNow,
+        lastStreamDay: state.lastStreamDay ?? null,
+        waveSteem: POLICY.liquidityStream.waveSteem,
+        share: POLICY.liquidityStream.share,
+        prefDown,
+        view,
+        viewRejectReason: reject,
+        fillTag,
+      });
+      if (prediction.ok) {
+        const closed = closePrediction(prediction.entry.predictionId, {
+          actualDecision: wd.kind,
+          divergence: wd.kind === prediction.entry.expectedDecision ? undefined : `expected=${prediction.entry.expectedDecision} · actual=${wd.kind}`,
+        });
+        if (closed.ok && closed.entry.match === false) {
+          appendHistory({ kind: "PREDICTION-DIVERGENCE", reason: `expected ${prediction.entry.expectedDecision} · actual ${wd.kind}`, parity: null, placed: 0, cancelled: 0, error: null });
+        }
+      } else {
+        // r208-A — כשל-כתיבת-תחזית אינו שקט: ארטיפקט-גלוי בהיסטוריה (ביקורת-מפריך A)
+        appendHistory({ kind: "PREDICTION-WRITE-FAIL", reason: `appendPrediction נדחה: ${String((prediction as { why?: string }).why ?? "?").slice(0, 140)}`, parity: null, placed: 0, cancelled: 0, error: String((prediction as { why?: string }).why ?? "?").slice(0, 140) });
       }
-    } catch { /* כשל-מודול-העדפות = אין-העדפה (חוק-בסיס) */ }
+      if (wd.kind === "WAIT-PREFERENCE" || wd.kind === "WAIT-MODEL" || wd.kind === "WAIT-SAFETY" || wd.kind === "BLOCKED_BY_AUTHORITY") {
+        return { act: false, reason: wd.reason };
+      }
+      if (wd.kind === "ACT") {
+        // §IX R208R — הוכחת-בייטס-נצרכים (trace 1a10dda614a62251): קבלת-ההכרעה
+        // מזהה את בייטס-המודל שגרמו לה (objectiveSnapshotHash). אם הבייטס
+        // בדיסק השתנו בין-הטעינה-להכרעה (TOCTOU) — ארטיפקט-גלוי, והקבלה
+        // ממשיכה להעיד על הבייטס-המקוריים (ההכרעה נשארת קשורה למה שנצרך).
+        try {
+          const rehash = loadModelHashesForAudit();
+          if (rehash && view && rehash !== sha256s(Object.values(view.modelHashes).join("|"))) {
+            appendHistory({ kind: "MODEL-CHANGED-MIDCYCLE", reason: `בייטס-המודל השתנו בין-צריכה-להכרעה — הקבלה מעידה על הבייטס-הנצרכים (§IX)`, parity: null, placed: 0, cancelled: 0, error: null });
+          }
+        } catch { /* ביקורת-האש אינה רשאית להפיל את ההכרעה */ }
+        return { act: true, action: wd.action, reason: wd.reason, tag: wd.tag };
+      }
+      // NO-WAVE כאן לא אמור לקרות (הסף נבדק למעלה) — נופל לחוק-הבסיס בכנות.
+    } catch (err) {
+      // r208-A — כשל-חוזה לא שקט: ארטיפקט-גלוי ואז חוק-הבסיס (r103).
+      // fail-open לכיוון-הבסיס בלבד — אין סמכות-חדשה, אין דיכוי-מאויל.
+      try {
+        appendHistory({ kind: "PRED-CONTRACT-FAIL", reason: `חוזה-המטרות נפל — חוזרים לחוק-הבסיס: ${String((err as Error)?.message ?? err).slice(0, 140)}`, parity: null, placed: 0, cancelled: 0, error: String((err as Error)?.message ?? err).slice(0, 140) });
+      } catch { /* ההיסטוריה לא מפילה את הפעימה */ }
+    }
     return {
       act: true,
       action: "arena-stream",
@@ -660,6 +793,19 @@ async function act(
   deliberation?: DeliberationRef, // r205 — רף-התחזית שנכתבה לפני (לקישור-ניסיון)
   thought?: ThoughtBody, // r206 — הדיון המלא נוסע לשער (THINKING מחייב אותו ב-payload)
 ): Promise<boolean> {
+  // R208P · intent-first — שער-ירי: אם כוונה קודמת של אותו (action,target)
+  // נותרה בלתי-פתורה (מוות-בין-שידור-לתוצאה), הירי-החוזר אסור עד שקט-עולם.
+  // ההכרעה: בטיחות-על-פני-פעילות (לא מייעלים-ל-A — מייעלים-לאמת).
+  if (isSuppressed(action, target)) {
+    state.lastDecision = {
+      at: new Date().toISOString(),
+      kind: "WAIT-INTENT-SUPPRESS",
+      detail: `ירי-חוזר של ${action}/${target} מושתק — כוונה-קודמת נותרה בלתי-פתורה (תוצאת-חוץ UNKNOWN) · ממתין לשקט-עולם 30 דק' (intent-first R208P)`,
+    };
+    saveState();
+    appendHistory({ kind: "WAIT-INTENT-SUPPRESS", reason, parity: null, placed: 0, cancelled: 0, error: "intent-open · ירי-חוזר אסור" });
+    return false;
+  }
   state.acting = true;
   actStartedAt = Date.now();
   // R93 — חוק הירי-היחיד חוצה-הפעלות: הצינון נספר מתחילת הפעולה, לא
@@ -671,6 +817,9 @@ async function act(
   state.lastActionAt = new Date().toISOString();
   state.lastDecision = { at: state.lastActionAt, kind: "ACTING", detail: reason };
   saveState();
+  // R208P · write-ahead intent — הכוונה נרשמת לפני השידור-החוץ.
+  // מות-תהליך מכאן-ואילך משאיר כוונה-פתוחה שהיורש מיישב כ-UNKNOWN.
+  const intentId = appendIntent({ action, target, tag: tag ?? null, reason });
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), 180_000); // פעולת-כסף: חלון רחב (3 דק'), שידור Steem איטי
   let result: Record<string, unknown> = {};
@@ -743,6 +892,7 @@ async function act(
     if (lastH?.kind !== "LANE-BLOCKED") {
       appendHistory({ kind: "LANE-BLOCKED", reason, parity: null, placed: 0, cancelled: 0, error: "NO-KEY · backoff 4ש'", });
     }
+    closeIntent(intentId, "LANE-BLOCKED", false); // R208P — הכוונה נסגרת: לא שודר כלל (אין מפתח)
     return (result as any) ?? {};
   }
   // כנות (תיקון ביקורת): יום-ההזרמה נרשם רק כשההזרמה באמת הצליחה —
@@ -784,6 +934,7 @@ async function act(
         : `כישלון כנה: ${String(r.error ?? r.receipt?.error ?? "לא ידוע").slice(0, 120)}`,
   };
   saveState();
+  closeIntent(intentId, actionKind, !!r.ok); // R208P — הכוונה נסגרת בתוצאה-אמיתית (intent-first: הפער פתוח-לעולם-מתועד)
   appendHistory({
     at: finishedAt, // r205-adv מ.2 — זהות-האירוע מאוחדת: ההיסטוריה ורשומת-הניסיון חולקות את אותו חותמת → אין-כפילות-ראיות בזריעה
     kind: state.lastDecision.kind,
@@ -1096,12 +1247,23 @@ async function tick() {
     // r207 — מדידת-תנאי-ההעדפה בכל-פעימה (I7): רג'ים-ה-SBD. תנאי-שלילי + ראיות-מעוגנות
     // ⇒ כתיבת-העדפה (דדופ-מובנה); 3 מדידות-חיוביות רצופות ⇒ שחרור. כשל נבלע-כנה.
     try {
-      const sbdBal = Number(meas?.sbdArming?.balance ?? 0);
-      const prefRes = notePreferenceCondition("grid-pool-seed", sbdBal >= 3.0, sbdBal < 3.0 ? [
-        { book: "sovereign/objectives/options.json", ref: "unitErrorCorrection", value: "סף-זריעה אמיתי ~160 WSTEEM (תיקון-שגיאת-יחידות 96) · צד-SBD בלתי-ממומן" },
-        { book: "sovereign/objectives/capabilities.json", ref: "C5", value: `SBD מדיד ${sbdBal.toFixed(3)} — מתחת-למימון-צד-העטיפה` },
-      ] : undefined);
-      if (prefRes.wrote) appendHistory({ kind: `PREF-${prefRes.wrote === "PREFERENCE-UPDATE" ? "DOWN" : "RELEASE"}`, reason: `grid-pool-seed: ${prefRes.wrote} (advisory)`, parity: null, placed: 0, cancelled: 0, error: null });
+      // §X R208R — כנות-חיישן בנתיב-ההעדפה (trace 1a10dda614a62251):
+      // מדידה-חסרה = UNMEASURED — לעולם לא 0. אין כותבים DOWN מ"0.000" מדומה,
+      // ואין משאירים רצף-חיובי ישן מול מדידה-נעדרת (שחרור-כוזב).
+      // §VII R208R — הסף נקרא מהמודל (OBJECTIVE-PARAMETER) — אפס-שכפול-קבוע.
+      const sbdRawPref = (meas as any)?.sbdArming?.balance;
+      const sbdFinite = typeof sbdRawPref === "number" && Number.isFinite(sbdRawPref);
+      const thrSbd = getArmingThresholdSbd();
+      if (!sbdFinite || !thrSbd) {
+        resetConditionStreak("grid-pool-seed");
+        if (!thrSbd) appendHistory({ kind: "PREF-THRESHOLD-UNKNOWN", reason: "סף-ההעדפה לא-ניתן-לקריאה מהמודל — נמנעים, אין-המצאה (§VII)", parity: null, placed: 0, cancelled: 0, error: null });
+      } else {
+        const prefRes = notePreferenceCondition("grid-pool-seed", sbdRawPref >= thrSbd.value, sbdRawPref < thrSbd.value ? [
+          { book: "sovereign/objectives/options.json", ref: "unitErrorCorrection", value: "סף-זריעה אמיתי ~160 WSTEEM (תיקון-שגיאת-יחידות 96) · צד-SBD בלתי-ממומן" },
+          { book: "sovereign/objectives/capabilities.json", ref: "C5", value: `SBD מדיד ${sbdRawPref.toFixed(3)} — מתחת-למימון-צד-העטיפה` },
+        ] : undefined);
+        if (prefRes.wrote) appendHistory({ kind: `PREF-${prefRes.wrote === "PREFERENCE-UPDATE" ? "DOWN" : "RELEASE"}`, reason: `grid-pool-seed: ${prefRes.wrote} (advisory)`, parity: null, placed: 0, cancelled: 0, error: null });
+      }
     } catch { /* ההעדפות לעולם לא מפילות את הפעימה */ }
 
     const d = await decide(meas);

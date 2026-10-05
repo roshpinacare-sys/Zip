@@ -312,3 +312,20 @@ export function rebuildFromBook(): { ok: boolean; count: number } {
   });
   return { ok: chain.ok, count: chain.count };
 }
+
+/**
+ * §X R208R (trace 1a10dda614a62251) — כנות-חיישן במנגנון-I7:
+ * מדידה-חסרה אינה ראיה-סותרת ואינה ראיה-תומכת — חוסר-מדידה ≠ 0.
+ * הרצף מתאפס כדי שזקן-חיובי ישן לא ישרוד מדידה-נעדרת וישמש לשחרור-כוזב.
+ * אפס-כתיבת-ספר — מדינה-בלבד; כשל נבלע (האיפוס אינו רשאי להפיל פעימה).
+ */
+export function resetConditionStreak(subject: Subject): void {
+  try {
+    const { state } = readState();
+    const streaks = (state.conditionStreaks as Record<string, number> | undefined) ?? {};
+    if ((streaks[subject] ?? 0) !== 0) {
+      streaks[subject] = 0;
+      writeState({ ...state, conditionStreaks: streaks });
+    }
+  } catch { /* כנות: האיפוס אינו רשאי להפיל את הפעימה */ }
+}

@@ -28,6 +28,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { installDeadManWatch, writeJsonAtomic } from "../shared";
 import { readGate } from "../autonomy";
+import { computeCanonicalEventId, recomputeRealizedFromLedger as ledgerTotal } from "./accumulator";
 
 const PORT = Number(process.env.DEX_GRID_PORT || 3051);
 const TICK_MS = 30_000;
@@ -102,6 +103,7 @@ interface FillRecord {
   opposeBias: number;
   centerSource: string;
   seq?: number;
+  canonicalEventId?: string; // §XI R208R — מזהה-אירוע-קנוני (מניעת-כפילות)
 }
 
 interface DexGridState {
@@ -117,6 +119,7 @@ interface DexGridState {
   dailyVolumeUsd: number;
   dailyLossUsd: number;
   realizedPnlUsd: number | null;
+  fillSeq: number; // §XI R208R — מונה-גלובלי-מונוטוני לאירועים-קנוניים
   fills: FillRecord[];
   decisions: Array<{ at: string; pair: string; text: string }>;
   oppose: { active: boolean; skew: number | null; mmMode: string | null; note: string };
@@ -146,6 +149,7 @@ function initState(): DexGridState {
     dailyVolumeUsd: 0,
     dailyLossUsd: 0,
     realizedPnlUsd: 0,
+    fillSeq: 0,
     fills: [],
     decisions: [],
     oppose: { active: false, skew: null, mmMode: null, note: "טרם-נמדד" },
@@ -173,7 +177,12 @@ function restoreState(): void {
       if (Array.isArray(raw.fills)) state.fills = raw.fills.slice(0, 50);
     }
     if (typeof raw.realizedPnlUsd === "number") state.realizedPnlUsd = raw.realizedPnlUsd;
+    if (typeof raw.fillSeq === "number" && Number.isFinite(raw.fillSeq)) state.fillSeq = Math.max(state.fillSeq, Math.floor(raw.fillSeq));
   } catch { /* עלייה-ראשונה — כנה */ }
+  // §XI R208R — חוק-שימור-המצבר: הסך-הממומש נגזר-תמיד מספר-המילויים-הקנוניים.
+  // המימוש היחיד חי ב-accumulator.ts — אותו-קוד לדיבון ולמעבדת-ההתקפה.
+  const led = ledgerTotal(FILLS_FILE);
+  state.realizedPnlUsd = led.total;
 }
 restoreState();
 
@@ -558,6 +567,10 @@ async function tick(): Promise<void> {
     const pnlB = pnlAtCenter(side, amountIn, amountOut, center);
     const pnlAssetUsd = usdB; // יחידת-ה-PnL היא נכס-היציאה (B — WSBD/USDS, משווק-בכנות ל-SBD)
     const pnlUsd = pnlAssetUsd != null ? pnlB * pnlAssetUsd : null;
+    // §XI R208R — אירוע-קנוני (מימוש-יחיד: accumulator.ts): מזהה-ייחודי
+    // (מונה-מונוטוני + תוכן) — ריטריי/ריפליי/כפילות נספרים פעם-אחת.
+    state.fillSeq = (state.fillSeq ?? 0) + 1;
+    const canonicalEventId = computeCanonicalEventId(state.fillSeq, new Date().toISOString(), pair, side, amountIn, amountOut);
     const fill: FillRecord = {
       at: new Date().toISOString(),
       pair, side, assetIn, assetOut,
@@ -571,18 +584,21 @@ async function tick(): Promise<void> {
       pnlUsd: pnlUsd == null ? null : Math.round(pnlUsd * 10000) / 10000,
       opposeBias: bias,
       centerSource,
+      seq: state.fillSeq,
+      canonicalEventId,
     };
-    state.fills.unshift(fill);
-    if (state.fills.length > 200) state.fills.length = 200;
-    if (fill.seq == null) fill.seq = state.fills.length;
-    state.dailyVolumeUsd = Math.round((state.dailyVolumeUsd + fill.sizeUsd) * 100) / 100;
-    state.realizedPnlUsd = state.realizedPnlUsd == null ? fill.pnlUsd : (state.realizedPnlUsd ?? 0) + (fill.pnlUsd ?? 0);
-    if (fill.pnlUsd != null && fill.pnlUsd < 0) state.dailyLossUsd = Math.round((state.dailyLossUsd + fill.pnlUsd) * 10000) / 10000;
+    // §XI: הספר קודם (מקור-האמת), ואז גזירה-ממנו — קריסה בין-השלבים
+    // מתוקנת-עצמית בעלייה הבאה (recompute ב-boot). מימוש-יחיד: accumulator.ts.
     try {
       fs.appendFileSync(FILLS_FILE, JSON.stringify(fill) + "\n");
-    } catch { /* כנה */ }
-    pushDecision(pair, `FILL ${side} ${fill.amountIn} ${assetIn}→${fill.amountOut} ${assetOut} (dev ${devBps}bps, הטיה×${bias}) PnL=${fill.pnlB} ${assetOut}`);
-    log(`FILL ${pair} ${side} in=${fill.amountIn} out=${fill.amountOut} dev=${devBps}bps pnlB=${fill.pnlB}`);
+    } catch { /* כנה — המילוי לא נספר בלי ספר */ }
+    const ledger = ledgerTotal(FILLS_FILE); // total = Σ אירועים-ייחודיים
+    state.fills.unshift(fill);
+    if (state.fills.length > 200) state.fills.length = 200;
+    state.dailyVolumeUsd = Math.round((state.dailyVolumeUsd + fill.sizeUsd) * 100) / 100;
+    if (fill.pnlUsd != null && fill.pnlUsd < 0) state.dailyLossUsd = Math.round((state.dailyLossUsd + fill.pnlUsd) * 10000) / 10000;
+    pushDecision(pair, `FILL ${side} ${fill.amountIn} ${assetIn}→${fill.amountOut} ${assetOut} (dev ${devBps}bps, הטיה×${bias}) PnL=${fill.pnlB} ${assetOut} · cid=${canonicalEventId.slice(0, 10)} · Σ=${ledger.total.toFixed(4)} (${ledger.unique} קנוניים${ledger.torn ? `, ${ledger.torn} קרועות` : ""})`);
+    log(`FILL ${pair} ${side} in=${fill.amountIn} out=${fill.amountOut} dev=${devBps}bps pnlB=${fill.pnlB} cid=${canonicalEventId.slice(0, 10)}`);
   }
 
   persist();

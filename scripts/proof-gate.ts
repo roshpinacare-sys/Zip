@@ -85,13 +85,17 @@ interface ReproResult {
 
 async function reprove(entries: ProofEntry[]): Promise<ReproResult[]> {
   const out: ReproResult[] = [];
-  const seen = new Set<string>(); // הכרעה-אחרונה-ל-claimId (חוק P1)
+  // הכרעה-אחרונה-ל-claimId (חוק P1): הרוויזיה-האחרונה היא שקובעת את
+  // פקודת-השחזור והציפייה — לא הרישום-המקורי.
+  const chosen = new Map<string, ProofEntry>();
   for (const e of entries) {
-    if (!e.reproduction || seen.has(e.claimId)) continue;
-    seen.add(e.claimId);
+    if (e.reproduction) chosen.set(e.claimId, e);
+  }
+  for (const e of chosen.values()) {
+    const repro = e.reproduction!;
     const t0 = Date.now();
     try {
-      const proc = Bun.spawn(["bash", "-c", e.reproduction.cmd], {
+      const proc = Bun.spawn(["bash", "-c", repro.cmd], {
         cwd: path.resolve(import.meta.dir, ".."),
         stdout: "pipe",
         stderr: "pipe",
@@ -106,19 +110,19 @@ async function reprove(entries: ProofEntry[]): Promise<ReproResult[]> {
       const tail = (stdout || stderr).trim().split("\n").slice(-3).join(" | ").slice(0, 300);
       out.push({
         claimId: e.claimId,
-        cmd: e.reproduction.cmd,
+        cmd: repro.cmd,
         exit,
-        expect: e.reproduction.expect,
-        ok: exit === 0 && (e.reproduction.expect === "" || tail.includes(e.reproduction.expect) || stdout.includes(e.reproduction.expect)),
+        expect: repro.expect,
+        ok: exit === 0 && (repro.expect === "" || tail.includes(repro.expect) || stdout.includes(repro.expect)),
         durSec: Math.round((Date.now() - t0) / 1000),
         tail,
       });
     } catch (err) {
       out.push({
         claimId: e.claimId,
-        cmd: e.reproduction.cmd,
+        cmd: repro.cmd,
         exit: 127,
-        expect: e.reproduction.expect,
+        expect: repro.expect,
         ok: false,
         durSec: Math.round((Date.now() - t0) / 1000),
         tail: String(err).slice(0, 200),
@@ -141,7 +145,14 @@ async function main() {
     process.exit(1);
   }
   const ev = checkEvidence(entries);
-  const drift = ev.filter((x) => !x.ok);
+  // מדיניות-סטייה: רשומה-אחרונה-ל-claimId עם עדות-סוטה = כישלון;
+  // רשומה-היסטורית-שהוחלפה (יש-עוקבת לאותו claimId) = אזהרה-בלבד
+  // (ארטיפקטים-נגזרים כמו מטריצת-הריצה נוצרים-מחדש בכל שחזור — ההיסטוריה אינה נמחקת).
+  const seqOfLatest = new Map<string, number>();
+  for (const e of entries) seqOfLatest.set(e.claimId, e.seq);
+  const evWithScope = ev.map((x) => ({ ...x, isLatest: seqOfLatest.get(x.claimId) === x.seq }));
+  const drift = evWithScope.filter((x) => !x.ok && x.isLatest);
+  const driftHistorical = evWithScope.filter((x) => !x.ok && !x.isLatest);
   const repro = REPROVE ? await reprove(entries) : [];
   const reproFails = repro.filter((r) => !r.ok);
 
@@ -162,8 +173,9 @@ async function main() {
     totalEntries: entries.length,
     claims: { proven: proven.length, open: open.length, refuted: refuted.length },
     chainOk: true,
-    evidenceChecks: { total: ev.length, drift: drift.length },
+    evidenceChecks: { total: ev.length, drift: drift.length, historicalDrift: driftHistorical.length },
     evidenceDrift: drift,
+    historicalDrift: driftHistorical,
     repro: REPROVE ? { ran: repro.length, failed: reproFails.length, results: repro } : { ran: 0, failed: 0, results: [] },
     verdicts: {
       proven: proven.map((e) => ({ claimId: e.claimId, seq: e.seq, scope: e.scope, verdict: e.verdict, at: e.at })),
@@ -178,7 +190,11 @@ async function main() {
   console.log("═══ שער-פתיחת-מושב · ספר-ההוכחות הריבוני (R208P) ═══");
   console.log(`ראש-הספר: ${head.slice(0, 24)}… · ${entries.length} רשומות · שרשרת-תקינה ✓`);
   console.log(`טענות: ${proven.length} PROVEN · ${open.length} OPEN · ${refuted.length} REFUTED`);
-  console.log(`עדויות: ${ev.length} נבדקו · ${drift.length} סטיות`);
+  console.log(`עדויות: ${ev.length} נבדקו · ${drift.length} סטיות-חיות · ${driftHistorical.length} סטיות-היסטוריות (אזהרה)`);
+  if (driftHistorical.length) {
+    console.log("⚠ HISTORICAL-DRIFT (רשומות-שהוחלפו — לא חוסמות):");
+    for (const d of driftHistorical) console.log(`  - #${d.seq} ${d.claimId}: ${d.path.split("/").pop()} (${d.reason})`);
+  }
   if (drift.length) {
     console.log("✗ EVIDENCE-DRIFT:");
     for (const d of drift) console.log(`  - #${d.seq} ${d.claimId}: ${d.path} (${d.reason})`);

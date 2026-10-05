@@ -120,10 +120,23 @@ export interface AppendInput {
 export function appendProof(input: AppendInput): ProofEntry {
   fs.mkdirSync(path.dirname(REGISTRY_PATH), { recursive: true });
   const entries = readRegistry();
-  const evidence = input.evidence.map((ev) => ({
-    path: path.resolve(ev.path),
-    sha256: ev.sha256 ?? sha256File(ev.path),
-  }));
+  // כספת-עדויות: כל עדות מועתקת בזמן-הרישום ל-sovereign/proofs/evidence/<seq>/
+  // — הראיה נקפאת לעד (הארטיפקט-החי ימשיך לחיות; הרישום מחויב לעותק-הקפוא).
+  const seqNext = entries.length + 1;
+  const vaultDir = path.join(path.dirname(REGISTRY_PATH), "evidence", String(seqNext));
+  const evidence = input.evidence.map((ev) => {
+    const src = path.resolve(ev.path);
+    fs.mkdirSync(vaultDir, { recursive: true });
+    const dest = path.join(vaultDir, path.basename(src));
+    try {
+      fs.copyFileSync(src, dest);
+    } catch (err) {
+      // עדות-פקודתית (לא קובץ) — רשאית להיעדר מהדיסק; קובץ-קיים-שנכשל-העתקה = שגיאה
+      if (fs.existsSync(src)) throw new Error(`עדות-לא-ניתנת-להעתקה: ${src} · ${String(err).slice(0, 80)}`);
+    }
+    const frozen = fs.existsSync(dest) ? dest : src;
+    return { path: frozen, sha256: ev.sha256 ?? sha256File(frozen) };
+  });
   const lastSame = [...entries]
     .reverse()
     .find((e) => e.claimId === input.claimId);
