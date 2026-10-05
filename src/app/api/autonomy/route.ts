@@ -65,6 +65,7 @@ export async function GET() {
       refusedByAutonomy = -1; // כנות: ספירה נכשלה — לא ממציאים אפס
     }
     const daemonStates: Record<string, string | null> = {};
+    const lastDecisions: Record<string, string | null> = {}; // r199: ההחלטה-האחרונה מוצגת-בנפרד — לא-מחליפה-מצב-שער (פער-שקיפות-r199-2b)
     for (const [name, p] of [
       ["money-mover", "/home/z/my-project/sovereign/money/state.json"],
       ["market-maker", "/home/z/my-project/sovereign/market-maker/state.json"],
@@ -83,11 +84,11 @@ export async function GET() {
         daemonStates[name] =
           (s.autonomyMode as string) ??
           autonomyField ??
-          (ld?.kind as string | undefined) ??
-          String(ld?.detail ?? "").slice(0, 90) ??
-          null;
+          null; // r199: רק-מצב-שער אמיתי — ההחלטה-האחרונה לא-מתחזה-לשער (was: ld?.kind fallback)
+        lastDecisions[name] = (ld?.kind as string | undefined) ?? null;
       } catch {
         daemonStates[name] = null;
+        lastDecisions[name] = null;
       }
     }
     return NextResponse.json({
@@ -98,6 +99,7 @@ export async function GET() {
       deliberations,
       refusedByAutonomy,
       daemonStates,
+      lastDecisions,
       law: {
         file: GATE_FILE,
         dir: AUTONOMY_DIR,

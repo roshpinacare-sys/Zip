@@ -340,6 +340,7 @@ interface MMState {
   haltedAt: string | null;
   haltedConfigMtimeMs: number | null;
   killSwitch: boolean;
+  autonomy: string; // r199: מצב-השער החי בקובץ-המצב — ה-API והמפעיל רואים את-השער, לא את-ההחלטה-האחרונה (פער-שקיפות-מביקורת-r199-2b)
   lastDecision: { at: string; kind: string; detail: string } | null;
   lastError: string | null;
   registry: Record<string, RegistryOrder>;
@@ -415,6 +416,7 @@ function freshState(): MMState {
     haltedAt: null,
     haltedConfigMtimeMs: null,
     killSwitch: fs.existsSync(KILL_FILE),
+    autonomy: "THINKING", // r199: ברירת-מחדל-כנה — הפעימה הראשונה כותבת את-הערך-החי
     lastDecision: null,
     lastError: null,
     registry: {},
@@ -462,6 +464,7 @@ function readState(): MMState {
       haltedAt: prev.haltedAt ?? null,
       haltedConfigMtimeMs: prev.haltedConfigMtimeMs ?? null,
       killSwitch: fs.existsSync(KILL_FILE),
+      autonomy: typeof prev.autonomy === "string" ? prev.autonomy : base.autonomy, // r199: שורד-הפעלה-מחדש
       lastDecision: prev.lastDecision ?? null,
       registry: prev.registry && typeof prev.registry === "object" ? prev.registry : {},
       fleetChurn: prev.fleetChurn ?? base.fleetChurn,
@@ -1141,6 +1144,7 @@ async function tick(): Promise<{ ok: boolean; detail: string }> {
     // r197 — חוק-העצירה והחשיבה (הוראת-המפעיל): PAUSED → אין פריסה/גרירה/שימוש-בחיילים בגריד.
     // המדידה חיה וההחלטה כנה — הכסף קפוא עד שהשער נפתח. THINKING → פריסה רק עם דיון (בהמשך הפעימה).
     const gateNow = readGate();
+    state.autonomy = gateNow.mode; // r199: מצב-השער חי בקובץ-המצב בכל פעימה — לפני כל הסתעפות
     if (gateNow.mode === "PAUSED") {
       decision("AUTONOMY-PAUSED", `שער-העצירה סגור — אין פריסה/ביטול/שימוש-בחיילים בגריד · ${gateNow.reason.slice(0, 100)}`);
       state.fleetChurn = { configured: cfg.rails.steem.fleetChurn, effective: false, verified: false, reason: "שימוש-בחיילים כבוי — חוק-העצירה r197 (PAUSED)", soldiersChecked: 0 };

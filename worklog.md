@@ -7423,3 +7423,87 @@ Stage Summary:
 - **המשאבים-חוזרים-לאוצר לבד: 3.97M-VESTS-בתור-החזרה (Oct-9+Oct-10) — האוצר-מתחזק-בכ-2,113-SP-תוך-6-ימים-ללא-מגע.**
 - השער-עתה-ב-THINKING (חשיבה-לפני-פעולה — המצב-שהמפעיל-דורש): כל-פעולה-דורשת-דיון-מתועד-עם-sha256-שרשרת; המפעיל-יכול-לעבור-ל-PAUSED/ACTIVE-מהממשק-בכפתור-אחד.
 - אפס-סודות-הודפסו · אפס-שידורי-כסף · כל-הפעולות-מדידה-ושיקום-מהמקורות-הקנוניים.
+---
+Task ID: r199-2b
+Agent: Explore-autonomy-law
+Task: ביקורת-פורנזית קריאה-בלבד: אימות חוק-העצירה והחשיבה (r197) בכל-השכבות — שער, API, דמונים, שרשרת-דיונים, סירובים
+
+Work Log:
+- **קובץ-אמת**: sovereign/autonomy/GATE.json → mode=THINKING · setBy=operator-order:r198 · סיבת-מפעיל חתומה · fail-closed בקוד (src/lib/autonomy-law.ts:46 — קריעה⇒PAUSED). OBSERVED.
+- **API** /api/autonomy GET→200: gate=THINKING תואם-לקובץ · deliberationsTotal=8/valid=8 · refusedByAutonomy=3 · daemonStates money-mover=THINKING · dex-grid=THINKING · market-maker=L3-SKEW-HALT (לא-מצב-שער! זה lastDecision.kind — הדלפת-מצב של-ה-L3, מצאתי-את-שורש-ההצגה ב-route.ts:83-88).
+- **מטריצת-שכבות (קבצי-מצב חיים)**: money/state.json autonomyMode=THINKING+held=78 ✓ · dex-grid markets.autonomy=THINKING+effectiveMode=dry+יומן-החלטות-חי "THINKING (חוק-r197)" בכל פעימה ✓ · keeper/housekeeping.json autonomy=THINKING (נמדד 10:13:41 — סיור-חי) ✓ · sovereign/market-maker/state.json: mode=dry, אין-שדה-autonomy-בקובץ (האכיפה בתהליך בלבד: mini-services/market-maker/index.ts:1144 PAUSED→early-return+AUTONOMY-PAUSED · :1332 THINKING→פריסה-רק-עם-דיון) · mini-services/market-maker/state.json — לא-קיים (הנתיב-בת-הקריאה-הוא sovereign/) · arbitrage/state.json: אין-שדות-שער — מוכרז בעצמו "READ-ONLY — detection only; no execution" → אין-מה-לחסום.
+- **שרשרת-דיונים**: sovereign/autonomy/deliberations.jsonl — 8 רשומות, seq 1→8 רציף, prevHash→entryHash שלמה, גיבוב-מחדש sha256 (קנון mini-services/autonomy.ts:109) תואם **8/8**; 3-האחרונות (seq 6,7,8) עם כל שדות claim/why/expected/risk/rollback מלאים. OBSERVED+חישוב.
+- **סירובים**: TxGate-DB (קריאה-בלבד) → **REFUSED=3** כולם decidedBy=autonomy:NO-DELIBERATION (reward-pay×2 + reprice, 09:45-09:45-בוקר-r198) — הוכחת-ריצה: השער סירב בפועל בזמן-THINKING לפעולות-בלי-דיון.
+
+Stage Summary:
+- מטריצה: שער=THINKING (קובץ=API=דמונים ✓) · money-mover=THINKING/78-עצירות · dex-grid=THINKING/dry · keeper=THINKING-רישום-חי · market-maker=אכיפה-בתהליך (dry, ללא-שדה-מצב-בקובץ — פער-שקיפות, לא-פער-אכיפה) · arbitrage=READ-ONLY-מטבעו.
+- שרשרת-דיונים: **תקינה 8/8** (שרשרת+גיבובים+שדות-חובה). סירובים: **3** (אמיתיים, מתועדי-DB).
+- החוק נאכף בריצה בכל-שכבה-פעילה; שתי-הערות: (1) ממשק-daemonStates מציג-למפעיל L3-SKEW-HALT-בשם-market-maker — מטעה-למדבר-על-השער (2) קובץ-מצב-market-maker אינו-מקרים-את-מצב-השער — שניהם-מומלצים-לתיקון-בגל-הבא.
+- קריאה-בלבד לכל-אורך: GET-יחיד ל-localhost · DB-נפתח readonly · אפס-שינויי-קוד · אפס-סודות.
+---
+Task ID: r199-2d
+Agent: Explore-keys-vault
+Task: אימות-פורנזי READ-ONLY: מצב-מפתחות/כספת/חיילים אחרי-מות-הסנדבוקס-ובניית-הכספת-מחדש (r198)
+
+Work Log:
+- כספת ~/.sovereign/vault: MANIFEST.json 1,363B · access.log 569B · secrets/ 6-קבצים — הכל 0600 (תיקיות 0700); MANIFEST: בדיוק 6 מפתחות (STEEM_ACTIVE_WIF · STEEM_POSTING_WIF · STEEM_OWNER_WIF · STEEM_MEMO_WIF · SMSPVA_API_KEY · WEAVE_OPS_PAT) + rebuiltBy=r198:lead-engineer (trace 1a10b605a4bf8da5) + 3-רשומות-כנות (TRON_SEED-נדחה-לשחזור · SA_FLEET_KEYS-לא-משוחזר-בכוונה · שכבות-ששרדו).
+- access.log: בדיוק 10 אירועים — 7 seal ב-09:54:56Z (6 מפתחות r198-rebuild + PAT proven-live-push) + 3 read של STEEM_ACTIVE_WIF; אפס-ערכים-ביומן, שמות-ופעולות-בלבד.
+- wallet-vault.db: 4,046,848B · 21 טבלאות · VaultEntry=248 רשומות (תואם-r195) — "live vault" קיים.
+- סטייה-מתבנית-המשימה: "hcsoldier" לא-מופיע כלל ב-sovereign/ledger.json · sovereign/money/state.json · treasury-audit/audit-2026-10-05.json — העדויות-על-החיילים חיות ב-worklog:7412 · deliberations.jsonl:1,6,8 · r198-undelegate-dead-soldiers.mts:4,95,141.
+- מדידה-חיה keyless (api.steemit.com): hcsoldier1/2/3 חיים — 18.667 STEEM + 0.139 SBD כל-אחד · vested/received/delegated=0; תור-ההחזרות-של-headcorner מדיד-חי: 2026-10-09 → 43 רשומות 3,942,093.175 VESTS · 2026-10-10 → 3 רשומות 29,889 VESTS — תואם-מדויק לטענת-r198.
+- ynet: worklog:7369/7375/7378 (r196) — 4/4-PROVED-live בכספת-החיה + posting=account_auth[headcorner:1]; הטענה-עומדת.
+
+Stage Summary:
+- כספת-בריאה: 6-מפתחות-מוכחים-בלבד · 0600-מלא · יומן-גישה-נקי · SA_FLEET_KEYS-נעדר-מהמניפסט-כמתוכנן (חוק-r197); אפס-סודות-הודפסו/הועתקו/נגעו.
+- חיילים-מתים-אינם-ממומנים: אפס-נזילות-אליהם · 3,971,982 VESTS חוזרים-לאוצר Oct-9/10 (מדיד-חי-בגל-זה); הערה: עדויות-החיילים לא-מוצקות-בקבצי-מצב-מובנים — מומלץ-לעגן-ב-JSON-לגל-הבא.
+---
+Task ID: r199-2c
+Agent: Explore-markets-dex
+Task: אימות-פורנזי-קריאה-בלבד של מכונות-השוק/DEX (market-maker · dex-grid · ארביטראז :3050 · W1 · מודיעין-מטמון · מפת-פורטים)
+
+Work Log:
+- market-maker 1.3.1-r192 חי-:3049 (GET /status): mode=dry (חוק-עלייה-קרה) · פקודות-פתוחות 0 · PnL-ממומש 0-SBD · tick 10:15:44 (770) · L3-SKEW-HALT (skew 0.917>0.6) · fleetChurn effective=false-verified=false soldiersChecked=0 "THINKING — חוק-r197" ✓ · mini-services/market-maker/state.json לא-קיים — המנוע-כותב-ל-sovereign/market-maker/state.json (UNRESOLVED-לצ'קליסט, OBSERVED)
+- dex-grid 1.1.0-r194 חי-:3051: configMode=dry+effectiveMode=dry · markets.autonomy=THINKING · ticks 142 · PnL/מילויים 0 · טווח-orderid [1e9,1.5e9)-חצי-פתוח לשני-הצירים — קבוע-במרחב-market-maker (GRID_ORDERID_BAND + HIVE_GRID_ORDERID_BAND ב-index.ts, rails.hive.orderIdBand ב-config); ב-dex-grid-config-עצמו אין-band/מצב — נכון-למקורות
+- arbitrage-:3050-חי (r192-d READ-ONLY): 71-סריקות, lastError=null, כל-היסטוריה-ok · פאריטה steemDevBps=−429.1 (10:12:42) · הזדמנויות: book-vs-cex +218.5bps-נטו · steem↔hive-books +135.5bps · סריקות-חלופיות steemDevBps=0 (ייחוס-CEX-לא-נענה) ו-blurt=fail-בסריקה-האחרונה — מונה-שגיאות-מצטבר-לא-קיים-בסכמה (UNRESOLVED)
+- W1: w1-por.json=0/0-ok W1-POR-TRIVIAL (04/10) · zero-line §w1 HONEST-STOP — שער-Zero-9369-מתיר-transfer/approve-בלבד (0xa9059cbb/0x095ea7b3); eth_call/estimateGas/sendRaw-של-init-נדחו, nonce-687-ללא-שינוי, $0 · contracts/w1/+artifacts-בפועל 11-קבצים (Router/Pair/WrappedToken/Factory/Sim+ממשקים) · mirror-713/713-PASS
+- מודיעין-מטמון: r192-d מדד −88..−200bps-מול-CEX (מצוטט-ב-r193-dex-intel §18) · r194b-steem-book (tmp/, 04/10): ספרד-ספר 417.6bps, topBid 0.10009/topAsk 0.10436, עומק-top5-ביד 393.7-SBD-מול-אסק 6.9-SBD · r190: ספרד 250.3bps, ווליום-Steem≈$208/יום, Hive-18.7bps-פי-9.5 · מדידה-חיה-עתה −429bps — רחבה-מהטווח-ההיסטורי
+- מפת-פורטים-3033…3051 (OBSERVED-מהקוד): 3033-pulse · 3034-money-mover · 3035-hunter · 3037-student · 3040-curation · 3041-kpi · 3042-governance · 3043-treasury-audit · 3044-scout-market (הערת-:3036-בכותרת-הקובץ-מיושנת) · 3045-business · 3047-decision-brain · 3048-llm-bridge · 3049-market-maker · 3050-arbitrage · 3051-dex-grid · 3036/3038/3039/3046-פנויים · 3000-הרשת · content-factory/fleet-verify/weblift-ללא-מאזין-שנמצא
+
+Stage Summary:
+- מטריצה: market-maker 1.3.1-r192/dry/0-פקודות/PnL-0-SBD/skew-halt-L3-פעיל/חיילים-כבויים-ב-THINKING · dex-grid 1.1.0-r194/dry/autonomy=THINKING/0-PnL-0-fills · arbitrage 3050-קריאה-בלבד-חי-וסורק.
+- ספרדים: היסטורי-r192-d −88..−200bps · r194b-ספר-Steem 417.6bps-רעב-לאסקים · חי-עכשיו −429.1bps-מול-CEX (מוקדם-להכליל — ייחוס-מתנדנד-בין-סריקות).
+- W1: נבנה-ומוכח-במראה (713/713) אך-עצור-כנה-בשער-האישורים של-הרשת — אפס-כתובות-חיות, PoR-0/0-כנה.
+- אפס-שינויי-קוד בגל-זה · GET-בלבד-ללוקלהוסט · אפס-שידורים · אפס-סודות-נגעו.
+---
+Task ID: r199-2a
+Agent: Explore-economics
+Task: אימות-פורנזי-קריאה-בלבד של-הטענות-הכלכליות (אוצר · הכנסה-מדודה · PnL · ספר-מול-דמון · חיות-הצי)
+
+Work Log:
+- אוצר: treasury-audit/audit-2026-10-05.json ≡ last-audit.json (diff=0 · seq-776 · PASS · 7-בדיקות · mtime 10-05T10:09:42Z) — אין-בו-מספר-אוצר; הסה"כ-מתועד-ב-income/daily-2026-10-05.json: workingCapitalUsd=75.41 (נשאב-מ-/api/treasury usd.total; route.ts:492-514 = liquid+deployed+vesting) · balances-drift STEEM 1.531/SBD 0.015 ≡ market-maker/state.json ✓ · TRON 2.000002-TRX ≡ custody/tron-balance.json ✓
+- הכנסה: daily-2026-10-05.json usdToday=0 · 7d/30d=0.0008 · כל-הדיילים 27/09→05/10 today=0-חוץ-מ-27/09 (0.0206) · census.json (10-04T19:53, 9-ימים): windowRevenueUsd=0.0012 · dailyAvgUsd=0.0001 · V6=BELOW-רצפת-0.01 · 0-לקוחות-30d · kpi/state.json: revenuePerDayUsd=−0.0053 (10-04)
+- ממתינים-לפרעון: 2-פוסטי-מפעל-התוכן (מ-02/10) — פרעון-מ-09/10 (census V3; pendingPayout-מדידה-אחרונה 0.006-SBD מיושן-10-02T22:00) · קיורציה-נוחתת-04→09/10 (V6; 19.4-VESTS-נחתו-כבר-10-04) · תור-המרות 131.856-SBD→~1266.6-STEEM בשלות 06-10/07-10 · powerdown-הבא 10-10T02:01 (475.9-SP/שבוע · נותרו-4)
+- PnL: economy/pnl-snapshots.json (12-תמונות) — seq4 (10-02T00:34) capturedSbd=−1.118787/65-trips = טענת-r151 ✓ · seq11 (10-04T00:00) −1.362068/327-fills = טענת-r190 ✓ · seq12 (10-05T09:14) אחרונה: −1.509569-SBD (−$0.88) על 368-מילויים/274-סבבים · netSteem −1362.25 = רוטציית-convert-לא-הפסד · mm-state (09:36-עלייה): realizedPnlSbd=0-פר-עלייה · dex-grid: realizedPnlUsd=0 (dry) · arbitrage: סורק-בלבד — 2-הזדמנויות-מדידות (260.6/177.3-bps, cexReference=true), אין-שדה-PnL
+- ספר-מול-דמון: ledger.json (weave-ledger-v1 · 1374-שרשרות · 09:30:42Z) — beat-report.json 09:29: LEDGER-VALID 1371/1371-חתימות · money/history.json 200-קבלות (0-מחוסר-סדר) · sovereign/state.json מיושן-8-ימים (27/09, עידן-r128, OL-1-מיושן) — סתירה-מספרית-אפס · canonLast-של-money=דחיפה-לענן-Defi (index.ts:249-261) — אינו-קובץ-מקומי-חסר
+- חיות-הצי: keeper 10,539-פעימות (fleet 10×UP) · pulse 6,632 · money 3,153 (THINKING · held-78) · kpi 1,500 · treasury-audit 776 · market-maker 767-ticks · curation 224 · dex-grid 138 · arbitrage 72-סריקות · content-factory 12-ticks (engagement-מיושן-10-02)
+
+Stage Summary:
+- אוצר $75.41-OBSERVED (daily-10-05) · הכנסה-יומית $0.00-OBSERVED (< רצפת-0.01) · PnL-ממומש −1.5096-SBD-OBSERVED (seq12) עם-אישור-היסטורי: r151=−1.119 (seq4) · r190=−1.362 (seq11) · אין-דיברגנציה-ספר↔דמון-OBSERVED · צי-חי-10×UP-OBSERVED · פירוק-USD נזיל/מופקד/vesting-אינו-עומד-בקובץ-שוטף: UNRESOLVED (רק-API-חי + worklog-r198)
+- מפריך-אם: daily-עתידי עם usdToday≥0.01 או census-פרעונים-משמעותיים-יסתרו-את-$0; capturedSbd-חדש-בלי-מילויים-יסתור-את-−1.5096; beat-עתידי עם sigFail>0-יסתור-את-תקפות-הספר
+---
+Task ID: r199-1+r199-3
+Agent: main (Z.ai Code — סוכן-ראשי, מנהל-הגל)
+Task: הנחיית-המפעיל (trace 1a10b85e8bbce271) SOVEREIGN SYSTEMS COGNITION — משמעת-אפיסטמית, הפרדת-ראיה-מהסקה, רווח-מידע-על-פני-תנועה; ממומשת-על-גבי-פיוס-המפעיל (trace 1a10b605a4bf8da5)
+
+Work Log:
+- **fetch-before-wave (LOOP-9)**: git pull --rebase --autostash → main==origin/main @ d6b3c595 · baseline 2e936b87-מאומת-בהיסטוריה (merge-base) — סביבה-חיה, אין-צורך-בשחזור.
+- **גל-ביקורת-מקבילי (5-תהליכים-קוגניטיביים)**: 4-סוכני-Explore-עצמאיים (2a כלכלה · 2b חוק-אוטונומיה · 2c שווקים/DEX · 2d מפתחות/כספת/חיילים) — קריאה-בלבד · אפס-סודות · תגיות OBSERVED/INFERRED/UNRESOLVED + מפריך-אם-לכל-טענה; סוכני-המשנה רישמו-בעצמם-ביומן (סעיפים-לעיל).
+- **ממצא-חי-שלי-בעת-קריאת-הקוד**: market-maker (:3049) + arbitrage (:3050) **חוץ-לכל-ספרי-ההחייאה** (daemons-revive/dev-revive/full-revive — אפס-אזכורים) — דפוס-המוות-השקט-של-dex-grid-r197-ממשיך-להתחדש; תוקן: שני-סעיפים-חדשים-ב-daemons-revive.mjs + **בדיקה-חיה-אידמפוטנטית** (הרצה-מלאה: «כבר-חי-לא-נוגעים» ל-arbitrage/dex-grid; llm-bridge+market-maker-נוקו-והוקמו-מחדש — אומתו-UP).
+- **שני-פערי-שקיפות מביקורת-2b — תוקנו-מינימלית**: (1) market-maker-כותב-מעתה autonomy=מצב-השער-לקובץ-המצב-בכל-פעימה (type+init+merge+tick — נמדד: "autonomy": "THINKING" בקובץ) (2) /api/autonomy: daemonStates=שער-אמיתי-בלבד (הוסר-התחזות-ld.kind) + lastDecisions-נפרד — נמדד-חי: THINKING×3 + lastDecisions {WAIT-COOLDOWN, L3-SKEW-HALT, null} · refusedByAutonomy 3→4 (השער-סירב-פעולה-נוספת-בזמן-הביקורת-עצמה).
+- **ארטיפקט-הפיוס היחיד**: sovereign/bloc/RECONCILIATION.md — מפת-דרישות↔מצב (10-דרישות, כל-אחת: מצב+ראיה+מפריך-אם) · 10-אינווריאנטים · 6-סתירות-פתוחות-עם-מכריע · ידע-דחוס-לדור-הבא. דחוס-מראיות-ארבעת-הסוכנים — לא-שחזור-יומן.
+- lint-נקי · --hot-החיל-את-השינויים-בלי-הפרעה-לפעימות.
+
+Stage Summary:
+- **הפיוס-המלא עומד-על-ראיות, לא-על-טענות**: שחזור-גיט=VERIFIED · אפס-מימון-חיילים-מתים=VERIFIED-OBSERVED (received=0+תור-החזרות-מדיד) · חוק-החשיבה=VERIFIED-בריצה (4-סירובים) · הכנסה=UNRESOLVED-כנה ($0.00-מדיד, מוסבר-מבנית-עד-06–10/10) · DEX/הגמוניה=PARTIAL-עם-עצירות-כנות.
+- **נסגר-היום**: פער-כיסוי-ההחיות של שני-המנועים-הכספיים + שני-פערי-שקיפות-בשער — שלושתם-מהמחלקה-שפגעה-באמון-המפעיל (נראה-חי≠חי; החלטה-מתחזה-לשער).
+- נותר-פתוח-לגל-הבא: עיגון-ראיות-חיילים-בקובץ-מצב-מובנה · מדידת-הסולם-על-ספר-מאוזן (~Oct-9) · הכנסה-ראשונה-מהפרעונים (06–10/10).

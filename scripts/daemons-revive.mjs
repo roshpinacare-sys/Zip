@@ -35,6 +35,8 @@ const DAEMONS = [
   { name: "governance", port: 3042, dir: `${HOME}/mini-services/governance` }, // r142: דיבון-הממשל — פעימת-ההחלטות (D-OP-01): קורא למחזור החלטה בבית כל 10 דק'
   { name: "llm-bridge", port: 3048, dir: `${HOME}/mini-services/llm-bridge` }, // r175: השער-הלשוני-היחיד — בלי-כיסוי-החייאה-היה-נקודת-כשל-יחידה (נמדד: 502-חד-פעמי-ב-gate-r175)
   { name: "dex-grid", port: 3051, dir: `${HOME}/mini-services/dex-grid` }, // r197: הגריד-המתנגד — היה-חוץ-לספר-ההחייאות-ומת-בשקט (נמדד); השער-האוטונומי שלו חי-בקוד
+  { name: "market-maker", port: 3049, dir: `${HOME}/mini-services/market-maker` }, // r199: נמצא-חוץ-לכל-ספרי-ההחייאה (ביקורת-r199) — אותו-כשל-שקט-של-dex-grid-r197; מנוע-הגריד-הראשי-עתה-בספר
+  { name: "arbitrage", port: 3050, dir: `${HOME}/mini-services/arbitrage` }, // r199: גלאי-הארביטראז (קריאה-בלבד) — אותו-פער-כיסוי; נמדד-חי-3049/3050-רצים-אך-לא-משוחזרים-אוטומטית
 ];
 
 function httpOk(port, timeoutMs = 2500) {
