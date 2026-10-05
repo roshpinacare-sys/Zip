@@ -179,10 +179,21 @@ export async function POST(req: NextRequest) {
 async function POST_core(req: NextRequest) {
   let action = "";
   let reason = "";
+  // r206 — הדיון נוסע עם הפעולה (אותו חוזה כמו /api/money)
+  let deliberationBody: Record<string, string> = {};
+  let deliberationOk = false;
   try {
-    const body = (await req.json()) as { action?: unknown; reason?: unknown };
+    const body = (await req.json()) as { action?: unknown; reason?: unknown; deliberation?: unknown };
     action = typeof body.action === "string" ? body.action : "";
     reason = typeof body.reason === "string" ? body.reason : "";
+    if (body?.deliberation && typeof body.deliberation === "object") {
+      const d = body.deliberation as Record<string, unknown>;
+      for (const k of ["claim", "why", "expected", "risk", "rollback", "falsifier"]) {
+        const v = d[k];
+        if (typeof v === "string" && v.trim().length >= 8) deliberationBody[k] = v.slice(0, 400);
+      }
+      deliberationOk = ["claim", "why", "expected", "risk", "rollback"].every((k) => typeof deliberationBody[k] === "string");
+    }
   } catch {
     return bad("גוף בקשה שגוי", 400);
   }
@@ -258,11 +269,13 @@ async function POST_core(req: NextRequest) {
       : null;
   const session = operatorFromRequest(req);
   const issuedBy: "operator" | "daemon" = session ? "operator" : "daemon";
+  const hivePayload: Record<string, unknown> = { askFuel, bidFuel, parity, askOffsets: policy.askOffsetsBps, bidOffsets: policy.bidOffsetsBps, reason };
+  if (deliberationOk) hivePayload.deliberation = deliberationBody; // r206 — המחשבה מגיעה לשופט
   const gate = await evaluateGate({
     source: "money-mover",
     action: "hive-reprice",
     title: `hive-reprice — סולם מיקרו דו-צדדי · ${askFuel} HIVE + ${bidFuel} HBD`,
-    payload: { askFuel, bidFuel, parity, askOffsets: policy.askOffsetsBps, bidOffsets: policy.bidOffsetsBps, reason },
+    payload: hivePayload,
     usdValue: gateUsd,
     usdBasis:
       gateUsd != null
@@ -272,7 +285,20 @@ async function POST_core(req: NextRequest) {
     reason: reason || "reprice מחזורי של רגל HIVE",
   });
   if (gate.verdict === "REFUSED") {
-    return bad("USD לא נמדד חי — שער-העסקאות מסרב בכנות: אין הערכת-ערך, אין פעולה", 409, { code: "NO-USD-MARK" });
+    // r206 — ייחוס-אמת: אותו מיפוי-שקר של /api/money תוקן גם כאן (שכפול מדויק של
+    // המיפוי הישן — כל REFUSED דווח "USD לא נמדד חי" בלי קשר לסיבה האמיתית)
+    const decidedBy = String(gate.decidedBy ?? "unknown");
+    const gateRef = `[שער#${String(gate.id).slice(0, 8)}]`;
+    if (decidedBy === "autonomy:NO-DELIBERATION") {
+      return bad(`THINKING — הפעולה הגיעה לשער בלי דיון מלא — לחשוב לפני שעושים (חוק-r197) ${gateRef}`, 409, { code: "NO-DELIBERATION", gateId: gate.id, gateDecidedBy: decidedBy });
+    }
+    if (decidedBy === "autonomy:PAUSED") {
+      return bad(`האוטונומיה עוצרה על-ידי המפעיל — אף פעולה אוטומטית לא זזה ${gateRef}`, 409, { code: "AUTONOMY-PAUSED", gateId: gate.id, gateDecidedBy: decidedBy });
+    }
+    if (decidedBy === "policy:no-usd-mark") {
+      return bad(`USD לא נמדד חי — השער אינו יכול להעריך, לכן שום דבר לא זז (אין שער, אין מסחר) ${gateRef}`, 409, { code: "NO-USD-MARK", gateId: gate.id, gateDecidedBy: decidedBy });
+    }
+    return bad(`השער סירב (${decidedBy}) ${gateRef} — ${String(gate.reason ?? "").slice(0, 140)}`, 409, { code: "GATE-REFUSED", gateId: gate.id, gateDecidedBy: decidedBy });
   }
   if (gate.verdict === "QUEUED") {
     return NextResponse.json(

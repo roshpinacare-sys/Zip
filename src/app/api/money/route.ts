@@ -1093,6 +1093,17 @@ async function POST_core(req: Request) {
     return bad("פעולה לא מוכרת — נתמכות: reprice · arm-buy · stock-sbd");
   }
   const reason = typeof payload.reason === "string" ? payload.reason.slice(0, 200) : "manual";
+  // r206 — הדיון נוסע עם הפעולה: במצב THINKING השער מחייב deliberation מלא
+  // (claim/why/expected/risk/rollback ≥8 תווים — אותו חוזה כמו validDeliberation).
+  // נמדד חי: בלי זה 14/14 פעולות-דיבון נסרבו NO-DELIBERATION ויוחסו בשקר "usd מת".
+  const deliberationBody = payload?.deliberation && typeof payload.deliberation === "object"
+    ? ("claim why expected risk rollback falsifier".split(" ").reduce((acc, k) => {
+        const v = (payload.deliberation as Record<string, unknown>)[k];
+        if (typeof v === "string" && v.trim().length >= 8) acc[k] = v.slice(0, 400);
+        return acc;
+      }, {} as Record<string, string>))
+    : {};
+  const deliberationOk = ["claim", "why", "expected", "risk", "rollback"].every((k) => typeof deliberationBody[k] === "string");
   // r146-d — תג-מקור לקבלה: הדאימון מדווח FILL-DEPLOY כשההצבה נולדה ממילוי
   // אמיתי (fill_order) ולא מטריגר-זמן — הפרדת-סוגים בספר-הקבלות, אפס קוד-נוסף
   // במסלול-הביצוע (אותו reprice, אותם חוקים, רק תג-ראיה שונה).
@@ -1372,6 +1383,13 @@ async function POST_core(req: Request) {
         : marks.steemUsd != null && marks.steemUsd > 0
           ? Math.round(totalFuel * marks.steemUsd * 100) / 100
           : null;
+  const gatePayloadBase: Record<string, unknown> =
+    action === "arm-buy"
+      ? { sbdCommitable, parity, offsetsBps: bidOffsets, offsetsSource: bidSource, reason }
+      : action === "stock-sbd"
+        ? { gap: stockGap, bid: stockBid, steemSell: stockSteemSell, parity, premiumCapBps: 200, reason }
+        : { liquid, inOrders, totalFuel, parity, premiums, reason };
+  if (deliberationOk) gatePayloadBase.deliberation = deliberationBody; // r206 — המחשבה מגיעה לשופט
   const gate = await evaluateGate({
     source: "money-mover",
     action,
@@ -1381,12 +1399,7 @@ async function POST_core(req: Request) {
         : action === "stock-sbd"
           ? `stock-sbd — מילוי מלאי חימוש · ${stockSteemSell} STEEM → ${stockGap} SBD במחיר-שאלה`
           : `reprice — סולם 3 רמות מעל הפאריטה · ${totalFuel} STEEM`,
-    payload:
-      action === "arm-buy"
-        ? { sbdCommitable, parity, offsetsBps: bidOffsets, offsetsSource: bidSource, reason }
-        : action === "stock-sbd"
-          ? { gap: stockGap, bid: stockBid, steemSell: stockSteemSell, parity, premiumCapBps: 200, reason }
-          : { liquid, inOrders, totalFuel, parity, premiums, reason },
+    payload: gatePayloadBase,
     usdValue: gateUsd,
     usdBasis:
       gateUsd != null
@@ -1400,7 +1413,22 @@ async function POST_core(req: Request) {
     reason,
   });
   if (gate.verdict === "REFUSED") {
-    return bad("USD לא נמדד חי — שער-העסקאות מסרב בכנות: אין הערכת-ערך, אין פעולה (אין שער, אין מסחר)", 409, { code: "NO-USD-MARK" });
+    // r206 — ייחוס-אמת: לשער שלוש סיבות-סירוב נבדלות (PAUSED · NO-DELIBERATION ·
+    // no-usd-mark) ואסור למפות את כולן ל"USD לא נמדד חי" — המיפוי-השקר הזה
+    // הצית למידה כוזבת (14/14 סירובים דווחו "usd מת" בעוד ה-USD חי). הקוד האמיתי
+    // עובר ללומד (signature נגזר מהטקסט) ולספר-ההיסטוריה.
+    const decidedBy = String(gate.decidedBy ?? "unknown");
+    const gateRef = `[שער#${String(gate.id).slice(0, 8)}]`;
+    if (decidedBy === "autonomy:NO-DELIBERATION") {
+      return bad(`THINKING — הפעולה הגיעה לשער בלי דיון מלא (מה/למה/צפי/סיכון/רולבק) — לחשוב לפני שעושים (חוק-r197) ${gateRef}`, 409, { code: "NO-DELIBERATION", gateId: gate.id, gateDecidedBy: decidedBy });
+    }
+    if (decidedBy === "autonomy:PAUSED") {
+      return bad(`האוטונומיה עוצרה על-ידי המפעיל — אף פעולה אוטומטית לא זזה ${gateRef}`, 409, { code: "AUTONOMY-PAUSED", gateId: gate.id, gateDecidedBy: decidedBy });
+    }
+    if (decidedBy === "policy:no-usd-mark") {
+      return bad(`USD לא נמדד חי — השער אינו יכול להעריך, לכן שום דבר לא זז (אין שער, אין מסחר) ${gateRef}`, 409, { code: "NO-USD-MARK", gateId: gate.id, gateDecidedBy: decidedBy });
+    }
+    return bad(`השער סירב (${decidedBy}) ${gateRef} — ${String(gate.reason ?? "").slice(0, 140)}`, 409, { code: "GATE-REFUSED", gateId: gate.id, gateDecidedBy: decidedBy });
   }
   if (gate.verdict === "QUEUED") {
     return NextResponse.json(

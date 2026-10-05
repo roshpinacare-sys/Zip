@@ -93,6 +93,9 @@ export interface Deliberation {
   expected: string; // תוצאה-צפויה
   risk: string; // מה יכול להישבר
   rollback: string; // איך מבטלים
+  /** r206 — תחזית-מחלקה-ראשונה: מה יפריך את התחזית הזאת באופן מדיד.
+   *  אופציונלי (רשומות-ישן בלעדיו נשארות תקפות — ה-hash מגובב מהנשמר). */
+  falsifier?: string;
 }
 
 const REQUIRED_FIELDS: Array<keyof Deliberation> = ["action", "actor", "claim", "why", "expected", "risk", "rollback"];
@@ -153,6 +156,10 @@ export function appendDeliberation(d: Omit<Deliberation, "seq" | "prevHash" | "e
     expected: String(d.expected).slice(0, 400),
     risk: String(d.risk).slice(0, 400),
     rollback: String(d.rollback).slice(0, 400),
+    // r206 — הפרכה נרשמת לפני-המעשה (לא אחרי): תחזית שאינה ניתנת-לבדיקה אינה תחזית
+    ...(typeof d.falsifier === "string" && d.falsifier.trim().length > 0
+      ? { falsifier: String(d.falsifier).slice(0, 200) }
+      : {}),
   };
   rec.entryHash = hashDeliberation(rec);
   fs.appendFileSync(DELIB_FILE, `${JSON.stringify(rec)}\n`, "utf8");

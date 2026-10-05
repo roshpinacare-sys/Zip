@@ -36,6 +36,8 @@ export interface Deliberation {
   expected: string;
   risk: string;
   rollback: string;
+  /** r206 — תחזית-מחלקה-ראשונה: מה יפריך את התחזית באופן מדיד (אופציונלי; סנכרון עם mini-services/autonomy.ts) */
+  falsifier?: string;
 }
 
 const VALID_MODES: AutonomyMode[] = ["PAUSED", "THINKING", "ACTIVE"];
@@ -126,6 +128,10 @@ export function appendDeliberation(d: Omit<Deliberation, "seq" | "prevHash" | "e
     expected: String(d.expected).slice(0, 400),
     risk: String(d.risk).slice(0, 400),
     rollback: String(d.rollback).slice(0, 400),
+    // r206 — הפרכה נרשמת לפני-המעשה (סנכרון עם mini-services/autonomy.ts)
+    ...(typeof d.falsifier === "string" && d.falsifier.trim().length > 0
+      ? { falsifier: String(d.falsifier).slice(0, 200) }
+      : {}),
   };
   rec.entryHash = hashDeliberation(rec);
   fs.appendFileSync(DELIB_FILE, `${JSON.stringify(rec)}\n`, "utf8");

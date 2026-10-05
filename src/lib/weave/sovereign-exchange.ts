@@ -916,7 +916,7 @@ async function saosWithdrawRail(params: {
   if (gate.verdict !== "ALLOWED") {
     return {
       ok: false,
-      detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : "השער סירב",
+      detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : `השער סירב (${String(gate.decidedBy ?? "unknown")}) — ${String(gate.reason ?? "").slice(0, 120)}`, // r206 ייחוס-אמת
       gate: { verdict: gate.verdict, id: gate.id, usdValue },
     };
   }
@@ -988,7 +988,7 @@ async function nonGrapheneWithdrawRail(params: {
   if (gate.verdict !== "ALLOWED") {
     return {
       ok: false,
-      detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : "השער סירב",
+      detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : `השער סירב (${String(gate.decidedBy ?? "unknown")}) — ${String(gate.reason ?? "").slice(0, 120)}`, // r206 ייחוס-אמת
       gate: { verdict: gate.verdict, id: gate.id, usdValue },
     };
   }
@@ -1062,7 +1062,7 @@ export async function withdraw(params: {
     if (gate.verdict !== "ALLOWED") {
       return {
         ok: false,
-        detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : "השער סירב",
+        detail: gate.verdict === "QUEUED" ? `המשיכה ${usdValue.toFixed(2)}$ ≥ 100$ — הועברה לתור אישור המפעיל` : `השער סירב (${String(gate.decidedBy ?? "unknown")}) — ${String(gate.reason ?? "").slice(0, 120)}`, // r206 ייחוס-אמת
         gate: { verdict: gate.verdict, id: gate.id, usdValue },
       };
     }
@@ -1208,7 +1208,7 @@ export async function rewardPay(params: {
     if (gate.verdict !== "ALLOWED") {
       return {
         ok: false,
-        detail: gate.verdict === "QUEUED" ? `התגמול ${usdValue.toFixed(2)}$ ≥ 100$ — תור המפעיל` : "השער סירב",
+        detail: gate.verdict === "QUEUED" ? `התגמול ${usdValue.toFixed(2)}$ ≥ 100$ — תור המפעיל` : `השער סירב (${String(gate.decidedBy ?? "unknown")}) — ${String(gate.reason ?? "").slice(0, 120)}`, // r206 ייחוס-אמת
       };
     }
     // האוצר משלם — הספר מתעד

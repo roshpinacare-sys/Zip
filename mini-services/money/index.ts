@@ -34,7 +34,7 @@ import { readGate, autonomyVerdict, appendDeliberation, readDeliberations } from
 // r205 — מצע-הלמידה: סגירת-הלולאה הקוגניטיבית (תחזית→מעשה→תוצאה→הערכה→
 // →אות-למידה→שינוי-מצב→החלטה-עתידית-שונה). החיבור כולו fail-closed:
 // כל שגיאת-למידה נבלעת — הדיבון ממשיך בדיוק כמו לפני (בסיס-החוק).
-import { appendExperience, runAdaptation, readLearnedBackoff, type DeliberationRef } from "../learning";
+import { appendExperience, runAdaptation, readLearnedBackoff, applyMisattributionCorrection, PRE_ACTION_REFUSAL_CODES, type DeliberationRef } from "../learning";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -113,7 +113,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.10.0", // r205 — לולאת-הלמידה נסגרת: ניסיון→החלטה-עתידית
+    version: "1.11.0", // r206 — ייחוס-אמת + דיון-נוסע-לשער + תיקון-אמונה מטא-קוגניטיבי
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -217,14 +217,17 @@ function appendHistory(entry: Record<string, unknown>, cap = 200) {
 // r197 — שער-האוטונומיה לפעולת-כסף: דיון נכתב לפני, ההכרעה נמדדת, סירוב נרשם בכנות — ואז הפעולה לא רצה.
 // r205 — הדיון חוזר כרף-תחזית (seq+hash+expected) כדי שהלומד יוכל לקשר
 // תחזית→תוצאה ברשומת-ניסיון משורשרת (provenance מלא).
-function gateFleetAction(action: string, d: { claim: string; why: string; expected: string; risk: string; rollback: string }): { allowed: boolean; why: string; deliberation?: DeliberationRef } {
+// r206 — הדיון גם **נוסע** לשער (thought) — נמדד חי: בלי זה השער במצב THINKING
+// סירב 14/14 פעולות עם ייחוס-שקר "usd מת" — המחשבה לא הגיעה לשופט.
+interface ThoughtBody { claim: string; why: string; expected: string; risk: string; rollback: string; falsifier?: string }
+function gateFleetAction(action: string, d: ThoughtBody): { allowed: boolean; why: string; deliberation?: DeliberationRef; thought?: ThoughtBody } {
   let delib: DeliberationRef | null = null;
   try {
     const rec = appendDeliberation({ action, actor: "money-mover", ...d });
-    if (rec?.seq && rec?.entryHash) delib = { seq: rec.seq, entryHash: rec.entryHash, expected: rec.expected };
+    if (rec?.seq && rec?.entryHash) delib = { seq: rec.seq, entryHash: rec.entryHash, expected: rec.expected, ...(rec.falsifier ? { falsifier: rec.falsifier } : {}) };
   } catch { /* רישום-דיון לא מפיל את הפעימה */ }
   const v = autonomyVerdict(action, "money-mover");
-  return { allowed: v.allowed, why: v.why, deliberation: delib ?? undefined };
+  return { allowed: v.allowed, why: v.why, deliberation: delib ?? undefined, thought: d };
 }
 
 // r205 — ליבת-הלולאה: תוצאה → רשומת-ניסיון משורשרת → חוק-ההתאמה → מצב-נלמד.
@@ -294,7 +297,8 @@ function seedHistoryExperiences(): void {
         kind,
         ok: !isFail && kind !== "GATE-QUEUED",
         error: isFail ? String(e.error ?? kind) : null,
-        code: kind === "GATE-QUEUED" ? "GATE-QUEUED" : null,
+        // r206 — ייחוס-אמת: קוד-הסירוב זורע מההיסטוריה (שדה-חדש) — הלומד רואה את הסיבה
+        code: kind === "GATE-QUEUED" ? "GATE-QUEUED" : (typeof e.code === "string" && e.code ? e.code : null),
         deliberation: delib && delib.seq && delib.entryHash ? { seq: delib.seq, entryHash: delib.entryHash, expected: delib.expected } : null,
         source: "history-seed",
         ref: `history-seed:${at}`,
@@ -638,6 +642,7 @@ async function act(
   target: "steem" | "hive" = "steem",
   tag?: "fill-deploy",
   deliberation?: DeliberationRef, // r205 — רף-התחזית שנכתבה לפני (לקישור-ניסיון)
+  thought?: ThoughtBody, // r206 — הדיון המלא נוסע לשער (THINKING מחייב אותו ב-payload)
 ): Promise<boolean> {
   state.acting = true;
   actStartedAt = Date.now();
@@ -664,10 +669,20 @@ async function act(
       });
       result = (await res.json()) as Record<string, unknown>;
     } else {
+    // r206 — הדיון נוסע עם הפעולה: השער (THINKING) דורש deliberation ב-payload —
+    // נמדד חי: בלי זה 14/14 פעולות נסרבו NO-DELIBERATION ויוחסו בשקר "usd מת".
+    const deliberationBody = thought
+      ? { claim: thought.claim, why: thought.why, expected: thought.expected, risk: thought.risk, rollback: thought.rollback, ...(thought.falsifier ? { falsifier: thought.falsifier } : {}) }
+      : undefined;
     const res = await fetch(target === "hive" ? HIVE_API : API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action, reason, ...(tag && target === "steem" && action === "reprice" ? { tag } : {}) }),
+      body: JSON.stringify({
+        action,
+        reason,
+        ...(tag && target === "steem" && action === "reprice" ? { tag } : {}),
+        ...(deliberationBody ? { deliberation: deliberationBody } : {}),
+      }),
       signal: ctl.signal,
     });
     result = (await res.json()) as Record<string, unknown>;
@@ -763,6 +778,9 @@ async function act(
     // r191 · חוק-ייחוס-פקודות: ספירת-פקודות-זרות שדולגו (כנות-תיאום בין-סוכנים)
     foreignSkipped: foreignSkippedCount,
     error: r.error ?? r.receipt?.error ?? null,
+    // r206 — ייחוס-אמת: קוד-הסירוב האמיתי נשמר בהיסטוריה — הזריעה ההיסטורית
+    // תפסיק לאבד-ייחוס (נמדד חי: code=null בכל 33 רשומות-הספר)
+    code: (r.code as string | undefined) ?? null,
   });
   // r205 — סגירת-הלולאה: התוצאה הנמדדת הופכת ניסיון משורשר (תחזית→תוצאה),
   // הניסיון עשוי לשנות את מדיניות-הקצב העתידית בתוך גבולות-החוק,
@@ -1062,12 +1080,20 @@ async function tick() {
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {
-      const gA = gateFleetAction("grid-act", { claim: `להריץ ${d.action ?? "reprice"} על רגל-steem: ${d.reason.slice(0, 90)}`, why: "טריגר נמדד חי בפעימה (סטיית-פאריטה/רצפה/גל) — מדידה חיה", expected: "הסולם מתיישר לפאריטה; מילויים אפשריים; הספר חי", risk: "שחיקת-ספר בסטייה — רצפת-ערך + תקרת-יום 12 חוסמים; שער-$100 בשרת", rollback: "cancel-all זמין; קבלות עם txids בספר" });
+      const gA = gateFleetAction("grid-act", {
+        claim: `להריץ ${d.action ?? "reprice"} על רגל-steem: ${d.reason.slice(0, 90)}`,
+        why: "טריגר נמדד חי בפעימה (סטיית-פאריטה/רצפה/גל) — מדידה חיה",
+        expected: "הסולם מתיישר לפאריטה; מילויים אפשריים; הספר חי",
+        risk: "שחיקת-ספר בסטייה — רצפת-ערך + תקרת-יום 12 חוסמים; שער-$100 בשרת",
+        rollback: "cancel-all זמין; קבלות עם txids בספר",
+        // r206 — ההפרכה נרשמת לפני-המעשה: תחזית שאינה ניתנת-לבדיקה אינה תחזית
+        falsifier: "receipt.ok=false ⇒ תחזית מופרכת · סירוב-טרום-פעולה (code NO-*/PAUSED/QUEUED) אינו הפרכה — הפעולה לא נגעה בעולם",
+      });
       if (!gA.allowed) {
         state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gA.why };
         saveState();
       } else {
-        await act(d.reason, d.action ?? "reprice", "steem", d.tag, gA.deliberation); // r205 — התחזית נוסעת עם הפעולה
+        await act(d.reason, d.action ?? "reprice", "steem", d.tag, gA.deliberation, gA.thought); // r205+206 — התחזית נוסעת עם הפעולה · הדיון נוסע לשער
       }
     } else {
       // R101c — חוק-הברזל לשתי הרגליים: צינון + תקציב חלים גם על HIVE.
@@ -1099,12 +1125,19 @@ async function tick() {
         const hive = await measureHive();
         const dh = await decideHive(hive);
         if (dh.act) {
-          const gH = gateFleetAction("grid-act", { claim: `להריץ reprice על רגל-hive: ${dh.reason.slice(0, 90)}`, why: "סטיית-פאריטה נמדדה חי ברגל-hive", expected: "המיקרו-גריד מתיישר לפאריטה; הספר חי", risk: "שחיקת-ספר — צינון + תקציב חלים גם על hive; שער-$100 בשרת", rollback: "cancel-all זמין; קבלות בספר" });
+          const gH = gateFleetAction("grid-act", {
+            claim: `להריץ reprice על רגל-hive: ${dh.reason.slice(0, 90)}`,
+            why: "סטיית-פאריטה נמדדה חי ברגל-hive",
+            expected: "המיקרו-גריד מתיישר לפאריטה; הספר חי",
+            risk: "שחיקת-ספר — צינון + תקציב חלים גם על hive; שער-$100 בשרת",
+            rollback: "cancel-all זמין; קבלות בספר",
+            falsifier: "receipt.ok=false ⇒ תחזית מופרכת · סירוב-טרום-פעולה (code NO-*/PAUSED/QUEUED) אינו הפרכה",
+          });
           if (!gH.allowed) {
             state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gH.why };
             saveState();
           } else {
-            await act(dh.reason, "reprice", "hive", undefined, gH.deliberation); // r205 — התחזית נוסעת עם הפעולה
+            await act(dh.reason, "reprice", "hive", undefined, gH.deliberation, gH.thought); // r205+206 — התחזית נוסעת עם הפעולה · הדיון נוסע לשער
           }
         } else {
           state.lastDecision = {
@@ -1146,11 +1179,22 @@ if (G_MONEY_SRV.__MONEY_SERVER__) {
       if (state.acting) return Response.json({ ok: false, error: "already-acting" }, { status: 409 });
       const body = await req.json().catch(() => ({}));
       const target = body?.target === "hive" ? "hive" : "steem";
-      const actOk = await act(
-        String(body?.reason ?? "manual operator command").slice(0, 200),
-        body?.action === "arm-buy" ? "arm-buy" : body?.action === "stock-sbd" ? "stock-sbd" : body?.action === "arena-stream" ? "arena-stream" : "reprice",
-        target,
-      );
+      const manualAction = (body?.action === "arm-buy" ? "arm-buy" : body?.action === "stock-sbd" ? "stock-sbd" : body?.action === "arena-stream" ? "arena-stream" : "reprice") as "arm-buy" | "stock-sbd" | "arena-stream" | "reprice";
+      const manualReason = String(body?.reason ?? "manual operator command").slice(0, 200);
+      // r206 — גם פקודה-ידנית נחשבת ב-THINKING: דיון כנה על יחסות-מפעיל שהדיבון מבצע
+      const gM = gateFleetAction("manual-act", {
+        claim: `פקודת-מפעיל ידנית: ${manualAction} על רגל-${target} — ${manualReason.slice(0, 90)}`,
+        why: "פקודת-מפעיל חיה דרך שער-המפעיל של הדיבון — הדיבון מבצע יחסות, הסמכות במפעיל",
+        expected: "הפעולה מבוצעת; קבלה עם txids בספר",
+        risk: "פקודה-ידנית — כל החוסמים חלים (צינון/תקרות/שער-$100/סודות)",
+        rollback: "קבלה בספר; cancel-all זמין",
+      });
+      if (!gM.allowed) {
+        state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gM.why };
+        saveState();
+        return Response.json({ ok: false, lastDecision: state.lastDecision, error: gM.why }, { status: 403 });
+      }
+      const actOk = await act(manualReason, manualAction, target, undefined, gM.deliberation, gM.thought);
       // אמת ברמת ה-HTTP: ok משקף את תוצאת הפעולה עצמה (לא "הוזנק בהצלחה")
       // — ההחלטה המלאה והכנה ב-lastDecision המצורף.
       return Response.json({ ok: actOk, lastDecision: state.lastDecision });
@@ -1160,8 +1204,63 @@ if (G_MONEY_SRV.__MONEY_SERVER__) {
   });
 }
 
+// ── r206 · ביקורת-הייחוס העצמית (מטא-קוגניציה) ─────────────────────
+// האורגניזם מצליב את אמונתו-הנלמדת (ספר-העדכונים) מול ספר-השער (TxGate —
+// ספר-סמכות עצמאי ב-DB). אם כל הסירובים בחלון-הראיות שבנו את האמונה היו
+// NO-DELIBERATION עם הערכת-USD חיה — האמונה "שער-מת" נבנתה על ייחוס-שקר,
+// והיא מתוקנת ברשומת-עדכון חדשה עם ציטוט-הראיות. אפס-שכתוב-היסטוריה.
+// fail-closed: שער-לא-נגיש / ראיה-מעורבת / אין-מספיק — אין תיקון, ההימנעות כנה.
+const G_AUDIT = globalThis as unknown as { __MONEY_AUDIT_RUNNING__?: boolean };
+async function auditMisattribution(): Promise<void> {
+  if (G_AUDIT.__MONEY_AUDIT_RUNNING__) return; // טעינה-חמה לא מכפילה ביקורת
+  G_AUDIT.__MONEY_AUDIT_RUNNING__ = true;
+  try {
+    const lb = readLearnedBackoff();
+    if (lb.backoffMin <= 0 || !lb.evidence) return; // אין אמונה-נלמדת לתקן
+    if (!lb.evidence.signature.includes("usd לא נמדד")) return; // רק את הייחוס-המדוד
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 20_000);
+    let recent: Array<{ verdict: string; decidedBy?: string; usdValue: number | null; createdAt: string }> = [];
+    try {
+      const res = await fetch("http://127.0.0.1:3000/api/gate", { signal: ctl.signal, cache: "no-store" });
+      if (!res.ok) return; // אין ספר-שער — אין ביקורת (fail-closed, לא ממציאים ראיות)
+      const j = (await res.json()) as { recent?: typeof recent };
+      recent = Array.isArray(j?.recent) ? j.recent : [];
+    } finally {
+      clearTimeout(t);
+    }
+    if (recent.length === 0) return;
+    const from = Date.parse(lb.evidence.windowFrom) - 5_000;
+    const to = Date.parse(lb.evidence.windowTo) + 5_000;
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return;
+    const inWindow = recent.filter((x) => {
+      const tt = Date.parse(x.createdAt);
+      return Number.isFinite(tt) && tt >= from && tt <= to;
+    });
+    const noDelib = inWindow.filter((x) => x.verdict === "REFUSED" && x.decidedBy === "autonomy:NO-DELIBERATION" && x.usdValue != null && Number(x.usdValue) > 0);
+    const other = inWindow.filter((x) => !(x.verdict === "REFUSED" && x.decidedBy === "autonomy:NO-DELIBERATION" && x.usdValue != null && Number(x.usdValue) > 0));
+    if (noDelib.length < 3 || other.length > 0) return; // ראיה-לא-מספקת/מעורבת — האמונה לא הוכחה כשקרית במלואה
+    const maxUsd = Math.max(...noDelib.map((x) => Number(x.usdValue)));
+    const upd = applyMisattributionCorrection({
+      noDelibCount: noDelib.length,
+      maxUsd,
+      windowFrom: lb.evidence.windowFrom,
+      windowTo: lb.evidence.windowTo,
+      auditedAt: new Date().toISOString(),
+    });
+    if (upd) {
+      console.log(`[money-mover] r206: תיקון-ייחוס מטא-קוגניטיבי — עדכון #${upd.seq}: retryBackoffMin →0 (ראיה: TxGate NO-DELIBERATION ×${noDelib.length} ב-USD חי ≤$${maxUsd.toFixed(2)})`);
+      const lb2 = readLearnedBackoff();
+      state.learning = { backoffMin: lb2.backoffMin, epistemic: lb2.epistemic, suspended: lb2.suspended, streak: lb2.evidence?.streak ?? undefined, updatedAt: lb2.updatedAt };
+      saveState();
+    }
+  } catch { /* הביקורת לעולם לא מפילה את העלייה */ }
+  finally { G_AUDIT.__MONEY_AUDIT_RUNNING__ = false; }
+}
+
 saveState();
 seedHistoryExperiences(); // r205 — הניסיון ההיסטורי זורע לפני-הפעימה הראשונה
+void auditMisattribution(); // r206 — ביקורת-ייחוס עצמית מול ספר-השער (append-only · fail-closed · אידמפוטנטי)
 console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · r205 לולאת-למידה חיה (backoff=${state.learning?.backoffMin ?? 0}')`);
 tick();
 // R111 — law of the single timer (R109 lesson, applied to money):

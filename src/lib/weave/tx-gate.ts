@@ -54,6 +54,12 @@ export interface GateDecision {
   id: string;
   threshold: number;
   usdValue: number | null;
+  /** r206 — ייחוס-אמת: השער נושא את סיבת-ההכרעה של עצמו — האורגניזם חייב לדעת
+   *  למה נסרב (חוסר-דיון? עצירה? אין-שער?) ולא לקבל תשובה-אחת-לכל-הסירובים.
+   *  נמדד חי (r206): 14/14 הסירובים היו NO-DELIBERATION ב-USD חי — וה-route
+   *  דיווח "USD לא נמדד חי" לכולם — ייחוס-שקר שהצית למידה כוזבת. */
+  decidedBy?: string;
+  reason?: string;
 }
 
 export async function evaluateGate(input: GateInput): Promise<GateDecision> {
@@ -74,39 +80,42 @@ export async function evaluateGate(input: GateInput): Promise<GateDecision> {
   const autonomy = readGlobalAutonomy();
   if (input.issuedBy === "daemon" && autonomy.mode !== "ACTIVE") {
     if (autonomy.mode === "PAUSED") {
+      const reason = `האוטונומיה עוצרה על-ידי המפעיל — אף פעולה אוטומטית לא זזה · ${autonomy.reason.slice(0, 160)}`;
       const r = await db.txGate.create({
         data: { ...base, usdValue: input.usdValue ?? 0, verdict: "REFUSED", decidedBy: "autonomy:PAUSED",
-          reason: `האוטונומיה עוצרה על-ידי המפעיל — אף פעולה אוטומטית לא זזה · ${autonomy.reason.slice(0, 160)}`, decidedAt: new Date() },
+          reason, decidedAt: new Date() },
       });
-      return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: input.usdValue };
+      return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: input.usdValue, decidedBy: "autonomy:PAUSED", reason };
     }
     // THINKING — דורשים דיון מלא; דיון חסר/קרוע = סירוב (fail-closed)
     const d = (input.payload ?? {}) as { deliberation?: Record<string, unknown> };
     const delib = d?.deliberation;
     const delibOk = !!delib && ["claim", "why", "expected", "risk", "rollback"].every((k) => typeof (delib as Record<string, unknown>)[k] === "string" && String((delib as Record<string, unknown>)[k]).trim().length >= 8);
     if (!delibOk) {
+      const reason = "THINKING — פעולה בלי דיון מלא (מה/למה/צפי/סיכון/רולבק) נסרבת — לחשוב לפני שעושים (חוק-r197)";
       const r = await db.txGate.create({
         data: { ...base, usdValue: input.usdValue ?? 0, verdict: "REFUSED", decidedBy: "autonomy:NO-DELIBERATION",
-          reason: "THINKING — פעולה בלי דיון מלא (מה/למה/צפי/סיכון/רולבק) נסרבת — לחשוב לפני שעושים (חוק-r197)", decidedAt: new Date() },
+          reason, decidedAt: new Date() },
       });
-      return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: input.usdValue };
+      return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: input.usdValue, decidedBy: "autonomy:NO-DELIBERATION", reason };
     }
   }
 
   // שער שלמות-מדידה: לעולם לא מפרשים "לא נמדד" כ"קטן מהסף" —
   // אותו חוק כמו רצפת-הפאריטה: אין שער, אין מסחר.
   if (input.usdValue == null || !Number.isFinite(input.usdValue) || input.usdValue < 0) {
+    const noUsdReason = "USD לא נמדד חי — השער אינו יכול להעריך, לכן שום דבר לא זז (אין שער, אין מסחר)";
     const r = await db.txGate.create({
       data: {
         ...base,
         usdValue: 0,
         verdict: "REFUSED",
         decidedBy: "policy:no-usd-mark",
-        reason: "USD לא נמדד חי — השער אינו יכול להעריך, לכן שום דבר לא זז (אין שער, אין מסחר)",
+        reason: noUsdReason,
         decidedAt: new Date(),
       },
     });
-    return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: null };
+    return { verdict: "REFUSED", id: r.id, threshold: GATE_THRESHOLD_USD, usdValue: null, decidedBy: "policy:no-usd-mark", reason: noUsdReason };
   }
 
   // המפעיל שהוציא את הפעולה בעצמו — המפעיל הוא השער
@@ -189,7 +198,9 @@ export async function decideQueued(
 export async function gateSnapshot() {
   const [queue, recent, allowed, queued, refused, executed, rejected] = await Promise.all([
     db.txGate.findMany({ where: { verdict: "QUEUED" }, orderBy: { createdAt: "desc" }, take: 25 }),
-    db.txGate.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+    // r206 — חלון-ביקורת רחב: האורגניזם מצליב את אמונותיו הנלמדות מול ספר-השער
+    // (תיקון-ייחוס עצמי דורש ראיות מספיקות בחלון — 50 ולא 20)
+    db.txGate.findMany({ orderBy: { createdAt: "desc" }, take: 50 }),
     db.txGate.count({ where: { verdict: { in: ["ALLOWED", "EXECUTED"] } } }),
     db.txGate.count({ where: { verdict: "QUEUED" } }),
     db.txGate.count({ where: { verdict: "REFUSED" } }),

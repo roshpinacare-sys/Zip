@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
-  "version": "1.10.0",
-  "bootedAt": "2026-10-05T15:02:35.244Z",
-  "beats": 3479,
+  "version": "1.11.0",
+  "bootedAt": "2026-10-05T16:40:44.645Z",
+  "beats": 3582,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -41,24 +41,24 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-05T15:00:37.225Z",
-  "actionsToday": 0,
+  "lastActionAt": "2026-10-05T16:37:12.692Z",
+  "actionsToday": 1,
   "actionDay": "2026-10-05",
   "acting": false,
   "lastDecision": {
-    "at": "2026-10-05T15:13:35.297Z",
+    "at": "2026-10-05T16:43:44.708Z",
     "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 138 דק' · צינון-נלמד +120' (ראיות: 10 כישלונות רצופים זהים (exp#23–#32)) · WAIT-COOLDOWN · עוד 138 דק' · צינון-נלמד +120' (ראיות: 10 כישלונות רצופים זהים (exp#23–#32))"
+    "detail": "WAIT-COOLDOWN · עוד 24 דק' · WAIT-COOLDOWN · עוד 24 דק'"
   },
   "canonLast": {
     "at": "2026-10-05T14:18:09.361Z",
     "ok": true,
     "path": "reports/money-2026-10-05.md"
   },
-  "fillsSeen": 7,
+  "fillsSeen": 0,
   "fillDeployPending": false,
-  "lastActionOk": false,
-  "lastDepositScanAt": "2026-10-05T15:11:35.315Z",
+  "lastActionOk": true,
+  "lastDepositScanAt": "2026-10-05T16:42:44.701Z",
   "lastStreamDay": "2026-09-27",
   "lastTotalSteem": 10.792,
   "fleetSeen": {
@@ -66,15 +66,14 @@
     "studentDay": "2026-10-05",
     "keeperRestartAt": "2026-10-05T14:30:47.121Z"
   },
-  "lastPoolGuardAt": "2026-10-05T15:03:35.320Z",
-  "lastFleetSweepAt": "2026-10-05T15:12:35.302Z",
+  "lastPoolGuardAt": "2026-10-05T16:37:12.662Z",
+  "lastFleetSweepAt": "2026-10-05T16:43:08.599Z",
   "autonomyMode": "THINKING",
   "autonomyHeldCount": 78,
   "learning": {
-    "backoffMin": 120,
-    "epistemic": "inferred-bounded",
+    "backoffMin": 0,
+    "epistemic": "baseline",
     "suspended": false,
-    "streak": 10,
-    "updatedAt": "2026-10-05T14:24:39.649Z"
+    "updatedAt": "2026-10-05T16:36:44.713Z"
   }
 }

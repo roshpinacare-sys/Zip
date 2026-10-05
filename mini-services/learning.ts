@@ -61,10 +61,25 @@ export const EVIDENCE_THRESHOLD = 3; // n רצופות זהות = מבני
 
 export type Verdict = "success" | "failed" | "unresolvable" | "held";
 
+/** r206 — ייחוס-אמת: הקודים שבהם הפעולה מעולם לא נגעה בעולם (סירוב-טרום-פעולה).
+ *  התחזית במקרה כזה אינה "מופרכת" — היא אינה ניתנת-לבדיקה (untestable).
+ *  נמדד חי (r206): 13 תחזיות שסומנו predictionViolated=true היו כולן סירובי-טרום-פעולה —
+ *  אפס תחזיות שנבדקו בפועל מול העולם (r206-b). */
+export const PRE_ACTION_REFUSAL_CODES = new Set([
+  "NO-DELIBERATION",   // חוסר-דיון בשער (THINKING) — כישלון-חיווט של האורגניזם, לא של הסביבה
+  "AUTONOMY-PAUSED",   // הסמכות עוצרה — לא ראיה על העולם
+  "NO-USD-MARK",       // אין שער-ערך — הפעולה לא יצאה
+  "NO-PARITY",         // רצפה לא-ניתנת-לאכיפה — הפעולה לא יצאה
+  "NO-FUEL",           // אין דלק — הפעולה לא יצאה
+  "NO-KEY",            // אין מפתח — לא שודר דבר (D-021)
+]);
+
 export interface DeliberationRef {
   seq: number;
   entryHash: string;
   expected: string;
+  /** r206 — ההפרכה שנרשמה לפני-המעשה (מספר-הדיון) */
+  falsifier?: string;
 }
 
 export interface ExperienceRec {
@@ -74,7 +89,7 @@ export interface ExperienceRec {
   at: string;                    // זמן-התוצאה (המדידה)
   actor: string;
   action: string;
-  prediction: { seq: number; entryHash: string; expected: string } | null; // null = ניסיון-טרום-ספר (provenance כנה)
+  prediction: { seq: number; entryHash: string; expected: string; falsifier?: string | null } | null; // null = ניסיון-טרום-ספר (provenance כנה)
   outcome: { kind: string; ok: boolean; error: string | null; code?: string | null };
   verdict: Verdict;
   signature: string;             // נרמול השגיאה — מפתח-הזיהוי של הכישלון
@@ -106,6 +121,14 @@ export interface UpdateRec {
   verdict?: "APPLIED" | "ABSTAINED" | "SUSPENDED" | "RESUMED";
   abstainReason?: string;
   gateMode?: string;
+  /** r206 — תיקון-ייחוס: ראיה מספר-השער (TxGate) שהעדכון-שבוטל נבנה על ייחוס-שקר.
+   *  אופציונלי — רק על רשומות-חדשות; רשומות-ישן בלעדיו נשארות תקפות. */
+  misattribution?: {
+    priorUpdateSeq: number;
+    priorSignature: string;
+    gateProof: string;
+    auditedAt: string;
+  };
 }
 
 export interface PolicyParamState {
@@ -229,6 +252,11 @@ export function familyOf(kind: string): string {
 export function verdictOfOutcome(ok: boolean, code?: string | null): Verdict {
   if (ok) return "success";
   if (code === "GATE-QUEUED") return "unresolvable"; // ממתין-סמכות — לא הצלחה ולא כישלון-חזוי
+  // r206 — ייחוס-אמת: סירובי-האורגניזם-עצמו (חוסר-דיון שהגיע לשער / סמכות עוצרה)
+  // אינם ראיה על קצב-הסביבה — הם שקופים-לרצף (כמו GATE-QUEUED). הצינון לא יילמד
+  // מחיווט-שבור: חיווט מתוקן, לא המתנה. (נמדד חי: 14/14 הסירובים היו NO-DELIBERATION —
+  // והלומד בנה מהם צינון-120' על ייחוס-שקר "usd מת".)
+  if (code === "NO-DELIBERATION" || code === "AUTONOMY-PAUSED") return "unresolvable";
   return "failed";
 }
 
@@ -264,6 +292,12 @@ export function appendExperience(input: OutcomeInput): ExperienceRec | null {
   const all = readJsonl<ExperienceRec>(EXPERIENCE_FILE);
   const prev = all.length > 0 ? all[all.length - 1]! : null;
   const verdict = verdictOfOutcome(input.ok, input.code);
+  // r206 — גזירת-ההפרכה: predictionViolated := failed ∧ תחזית-קיימת ∧ לא-סירוב-טרום-פעולה.
+  // סירוב-טרום-פעולה ⇒ התחזית untestable (הפעולה לא נגעה בעולם) — לעולם לא "הופרכה".
+  const predictionTestable =
+    verdict === "failed" &&
+    !!input.deliberation &&
+    !(input.code && PRE_ACTION_REFUSAL_CODES.has(input.code));
   const rec: ExperienceRec = {
     seq: (prev?.seq ?? 0) + 1,
     prevHash: prev?.entryHash ?? "GENESIS",
@@ -271,12 +305,17 @@ export function appendExperience(input: OutcomeInput): ExperienceRec | null {
     actor: input.actor,
     action: input.action,
     prediction: input.deliberation
-      ? { seq: input.deliberation.seq, entryHash: input.deliberation.entryHash, expected: input.deliberation.expected.slice(0, 200) }
+      ? {
+          seq: input.deliberation.seq,
+          entryHash: input.deliberation.entryHash,
+          expected: input.deliberation.expected.slice(0, 200),
+          ...(input.deliberation.falsifier ? { falsifier: input.deliberation.falsifier.slice(0, 200) } : {}),
+        }
       : null,
     outcome: { kind: input.kind.slice(0, 40), ok: input.ok, error: input.error ? String(input.error).slice(0, 200) : null, code: input.code ?? null },
     verdict,
     signature: verdict === "failed" ? signatureOf(input.error, input.kind) : "",
-    predictionViolated: verdict === "failed" && !!input.deliberation,
+    predictionViolated: predictionTestable,
     epistemic: "observed",
     provenance: { source: input.source, ref },
   };
@@ -342,7 +381,7 @@ export function tailStreak(actor: string, action: string): TailStreak {
     if (e.signature === sig) {
       n += 1;
       seqs.unshift(e.seq);
-      if (windowFrom === null) windowFrom = e.at;
+      windowFrom = e.at; // r206 — תיקון-חלון: ההליכה-אחורה מסתיימת בזקן — החלון חייב להשתרע זקן→חדש (נמדד חי: windowFrom קרס לנקודה אחת)
     } else break; // חתימה-אחרת באותה משפחה = הרצף נשבר
   }
   return {
@@ -405,12 +444,16 @@ export function rebuildFromUpdates(): LearningState | null {
     if (u.param !== "retryBackoffMin") continue;
     const to = Number(u.to);
     if (!Number.isFinite(to) || to < BACKOFF_MIN || to > BACKOFF_MAX) continue; // עדכון-חוץ-גבולות נדחה
+    // r206 — הסיווג-האפיסטמי נשמר-נאמן בשחזור: ערך-0 = בסיס-החוק (אין התאמה
+    // פעילה — כולל תיקון-ייחוס) ולא "היסק-חסום"; תיקון-מייחס נושא את סמכותו.
     st.params.retryBackoffMin = {
       value: to,
       min: BACKOFF_MIN,
       max: BACKOFF_MAX,
-      epistemic: "inferred-bounded",
-      authority: "bounded-adaptation-law r205",
+      epistemic: to === BACKOFF_MIN ? "baseline" : "inferred-bounded",
+      authority: u.misattribution
+        ? "bounded-adaptation-law r205 · תיקון-ייחוס r206 (ראיה: TxGate)"
+        : "bounded-adaptation-law r205",
       updatedAt: u.at,
       updateSeq: u.seq,
       evidence: u.evidence
@@ -550,6 +593,11 @@ export function runAdaptation(actor: string, action: string, gateMode: string): 
   if (streak.lastVerdict === "success") {
     target = BACKOFF_MIN;
     reason = "ראיה-סותרת: הפעולה האחרונה הצליחה — הסביבה השתנתה; ההתאמה מתאפסת (reversible)";
+    // r206 — מטא-קוגניציה: איפוס שמבטל עדכון-קיים נושא את העובדה שהלקח הקודם
+    // אינו עוד מוצדק — הראיה החיה החדשה (מגע-אמת עם העולם) גוברת עליו.
+    if (current > 0 && st.params.retryBackoffMin.evidence) {
+      reason += ` · מטא-קוגניציה: עדכון #${st.params.retryBackoffMin.updateSeq} (חתימה "${st.params.retryBackoffMin.evidence.signature.slice(0, 48)}") אינו עוד מוצדק — ההצלחה הנמדדת היא מגע-אמת ראשון שמפריך את הלקח הקודם`;
+    }
   } else if (streak.lastVerdict === "failed" && streak.n >= EVIDENCE_THRESHOLD) {
     target = Math.min(BACKOFF_MAX, BACKOFF_STEP * (streak.n - (EVIDENCE_THRESHOLD - 1)));
     reason = `${streak.n} כישלונות רצופים באותה חתימה מבנית (${streak.signature.slice(0, 48)}) — התאמת-קצב חוזר בתוך הגבולות`;
@@ -614,6 +662,86 @@ export function runAdaptation(actor: string, action: string, gateMode: string): 
   st.updatedAt = upd.at;
   writeLearningState(st);
   return { verdict: "APPLIED", reason, streak: streak.n, from: current, to: target };
+}
+
+// ── תיקון-אמונה מטא-קוגניטיבי (r206 — append-only, fail-closed) ────────
+
+export interface MisattributionProof {
+  noDelibCount: number;   // כמה סירובי NO-DELIBERATION עם USD חי בחלון-הראיות
+  maxUsd: number;         // הערכת-ה-USD הגבוהה בסירובים — הוכחת "השער לא היה מת"
+  windowFrom: string;
+  windowTo: string;
+  auditedAt: string;
+}
+
+/**
+ * r206 — האורגניזם מגלה שהעדכון-הנלמד שלו נבנה על ייחוס-שקר ומתקן אותו:
+ *   · הראיה: ספר-השער (TxGate) — ספר-סמכות עצמאי, לא זיכרון-עצמי.
+ *   · הכלל: כל הסירובים בחלון-הראיות היו NO-DELIBERATION עם הערכת-USD חיה
+ *     ⇒ התחזיות מעולם לא נבדקו מול העולם ⇒ הסיבה האמיתית היא חיווט, לא קצב.
+ *   · התיקון: BELIEF-UPDATE append-only עם ציטוט-ראיות (misattribution) —
+ *     הספרים-הקיימים לא נגעים, ההיפוך ניתן-לשחזור מרפליי-העדכונים.
+ *   · fail-closed: בלי ראיה-מלאה / שרשרת-שבורה / אין-אמונה-נלמדת ⇒ אין תיקון.
+ */
+export function applyMisattributionCorrection(proof: MisattributionProof): UpdateRec | null {
+  try {
+    const expChain = verifyChain(EXPERIENCE_FILE);
+    if (!expChain.ok) return null; // שרשרת-שבורה — לא מתקנים דווקא עכשיו (fail-closed)
+    const st = readLearningState() ?? rebuildFromUpdates();
+    if (!st) return null;
+    const p = st.params.retryBackoffMin;
+    if (p.value <= 0 || !p.evidence) return null; // אין אמונה-נלמדת לתקן
+    if (!p.evidence.signature.includes("usd לא נמדד")) return null; // הביקורת מכירה רק את הייחוס-המדוד — לא ממציאה אחרים
+    if (proof.noDelibCount < EVIDENCE_THRESHOLD) return null; // ראיה-לא-מספקת
+    const reason =
+      `תיקון-ייחוס מטא-קוגניטיבי: העדכון #${p.updateSeq} (retryBackoffMin ${p.value}→0) נבנה על חתימה ` +
+      `"${p.evidence.signature.slice(0, 56)}…" — ספר-השער (TxGate, ספר-סמכות עצמאי) מוכיח שכל הסירובים ` +
+      `בחלון-הראיות (${proof.windowFrom.slice(11, 19)}→${proof.windowTo.slice(11, 19)}Z) היו ` +
+      `autonomy:NO-DELIBERATION ×${proof.noDelibCount} עם הערכת-USD חיה (מקסימום $${proof.maxUsd.toFixed(2)}) — ` +
+      `הפעולות מעולם לא נגעו בעולם: התחזיות לא הופרכו, הן לא נבדקו. הפרשנות-הסיבתית שלי ("שער-מת") היתה שגויה — ` +
+      `הסיבה האמיתית: הדיון לא נסע לשער. הלמידה היתה אמיתית-מנגנונית, שקרית-תוכן; הקצב לא היה הבעיה — החיווט היה. ` +
+      `האמונה מתוקנת, לא רק הערך.`;
+    const upd = appendUpdate({
+      kind: "BELIEF-UPDATE",
+      param: "retryBackoffMin",
+      from: p.value,
+      to: BACKOFF_MIN,
+      actor: "money-mover",
+      action: "grid-act",
+      reason,
+      evidence: {
+        experienceSeqs: p.evidence.experienceSeqs,
+        streak: 0,
+        signature: p.evidence.signature,
+        windowFrom: p.evidence.windowFrom,
+        windowTo: p.evidence.windowTo,
+      },
+      bounds: { min: BACKOFF_MIN, max: BACKOFF_MAX, within: true },
+      verdict: "APPLIED",
+      misattribution: {
+        priorUpdateSeq: p.updateSeq,
+        priorSignature: p.evidence.signature,
+        gateProof: `TxGate: כל הסירובים בחלון REFUSED/autonomy:NO-DELIBERATION עם usdValue>0 (max $${proof.maxUsd.toFixed(2)}) · n=${proof.noDelibCount}`,
+        auditedAt: proof.auditedAt,
+      },
+    });
+    st.params.retryBackoffMin = {
+      value: BACKOFF_MIN,
+      min: BACKOFF_MIN,
+      max: BACKOFF_MAX,
+      epistemic: "baseline",
+      authority: "bounded-adaptation-law r205 · תיקון-ייחוס r206 (ראיה: TxGate)",
+      updatedAt: upd.at,
+      updateSeq: upd.seq,
+      evidence: null,
+    };
+    st.lastAbstain = null;
+    st.updatedAt = upd.at;
+    writeLearningState(st);
+    return upd;
+  } catch {
+    return null; // התיקון לעולם לא מפיל את הקורא
+  }
 }
 
 /** רישום-הימנעות גלויה (רק כשהסיבה חדשה — אפס-רעש-ספר) */
