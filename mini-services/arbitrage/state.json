@@ -1,15 +1,15 @@
 {
   "bootedAt": "2026-10-05T09:04:41.460Z",
-  "scans": 861,
-  "lastScanAt": "2026-10-05T23:24:55.779Z",
+  "scans": 864,
+  "lastScanAt": "2026-10-05T23:27:55.803Z",
   "lastScanOk": true,
   "lastError": null,
   "markets": {
     "steem": "ok",
     "hive": "ok",
-    "blurt": "empty",
+    "blurt": "fail",
     "cex": "ok",
-    "exchange": "fail",
+    "exchange": "ok",
     "stableUsd": "derived"
   },
   "opportunities": [
@@ -18,67 +18,102 @@
       "klass": "book-vs-cex",
       "direction": "buy-book/sell-cex",
       "sizeUsd": 10,
-      "netBps": 494.4,
-      "netUsd": 0.4944,
+      "netBps": 472.9,
+      "netUsd": 0.4729,
       "maxFeasibleUsd": 50,
       "legs": [
         {
           "venue": "steem-internal",
           "side": "buy-asks",
-          "price": 0.10197532098959768,
+          "price": 0.1021705342924282,
           "feeBps": 75
         },
         {
           "venue": "cex",
           "side": "sell",
-          "price": 0.06322,
+          "price": 0.0632,
           "feeBps": 10,
           "cexReference": true
         }
       ],
       "cexReference": true,
-      "at": "2026-10-05T23:24:55.779Z",
-      "notes": "VWAP-asks מול CEX ייחוס; stable=$0.585728"
+      "at": "2026-10-05T23:27:55.803Z",
+      "notes": "VWAP-asks מול CEX ייחוס; stable=$0.585628"
     },
     {
       "id": "steem-vs-hive-books",
       "klass": "crosschain-parity",
       "direction": "buy-steem-book/sell-hive-book",
       "sizeUsd": 10,
-      "netBps": 392.6,
-      "netUsd": 0.3926,
+      "netBps": 371.4,
+      "netUsd": 0.3714,
       "maxFeasibleUsd": 50,
       "legs": [
         {
           "venue": "steem-internal",
           "side": "buy-asks",
-          "price": 0.10197532098959768,
+          "price": 0.1021705342924282,
           "feeBps": 75
         },
         {
           "venue": "cex-cross",
           "side": "steem→hive",
-          "price": 0.9174311926605505,
+          "price": 0.9177215189873418,
           "feeBps": 10,
           "cexReference": true
         },
         {
           "venue": "hive-internal",
           "side": "sell-bids",
-          "price": 0.05773691097357851,
+          "price": 0.057742472645012095,
           "feeBps": 75
         }
       ],
       "cexReference": true,
-      "at": "2026-10-05T23:24:55.779Z",
+      "at": "2026-10-05T23:27:55.803Z",
       "notes": "שני-הספרים הפנימיים; חיבור-STEEM↔HIVE ב-CEX ייחוס"
     }
   ],
   "parity": {
-    "steemDevBps": -679.8,
+    "steemDevBps": -678.4,
     "hiveDevBps": 0
   },
   "history": [
+    {
+      "at": "2026-10-05T23:27:55.803Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 472.9,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -678.4,
+        "hiveDevBps": 0
+      },
+      "ms": 507
+    },
+    {
+      "at": "2026-10-05T23:26:55.798Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 3441
+    },
+    {
+      "at": "2026-10-05T23:25:55.797Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": null,
+        "hiveDevBps": 0
+      },
+      "ms": 9746
+    },
     {
       "at": "2026-10-05T23:24:55.779Z",
       "ok": true,
@@ -633,46 +668,6 @@
         "hiveDevBps": 0
       },
       "ms": 235
-    },
-    {
-      "at": "2026-10-05T22:37:55.001Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 550.6,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -736.8,
-        "hiveDevBps": 0
-      },
-      "ms": 797
-    },
-    {
-      "at": "2026-10-05T22:36:54.979Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 843
-    },
-    {
-      "at": "2026-10-05T22:35:54.960Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 552.6,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -736,
-        "hiveDevBps": 0
-      },
-      "ms": 1763
     }
   ]
 }
