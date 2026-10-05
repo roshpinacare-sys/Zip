@@ -30,7 +30,11 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
-import { readGate, autonomyVerdict, appendDeliberation } from "../autonomy";
+import { readGate, autonomyVerdict, appendDeliberation, readDeliberations } from "../autonomy";
+// r205 — מצע-הלמידה: סגירת-הלולאה הקוגניטיבית (תחזית→מעשה→תוצאה→הערכה→
+// →אות-למידה→שינוי-מצב→החלטה-עתידית-שונה). החיבור כולו fail-closed:
+// כל שגיאת-למידה נבלעת — הדיבון ממשיך בדיוק כמו לפני (בסיס-החוק).
+import { appendExperience, runAdaptation, readLearnedBackoff, type DeliberationRef } from "../learning";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -41,6 +45,9 @@ const HOME = "/home/z/my-project";
 const STATE_FILE = `${HOME}/sovereign/money/state.json`;
 const HISTORY_FILE = `${HOME}/sovereign/money/history.json`;
 const PORT = 3034;
+// r205 — גוף-הניסיון של הלומד: ניסיונות grid-act של המוביל בלבד
+const LEARN_ACTOR = "money-mover";
+const LEARN_ACTION = "grid-act";
 const CHECK_INTERVAL_SEC = 60;
 const API = "http://127.0.0.1:3000/api/money";
 const HIVE_API = "http://127.0.0.1:3000/api/money/hive";
@@ -71,6 +78,7 @@ const POLICY = {
 type Decision = { at: string; kind: string; detail: string };
 
 type MoneyState = {
+  learning?: { backoffMin: number; epistemic: string; suspended: boolean; streak?: number; updatedAt: string | null } | null; // r205 — המדיניות-הנלמדה (תצוגה; מקור-האמת ב-sovereign/learning/state.json)
   service: string;
   version: string;
   bootedAt: string;
@@ -105,7 +113,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.9.0",
+    version: "1.10.0", // r205 — לולאת-הלמידה נסגרת: ניסיון→החלטה-עתידית
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -141,6 +149,7 @@ function readState(): MoneyState {
       lastFleetSweepAt: prev.lastFleetSweepAt ?? null,
       autonomyMode: prev.autonomyMode ?? null,
       autonomyHeldCount: prev.autonomyHeldCount ?? 0,
+      learning: prev.learning ?? null,
     };
   } catch (e: any) {
     // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
@@ -206,12 +215,101 @@ function appendHistory(entry: Record<string, unknown>, cap = 200) {
 }
 
 // r197 — שער-האוטונומיה לפעולת-כסף: דיון נכתב לפני, ההכרעה נמדדת, סירוב נרשם בכנות — ואז הפעולה לא רצה.
-function gateFleetAction(action: string, d: { claim: string; why: string; expected: string; risk: string; rollback: string }): { allowed: boolean; why: string } {
+// r205 — הדיון חוזר כרף-תחזית (seq+hash+expected) כדי שהלומד יוכל לקשר
+// תחזית→תוצאה ברשומת-ניסיון משורשרת (provenance מלא).
+function gateFleetAction(action: string, d: { claim: string; why: string; expected: string; risk: string; rollback: string }): { allowed: boolean; why: string; deliberation?: DeliberationRef } {
+  let delib: DeliberationRef | null = null;
   try {
-    appendDeliberation({ action, actor: "money-mover", ...d });
+    const rec = appendDeliberation({ action, actor: "money-mover", ...d });
+    if (rec?.seq && rec?.entryHash) delib = { seq: rec.seq, entryHash: rec.entryHash, expected: rec.expected };
   } catch { /* רישום-דיון לא מפיל את הפעימה */ }
   const v = autonomyVerdict(action, "money-mover");
-  return { allowed: v.allowed, why: v.why };
+  return { allowed: v.allowed, why: v.why, deliberation: delib ?? undefined };
+}
+
+// r205 — ליבת-הלולאה: תוצאה → רשומת-ניסיון משורשרת → חוק-ההתאמה → מצב-נלמד.
+// לעולם לא זורק — הלמידה לא מפילה את הפעולה (fail-closed לבסיס-החוק).
+function learnFromOutcome(k: { at: string; kind: string; ok: boolean; error: string | null; code?: string | null; deliberation?: DeliberationRef }): void {
+  try {
+    const exp = appendExperience({
+      actor: LEARN_ACTOR,
+      action: LEARN_ACTION,
+      outcomeAt: k.at,
+      kind: k.kind,
+      ok: k.ok,
+      error: k.error,
+      code: k.code ?? null,
+      deliberation: k.deliberation ?? null,
+      source: "act-receipt",
+      ref: `act-receipt:${k.at}`,
+    });
+    if (exp) {
+      const gate = readGate();
+      runAdaptation(LEARN_ACTOR, LEARN_ACTION, gate.mode);
+      const lb = readLearnedBackoff();
+      state.learning = { backoffMin: lb.backoffMin, epistemic: lb.epistemic, suspended: lb.suspended, streak: lb.evidence?.streak ?? undefined, updatedAt: lb.updatedAt };
+    }
+  } catch { /* הלמידה כולה אינה רשאית להפיל את הפעימה */ }
+}
+
+/** קריאת-הצינון-האפקטיבי: בסיס-החוק + ההתאמה-הנלמדת (עם-ראיות) */
+function effectiveCooldown(): { base: number; learned: number; total: number; evidence: string } {
+  try {
+    const lb = readLearnedBackoff();
+    const learned = lb.suspended || !lb.chainOk ? 0 : lb.backoffMin;
+    const ev = learned > 0 && lb.evidence
+      ? `ראיות: ${lb.evidence.streak} כישלונות רצופים זהים (exp#${lb.evidence.experienceSeqs[0]}–#${lb.evidence.experienceSeqs[lb.evidence.experienceSeqs.length - 1]})`
+      : lb.suspended ? "הלמידה מושעית (שרשרת-זיכרון לא-מאומתת) — בסיס-חוק"
+      : "";
+    return { base: POLICY.cooldownMin, learned, total: POLICY.cooldownMin + learned, evidence: ev };
+  } catch {
+    return { base: POLICY.cooldownMin, learned: 0, total: POLICY.cooldownMin, evidence: "" };
+  }
+}
+
+// r205 — זריעת-הניסיון ההיסטורי (סעיף VIII בהנחיה: הכישלונות שכבר נצפו
+// הם חומר-המבחן — לא דמו מלאכותי). אידמפוטנטי לגמרי (ref = זמן-התוצאה).
+// קישור-תחזית כנה: דיון-חי ≤5 דק' לפני-התוצאה; מחוץ-לספר = null (כנות).
+function seedHistoryExperiences(): void {
+  try {
+    const h: Array<Record<string, unknown>> = JSON.parse(fs.readFileSync(HISTORY_FILE, "utf8"));
+    if (!Array.isArray(h)) return;
+    const delibs = readDeliberations(200);
+    const isGridAct = (k: string) => /^(REPRICE|ARM-BUY|STOCK-SBD|ARENA-STREAM|HIVE-REPRICE|GATE-QUEUED|FILL-DEPLOY|BID-ONLY)/.test(k);
+    let seeded = 0;
+    for (const e of h) {
+      const kind = String(e.kind ?? "");
+      if (!isGridAct(kind)) continue;
+      const at = String(e.at ?? "");
+      if (!at || Number.isNaN(Date.parse(at))) continue;
+      const isFail = kind.endsWith("-FAIL");
+      const t = Date.parse(at);
+      const delib = delibs
+        .filter((x) => x.action === "grid-act" && x.actor === "money-mover" && Date.parse(x.at) <= t && t - Date.parse(x.at) <= 5 * 60_000)
+        .pop();
+      const rec = appendExperience({
+        actor: LEARN_ACTOR,
+        action: LEARN_ACTION,
+        outcomeAt: at,
+        kind,
+        ok: !isFail && kind !== "GATE-QUEUED",
+        error: isFail ? String(e.error ?? kind) : null,
+        code: kind === "GATE-QUEUED" ? "GATE-QUEUED" : null,
+        deliberation: delib && delib.seq && delib.entryHash ? { seq: delib.seq, entryHash: delib.entryHash, expected: delib.expected } : null,
+        source: "history-seed",
+        ref: `history-seed:${at}`,
+      });
+      if (rec) seeded += 1;
+    }
+    if (seeded > 0) {
+      const gate = readGate();
+      runAdaptation(LEARN_ACTOR, LEARN_ACTION, gate.mode);
+      console.log(`[money-mover] r205: זריעת-ניסיון ${seeded} רשומות → התאמה חושבה`);
+    }
+    const lb = readLearnedBackoff();
+    state.learning = { backoffMin: lb.backoffMin, epistemic: lb.epistemic, suspended: lb.suspended, streak: lb.evidence?.streak ?? undefined, updatedAt: lb.updatedAt };
+    saveState();
+  } catch { /* זריעה לא מפילה עלייה */ }
 }
 
 // ── שער-סודות לקנון: שום מפתח לא עובר ─────────────────────────────
@@ -325,9 +423,12 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   if (state.lastActionAt) {
     const sinceMin = (now.getTime() - new Date(state.lastActionAt).getTime()) / 60_000;
     const shortCool = state.fillDeployPending && state.lastActionOk !== false;
-    const cooldownNow = shortCool ? POLICY.fillDeploy.cooldownMin : POLICY.cooldownMin;
+    // r205 — צינון-אפקטיבי: בסיס-החוק + התאמה-נלמדת (רק על נתיב-הניסיון-החוזר;
+    // צינון-המילוי המקוצר נותר-שלם — הוא מופעל על-ידי ביקוש-חי, לא על-ידי הניסיונות שלנו)
+    const lc = shortCool ? { base: POLICY.fillDeploy.cooldownMin, learned: 0, total: POLICY.fillDeploy.cooldownMin, evidence: "" } : effectiveCooldown();
+    const cooldownNow = lc.total;
     if (sinceMin < cooldownNow) {
-      return { act: false, reason: `WAIT-COOLDOWN · עוד ${Math.ceil(cooldownNow - sinceMin)} דק'${shortCool ? " · FILL-DEPLOY חמוש (מילוי נמדד)" : ""}` };
+      return { act: false, reason: `WAIT-COOLDOWN · עוד ${Math.ceil(cooldownNow - sinceMin)} דק'${shortCool ? " · FILL-DEPLOY חמוש (מילוי נמדד)" : ""}${lc.learned > 0 ? ` · צינון-נלמד +${lc.learned}' (${lc.evidence})` : ""}` };
     }
   }
   // תקציב
@@ -536,6 +637,7 @@ async function act(
   action: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream" = "reprice",
   target: "steem" | "hive" = "steem",
   tag?: "fill-deploy",
+  deliberation?: DeliberationRef, // r205 — רף-התחזית שנכתבה לפני (לקישור-ניסיון)
 ): Promise<boolean> {
   state.acting = true;
   actStartedAt = Date.now();
@@ -652,6 +754,7 @@ async function act(
   };
   saveState();
   appendHistory({
+    at: finishedAt, // r205-adv מ.2 — זהות-האירוע מאוחדת: ההיסטוריה ורשומת-הניסיון חולקות את אותו חותמת → אין-כפילות-ראיות בזריעה
     kind: state.lastDecision.kind,
     reason,
     parity: parityAt,
@@ -660,6 +763,17 @@ async function act(
     // r191 · חוק-ייחוס-פקודות: ספירת-פקודות-זרות שדולגו (כנות-תיאום בין-סוכנים)
     foreignSkipped: foreignSkippedCount,
     error: r.error ?? r.receipt?.error ?? null,
+  });
+  // r205 — סגירת-הלולאה: התוצאה הנמדדת הופכת ניסיון משורשר (תחזית→תוצאה),
+  // הניסיון עשוי לשנות את מדיניות-הקצב העתידית בתוך גבולות-החוק,
+  // וההחלטה-הבאה קוראת את המדיניות-הנלמדת. זה ההבדל בין logging ל-learning.
+  learnFromOutcome({
+    at: finishedAt,
+    kind: state.lastDecision.kind,
+    ok: !!r.ok,
+    error: (r.error ?? r.receipt?.error ?? null) as string | null,
+    code: (r.code ?? null) as string | null,
+    deliberation,
   });
   // קבלה לקנון אחרי כל פעולה (שער-סודות בפנים)
   const receipt = [
@@ -953,7 +1067,7 @@ async function tick() {
         state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gA.why };
         saveState();
       } else {
-        await act(d.reason, d.action ?? "reprice", "steem", d.tag);
+        await act(d.reason, d.action ?? "reprice", "steem", d.tag, gA.deliberation); // r205 — התחזית נוסעת עם הפעולה
       }
     } else {
       // R101c — חוק-הברזל לשתי הרגליים: צינון + תקציב חלים גם על HIVE.
@@ -962,9 +1076,11 @@ async function tick() {
       const sinceMin = state.lastActionAt
         ? (now.getTime() - new Date(state.lastActionAt).getTime()) / 60_000
         : null;
+      // r205 — התצוגה כנה: הצינון האפקטיבי כולל את ההתאמה-הנלמדת + הראיות
+      const lcDisplay = effectiveCooldown();
       const cooldownBlock =
-        sinceMin != null && sinceMin < POLICY.cooldownMin
-          ? `WAIT-COOLDOWN · עוד ${Math.ceil(POLICY.cooldownMin - sinceMin)} דק'`
+        sinceMin != null && sinceMin < lcDisplay.total
+          ? `WAIT-COOLDOWN · עוד ${Math.ceil(lcDisplay.total - sinceMin)} דק'${lcDisplay.learned > 0 ? ` · צינון-נלמד +${lcDisplay.learned}' (${lcDisplay.evidence})` : ""}`
           : null;
       const budgetBlock =
         state.actionsToday >= POLICY.actionsBudgetPerDay
@@ -988,7 +1104,7 @@ async function tick() {
             state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gH.why };
             saveState();
           } else {
-            await act(dh.reason, "reprice", "hive");
+            await act(dh.reason, "reprice", "hive", undefined, gH.deliberation); // r205 — התחזית נוסעת עם הפעולה
           }
         } else {
           state.lastDecision = {
@@ -1045,7 +1161,8 @@ if (G_MONEY_SRV.__MONEY_SERVER__) {
 }
 
 saveState();
-console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · R112 bounded-wait + watchdog`);
+seedHistoryExperiences(); // r205 — הניסיון ההיסטורי זורע לפני-הפעימה הראשונה
+console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · r205 לולאת-למידה חיה (backoff=${state.learning?.backoffMin ?? 0}')`);
 tick();
 // R111 — law of the single timer (R109 lesson, applied to money):
 // bun --hot re-evaluates the module but does NOT clear the old interval —
