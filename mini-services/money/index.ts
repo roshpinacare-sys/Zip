@@ -35,6 +35,11 @@ import { readGate, autonomyVerdict, appendDeliberation, readDeliberations } from
 // →אות-למידה→שינוי-מצב→החלטה-עתידית-שונה). החיבור כולו fail-closed:
 // כל שגיאת-למידה נבלעת — הדיבון ממשיך בדיוק כמו לפני (בסיס-החוק).
 import { appendExperience, runAdaptation, readLearnedBackoff, applyMisattributionCorrection, PRE_ACTION_REFUSAL_CODES, type DeliberationRef } from "../learning";
+// r207 — שכבת-ההעדפות הנלמדות (trace 1a10d1ddb659450d · מפרט-חוסם I1–I8 של שופט-הבטיחות):
+// advisory-only · חד-כיוונית-שמרנית (יכולה רק לדכא פעולה ל-WAIT — לעולם לא לכפות) ·
+// אוצר-מילים סגור · שופט-חוץ (ראיות מספרים-שהמודול לא כותב) · תפוגת-תוקף + שחרור ב-3 מדידות-סותרות.
+// כשל-מודול = אפס-העדפות = חוק-הבסיס שלפני-r207 (fail-open לדיכוי-בלבד).
+import { notePreferenceCondition, activeDown, rebuildFromBook } from "../preferences";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -113,7 +118,7 @@ function utcDay(d = new Date()): string {
 function readState(): MoneyState {
   const base: MoneyState = {
     service: "money-mover",
-    version: "1.11.0", // r206 — ייחוס-אמת + דיון-נוסע-לשער + תיקון-אמונה מטא-קוגניטיבי
+    version: "1.12.0", // r207 — שכבת-העדפות-נלמדות (advisory-only) · תיקון-חיישן powerdown · איטום F-1
     bootedAt: new Date().toISOString(),
     beats: 0,
     checkIntervalSec: CHECK_INTERVAL_SEC,
@@ -462,6 +467,17 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
     idleNow >= POLICY.liquidityStream.waveSteem &&
     state.lastStreamDay !== today
   ) {
+    // r207 — צרכן-ההעדפות (I3: advisory-בלבד): זרימת-הנזילות מזריעה עומק-בריכות.
+    // העדפה-נלמדת grid-pool-seed DOWN (ראיות מעוגנות: sovereign/objectives/options.json
+    // #unitErrorCorrection — סף-הזריעה האמיתי ~160 WSTEEM ולא 96 · צד-SBD בלתי-ממומן)
+    // דוכאת את הזרימה עד שהרג'ים יתהפך (3 מדידות SBD≥3.0 רצופות) או תפוגת-תוקף.
+    // ההעדפה לעולם לא כופה פעולה — רק מצמצמת ל-WAIT; כשל-קריאה = אין-העדפה = חוק-בסיס.
+    try {
+      const prefDown = activeDown("grid-pool-seed");
+      if (prefDown) {
+        return { act: false, reason: `WAIT-PREFERENCE · גל-דלק נמדד אך הזרעה-לבריכות דכויה בהעדפה-נלמדת grid-pool-seed DOWN (seq ${prefDown.seq} · ראיות: ${prefDown.evidence.map((e) => e.book.split("/").pop()).join(", ")}) · פוגה ${prefDown.expiresAt} · הדלק נשאר נזיל` };
+      }
+    } catch { /* כשל-מודול-העדפות = אין-העדפה (חוק-בסיס) */ }
     return {
       act: true,
       action: "arena-stream",
@@ -1077,6 +1093,17 @@ async function tick() {
       state.fleetSeen = wm;
     } catch { /* גוב-הצי לעולם לא מפיל את המדידה */ }
 
+    // r207 — מדידת-תנאי-ההעדפה בכל-פעימה (I7): רג'ים-ה-SBD. תנאי-שלילי + ראיות-מעוגנות
+    // ⇒ כתיבת-העדפה (דדופ-מובנה); 3 מדידות-חיוביות רצופות ⇒ שחרור. כשל נבלע-כנה.
+    try {
+      const sbdBal = Number(meas?.sbdArming?.balance ?? 0);
+      const prefRes = notePreferenceCondition("grid-pool-seed", sbdBal >= 3.0, sbdBal < 3.0 ? [
+        { book: "sovereign/objectives/options.json", ref: "unitErrorCorrection", value: "סף-זריעה אמיתי ~160 WSTEEM (תיקון-שגיאת-יחידות 96) · צד-SBD בלתי-ממומן" },
+        { book: "sovereign/objectives/capabilities.json", ref: "C5", value: `SBD מדיד ${sbdBal.toFixed(3)} — מתחת-למימון-צד-העטיפה` },
+      ] : undefined);
+      if (prefRes.wrote) appendHistory({ kind: `PREF-${prefRes.wrote === "PREFERENCE-UPDATE" ? "DOWN" : "RELEASE"}`, reason: `grid-pool-seed: ${prefRes.wrote} (advisory)`, parity: null, placed: 0, cancelled: 0, error: null });
+    } catch { /* ההעדפות לעולם לא מפילות את הפעימה */ }
+
     const d = await decide(meas);
     const now = new Date();
     if (d.act) {
@@ -1259,6 +1286,9 @@ async function auditMisattribution(): Promise<void> {
 }
 
 saveState();
+// r207 — שחזור-שכבת-ההעדפות מהספר לפני-הפעימה-הראשונה (התאמה לספרי-הלמידה:
+// מוות→שחזור · שרשרת-שבורה ⇒ suspended fail-closed, אף-העדפה לא מומצאת מחדש)
+try { rebuildFromBook(); } catch { /* כשל-שחזור = אפס-העדפות (חוק-בסיס) */ }
 seedHistoryExperiences(); // r205 — הניסיון ההיסטורי זורע לפני-הפעימה הראשונה
 void auditMisattribution(); // r206 — ביקורת-ייחוס עצמית מול ספר-השער (append-only · fail-closed · אידמפוטנטי)
 console.log(`[money-mover] חי על פורט ${PORT} · beats=${state.beats} · actionsToday=${state.actionsToday} · r205 לולאת-למידה חיה (backoff=${state.learning?.backoffMin ?? 0}')`);

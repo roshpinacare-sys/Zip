@@ -780,8 +780,14 @@ async function sense(): Promise<Omit<MoneySense, "cached" | "stale" | "cacheAgeS
       const shares = parseFloat(g.total_vesting_shares);
       const perVest = shares > 0 ? fund / shares : 0;
       powerdown.weeklySteem = Math.round(rate * perVest * 1000) / 1000;
-      powerdown.paymentsLeft = rate > 0 ? Math.min(13, Math.ceil(toWithdraw / rate)) : 0;
-      powerdown.totalRemainingSteem = Math.round(toWithdraw * perVest * 1000) / 1000;
+      // r207 · תיקון-חיישן (ממצא r207-b, מדיד מהשרשרת 17:44Z): to_withdraw הוא הסכום-הכולל
+      // ולא הנותר — הנוסחה הקודמת לא החסירה withdrawn וספרה 3 תשלומים שכבר בוצעו
+      // (1,427.83 SP) שוב ⇒ «4 תשלומים / 1,903.77 SP» במקום האמת «1 / 475.94 SP».
+      // יתרת-אמת = to_withdraw − withdrawn (אין-פגיעה בסמכות — חיישן בלבד).
+      const withdrawn = Number(a.withdrawn ?? 0) / 1e6;
+      const remainingVests = Math.max(0, toWithdraw - withdrawn);
+      powerdown.paymentsLeft = rate > 0 ? Math.min(13, Math.ceil(remainingVests / rate)) : 0;
+      powerdown.totalRemainingSteem = Math.round(remainingVests * perVest * 1000) / 1000;
     } catch {
       down.push("vesting-props: down");
     }

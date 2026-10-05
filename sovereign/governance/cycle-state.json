@@ -2,25 +2,24 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 342,
-  "lastCycleAt": "2026-10-05T17:06:03.999Z",
-  "lastDecisionId": "D-r143-342",
+  "cycles": 349,
+  "lastCycleAt": "2026-10-05T18:38:28.170Z",
+  "lastDecisionId": "D-r143-349",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 10509 דק' · כלכלה: pnl-snapshots seq=13 (realizedSbd=-1.509569 · trips=274 · unrealizedPremiumSbd=0.04323 · orders=3 · בת 367 דק') · מילויי-שרשרת 368 (maxIndex=66039)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 10601 דק' · כלכלה: pnl-snapshots seq=13 (realizedSbd=-1.509569 · trips=274 · unrealizedPremiumSbd=0.04323 · orders=3 · בת 459 דק') · מילויי-שרשרת 368 (maxIndex=66071)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-05T17:06:00.625Z",
-    "verdict": "DENY",
-    "score": 30,
+    "at": "2026-10-05T18:38:24.229Z",
+    "verdict": "REVIEW",
+    "score": 45,
     "reasonsHe": [
-      "פעולה ללא מספרי-עלות/ערך מדודים — חוק-הראיה-הכלכלית דורש מספרי ביקוש לפני השקה",
-      "הפעולה לא שויכה לעסק קיים — חוק-העלות-השולית לא יכול להיות מיושם",
-      "killLineAware לא דווח — חוק-שורת-ההרג דורש רישום מראש",
-      "פעולת ממשל ללא ערך מדוד חורגת מהפרדת גינה-מול-ברז"
+      "חוק-הראיה-הכלכלית: פעולה ללא מספרי-עלות/ערך מדודים (estimatedCost: לא דווח, expectedValue: לא דווח) חסרה ראיה מספרית לביקוש ולערך",
+      "חוק-שורת-ההרג: חסרה ראיה על killLineAware מדודה מראש (killLineAware: לא דווח)",
+      "הפעולה נמצאת במסגרת מחזור ממשל (governance-cycle) ואינה דורשת הון חדש (spend: false), אך חסרות המדידות מציבות אותה בקצה התחתון של טווח ה-REVIEW"
     ],
-    "actionsToday": 2,
+    "actionsToday": 5,
     "cap": 16,
-    "actionId": "D-r143-342"
+    "actionId": "D-r143-349"
   }
 }

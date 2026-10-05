@@ -23,6 +23,7 @@ import {
   appendDeliberation,
 } from "@/lib/autonomy-law";
 import { db } from "@/lib/db";
+import { operatorFromRequest } from "@/lib/operator-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,16 @@ function readDeliberationsTotal(): number {
 
 export async function POST(req: Request) {
   try {
+    // r207 · איטום F-1 (ממצא שופט-הבטיחות r207-e): שינוי-מצב-שער הוא סמכות-מפעיל בלבד.
+    // קודם-לכן כל לקוח מקומי/רשתי היה יכול להפוך THINKING→ACTIVE ולהוריד את
+    // דרישת-הדיון — כלומר להרחיב-סמכות בלי-מפעיל. fail-closed: בלי-סשן = 401.
+    const session = operatorFromRequest(req);
+    if (!session) {
+      return NextResponse.json(
+        { ok: false, error: "OPERATOR-REQUIRED: שינוי-שער-האוטונומיה מותר למפעיל מחובר בלבד" },
+        { status: 401 },
+      );
+    }
     const body = (await req.json().catch(() => ({}))) as { mode?: string; reason?: string; by?: string };
     const mode = String(body?.mode ?? "").toUpperCase();
     if (mode !== "PAUSED" && mode !== "THINKING" && mode !== "ACTIVE") {
@@ -132,7 +143,8 @@ export async function POST(req: Request) {
     if (reason.length < 4) {
       return NextResponse.json({ ok: false, error: "REASON-REQUIRED: סיבה מחייבת — כל שינוי-שער מתועד" }, { status: 400 });
     }
-    const by = String(body?.by ?? "operator").slice(0, 60);
+    // r207: ייחוס-אמת — מצב-השער נקבע תחת-סשן מאומת (מפתח-ציבורי-פעיל), לא תחת-טענה-חופשית
+    const by = `operator:${session.pub.slice(0, 16)}…${String(body?.by ?? "").slice(0, 30)}`.slice(0, 60);
     const prev = readGate();
     const gate = writeGate({ mode, reason, setBy: by });
 
