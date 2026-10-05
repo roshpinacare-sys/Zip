@@ -1,7 +1,7 @@
 {
   "bootedAt": "2026-10-05T09:04:41.460Z",
-  "scans": 227,
-  "lastScanAt": "2026-10-05T12:50:45.394Z",
+  "scans": 228,
+  "lastScanAt": "2026-10-05T12:51:45.409Z",
   "lastScanOk": true,
   "lastError": null,
   "markets": {
@@ -12,73 +12,22 @@
     "exchange": "ok",
     "stableUsd": "derived"
   },
-  "opportunities": [
-    {
-      "id": "steem-internal-buy-vs-cex",
-      "klass": "book-vs-cex",
-      "direction": "buy-book/sell-cex",
-      "sizeUsd": 5,
-      "netBps": 271.8,
-      "netUsd": 0.1359,
-      "maxFeasibleUsd": 50,
-      "legs": [
-        {
-          "venue": "steem-internal",
-          "side": "buy-asks",
-          "price": 0.1035262871784588,
-          "feeBps": 75
-        },
-        {
-          "venue": "cex",
-          "side": "sell",
-          "price": 0.06276,
-          "feeBps": 10,
-          "cexReference": true
-        }
-      ],
-      "cexReference": true,
-      "at": "2026-10-05T12:50:45.394Z",
-      "notes": "VWAP-asks מול CEX ייחוס; stable=$0.585172"
-    },
-    {
-      "id": "steem-vs-hive-books",
-      "klass": "crosschain-parity",
-      "direction": "buy-steem-book/sell-hive-book",
-      "sizeUsd": 5,
-      "netBps": 181.4,
-      "netUsd": 0.0907,
-      "maxFeasibleUsd": 50,
-      "legs": [
-        {
-          "venue": "steem-internal",
-          "side": "buy-asks",
-          "price": 0.1035262871784588,
-          "feeBps": 75
-        },
-        {
-          "venue": "cex-cross",
-          "side": "steem→hive",
-          "price": 0.9145952836201403,
-          "feeBps": 10,
-          "cexReference": true
-        },
-        {
-          "venue": "hive-internal",
-          "side": "sell-bids",
-          "price": 0.057626605250080794,
-          "feeBps": 75
-        }
-      ],
-      "cexReference": true,
-      "at": "2026-10-05T12:50:45.394Z",
-      "notes": "שני-הספרים הפנימיים; חיבור-STEEM↔HIVE ב-CEX ייחוס"
-    }
-  ],
+  "opportunities": [],
   "parity": {
-    "steemDevBps": -441.4,
+    "steemDevBps": 0,
     "hiveDevBps": 0
   },
   "history": [
+    {
+      "at": "2026-10-05T12:51:45.409Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 242
+    },
     {
       "at": "2026-10-05T12:50:45.394Z",
       "ok": true,
@@ -648,16 +597,6 @@
         "hiveDevBps": 0
       },
       "ms": 1133
-    },
-    {
-      "at": "2026-10-05T12:01:44.620Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1278
     }
   ]
 }
