@@ -1,0 +1,271 @@
+{
+ "at": "2026-10-05T22:39:07.167Z",
+ "law": "שער-פתיחת-מושב (R208P): אין עבודה בלי אימות-ספר · PROVEN אינו נפתח-מחדש — רק מופרך · ההפרכה נרשמת",
+ "genesis": "ec560b2208f1ba7b",
+ "head": "32890071ce7c99b5f43368d3553fdbe7ae21bc4d4f67036fd89a38f705099031",
+ "totalEntries": 15,
+ "claims": {
+  "proven": 11,
+  "open": 4,
+  "refuted": 0
+ },
+ "chainOk": true,
+ "evidenceChecks": {
+  "total": 19,
+  "drift": 0
+ },
+ "evidenceDrift": [],
+ "repro": {
+  "ran": 15,
+  "failed": 1,
+  "results": [
+   {
+    "claimId": "R208-J-15WORLDS",
+    "cmd": "bun sovereign/tmp/r208/replay-world.mts W0-no-wave && bun sovereign/tmp/r208/replay-world.mts W-A-live-truth && bun sovereign/tmp/r208/replay-world.mts W-B1-release-sbd-funded && bun sovereign/tmp/r208/replay-world.mts W-B1b-release-sbd-unfunded && bun sovereign/tmp/r208/replay-world.mts W-B2-tampered-pref && bun sovereign/tmp/r208/replay-world.mts W-B2b-tampered-nopref && bun sovereign/tmp/r208/replay-world.mts W-B3-stale-nopref && bun sovereign/tmp/r208/replay-world.mts W-B5-nopref-sbd-funded && bun sovereign/tmp/r208/replay-world.mts W-B6-resource-depleted && bun sovereign/tmp/r208/replay-world.mts W-B7-authority-forbidden && bun sovereign/tmp/r208/replay-world.mts W-B8-pref-expired && bun sovereign/tmp/r208/replay-world.mts W-B9-model-missing && bun sovereign/tmp/r208/replay-world.mts W-B10-unit-mismatch && bun sovereign/tmp/r208/replay-world.mts W-B11-stale-measurement && bun sovereign/tmp/r208/replay-world.mts W-B12-missing-measurement",
+    "exit": 0,
+    "expect": "",
+    "ok": true,
+    "durSec": 0,
+    "tail": "{\"world\":\"W-B10-unit-mismatch\",\"cfg\":{\"wave\":true,\"pref\":\"none\",\"sbd\":{\"value\":0.0625,\"unit\":\"USD/STEEM\"}},\"waveFires\":true,\"prefDown\":false,\"sbd\":0.0625,\"sbdUnit\":\"USD/STEEM\",\"viewReject\":\"UNIT-MISMATCH\",\"viewDetail\":\"ההכרעה דורשת SBD אך המדידה נושאת USD/STEEM — אין המרה-שקטה (לקח 0.1041)\",\"viewEpi"
+   },
+   {
+    "claimId": "R208R-CAUSAL-MATRIX-493",
+    "cmd": "bun sovereign/tmp/r208r/matrix-runner.mts",
+    "exit": 0,
+    "expect": "\"failed\": 0",
+    "ok": true,
+    "durSec": 23,
+    "tail": " }, |  \"elapsedSec\": 23 | }"
+   },
+   {
+    "claimId": "R208R-INDEPENDENT-PREDICTOR",
+    "cmd": "bun sovereign/tmp/r208r/matrix-runner.mts && bun sovereign/tmp/r208r/world-child.mts '{\"id\":\"PC-B1\",\"objectiveMode\":\"ok\",\"prefMode\":\"absent\",\"authMode\":\"valid\",\"sbd\":{\"value\":3.5},\"idleSteem\":210}'",
+    "exit": 0,
+    "expect": "\"independentVsBuiltin\": true",
+    "ok": false,
+    "durSec": 22,
+    "tail": " \"elapsedSec\": 22 | } | {\"id\":\"PC-B1\",\"axes\":{\"objective\":\"ok\",\"pref\":\"absent\",\"authority\":\"valid\",\"sensor\":\"VALID\",\"resource\":\"SUFFICIENT\"},\"inputs\":{\"sbd\":3.5,\"sbdUnit\":\"SBD\",\"sbdAgeSec\":0,\"idleNow\":210,\"thresholdOverride\":null},\"viewReject\":null,\"viewDetail\":null,\"seedVerdict\":\"QUALIFIED-AFTER-AR"
+   },
+   {
+    "claimId": "R208R-AUTHORITY-ANCHOR",
+    "cmd": "bun sovereign/tmp/r208/replay-world.mts W-B2b-tampered-nopref",
+    "exit": 0,
+    "expect": "MODEL-UNANCHORED",
+    "ok": true,
+    "durSec": 0,
+    "tail": "{\"world\":\"W-B2b-tampered-nopref\",\"cfg\":{\"wave\":true,\"pref\":\"none\",\"sbd\":{\"value\":0.015},\"tamper\":\"options\"},\"waveFires\":true,\"prefDown\":false,\"sbd\":0.015,\"sbdUnit\":\"SBD\",\"viewReject\":\"MODEL-UNANCHORED\",\"viewDetail\":\"options.json: בייטס-דיסק (cee2036af66a) ≠ עיגון (f81263041cb5) — שינוי-מודל-בלי-התאמ"
+   },
+   {
+    "claimId": "R208R-SENSOR-SEALED",
+    "cmd": "bun sovereign/tmp/r208r/integrity-lab.mts",
+    "exit": 0,
+    "expect": "29/29",
+    "ok": true,
+    "durSec": 0,
+    "tail": "PASS [X] S14|unmeasured-resets-release-streak: streak 2→0 — זקן-ישן לא שורד מדידה-נעדרת (§X: חוסר-מדידה ≠ 0) |  | TOTAL: 29/29 PASS"
+   },
+   {
+    "claimId": "R208R-ACCUMULATOR-CONSERVATION",
+    "cmd": "bun sovereign/tmp/r208r/accumulator-lab.mts",
+    "exit": 0,
+    "expect": "11/11",
+    "ok": true,
+    "durSec": 0,
+    "tail": "PASS [XI] X11|daemon-imports-same-module: dex-grid/index.ts מייבא accumulator.ts — מימוש-יחיד |  | TOTAL: 11/11 PASS"
+   },
+   {
+    "claimId": "R208R-PREFERENCE-LAB",
+    "cmd": "bun sovereign/tmp/r208r/pref-lab.mts",
+    "exit": 0,
+    "expect": "9/9",
+    "ok": true,
+    "durSec": 0,
+    "tail": "PASS [XVII] P9|expiry-by-time: activeDown אחרי-הזמן=לא-פעילה — ההעדפה אינה-נצחית (I7) |  | TOTAL: 9/9 PASS (+1 documented-limitation)"
+   },
+   {
+    "claimId": "R208-DEATH-SURVIVAL",
+    "cmd": "bun sovereign/tmp/r208/death-lab.mts || bun sovereign/tmp/r208r/death-lab.mts",
+    "exit": 0,
+    "expect": "TOTAL: 16/17",
+    "ok": true,
+    "durSec": 1,
+    "tail": "PASS [XVIII] chain-integrity-after-death+recovery: ספר-התחזיות משורשר ותקין לאחר מוות+החזרה (3 רשומות) |  | TOTAL: 16/17"
+   },
+   {
+    "claimId": "R208R-LIVE-REPLAY-TRUTH",
+    "cmd": "bun sovereign/tmp/r208/live-replay.mts",
+    "exit": 0,
+    "expect": "WAIT-PREFERENCE",
+    "ok": true,
+    "durSec": 0,
+    "tail": "{\"label\":\"A-live-truth-post-restart\",\"sbd\":0.015,\"prefActive\":true,\"viewReject\":null,\"rejectDetail\":null,\"seedVerdict\":\"NOT-QUALIFIED-NOW\",\"epistemic\":\"VERIFIED\",\"authorityForbidden\":false,\"expected\":\"WAIT-PREFERENCE\",\"decision\":\"WAIT-PREFERENCE\",\"reasonHead\":\"WAIT-PREFERENCE · גל-דלק נמדד אך הזרעה-"
+   },
+   {
+    "claimId": "R208P-BOOK-INTEGRITY",
+    "cmd": "bun run scripts/weave-verify-book.ts sovereign/ledger.json",
+    "exit": 0,
+    "expect": "VERDICT: הספר תקין",
+    "ok": true,
+    "durSec": 2,
+    "tail": " | ✓ VERDICT: הספר תקין — שרשרת, חתימות וראיות אומתו בחישוב-מחדש מלא. |   אמת לא נקנית בהצבעה; היא נגזרת מהקוד הזה. חוק 13 — מוחש."
+   },
+   {
+    "claimId": "R208P-HEARTBEAT-RECURRENT",
+    "cmd": "bun run scripts/weave-verify-book.ts sovereign/ledger.json && grep -c 'פעימת לב ריבונית' sovereign/ledger.json",
+    "exit": 0,
+    "expect": "VERDICT: הספר תקין",
+    "ok": true,
+    "durSec": 2,
+    "tail": "✓ VERDICT: הספר תקין — שרשרת, חתימות וראיות אומתו בחישוב-מחדש מלא. |   אמת לא נקנית בהצבעה; היא נגזרת מהקוד הזה. חוק 13 — מוחש. | 50"
+   },
+   {
+    "claimId": "R208-LIVE-POSITIVE-WORLD",
+    "cmd": "test ! -s sovereign/objectives/predictions.jsonl && echo LIVE-PREDICTION-LEDGER-STILL-EMPTY",
+    "exit": 0,
+    "expect": "LIVE-PREDICTION-LEDGER-STILL-EMPTY",
+    "ok": true,
+    "durSec": 0,
+    "tail": "LIVE-PREDICTION-LEDGER-STILL-EMPTY"
+   },
+   {
+    "claimId": "R208R-LIVE-PREDICTION-LEDGER-EMPTY",
+    "cmd": "ls sovereign/objectives/predictions.jsonl 2>/dev/null || echo EMPTY-NEVER-WRITTEN",
+    "exit": 0,
+    "expect": "EMPTY-NEVER-WRITTEN",
+    "ok": true,
+    "durSec": 0,
+    "tail": "EMPTY-NEVER-WRITTEN"
+   },
+   {
+    "claimId": "R208R-INTENT-WINDOW",
+    "cmd": "bun sovereign/tmp/r208r/death-lab.mts",
+    "exit": 0,
+    "expect": "K7-intent-last",
+    "ok": true,
+    "durSec": 1,
+    "tail": "PASS [XVIII] chain-integrity-after-death+recovery: ספר-התחזיות משורשר ותקין לאחר מוות+החזרה (3 רשומות) |  | TOTAL: 16/17"
+   },
+   {
+    "claimId": "X3-DOP01-RETURN-CRITERION",
+    "cmd": "grep -c 'D-OP-01 מושעה בהוראת-מפעיל' sovereign/objectives/objectives.json",
+    "exit": 0,
+    "expect": "1",
+    "ok": true,
+    "durSec": 0,
+    "tail": "1"
+   }
+  ]
+ },
+ "verdicts": {
+  "proven": [
+   {
+    "claimId": "R208-J-15WORLDS",
+    "seq": 1,
+    "scope": "LAB",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.661Z"
+   },
+   {
+    "claimId": "R208R-CAUSAL-MATRIX-493",
+    "seq": 2,
+    "scope": "LAB",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.662Z"
+   },
+   {
+    "claimId": "R208R-INDEPENDENT-PREDICTOR",
+    "seq": 3,
+    "scope": "LAB",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.663Z"
+   },
+   {
+    "claimId": "R208R-AUTHORITY-ANCHOR",
+    "seq": 4,
+    "scope": "STRUCTURAL",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.663Z"
+   },
+   {
+    "claimId": "R208R-SENSOR-SEALED",
+    "seq": 5,
+    "scope": "LAB",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.663Z"
+   },
+   {
+    "claimId": "R208R-ACCUMULATOR-CONSERVATION",
+    "seq": 6,
+    "scope": "LAB",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.664Z"
+   },
+   {
+    "claimId": "R208R-PREFERENCE-LAB",
+    "seq": 7,
+    "scope": "LAB",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.664Z"
+   },
+   {
+    "claimId": "R208-DEATH-SURVIVAL",
+    "seq": 8,
+    "scope": "LIVE",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.664Z"
+   },
+   {
+    "claimId": "R208R-LIVE-REPLAY-TRUTH",
+    "seq": 9,
+    "scope": "LIVE",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.664Z"
+   },
+   {
+    "claimId": "R208P-BOOK-INTEGRITY",
+    "seq": 10,
+    "scope": "NETWORK",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.669Z"
+   },
+   {
+    "claimId": "R208P-HEARTBEAT-RECURRENT",
+    "seq": 11,
+    "scope": "NETWORK",
+    "verdict": "PROVEN",
+    "at": "2026-10-05T22:38:04.674Z"
+   }
+  ],
+  "open": [
+   {
+    "claimId": "R208-LIVE-POSITIVE-WORLD",
+    "seq": 12,
+    "scope": "LIVE",
+    "verdict": "UNOBSERVED",
+    "claim": "חציית-גבול-חי-חיובית: UNOBSERVED — העולם לא סיפק גל ≥200 STEEM (נזיל-חי 10.792 · אפס-ARENA-STREAM-אי-פעם); האורגניזם אסור-לו-ליצור-את-האירוע; הלכידה חמושה-קבוע "
+   },
+   {
+    "claimId": "R208R-LIVE-PREDICTION-LEDGER-EMPTY",
+    "seq": 13,
+    "scope": "LIVE",
+    "verdict": "UNOBSERVED",
+    "claim": "ספר-התחזיות-החי (sovereign/objectives/predictions.jsonl): 0 שורות אי-פעם — אף-גבול-חי-לא-נכתב; המעבדות כתבו-רק-לעותקיהן; אפס-המצאת-גל-חי."
+   },
+   {
+    "claimId": "R208R-INTENT-WINDOW",
+    "seq": 14,
+    "scope": "STRUCTURAL",
+    "verdict": "OPEN",
+    "claim": "חלון-כפילות-פעולה intent-last (בין-שידור-חוץ לשמירת-תוצאה): חשוף-מכנית (K7 actions=2 — הודגם-חי בסבב זה), מוגן-משולש (lastActionAt-בפתיחה R93 + תקציב-מוקדם + ני"
+   },
+   {
+    "claimId": "X3-DOP01-RETURN-CRITERION",
+    "seq": 15,
+    "scope": "STRUCTURAL",
+    "verdict": "OPEN",
+    "claim": "X3: D-OP-01 (הכנסה > $0.01/יום) מושעה בהוראת-מפעיל בלי-קריטריון-מדיד-לחזרה ל-ACTIVE — סתירה-פתוחה במודל (objectives.json#contradictions[2])."
+   }
+  ],
+  "refuted": []
+ }
+}
