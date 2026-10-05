@@ -1,23 +1,109 @@
 {
   "bootedAt": "2026-10-05T09:04:41.460Z",
-  "scans": 859,
-  "lastScanAt": "2026-10-05T23:22:55.768Z",
+  "scans": 861,
+  "lastScanAt": "2026-10-05T23:24:55.779Z",
   "lastScanOk": true,
   "lastError": null,
   "markets": {
     "steem": "ok",
     "hive": "ok",
-    "blurt": "fail",
+    "blurt": "empty",
     "cex": "ok",
     "exchange": "fail",
     "stableUsd": "derived"
   },
-  "opportunities": [],
+  "opportunities": [
+    {
+      "id": "steem-internal-buy-vs-cex",
+      "klass": "book-vs-cex",
+      "direction": "buy-book/sell-cex",
+      "sizeUsd": 10,
+      "netBps": 494.4,
+      "netUsd": 0.4944,
+      "maxFeasibleUsd": 50,
+      "legs": [
+        {
+          "venue": "steem-internal",
+          "side": "buy-asks",
+          "price": 0.10197532098959768,
+          "feeBps": 75
+        },
+        {
+          "venue": "cex",
+          "side": "sell",
+          "price": 0.06322,
+          "feeBps": 10,
+          "cexReference": true
+        }
+      ],
+      "cexReference": true,
+      "at": "2026-10-05T23:24:55.779Z",
+      "notes": "VWAP-asks מול CEX ייחוס; stable=$0.585728"
+    },
+    {
+      "id": "steem-vs-hive-books",
+      "klass": "crosschain-parity",
+      "direction": "buy-steem-book/sell-hive-book",
+      "sizeUsd": 10,
+      "netBps": 392.6,
+      "netUsd": 0.3926,
+      "maxFeasibleUsd": 50,
+      "legs": [
+        {
+          "venue": "steem-internal",
+          "side": "buy-asks",
+          "price": 0.10197532098959768,
+          "feeBps": 75
+        },
+        {
+          "venue": "cex-cross",
+          "side": "steem→hive",
+          "price": 0.9174311926605505,
+          "feeBps": 10,
+          "cexReference": true
+        },
+        {
+          "venue": "hive-internal",
+          "side": "sell-bids",
+          "price": 0.05773691097357851,
+          "feeBps": 75
+        }
+      ],
+      "cexReference": true,
+      "at": "2026-10-05T23:24:55.779Z",
+      "notes": "שני-הספרים הפנימיים; חיבור-STEEM↔HIVE ב-CEX ייחוס"
+    }
+  ],
   "parity": {
-    "steemDevBps": 0,
+    "steemDevBps": -679.8,
     "hiveDevBps": 0
   },
   "history": [
+    {
+      "at": "2026-10-05T23:24:55.779Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 494.4,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -679.8,
+        "hiveDevBps": 0
+      },
+      "ms": 774
+    },
+    {
+      "at": "2026-10-05T23:23:55.772Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 235
+    },
     {
       "at": "2026-10-05T23:22:55.768Z",
       "ok": true,
@@ -587,31 +673,6 @@
         "hiveDevBps": 0
       },
       "ms": 1763
-    },
-    {
-      "at": "2026-10-05T22:34:54.946Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 557.8,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -740.5,
-        "hiveDevBps": 0
-      },
-      "ms": 516
-    },
-    {
-      "at": "2026-10-05T22:33:54.937Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1047
     }
   ]
 }
