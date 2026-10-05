@@ -1,8 +1,8 @@
 {
   "service": "money-mover",
-  "version": "1.9.0",
-  "bootedAt": "2026-10-05T09:04:41.501Z",
-  "beats": 3375,
+  "version": "1.10.0",
+  "bootedAt": "2026-10-05T15:02:35.244Z",
+  "beats": 3479,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -41,33 +41,40 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-05T13:47:41.758Z",
+  "lastActionAt": "2026-10-05T15:00:37.225Z",
   "actionsToday": 0,
   "actionDay": "2026-10-05",
   "acting": false,
   "lastDecision": {
-    "at": "2026-10-05T13:54:41.743Z",
+    "at": "2026-10-05T15:13:35.297Z",
     "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 24 דק' · WAIT-COOLDOWN · עוד 24 דק'"
+    "detail": "WAIT-COOLDOWN · עוד 138 דק' · צינון-נלמד +120' (ראיות: 10 כישלונות רצופים זהים (exp#23–#32)) · WAIT-COOLDOWN · עוד 138 דק' · צינון-נלמד +120' (ראיות: 10 כישלונות רצופים זהים (exp#23–#32))"
   },
   "canonLast": {
-    "at": "2026-10-05T12:47:45.075Z",
+    "at": "2026-10-05T14:18:09.361Z",
     "ok": true,
     "path": "reports/money-2026-10-05.md"
   },
   "fillsSeen": 7,
   "fillDeployPending": false,
   "lastActionOk": false,
-  "lastDepositScanAt": "2026-10-05T13:50:41.757Z",
+  "lastDepositScanAt": "2026-10-05T15:11:35.315Z",
   "lastStreamDay": "2026-09-27",
   "lastTotalSteem": 10.792,
   "fleetSeen": {
     "pulseDay": "2026-10-05",
     "studentDay": "2026-10-05",
-    "keeperRestartAt": "2026-10-04T20:17:18.789Z"
+    "keeperRestartAt": "2026-10-05T14:30:47.121Z"
   },
-  "lastPoolGuardAt": "2026-10-05T13:49:41.759Z",
-  "lastFleetSweepAt": "2026-10-05T13:51:05.294Z",
+  "lastPoolGuardAt": "2026-10-05T15:03:35.320Z",
+  "lastFleetSweepAt": "2026-10-05T15:12:35.302Z",
   "autonomyMode": "THINKING",
-  "autonomyHeldCount": 78
+  "autonomyHeldCount": 78,
+  "learning": {
+    "backoffMin": 120,
+    "epistemic": "inferred-bounded",
+    "suspended": false,
+    "streak": 10,
+    "updatedAt": "2026-10-05T14:24:39.649Z"
+  }
 }
