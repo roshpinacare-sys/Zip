@@ -1,7 +1,7 @@
 {
   "bootedAt": "2026-10-05T09:04:41.460Z",
-  "scans": 864,
-  "lastScanAt": "2026-10-05T23:27:55.803Z",
+  "scans": 893,
+  "lastScanAt": "2026-10-05T23:56:56.277Z",
   "lastScanOk": true,
   "lastError": null,
   "markets": {
@@ -12,73 +12,397 @@
     "exchange": "ok",
     "stableUsd": "derived"
   },
-  "opportunities": [
-    {
-      "id": "steem-internal-buy-vs-cex",
-      "klass": "book-vs-cex",
-      "direction": "buy-book/sell-cex",
-      "sizeUsd": 10,
-      "netBps": 472.9,
-      "netUsd": 0.4729,
-      "maxFeasibleUsd": 50,
-      "legs": [
-        {
-          "venue": "steem-internal",
-          "side": "buy-asks",
-          "price": 0.1021705342924282,
-          "feeBps": 75
-        },
-        {
-          "venue": "cex",
-          "side": "sell",
-          "price": 0.0632,
-          "feeBps": 10,
-          "cexReference": true
-        }
-      ],
-      "cexReference": true,
-      "at": "2026-10-05T23:27:55.803Z",
-      "notes": "VWAP-asks מול CEX ייחוס; stable=$0.585628"
-    },
-    {
-      "id": "steem-vs-hive-books",
-      "klass": "crosschain-parity",
-      "direction": "buy-steem-book/sell-hive-book",
-      "sizeUsd": 10,
-      "netBps": 371.4,
-      "netUsd": 0.3714,
-      "maxFeasibleUsd": 50,
-      "legs": [
-        {
-          "venue": "steem-internal",
-          "side": "buy-asks",
-          "price": 0.1021705342924282,
-          "feeBps": 75
-        },
-        {
-          "venue": "cex-cross",
-          "side": "steem→hive",
-          "price": 0.9177215189873418,
-          "feeBps": 10,
-          "cexReference": true
-        },
-        {
-          "venue": "hive-internal",
-          "side": "sell-bids",
-          "price": 0.057742472645012095,
-          "feeBps": 75
-        }
-      ],
-      "cexReference": true,
-      "at": "2026-10-05T23:27:55.803Z",
-      "notes": "שני-הספרים הפנימיים; חיבור-STEEM↔HIVE ב-CEX ייחוס"
-    }
-  ],
+  "opportunities": [],
   "parity": {
-    "steemDevBps": -678.4,
+    "steemDevBps": 0,
     "hiveDevBps": 0
   },
   "history": [
+    {
+      "at": "2026-10-05T23:56:56.277Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 241
+    },
+    {
+      "at": "2026-10-05T23:55:56.260Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 1154
+    },
+    {
+      "at": "2026-10-05T23:54:56.242Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": null,
+        "hiveDevBps": 0
+      },
+      "ms": 9707
+    },
+    {
+      "at": "2026-10-05T23:53:56.223Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 241
+    },
+    {
+      "at": "2026-10-05T23:52:56.199Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "crosschain-parity",
+        "netBps": 467.1,
+        "sizeUsd": 5
+      },
+      "parity": {
+        "steemDevBps": -679.8,
+        "hiveDevBps": 0
+      },
+      "ms": 1129
+    },
+    {
+      "at": "2026-10-05T23:51:56.186Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "crosschain-parity",
+        "netBps": 458.2,
+        "sizeUsd": 5
+      },
+      "parity": {
+        "steemDevBps": -676.9,
+        "hiveDevBps": 0
+      },
+      "ms": 1561
+    },
+    {
+      "at": "2026-10-05T23:50:56.171Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "crosschain-parity",
+        "netBps": 456.2,
+        "sizeUsd": 5
+      },
+      "parity": {
+        "steemDevBps": -676.8,
+        "hiveDevBps": 0
+      },
+      "ms": 515
+    },
+    {
+      "at": "2026-10-05T23:49:56.169Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "crosschain-parity",
+        "netBps": 464.1,
+        "sizeUsd": 5
+      },
+      "parity": {
+        "steemDevBps": -684.1,
+        "hiveDevBps": 0
+      },
+      "ms": 799
+    },
+    {
+      "at": "2026-10-05T23:48:56.162Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 444.1,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -689.4,
+        "hiveDevBps": 0
+      },
+      "ms": 889
+    },
+    {
+      "at": "2026-10-05T23:47:56.159Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 446.7,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -687.8,
+        "hiveDevBps": 0
+      },
+      "ms": 2142
+    },
+    {
+      "at": "2026-10-05T23:46:56.131Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 241
+    },
+    {
+      "at": "2026-10-05T23:45:56.110Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 445.3,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -686.4,
+        "hiveDevBps": 0
+      },
+      "ms": 890
+    },
+    {
+      "at": "2026-10-05T23:44:56.109Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": null,
+        "hiveDevBps": 0
+      },
+      "ms": 9818
+    },
+    {
+      "at": "2026-10-05T23:43:56.081Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 445,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -686.2,
+        "hiveDevBps": 0
+      },
+      "ms": 607
+    },
+    {
+      "at": "2026-10-05T23:42:56.062Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 445,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -686.2,
+        "hiveDevBps": 0
+      },
+      "ms": 845
+    },
+    {
+      "at": "2026-10-05T23:41:56.050Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 441.7,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -683.2,
+        "hiveDevBps": 0
+      },
+      "ms": 1636
+    },
+    {
+      "at": "2026-10-05T23:40:56.034Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 241
+    },
+    {
+      "at": "2026-10-05T23:39:56.006Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 440.4,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -679.7,
+        "hiveDevBps": 0
+      },
+      "ms": 862
+    },
+    {
+      "at": "2026-10-05T23:38:55.983Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 427.1,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -667.8,
+        "hiveDevBps": 0
+      },
+      "ms": 2375
+    },
+    {
+      "at": "2026-10-05T23:37:55.966Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 427.1,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -667.8,
+        "hiveDevBps": 0
+      },
+      "ms": 865
+    },
+    {
+      "at": "2026-10-05T23:36:55.950Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 427.2,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -667.9,
+        "hiveDevBps": 0
+      },
+      "ms": 865
+    },
+    {
+      "at": "2026-10-05T23:35:55.931Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 427.2,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -667.9,
+        "hiveDevBps": 0
+      },
+      "ms": 1769
+    },
+    {
+      "at": "2026-10-05T23:34:55.906Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 425.4,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -666.3,
+        "hiveDevBps": 0
+      },
+      "ms": 500
+    },
+    {
+      "at": "2026-10-05T23:33:55.885Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 494.5,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -666.3,
+        "hiveDevBps": 0
+      },
+      "ms": 901
+    },
+    {
+      "at": "2026-10-05T23:32:55.861Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 498.7,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -671.6,
+        "hiveDevBps": 0
+      },
+      "ms": 1756
+    },
+    {
+      "at": "2026-10-05T23:31:55.840Z",
+      "ok": true,
+      "oppCount": 2,
+      "best": {
+        "klass": "book-vs-cex",
+        "netBps": 479.3,
+        "sizeUsd": 10
+      },
+      "parity": {
+        "steemDevBps": -668.8,
+        "hiveDevBps": 0
+      },
+      "ms": 510
+    },
+    {
+      "at": "2026-10-05T23:30:55.824Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 880
+    },
+    {
+      "at": "2026-10-05T23:29:55.813Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 7667
+    },
+    {
+      "at": "2026-10-05T23:28:55.807Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 0,
+        "hiveDevBps": 0
+      },
+      "ms": 287
+    },
     {
       "at": "2026-10-05T23:27:55.803Z",
       "ok": true,
@@ -333,341 +657,6 @@
         "hiveDevBps": 0
       },
       "ms": 1199
-    },
-    {
-      "at": "2026-10-05T23:06:55.422Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 300
-    },
-    {
-      "at": "2026-10-05T23:05:55.408Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 819
-    },
-    {
-      "at": "2026-10-05T23:04:55.387Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 352.2,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -749.8,
-        "hiveDevBps": 0
-      },
-      "ms": 1803
-    },
-    {
-      "at": "2026-10-05T23:03:55.363Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 252
-    },
-    {
-      "at": "2026-10-05T23:02:55.336Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 347.1,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -745,
-        "hiveDevBps": 0
-      },
-      "ms": 1104
-    },
-    {
-      "at": "2026-10-05T23:01:55.326Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": null,
-        "hiveDevBps": 0
-      },
-      "ms": 9209
-    },
-    {
-      "at": "2026-10-05T23:00:55.311Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 370.3,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -749.8,
-        "hiveDevBps": 0
-      },
-      "ms": 6580
-    },
-    {
-      "at": "2026-10-05T22:59:55.311Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 793
-    },
-    {
-      "at": "2026-10-05T22:58:55.295Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1272
-    },
-    {
-      "at": "2026-10-05T22:57:55.277Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1114
-    },
-    {
-      "at": "2026-10-05T22:56:55.260Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 859
-    },
-    {
-      "at": "2026-10-05T22:55:55.249Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 367.2,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -747.1,
-        "hiveDevBps": 0
-      },
-      "ms": 1486
-    },
-    {
-      "at": "2026-10-05T22:54:55.233Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 238
-    },
-    {
-      "at": "2026-10-05T22:53:55.227Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 371.8,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -751.2,
-        "hiveDevBps": 0
-      },
-      "ms": 521
-    },
-    {
-      "at": "2026-10-05T22:52:55.211Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 896
-    },
-    {
-      "at": "2026-10-05T22:51:55.210Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 367.3,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -744.5,
-        "hiveDevBps": 0
-      },
-      "ms": 1549
-    },
-    {
-      "at": "2026-10-05T22:50:55.202Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 242
-    },
-    {
-      "at": "2026-10-05T22:49:55.185Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 367.3,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -744.5,
-        "hiveDevBps": 0
-      },
-      "ms": 1109
-    },
-    {
-      "at": "2026-10-05T22:48:55.158Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1219
-    },
-    {
-      "at": "2026-10-05T22:47:55.133Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 369.2,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -746.3,
-        "hiveDevBps": 0
-      },
-      "ms": 806
-    },
-    {
-      "at": "2026-10-05T22:46:55.132Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 819
-    },
-    {
-      "at": "2026-10-05T22:45:55.126Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1403
-    },
-    {
-      "at": "2026-10-05T22:44:55.104Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1337
-    },
-    {
-      "at": "2026-10-05T22:43:55.084Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 824
-    },
-    {
-      "at": "2026-10-05T22:42:55.081Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 1288
-    },
-    {
-      "at": "2026-10-05T22:41:55.062Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 243
-    },
-    {
-      "at": "2026-10-05T22:40:55.039Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 823
-    },
-    {
-      "at": "2026-10-05T22:39:55.016Z",
-      "ok": true,
-      "oppCount": 2,
-      "best": {
-        "klass": "book-vs-cex",
-        "netBps": 550.4,
-        "sizeUsd": 10
-      },
-      "parity": {
-        "steemDevBps": -736.6,
-        "hiveDevBps": 0
-      },
-      "ms": 4591
-    },
-    {
-      "at": "2026-10-05T22:38:55.001Z",
-      "ok": true,
-      "oppCount": 0,
-      "parity": {
-        "steemDevBps": 0,
-        "hiveDevBps": 0
-      },
-      "ms": 235
     }
   ]
 }

@@ -2,24 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 353,
-  "lastCycleAt": "2026-10-05T23:26:35.556Z",
-  "lastDecisionId": "D-r143-353",
+  "cycles": 356,
+  "lastCycleAt": "2026-10-05T23:56:18.493Z",
+  "lastDecisionId": "D-r143-356",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 10889 דק' · כלכלה: pnl-snapshots seq=13 (realizedSbd=-1.509569 · trips=274 · unrealizedPremiumSbd=0.04323 · orders=3 · בת 747 דק') · מילויי-שרשרת 368 (maxIndex=66134)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 10919 דק' · כלכלה: pnl-snapshots seq=13 (realizedSbd=-1.509569 · trips=274 · unrealizedPremiumSbd=0.04323 · orders=3 · בת 777 דק') · מילויי-שרשרת 368 (maxIndex=66142)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-05T23:26:30.534Z",
+    "at": "2026-10-05T23:56:15.669Z",
     "verdict": "DENY",
-    "score": 35,
+    "score": 30,
     "reasonsHe": [
-      "פעולה ללא מספרי-עלות/ערך מדודים (estimatedCost, expectedValue, killLineAware, reversible לא דווחים) — חוק-הראיה-הכלכלית דורש מספרי-ביקוש מדודים לפני השקה",
-      "על-פי חוק-הקיבולת, תקציב-פעולות היום הוא 10/16, והפעולה דורשת הקצאה של עסק חדש (business=1) ללא ראיית-עלות-שולית מדודה — חוק-העלות-השולית קובע שעסק חדש דורש הון/תשתית רק אחרי שהעלות-השולית הוכחה",
-      "ללא רישום killLine מדוד מראש — חוק-שורת-ההרג דורש עסק-שורף קו-רג כתוב מראש, והפעולה כוללת ביצוע פעולה בלי שורת-הרג מדודה"
+      "לא דווחים מספרי-עלות/ערך מדודים (חוק-הראיה-הכלכלית)",
+      "לא דווחה שורת-הרג מדודה מראש (חוק-שורת-ההרג)",
+      "הפעולה לא תורמת ערך מדוד לקיבולת התקציב (חוק-הקיבולת)",
+      "מידה/ממשל/ראיה אינה פעולה עסקית מדודה (חוק-העלות-השולית)"
     ],
     "actionsToday": 10,
     "cap": 16,
-    "actionId": "D-r143-353"
+    "actionId": "D-r143-356"
   }
 }
