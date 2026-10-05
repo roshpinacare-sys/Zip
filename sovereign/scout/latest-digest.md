@@ -1,49 +1,68 @@
-# דיג'סט-סייר-השוק · seq 14 · 2026-10-04T20:12:47.209Z
+# דיג'סט-סייר-השוק · seq 15 · 2026-10-05T09:05:13.891Z
 
-שבוע: 2026-W40 · משך-סיור: 12s · שרשרת: 889d3cc5a3… → 20ac221dfe…
+שבוע: 2026-W41 · משך-סיור: 17s · שרשרת: 20ac221dfe… → 48d815c852…
 
 ## הקשר-מחיר STEEM
-- HTTP 429 — unmeasured (unmeasured — נרשם בכנות)
+- API חי: **$0.06263** (coingecko)
 
 ## steem-market — measured
 - שאילתא: "STEEM price" → 6 תוצאות (חלון 7 ימים)
 - שאילתא: "Steem blockchain news" → 6 תוצאות (חלון 7 ימים)
-- [Steem Price, STEEM Price, Live Charts, and Marketcap](https://www.coinbase.com) — www.coinbase.com
-  > Steem (STEEM) Price EUR Today is 0,03913 € . News, predictions, charts, market cap, buy, sell, convert, and invest on the most trusted platform for crypto.
-- [Steem Price Today Live](https://in.investing.com) — in.investing.com
-  > Live Steem data, market capitalization, charts, prices , trades and volumes. Create real-time notifications and alerts.
-- [Live STEEM/USD Rate, Market Cap & STEEM Price Chart](https://coincodex.com) — coincodex.com
-  > Steem price today is $ 0.06742 with a trading volume of $ 29.58M and market cap of $ 37.69M. STEEM price increased 7.1% in the last 24 hours.
+- [Trade STEEM/USD](https://capital.com) — capital.com
+  > On 1 July 2016, the cryptocurrency was priced at $0.23. STEEM hit a high of $4.45 , an increase of more than 2000%. trading below $1 until April 2021. it traded ...
+- [Steem Price](https://paybis.com) — paybis.com
+  > STEEM price charts, historical data and currency converter … $0.06773 +7.898% Market cap$37,858,962.86 Volume (24h)$16,819,034.02 Highest price (24h)$0.07111 ...
 - [Steem Price USD, STEEM Price Live Charts, Market Cap](https://www.bitget.com) — www.bitget.com
   > The live Steem price today is $0.06464 USD , with a current market cap of $36.16M. The Steem price is up by 1.76% in the last 24 hours, and the 24-hour trading ... Read more
-- [STEEMUSD - Steem Price Chart](https://in.tradingview.com) — in.tradingview.com · Jul 7, 2018
-  > Jul 7, 2018 — What is Steem price today? The current price of Steem (STEEM) is 0.065935 USD — it has risen 3.24% in the past 24 hours. Try placing this info ... Read more
-- [Trade STEEM/USD](https://capital.com) — capital.com
-  > The token has spent the majority of its life trading in the sub-$1 range, but there have been several spikes in the STEEM /dollar price over the last few years. Read more
+- [Steem (STEEM) Price Live](https://coinalyze.net) — coinalyze.net
+  > Pair - Exchange, Price, 1H % ; STEEM / USDT Poloniex, 0.063, +0.00 ; STEEM / USDT Binance, 0.063, -0.13 ; STEEM / USDT Perp Binance, 0.063, -0.03 ; STEEM / USDT ... Read more
+- [Live STEEM/USD Rate, Market Cap & STEEM Price Chart](https://coincodex.com) — coincodex.com
+  > Steem price today is $ 0.06742 with a trading volume of $ 29.58M and market cap of $ 37.69M. STEEM price increased 7.1% in the last 24 hours.
+- [Steem price today: STEEM/USD, STEEM/EUR live price](https://www.bitpanda.com) — www.bitpanda.com
+  > Buying Steem (STEEM) on Bitpanda is easy, fast, and secure. Check the current STEEM value and live chart and get to know more about STEEM.
 
 ## competitive-landscape — measured
-- שאילתא: "on-chain AI agent economy protocol" → 6 תוצאות
-- [A2V Protocol: On-Chain AI Agent Value & Settlement](https://mcpmarket.com) — mcpmarket.com
-  > A2V Protocol empowers AI agents to measure, exchange, and settle value on-chain within a decentralized network.
-- [Carbon Markets for the Agent Economy: Inside the x402](https://www.klimaprotocol.com) — www.klimaprotocol.com · Aug 18, 2026
-  > Aug 18, 2026 — How the Klima x402 endpoint lets AI agents read live carbon market data and retire carbon credits on Base, and why blockchains suit agentic ...
-- [how ERC-8004 and x402 turn AI into a market participant](https://forklog.com) — forklog.com · Mar 27, 2026
-  > Mar 27, 2026 — On-chain reputation is decisive for an AI agent , directly affecting its economic efficiency. A human can switch banks or open a new account; for ... Read more
-- [[Draft] Fungible Agent Tokens (FAT) — a minimal standard](https://ethereum-magicians.org) — ethereum-magicians.org · Jul 31, 2026
-  > Jul 31, 2026 — Fungible Agent Tokens (FAT) — a minimal standard for AI agents as on-chain economic entities. Three ways to bound that: keep pure settlement ...
-- [Crypto AI Protocol Landscape: Building a New Operating](https://support.token.im) — support.token.im · Jun 21, 2026
-  > Jun 21, 2026 — In short, what the AI Agent economy needs is not just smarter models, but an open, composable, and scalable protocol stack. This is exactly ... Read more
-- [OKX rolls out protocol for autonomous AI agents to pay and](https://www.tradingview.com) — www.tradingview.com · Apr 30, 2026
-  > Apr 30, 2026 — The new cross- chain Agent Payments Protocol (APP) is designed to let AI agents operate and communicate autonomously.
+- שאילתא: "AI agent verification network protocol" → 7 תוצאות
+- [Proof Launches x401, the Open Protocol for Verifying](https://www.proof.com) — www.proof.com
+  > x401 , an open, issuer-neutral protocol that lets any website or API ask for and verify the identity behind agents.
+- [Introducing Agent Transfer Protocol (AGTP) - AI](https://chrishood.com) — chrishood.com · Mar 19, 2026
+  > Mar 19, 2026 — AGTP is a dedicated application-layer protocol for AI agent traffic. It sits above TLS and below any agent messaging protocol . It is composable ... Read more
+- [Agent Communication Protocols](https://datatracker.ietf.org) — datatracker.ietf.org · Sep 16, 2026
+  > Sep 16, 2026 — AI agents act as autonomous software entities that may need to be authenticated independently of the users they represent. Establishing ... Read more
+- [Artificial Intelligence Verification for Large Language Model](https://techtransfer.universityofcalifornia.edu) — techtransfer.universityofcalifornia.edu
+  > It is a comprehensive end-to-end framework that checks AI behavior against protocols written in natural language and structured using Finite State Machines ( ...
+- [Google's open standard for AI agents to discover and verify](https://www.helpnetsecurity.com) — www.helpnetsecurity.com · Jun 18, 2026
+  > Jun 18, 2026 — Google's Agentic Resource Discovery is an open specification for finding and verifying AI tools, skills, and agents across the web.
+- [Visa Trusted Agent Protocol (TAP): 2026 Guide](https://www.paz.ai) — www.paz.ai · May 4, 2026
+  > May 4, 2026 — Visa TAP is Visa's agent-payment authorization protocol that verifies AI agents at transaction time and lets them initiate payments on behalf ...
+
+## breakthrough-candidate — measured
+- שאילתא: "decentralized reputation system design" → 6 תוצאות (חלון 90 ימים)
+- [Decentralized Identity: Your Reputation Travels With You](https://a16zcrypto.com) — a16zcrypto.com · Nov 18, 2021
+  > Nov 18, 2021 — decentralized identities are backed by hard evidence: a permanent, timestamped record of a person's accomplishments, contributions, interests, ...
+- [On Designs of Decentralized Reputation Management for](https://www.techscience.com) — www.techscience.com
+  > This paper aims to design an off-chain reputation evaluation and an on-chain reputation-aided consensus . First, we evaluate the nodes' reputation
+- [Privacy Preserving Reputation Systems for Decentralized](https://perso.liris.cnrs.fr) — perso.liris.cnrs.fr
+  > 2010 · Cited by 19 — In this thesis, we present privacy preserving reputation protocols, that are decentralized , do not require specialized platforms nor trusted third parties, pr
+- [Decentralized Anonymous Reputation at Scale for](https://doi.org) — doi.org
+  > These results demonstrate that anonymity, robust reputation binding, and scalability can be jointly achieved in fully decentralized crowdsourcing systems. Read more
+- [DARS: Empowering Trust in Blockchain-Based Real-World](https://hal.science) — hal.science · Mar 14, 2024
+  > Mar 14, 2024 — Blockchain-based Reputation Systems (BRS ) are a recent and essential development in decentralized trust and reputation management.
+- [Decentralized reputation](https://core.ac.uk) — core.ac.uk
+  > The design of decentralized systems increases availability of services as reliance on a single entity is removed. However, decentralization may affect ... Read more
 
 ## תובנות חתומות
-- **INS-14-MKT**: הקשר-מחיר STEEM: API חי unmeasured · טווח-ציטוטים חוצה-מקורות $0.0631..$0.06464 (3 אזכורי-מחיר ב-11 מקורות)
-  - מקור: https://www.coinbase.com
-  - מקור: https://in.investing.com
-  - מקור: https://coincodex.com
+- **INS-15-MKT**: הקשר-מחיר STEEM: API חי $0.06263 · טווח-ציטוטים חוצה-מקורות $0.06464..$4.45 (6 אזכורי-מחיר ב-12 מקורות)
+  - מקור: https://capital.com
+  - מקור: https://paybis.com
   - מקור: https://www.bitget.com
-- **INS-14-COMP**: נוף-תחרות: 6 תוצאות על 6 מארחים נבדלים · מצוטטים-ראשונים: A2V Protocol: On-Chain AI Agent Value & Settlement | Carbon Markets for the Agent Economy: Inside the x402 | how ERC-8004 and x402 turn AI into a market participant
-  - מקור: https://mcpmarket.com
-  - מקור: https://www.klimaprotocol.com
-  - מקור: https://forklog.com
-  - מקור: https://ethereum-magicians.org
+  - מקור: https://coinalyze.net
+- **INS-15-COMP**: נוף-תחרות: 7 תוצאות על 7 מארחים נבדלים · מצוטטים-ראשונים: Proof Launches x401, the Open Protocol for Verifying | Introducing Agent Transfer Protocol (AGTP) - AI | Agent Communication Protocols
+  - מקור: https://www.proof.com
+  - מקור: https://chrishood.com
+  - מקור: https://datatracker.ietf.org
+  - מקור: https://techtransfer.universityofcalifornia.edu
+- **INS-15-BT**: מועמד-פריצה (שבוע 2026-W41): "Decentralized Identity: Your Reputation Travels With You" — Nov 18, 2021 — decentralized identities are backed by hard evidence: a permanent, timestamped record of a person's accomplishments, contributions, interests, .. · מועמד-הערכה בלבד, לא אומץ
+  - מקור: https://a16zcrypto.com
+  - מקור: https://www.techscience.com
+  - מקור: https://perso.liris.cnrs.fr
