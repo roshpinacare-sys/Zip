@@ -1,12 +1,12 @@
 {
   "service": "market-maker",
   "version": "1.3.1-r192",
-  "bootedAt": "2026-10-05T09:20:42.432Z",
+  "bootedAt": "2026-10-05T09:36:42.408Z",
   "mode": "dry",
-  "lastTick": null,
-  "ticks": 722,
-  "centerPrice": 0.102168,
-  "spreadBps": 405,
+  "lastTick": "2026-10-05T10:00:44.444Z",
+  "ticks": 755,
+  "centerPrice": 0.102515,
+  "spreadBps": 23,
   "openOrders": [],
   "fills24h": 0,
   "volume24hSteem": 0,
@@ -30,15 +30,15 @@
   "pnlDay": "2026-10-05",
   "fillsSeen": 0,
   "internalFills": 0,
-  "lastFillBlock": 110157330,
+  "lastFillBlock": 110171349,
   "halted": false,
   "haltedAt": null,
   "haltedConfigMtimeMs": null,
   "killSwitch": false,
   "lastDecision": {
-    "at": "2026-10-05T09:27:43.485Z",
-    "kind": "AUTONOMY-PAUSED",
-    "detail": "שער-העצירה סגור — אין פריסה/ביטול/שימוש-בחיילים בגריד · הוראת המפעיל (trace 1a108e334b3129a9): עצור ובחן מה הסוכנים עושים — האוטונומיה רצה אוטומטית בלי חשיב"
+    "at": "2026-10-05T10:00:44.444Z",
+    "kind": "L3-SKEW-HALT",
+    "detail": "skew 0.9173 חורג-מסף-ההשהיה 0.6 (עומק בידים 442789 SBD מול אסקים 19098 SBD) — אפס-פעולת-ספר בפעימה (חוק-L3)"
   },
   "lastError": null,
   "registry": {},
@@ -46,7 +46,7 @@
     "configured": true,
     "effective": false,
     "verified": false,
-    "reason": "שימוש-בחיילים כבוי — חוק-העצירה r197 (PAUSED)",
+    "reason": "THINKING — שימוש-בחיילים בגריד דורש דיון מלא ואישור; לא בשימוש (חוק-r197)",
     "soldiersChecked": 0
   },
   "coordination": {
@@ -56,9 +56,9 @@
     "moverOrders": 3
   },
   "balances": {
-    "steemFree": 3.286,
+    "steemFree": 1.531,
     "sbdFree": 0.015,
-    "measuredAt": "2026-10-04T22:24:07.588Z"
+    "measuredAt": "2026-10-05T10:00:44.250Z"
   },
   "parityCenterSbd": 0.1041,
   "centerSource": "feed",
@@ -66,10 +66,10 @@
     "feeFloorBps": 75,
     "spreadBpsEffective": 180,
     "widened": true,
-    "skew": 0.919,
+    "skew": 0.9173,
     "halted": true,
-    "bidDepthSbd": 469344,
-    "askDepthSbd": 19805
+    "bidDepthSbd": 442789,
+    "askDepthSbd": 19098
   },
   "lastModeChange": {
     "at": "2026-10-04T07:56:31.930Z",

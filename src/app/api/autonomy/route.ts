@@ -73,8 +73,16 @@ export async function GET() {
       try {
         const s = JSON.parse(fs.readFileSync(p, "utf8")) as Record<string, unknown>;
         const ld = s.lastDecision as Record<string, unknown> | null;
+        const mk = s.markets as Record<string, unknown> | null | undefined;
+        const autonomyField =
+          typeof s.autonomy === "string"
+            ? (s.autonomy as string)
+            : mk && typeof mk.autonomy === "string"
+              ? (mk.autonomy as string)
+              : undefined;
         daemonStates[name] =
           (s.autonomyMode as string) ??
+          autonomyField ??
           (ld?.kind as string | undefined) ??
           String(ld?.detail ?? "").slice(0, 90) ??
           null;

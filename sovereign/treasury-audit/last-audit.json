@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 767,
-  "at": "2026-10-05T09:24:42.934Z",
+  "seq": 774,
+  "at": "2026-10-05T09:59:42.930Z",
   "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 330 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 334 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 330,
+        "entries": 334,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 12 תמונות (אחרונה seq 12 בת 10 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 12 תמונות (אחרונה seq 12 בת 45 דק')",
       "numbers": {
         "entries": 12,
         "brokenAt": null,
@@ -28,12 +28,12 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 765 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 4 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 9,
         "outOfOrder": 0,
-        "lastAgeMinutes": 765
+        "lastAgeMinutes": 4
       }
     },
     {
@@ -75,12 +75,12 @@
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 34.2ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 34.8ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 34.2
+        "toolAgeHours": 34.8
       }
     }
   ],
