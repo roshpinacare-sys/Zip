@@ -811,6 +811,88 @@ function profitWatchRun(h: HouseState): void {
   }
 }
 
+// ── r200 · עיגון-ראיות-החיילים (סתירה-#4 ב-RECONCILIATION) ─────────
+// r199 הוכיח-פעם-אחת: אפס-מימון-חיילים-מתים. הוכחה-חד-פעמית אינה
+// אינווריאנט — החוק עתה נמדד-חוזר-כל-30 דק', keyless לגמרי
+// (api.steemit.com בלבד — אפס-מפתחות, אפס-חתימות, אפס-כתיבה).
+// כל חריגה ⇒ SOLDIERS-ALARM ביומן-השומר. הראיות חיות-עתה-בקובץ-מצב
+// מובנה: sovereign/soldiers/snapshot.json — לא-רק-ביומן-עבודה.
+const SOLDIERS_SNAPSHOT_FILE = `${HOME}/sovereign/soldiers/snapshot.json`;
+const SOLDIERS = ["hcsoldier1", "hcsoldier2", "hcsoldier3"] as const;
+const SOLDIER_HEAD = "headcorner";
+const SOLDIER_MEASURE_MIN = 30;
+const SOLDIER_RPC = "https://api.steemit.com";
+let lastSoldiersAt = 0;
+
+async function steemRpcKeyless<T>(method: string, params: unknown): Promise<T> {
+  const res = await fetch(SOLDIER_RPC, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+    signal: AbortSignal.timeout(8000),
+  });
+  const j = (await res.json()) as { result?: T; error?: unknown };
+  if (j.error != null) throw new Error(`steem-rpc ${method}: ${JSON.stringify(j.error).slice(0, 120)}`);
+  return j.result as T;
+}
+
+interface SoldierRow { steem: string; sbd: string; vests: string; receivedVests: string; delegatedVests: string; }
+
+async function soldiersSnapshot(): Promise<void> {
+  if (Date.now() - lastSoldiersAt < SOLDIER_MEASURE_MIN * 60_000) return;
+  lastSoldiersAt = Date.now();
+  try {
+    type Acct = {
+      name: string; balance: string; sbd_balance: string;
+      vesting_shares: string; received_vesting_shares: string; delegated_vesting_shares: string;
+    };
+    const accounts = await steemRpcKeyless<Acct[]>("condenser_api.get_accounts", [[...SOLDIERS]]);
+    const soldiers: Record<string, SoldierRow> = {};
+    let alarm: string | null = null;
+    for (const name of SOLDIERS) {
+      const a = accounts.find((x) => x.name === name);
+      if (!a) { alarm = `${name}: נעדר-מהרשות — דרוש-תחקיר`; continue; }
+      soldiers[name] = {
+        steem: a.balance, sbd: a.sbd_balance, vests: a.vesting_shares,
+        receivedVests: a.received_vesting_shares, delegatedVests: a.delegated_vesting_shares,
+      };
+      const recv = Number(a.received_vesting_shares.split(" ")[0] ?? 0);
+      const delg = Number(a.delegated_vesting_shares.split(" ")[0] ?? 0);
+      if (recv > 0) alarm = `${name}: received_vesting=${a.received_vesting_shares} — מימון-חייל-נמדד-חי`;
+      else if (delg > 0 && alarm === null) alarm = `${name}: delegated=${a.delegated_vesting_shares} — חריג-חייל`;
+    }
+    type Expiration = { delegator: string; expiration: string; vesting_shares: { amount: string } };
+    const exp = await steemRpcKeyless<{ delegations: Expiration[] }>(
+      "database_api.find_vesting_delegation_expirations",
+      { account: SOLDIER_HEAD, limit: 1000 },
+    );
+    const vests = exp.delegations.map((d) => Number(d.vesting_shares?.amount ?? 0));
+    const dates = exp.delegations.map((d) => String(d.expiration ?? "")).filter(Boolean).sort();
+    const snap = {
+      schema: "soldiers-snapshot-v1",
+      measuredAt: new Date().toISOString(),
+      source: `${SOLDIER_RPC} · keyless · condenser_api.get_accounts + database_api.find_vesting_delegation_expirations`,
+      law: "אפס-מימון-חיילים-מתים (trace 1a10b605a4bf8da5 + 1a108e334b3129a9) — סתירה-#4: מדידה-חוזרת-כל-30-דק'",
+      soldiers,
+      fundingAlarm: alarm !== null,
+      fundingAlarmReason: alarm,
+      refundQueue: {
+        expirations: exp.delegations.length,
+        totalVests: Math.round((vests.reduce((s, v) => s + v, 0) / 1e6) * 1000) / 1000,
+        earliest: dates[0] ?? null,
+        latest: dates[dates.length - 1] ?? null,
+      },
+    };
+    fs.mkdirSync(`${HOME}/sovereign/soldiers`, { recursive: true });
+    const tmp = `${SOLDIERS_SNAPSHOT_FILE}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(snap, null, 2));
+    fs.renameSync(tmp, SOLDIERS_SNAPSHOT_FILE);
+    if (alarm !== null) record("SOLDIERS-ALARM", alarm, true);
+  } catch (e) {
+    record("SOLDIERS-ERR", String((e as Error)?.message ?? e).slice(0, 150), false);
+  }
+}
+
 function housekeeping(): void {
   const h = readHouseState();
   const now = new Date().toISOString();
@@ -1626,6 +1708,7 @@ if (!g.__keeperLoop) {
       await flushCanon();
       await revivalSweep();
       housekeeping(); // r188 — פיקוח-הגוף: דיסק + סריקת-סודות-מתוזמנת
+      void soldiersSnapshot(); // r200 — עיגון-חיילים: keyless-כל-30-דק' (לא-חוסם-את-הפעימה; לוכד-שגיאות-בעצמו)
     } catch (e: any) {
       record("ERROR", String(e?.message ?? e).slice(0, 160));
     } finally {

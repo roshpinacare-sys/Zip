@@ -780,6 +780,8 @@ Bun.serve({
 
 // ── לולאת-החיים ─────────────────────────────────────────────────────────
 
+const bootAtMs = Date.now(); // r200 — שעון-ה-dead-man מתחיל-מהעלייה, לא-מהמצב-המשורשר
+
 setTimeout(() => {
   void tick();
 }, BOOT_DELAY_MS);
@@ -794,7 +796,10 @@ setInterval(() => {
 
 installDeadManWatch({
   id: "content-factory",
-  lastMs: () => Date.parse(state.lastTickAt ?? state.bootedAt),
+  // r200 — לקח-חוצה-מיתת-סנדבוקס: lastTickAt ישן-במצב (נמדד: מ-10-02) הרג-כל-עלייה
+  // טרייה-אחרי-60ש' — אותו-גנוט-«מוות-מחזורי»-של-r150 בתחפושת. ה-dead-man נועד-
+  // לתפוס-תהליך-חי-שנתקע; עלייה-טרייה אינה תקיעה. שעון-הסטול = max(עלייה, טיק-אחרון).
+  lastMs: () => Math.max(Date.parse(state.lastTickAt ?? "") || 0, bootAtMs),
   stallMs: DEADMAN_STALL_MS, // r150: 18ש' לפי-החוק (היה 45דק' — מוות-מחזורי)
   logFile: HEARTBEAT,
   subject: "ticks",

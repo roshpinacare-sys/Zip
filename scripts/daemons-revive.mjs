@@ -33,6 +33,11 @@ const DAEMONS = [
   { name: "curation", port: 3040, dir: `${HOME}/mini-services/curation` }, // r128: דיבון האוצרות — הפעלת כוח-ההצבעה (עולה בגילוי-בלבד; חימוש בידי המפעיל)
   { name: "kpi", port: 3041, dir: `${HOME}/mini-services/kpi` }, // Z-9: מפקיד ה-KPI — הספר היומי הנמדד של משימת $1,000
   { name: "governance", port: 3042, dir: `${HOME}/mini-services/governance` }, // r142: דיבון-הממשל — פעימת-ההחלטות (D-OP-01): קורא למחזור החלטה בבית כל 10 דק'
+  { name: "treasury-audit", port: 3043, dir: `${HOME}/mini-services/treasury-audit` }, // r200: נמצא-חי-חוץ-לספר (ביקורת-r200) — אותו-פער-שקט; מבקר-האוצר עתה-מכוסה
+  { name: "scout-market", port: 3044, dir: `${HOME}/mini-services/scout-market` }, // r200: סורק-השוק — חי-חוץ-לספר; כיסוי-נסגר
+  { name: "business", port: 3045, dir: `${HOME}/mini-services/business` }, // r200: מנוע-העסקים — חי-חוץ-לספר; כיסוי-נסגר
+  { name: "content-factory", port: 3046, dir: `${HOME}/mini-services/content-factory` }, // r200: B-5 מפעל-התוכן — מת-עם-הסנדבוקס-ולא-הוקם (נמדד: אפס-מאזין); מנוע-ההכנסה-הראשון-שאינו-תלוי-הון, על-נתיב-ההכנסה (D-OP-01); כל-פרסום-עובר-econ-gate (REVIEW/DENY⇒אין-שידור)
+  // r200: decision-brain :3047 DORMANT-UNPROVISIONED — פייתון (/home/z/laya-eval/venv אבד-עם-הסנדבוקס; נמדד: חסר) ו-~2GB-RAM מול-צי-של-17-תהליכים על-4GB. אינו-מוקם-עד-אספקה-מחדש-מכוונת.
   { name: "llm-bridge", port: 3048, dir: `${HOME}/mini-services/llm-bridge` }, // r175: השער-הלשוני-היחיד — בלי-כיסוי-החייאה-היה-נקודת-כשל-יחידה (נמדד: 502-חד-פעמי-ב-gate-r175)
   { name: "dex-grid", port: 3051, dir: `${HOME}/mini-services/dex-grid` }, // r197: הגריד-המתנגד — היה-חוץ-לספר-ההחייאות-ומת-בשקט (נמדד); השער-האוטונומי שלו חי-בקוד
   { name: "market-maker", port: 3049, dir: `${HOME}/mini-services/market-maker` }, // r199: נמצא-חוץ-לכל-ספרי-ההחייאה (ביקורת-r199) — אותו-כשל-שקט-של-dex-grid-r197; מנוע-הגריד-הראשי-עתה-בספר
