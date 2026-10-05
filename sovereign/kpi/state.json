@@ -2,29 +2,29 @@
  "service": "kpi-scribe",
  "version": "1.0.0",
  "bootedAt": "2026-10-05T09:05:41.533Z",
- "beats": 1590,
+ "beats": 1620,
  "alive": true,
  "recording": false,
  "recordingSince": null,
- "lastRecordDay": "2026-10-04",
- "lastRecordAt": "2026-10-04T15:59:19.654Z",
+ "lastRecordDay": "2026-10-05",
+ "lastRecordAt": "2026-10-05T12:00:45.896Z",
  "lastResult": {
   "ok": true,
-  "day": "2026-10-04",
+  "day": "2026-10-05",
   "green": true,
   "streak": 1,
-  "revenuePerDayUsd": -0.0053,
+  "revenuePerDayUsd": 0,
   "pushes": {
    "history": true,
    "kpi": true
   },
   "notes": [],
-  "durationMs": 6435
+  "durationMs": 4274
  },
  "lastCi": {
-  "id": null,
-  "conclusion": "no-run-found",
-  "createdAt": null
+  "id": 37304153675,
+  "conclusion": "success",
+  "createdAt": "2026-10-05T11:37:41Z"
  },
  "secretsBlockedToday": 0,
  "secretsBlockDay": "2026-09-28",
@@ -106,6 +106,16 @@
   },
   {
    "at": "2026-10-04T15:59:19.654Z",
+   "path": "fleet/KPI.json",
+   "ok": true
+  },
+  {
+   "at": "2026-10-05T12:00:44.037Z",
+   "path": "fleet/KPI-history/2026-10-05.json",
+   "ok": true
+  },
+  {
+   "at": "2026-10-05T12:00:45.896Z",
    "path": "fleet/KPI.json",
    "ok": true
   }
@@ -205,6 +215,16 @@
    "at": "2026-10-04T19:53:30.428Z",
    "kind": "CENSUS-DONE",
    "detail": "exit=0 · 23ש'"
+  },
+  {
+   "at": "2026-10-05T12:00:41.621Z",
+   "kind": "SCHEDULE",
+   "detail": "ריצה יומית (hour>=12Z)"
+  },
+  {
+   "at": "2026-10-05T12:00:45.896Z",
+   "kind": "RECORD",
+   "detail": "day=2026-10-05 green=true pushed=true ($0/day)"
   }
  ],
  "censusGuard": {

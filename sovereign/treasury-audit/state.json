@@ -2,13 +2,16 @@
   "service": "treasury-audit",
   "format": "treasury-audit-daemon-state-v1",
   "bootedAt": "2026-10-01T23:45:47.048Z",
-  "beats": 797,
-  "lastBeatAt": "2026-10-05T11:54:41.938Z",
+  "beats": 802,
+  "lastBeatAt": "2026-10-05T12:19:41.970Z",
   "lastOk": true,
   "failStreak": 0,
   "verdict": "AUDITING",
-  "auditsCount": 797,
-  "lastAuditVerdict": "PASS",
-  "lastAuditAt": "2026-10-05T11:54:43.162Z",
-  "lastAnomalies": []
+  "auditsCount": 802,
+  "lastAuditVerdict": "WARN",
+  "lastAuditAt": "2026-10-05T12:19:43.475Z",
+  "lastAnomalies": [
+    "warn · ladder-floor: /api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+    "warn · balances-drift: יתרות-הבית לא נמדדו מ-/api/money — unmeasured"
+  ]
 }
