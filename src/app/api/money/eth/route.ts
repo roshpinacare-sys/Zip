@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { openEthVaultWallet, ethBalanceOf, ethSend } from "@/lib/dex/evm-wire";
+import { evaluateBrake, brakeLogLine } from "@/lib/cognition/brake"; // R30b: הבלם גם-כאן (Adversary-A census fix — trace 1a10d6f880df9255)
 import { openVaultEntryRaw } from "@/lib/dex/wallet-vault";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
 import { operatorFromRequest } from "@/lib/operator-auth";
@@ -97,6 +98,15 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const at = new Date().toISOString();
+  // R30b — הבלם-הריבוני בשפת-החתימה: שליחת-ETH היא הון (מסילת general).
+  const brake = evaluateBrake("eth-send");
+  console.log(brakeLogLine(brake));
+  if (brake.halt) {
+    return NextResponse.json(
+      { ok: false, at, error: `CAPITAL-BRAKE-HALT: הבלם-הריבוני עצר את שליחת-ה-ETH לפני החתימה — אפס שידורים. ${brake.reasons.join(" | ").slice(0, 240)}`, lane: brake.lane, reasons: brake.reasons },
+      { status: 423 },
+    );
+  }
   // R122 · חוק הסטטוס הכנה: JSON שגוי הוא 400 (שגיאת-לקוח); כשל-ביצוע
   // (שרשרת, כספת, DB) הוא 500 — לא מוסווה כשגיאת-קלט.
   let body: { action?: string; account?: string; to?: string; valueEth?: number };

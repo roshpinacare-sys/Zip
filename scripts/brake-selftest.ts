@@ -157,6 +157,10 @@ vec("V13 laneOf unknown tool → general (fail-closed mapping)", () => {
   assert(laneOf("mystery-signer") === "general", "unknown tool must map to general");
   assert(laneOf("money-mover") === "grid", "money-mover must map to grid");
   assert(laneOf("money-claim") === "claims", "money-claim must map to claims");
+  // R30b — Adversary-A census fix: every transfer rail maps to general (never staged-open)
+  for (const t of ["sol-send", "eth-send", "exchange-withdraw", "exchange-non-graphene-send"]) {
+    assert(laneOf(t) === "general", `${t} must map to general (transfers are never a staged lane)`);
+  }
 });
 
 vec("V14 guard + staged STASIS combined → guard halts a staged-allowed lane (two layers, most restrictive wins)", () => {

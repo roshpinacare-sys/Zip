@@ -12,6 +12,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { openSolVaultKeypair, solBalance, solSend } from "@/lib/dex/sol-wire";
+import { evaluateBrake, brakeLogLine } from "@/lib/cognition/brake"; // R30b: הבלם גם-כאן (Adversary-A census fix — trace 1a10d6f880df9255)
 import { spotUsd } from "@/lib/dex/price-feeds";
 import { openVaultEntryRaw } from "@/lib/dex/wallet-vault";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
@@ -102,6 +103,15 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const at = new Date().toISOString();
+  // R30b (trace 1a10d6f880df9255) — הבלם-הריבוני בשפת-החתימה: שליחת-SOL היא הון (מסילת general).
+  const brake = evaluateBrake("sol-send");
+  console.log(brakeLogLine(brake));
+  if (brake.halt) {
+    return NextResponse.json(
+      { ok: false, at, error: `CAPITAL-BRAKE-HALT: הבלם-הריבוני עצר את שליחת-ה-SOL לפני החתימה — אפס שידורים. ${brake.reasons.join(" | ").slice(0, 240)}`, lane: brake.lane, reasons: brake.reasons },
+      { status: 423 },
+    );
+  }
   // R122 · חוק הסטטוס הכנה: JSON שגוי הוא 400 (שגיאת-לקוח); כשל-ביצוע
   // (שרשרת, כספת, DB) הוא 500 — לא מוסווה כשגיאת-קלט.
   let body: {

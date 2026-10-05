@@ -36,6 +36,7 @@ import { solSend, solBalance, solRpc, decodeBase58Utf8, isValidSolPubkey, SOL_TR
 import { ethSend, ethBalanceOf, ETH_TREASURY_ADDR } from "@/lib/dex/evm-wire";
 import { spotUsdAll } from "@/lib/dex/price-feeds";
 import { chainGuard, chainLog, chainState, type ChainName } from "@/lib/weave/trigger-chain";
+import { evaluateBrake, brakeLogLine } from "@/lib/cognition/brake"; // R30b: הבלם גם-בכל-נתיבי-המשיכה (Adversary-A census fix)
 
 const HOME = "/home/z/my-project";
 const nodeRequire = createRequire(path.join(HOME, "package.json"));
@@ -993,6 +994,17 @@ async function nonGrapheneWithdrawRail(params: {
     };
   }
   // שריפת העטיפה קודם לשידור (סדר הפעולות עסקה — לקח R104)
+  // R30b — הבלם-הריבוני לפני-השידור (מסילת general): בדיקה אחרי שער-ה-$100 ולפני שריפת-העטיפה,
+  // כך שסירוב-בלם לא שורף עטיפה (אפס-תופעת-לוואי) ולא משדר.
+  const brakeNg = evaluateBrake("exchange-non-graphene-send");
+  console.log(brakeLogLine(brakeNg));
+  if (brakeNg.halt) {
+    return {
+      ok: false,
+      detail: `CAPITAL-BRAKE-HALT: הבלם-הריבוני עצר את המשיכה לפני השידור — אפס שידורים, העטיפה לא נשרפה. ${brakeNg.reasons.join(" | ").slice(0, 240)}`,
+      gate: { verdict: "BRAKE-HALT", id: null, usdValue },
+    };
+  }
   await adjust(member, asset, -amount);
   const send = asset === "WSOL"
     ? await solSend("cashmachine", toAccount, amount)
@@ -1067,6 +1079,16 @@ export async function withdraw(params: {
       };
     }
     // שריפת העטיפה + שידור אמיתי
+    // R30b — הבלם-הריבוני לפני-השידור (מסילת general): לפני שריפת-העטיפה — אפס-תופעת-לוואי.
+    const brakeWx = evaluateBrake("exchange-withdraw");
+    console.log(brakeLogLine(brakeWx));
+    if (brakeWx.halt) {
+      return {
+        ok: false,
+        detail: `CAPITAL-BRAKE-HALT: הבלם-הריבוני עצר את המשיכה לפני השידור — אפס שידורים, העטיפה לא נשרפה. ${brakeWx.reasons.join(" | ").slice(0, 240)}`,
+        gate: { verdict: "BRAKE-HALT", id: gate.id, usdValue },
+      };
+    }
     await adjust(member, asset, -amount);
     let send: { txid?: string | null; accepted?: boolean; note?: string } = { txid: null };
     if (asset === "WSTEEM" || asset === "WSBD") {
