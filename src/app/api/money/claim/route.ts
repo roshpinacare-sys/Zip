@@ -30,6 +30,7 @@ import path from "node:path";
 import steem from "steem";
 import type { GrapheneOperation } from "steem";
 import { readOwnerSource, steemSigningWif } from "@/lib/owner-key";
+import { evaluateBrake, brakeLogLine } from "@/lib/cognition/brake"; // R30: הבלם-הריבוני לפני-כל-שידור (trace 1a10d6f880df9255)
 import { rpcV4, STEEM_RPC_NODES, steemBroadcast } from "@/lib/weave/graphene";
 
 export const dynamic = "force-dynamic";
@@ -269,6 +270,13 @@ export async function POST(req: Request) {
     }
   } catch (e) {
     return refuse(503, "AUTHORITY-UNREACHABLE", `רשות-ה-active החיה לא נאמתה (${String((e as Error)?.message ?? e).slice(0, 80)}) — לא משדרים על-סמך אמון-עיוור`);
+  }
+
+  // 5b) R30 — הבלם-הריבוני בשפת-החתימה: STASIS + lane-guards (close-only), fail-closed, אפס-סודות.
+  const brake = evaluateBrake("money-claim");
+  console.log(brakeLogLine(brake));
+  if (brake.halt) {
+    return refuse(423, "CAPITAL-BRAKE-HALT", `הבלם-הריבוני עצר את מסילת-התביעות לפני השידור — אפס פעולות. סירוב-כנה. ${brake.reasons.join(" | ").slice(0, 240)}`, { lane: brake.lane, reasons: brake.reasons });
   }
 
   // 6) שידור claim_rewards — האופ הראשון שלו בקודבייס; sendAsync (דפוס R98)

@@ -75,6 +75,7 @@ import os from "node:os";
 import { createRequire } from "node:module";
 import { writeJsonAtomic, installDeadManWatch } from "../shared";
 import { readGate, autonomyVerdict, appendDeliberation } from "../autonomy";
+import { evaluateBrake, brakeLogLine } from "../../src/lib/cognition/brake"; // R30: הבלם-הריבוני לפני-כל-שידור (trace 1a10d6f880df9255)
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו ב-money-mover)
 declare const Bun: {
@@ -847,6 +848,13 @@ function signing(): { steem: any; wif: string; verified: boolean } {
 
 /** חוק R75 — השרשרת השופטת: הפומבי-הנגזר חייב להיאמת מול רשות-ה-active החיה. */
 async function verifySigner(): Promise<void> {
+  // R30 — הבלם-הריבוני בשפת-החתימה: STASIS + lane-guards (close-only), fail-closed, אפס-סודות.
+  // נבדק בכל-קריאה (לפני ה-return המוקדם של ctx.verified) — אחרת סורג חדש לא יתפוס חותם שני.
+  const brake = evaluateBrake("market-maker");
+  console.log(brakeLogLine(brake));
+  if (brake.halt) {
+    throw new Error(`CAPITAL-BRAKE-HALT: הבלם-הריבוני עצר את מסילת-הגריד לפני השידור — אפס פעולות. ${brake.reasons.join(" | ").slice(0, 240)}`);
+  }
   const ctx = signing();
   if (ctx.verified) return;
   const derivedPub = ctx.steem.auth.wifToPublic(ctx.wif);

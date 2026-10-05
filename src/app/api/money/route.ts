@@ -51,6 +51,7 @@ import { swrGet, cacheHeader, swrInvalidate } from "@/lib/live/swr";
 import { operatorFromRequest } from "@/lib/operator-auth";
 import { evaluateGate, settleGate } from "@/lib/weave/tx-gate";
 import { readOwnerSource } from "@/lib/owner-key"; // r137 · D-026: מקור-מפתח דו-מצבי
+import { evaluateBrake, brakeLogLine } from "@/lib/cognition/brake"; // R30: הבלם-הריבוני לפני-כל-שידור (trace 1a10d6f880df9255)
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -1163,6 +1164,18 @@ async function POST_core(req: Request) {
   const derivedPub = steem.auth.wifToPublic(wif);
   if (!liveActive || derivedPub !== liveActive) {
     return bad("המפתח שנגזר אינו תואם את רשות-ה-active החיה — שום דבר לא שודר. זו סירוב-כנה.", 409, { code: "KEY-MISMATCH" });
+  }
+
+  // R30 (trace 1a10d6f880df9255) — הבלם-הריבוני בשפת-החתימה: לפני-כל-שידור.
+  // STASIS + lane-guards (מה-cognition-beat, close-only) — fail-closed. אפס-סודות.
+  const brake = evaluateBrake("money-mover");
+  console.log(brakeLogLine(brake));
+  if (brake.halt) {
+    return bad(
+      `הבלם-הריבוני עצר את נתיב-החתימה לפני השידור (STASIS/lane-guards) — אפס פעולות. זו סירוב-כנה. ${brake.reasons.join(" | ").slice(0, 300)}`,
+      423,
+      { code: "CAPITAL-BRAKE-HALT", lane: brake.lane, reasons: brake.reasons },
+    );
   }
 
   // חוק 1: בלי פאריטה חיה — אין פעולה (אין שער, אין מסחר)

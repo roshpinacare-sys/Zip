@@ -18,6 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
 import { NextRequest, NextResponse } from "next/server";
+import { evaluateBrake, brakeLogLine } from "@/lib/cognition/brake"; // R30: הבלם-הריבוני לפני-כל-שידור (trace 1a10d6f880df9255)
 import { operatorFromRequest } from "@/lib/operator-auth";
 import { evaluateGate } from "@/lib/weave/tx-gate";
 import { rpcV4, HIVE_RPC } from "@/lib/weave/graphene";
@@ -204,6 +205,17 @@ async function POST_core(req: NextRequest) {
   const ownerKey = readOwnerKey();
   if (!ownerKey) {
     return bad("מקור המפתח (upload/headcorner.txt) לא נמצא — אין חתימה בלי סמכות חיה", 409, { code: "NO-OWNER-KEY" });
+  }
+
+  // R30 — הבלם-הריבוני בשפת-החתימה: STASIS + lane-guards, fail-closed, אפס-סודות.
+  const brake = evaluateBrake("money-hive");
+  console.log(brakeLogLine(brake));
+  if (brake.halt) {
+    return bad(
+      `הבלם-הריבוני עצר את רגל-HIVE לפני השידור (STASIS/lane-guards) — אפס פעולות. סירוב-כנה. ${brake.reasons.join(" | ").slice(0, 300)}`,
+      423,
+      { code: "CAPITAL-BRAKE-HALT", lane: brake.lane, reasons: brake.reasons },
+    );
   }
 
   const nodeRequire = createRequire(path.join(HOME, "package.json"));
