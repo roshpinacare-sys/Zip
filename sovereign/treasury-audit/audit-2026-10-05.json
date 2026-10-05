@@ -1,8 +1,8 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 802,
-  "at": "2026-10-05T12:19:43.475Z",
-  "verdict": "WARN",
+  "seq": 803,
+  "at": "2026-10-05T12:24:43.235Z",
+  "verdict": "PASS",
   "checks": [
     {
       "id": "decision-chain",
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 13 תמונות (אחרונה seq 13 בת 80 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 13 תמונות (אחרונה seq 13 בת 85 דק')",
       "numbers": {
         "entries": 13,
         "brokenAt": null,
@@ -28,26 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 3 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 1 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 9,
         "outOfOrder": 0,
-        "lastAgeMinutes": 3
+        "lastAgeMinutes": 1
       }
     },
     {
       "id": "ladder-floor",
-      "status": "warn",
-      "detail": "/api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+      "status": "pass",
+      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (3 פקודות פתוחות)",
       "numbers": {
-        "state": "UNMEASURED"
+        "state": "HELD",
+        "asksBelowParity": 0,
+        "worstBps": 0,
+        "maxDriftLossSbd": 0,
+        "ordersOpen": 3
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (3 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -56,26 +60,29 @@
     },
     {
       "id": "balances-drift",
-      "status": "warn",
-      "detail": "יתרות-הבית לא נמדדו מ-/api/money — unmeasured",
+      "status": "pass",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 1.531 · SBD 0.015 (סטייה ≤ 0.001)",
       "numbers": {
-        "measured": false
+        "measured": true,
+        "homeSteem": 1.531,
+        "homeSbd": 0.015,
+        "chainSteem": 1.531,
+        "chainSbd": 0.015,
+        "driftSteem": 0,
+        "driftSbd": 0
       }
     },
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 37.1ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 37.2ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 37.1
+        "toolAgeHours": 37.2
       }
     }
   ],
-  "anomalies": [
-    "warn · ladder-floor: /api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
-    "warn · balances-drift: יתרות-הבית לא נמדדו מ-/api/money — unmeasured"
-  ]
+  "anomalies": []
 }
