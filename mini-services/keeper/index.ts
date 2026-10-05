@@ -823,6 +823,7 @@ const SOLDIER_HEAD = "headcorner";
 const SOLDIER_MEASURE_MIN = 30;
 const SOLDIER_RPC = "https://api.steemit.com";
 let lastSoldiersAt = 0;
+let soldiersProvedLive = false; // r200-c — תצפית-חדשה: רישום-חד-פעמי-שהמנגנון-חי-בפועל (קוד-קיים≠אכיפה-בריצה)
 
 async function steemRpcKeyless<T>(method: string, params: unknown): Promise<T> {
   const res = await fetch(SOLDIER_RPC, {
@@ -889,6 +890,10 @@ async function soldiersSnapshot(): Promise<void> {
     fs.writeFileSync(tmp, JSON.stringify(snap, null, 2));
     fs.renameSync(tmp, SOLDIERS_SNAPSHOT_FILE);
     lastSoldiersAt = Date.now(); // r200-c — רק-אחרי-כתיבה-מוצלחת
+    if (!soldiersProvedLive) {
+      soldiersProvedLive = true;
+      record("SOLDIERS-OK", `עיגון-החיילים-חי-בפועל: ${SOLDIERS.length} חיילים נמדדו · alarm=${alarm !== null} · ${snap.refundQueue.expirations} פרעונות בתור`, false);
+    }
     if (alarm !== null) record("SOLDIERS-ALARM", alarm, true);
   } catch (e) {
     record("SOLDIERS-ERR", String((e as Error)?.message ?? e).slice(0, 150), false);
