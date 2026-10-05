@@ -839,8 +839,9 @@ async function steemRpcKeyless<T>(method: string, params: unknown): Promise<T> {
 interface SoldierRow { steem: string; sbd: string; vests: string; receivedVests: string; delegatedVests: string; }
 
 async function soldiersSnapshot(): Promise<void> {
+  // r200-c — תיקון-עצמי: אל-תצורך-את-חלון-המדידה-על-כישלון. lastSoldiersAt
+  // נקבע-רק-אחרי-ראיה-שנכתבה — שגיאת-RPC-רגעית לא תעכב את האינווריאנט ב-30 דק'.
   if (Date.now() - lastSoldiersAt < SOLDIER_MEASURE_MIN * 60_000) return;
-  lastSoldiersAt = Date.now();
   try {
     type Acct = {
       name: string; balance: string; sbd_balance: string;
@@ -887,6 +888,7 @@ async function soldiersSnapshot(): Promise<void> {
     const tmp = `${SOLDIERS_SNAPSHOT_FILE}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(snap, null, 2));
     fs.renameSync(tmp, SOLDIERS_SNAPSHOT_FILE);
+    lastSoldiersAt = Date.now(); // r200-c — רק-אחרי-כתיבה-מוצלחת
     if (alarm !== null) record("SOLDIERS-ALARM", alarm, true);
   } catch (e) {
     record("SOLDIERS-ERR", String((e as Error)?.message ?? e).slice(0, 150), false);
