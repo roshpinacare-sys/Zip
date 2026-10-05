@@ -1,24 +1,24 @@
 {
-  "measuredAt": "2026-10-05T06:57:09.865Z",
+  "measuredAt": "2026-10-05T09:06:00.497Z",
   "owner": "roshpinacare-sys",
   "definition": "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
   "repos": [
     {
       "name": "Adsmarket",
-      "kb": 2136,
+      "kb": 2138,
       "pushed_at": "2026-10-05T06:37:14Z",
       "truncated": false
     },
     {
       "name": "anchor-baseline",
-      "kb": 410,
-      "pushed_at": "2026-10-04T21:56:21Z",
+      "kb": 411,
+      "pushed_at": "2026-10-05T07:30:03Z",
       "truncated": false
     },
     {
       "name": "Console",
-      "kb": 9004,
-      "pushed_at": "2026-10-05T06:47:48Z",
+      "kb": 9494,
+      "pushed_at": "2026-10-05T09:04:06Z",
       "truncated": false
     },
     {
@@ -29,8 +29,8 @@
     },
     {
       "name": "Domain",
-      "kb": 9371,
-      "pushed_at": "2026-10-05T06:50:19Z",
+      "kb": 9276,
+      "pushed_at": "2026-10-05T09:03:44Z",
       "truncated": false
     },
     {
@@ -42,7 +42,7 @@
     {
       "name": "roshpina",
       "kb": 940,
-      "pushed_at": "2026-10-04T21:52:21Z",
+      "pushed_at": "2026-10-05T08:37:25Z",
       "truncated": false
     },
     {
@@ -53,8 +53,8 @@
     },
     {
       "name": "saos-dex",
-      "kb": 40546,
-      "pushed_at": "2026-10-05T06:48:45Z",
+      "kb": 40595,
+      "pushed_at": "2026-10-05T09:04:03Z",
       "truncated": false
     },
     {
@@ -89,24 +89,24 @@
     },
     {
       "name": "steem",
-      "kb": 240610,
-      "pushed_at": "2026-10-05T06:56:28Z",
+      "kb": 240614,
+      "pushed_at": "2026-10-05T08:35:57Z",
       "truncated": false
     },
     {
       "name": "Zip",
-      "kb": 114820,
-      "pushed_at": "2026-10-05T06:53:07Z",
+      "kb": 104370,
+      "pushed_at": "2026-10-05T08:45:16Z",
       "truncated": false
     }
   ],
   "totals": {
     "statusCandidates": 2551,
     "measured": 1660,
-    "dupGroups": 17,
-    "dupInstances": 47,
-    "redundantCopies": 30,
-    "dupRatio": 0.0181
+    "dupGroups": 19,
+    "dupInstances": 51,
+    "redundantCopies": 32,
+    "dupRatio": 0.0193
   },
   "dupGroups": [
     {
@@ -171,7 +171,23 @@
       ]
     },
     {
-      "hash": "75e257adf9f59a1301aae6aab912d170c4f2363f23c0c206b6484dd3daec1ad8",
+      "hash": "09e384a1a18eed9a0a34da4aa43778f80b5ab70d0b6bb1ebb6002d782d1ef318",
+      "size": 75814,
+      "files": [
+        "Console:mirror.json",
+        "Domain:mirror.json"
+      ]
+    },
+    {
+      "hash": "eaaad7fb80cd92e6f372bfef58eeb250aaef8cff9d4012526455eeffb65a3c7c",
+      "size": 3987,
+      "files": [
+        "Console:saos-live.json",
+        "Domain:saos-live.json"
+      ]
+    },
+    {
+      "hash": "97c75d371825af56308f1a617f57ed441325bca8938983a3357e4e0c0f5ee589",
       "size": 4144,
       "files": [
         "Console:status.json",
@@ -187,19 +203,19 @@
       ]
     },
     {
-      "hash": "2c556501de4e75a0093906460df1c2bfeb75a9f0e699d6fb20663d924b4bdd9d",
-      "size": 3931,
-      "files": [
-        "Defi:DOCTRINE.md",
-        "Zip:sovereign/defi-seed/DOCTRINE.md"
-      ]
-    },
-    {
       "hash": "dee70a346308d151a6de6a7770664649ca819b5290a417defa95c7e7268d6cfb",
       "size": 1793,
       "files": [
         "Console:verify/VERIFY.md",
         "Zip:console/verify/VERIFY.md"
+      ]
+    },
+    {
+      "hash": "2c556501de4e75a0093906460df1c2bfeb75a9f0e699d6fb20663d924b4bdd9d",
+      "size": 3931,
+      "files": [
+        "Defi:DOCTRINE.md",
+        "Zip:sovereign/defi-seed/DOCTRINE.md"
       ]
     },
     {
@@ -219,6 +235,14 @@
       ]
     },
     {
+      "hash": "a6ea6f42c13b1fb8cfb28221e8e3e13f8165dab42ad6cc9de50b36817a16695e",
+      "size": 5775,
+      "files": [
+        "Defi:reports/r92-charter-events-memory-2026-09-22.md",
+        "Zip:sovereign/reports/r92-charter-events-memory-2026-09-22.md"
+      ]
+    },
+    {
       "hash": "d58c1748055772498215f0b5c428198043ce9c2a3bb17b3158711346f2e5b5d3",
       "size": 6749,
       "files": [
@@ -235,11 +259,11 @@
       ]
     },
     {
-      "hash": "a6ea6f42c13b1fb8cfb28221e8e3e13f8165dab42ad6cc9de50b36817a16695e",
-      "size": 5775,
+      "hash": "47f073b127f57790ed3a899b6c6242fb0d5970eda702d7058b9fbec61f5cfd4b",
+      "size": 5657,
       "files": [
-        "Defi:reports/r92-charter-events-memory-2026-09-22.md",
-        "Zip:sovereign/reports/r92-charter-events-memory-2026-09-22.md"
+        "Domain:agent/limitations.md",
+        "Zip:console/agent/limitations.md"
       ]
     },
     {
@@ -248,14 +272,6 @@
       "files": [
         "Domain:agent/inspections/README.md",
         "Zip:console/agent/inspections/README.md"
-      ]
-    },
-    {
-      "hash": "47f073b127f57790ed3a899b6c6242fb0d5970eda702d7058b9fbec61f5cfd4b",
-      "size": 5657,
-      "files": [
-        "Domain:agent/limitations.md",
-        "Zip:console/agent/limitations.md"
       ]
     }
   ],
@@ -275,18 +291,6 @@
       "saos-sovereign-platform:7e84994b1f",
       "Saosmartwallet:93a073e6fc",
       "Sdk:7a42b060e4"
-    ],
-    "SAOS-DAILY-REPORT-2026-09-11.md": [
-      "Adsmarket:be2d98cc47",
-      "anchor-baseline:ae3e4f8b24",
-      "Project-files:d084f89894",
-      "roshpina:9c67d71d79",
-      "saos-control-center:e98544a0e1",
-      "saos-jummper:7f4d430fb2",
-      "saos-sovereign-foundry:caae572b69",
-      "saos-sovereign-platform:8481c2369b",
-      "Saosmartwallet:cac9fb3249",
-      "Sdk:dda9e14796"
     ],
     "README.md": [
       "Adsmarket:9a8c6182d7",
@@ -316,6 +320,18 @@
       "Saosmartwallet:11713028f0",
       "Sdk:ac0799bc55"
     ],
+    "SAOS-DAILY-REPORT-2026-09-11.md": [
+      "Adsmarket:be2d98cc47",
+      "anchor-baseline:ae3e4f8b24",
+      "Project-files:d084f89894",
+      "roshpina:9c67d71d79",
+      "saos-control-center:e98544a0e1",
+      "saos-jummper:7f4d430fb2",
+      "saos-sovereign-foundry:caae572b69",
+      "saos-sovereign-platform:8481c2369b",
+      "Saosmartwallet:cac9fb3249",
+      "Sdk:dda9e14796"
+    ],
     "docs/reports/2026-09-11-roast-78-addendum.md": [
       "Adsmarket:d3a688cb0f",
       "anchor-baseline:941a53eae7",
@@ -328,6 +344,32 @@
       "Saosmartwallet:db01a54a6d",
       "Sdk:6a40983440",
       "steem:3417fe7b13"
+    ],
+    "docs/reports/SAOS-PULSE-2026-09-11-H16-SIX-OF-SIX.md": [
+      "Adsmarket:46ca860bc1",
+      "anchor-baseline:a10e6a7c38",
+      "Project-files:cefdd94edf",
+      "roshpina:1c56750fc0",
+      "saos-control-center:3c9306dac1",
+      "saos-dex:ec984931da",
+      "saos-jummper:344bb82833",
+      "saos-sovereign-foundry:f422a92678",
+      "Saosmartwallet:6a58a89e41",
+      "Sdk:129aeb1eaf",
+      "steem:2737f3d61c"
+    ],
+    "docs/reports/CLAIMS-AUDIT-PREVIEW-2026-09-12.md": [
+      "Adsmarket:73196eb5e0",
+      "anchor-baseline:44e3155941",
+      "Project-files:5b4184b6ee",
+      "roshpina:075dc3813f",
+      "saos-control-center:e6c7659db2",
+      "saos-dex:aa9cd62dff",
+      "saos-jummper:0670e9a4b8",
+      "saos-sovereign-foundry:f012ed6dca",
+      "Saosmartwallet:2780f034fd",
+      "Sdk:d58021a684",
+      "steem:39e2165b73"
     ],
     "docs/reports/CLAIMS-AUDIT-2026-09-12.md": [
       "Adsmarket:eb8bb5c46e",
@@ -359,44 +401,18 @@
       "Sdk:9d4be72c7f",
       "steem:efef8003e9"
     ],
-    "docs/reports/SAOS-DAILY-REPORT-2026-09-11.md": [
-      "Adsmarket:76d5eaad6a",
-      "anchor-baseline:e05fd2c0e7",
-      "Project-files:55fcc3a1bc",
-      "roshpina:0a63ede6c6",
-      "saos-control-center:a0129c560d",
-      "saos-dex:e58fb92cda",
-      "saos-jummper:7ebcc078a2",
-      "saos-sovereign-foundry:e5896899d4",
-      "Saosmartwallet:8c5c9d7ac2",
-      "Sdk:0c77c7403d",
-      "steem:352bdd31ec"
-    ],
-    "docs/reports/CLAIMS-AUDIT-PREVIEW-2026-09-12.md": [
-      "Adsmarket:73196eb5e0",
-      "anchor-baseline:44e3155941",
-      "Project-files:5b4184b6ee",
-      "roshpina:075dc3813f",
-      "saos-control-center:e6c7659db2",
-      "saos-dex:aa9cd62dff",
-      "saos-jummper:0670e9a4b8",
-      "saos-sovereign-foundry:f012ed6dca",
-      "Saosmartwallet:2780f034fd",
-      "Sdk:d58021a684",
-      "steem:39e2165b73"
-    ],
-    "docs/reports/SAOS-PULSE-2026-09-11-H16-SIX-OF-SIX.md": [
-      "Adsmarket:46ca860bc1",
-      "anchor-baseline:a10e6a7c38",
-      "Project-files:cefdd94edf",
-      "roshpina:1c56750fc0",
-      "saos-control-center:3c9306dac1",
-      "saos-dex:ec984931da",
-      "saos-jummper:344bb82833",
-      "saos-sovereign-foundry:f422a92678",
-      "Saosmartwallet:6a58a89e41",
-      "Sdk:129aeb1eaf",
-      "steem:2737f3d61c"
+    "docs/reports/SAOS-PULSE-2026-09-11-H17-REPEAT.md": [
+      "Adsmarket:6a51c24b25",
+      "anchor-baseline:c85a538b63",
+      "Project-files:2b0dfb3744",
+      "roshpina:a739c9a48b",
+      "saos-control-center:38f578d3c2",
+      "saos-dex:80709f6771",
+      "saos-jummper:13a9360cc2",
+      "saos-sovereign-foundry:ce139585b3",
+      "Saosmartwallet:51d0254f8e",
+      "Sdk:87d4962e61",
+      "steem:4b5909f9f3"
     ],
     "docs/reports/SAOS-PULSE-2026-09-11-H18-THIRD-CYCLE.md": [
       "Adsmarket:9c6f0b5baa",
@@ -411,18 +427,18 @@
       "Sdk:0f0c098cac",
       "steem:1fd9fab446"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-11-H17-REPEAT.md": [
-      "Adsmarket:6a51c24b25",
-      "anchor-baseline:c85a538b63",
-      "Project-files:2b0dfb3744",
-      "roshpina:a739c9a48b",
-      "saos-control-center:38f578d3c2",
-      "saos-dex:80709f6771",
-      "saos-jummper:13a9360cc2",
-      "saos-sovereign-foundry:ce139585b3",
-      "Saosmartwallet:51d0254f8e",
-      "Sdk:87d4962e61",
-      "steem:4b5909f9f3"
+    "docs/reports/SAOS-DAILY-REPORT-2026-09-11.md": [
+      "Adsmarket:76d5eaad6a",
+      "anchor-baseline:e05fd2c0e7",
+      "Project-files:55fcc3a1bc",
+      "roshpina:0a63ede6c6",
+      "saos-control-center:a0129c560d",
+      "saos-dex:e58fb92cda",
+      "saos-jummper:7ebcc078a2",
+      "saos-sovereign-foundry:e5896899d4",
+      "Saosmartwallet:8c5c9d7ac2",
+      "Sdk:0c77c7403d",
+      "steem:352bdd31ec"
     ],
     "docs/reports/SAOS-PULSE-2026-09-11-H19-FOURTH-CYCLE.md": [
       "Adsmarket:5f43aeddf5",
@@ -450,18 +466,19 @@
       "Sdk:85bb4cd07d",
       "steem:87d8e11891"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-11-H20-FULL-MATRIX-CONSOLIDATION.md": [
-      "Adsmarket:aad2ccbfab",
-      "anchor-baseline:a330ac8e28",
-      "Project-files:8d06545bde",
-      "roshpina:60dc260435",
-      "saos-control-center:321ef1bdfd",
-      "saos-dex:37403bbeb9",
-      "saos-jummper:b65cc85a2d",
-      "saos-sovereign-foundry:4a9bdf0b48",
-      "Saosmartwallet:474d8700a7",
-      "Sdk:13dfdfa108",
-      "steem:0268bcb45a"
+    "docs/reports/SAOS-PULSE-2026-09-11-H24-EIGHTH-CYCLE.md": [
+      "Adsmarket:8b1f5b0391",
+      "anchor-baseline:f637026459",
+      "Project-files:76eaea7872",
+      "roshpina:e61355b1ca",
+      "saos-control-center:91a3a7ab63",
+      "saos-dex:06386d478b",
+      "saos-jummper:d7bc2f1abf",
+      "saos-sovereign-foundry:3e4eb5ae1a",
+      "saos-sovereign-platform:5dcd68b830",
+      "Saosmartwallet:1a31be2a8c",
+      "Sdk:b27a891d63",
+      "steem:4e9899c510"
     ],
     "docs/reports/SAOS-PULSE-2026-09-11-H22-H23-AUTOMATION.md": [
       "Adsmarket:2196ac178a",
@@ -489,19 +506,18 @@
       "Sdk:a6a4c70e1a",
       "steem:1d430da69c"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-11-H24-EIGHTH-CYCLE.md": [
-      "Adsmarket:8b1f5b0391",
-      "anchor-baseline:f637026459",
-      "Project-files:76eaea7872",
-      "roshpina:e61355b1ca",
-      "saos-control-center:91a3a7ab63",
-      "saos-dex:06386d478b",
-      "saos-jummper:d7bc2f1abf",
-      "saos-sovereign-foundry:3e4eb5ae1a",
-      "saos-sovereign-platform:5dcd68b830",
-      "Saosmartwallet:1a31be2a8c",
-      "Sdk:b27a891d63",
-      "steem:4e9899c510"
+    "docs/reports/SAOS-PULSE-2026-09-12-CLAIMS-AUDIT-R2.md": [
+      "Adsmarket:1735aea851",
+      "anchor-baseline:7069220b54",
+      "Project-files:d40eff1131",
+      "roshpina:9a12c59b58",
+      "saos-control-center:18bf2e22ef",
+      "saos-dex:9da62e4342",
+      "saos-jummper:7441790c4e",
+      "saos-sovereign-foundry:56ebcad481",
+      "Saosmartwallet:7d3624cb65",
+      "Sdk:3089841cca",
+      "steem:750d681189"
     ],
     "docs/reports/SAOS-PULSE-2026-09-12-CLAIMS-AUDIT-R3.md": [
       "Adsmarket:bc1dc740fd",
@@ -516,18 +532,18 @@
       "Sdk:1af5ff8a48",
       "steem:9d059e9e1b"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-12-CLAIMS-AUDIT-R2.md": [
-      "Adsmarket:1735aea851",
-      "anchor-baseline:7069220b54",
-      "Project-files:d40eff1131",
-      "roshpina:9a12c59b58",
-      "saos-control-center:18bf2e22ef",
-      "saos-dex:9da62e4342",
-      "saos-jummper:7441790c4e",
-      "saos-sovereign-foundry:56ebcad481",
-      "Saosmartwallet:7d3624cb65",
-      "Sdk:3089841cca",
-      "steem:750d681189"
+    "docs/reports/SAOS-PULSE-2026-09-11-H20-FULL-MATRIX-CONSOLIDATION.md": [
+      "Adsmarket:aad2ccbfab",
+      "anchor-baseline:a330ac8e28",
+      "Project-files:8d06545bde",
+      "roshpina:60dc260435",
+      "saos-control-center:321ef1bdfd",
+      "saos-dex:37403bbeb9",
+      "saos-jummper:b65cc85a2d",
+      "saos-sovereign-foundry:4a9bdf0b48",
+      "Saosmartwallet:474d8700a7",
+      "Sdk:13dfdfa108",
+      "steem:0268bcb45a"
     ],
     "docs/reports/SAOS-PULSE-2026-09-12-CLAIMS-AUDIT-R6.md": [
       "Adsmarket:5e90222a1c",
@@ -555,19 +571,6 @@
       "Sdk:fd63457888",
       "steem:6bfc8ad238"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-12-H25-NINTH-CYCLE.md": [
-      "Adsmarket:1877d05eec",
-      "anchor-baseline:01b96c7ac6",
-      "Project-files:66144580f8",
-      "roshpina:52a53862f5",
-      "saos-control-center:a4999665b2",
-      "saos-dex:a093b859c0",
-      "saos-jummper:b98e81c1bb",
-      "saos-sovereign-foundry:2c204a9263",
-      "Saosmartwallet:ce1d68b788",
-      "Sdk:37d4f64ec7",
-      "steem:a746c63c78"
-    ],
     "docs/reports/SAOS-PULSE-2026-09-12-H26-TENTH-CYCLE.md": [
       "Adsmarket:905dbac447",
       "anchor-baseline:2e5231cb33",
@@ -581,6 +584,45 @@
       "Saosmartwallet:d9abfa3e11",
       "Sdk:971747c677",
       "steem:0736e8602b"
+    ],
+    "docs/reports/SAOS-PULSE-2026-09-12-H25-NINTH-CYCLE.md": [
+      "Adsmarket:1877d05eec",
+      "anchor-baseline:01b96c7ac6",
+      "Project-files:66144580f8",
+      "roshpina:52a53862f5",
+      "saos-control-center:a4999665b2",
+      "saos-dex:a093b859c0",
+      "saos-jummper:b98e81c1bb",
+      "saos-sovereign-foundry:2c204a9263",
+      "Saosmartwallet:ce1d68b788",
+      "Sdk:37d4f64ec7",
+      "steem:a746c63c78"
+    ],
+    "docs/reports/SAOS-PULSE-2026-09-12-R8-EIGHTH-AUDIT.md": [
+      "Adsmarket:a76a54bacb",
+      "anchor-baseline:8e5ad35795",
+      "Project-files:2ae0a8d515",
+      "roshpina:2c1e7c593a",
+      "saos-control-center:57a20e2c73",
+      "saos-dex:db9ab441d0",
+      "saos-jummper:515518a320",
+      "saos-sovereign-foundry:7159ef5500",
+      "Saosmartwallet:8c75ccf219",
+      "Sdk:7f26b3e656",
+      "steem:7c7e23b826"
+    ],
+    "docs/reports/SAOS-PULSE-2026-09-13-R12-RESYNC.md": [
+      "Adsmarket:65f6618ab6",
+      "anchor-baseline:f25ad2dff7",
+      "Project-files:e14f216392",
+      "roshpina:f3c32a5d1f",
+      "saos-control-center:e07357dcf4",
+      "saos-dex:fb286396ee",
+      "saos-jummper:9d8d81f1ee",
+      "saos-sovereign-foundry:efe7625f88",
+      "Saosmartwallet:4814a9d4d8",
+      "Sdk:4157783d4d",
+      "steem:4da9486f3f"
     ],
     "docs/reports/SAOS-PULSE-2026-09-12-R10-VAULT-SELF-HEAL.md": [
       "Adsmarket:955f82bf40",
@@ -621,57 +663,31 @@
       "Sdk:00a7737984",
       "steem:8d34d0fe11"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-12-R8-EIGHTH-AUDIT.md": [
-      "Adsmarket:a76a54bacb",
-      "anchor-baseline:8e5ad35795",
-      "Project-files:2ae0a8d515",
-      "roshpina:2c1e7c593a",
-      "saos-control-center:57a20e2c73",
-      "saos-dex:db9ab441d0",
-      "saos-jummper:515518a320",
-      "saos-sovereign-foundry:7159ef5500",
-      "Saosmartwallet:8c75ccf219",
-      "Sdk:7f26b3e656",
-      "steem:7c7e23b826"
+    "docs/reports/SAOS-PULSE-2026-09-13-R13-CONSOLE-REVIVAL.md": [
+      "Adsmarket:6c384157b0",
+      "anchor-baseline:a876b2c9d4",
+      "Project-files:5feffce9e1",
+      "roshpina:19b55a927a",
+      "saos-control-center:f26488df11",
+      "saos-dex:d7cbd878cf",
+      "saos-jummper:bf03e66cce",
+      "saos-sovereign-foundry:3ae629af1b",
+      "Saosmartwallet:20b877483f",
+      "Sdk:ec5103c100",
+      "steem:9a0cf8387c"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-12-H27-ELEVENTH-CYCLE.md": [
-      "Adsmarket:6b76710dcc",
-      "anchor-baseline:d13e09870f",
-      "Project-files:86ab8b61b6",
-      "roshpina:4953f9245a",
-      "saos-control-center:566d9bc8d0",
-      "saos-dex:7de2be8878",
-      "saos-jummper:fc6351e7fb",
-      "saos-sovereign-foundry:ad2d8f23e3",
-      "Saosmartwallet:ce79026860",
-      "Sdk:171a89253c",
-      "steem:4b91a72d10"
-    ],
-    "docs/reports/SAOS-PULSE-2026-09-13-R12-RESYNC.md": [
-      "Adsmarket:65f6618ab6",
-      "anchor-baseline:f25ad2dff7",
-      "Project-files:e14f216392",
-      "roshpina:f3c32a5d1f",
-      "saos-control-center:e07357dcf4",
-      "saos-dex:fb286396ee",
-      "saos-jummper:9d8d81f1ee",
-      "saos-sovereign-foundry:efe7625f88",
-      "Saosmartwallet:4814a9d4d8",
-      "Sdk:4157783d4d",
-      "steem:4da9486f3f"
-    ],
-    "docs/reports/SAOS-PULSE-2026-09-13-R16-MESH-GATE.md": [
-      "Adsmarket:963516b4ae",
-      "anchor-baseline:8a6d2eeb56",
-      "Project-files:702cc3ac3b",
-      "roshpina:a3a90684c7",
-      "saos-control-center:30d5609216",
-      "saos-dex:47fe96d6dc",
-      "saos-jummper:829dde7348",
-      "saos-sovereign-foundry:cb2849ec32",
-      "Saosmartwallet:3c059dd514",
-      "Sdk:4e25f98268",
-      "steem:90e553be2e"
+    "docs/reports/SAOS-PULSE-2026-09-13-R15-SERVER-FELL-TRUTH-SWEEP.md": [
+      "Adsmarket:3a6149e7f8",
+      "anchor-baseline:a31e7781fd",
+      "Project-files:1e2a31e062",
+      "roshpina:6cecf9b58e",
+      "saos-control-center:97915ec081",
+      "saos-dex:55d16109bd",
+      "saos-jummper:24198dbe0c",
+      "saos-sovereign-foundry:736a561f4f",
+      "Saosmartwallet:bfa05fe829",
+      "Sdk:762c3cca94",
+      "steem:8ed6538419"
     ],
     "docs/reports/SAOS-PULSE-2026-09-13-R14-FULL-SWEEP.md": [
       "Adsmarket:7668854e04",
@@ -686,31 +702,44 @@
       "Sdk:ffaf1bdc6b",
       "steem:053af461fd"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-13-R13-CONSOLE-REVIVAL.md": [
-      "Adsmarket:6c384157b0",
-      "anchor-baseline:a876b2c9d4",
-      "Project-files:5feffce9e1",
-      "roshpina:19b55a927a",
-      "saos-control-center:f26488df11",
-      "saos-dex:d7cbd878cf",
-      "saos-jummper:bf03e66cce",
-      "saos-sovereign-foundry:3ae629af1b",
-      "Saosmartwallet:20b877483f",
-      "Sdk:ec5103c100",
-      "steem:9a0cf8387c"
+    "docs/reports/SAOS-PULSE-2026-09-13-R16-MESH-GATE.md": [
+      "Adsmarket:963516b4ae",
+      "anchor-baseline:8a6d2eeb56",
+      "Project-files:702cc3ac3b",
+      "roshpina:a3a90684c7",
+      "saos-control-center:30d5609216",
+      "saos-dex:47fe96d6dc",
+      "saos-jummper:829dde7348",
+      "saos-sovereign-foundry:cb2849ec32",
+      "Saosmartwallet:3c059dd514",
+      "Sdk:4e25f98268",
+      "steem:90e553be2e"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-13-R17-GITHUB-SECURE-CONNECTION.md": [
-      "Adsmarket:fcaa73527b",
-      "anchor-baseline:64a888196c",
-      "Project-files:47122775bd",
-      "roshpina:21e50c68dd",
-      "saos-control-center:ad566bc996",
-      "saos-dex:98b05c074e",
-      "saos-jummper:39b992c9f0",
-      "saos-sovereign-foundry:7a40eb516d",
-      "Saosmartwallet:09242a5c5c",
-      "Sdk:528b1bb6ec",
-      "steem:e6cb11c140"
+    "docs/reports/SAOS-PULSE-2026-09-12-H27-ELEVENTH-CYCLE.md": [
+      "Adsmarket:6b76710dcc",
+      "anchor-baseline:d13e09870f",
+      "Project-files:86ab8b61b6",
+      "roshpina:4953f9245a",
+      "saos-control-center:566d9bc8d0",
+      "saos-dex:7de2be8878",
+      "saos-jummper:fc6351e7fb",
+      "saos-sovereign-foundry:ad2d8f23e3",
+      "Saosmartwallet:ce79026860",
+      "Sdk:171a89253c",
+      "steem:4b91a72d10"
+    ],
+    "docs/reports/SAOS-PULSE-2026-09-13-R18-PAT-LOCKOUT.md": [
+      "Adsmarket:b5fbf795e7",
+      "anchor-baseline:e2d8344765",
+      "Project-files:90072327ce",
+      "roshpina:18c66dc08f",
+      "saos-control-center:babfe4a2a0",
+      "saos-dex:34bb5cbd52",
+      "saos-jummper:0f5b6fd4a8",
+      "saos-sovereign-foundry:9344f4b766",
+      "Saosmartwallet:7664037d89",
+      "Sdk:c263ba6d59",
+      "steem:c35b3cc621"
     ],
     "docs/reports/SAOS-PULSE-2026-09-13-R19-SUPERVISOR-RESTORED.md": [
       "Adsmarket:9aafc8121e",
@@ -726,32 +755,6 @@
       "Sdk:0b7cebec66",
       "steem:dcdc4d7ce9"
     ],
-    "docs/reports/SAOS-PULSE-2026-09-13-R15-SERVER-FELL-TRUTH-SWEEP.md": [
-      "Adsmarket:3a6149e7f8",
-      "anchor-baseline:a31e7781fd",
-      "Project-files:1e2a31e062",
-      "roshpina:6cecf9b58e",
-      "saos-control-center:97915ec081",
-      "saos-dex:55d16109bd",
-      "saos-jummper:24198dbe0c",
-      "saos-sovereign-foundry:736a561f4f",
-      "Saosmartwallet:bfa05fe829",
-      "Sdk:762c3cca94",
-      "steem:8ed6538419"
-    ],
-    "docs/reports/SAOS-PULSE-2026-09-13-R18-PAT-LOCKOUT.md": [
-      "Adsmarket:b5fbf795e7",
-      "anchor-baseline:e2d8344765",
-      "Project-files:90072327ce",
-      "roshpina:18c66dc08f",
-      "saos-control-center:babfe4a2a0",
-      "saos-dex:34bb5cbd52",
-      "saos-jummper:0f5b6fd4a8",
-      "saos-sovereign-foundry:9344f4b766",
-      "Saosmartwallet:7664037d89",
-      "Sdk:c263ba6d59",
-      "steem:c35b3cc621"
-    ],
     "docs/reports/SAOS-PULSE-2026-09-13-R20-CONTINUITY-CLOSED.md": [
       "Adsmarket:90c63c2a71",
       "anchor-baseline:ed971ff2ed",
@@ -765,6 +768,19 @@
       "Saosmartwallet:ac143d2fd4",
       "Sdk:fc9156175e",
       "steem:6381866321"
+    ],
+    "docs/reports/SAOS-PULSE-2026-09-13-R17-GITHUB-SECURE-CONNECTION.md": [
+      "Adsmarket:fcaa73527b",
+      "anchor-baseline:64a888196c",
+      "Project-files:47122775bd",
+      "roshpina:21e50c68dd",
+      "saos-control-center:ad566bc996",
+      "saos-dex:98b05c074e",
+      "saos-jummper:39b992c9f0",
+      "saos-sovereign-foundry:7a40eb516d",
+      "Saosmartwallet:09242a5c5c",
+      "Sdk:528b1bb6ec",
+      "steem:e6cb11c140"
     ],
     "docs/reports/SAOS-PULSE-2026-09-13-R21-WEDGE-CURE.md": [
       "Adsmarket:5527dbddad",
@@ -780,6 +796,19 @@
       "Sdk:538a057cd8",
       "steem:b779921565"
     ],
+    "docs/reports/TOKEN-DOSSIER-2026-09-12-V77.md": [
+      "Adsmarket:8967f5d15e",
+      "anchor-baseline:5b48961b1e",
+      "Project-files:2459b23aef",
+      "roshpina:a96a410d29",
+      "saos-control-center:02b829c393",
+      "saos-dex:2bd7ab17a3",
+      "saos-jummper:5ac879b6d9",
+      "saos-sovereign-foundry:389adfea7e",
+      "Saosmartwallet:5d8f8793ee",
+      "Sdk:61fb691778",
+      "steem:5e1a6441f7"
+    ],
     "docs/reports/SAOS-PULSE-2026-09-13-R22-SURVIVABLE-HOME.md": [
       "Adsmarket:b676f47606",
       "anchor-baseline:36ca240ef5",
@@ -794,23 +823,6 @@
       "Sdk:b252af0fa0",
       "steem:23b148ed62"
     ],
-    "docs/reports/SAOS-STRATEGY-2026-09-11-ADSMARKET.md": [
-      "Adsmarket:6a90934485",
-      "steem:4c76a39a63"
-    ],
-    "docs/reports/TOKEN-DOSSIER-2026-09-12-V77.md": [
-      "Adsmarket:8967f5d15e",
-      "anchor-baseline:5b48961b1e",
-      "Project-files:2459b23aef",
-      "roshpina:a96a410d29",
-      "saos-control-center:02b829c393",
-      "saos-dex:2bd7ab17a3",
-      "saos-jummper:5ac879b6d9",
-      "saos-sovereign-foundry:389adfea7e",
-      "Saosmartwallet:5d8f8793ee",
-      "Sdk:61fb691778",
-      "steem:5e1a6441f7"
-    ],
     "CRITICAL-R11-KEY-BROADCAST.md": [
       "anchor-baseline:b17ca5d700",
       "Project-files:41bf94a3fb",
@@ -820,25 +832,15 @@
       "Saosmartwallet:6e5680cfc7",
       "steem:44ec544355"
     ],
-    "SAOS-COIN-DOSSIER-2026-09-12-V77.md": [
-      "anchor-baseline:c88d4583ef",
-      "Project-files:ddb84467fa",
-      "roshpina:6b5107db0f",
-      "saos-control-center:2a4010322e",
-      "saos-jummper:c9b4aba034",
-      "saos-sovereign-foundry:5e87982773",
-      "Saosmartwallet:061dda5cfa",
-      "Sdk:0855b150be"
-    ],
-    "SAOS-BRIEFING-2026-09-11-ROAST-80.md": [
-      "anchor-baseline:47408580c0",
-      "Project-files:00d9ed595a",
-      "roshpina:e06c23b456",
-      "saos-jummper:0ee702d5ce",
-      "saos-sovereign-foundry:091c53feb5",
-      "saos-sovereign-platform:04aaa124e2",
-      "Saosmartwallet:ab76c40ec2",
-      "Sdk:547dbfb3a8"
+    "2026-09-11-roast-78-addendum.md": [
+      "anchor-baseline:ffc20dd20c",
+      "Project-files:c44476edbb",
+      "roshpina:cfefff5c0f",
+      "saos-jummper:00280cee41",
+      "saos-sovereign-foundry:eba0b57273",
+      "saos-sovereign-platform:d1f8844877",
+      "Saosmartwallet:6a6994b03a",
+      "Sdk:612c4db21b"
     ],
     "SAOS-BRIEFING-2026-09-11-ROAST-84.md": [
       "anchor-baseline:e3703ea985",
@@ -851,15 +853,25 @@
       "Saosmartwallet:1b432ea070",
       "Sdk:430d49959a"
     ],
-    "2026-09-11-roast-78-addendum.md": [
-      "anchor-baseline:ffc20dd20c",
-      "Project-files:c44476edbb",
-      "roshpina:cfefff5c0f",
-      "saos-jummper:00280cee41",
-      "saos-sovereign-foundry:eba0b57273",
-      "saos-sovereign-platform:d1f8844877",
-      "Saosmartwallet:6a6994b03a",
-      "Sdk:612c4db21b"
+    "SAOS-BRIEFING-2026-09-11-ROAST-80.md": [
+      "anchor-baseline:47408580c0",
+      "Project-files:00d9ed595a",
+      "roshpina:e06c23b456",
+      "saos-jummper:0ee702d5ce",
+      "saos-sovereign-foundry:091c53feb5",
+      "saos-sovereign-platform:04aaa124e2",
+      "Saosmartwallet:ab76c40ec2",
+      "Sdk:547dbfb3a8"
+    ],
+    "SAOS-COIN-DOSSIER-2026-09-12-V77.md": [
+      "anchor-baseline:c88d4583ef",
+      "Project-files:ddb84467fa",
+      "roshpina:6b5107db0f",
+      "saos-control-center:2a4010322e",
+      "saos-jummper:c9b4aba034",
+      "saos-sovereign-foundry:5e87982773",
+      "Saosmartwallet:061dda5cfa",
+      "Sdk:0855b150be"
     ],
     "SAOS-DAILY-REPORT-2026-09-11-FOUNDRY.md": [
       "anchor-baseline:4b3fff230f",
@@ -871,15 +883,6 @@
       "Saosmartwallet:6cc7f4214d",
       "Sdk:603e95fcb9"
     ],
-    "SAOS-PULSE-2026-09-11-H17-REPEAT.md": [
-      "anchor-baseline:b29f287bd3",
-      "Project-files:38771284ab",
-      "roshpina:98494753d1",
-      "saos-control-center:43302272b5",
-      "saos-jummper:d1aa4f314c",
-      "Saosmartwallet:621f09d39f",
-      "Sdk:22644f0ec3"
-    ],
     "SAOS-PULSE-2026-09-11-H16-COMPLETE.md": [
       "anchor-baseline:aac8030fed",
       "Project-files:a23bbf321a",
@@ -889,23 +892,23 @@
       "Saosmartwallet:2bc0f33a00",
       "Sdk:c1c1af16b4"
     ],
-    "SAOS-PULSE-2026-09-11-H20-FULL-MATRIX-CONSOLIDATION-2.md": [
-      "anchor-baseline:75847694bc",
-      "Project-files:6addda5db0",
-      "roshpina:03daa54f15",
-      "saos-control-center:7236947b53",
-      "saos-jummper:7902f59414",
-      "Saosmartwallet:b951826e9e",
-      "Sdk:fa8b804b68"
+    "SAOS-PULSE-2026-09-11-H16-SIX-OF-SIX.md": [
+      "anchor-baseline:02adce287b",
+      "Project-files:d346b43acd",
+      "roshpina:7f43590240",
+      "saos-control-center:6250838c1e",
+      "saos-jummper:5df1c01ad3",
+      "Saosmartwallet:342a9e35f2",
+      "Sdk:a99630d340"
     ],
-    "SAOS-PULSE-2026-09-11-H18-THIRD-CYCLE.md": [
-      "anchor-baseline:c81a8b452d",
-      "Project-files:db36020d9c",
-      "roshpina:a169ec52e3",
-      "saos-control-center:237c92409a",
-      "saos-jummper:c8e96cb44d",
-      "Saosmartwallet:8d8a655556",
-      "Sdk:7c2f0c0015"
+    "SAOS-PULSE-2026-09-11-H17-REPEAT.md": [
+      "anchor-baseline:b29f287bd3",
+      "Project-files:38771284ab",
+      "roshpina:98494753d1",
+      "saos-control-center:43302272b5",
+      "saos-jummper:d1aa4f314c",
+      "Saosmartwallet:621f09d39f",
+      "Sdk:22644f0ec3"
     ],
     "SAOS-PULSE-2026-09-11-H19-FOURTH-CYCLE.md": [
       "anchor-baseline:a0d6d08ded",
@@ -916,14 +919,23 @@
       "Saosmartwallet:c6c85a231e",
       "Sdk:f593294f67"
     ],
-    "SAOS-PULSE-2026-09-11-H16-SIX-OF-SIX.md": [
-      "anchor-baseline:02adce287b",
-      "Project-files:d346b43acd",
-      "roshpina:7f43590240",
-      "saos-control-center:6250838c1e",
-      "saos-jummper:5df1c01ad3",
-      "Saosmartwallet:342a9e35f2",
-      "Sdk:a99630d340"
+    "SAOS-PULSE-2026-09-11-H18-THIRD-CYCLE.md": [
+      "anchor-baseline:c81a8b452d",
+      "Project-files:db36020d9c",
+      "roshpina:a169ec52e3",
+      "saos-control-center:237c92409a",
+      "saos-jummper:c8e96cb44d",
+      "Saosmartwallet:8d8a655556",
+      "Sdk:7c2f0c0015"
+    ],
+    "SAOS-PULSE-2026-09-11-H20-FULL-MATRIX-CONSOLIDATION-2.md": [
+      "anchor-baseline:75847694bc",
+      "Project-files:6addda5db0",
+      "roshpina:03daa54f15",
+      "saos-control-center:7236947b53",
+      "saos-jummper:7902f59414",
+      "Saosmartwallet:b951826e9e",
+      "Sdk:fa8b804b68"
     ],
     "SAOS-PULSE-2026-09-11-H20-FULL-MATRIX-CONSOLIDATION.md": [
       "anchor-baseline:680f28cee3",
@@ -943,27 +955,18 @@
       "Saosmartwallet:446b119b45",
       "Sdk:81e7153bc3"
     ],
-    "SAOS-PULSE-2026-09-11-H22-H23-AUTOMATION.md": [
-      "anchor-baseline:31eb45ed24",
-      "Project-files:b8d6062d73",
-      "roshpina:fd6108d090",
-      "saos-control-center:fa821e7eb4",
-      "saos-jummper:60896e2867",
-      "Saosmartwallet:448c9d9e70",
-      "Sdk:36eba72d41"
-    ],
-    "broadcasts/2026-09-11-channel-truth-r35.md": [
-      "anchor-baseline:d131e3f7a0",
-      "Project-files:290fc7d82c",
-      "roshpina:0fc6d9cbeb",
-      "saos-control-center:5f7affece8",
-      "saos-dex:94103c591e",
-      "saos-jummper:94b02ec0e7",
-      "saos-sovereign-foundry:f5d7481d75",
-      "saos-sovereign-platform:c91404de23",
-      "Saosmartwallet:8b5de1c359",
-      "Sdk:7131960192",
-      "steem:abe5d25ced"
+    "broadcasts/2026-09-11-auto-expansion.md": [
+      "anchor-baseline:6847503f70",
+      "Project-files:834e628710",
+      "roshpina:9d09bd753f",
+      "saos-control-center:7a67decc04",
+      "saos-dex:6e037ae82b",
+      "saos-jummper:f421092f96",
+      "saos-sovereign-foundry:7f0716a39a",
+      "saos-sovereign-platform:84283e1129",
+      "Saosmartwallet:6b7c725dfd",
+      "Sdk:bf5bff854a",
+      "steem:b5097308c7"
     ],
     "broadcasts/2026-09-11-authorized-try.md": [
       "anchor-baseline:a56466eeda",
@@ -978,44 +981,18 @@
       "Sdk:89dc30d401",
       "steem:c6e04cbcb5"
     ],
-    "broadcasts/2026-09-11-delegated-decision.md": [
-      "anchor-baseline:5e0987d9af",
-      "Project-files:f11cf48000",
-      "roshpina:726b7f1858",
-      "saos-control-center:bc2976992e",
-      "saos-dex:63632aecc8",
-      "saos-jummper:c7d4420cf4",
-      "saos-sovereign-foundry:05e8128569",
-      "saos-sovereign-platform:1a7482dcf5",
-      "Saosmartwallet:c64aa799df",
-      "Sdk:09b3bc613b",
-      "steem:816048bbbf"
-    ],
-    "broadcasts/2026-09-11-fleet-r31.md": [
-      "anchor-baseline:ee0881b110",
-      "Project-files:042df243c6",
-      "roshpina:21e6578fc1",
-      "saos-control-center:2bc71d0a38",
-      "saos-dex:e1510d55eb",
-      "saos-jummper:8f357176dc",
-      "saos-sovereign-foundry:87ad1b0243",
-      "saos-sovereign-platform:1c70e97a07",
-      "Saosmartwallet:49f5935844",
-      "Sdk:9176d6bf3a",
-      "steem:5e40c12144"
-    ],
-    "broadcasts/2026-09-11-crash-burst-healing-r36.md": [
-      "anchor-baseline:1d59327033",
-      "Project-files:0a3a69f57d",
-      "roshpina:5c90617431",
-      "saos-control-center:899a64af3a",
-      "saos-dex:4521f2380f",
-      "saos-jummper:d636ef7b63",
-      "saos-sovereign-foundry:4953f87e85",
-      "saos-sovereign-platform:b84a1b6d44",
-      "Saosmartwallet:9c0b049c3e",
-      "Sdk:ffcaacd7be",
-      "steem:d8b7cf2a95"
+    "broadcasts/2026-09-11-channel-truth-r35.md": [
+      "anchor-baseline:d131e3f7a0",
+      "Project-files:290fc7d82c",
+      "roshpina:0fc6d9cbeb",
+      "saos-control-center:5f7affece8",
+      "saos-dex:94103c591e",
+      "saos-jummper:94b02ec0e7",
+      "saos-sovereign-foundry:f5d7481d75",
+      "saos-sovereign-platform:c91404de23",
+      "Saosmartwallet:8b5de1c359",
+      "Sdk:7131960192",
+      "steem:abe5d25ced"
     ],
     "broadcasts/2026-09-11-cheap-conversion.md": [
       "anchor-baseline:16bed2900b",
@@ -1030,18 +1007,53 @@
       "Sdk:79abe1fe7c",
       "steem:fb45a5b99c"
     ],
-    "broadcasts/2026-09-11-auto-expansion.md": [
-      "anchor-baseline:6847503f70",
-      "Project-files:834e628710",
-      "roshpina:9d09bd753f",
-      "saos-control-center:7a67decc04",
-      "saos-dex:6e037ae82b",
-      "saos-jummper:f421092f96",
-      "saos-sovereign-foundry:7f0716a39a",
-      "saos-sovereign-platform:84283e1129",
-      "Saosmartwallet:6b7c725dfd",
-      "Sdk:bf5bff854a",
-      "steem:b5097308c7"
+    "SAOS-PULSE-2026-09-11-H22-H23-AUTOMATION.md": [
+      "anchor-baseline:31eb45ed24",
+      "Project-files:b8d6062d73",
+      "roshpina:fd6108d090",
+      "saos-control-center:fa821e7eb4",
+      "saos-jummper:60896e2867",
+      "Saosmartwallet:448c9d9e70",
+      "Sdk:36eba72d41"
+    ],
+    "broadcasts/2026-09-11-delegated-decision.md": [
+      "anchor-baseline:5e0987d9af",
+      "Project-files:f11cf48000",
+      "roshpina:726b7f1858",
+      "saos-control-center:bc2976992e",
+      "saos-dex:63632aecc8",
+      "saos-jummper:c7d4420cf4",
+      "saos-sovereign-foundry:05e8128569",
+      "saos-sovereign-platform:1a7482dcf5",
+      "Saosmartwallet:c64aa799df",
+      "Sdk:09b3bc613b",
+      "steem:816048bbbf"
+    ],
+    "broadcasts/2026-09-11-crash-burst-healing-r36.md": [
+      "anchor-baseline:1d59327033",
+      "Project-files:0a3a69f57d",
+      "roshpina:5c90617431",
+      "saos-control-center:899a64af3a",
+      "saos-dex:4521f2380f",
+      "saos-jummper:d636ef7b63",
+      "saos-sovereign-foundry:4953f87e85",
+      "saos-sovereign-platform:b84a1b6d44",
+      "Saosmartwallet:9c0b049c3e",
+      "Sdk:ffcaacd7be",
+      "steem:d8b7cf2a95"
+    ],
+    "broadcasts/2026-09-11-fleet-r31.md": [
+      "anchor-baseline:ee0881b110",
+      "Project-files:042df243c6",
+      "roshpina:21e6578fc1",
+      "saos-control-center:2bc71d0a38",
+      "saos-dex:e1510d55eb",
+      "saos-jummper:8f357176dc",
+      "saos-sovereign-foundry:87ad1b0243",
+      "saos-sovereign-platform:1c70e97a07",
+      "Saosmartwallet:49f5935844",
+      "Sdk:9176d6bf3a",
+      "steem:5e40c12144"
     ],
     "broadcasts/2026-09-11-house-of-memory.md": [
       "anchor-baseline:943b041180",
@@ -1082,18 +1094,18 @@
       "Sdk:3dfb4c83c6",
       "steem:bcad12c8d7"
     ],
-    "broadcasts/2026-09-11-optimization-r27.md": [
-      "anchor-baseline:f66c159843",
-      "Project-files:536c723177",
-      "roshpina:e21a7364d2",
-      "saos-control-center:f7f667613b",
-      "saos-dex:9155bb4b67",
-      "saos-jummper:46dddc4a04",
-      "saos-sovereign-foundry:d9e412515a",
-      "saos-sovereign-platform:ca43c524af",
-      "Saosmartwallet:6e21c1d512",
-      "Sdk:a206366e9f",
-      "steem:6f62aacfac"
+    "broadcasts/2026-09-11-optimization-r34.md": [
+      "anchor-baseline:19d35dead3",
+      "Project-files:ebd7a9fbc6",
+      "roshpina:678f34b83b",
+      "saos-control-center:df77252b59",
+      "saos-dex:e0ae6793c1",
+      "saos-jummper:a10f4126de",
+      "saos-sovereign-foundry:063f60c409",
+      "saos-sovereign-platform:58b220fc3f",
+      "Saosmartwallet:117ca66fb7",
+      "Sdk:e4089cc29e",
+      "steem:6eaf6df861"
     ],
     "broadcasts/2026-09-11-pulse-home-r33.md": [
       "anchor-baseline:9540906f35",
@@ -1108,18 +1120,31 @@
       "Sdk:cf3a3b8996",
       "steem:28af0ed5d9"
     ],
-    "broadcasts/2026-09-11-optimization-r34.md": [
-      "anchor-baseline:19d35dead3",
-      "Project-files:ebd7a9fbc6",
-      "roshpina:678f34b83b",
-      "saos-control-center:df77252b59",
-      "saos-dex:e0ae6793c1",
-      "saos-jummper:a10f4126de",
-      "saos-sovereign-foundry:063f60c409",
-      "saos-sovereign-platform:58b220fc3f",
-      "Saosmartwallet:117ca66fb7",
-      "Sdk:e4089cc29e",
-      "steem:6eaf6df861"
+    "broadcasts/2026-09-11-roast-76-report.md": [
+      "anchor-baseline:15b8f0b8c3",
+      "Project-files:1ae7b2857e",
+      "roshpina:e12fd876a6",
+      "saos-control-center:bd1322eae5",
+      "saos-dex:adff739085",
+      "saos-jummper:4643a7cfb4",
+      "saos-sovereign-foundry:e3a3eb2e2a",
+      "saos-sovereign-platform:ae2a0b5a90",
+      "Saosmartwallet:c30a46c88e",
+      "Sdk:70d7374a6b",
+      "steem:ce2ae65afe"
+    ],
+    "broadcasts/2026-09-11-optimization-r27.md": [
+      "anchor-baseline:f66c159843",
+      "Project-files:536c723177",
+      "roshpina:e21a7364d2",
+      "saos-control-center:f7f667613b",
+      "saos-dex:9155bb4b67",
+      "saos-jummper:46dddc4a04",
+      "saos-sovereign-foundry:d9e412515a",
+      "saos-sovereign-platform:ca43c524af",
+      "Saosmartwallet:6e21c1d512",
+      "Sdk:a206366e9f",
+      "steem:6f62aacfac"
     ],
     "broadcasts/2026-09-11-roast-77-addendum.md": [
       "anchor-baseline:fbe64bd9d6",
@@ -1134,19 +1159,6 @@
       "Sdk:ee29f644ac",
       "steem:0537ae0b66"
     ],
-    "broadcasts/2026-09-11-roast-79-report.md": [
-      "anchor-baseline:0c9191352e",
-      "Project-files:313842d2d0",
-      "roshpina:ab23633309",
-      "saos-control-center:6a7b53d813",
-      "saos-dex:a61bc5b75f",
-      "saos-jummper:aa2b531be1",
-      "saos-sovereign-foundry:2a7f54d864",
-      "saos-sovereign-platform:3b79f7bce8",
-      "Saosmartwallet:22ee9c3d37",
-      "Sdk:c8f7f08e7f",
-      "steem:bd1fd9eeb4"
-    ],
     "broadcasts/2026-09-11-treasury-ledger.md": [
       "anchor-baseline:b9523437a0",
       "Project-files:9f1d2d73c3",
@@ -1159,19 +1171,6 @@
       "Saosmartwallet:03bac2bbc6",
       "Sdk:b1f9caca30",
       "steem:cd2428b47a"
-    ],
-    "broadcasts/2026-09-11-roast-76-report.md": [
-      "anchor-baseline:15b8f0b8c3",
-      "Project-files:1ae7b2857e",
-      "roshpina:e12fd876a6",
-      "saos-control-center:bd1322eae5",
-      "saos-dex:adff739085",
-      "saos-jummper:4643a7cfb4",
-      "saos-sovereign-foundry:e3a3eb2e2a",
-      "saos-sovereign-platform:ae2a0b5a90",
-      "Saosmartwallet:c30a46c88e",
-      "Sdk:70d7374a6b",
-      "steem:ce2ae65afe"
     ],
     "broadcasts/2026-09-11-understanding-r29.md": [
       "anchor-baseline:b7b9f16ab9",
@@ -1186,6 +1185,19 @@
       "Sdk:8aaed707ec",
       "steem:eb3d141dcc"
     ],
+    "broadcasts/2026-09-11-weather-eye.md": [
+      "anchor-baseline:1a92eab02a",
+      "Project-files:94417bc4d3",
+      "roshpina:ad538ffeb4",
+      "saos-control-center:c058ebc36d",
+      "saos-dex:0edc9b6e47",
+      "saos-jummper:253ba509e8",
+      "saos-sovereign-foundry:b4ea4b9cfa",
+      "saos-sovereign-platform:c191a53997",
+      "Saosmartwallet:fadbc66040",
+      "Sdk:351a71a382",
+      "steem:c96fcd8752"
+    ],
     "broadcasts/2026-09-11-vault-report.md": [
       "anchor-baseline:d18a1e26e3",
       "Project-files:ec8d4785f8",
@@ -1199,18 +1211,9 @@
       "Sdk:a0afe8b7c7",
       "steem:753687c72d"
     ],
-    "broadcasts/2026-09-11-weather-eye.md": [
-      "anchor-baseline:1a92eab02a",
-      "Project-files:94417bc4d3",
-      "roshpina:ad538ffeb4",
-      "saos-control-center:c058ebc36d",
-      "saos-dex:0edc9b6e47",
-      "saos-jummper:253ba509e8",
-      "saos-sovereign-foundry:b4ea4b9cfa",
-      "saos-sovereign-platform:c191a53997",
-      "Saosmartwallet:fadbc66040",
-      "Sdk:351a71a382",
-      "steem:c96fcd8752"
+    "docs/reports/SAOS-STRATEGY-2026-09-11-ADSMARKET.md": [
+      "Adsmarket:6a90934485",
+      "steem:4c76a39a63"
     ],
     "broadcasts/2026-09-11-wise-irrigation.md": [
       "anchor-baseline:82293080e8",
@@ -1225,6 +1228,19 @@
       "Sdk:85ead25774",
       "steem:5f0f78b97c"
     ],
+    "broadcasts/2026-09-12-console-order-r38.md": [
+      "anchor-baseline:a17cc3b339",
+      "Project-files:1076a16b12",
+      "roshpina:45c235abe5",
+      "saos-control-center:100e2bca38",
+      "saos-dex:778bfc57de",
+      "saos-jummper:b0fde87902",
+      "saos-sovereign-foundry:e26e2f1eee",
+      "saos-sovereign-platform:f8bce933fe",
+      "Saosmartwallet:048bd44435",
+      "Sdk:1f6c70324c",
+      "steem:d785d2f5b5"
+    ],
     "broadcasts/2026-09-12-eth-call-r41.md": [
       "anchor-baseline:c1411ddd65",
       "Project-files:056a3dd648",
@@ -1237,19 +1253,6 @@
       "Saosmartwallet:794cd0c20b",
       "Sdk:f8e95d5109",
       "steem:105c18f815"
-    ],
-    "broadcasts/2026-09-12-fleet-audit-financial-r39.md": [
-      "anchor-baseline:870b3e58a2",
-      "Project-files:120db0b9bc",
-      "roshpina:befffc03a6",
-      "saos-control-center:0701621a4f",
-      "saos-dex:113c0c1ffa",
-      "saos-jummper:44f23beea3",
-      "saos-sovereign-foundry:e076646542",
-      "saos-sovereign-platform:83b768dc55",
-      "Saosmartwallet:11edf577d2",
-      "Sdk:b6af064512",
-      "steem:7afec9aea2"
     ],
     "broadcasts/2026-09-12-nvidia-live-fleet-security-r41.md": [
       "anchor-baseline:b99d46ae0a",
@@ -1264,18 +1267,30 @@
       "Sdk:c7a3d9ba65",
       "steem:dfb9f84320"
     ],
-    "broadcasts/2026-09-12-console-order-r38.md": [
-      "anchor-baseline:a17cc3b339",
-      "Project-files:1076a16b12",
-      "roshpina:45c235abe5",
-      "saos-control-center:100e2bca38",
-      "saos-dex:778bfc57de",
-      "saos-jummper:b0fde87902",
-      "saos-sovereign-foundry:e26e2f1eee",
-      "saos-sovereign-platform:f8bce933fe",
-      "Saosmartwallet:048bd44435",
-      "Sdk:1f6c70324c",
-      "steem:d785d2f5b5"
+    "broadcasts/2026-09-12-vault-restore-r37.md": [
+      "anchor-baseline:967c7c6987",
+      "Project-files:483511696f",
+      "roshpina:6758e49d46",
+      "saos-control-center:ad88d1dee8",
+      "saos-dex:8908aae493",
+      "saos-jummper:7d07fe6b9c",
+      "saos-sovereign-foundry:2211c8b313",
+      "saos-sovereign-platform:d3b927c86c",
+      "Saosmartwallet:830b421349",
+      "Sdk:f32f54dc13",
+      "steem:c50772680c"
+    ],
+    "broadcasts/2026-09-12-v75-speaking-truth-qa-sweep.md": [
+      "anchor-baseline:82f7a29d2c",
+      "Project-files:e144082e1a",
+      "roshpina:7d40923554",
+      "saos-control-center:9e21c407c4",
+      "saos-dex:b4abc2baaf",
+      "saos-jummper:a89809fc5d",
+      "saos-sovereign-foundry:5f783f2a24",
+      "Saosmartwallet:441ccf161a",
+      "Sdk:731007a2f1",
+      "steem:b9e7d84388"
     ],
     "broadcasts/2026-09-12-truth-audit-nvidia-r40.md": [
       "anchor-baseline:7eaf0d1f63",
@@ -1290,30 +1305,18 @@
       "Sdk:8b24e105b5",
       "steem:618f9876a1"
     ],
-    "broadcasts/2026-09-12-v75-speaking-truth-qa-sweep.md": [
-      "anchor-baseline:82f7a29d2c",
-      "Project-files:e144082e1a",
-      "roshpina:7d40923554",
-      "saos-control-center:9e21c407c4",
-      "saos-dex:b4abc2baaf",
-      "saos-jummper:a89809fc5d",
-      "saos-sovereign-foundry:5f783f2a24",
-      "Saosmartwallet:441ccf161a",
-      "Sdk:731007a2f1",
-      "steem:b9e7d84388"
-    ],
-    "broadcasts/2026-09-12-vault-restore-r37.md": [
-      "anchor-baseline:967c7c6987",
-      "Project-files:483511696f",
-      "roshpina:6758e49d46",
-      "saos-control-center:ad88d1dee8",
-      "saos-dex:8908aae493",
-      "saos-jummper:7d07fe6b9c",
-      "saos-sovereign-foundry:2211c8b313",
-      "saos-sovereign-platform:d3b927c86c",
-      "Saosmartwallet:830b421349",
-      "Sdk:f32f54dc13",
-      "steem:c50772680c"
+    "broadcasts/2026-09-12-fleet-audit-financial-r39.md": [
+      "anchor-baseline:870b3e58a2",
+      "Project-files:120db0b9bc",
+      "roshpina:befffc03a6",
+      "saos-control-center:0701621a4f",
+      "saos-dex:113c0c1ffa",
+      "saos-jummper:44f23beea3",
+      "saos-sovereign-foundry:e076646542",
+      "saos-sovereign-platform:83b768dc55",
+      "Saosmartwallet:11edf577d2",
+      "Sdk:b6af064512",
+      "steem:7afec9aea2"
     ],
     "broadcasts/r39-h25.md": [
       "anchor-baseline:d75bb82206",
@@ -1327,6 +1330,19 @@
       "Sdk:c9c9e47ab0",
       "steem:7fa0825894"
     ],
+    "broadcasts/2026-09-11-roast-79-report.md": [
+      "anchor-baseline:0c9191352e",
+      "Project-files:313842d2d0",
+      "roshpina:ab23633309",
+      "saos-control-center:6a7b53d813",
+      "saos-dex:a61bc5b75f",
+      "saos-jummper:aa2b531be1",
+      "saos-sovereign-foundry:2a7f54d864",
+      "saos-sovereign-platform:3b79f7bce8",
+      "Saosmartwallet:22ee9c3d37",
+      "Sdk:c8f7f08e7f",
+      "steem:bd1fd9eeb4"
+    ],
     "AGENTS.md": [
       "Console:65c5331fa6",
       "Domain:61ed01dec3",
@@ -1339,13 +1355,13 @@
       "Console:bb4cff6df2",
       "Domain:b86eeed9d6"
     ],
-    "agent/limitations.md": [
-      "Console:b26afbaf03",
-      "Domain:47f073b127"
-    ],
     "agent/handoff.md": [
       "Console:b5e3a0ed00",
       "Domain:35dd6bd28c"
+    ],
+    "agent/limitations.md": [
+      "Console:b26afbaf03",
+      "Domain:47f073b127"
     ],
     "feature_list.json": [
       "Console:2e3bb8dde5",
@@ -1354,10 +1370,6 @@
       "steem:553b4dc718",
       "Zip:53ed2addb3"
     ],
-    "mirror.json": [
-      "Console:8ce323d6ee",
-      "Domain:5abf94ba22"
-    ],
     "progress.md": [
       "Console:848c0fb23a",
       "Domain:547a2da36f",
@@ -1365,9 +1377,9 @@
       "steem:eff6d8d304",
       "Zip:83a8ac773a"
     ],
-    "saos-live.json": [
-      "Console:2b721b6bba",
-      "Domain:043cf5d25b"
+    "robots.txt": [
+      "Console:638f690966",
+      "Domain:dc5d1fa883"
     ],
     "session-handoff.md": [
       "Console:f35dc0bfe8",
@@ -1375,10 +1387,6 @@
       "saos-sovereign-platform:e0c6109c9e",
       "steem:cef9b25ae7",
       "Zip:48abd89e60"
-    ],
-    "robots.txt": [
-      "Console:638f690966",
-      "Domain:dc5d1fa883"
     ],
     "FLEET-NOTE.md": [
       "Domain:372f37789e",
@@ -1391,14 +1399,6 @@
       "steem:bd4ff7145c",
       "Zip:bd4ff7145c"
     ],
-    "CONTROLS-THAT-EXIST.md": [
-      "roshpina:80a8c40faa",
-      "saos-dex:94c59ac97b",
-      "saos-sovereign-foundry:f499fb19c7",
-      "saos-sovereign-platform:6537bf719f",
-      "Saosmartwallet:8f28b563b5",
-      "steem:7118a3a0a7"
-    ],
     "AGENT-BRIEFING.md": [
       "roshpina:37bea8f830",
       "saos-dex:784cece651",
@@ -1406,6 +1406,14 @@
       "saos-sovereign-platform:9c3238fc45",
       "Saosmartwallet:e0416cc4c3",
       "steem:47de881b7a"
+    ],
+    "CONTROLS-THAT-EXIST.md": [
+      "roshpina:80a8c40faa",
+      "saos-dex:94c59ac97b",
+      "saos-sovereign-foundry:f499fb19c7",
+      "saos-sovereign-platform:6537bf719f",
+      "Saosmartwallet:8f28b563b5",
+      "steem:7118a3a0a7"
     ],
     "docs/FORENSIC-AUDIT-ADDENDUM.md": [
       "roshpina:a38add303e",
