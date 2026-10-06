@@ -1,17 +1,17 @@
 {
- "at": "2026-10-06T00:06:13.444Z",
+ "at": "2026-10-06T01:10:31.736Z",
  "law": "שער-פתיחת-מושב (R208P): אין עבודה בלי אימות-ספר · PROVEN אינו נפתח-מחדש — רק מופרך · ההפרכה נרשמת",
  "genesis": "ec560b2208f1ba7b",
- "head": "99948b260abeaf26464bd3012b38b61497826dd4525ef11c84363085062773e6",
- "totalEntries": 29,
+ "head": "950ad5f1af1c48c5ccfc65762c6420dd5e614dfa5277ff4abb30d9202e91616d",
+ "totalEntries": 33,
  "claims": {
-  "proven": 16,
-  "open": 3,
+  "proven": 20,
+  "open": 2,
   "refuted": 0
  },
  "chainOk": true,
  "evidenceChecks": {
-  "total": 38,
+  "total": 48,
   "drift": 0,
   "historicalDrift": 8
  },
@@ -22,7 +22,7 @@
    "seq": 2,
    "path": "/home/z/my-project/cognition/OBJECTIVE-CAUSALITY-MATRIX.json",
    "expected": "c831e2f13093de01",
-   "actual": "a533f0323b4a7c6a",
+   "actual": "d66d25f83b0432fc",
    "ok": false,
    "reason": "EVIDENCE-DRIFT — התוכן השתנה מהרישום",
    "isLatest": false
@@ -32,7 +32,7 @@
    "seq": 3,
    "path": "/home/z/my-project/cognition/OBJECTIVE-CAUSALITY-MATRIX.json",
    "expected": "c831e2f13093de01",
-   "actual": "a533f0323b4a7c6a",
+   "actual": "d66d25f83b0432fc",
    "ok": false,
    "reason": "EVIDENCE-DRIFT — התוכן השתנה מהרישום",
    "isLatest": false
@@ -52,7 +52,7 @@
    "seq": 9,
    "path": "/home/z/my-project/sovereign/money/state.json",
    "expected": "60e545219d62d666",
-   "actual": "15df53b45d93f860",
+   "actual": "257e73d0d1347b8e",
    "ok": false,
    "reason": "EVIDENCE-DRIFT — התוכן השתנה מהרישום",
    "isLatest": false
@@ -62,7 +62,7 @@
    "seq": 10,
    "path": "/home/z/my-project/sovereign/ledger.json",
    "expected": "1d22d0eeea372fe8",
-   "actual": "78fe2c53392cc735",
+   "actual": "16cdb417531395b4",
    "ok": false,
    "reason": "EVIDENCE-DRIFT — התוכן השתנה מהרישום",
    "isLatest": false
@@ -72,7 +72,7 @@
    "seq": 11,
    "path": "/home/z/my-project/sovereign/ledger.json",
    "expected": "1d22d0eeea372fe8",
-   "actual": "78fe2c53392cc735",
+   "actual": "16cdb417531395b4",
    "ok": false,
    "reason": "EVIDENCE-DRIFT — התוכן השתנה מהרישום",
    "isLatest": false
@@ -92,7 +92,7 @@
    "seq": 16,
    "path": "/home/z/my-project/cognition/OBJECTIVE-CAUSALITY-MATRIX.json",
    "expected": "27570da46854f779",
-   "actual": "a533f0323b4a7c6a",
+   "actual": "d66d25f83b0432fc",
    "ok": false,
    "reason": "EVIDENCE-DRIFT — התוכן השתנה מהרישום",
    "isLatest": false
@@ -216,6 +216,34 @@
     "scope": "LIVE",
     "verdict": "PROVEN",
     "at": "2026-10-06T00:06:13.110Z"
+   },
+   {
+    "claimId": "R207-TREASURY-INFLIGHT-HIDDEN",
+    "seq": 33,
+    "scope": "LIVE",
+    "verdict": "PROVEN",
+    "at": "2026-10-06T00:48:39.086Z"
+   },
+   {
+    "claimId": "R209-TREASURY-INFLIGHT-FIX",
+    "seq": 30,
+    "scope": "LIVE",
+    "verdict": "PROVEN",
+    "at": "2026-10-06T00:48:07.717Z"
+   },
+   {
+    "claimId": "R209-TEAM-CYCLE",
+    "seq": 31,
+    "scope": "STRUCTURAL",
+    "verdict": "PROVEN",
+    "at": "2026-10-06T00:48:07.830Z"
+   },
+   {
+    "claimId": "R209-PROOF-LAW-STANDING",
+    "seq": 32,
+    "scope": "STRUCTURAL",
+    "verdict": "PROVEN",
+    "at": "2026-10-06T00:48:07.913Z"
    }
   ],
   "open": [
@@ -232,13 +260,6 @@
     "scope": "LIVE",
     "verdict": "UNOBSERVED",
     "claim": "ספר-התחזיות-החי (sovereign/objectives/predictions.jsonl): 0 שורות אי-פעם — אף-גבול-חי-לא-נכתב; המעבדות כתבו-רק-לעותקיהן; אפס-המצאת-גל-חי."
-   },
-   {
-    "claimId": "R207-TREASURY-INFLIGHT-HIDDEN",
-    "seq": 29,
-    "scope": "LIVE",
-    "verdict": "OPEN",
-    "claim": "מפת-האוצר (/api/treasury) מחריגה refund-queue 2,462.46-SP (≈$154) + received-in 244.10-SP (≈$15) — מציגה ~30% מהנכס-הגולם (~$247 ב-SP גולם, מדידה r207-d). לא-שק"
    }
   ],
   "refuted": []

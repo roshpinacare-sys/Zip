@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 951,
-  "at": "2026-10-06T00:44:44.041Z",
+  "seq": 956,
+  "at": "2026-10-06T01:09:44.202Z",
   "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 389 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 391 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 389,
+        "entries": 391,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 14 תמונות (אחרונה seq 14 בת 40 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 14 תמונות (אחרונה seq 14 בת 65 דק')",
       "numbers": {
         "entries": 14,
         "brokenAt": null,
@@ -28,23 +28,23 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 1 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 5 דק'",
       "numbers": {
         "total": 200,
         "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 1
+        "lastAgeMinutes": 5
       }
     },
     {
       "id": "ladder-floor",
       "status": "fail",
-      "detail": "חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -274bps · חשיפה 0.002 SBD",
+      "detail": "חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -244bps · חשיפה 0.0016 SBD",
       "numbers": {
         "state": "DRIFT",
         "asksBelowParity": 2,
-        "worstBps": -274,
-        "maxDriftLossSbd": 0.002,
+        "worstBps": -244,
+        "maxDriftLossSbd": 0.0016,
         "ordersOpen": 14
       }
     },
@@ -75,16 +75,16 @@
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 49.5ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 49.9ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 49.5
+        "toolAgeHours": 49.9
       }
     }
   ],
   "anomalies": [
-    "ladder-floor: חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -274bps · חשיפה 0.002 SBD"
+    "ladder-floor: חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -244bps · חשיפה 0.0016 SBD"
   ]
 }

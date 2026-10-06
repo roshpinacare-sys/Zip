@@ -31,7 +31,10 @@ export async function GET(req: NextRequest) {
       .reverse(); // החדש-ראשון
     const head = all.length ? String(all[all.length - 1]!.entryHash) : null;
     const gate = fs.existsSync(gatePath) ? JSON.parse(fs.readFileSync(gatePath, "utf8")) : null;
-    return NextResponse.json({ ok: true, head, totalEntries: all.length, entries, gate });
+    // מאכף-החוק העומד (R209) — מצבו החי מוצמד לתשובה (קריאה-בלבד)
+    const lawPath = path.join(process.cwd(), "sovereign/proofs/proof-law-state.json");
+    const law = fs.existsSync(lawPath) ? JSON.parse(fs.readFileSync(lawPath, "utf8")) : null;
+    return NextResponse.json({ ok: true, head, totalEntries: all.length, entries, gate, law });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e).slice(0, 200) }, { status: 500 });
   }

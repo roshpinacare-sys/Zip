@@ -11,6 +11,8 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import { NextResponse } from "next/server";
+import { readFile } from "fs/promises";
+import path from "path";
 import { swrGet, cacheHeader } from "@/lib/live/swr";
 
 export const dynamic = "force-dynamic";
@@ -118,6 +120,118 @@ async function rpcCall(url: string, method: string, params: unknown[], tries = 1
   return j.result;
 }
 
+// ── r209-b · מקטע-inFlight — תיקון-חסירה-מבנית במפת-האוצר (תוספת-בלבד) ──
+// רקע-מדידה (r207-d, רשום-ביומן): המפה הציגה נטו-בבעלות בלבד (vesting_shares −
+// delegated_vesting_shares) ≈ 30% מהנכס-הגולם. שני-רכיבי-חיים הוחרגו:
+//  (א) refund-queue — delegation של-headcorner בדרך-חזרה: בחלון-ההחזרה (7-ימים)
+//      היא לא-ב-vesting_shares של אף-צד ולא-חוזרת-עדיין — ולכן נעלמת מהנטו;
+//  (ב) received-in — delegation-נכנסת-מאחרים (REVOCABLE — לא-בעלות-מלאה).
+// כל-מספר כאן מדידה-חיה: הנתונים שכבר-נאספו ב-route + קריאת snapshot.json של
+// ה-keeper. שום-מספר-כאן לא מזין את usd.total / usd.vesting / שדה-קיים-אחר —
+// אפס-שינוי-התנהגות; צד-שנפל או מדידה-בלתי-אפשרית ⇒ null (UNMEASURED), לא המצאה.
+
+// מבנה-refundQueue ב-soldiers/snapshot.json (schema soldiers-snapshot-v1) — כפי-שנמדד בקובץ החי.
+interface SoldiersSnapshot {
+  schema?: string;
+  measuredAt?: string;
+  refundQueue?: {
+    expirations?: number;
+    totalVests?: number; // VESTS גולמי (יחידת-השרשרת, לא SP)
+    earliest?: string;
+    latest?: string;
+  };
+}
+
+// מקור-ה-refund-queue · מקור: keeper · keyless · מדידה-כל-30-דק' מ-database_api.find_vesting_delegation_expirations
+const SOLDIERS_SNAPSHOT_REL = "sovereign/soldiers/snapshot.json";
+
+// קריאת-קובץ-בטוחה (הדפוס הקיים של /api/saosnet) — קובץ חסר/שבור ⇒ null כנה, אף חריגה לא בורחת.
+async function readJsonSafe(rel: string): Promise<unknown | null> {
+  try {
+    const raw = await readFile(path.join(process.cwd(), rel), "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+interface InFlightSection {
+  refundQueueSp: number | null;
+  refundQueueUsd: number | null;
+  refundQueueExpirations: number | null;
+  refundQueueWindow: { earliest: string; latest: string } | null;
+  snapshotMeasuredAt: string | null;
+  receivedInSp: number | null;
+  receivedInUsd: number | null;
+  receivedInFleetSp: number | null;
+  receivedInFleetUsd: number | null;
+  grossSp: number | null;
+  grossSpUsd: number | null;
+  delegatedOutSp: number | null;
+  explanation: string;
+}
+
+async function measureInFlight(params: {
+  perVest: number; // יחידת-המרה VESTS→SP · מקור: get_dynamic_global_properties (כבר-מחושב ב-steemSide — לא-יחס-חדש)
+  headGrossSp: number | null; // vesting_shares(headcorner) × perVest · מקור: השרשרת (get_accounts)
+  headDelegatedOutSp: number | null; // delegated_vesting_shares(headcorner) × perVest · מקור: השרשרת
+  headReceivedSp: number | null; // received_vesting_shares(headcorner) × perVest · מקור: שרשרת-ה-rows הקיימת
+  fleetReceivedSp: number | null; // Σ receivedSp לכל-הצי · מקור: ה-rows הקיימים
+  steemPrice: number | null; // מחיר-STEEM החי שכבר-מחושב ב-route · אפס-מחיר-חדש-מומצא
+}): Promise<InFlightSection> {
+  const { perVest, headGrossSp, headDelegatedOutSp, headReceivedSp, fleetReceivedSp, steemPrice } = params;
+  const snap = (await readJsonSafe(SOLDIERS_SNAPSHOT_REL)) as SoldiersSnapshot | null;
+  const rq = snap?.refundQueue;
+  // כנות-מספרית: NaN/אינסו אינם-מדידה — הופכים ל-null (UNMEASURED), לא מודפסים כמספר
+  const num = (v: number | null): number | null => (v !== null && Number.isFinite(v) ? v : null);
+  // המרת-SP→USD רק-במחיר-החי-הקיים — אין-מחיר ⇒ null (חוק-הסכום-הכנה של ה-route)
+  const toUsd = (sp: number | null): number | null =>
+    sp !== null && steemPrice !== null && Number.isFinite(steemPrice) ? sp * steemPrice : null;
+
+  // refundQueueSp · SP · מקור: sovereign/soldiers/snapshot.json→refundQueue.totalVests (VESTS) × perVest
+  // הערה: refund-queue ⊂ delegated_vesting_shares — זהות-מדידה r207-d (פעיל-יוצא + refundQueue = delegated, פער 0.000000)
+  const refundQueueSp =
+    rq && typeof rq.totalVests === "number" && perVest > 0 ? num(rq.totalVests * perVest) : null; // UNMEASURED אם snapshot/perVest חסרים
+  const refundQueueUsd = toUsd(refundQueueSp); // USD · בהמרת מחיר-ה-STEEM החי-בלבד
+
+  // receivedInSp · SP · מקור: שדה-receivedSp הקיים בשרשרת-החשבון (received_vesting_shares × perVest) — שימוש-ישיר/הצלבה
+  const receivedInSp = num(headReceivedSp);
+  const receivedInUsd = toUsd(receivedInSp); // USD · מחיר-ה-STEEM החי
+  // receivedInFleetSp · SP · סך-הנכנסת לכל-הצי (Σ rows.receivedSp) — כולל סירקולציה-פנימית (r207-e: חלקה-עצמית)
+  const receivedInFleetSp = num(fleetReceivedSp);
+  const receivedInFleetUsd = toUsd(receivedInFleetSp);
+
+  // grossSp · SP · הנכס-הגולם ל-headcorner: vesting_shares × perVest =
+  // נטו-בבעלות + המושכר-החוצה (שה-refund-queue תת-קבוצה מדוד שלו) · לא-כולל received-in
+  const grossSp = num(headGrossSp);
+  const grossSpUsd = toUsd(grossSp);
+
+  return {
+    refundQueueSp,
+    refundQueueUsd,
+    // מספר-הפרעונות · מקור: snapshot.json→refundQueue.expirations
+    refundQueueExpirations: rq && typeof rq.expirations === "number" ? rq.expirations : null,
+    // חלון-נחיתת-ההחזרות · מקור: snapshot.json→refundQueue.earliest/latest
+    refundQueueWindow: rq?.earliest && rq?.latest ? { earliest: rq.earliest, latest: rq.latest } : null,
+    // מתי-נמדד ה-snapshot · מקור: snapshot.json→measuredAt (keeper כל-30-דק')
+    snapshotMeasuredAt: snap?.measuredAt ?? null,
+    receivedInSp,
+    receivedInUsd,
+    receivedInFleetSp,
+    receivedInFleetUsd,
+    grossSp,
+    grossSpUsd,
+    // הצלבה · SP · delegated-out גולם מהשרשרת: פעיל-יוצא + refundQueue = delegated_vesting_shares (זהות r207-d)
+    delegatedOutSp: num(headDelegatedOutSp),
+    explanation:
+      "הנטו-המוצג ב-usd.vesting הוא (vesting_shares − delegated_vesting_shares) — הגרעה-מלאה של ה-delegated-out, " +
+      "ובתוכה גם ה-refund-queue שבדרך-חזרה (היא תת-קבוצה של ה-delegated_vesting_shares — זהות r207-d — ולכן-נגרעת-מהנטו-ביחד-איתם, למרות-שהיא נכס-שחוזר-בימים-הקרובים); " +
+      "ה-received-in (delegation-נכנסת, REVOCABLE — לא-בעלות-מלאה) אינו-נכלל בנטו-כלל. " +
+      "הגולם (vesting_shares × perVest) כולל את המושכר-החוצה — שה-refund-queue הוא תת-קבוצה-מדוד שלו (זהות r207-d) — " +
+      "וה-received-in נמדד כאן לחוד. המקטע תוספת-מדידה-בלבד: usd.total / usd.vesting / כל-השדות-הקיימים לא-השתנו.",
+  };
+}
+
 // ── שרשראות ──────────────────────────────────────────────────────────
 
 async function steemSide() {
@@ -191,6 +305,15 @@ async function steemSide() {
   const sbdTarget = openOrders
     .filter((o) => o.asset === "STEEM" && o.quoteAsset === "SBD")
     .reduce((s, o) => s + o.quoteAmt, 0);
+  // r209-b · מדידות-גולם ל-headcorner — תוספת-בלבד (אפס-נגיעה בשדות-הקיימים):
+  // gross = vesting_shares כפי-שהוא (נטו-בבעלות + המושכר-החוצה; refund-queue תת-קבוצה
+  // מדוד של ה-delegated — זהות r207-d: פעיל-יוצא + refundQueue = delegated_vesting_shares, פער 0.000000).
+  const headInFlightRaw = head
+    ? {
+        headGrossSp: parseFloat(head.vesting_shares) * perVest, // SP · מקור: get_accounts.vesting_shares × perVest
+        headDelegatedOutSp: parseFloat(head.delegated_vesting_shares) * perVest, // SP · מקור: get_accounts.delegated_vesting_shares × perVest
+      }
+    : { headGrossSp: null, headDelegatedOutSp: null };
   return {
     perVest,
     accounts: rows,
@@ -210,6 +333,8 @@ async function steemSide() {
       paymentsLeft,
       totalRemainingSteem: toWithdraw * perVest,
     },
+    // r209-b · נתוני-גלם למקטע-inFlight של-הרמה-העליונה (מדידה-בלבד, לא-מוצג-כסף)
+    inFlightRaw: headInFlightRaw,
   };
 }
 
@@ -490,6 +615,18 @@ async function composeTreasury() {
   }
   const deployedUsd = steemDeployedUsd;
   const liquidUsd = steemLiquidUsd + hiveUsd + tronUsd + evmUsd + solUsd + btcUsd;
+
+  // r209-b · הרכבת-מקטע-inFlight — רק-מהנאסף-כבר (rows/perVest/מחיר-חי) + snapshot.json.
+  // אפס-הזנה-לשדות-החתומים: המקטע תוספת-מדידה-בלבד ולא-משנה את usd.total / usd.vesting.
+  const headRow = steem?.accounts.find((a) => a.name === "headcorner") ?? null;
+  const inFlight = await measureInFlight({
+    perVest: steem?.perVest ?? 0, // VESTS→SP · מה-props שכבר-נאספו (0 כשצד-STEEM נפל ⇒ null-כנה-למטה)
+    headGrossSp: steem?.inFlightRaw.headGrossSp ?? null, // מקור: get_accounts.vesting_shares (נמדד ב-steemSide)
+    headDelegatedOutSp: steem?.inFlightRaw.headDelegatedOutSp ?? null, // מקור: get_accounts.delegated_vesting_shares
+    headReceivedSp: headRow ? headRow.receivedSp : null, // מקור: שדה-receivedSp הקיים (הצלבה-במקום-חישוב-כפול)
+    fleetReceivedSp: steem ? steem.accounts.reduce((s, a) => s + a.receivedSp, 0) : null, // Σ הנכנסת-לצי
+    steemPrice, // מחיר-STEEM חי · אין-מחיר ⇒ null (חוק-הסכום-הכנה)
+  });
   // R122 · חוק הסכום-הכנה: צד שנפל אינו "0$" — הוא חסר-מדידה. כשצד כלשהו
   // (או עמוד-המחירים כולו) לא נמדד, הסכום-הכולל הוא null — "—" בתצוגה,
   // לא אוצר מוקטן-סתם. ה-down[] מגלה איזה צד.
@@ -515,6 +652,8 @@ async function composeTreasury() {
       missingPrices,
     },
     steem: steem ?? undefined,
+    // r209-b · פירוק-inFlight — החסר-המבני שנמדד ב-r207-d (תוספת-בלבד, אפס-נגיעה בשדות-הקיימים)
+    inFlight,
     hive: hive ?? undefined,
     tron: tron ?? undefined,
     evm: evm ?? undefined,

@@ -8009,3 +8009,64 @@ Stage Summary:
 - **שני-פתוחים-כנים-בלבד**: חציית-גבול-חי-חיובית (UNOBSERVED — העולם-לא-סיפק; הלכידה-חמושה) · ספר-התחזיות-החי-ריק (ימולא-רק-בגבול-חי).
 - **חלון-הכפילות סגור-וחי-בייצור** · **X3 מוכרע-בקריטריון-מדיד** · **שורש-אירוע-ההשתקמות נסגר** (כל-מודולי-R208+המודל-בגיט).
 - אפס-הרחבת-סמכות · אפס-נגיעה-בהון · Power-Down לא-נגע · הדיבון-המשיך-לפעום-לאורך-כל-הסבב.
+---
+Task ID: r209-b
+Agent: Builder (צוות-ההנדסה)
+Task: תיקון חסירה-מבנית ב-/api/treasury — פירוק inFlight (refund-queue + received-in + gross) בתוספת-בלבד
+
+Work Log:
+- פתיחה חוקית: נקראו 200 שורות-היומן האחרונות + scripts/proof-ledger.ts (חוקי P1–P6). עבודה תחת משטר-אמת: כל מספר בקוד החדש נושא הערת-מקור (value/unit/source) בעברית.
+- בסיס-השוואה: /tmp/treasury-before-r209.json (00:01:39Z, קיים-מראש) — קריאה-בלבד; ה-API החי נקרא והחזיר תשובה תקינה ב-00:14:44Z.
+- קריאת-מקורות לפני-כתיבה: sovereign/soldiers/snapshot.json (schema soldiers-snapshot-v1 → refundQueue{expirations,totalVests,earliest,latest}) · דפוס-קריאת-הקבצים של /api/saosnet (readJsonSafe + process.cwd) · שרשרת-החשבון הקיימת ב-route (rows.receivedSp · perVest).
+- שינוי-יחיד: src/app/api/treasury/route.ts — **139 שורות-הוספה, 0 מחיקות** (git diff --stat; 532→671 שורות). אפס-נגיעה בשדות-החתומים (usd.total/liquid/vesting · steem · hive · tron · evm · sol · btc · prices · priceSources · network · ok/down): אין-הזנה-חוזרת, אין-שינוי-סדר, אין-שינוי-נוסחה.
+- תוספות: (1) imports fs/promises+path · (2) מקטע r209-b: interface SoldiersSnapshot + readJsonSafe (דפוס-ה-saosnet, קובץ-חסר⇒null) + interface InFlightSection + measureInFlight() · (3) steemSide: מדידות-גולם-גולמיות ל-headcorner (vesting_shares/delegated_vesting_shares × perVest) מוחזרות במפתח-חדש steem.inFlightRaw · (4) composeTreasury: הרכבת מקטע-עליון inFlight (אחרי steem) מהנאסף-כבר בלבד.
+- כנות-מובנית: NaN/אינסו/צד-נפל/קובץ-חסר/מחיר-חסר ⇒ null (UNMEASURED) — אף-מספר-לא-מומצא; המרת-USD רק-במחיר-ה-STEEM החי שכבר-מחושב ב-route (לא-מחיר-חדש); כשל-snapshot לא נוגע ב-ok/down (אפס-שינוי-התנהגות).
+- אימות-עצמי: bunx eslint על-הקובץ נקי · bun run lint (eslint .) מלא — נקי exit 0 · tsc --noEmit — אפס-שגיאות בקובץ · הרצת-GET של ה-route עצמו (ערכת-אימות קריאה-בלבד ב-/tmp/r209-verify.ts — אותם-נתיבים ש-curl מריץ) → HTTP 200, JSON תקין, סדר-מפתחות: ...steem, inFlight, hive... .
+- הצלבות-אריתמטיקה חי (כולן-נסגרות): gross−net = delegatedOutSp במדויק (3,047.628 = 3,047.628) · refundQueueSp÷perVest = totalVests הקפוא בספרה 3,971,982.175-VESTS · כל-היחסים USD÷SP = prices.STEEM החי במדויק (0.06497) · refundQueueSp 2,462.508-SP מול-מדידת-r207-d 2,462.46 (סטייה-היחידה: ריסוק-perVest-חי; ה-VESTS-זהים).
+- ממצא-סביבה נמדד (לא-מהסבה): שרת-ה-web (פורט 3000) מת ב-~00:19:12Z — **~90 שניות לפני** ה-edit שלי (mtime 00:20:49 · keeper web.lastHealthyAt 00:18:42). אפס-קשר-סיבתי; אפס-kill/restart מצידי (חוק-ברזל). ה-keeper מדווח web:DOWN עם החלטות-«התערבות» ולא-החזירו-חי (lastReviveAt 23:01) — כל-שאר-הצי UP. אימות-ה-route בוצע בערכת-ה-GET הישירה עד-שיחזור-ה-web בסמכות-הסמכות.
+- תצפית-ערך נוספת מהשוואת-ספרים (מדיד, לא-מפורש): delegated-out עלה מ-2,822.57-SP (r207-d) ל-3,047.63-SP והנטו-ירד באותו-גודל (1,124.58→899.62) ⇒ ~225-SP delegation-יוצאת-חדשה-מאז-r207-d; ה-SP-הגולם לא-השתנה (3,947.17→3,947.24, בגבול-ריסוק-perVest) — עקבי-עם-העברת-אותם-VESTS-החוצה. לא-נבדק-מאציל-היעד (מחוץ-להיקף).
+
+Stage Summary:
+- נבנה ונמסר: מקטע-תוספת `inFlight` בתשובת /api/treasury (רמה-עליונה, אחרי-steem) — תיקון-החסירה-המבנית מ-r207-d בלבד-מדידה, אפס-שינוי-התנהגות-קיימת.
+- שדות-חדשים (כולם מדידה-חיה, ערכי-הרצה 00:22Z): refundQueueSp **2,462.508-SP** (מקור: snapshot.json→refundQueue.totalVests × perVest) · refundQueueUsd **$159.99** (במחיר-STEEM החי 0.06497) · refundQueueExpirations **46** · refundQueueWindow **10-09T05:21:12→10-10T09:47:09** · snapshotMeasuredAt 00:20:43Z · receivedInSp **244.107-SP** (שדה-receivedSp הקיים — שימוש/הצלבה, לא-חישוב-כפול) · receivedInUsd $15.86 · receivedInFleetSp 847.994-SP (Σ הצי, כולל-סירקולציה-פנימית-מסומנת) · receivedInFleetUsd $55.09 · grossSp **3,947.245-SP** (vesting_shares × perVest = נטו + מושכר-החוצה; refund-queue תת-קבוצתו מדיד) · grossSpUsd $256.45 · delegatedOutSp 3,047.628-SP (הצלבת-הזהות) · explanation (עברית: למה-הנטו-מציג-פחות-מהגולם).
+- שדה-עזר חדש-נוסף בתוך-steem: inFlightRaw {headGrossSp, headDelegatedOutSp} — נתוני-גלם מהשרשרת למקטע-העליון.
+- UNMEASURED-כנה בהרצה-זו: אפס — כל-השדות-נמדדו. נתיבי-null-מובנים-קיימים-להיעדר-מדידה (snapshot-חסר/צד-STEEM-נפל/מחיר-חסר ⇒ null+UNMEASURED).
+- גבולות: קריאה-בלבד לכל-השאר · אפס-כתיבה מחוץ-ל-route.ts + סעיף-יומן זה (בסיס-המדידה וערכת-האימות ב-/tmp בלבד) · אפס-kill/restart · אפס-סודות/מפתחות/כסף · אפס-כתיבה לספר-ההוכחות.
+---
+Task ID: r209-f
+Agent: Falsifier (צוות-ההנדסה)
+Task: הפרכת תיקון ה-inFlight ב-/api/treasury (r209-b)
+
+Work Log:
+- **A · אימות-עצמאי-מהשרשרת (keyless, 00:35:57Z)**: get_dynamic_global_properties → perVest שלי 0.0006199697853189465 (fund 201,041,341.966 / shares 324,276,032,036.905250) מול route 0.0006199697794350705 — rel 9.5e-9 · get_accounts(headcorner) → grossSp 3947.2461 / delegatedOutSp 3047.6292 / receivedInSp 244.1069 / netSp 899.6169 — מול API: 3947.246111 / 3047.629204 / 244.106902 / 899.616906 · כל-13 שורות-הצי (sp+receivedSp) נאמתו שורה-שורה מול קריאתי-העצמאית, סטייה-מרבית 9.5e-9 (cashmachine) — הרבה-מעבר לסבילות ±0.5%.
+- **B · זהות**: gross = net + delegatedOut — במדידה-העצמאית פער 0.0 מדויק; ב-API פער 4.55e-13 · refundQueue (2462.5089) ⊂ delegatedOut (3047.6292), שארית-ההשכרה-הפעילה 585.1203 — אין-שארית-בלתי-מוסברת.
+- **C · refundQueue**: snapshot.json→totalVests 3,971,982.175 × perVest-שלי = 2462.508936 מול API 2462.508913 (rel 9.5e-9); expirations 46 + window תואמים-מדויק · NULL-דרך מסקנת-קוד בלבד (אסור-היה-למחוק): readJsonSafe (route.ts:149-156) קובץ-חסר/שבור ⇒ null ⇒ refundQueueSp/Usd/Expirations/Window/snapshotMeasuredAt כולם null-כנה בעוד שדות-השרשרת נשארים מדודים; typeof+num() חוסמים NaN/∞/טיפוסים-זרים.
+- **D · ישנים**: keytree-diff מול /tmp/treasury-before-r209.json — 0 מפתחות-נעלמו, 19 נתיבים-חדשים (inFlight.* אחרי steem + steem.inFlightRaw.*) · הנוסחאות-הישנות חושבו-מחדש מתוך-התשובה-החיה (כמויות×מחירים-מאותה-תשובה): usd.liquid diff 8.9e-16 · usd.vesting 7.1e-15 · deployed 0 · deployedExit 0 · total 1.4e-14 — רעש-צף-בלבד, הנוסחה-לא-שונתה.
+- **E · יחידות (לקח-r203)**: refundQueueUsd 156.270816 = Sp × prices.STEEM (0.06346) diff 0.00e+00; מסלול-הפיד (SBD/STEEM 0.10409945) היה נותן 256.3458 — פער $100.07 · זהה-ל-receivedInUsd/grossSpUsd/receivedInFleetUsd: כולם מסלול-שוק-בלבד, diff 0.00e+00.
+- **F · שחזור**: שתי-קריאות בהפרש ~70ש' (00:39:38Z / 00:40:48Z) — מבנה-זהה (0 נעלמו/נוספו) · SP נע רק-עם סחיפת-perVest (rel ~6e-8) · USD נע רק-עם-השוק (STEEM 0.06358→0.06363) · שדות-ה-snapshot קבועים · explanation זהה.
+- **תצפית-חיה**: יתרת-headcorner נעה 33.718→34.718 STEEM בין compose (00:35:49Z) לקריאתי (00:35:57Z) — נאמתה ב-get_account_history: limit_order_cancel/create (orderid 2100000481-486, 00:37-00:38Z) — מסחר-חי, לא-פגם.
+
+Stage Summary:
+- פסק-דין: PASS · כל-שש-המתקפות A–F נכשלו-בשבירה: כל-המספרים ב-mקטע-inFlight מומתים-מדויקים מול-השרשרת-הציבורית (סטיות ≤1e-6% מול סבילות ±0.5%), הזהות gross=net+delegatedOut מתקיימת, היחידות הן מחיר-שוק-חי (לא-פיד — לקח-r203 נלמד), ה-NULL-דרך כנה מהקוד, ואפס-נגיעה בנוסחאות-הישנות (רעש-צף ≤7e-15); נימה-אחת-לתיקון-עתידי: ה-explanation סותר-את-עצמו בניסוח «לא-ב-vesting_shares של אף-צד» מול-הזהות-הנמדדת (refundQueue ⊂ vesting_shares) — ניסוח-בלבד, לא-מספר.
+---
+Task ID: r209
+Agent: main (Z.ai Code — אדג'ודיקטור) + צוות-ההנדסה (בונה r209-b + מפרך r209-f · הפרדת-רשויות)
+Task: הנחיית-המפעיל "מעולה בוא נממש" (trace 1a10e81ef1880a99) — מימוש פריצות 1+2 מתוכנית-ההנדסה: (1) חוק-האמת כמאכף-עומד שאינו-תלוי-זיכרון-סוכן; (2) מחזור-בכורה של צוות-הנדסה בהפרדת-רשויות על תיקון-אמת אחד
+
+Work Log:
+- **פריצה-1 · המאכף-העומד**: mini-services/proof-law (v1.0.0 · :3052 · מניפסט-הצי FLO-1/FLO-2 · memoryMB:120) — פעימה-כל-5-דק': אימות-שרשרת-מלא מהג'נסיס · אימות-כל-עדות sha256 (סטייה-חיה=CRITICAL) · **שחזור-חי-מסתובב** (טענה-אחת-לפעימה · הכי-ותיקה-שלא-נבדקה · מינימום-6ש' בין-ריצות, 10-דק' אחרי-כישלון-חולף) · אזעקות BOOK-MISSING/CHAIN-BROKEN/EVIDENCE-DRIFT/REPRO-FAILED · מצב-אטומי sovereign/proofs/proof-law-state.json · GET / · POST /beat. הראשון שנרצתה-חי: R208-J-15WORLDS (exit=0).
+- **רישום-ספר**: proof-seed-r209 — 4-רשומות R207 (CROSS-EXAM-FIVE · POWERDOWN-X4-FIX · F1-SEAL · TREASURY-INFLIGHT-HIDDEN=OPEN) — כל פקודת-שחזור נבדקה-חי לפני-רישום (החוק תפס-ציפייה-שגויה: grep-חזר 6 לא 5 — 5-סוכנים+אדג'ודיקטור).
+- **פריצה-2 · מחזור-בכורה בונה+מפרך**: הבונה (r209-b) — מקטע inFlight ב-/api/treasury (תוספת-בלבד 139-שורות/0-מחיקות): refundQueueSp 2,462.51 · receivedInSp 244.11 · grossSp 3,947.25 · delegatedOutSp 3,047.63 · כל-ה-USD בהמרת prices.STEEM-החי. המפרך (r209-f) — 6-מתקפות-עצמאיות (מחושב-הכול מהשרשרת-הציבורית keyless): אימות-מספרים rel 9.5e-9 · זהות gross=net+delegatedOut פער-אפס · יחידות-נכונות (לקח-r203 נלמד: מסלול-הפיד היה-סוטה $100) · NULL-דרך-כנה · 0-מפתחות-ישנים-נעלמו · שחזור-עקבי → **PASS**; נימה-ניסוחית-אחת שהוא חשף (סתירת-הסבר מול-הזהות) תוקנה-על-ידי-האדג'ודיקטור.
+- **אדג'ודיקציה**: proof-adjudicate-r209 — R209-TREASURY-INFLIGHT-FIX (PROVEN) · R209-TEAM-CYCLE (PROVEN) · R209-PROOF-LAW-STANDING (PROVEN) + רוויזיית-P1 סוגרת R207-TREASURY-INFLIGHT-HIDDEN → PROVEN (אותו-claimId, אחרון-גובר). הספר: **33-רשומות · 20-PROVEN · 2-OPEN כנים (עולם-חיובי-לא-נצפה · ספר-תחזיות-חי-ריק) · 0-REFUTED · שרשרת-תקינה · 0-סטיות-עדות-חיות**.
+- **עיגון**: proof-book-attest — ראש 950ad5f1af1c48c5ccfc… נחתם כ-PROOF-REGISTRY **#1498** (weave-proof-registrar 0x66125a1d9647…) בספר-הרשת; הלב-הענן יאמת-מחדש-שעה-שעה.
+- **תקלה-מערכתית-שנפתרה-ומתועדת**: נתיבים-קרים (proofs/agents/efficiency) נתקעו-לנצח — **פאניקת-Turbopack: מסד-הקומפילציה-המצטבר מושחת** (נזק-התרסקות-השרת 00:19Z במחסור-זיכרון; worker-postcss-תקוע 541MB + סשן-דפדפן-שלי ~900MB). תרופה: הסגר .next → /tmp + dev-revive (pid 27927) → /api/proofs 200-ב-0.11ש'; כל-הנתיבים-200 (treasury 10ms · agents 166ms). המאכף **תפס-בעצמו** את חלון-ההפעלה-מחדש (REPRO-FAILED exit=52 ב-01:04 — והתנקה בפעימה-העוקבת; התיקון: כישלון-חולף מנסה-שוב-אחרי-10-דק').
+- **UI/API**: /api/proofs מצרף מצב-המאכף (law) · תצוגת-הספר מציגה כרטיס-המאכף-העומד (שרשרת/פעימות/שחזור-חי-אחרון/אזעקות) — אומת-דפדפן: הלוח מרנדר מלא, אפס-שגיאות-קונסולה; צילום: sovereign/tmp/r209-proofs-law-card.png.
+- **חוק-מתועד**: AGENTS.md §3 הורחב — המאכף-העומד חלק-ממסלול-הפתיחה.
+- **ממצא-חדש-מהמפרך** (לא-טופל-הסבב): delegated-out עלה 2,822.57→3,047.63-SP והנטו-ירד-באותו-גודל מאז-r207-d — האצלה-חדשה ~225-SP עם מאציל-לא-מזוהה; דורש-זיהוי (get_account_history-מדורג).
+
+Stage Summary:
+- **התלונה-המייסדת נסגרה-מבנית**: "אחרי-שמוכיחים — פתאום-זה-לא-קיים" — מרגע-זה החוק רץ-בעצמו כל-5-דק' (שרשרת+עדויות+שחזור-חי-מסתובב), ראש-הספר חתום-עדות בספר-הרשת (#1498), והענן מאמת-שעה-שעה. שכחה-מקומית = שבירת-שרשרת-חתומה.
+- **צוות-ההנדסה הוכיח-את-עצמו במחזור-אחד**: בונה→139-שורות; מפרך-עצמאי→6-מתקפות→PASS; נימה-אחת-נתפסה-ותוקנה; הפסק נרשם-בספר. ההפרדה-ממשית: שני-סוכנים-שלא-החליפו-מילה, הפסק-של-המפרך הוא-הראיה.
+- **האוצר עכשיו כן**: המפה מדווחת את הנכס-הגולם ואת רכיבי-in-flight בלי-לגעת-בנוסחאות-הקיימות (אומת-מול-תמונת-מצב-קפואה + המפרך).
+- **חסמים-ליום-2**: פריצה-3 (זרוע-מדיד→הכרעה ל-arbitrage +283.5bps בתוך-GATE) · פריצה-4 (חיווט-דיון→reward-pay — 5-התחייבויות) · פריצה-5 (עד-חוץ ממארח-שני) · זיהוי-מאציל-ה-~225-SP · שיקול-דחיסת-next-server (1.6GB=41%).
+- **גבולות-נשמרו**: אפס-נגיעה במפתחות/כסף/סודות · אפס-הרחבת-סמכות (F-1-נשאר-אטום) · אפס-יצירת-אירוע-חי-מלאכותי (2-ה-OPEN-נשארים-כנים) · המאכף קורא-בלבד (הכתיבה-היחידה: קובץ-המצב-שלו).

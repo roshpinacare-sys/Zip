@@ -2,7 +2,7 @@
   "service": "money-mover",
   "version": "1.13.0",
   "bootedAt": "2026-10-05T23:28:12.606Z",
-  "beats": 4081,
+  "beats": 4107,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -41,40 +41,40 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-06T00:01:14.076Z",
+  "lastActionAt": "2026-10-06T01:02:39.161Z",
   "actionsToday": 0,
   "actionDay": "2026-10-06",
   "acting": false,
   "lastDecision": {
-    "at": "2026-10-06T00:46:12.685Z",
-    "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 16 דק' · צינון-נלמד +30' (ראיות: 3 כישלונות רצופים זהים (exp#53–#55)) · WAIT-COOLDOWN · עוד 16 דק' · צינון-נלמד +30' (ראיות: 3 כישלונות רצופים זהים (exp#53–#55))"
+    "at": "2026-10-06T01:12:12.657Z",
+    "kind": "HONEST-FAIL",
+    "detail": "מדידה חיה נכשלה — לא מתיירים, לא פועלים על נתוני אתמול"
   },
   "canonLast": {
-    "at": "2026-10-05T23:30:16.261Z",
+    "at": "2026-10-06T01:02:41.914Z",
     "ok": true,
-    "path": "reports/money-2026-10-05.md"
+    "path": "reports/money-2026-10-06.md"
   },
   "fillsSeen": 0,
   "fillDeployPending": false,
   "lastActionOk": false,
-  "lastDepositScanAt": "2026-10-06T00:45:12.683Z",
+  "lastDepositScanAt": "2026-10-06T01:08:12.692Z",
   "lastStreamDay": "2026-09-27",
-  "lastTotalSteem": 10.792,
+  "lastTotalSteem": 83.913,
   "fleetSeen": {
     "pulseDay": "2026-10-06",
     "studentDay": "2026-10-06",
     "keeperRestartAt": "2026-10-05T23:28:12.463Z"
   },
-  "lastPoolGuardAt": "2026-10-06T00:44:12.676Z",
-  "lastFleetSweepAt": "2026-10-06T00:45:37.849Z",
+  "lastPoolGuardAt": "2026-10-06T01:05:12.688Z",
+  "lastFleetSweepAt": "2026-10-06T01:08:38.755Z",
   "autonomyMode": "THINKING",
   "autonomyHeldCount": 78,
   "learning": {
-    "backoffMin": 30,
+    "backoffMin": 60,
     "epistemic": "inferred-bounded",
     "suspended": false,
-    "streak": 3,
-    "updatedAt": "2026-10-06T00:01:15.030Z"
+    "streak": 4,
+    "updatedAt": "2026-10-06T01:02:40.308Z"
   }
 }

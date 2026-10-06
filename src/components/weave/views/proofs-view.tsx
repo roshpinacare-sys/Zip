@@ -23,6 +23,7 @@ import {
   History,
   RefreshCw,
   Scale,
+  ShieldCheck,
   TerminalSquare,
 } from "lucide-react";
 
@@ -52,6 +53,26 @@ interface GateReport {
   repro?: { ran?: number; failed?: number };
 }
 
+interface LawReproRecord {
+  claimId: string;
+  seq: number;
+  at: string;
+  exit: number;
+  ok: boolean;
+  tail?: string;
+}
+
+interface LawState {
+  version?: string;
+  at?: string;
+  beatCount?: number;
+  book?: { exists?: boolean; totalEntries?: number; chainOk?: boolean; claims?: { proven?: number; open?: number; refuted?: number } };
+  evidence?: { total?: number; driftLive?: number; driftHistorical?: number };
+  repro?: { candidates?: number; lastAt?: string | null; failsTotal?: number; history?: LawReproRecord[] };
+  alarms?: { id: string; severity: string; detail: string; at: string }[];
+  lastOkAt?: string | null;
+}
+
 const VERDICT_STYLE: Record<string, { label: string; cls: string; icon: typeof CheckCircle2 }> = {
   PROVEN: { label: "מוכח", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30", icon: CheckCircle2 },
   RESOLVED: { label: "מוכרע-הכרעה", cls: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30", icon: Gavel },
@@ -70,7 +91,7 @@ const SCOPE_LABEL: Record<string, string> = {
 };
 
 export function ProofsView() {
-  const [data, setData] = useState<{ head: string | null; totalEntries: number; entries: ProofEntry[]; gate: GateReport | null } | null>(null);
+  const [data, setData] = useState<{ head: string | null; totalEntries: number; entries: ProofEntry[]; gate: GateReport | null; law?: LawState | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const reduced = useReducedMotion();
@@ -102,6 +123,9 @@ export function ProofsView() {
 
   const entries = data?.entries ?? [];
   const gate = data?.gate ?? null;
+  const law = data?.law ?? null;
+  const lawCrit = (law?.alarms ?? []).filter((a) => a.severity === "CRITICAL").length;
+  const lastRepro = law?.repro?.history?.[0] ?? null;
   const provenCount = entries.filter((e) => ["PROVEN", "STRENGTHENED", "RESOLVED-BY-DECISION"].includes(e.verdict)).length;
   const openCount = entries.filter((e) => ["OPEN", "UNOBSERVED"].includes(e.verdict)).length;
 
@@ -194,6 +218,45 @@ export function ProofsView() {
           </span>
         </CardContent>
       </Card>
+
+      {/* המאכף-העומד (R209) — החוק רץ בעצמו, בלי זיכרון-סוכן */}
+      {law && (
+        <Card className={lawCrit > 0 ? "border-rose-500/30 bg-rose-500/5" : "border-teal-500/20 bg-teal-500/5"}>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+              <ShieldCheck className={`size-4 ${lawCrit > 0 ? "text-rose-600 dark:text-rose-400" : "text-teal-600 dark:text-teal-400"}`} aria-hidden="true" />
+              המאכף-העומד של החוק (R209 · :3052) — השער רץ כל 5 דק' גם כשאף-סוכן לא זוכר
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className={law.book?.chainOk && lawCrit === 0 ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"}>
+                {law.book?.chainOk && lawCrit === 0 ? "שרשרת תקינה" : `אזעקות חמורות: ${lawCrit}`}
+              </Badge>
+              <Badge variant="outline">פעימה #{law.beatCount ?? 0}</Badge>
+              <Badge variant="outline">עדויות {law.evidence?.total ?? 0} · סטיות-חיות {law.evidence?.driftLive ?? 0}</Badge>
+              <Badge variant="outline">כשלי-שחזור מצטברים {law.repro?.failsTotal ?? 0}</Badge>
+              {law.at && <span className="text-xs text-muted-foreground">פעימה אחרונה: {new Date(law.at).toLocaleString("he-IL")}</span>}
+            </div>
+            {lastRepro && (
+              <p className="text-xs text-muted-foreground">
+                שחזור-חי אחרון: <span className="font-mono">{lastRepro.claimId}</span> —{" "}
+                {lastRepro.ok ? <span className="text-emerald-600 dark:text-emerald-400">הצליח (exit {lastRepro.exit})</span> : <span className="text-rose-600 dark:text-rose-400">נכשל (exit {lastRepro.exit})</span>}
+                {" "}· {lastRepro.at ? new Date(lastRepro.at).toLocaleString("he-IL") : ""}
+              </p>
+            )}
+            {lawCrit > 0 && (
+              <ul className="flex flex-col gap-1">
+                {(law.alarms ?? []).filter((a) => a.severity === "CRITICAL").map((a) => (
+                  <li key={a.id} className="text-xs text-rose-700 dark:text-rose-300">
+                    · {a.id}: {a.detail}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* הרשימה */}
       {loading && !entries.length ? (
