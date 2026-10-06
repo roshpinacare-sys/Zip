@@ -28,6 +28,39 @@ const CHECK_INTERVAL_SEC = 30;
 const PUBLISH_API = "http://127.0.0.1:3000/api/publish";
 const CHARTER_ANCHOR_API = "http://127.0.0.1:3000/api/charter/anchor";
 
+// ═══ דואג-השרשרת (2026-10-06 · חוק-השרידות) ═══════════════════════════════
+// ה-DEX (:3010) הוא לב-הבית — בלעדיו אין שרשרת, אין גשר-קצה, אין עיגון.
+// pulse הוא ניצול-קו (keeper מחיה אותו) — ולכן הוא זה שמקים את ה-DEX מחדש
+// כילד-שלו (יורש-שרידות) ואז פוגע ב-state-route כדי שגשר-הקצה ייקשר.
+// שרשרת-השרידות: keeper(שרד) → pulse(שרד) → DEX(מוחזר) → הכל-מעליו.
+void (async () => {
+  const dexOk = (): Promise<boolean> =>
+    fetch("http://127.0.0.1:3010/saos-dex/api/dex/state", { signal: AbortSignal.timeout(2500) })
+      .then((r) => r.ok).catch(() => false);
+  if (await dexOk()) return; // הלב פועם — אין-צורך
+  console.log("[pulse-guard] DEX down — reviving from survivor lineage");
+  const { spawn } = await import("node:child_process");
+  let gaveUp = false;
+  for (let round = 0; round < 5 && !gaveUp; round++) {
+    // חוק-2026-10-06: bun-runtime (node-נשחט) + DATABASE_URL-מפורש (כמו-ה-dev-script)
+    const child = spawn("/usr/local/bin/bun", ["--bun", "node_modules/next/dist/bin/next", "dev", "-p", "3010", "-H", "127.0.0.1"], {
+      cwd: "/home/z/my-project/saos-dex",
+      env: { ...process.env, DATABASE_URL: "file:/home/z/my-project/saos-dex/db/dex.db", NODE_ENV: "development" },
+      stdio: "ignore",
+    });
+    child.on("error", (e) => console.log("[pulse-guard] spawn error:", e.message));
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+      if (await dexOk()) {
+        console.log("[pulse-guard] DEX revived (round " + (round + 1) + ")");
+        await fetch("http://127.0.0.1:3010/saos-dex/api/dex/state?v=0").catch(() => {});
+        return; // הגשר נקשר — המשימה הושלמה
+      }
+    }
+    console.log("[pulse-guard] round " + (round + 1) + " failed — retrying");
+  }
+})();
+
 const POLICY = {
   maxPerUtcDay: 1,
   rotation: ["draft-truth-he", "draft-liquidity-he", "draft-truth-en"] as const,

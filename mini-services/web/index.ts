@@ -39,8 +39,13 @@ async function ensureNext(): Promise<void> {
     spinning = true;
     log("spawning next dev :3050");
     const out = fs.openSync(LOG, "a");
-    child = spawn("./node_modules/.bin/next", ["dev", "-p", String(PORT), "-H", "127.0.0.1"], {
+    // חוק-2026-10-06: ה-reaper קוטל node/next — bun-runtime שורד. רץ-דרך-bun!
+    child = spawn("/usr/local/bin/bun", ["--bun", "node_modules/next/dist/bin/next", "dev", "-p", String(PORT), "-H", "127.0.0.1"], {
       cwd: ZIP,
+      // ═══ תיקון-נזק-שורשי (2026-10-06): הקונסולה לעולם לא יורשת את DATABASE_URL
+      // של ה-DEX — ירושה כזו גרמה ל-prisma של הקונסולה לדחוף את סכמתה על
+      // db/dex.db ולמחוק את טבלאות-השרשרת (נמדד: 18:16 + 18:52). URL-מפורש!
+      env: { ...process.env, DATABASE_URL: "file:/home/z/my-project/db/custom.db", NODE_ENV: "development" },
       stdio: ["ignore", out, out],
     });
     child.on("error", (e) => log(`spawn-error: ${e.message}`));
