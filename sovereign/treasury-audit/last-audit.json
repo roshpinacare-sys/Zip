@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 957,
-  "at": "2026-10-06T11:23:06.768Z",
-  "verdict": "FAIL",
+  "seq": 1009,
+  "at": "2026-10-06T19:39:52.526Z",
+  "verdict": "WARN",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 392 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 399 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 392,
+        "entries": 399,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 14 תמונות (אחרונה seq 14 בת 678 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 14 תמונות (אחרונה seq 14 בת 1175 דק')",
       "numbers": {
         "entries": 14,
         "brokenAt": null,
@@ -28,30 +28,26 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 618 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 71 דק'",
       "numbers": {
         "total": 200,
-        "withTxid": 10,
+        "withTxid": 9,
         "outOfOrder": 0,
-        "lastAgeMinutes": 618
+        "lastAgeMinutes": 71
       }
     },
     {
       "id": "ladder-floor",
-      "status": "fail",
-      "detail": "חריגת-רצפה: 25 פקודות מתחת לפאריטה · גרוע -433bps · חשיפה 0.3723 SBD",
+      "status": "warn",
+      "detail": "/api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
       "numbers": {
-        "state": "DRIFT",
-        "asksBelowParity": 25,
-        "worstBps": -433,
-        "maxDriftLossSbd": 0.3723,
-        "ordersOpen": 46
+        "state": "UNMEASURED"
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (46 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (0 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -60,35 +56,26 @@
     },
     {
       "id": "balances-drift",
-      "status": "fail",
-      "detail": "אי-התאמה מתמדת (שתי-מדידות בהפרש 8ש') — אי-התאמת יתרות מול השרשרת — דריפת STEEM -13.736 · דריפת SBD 0 (אנומליה)",
+      "status": "warn",
+      "detail": "יתרות-הבית לא נמדדו מ-/api/money — unmeasured",
       "numbers": {
-        "measured": true,
-        "homeSteem": 272.466,
-        "homeSbd": 0.015,
-        "chainSteem": 286.202,
-        "chainSbd": 0.015,
-        "driftSteem": -13.736,
-        "driftSbd": 0,
-        "transientResolved": false,
-        "firstDriftSteem": -6.868,
-        "firstDriftSbd": 0
+        "measured": false
       }
     },
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 60.1ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 68.4ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 60.1
+        "toolAgeHours": 68.4
       }
     }
   ],
   "anomalies": [
-    "ladder-floor: חריגת-רצפה: 25 פקודות מתחת לפאריטה · גרוע -433bps · חשיפה 0.3723 SBD",
-    "balances-drift: אי-התאמה מתמדת (שתי-מדידות בהפרש 8ש') — אי-התאמת יתרות מול השרשרת — דריפת STEEM -13.736 · דריפת SBD 0 (אנומליה)"
+    "warn · ladder-floor: /api/money לא נענה — רצפת-הערך unmeasured בביקורת זו",
+    "warn · balances-drift: יתרות-הבית לא נמדדו מ-/api/money — unmeasured"
   ]
 }

@@ -1,9 +1,11 @@
 // ─────────────────────────────────────────────────────────────────────
-// HUNTER — הצייד · סריקת הזדמנויות + קנרית שער-הדקות (R82, rebuilt R90)
+// HUNTER — הצייד · סריקת הזדמנויות + קנרית שער-הדקות (R82, rebuilt R90, v1.4.0)
 //
 // החוזה: סריקה כל 10 דק' (מוביל + אוצר) עם דוח-כנות, וקנרית אוטונומית
-// כל 6 שעות שמנסה להעיר את שער-הדקות של הריפואים הפרטיים (dispatch
-// canary.yml ב-Defi). כשהקנרית מצייצת — השער נפתח חזרה.
+// כל 6 שעות שמוכיחה שער-הדקות חי (dispatch canary.yml ב-Domain).
+// v1.4.0 — דוקטרינת בלי-billing (הוראת המפעיל 2026-10-06): הקנרית עברה
+// מ-Defi (פרטי — חנקת-מכסה) ל-Domain הציבורי — Actions על ריפו
+// ציבורי = חינם ללא הגבלה, השער אינו יכול למות מחוסר-תשלום.
 //
 // חוקי-ברזל:
 //   · סריקה שנכשלה נרשמת כ"לא נמדד" — אף פעם לא מזייפים מספר
@@ -24,7 +26,8 @@ const STATE_FILE = `${HOME}/sovereign/hunter/state.json`;
 const PORT = 3035;
 const SCAN_INTERVAL_SEC = 600;
 const CANARY_EVERY_MS = 6 * 60 * 60 * 1000;
-const CANARY_REPO = "roshpinacare-sys/Defi";
+// v1.4.0 — Domain ציבורי = דקות-Actions חינם לנצח (בלי billing)
+const CANARY_REPO = "roshpinacare-sys/Domain";
 const CANARY_WORKFLOW = "canary.yml";
 const GH = "https://api.github.com";
 
@@ -67,7 +70,7 @@ function utcDay(d = new Date()): string {
 function readState(): HunterState {
   const base: HunterState = {
     service: "hunter",
-    version: "1.3.0",
+    version: "1.4.0",
     bootedAt: new Date().toISOString(),
     beats: 0,
     scanIntervalSec: SCAN_INTERVAL_SEC,
@@ -440,4 +443,5 @@ G_DM.__HUNTER_DEADMAN__ = setInterval(() => {
   process.exit(1);
 }, DEAD_MAN_TICK_MS);
 
-// R106-seed: gate-state law active — quota-dead measured 16x, daily probe until quota returns
+// v1.4.0-seed (2026-10-06): canary relocated Defi→Domain (public = free minutes).
+// The quota gate cannot die from billing anymore — המכונה: הצי המקומי, הענן חינם.

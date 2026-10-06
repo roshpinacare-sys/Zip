@@ -1,47 +1,49 @@
-# דיג'סט-סייר-השוק · seq 17 · 2026-10-06T11:23:08.912Z
+# דיג'סט-סייר-השוק · seq 18 · 2026-10-06T15:35:17.748Z
 
-שבוע: 2026-W41 · משך-סיור: 11s · שרשרת: 21caa4caef… → 201a139ce7…
+שבוע: 2026-W41 · משך-סיור: 12s · שרשרת: 201a139ce7… → 26a2200821…
 
 ## הקשר-מחיר STEEM
-- HTTP 429 — unmeasured (unmeasured — נרשם בכנות)
+- API חי: **$0.062997** (coingecko)
 
 ## steem-market — measured
 - שאילתא: "STEEM price" → 6 תוצאות (חלון 7 ימים)
 - שאילתא: "Steem blockchain news" → 6 תוצאות (חלון 7 ימים)
-- [Steem (STEEM) Price Prediction 2026, 2027-2030](https://coincodex.com) — coincodex.com
-  > According to our Steem price prediction, STEEM is forecasted to trade within a price range of $ 0.05210 and $ 0.06447 next year . Steem will increase by 2.90% ... Read more
+- [Steem Price Today: STEEM to IDR = Rp767.64](https://pluang.com) — pluang.com
+  > 1 STEEM to IDR = Rp767.64 right now . STEEM to IDR = Rp767.64 right now. Steem has traded between an all-time low of Rp662.05 and an all-time high of Rp115,523. ...
+- [0.06378 | STEEMUSDT USDⓈ-Margined Perpetual Chart](https://www.binance.com) — www.binance.com
+  > STEEMUSDT Perp 0.06378 ≈ $0.06378000 +0.36% Mark Price 0.06378 24h High 0.06398 24h Vol (STEEM) 19.31M 24h Low 0.06241 24h Vol (USDT) 1.22M Funding (8h)
 - [Steem Dollars (SBD) Price Today](https://crypto.com) — crypto.com
   > Steem Dollars's price today is $0.6487 , with a 24-hour trading volume of $699,302. SBD is -0.02% in the last 24 hours. all-time low of $0.5596.SBD
+- [STEEM Live Price Today | STEEM Market Cap & Chart](https://www.bybit.com) — www.bybit.com
+  > The current price of STEEM is $ 0.063822 , while the 24-hour trading volume stands at $3.82M. The circulating supply of STEEM is 559.40M, with a maximum supply of ... Read more
 - [Steem Price](https://paybis.com) — paybis.com
   > STEEM price charts, historical data and currency converter … $0.06773 +7.898% Market cap$37,858,962.86 Volume (24h)$16,819,034.02 Highest price (24h)$0.07111 ...
 - [Steem Price Today: Live STEEM Chart, Market Cap & News](https://coincheckup.com) — coincheckup.com
-  > Steem price today is $0.06664 , with a -1.89% change in 24 hours. STEEM has changed by -1.89% and is currently trending downward, with a price of $0.06664. ...
-- [0.06378 | STEEMUSDT USDⓈ-Margined Perpetual Chart](https://www.binance.com) — www.binance.com
-  > STEEMUSDT Perp 0.06378 ≈ $0.06378000 +0.36% Mark Price 0.06378 24h High 0.06398 24h Vol (STEEM) 19.31M 24h Low 0.06241 24h Vol (USDT) 1.22M Funding (8h)
-- [Steem (STEEM/USD) price & chart. P2P Buy & Sell](https://symlix.com) — symlix.com
-  > The current market price today of Steem is 0.06 USD. STEEM price : $0.0626. Trade volume 24h: $3,218,640.00 Market Cap $35,018,400.00
+  > Steem price today is $0.06664 , with a -1.89% change in 24 hours. View live STEEM charts, market cap, trading volume, and latest news.
 
 ## competitive-landscape — measured
-- שאילתא: "proof of personhood for AI agents" → 5 תוצאות
-- [Why Proof of Personhood May Matter More Than](https://www.ccn.com) — www.ccn.com · Apr 18, 2026
-  > Apr 18, 2026 — Proof of personhood projects are testing different models, from human-backed agents to one-human-one-node design. As AI agents and synthetic ... Read more
-- [Proof of Personhood: How Your Signer Proves You're Human](https://www.ledger.com) — www.ledger.com · May 22, 2026
-  > May 22, 2026 — Proof of Personhood is a mechanism to verify that an account belongs to a unique, real human being, without exposing your real-world identity in ... Read more
-- [When AI Agents Become “Users,” Who Counts as a Person?](https://blog.humanode.io) — blog.humanode.io · Mar 12, 2026
-  > Mar 12, 2026 — Presence no longer guarantees personhood . Humanode insists that some domains of digital life should still care about that distinction. Read more
-- [A Pragmatic View of AI Personhood](https://www.alphaxiv.org) — www.alphaxiv.org · Oct 30, 2025
-  > Oct 30, 2025 — We explore how individuals fit in to social roles and discuss the use of decentralized digital identity technology, examining both " personhood ... Read more
-- [Personhood Credentials: Balancing Trust and Anonymity](https://vidos.id) — vidos.id · Nov 5, 2024
-  > Nov 5, 2024 — Personhood Credentials are digital credentials that enable users to verify they are real people, not AIs, to online services without disclosing ... Read more
+- שאילתא: "on-chain AI agent economy protocol" → 8 תוצאות
+- [On-Chain AI Agent Economy: A Paradigm Shift for Web3](https://www.cvvc.com) — www.cvvc.com · Apr 8, 2025
+  > Apr 8, 2025 — On-Chain AI Agent Economy marks a transformative era for Web3, where AI agents operate autonomously within decentralized networks.
+- [The Agent Economy: When AIs Pay Each Other](https://www.splunk.com) — www.splunk.com · Aug 21, 2026
+  > Aug 21, 2026 — An answer is emerging on the blockchain side with ERC-8004, dubbed “Trustless Agents” and conceived as an on-chain extension of the A2A protocol ... Read more
+- [x402 Protocol Explained: How AI Agents Pay Onchain | Support](https://eco.com) — eco.com · Sep 11, 2026
+  > Sep 11, 2026 — x402 is the HTTP-native payment protocol powering AI agent commerce with stablecoins. See how it works and who supports it.
+- [A Blockchain-Based Foundation for Autonomous AI Agents](https://arxiv.org) — arxiv.org
+  > We propose the Agent Economy —a blockchain-based foundation where autonomous AI agents operate as economic peers to humans.
+- [Onchain AI Agent Identity Explained](https://chain.link) — chain.link · Jun 23, 2026
+  > Jun 23, 2026 — Discover how onchain AI agent identity enables autonomous systems to securely interact with smart contracts and decentralized networks.
+- [AI Agent Economy Infrastructure: A Research Primer (Part 1)](https://onekey.so) — onekey.so · Mar 19, 2026
+  > Mar 19, 2026 — Protocol: an onchain ecosystem that treats agents as tokenized economic actors and standardizes agent-to-agent commerce via ACP
 
 ## תובנות חתומות
-- **INS-17-MKT**: הקשר-מחיר STEEM: API חי unmeasured · טווח-ציטוטים חוצה-מקורות $0.0626..$0.6487 (9 אזכורי-מחיר ב-12 מקורות)
-  - מקור: https://coincodex.com
+- **INS-18-MKT**: הקשר-מחיר STEEM: API חי $0.062997 · טווח-ציטוטים חוצה-מקורות $0.06378..$0.6487 (6 אזכורי-מחיר ב-12 מקורות)
+  - מקור: https://pluang.com
+  - מקור: https://www.binance.com
   - מקור: https://crypto.com
-  - מקור: https://paybis.com
-  - מקור: https://coincheckup.com
-- **INS-17-COMP**: נוף-תחרות: 5 תוצאות על 5 מארחים נבדלים · מצוטטים-ראשונים: Why Proof of Personhood May Matter More Than | Proof of Personhood: How Your Signer Proves You're Human | When AI Agents Become “Users,” Who Counts as a Person?
-  - מקור: https://www.ccn.com
-  - מקור: https://www.ledger.com
-  - מקור: https://blog.humanode.io
-  - מקור: https://www.alphaxiv.org
+  - מקור: https://www.bybit.com
+- **INS-18-COMP**: נוף-תחרות: 8 תוצאות על 8 מארחים נבדלים · מצוטטים-ראשונים: On-Chain AI Agent Economy: A Paradigm Shift for Web3 | The Agent Economy: When AIs Pay Each Other | x402 Protocol Explained: How AI Agents Pay Onchain | Support
+  - מקור: https://www.cvvc.com
+  - מקור: https://www.splunk.com
+  - מקור: https://eco.com
+  - מקור: https://arxiv.org

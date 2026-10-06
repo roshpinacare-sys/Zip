@@ -1,7 +1,7 @@
 {
  "version": "1.0.0",
- "at": "2026-10-06T01:12:21.239Z",
- "beatCount": 19,
+ "at": "2026-10-06T14:59:41.747Z",
+ "beatCount": 20,
  "book": {
   "exists": true,
   "totalEntries": 33,
@@ -17,23 +17,32 @@
  },
  "evidence": {
   "total": 48,
-  "driftLive": 0,
-  "driftHistorical": 8
+  "driftLive": 6,
+  "driftHistorical": 9
  },
  "repro": {
   "candidates": 20,
   "ranThisBeat": [
    {
-    "claimId": "R209-PROOF-LAW-STANDING",
-    "seq": 32,
-    "at": "2026-10-06T01:12:21.342Z",
+    "claimId": "R207-TREASURY-INFLIGHT-HIDDEN",
+    "seq": 33,
+    "at": "2026-10-06T14:59:43.743Z",
     "exit": 0,
-    "ok": true,
-    "durSec": 0,
-    "tail": "LAW-OK beats=18 repro-ok=true"
+    "ok": false,
+    "durSec": 2,
+    "tail": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/%5Broot-of-the-server%5D__0f0ba101._.css\" data-precedence=\"next_static/chunks/[root-of-the-server]__0f0ba101._.css\"/><lin · expect=\"refundQueueSp\""
    }
   ],
   "history": [
+   {
+    "claimId": "R207-TREASURY-INFLIGHT-HIDDEN",
+    "seq": 33,
+    "at": "2026-10-06T14:59:43.743Z",
+    "exit": 0,
+    "ok": false,
+    "durSec": 2,
+    "tail": "<!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_next/static/chunks/%5Broot-of-the-server%5D__0f0ba101._.css\" data-precedence=\"next_static/chunks/[root-of-the-server]__0f0ba101._.css\"/><lin · expect=\"refundQueueSp\""
+   },
    {
     "claimId": "R209-PROOF-LAW-STANDING",
     "seq": 32,
@@ -206,9 +215,22 @@
     "tail": "{\"world\":\"W-B10-unit-mismatch\",\"cfg\":{\"wave\":true,\"pref\":\"none\",\"sbd\":{\"value\":0.0625,\"unit\":\"USD/STEEM\"}},\"waveFires\":true,\"prefDown\":false,\"sbd\":0.0625,\"sbdUnit\":\"USD/STEEM\",\"viewReject\":\"UNIT-MISMATCH\",\"viewDetail\":\"ההכרעה דורשת SBD אך המדידה נושאת USD/STEEM — אין המרה-שקטה (לקח 0.1041)\",\"viewEpi"
    }
   ],
-  "lastAt": "2026-10-06T01:12:21.342Z",
-  "failsTotal": 1
+  "lastAt": "2026-10-06T14:59:43.743Z",
+  "failsTotal": 2
  },
- "alarms": [],
+ "alarms": [
+  {
+   "id": "EVIDENCE-DRIFT",
+   "severity": "CRITICAL",
+   "detail": "6 סטיות-עדות-חיות: #5 R208R-SENSOR-SEALED (EVIDENCE-MISSING) · #6 R208R-ACCUMULATOR-CONSERVATION (EVIDENCE-MISSING) · #7 R208R-PREFERENCE-LAB (EVIDENCE-MISSING) · #8 R208-DEATH-SURVIVAL (EVIDENCE-MISSING) · #12 R208-LIVE-POSITIVE-WORLD (EVIDENCE-MISSING) · #1",
+   "at": "2026-10-06T14:59:41.747Z"
+  },
+  {
+   "id": "REPRO-FAILED",
+   "severity": "CRITICAL",
+   "detail": "שחזור-חי נכשל: R207-TREASURY-INFLIGHT-HIDDEN exit=0 · <!DOCTYPE html><html lang=\"en\"><head><meta charSet=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/><link rel=\"stylesheet\" href=\"/_",
+   "at": "2026-10-06T14:59:41.747Z"
+  }
+ ],
  "lastOkAt": "2026-10-06T01:12:21.239Z"
 }

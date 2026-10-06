@@ -3,33 +3,33 @@
   "format": "self-boot-state-v1",
   "decision": "D-027",
   "bootedAt": "2026-09-29T19:14:55.359Z",
-  "runs": 60,
-  "lastRunAt": "2026-10-06T11:24:48.204Z",
-  "lastVerdict": "HEALTHY",
+  "runs": 66,
+  "lastRunAt": "2026-10-06T19:18:46.696Z",
+  "lastVerdict": "DEGRADED",
   "lastSteps": [
     {
       "name": "schema",
-      "verdict": "SKIP",
-      "detail": "הסכימה חיה (23 טבלאות) — לא נוגעים",
-      "at": "2026-10-06T11:24:48.207Z"
+      "verdict": "FAIL",
+      "detail": "db:push נכשל (קוד 0) — $ prisma db push --accept-data-loss\nEnvironment variables loaded from .env\n",
+      "at": "2026-10-06T19:18:51.562Z"
     },
     {
       "name": "book",
-      "verdict": "SKIP",
-      "detail": "הספר חי (1511 אימותים) — לא נוגעים",
-      "at": "2026-10-06T11:24:48.214Z"
+      "verdict": "FAIL",
+      "detail": "\nInvalid `__TURBOPACK__imported__module__$5b$project$5d2f$zip$2f$src$2f$lib$2f$db$2e$ts__$5b$instrumentation$5d$__$28$ecmascript$29$__[\"db\"]",
+      "at": "2026-10-06T19:18:51.878Z"
     },
     {
       "name": "vault",
-      "verdict": "SKIP",
-      "detail": "הכספת במקום (4,046,848 בייטים) — לא נוגעים",
-      "at": "2026-10-06T11:24:48.225Z"
+      "verdict": "FAIL",
+      "detail": "אין מקור-טוקן זמין (upload/pat.env ו-origin) — הכספת לא שוחזרה; הענן נושא את העומס",
+      "at": "2026-10-06T19:18:51.888Z"
     },
     {
       "name": "credentials",
       "verdict": "PASS",
-      "detail": "PAT: קיים · מקור-מפתח: קיים — נתיב-החתימה המקומי זמין",
-      "at": "2026-10-06T11:24:48.236Z"
+      "detail": "PAT: חסר · מקור-מפתח: קיים — נתיב-החתימה המקומי זמין",
+      "at": "2026-10-06T19:18:51.893Z"
     }
   ]
 }

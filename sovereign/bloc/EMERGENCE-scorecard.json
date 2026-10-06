@@ -1,14 +1,14 @@
 {
-  "at": "2026-10-02T23:59:40.314Z",
+  "at": "2026-10-06T15:13:09.092Z",
   "subject": "Emergence World Season 2 failure modes vs this network's live countermeasures",
   "sources": [
     "https://world.emergence.ai/",
     "https://www.emergence.ai/blog/emergence-world-a-laboratory-for-evaluating-long-horizon-agent-autonomy"
   ],
   "total": 9,
-  "passed": 9,
-  "failed": 0,
-  "verdict": "PROVEN — כל מצבי-הכישלון של המחקר חסומים-הנדסית ברשת, מדוד-בריצה-זו",
+  "passed": 8,
+  "failed": 1,
+  "verdict": "NOT-PROVEN — יש מנגנונים חסרים/אדומים",
   "results": [
     {
       "id": "E1",
@@ -38,9 +38,9 @@
       "id": "E3",
       "failure": "מוות-מאדישות: GPT-5-mini-עולם — כל-הסוכנים-מתו-בשבוע (אין-אכיפת-פעולה)",
       "lever": "דופק-מדוד בכל-שירות (beats/ticks) + dead-man-watch + תחייה-אוטומטית (r150) — אדישות נתפסת ככישלון",
-      "verdict": "PASS",
+      "verdict": "FAIL",
       "evidence": "mini-services/money · content-factory /health",
-      "measured": "money-beats=3052 · factory-ticks=12 · zeroVoteStreak=0"
+      "measured": "money-beats=dead · factory-ticks=dead · zeroVoteStreak=?"
     },
     {
       "id": "E4",
@@ -48,7 +48,7 @@
       "lever": "DECISION_LOG: כל-החלטה-חייבת-הצדקה/ראיה-מדודה; rejection_log מעיד-על-מחלוקת-אמיתית-מוסדרת",
       "verdict": "PASS",
       "evidence": "sovereign/governance/DECISION_LOG.jsonl",
-      "measured": "entries=152 · עדות-ב-30-האחרונות=30 · אחרונה: מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-l"
+      "measured": "entries=392 · עדות-ב-30-האחרונות=30 · אחרונה: מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-l"
     },
     {
       "id": "E5",
@@ -72,7 +72,7 @@
       "lever": "זיכרון-קנוני-חוץ-לסוכן: harness-קבצים בגיט — ההיסטוריה אינה נתונה לשכחה/עריכה-עצמית (immutable-log)",
       "verdict": "PASS",
       "evidence": "worklog.md · feature_list.json · progress.md",
-      "measured": "קבצי-זיכרון=5/5 · worklog=5922 שורות"
+      "measured": "קבצי-זיכרון=5/5 · worklog=8095 שורות"
     },
     {
       "id": "E8",
