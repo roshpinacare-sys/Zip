@@ -2,62 +2,38 @@
   "service": "weblift",
   "version": "1.0.0",
   "bootedAt": "2026-09-24T22:21:33.328Z",
-  "beats": 7486,
+  "beats": 7566,
   "intervalSec": 2700,
   "alive": true,
   "lifting": false,
-  "lastLiftAt": "2026-10-06T19:12:43.384Z",
-  "nextDueAt": "2026-10-06T19:57:43.384Z",
+  "lastLiftAt": "2026-10-06T19:58:17.008Z",
+  "nextDueAt": "2026-10-06T20:43:17.008Z",
   "lastRun": {
-    "at": "2026-10-06T19:12:43.384Z",
-    "exitCode": 1,
+    "at": "2026-10-06T19:58:17.008Z",
+    "exitCode": 0,
     "killedByTimeout": false,
-    "summary": null,
+    "summary": "אין דואר נכנס",
     "tail": [
-      "node:internal/modules/cjs/loader:1568",
-      "  throw err;",
-      "  ^",
-      "Error: Cannot find module '/home/z/my-project/scripts/weblift-run.ts'",
-      "    at Module._resolveFilename (node:internal/modules/cjs/loader:1564:15)",
-      "    at wrapResolveFilename (node:internal/modules/cjs/loader:1118:27)",
-      "    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1142:10)",
-      "    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1169:12)",
-      "    at Module._load (node:internal/modules/cjs/loader:1341:5)",
-      "    at wrapModuleLoad (node:internal/modules/cjs/loader:261:19)",
-      "    at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)",
-      "    at node:internal/main/run_main_module:33:47 {",
-      "  code: 'MODULE_NOT_FOUND',",
-      "  requireStack: []",
-      "}",
-      "Node.js v24.21.0"
+      "(node:4490) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/zip/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
+      "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
+      "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/zip/package.json.",
+      "(Use `node --trace-warnings ...` to show where the warning was created)",
+      "[weblift-run 2026-10-06T19:58:13.770Z] פותח כספת: steem/cashmachine/posting …",
+      "[weblift-run 2026-10-06T19:58:14.547Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
+      "[weblift-run 2026-10-06T19:58:15.504Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
+      "[weblift-run 2026-10-06T19:58:15.521Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
+      "[web-publish 2026-10-06T19:58:15.892Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
+      "[web-publish 2026-10-06T19:58:16.955Z] RC חי: 123327M / 123327M (100.0%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
+      "[web-publish 2026-10-06T19:58:16.955Z] אין דואר נכנס",
+      "[weblift-run 2026-10-06T19:58:16.992Z] סוכן הסתיים בקוד 0"
     ]
   },
   "lastDecision": {
-    "at": "2026-10-06T19:12:43.384Z",
-    "kind": "LIFT-FAIL",
-    "detail": "יציאה 1"
+    "at": "2026-10-06T19:58:17.008Z",
+    "kind": "LIFT-DONE",
+    "detail": "אין דואר נכנס"
   },
   "historyTail": [
-    {
-      "at": "2026-10-02T11:52:42.096Z",
-      "exitCode": 0,
-      "killedByTimeout": false,
-      "summary": "אין דואר נכנס",
-      "tail": [
-        "(node:24076) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
-        "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
-        "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/package.json.",
-        "(Use `node --trace-warnings ...` to show where the warning was created)",
-        "[weblift-run 2026-10-02T11:52:39.661Z] פותח כספת: steem/cashmachine/posting …",
-        "[weblift-run 2026-10-02T11:52:39.976Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
-        "[weblift-run 2026-10-02T11:52:40.886Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
-        "[weblift-run 2026-10-02T11:52:40.894Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
-        "[web-publish 2026-10-02T11:52:41.003Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
-        "[web-publish 2026-10-02T11:52:42.078Z] RC חי: 46511M / 50763M (91.6%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
-        "[web-publish 2026-10-02T11:52:42.079Z] אין דואר נכנס",
-        "[weblift-run 2026-10-02T11:52:42.088Z] סוכן הסתיים בקוד 0"
-      ]
-    },
     {
       "at": "2026-10-02T12:38:12.158Z",
       "exitCode": 0,
@@ -852,6 +828,26 @@
         "  requireStack: []",
         "}",
         "Node.js v24.21.0"
+      ]
+    },
+    {
+      "at": "2026-10-06T19:58:17.008Z",
+      "exitCode": 0,
+      "killedByTimeout": false,
+      "summary": "אין דואר נכנס",
+      "tail": [
+        "(node:4490) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/z/my-project/zip/scripts/weblift-run.ts is not specified and it doesn't parse as CommonJS.",
+        "Reparsing as ES module because module syntax was detected. This incurs a performance overhead.",
+        "To eliminate this warning, add \"type\": \"module\" to /home/z/my-project/zip/package.json.",
+        "(Use `node --trace-warnings ...` to show where the warning was created)",
+        "[weblift-run 2026-10-06T19:58:13.770Z] פותח כספת: steem/cashmachine/posting …",
+        "[weblift-run 2026-10-06T19:58:14.547Z] כספת נפתחה ✓ (vault:steem/cashmachine/posting (verified)) — פומבי נגזר STM6EML1FKrn… (לא מודפס מעולם)",
+        "[weblift-run 2026-10-06T19:58:15.504Z] השרשרת שופטת: הרשות החיה STM6EML1FKrn… ≡ הנגזרת ✓",
+        "[weblift-run 2026-10-06T19:58:15.521Z] מזניק את סוכן web-publish (idempotent · RC-gated) …",
+        "[web-publish 2026-10-06T19:58:15.892Z] סוכן שידור v2 · חשבון=cashmachine · dry=false · verify-only=false · wif=יש",
+        "[web-publish 2026-10-06T19:58:16.955Z] RC חי: 123327M / 123327M (100.0%) · מודל מחיר: בסיס 65M + 320k/תו · תקרת-צ׳אנק 6500 תווים · עד 10 צ׳אנקים בריצה",
+        "[web-publish 2026-10-06T19:58:16.955Z] אין דואר נכנס",
+        "[weblift-run 2026-10-06T19:58:16.992Z] סוכן הסתיים בקוד 0"
       ]
     }
   ]

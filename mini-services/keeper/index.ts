@@ -209,6 +209,8 @@ function freshFleet(): FleetEntry[] {
     // r205 (Task 9): הקונסולה בפיקוח-הצי — הסופרוויזר (web/index.ts) הוא הילד;
     // הוא בעצמו מחייה את next-dev :3050 בלולאה. שכבות: keeper → סופרוויזר-בון → next-dev.
     ["web", 3050, "קונסולת ה-WEAVE — מסוף הבית מאחורי הגשר (:3000)", "The WEAVE console — home terminal behind the bridge (:3000)", 120],
+    // r210 (Task 10): dex-guard עצמאי (חוק-השרידות) — משחרר את סלוט-money למוביל-האמיתי
+    ["dex-guard", 3051, "דואג-השרשרת — שומר ה-DEX (:3010) בפרודקשן", "The chain keeper — guards the DEX (:3010) in production", 60],
   ];
   return defs.map(([name, port, roleHe, roleEn, intervalSec]) => ({
     name,

@@ -1,15 +1,15 @@
 {
   "format": "treasury-audit-v1",
-  "seq": 1011,
-  "at": "2026-10-06T19:49:55.796Z",
-  "verdict": "PASS",
+  "seq": 1019,
+  "at": "2026-10-06T20:29:57.647Z",
+  "verdict": "FAIL",
   "checks": [
     {
       "id": "decision-chain",
       "status": "pass",
-      "detail": "יומן-ההחלטות מאומת — 400 רשומות, שרשרת sha256 תקינה",
+      "detail": "יומן-ההחלטות מאומת — 403 רשומות, שרשרת sha256 תקינה",
       "numbers": {
-        "entries": 400,
+        "entries": 403,
         "brokenAt": null,
         "ok": true
       }
@@ -17,7 +17,7 @@
     {
       "id": "pnl-snapshot-chain",
       "status": "pass",
-      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 14 תמונות (אחרונה seq 14 בת 1185 דק')",
+      "detail": "שרשרת-תמונות-ה-PnL מאומתת — 14 תמונות (אחרונה seq 14 בת 1225 דק')",
       "numbers": {
         "entries": 14,
         "brokenAt": null,
@@ -28,30 +28,30 @@
     {
       "id": "receipts-book",
       "status": "pass",
-      "detail": "ספר-הקבלות תקין — 200 קבלות · 9 עם txid · אחרונה בת 81 דק'",
+      "detail": "ספר-הקבלות תקין — 200 קבלות · 10 עם txid · אחרונה בת 2 דק'",
       "numbers": {
         "total": 200,
-        "withTxid": 9,
+        "withTxid": 10,
         "outOfOrder": 0,
-        "lastAgeMinutes": 81
+        "lastAgeMinutes": 2
       }
     },
     {
       "id": "ladder-floor",
-      "status": "pass",
-      "detail": "רצפת-הערך מוחזקת — אף פקודת-מכירה מתחת לפאריטה (79 פקודות פתוחות)",
+      "status": "fail",
+      "detail": "חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -35bps · חשיפה 0.065 SBD",
       "numbers": {
-        "state": "HELD",
-        "asksBelowParity": 0,
-        "worstBps": 0,
-        "maxDriftLossSbd": 0,
-        "ordersOpen": 79
+        "state": "DRIFT",
+        "asksBelowParity": 2,
+        "worstBps": -35,
+        "maxDriftLossSbd": 0.065,
+        "ordersOpen": 8
       }
     },
     {
       "id": "orders-stale",
       "status": "pass",
-      "detail": "אין פקודות-ישנות מעל 48ש' (79 פקודות נבדקו)",
+      "detail": "אין פקודות-ישנות מעל 48ש' (8 פקודות נבדקו)",
       "numbers": {
         "staleCount": 0,
         "thresholdHours": 48,
@@ -61,12 +61,12 @@
     {
       "id": "balances-drift",
       "status": "pass",
-      "detail": "יתרות מתואמות מול השרשרת — STEEM 447.073 · SBD 0.015 (סטייה ≤ 0.001)",
+      "detail": "יתרות מתואמות מול השרשרת — STEEM 25.228 · SBD 0.015 (סטייה ≤ 0.001)",
       "numbers": {
         "measured": true,
-        "homeSteem": 447.073,
+        "homeSteem": 25.228,
         "homeSbd": 0.015,
-        "chainSteem": 447.073,
+        "chainSteem": 25.228,
         "chainSbd": 0.015,
         "driftSteem": 0,
         "driftSbd": 0
@@ -75,14 +75,16 @@
     {
       "id": "tron-rail",
       "status": "pass",
-      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 68.6ש'",
+      "detail": "מסילת-TRON חיה ונמדדת — TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy · 2.000002 TRX על-השרשרת · כלי-היתרות בן 69.3ש'",
       "numbers": {
         "measured": true,
         "trx": 2.000002,
         "exists": true,
-        "toolAgeHours": 68.6
+        "toolAgeHours": 69.3
       }
     }
   ],
-  "anomalies": []
+  "anomalies": [
+    "ladder-floor: חריגת-רצפה: 2 פקודות מתחת לפאריטה · גרוע -35bps · חשיפה 0.065 SBD"
+  ]
 }

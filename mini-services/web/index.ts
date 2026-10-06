@@ -45,7 +45,7 @@ async function ensureNext(): Promise<void> {
       // ═══ תיקון-נזק-שורשי (2026-10-06): הקונסולה לעולם לא יורשת את DATABASE_URL
       // של ה-DEX — ירושה כזו גרמה ל-prisma של הקונסולה לדחוף את סכמתה על
       // db/dex.db ולמחוק את טבלאות-השרשרת (נמדד: 18:16 + 18:52). URL-מפורש!
-      env: { ...process.env, DATABASE_URL: "file:/home/z/my-project/db/custom.db", NODE_ENV: "development" },
+      env: { ...process.env, DATABASE_URL: "file:/home/z/my-project/zip/db/console.db", NODE_ENV: "development" },
       stdio: ["ignore", out, out],
     });
     child.on("error", (e) => log(`spawn-error: ${e.message}`));

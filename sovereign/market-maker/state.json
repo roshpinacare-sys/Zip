@@ -2,11 +2,11 @@
   "service": "market-maker",
   "version": "1.3.1-r192",
   "bootedAt": "2026-10-06T19:19:46.645Z",
-  "mode": "dry",
-  "lastTick": "2026-10-06T19:50:09.306Z",
-  "ticks": 1634,
-  "centerPrice": 0.102158,
-  "spreadBps": 378,
+  "mode": "live",
+  "lastTick": "2026-10-06T20:30:15.463Z",
+  "ticks": 1675,
+  "centerPrice": 0.101901,
+  "spreadBps": 328,
   "openOrders": [],
   "fills24h": 0,
   "volume24hSteem": 0,
@@ -30,16 +30,16 @@
   "pnlDay": "2026-10-06",
   "fillsSeen": 0,
   "internalFills": 0,
-  "lastFillBlock": 110211900,
+  "lastFillBlock": 110212715,
   "halted": false,
   "haltedAt": null,
   "haltedConfigMtimeMs": null,
   "killSwitch": false,
-  "autonomy": "THINKING",
+  "autonomy": "ACTIVE",
   "lastDecision": {
-    "at": "2026-10-06T19:50:09.306Z",
+    "at": "2026-10-06T20:30:15.463Z",
     "kind": "L3-SKEW-HALT",
-    "detail": "skew 0.9351 חורג-מסף-ההשהיה 0.6 (עומק בידים 408908 SBD מול אסקים 13712 SBD) — אפס-פעולת-ספר בפעימה (חוק-L3)"
+    "detail": "skew 0.8599 חורג-מסף-ההשהיה 0.6 (עומק בידים 1408190 SBD מול אסקים 106052 SBD) — אפס-פעולת-ספר בפעימה (חוק-L3)"
   },
   "lastError": null,
   "registry": {},
@@ -47,19 +47,19 @@
     "configured": true,
     "effective": false,
     "verified": false,
-    "reason": "THINKING — שימוש-בחיילים בגריד דורש דיון מלא ואישור; לא בשימוש (חוק-r197)",
+    "reason": "SA_FLEET_KEYS לא בכספת — אין-יכולת-חיול מאומתת",
     "soldiersChecked": 0
   },
   "coordination": {
     "moverActing": false,
-    "moverCheckedAt": "2026-10-04T08:02:36.099Z",
+    "moverCheckedAt": "2026-10-06T20:30:15.463Z",
     "ourOrders": 0,
-    "moverOrders": 81
+    "moverOrders": 6
   },
   "balances": {
-    "steemFree": 436.343,
+    "steemFree": 26.228,
     "sbdFree": 0.015,
-    "measuredAt": "2026-10-06T19:50:09.098Z"
+    "measuredAt": "2026-10-06T20:30:15.262Z"
   },
   "parityCenterSbd": 0.104097,
   "centerSource": "feed",
@@ -67,13 +67,13 @@
     "feeFloorBps": 75,
     "spreadBpsEffective": 180,
     "widened": true,
-    "skew": 0.9351,
+    "skew": 0.8599,
     "halted": true,
-    "bidDepthSbd": 408908,
-    "askDepthSbd": 13712
+    "bidDepthSbd": 1408190,
+    "askDepthSbd": 106052
   },
   "lastModeChange": {
-    "at": "2026-10-04T07:56:31.930Z",
+    "at": "2026-10-06T20:20:46.926Z",
     "from": "dry",
     "to": "live",
     "by": "operator:/mode"
