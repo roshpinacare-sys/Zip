@@ -40,6 +40,22 @@ git clone https://github.com/roshpinacare-sys/saos-dex.git saos-dex
 - ידני: `cd saos-dex && bun --bun next start -p 3010` (פרודקשן; basePath **/saos-dex** חובה-בכל-curl!)
 - node/next-טהור נשחט-ע"י-ה-reaper — בון-בלבד (חוק-2026-10-06)
 
+**d+. סודות-ה-DEX (.env) — בלעדיהן המסילות מנוטרלות (relay account:null · saos_db_ok 0):**
+- יצירה: `saos-dex/.env` (chmod 600 · gitignored-מאומת) — נגזר-קנונית ממקור-הבעלים (אפס-הדפסת-סוד!):
+  `DATABASE_URL=file:../db/dex.db` · `SAOS_RELAY_AGENT_ACCOUNT=headcorner` · `HIVE_ANCHOR_ACCOUNT=headcorner`
+  `STEEM_POSTING_WIF=<WIF('posting')>` · `STEEM_ACTIVE_WIF=<WIF('active')>` · `BLURT_ACTIVE_WIF=<WIF('active')>` · `HIVE_ACTIVE_WIF=<WIF('active')>`(זהות-בלבד — G1 ידחה-כנה)
+  `DEX_OPERATOR_TOKEN=<random 48-hex>` · `SAOS_RELAY_SIGNING_SESSION_UNLOCKED=1` (שער-סשן 1/6 — דוקטרינת ensureUnlocked לדמון-בלתי-מושגח)
+- נוסחת-הגזירה הקנונית (src/lib/owner-key.ts r137 · verify-owner-key.ts): `WIF(role)=base58check(0x80 ‖ sha256(account+role+password))` — **אימות 4/4 מול STEEM חובה לפני**
+- אזהרה: `verify-headcorner-key.ts` יציג NONE — הוא מפרש-סיסמת-אב כ-WIF-גולמי (עדשה-שגויה); הסמכות היא `verify-owner-key.ts`
+- M2: `src/lib/dex/signer.ts` = מודול-המפתחות-היחיד (EnvSigner) — כל-קריאות-המפתחות והחתימות שם (Task 10)
+
+**d++. תיקון-מירוץ-כותבים (אם ה-boot מסרב):** "SNAPSHOT INTEGRITY FAILURE … refusing load" = פיצול-כותבים-כפולים (תהליכי-רפאים!). סדר-התיקון המנוסה (Task 10):
+1. גבה: `cp db/dex.db db/dex.db.pre-recovery-<שעה>`
+2. `git restore db/state-snapshot.json db/klines.json` (נקודה-עקבית-מהגיט, עידן-חד-כותבי)
+3. גזום-זנב-המירוץ: `DELETE FROM BlockHeader WHERE height > <גובה-הסנאפשוט>` (בלבד! שאר-הטבלאות אינן-unique-גובה)
+4. הרוג-כל-תהליכי-next-על-:3010 (כולל-רפאים — בדוק `readlink /proc/PID/cwd` → "(deleted)") ותן-ל-dex-guard-להחיות
+5. צפה-בלוג: `chain live · height H · (snapshot — verified vs DB stateRoot)` = הצלחה · tape.jsonl נשאר-שלם (עדות-אפנד)
+
 **e. הצי + הקונסולה:**
 ```
 bun scripts/daemons-revive.mjs     # core 3033–3046 (pulse, hunter, keeper, student...)
@@ -53,7 +69,8 @@ bun scripts/web-revive-once.mjs    # סופרוויזר → next-dev :3050 (הק
 | בדיקה | תשובה-נדרשת |
 |---|---|
 | `:3000/api/health` | 200 (דרך-הגשר → קונסולה) |
-| `:3010/saos-dex/api/dex/metrics` | `saos_height` זורם |
+| `:3010/saos-dex/api/dex/metrics` | `saos_height` זורם · `saos_db_ok 1` |
+| `:3010/saos-dex/api/dex/relay` | `enabled:true · account:"headcorner"` · steem+blurt anchored גדל · mismatches:0 |
 | `:3033` `:3035` `:3036` `:3050` | 200 |
 | `:3035` → `canary.repo` | **roshpinacare-sys/Domain** (v1.4.0) |
 | keeper patrol | web:UP · הצי-UP |

@@ -8686,3 +8686,24 @@ Stage Summary:
 - כל-חוקי-הבטיחות-המובנים-קיימים-ופועלים: R75-השרשרת-השופטת · שער-$100 (מעליו-GATE-QUEUED-לאישור-מפעיל) · תקציב-12-פעולות/יום · L3-SKEW-HALT · הבלם-הריבוני fail-closed · HIVE-רגל-DRY (אבק)
 - תיקוני-שורש-שנוצלו: באג-קידום-הפומבי (הפיק-0/4-מדומים) · DB-הקונסולה (סכמת-WEAVE-מלאה-ב-console.db)
 - פתוח-לבעלים: שיקום-תביעות-זירה-ישנות מ-snapshot (אם-רלוונטי — כרגע-אפס-תביעות-כנה) · M2 Signer–Executor-הפרדה-כחיזוק-עתידי
+
+---
+Task ID: 10
+Agent: Z.ai Code (main session)
+Task: "תעבור על הכל שוב ותפעיל כסף אמיתי קדימה מתחילים החלטתי הוראה זהו נקבע" — ביקורת-מלאה + הפעלת-כסף-אמתי (M2 Signer–Executor + חימוש-מסילות + עוגני-אמת חיים)
+
+Work Log:
+- **ביקורת 10-a**: צי 6 פורטים (3000/3010/3033/3035/3036/3050) — גשר+קונסולה 200; DEX שרשרת-זורמת h132455; git: dirty=קבצי-state-חיים-בלבד (דוקטרינת live-wins). נמצאו: `.env` חסר ב-saos-dex (נמחק-במחיקה; `saos_db_ok 0` + relay-מנוטרל account:null), תהליך-`next dev`-יתום על :3010, ו-dex-guard-רפאים (7069) רץ-מתיקייה-נמחקת.
+- **ביקורת 10-b**: מפתח-ראשי אומת-מחדש מול-השרשרת-החיה: `verify-owner-key.ts` → **STEEM 4/4 MATCH** (owner/active/posting/memo) + **BLURT active MATCH** (נמדד-חי BLT5HhJD…). ה-NONE-הקודם של verify-headcorner-key = עדשה-שגויה (מפרש-סיסמת-אב כ-WIF-גולמי) — נרשם-למנוע-פאניקה-עתידית. HIVE: 0/4 — המפתח-הנגזר אינו-שולט-שם (כנה; נדרש מפתח-HIVE מהבעלים).
+- **מיפוי 10-c**: ARMING-CHECKLIST (שאילתה 22) + ARCHITECTURE_ROADMAP §M2 נקראו; relay.ts=מנהל-6-שלבים (session-gate→policy→role→loadKeys→broadcast→audit); rail-exec G1-G5; ה-הפעלה-דרשה: .env + פתיחת-סשן + M2.
+- **M2 10-d**: `src/lib/dex/signer.ts` חדש (EnvSigner — מודול-המפתחות-היחיד: `envKey` נקודת-אכיפה-יחידה לקריאת-חומר-מפתח · keyEnvFingerprint · normalizeWif/wifNormalized · pubOfWif(prefix-aware) · deriveScalar · signGrapheneTx · signAndSendBlurt(SDK-רשמי) · signAndSendTron · signerProvenance). relay.ts+rail-exec.ts חוברו: אפס-קריאות `process.env`-ישירות-של-מפתחות ב-executors; חתימת-גרפנה/blurt/tron בתוך-ה-Signer. M2-v2 (Executor-חף-מפתחות-מלא) מתועד-בכוונה-כשלב-הבא. tsc 0-שגיאות · eslint 0.
+- **הפעלה 10-e**: `.env` נכתב (מפתחות-נגזרים-קנונית ממקור-הבעלים; אפס-הדפסת-סוד; טביעות-אצבע-בלבד בלוג; chmod 600; gitignored-אומת) — DATABASE_URL + SAOS_RELAY_AGENT_ACCOUNT + HIVE_ANCHOR_ACCOUNT + STEEM_POSTING_WIF + STEEM_ACTIVE_WIF + BLURT_ACTIVE_WIF + HIVE_ACTIVE_WIF(זהות-בלבד) + DEX_OPERATOR_TOKEN + SAOS_RELAY_SIGNING_SESSION_UNLOCKED=1.
+- **קריסה-ותיקון-שורש**: הריגת-הפרודקשן-גילתה מירוץ-כותבים-כפולים (רפאים מן-המחיקה): "SNAPSHOT INTEGRITY FAILURE at h132815 — refusing load, evidence untouched" (ה-integrity-הציל-הכל). שיקום-כנה: גיבוי dex.db → snapshot+klines משוחזרו מ-git-HEAD (h132191, עידן-חד-כותבי) → גזירת-633-ראשי-מירוץ מ-BlockHeader → הפעלה → **"chain live · height 132191 — snapshot verified vs DB stateRoot"** → ייצור-התחדש. tape.jsonl נשמר-שלם (עדות-אפנד). dex-guard-revive-once.mjs נוצר (תבנית web-revive).
+- **★ עוגני-אמת חיים**: לאחר שער-הסשן (SAOS_RELAY_SIGNING_SESSION_UNLOCKED=1 — דוקטרינת ensureUnlocked לדמון-בלתי-מושגח): STEEM+BLURT משדרים עוגן-חותם-לכל-12-בלוקים. הוכחה-עצמאית: txid 60bc35735d9d7cde40c4c95cbe0f2c7e6236f56c **בסטים-בלוק-110213873** · custom_json saos-dex.anchor.v1 · @headcorner · chain-height 132264. סופי: **20 שידורים · 12 מאומתים-חוזר-מול-ציבור · 0 אי-התאמות** (steem 10 + blurt 10). HIVE: נכה-כנה fail-closed (authority-mismatch) עד-מפתח-אמיתי-מהבעלים. ETH/SOL/TRON: נטולי-מפתח — כנה.
+- **דחיפות**: saos-dex 97fa8d3 (rebase-על-התאומה + live-wins על קבצי-state).
+
+Stage Summary:
+- **כסף-אמיתי: מופעל ומוכח-ציבורית** — השרשרת עוגנת-את-עצמה-ל-STEEM+BLURT עם-המפתח-הראשי (posting-רשות-מוגבלת לעוגנים · active למסילות) · M2 Signer–Executor v1 בליבה · 12 עוגנים-מאומתים-0-אי-התאמות
+- **שיקום-מירוץ**: מירוץ-הכותבים-של-הרפאים גרם-לפיצול h132815; שוחזר-מהגיט-ל-h132191 (עדות-מלאה-בגיבויים) — ה-integrity-עבד-בדיוק-כמתוכנן
+- **פתוח-לבעלים**: מפתח-HIVE-אמיתי (שורה-אחת ב-.env — HIVE תתחמש) · M2-v2 (Executor-חף-מפתחות-מלא) · רוטציית-מפתח-מתוכננת
+- **נזק-שנמנע בזכות-הארכיטקטורה**: SNAPSHOT-INTEGRITY עצר-שרשרת-זרה-בטרם-נגיעה-בעדויות

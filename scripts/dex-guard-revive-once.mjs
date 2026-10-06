@@ -1,23 +1,35 @@
-// DEX-GUARD-REVIVE-ONCE — הקמת dex-guard העצמאי בהקמה-מנותקת אחת (חוק-Bun.spawn)
+// dex-guard-revive-once.mjs — החייאה-חד-פעמית של דואג-השרשרת (:3051)
+// תבנית-ההישרדות (מ-proven web-revive-once.mjs): בדיקת-TCP → אם-למטה: Bun.spawn
+// detached · stdout/stderr → קובץ (לעולם לא pipe — הלקח-מ-web-revive) · exit(0) מיד.
 import net from "node:net";
 import fs from "node:fs";
+
 const PORT = 3051;
 const DIR = "/home/z/my-project/zip/mini-services/dex-guard";
-function tcpAlive(port, timeoutMs = 1500) {
+const LOG = "/home/z/fleet-tmp/logs/dex-guard.log";
+
+function portBusy(port) {
   return new Promise((resolve) => {
     const s = net.createConnection({ port, host: "127.0.0.1" });
-    const done = (ok) => { s.destroy(); resolve(ok); };
-    s.setTimeout(timeoutMs);
+    const done = (v) => { s.destroy(); resolve(v); };
     s.once("connect", () => done(true));
-    s.once("timeout", () => done(false));
     s.once("error", () => done(false));
+    setTimeout(() => done(false), 900).unref?.();
   });
 }
-const alive = await tcpAlive(PORT);
-if (alive) { console.log(`dex-guard: :${PORT} עונה — אין התערבות`); process.exit(0); }
-const logDir = "/home/z/my-project/sovereign/keeper/logs";
-fs.mkdirSync(logDir, { recursive: true });
-const out = fs.openSync(`${logDir}/dex-guard-spawn.log`, "a");
-const child = Bun.spawn({ cmd: ["/usr/local/bin/bun", "--hot", "index.ts"], cwd: DIR, stdin: "ignore", stdout: out, stderr: out });
-console.log(`dex-guard: הוקם (pid ${child.pid}) — דואג :3010 + בריאות :${PORT}`);
+
+const up = await portBusy(PORT);
+console.log(`dex-guard :${PORT} busy=${up}`);
+if (up) process.exit(0);
+
+fs.mkdirSync("/home/z/fleet-tmp/logs", { recursive: true });
+const out = fs.openSync(LOG, "a");
+const child = Bun.spawn({
+  cmd: ["/usr/local/bin/bun", "--hot", "index.ts"],
+  cwd: DIR,
+  stdout: out,
+  stderr: out,
+  stdin: "ignore",
+});
+console.log(`spawned dex-guard detached pid=${child.pid} cwd=${DIR} → ${LOG}`);
 process.exit(0);
