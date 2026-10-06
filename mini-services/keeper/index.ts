@@ -206,6 +206,9 @@ function freshFleet(): FleetEntry[] {
     ["weblift", 3039, "מעלה התוכן — המשך הגירת רשת-האחסון אל השרשרת", "The web lifter — storage-network migration to the chain", 2700],
     ["curation", 3040, "דיבון האוצרות — כוח-ההצבעה הבטל הופך הכנסה", "The curation daemon — idle voting power becomes income", 900],
     ["kpi", 3041, "מפקיד ה-KPI — הספר היומי הנמדד של משימת $1,000 (Z-9)", "The KPI scribe — the measured daily ledger of the $1,000 mission (Z-9)", 60],
+    // r205 (Task 9): הקונסולה בפיקוח-הצי — הסופרוויזר (web/index.ts) הוא הילד;
+    // הוא בעצמו מחייה את next-dev :3050 בלולאה. שכבות: keeper → סופרוויזר-בון → next-dev.
+    ["web", 3050, "קונסולת ה-WEAVE — מסוף הבית מאחורי הגשר (:3000)", "The WEAVE console — home terminal behind the bridge (:3000)", 120],
   ];
   return defs.map(([name, port, roleHe, roleEn, intervalSec]) => ({
     name,

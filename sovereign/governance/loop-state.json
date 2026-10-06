@@ -2,25 +2,25 @@
   "service": "governance-loop",
   "format": "governance-cycle-state-v1",
   "bootedAt": "2026-09-30T19:32:41.415Z",
-  "cycles": 370,
-  "lastCycleAt": "2026-10-06T19:25:01.079Z",
-  "lastDecisionId": "D-r143-370",
+  "cycles": 371,
+  "lastCycleAt": "2026-10-06T19:46:04.796Z",
+  "lastDecisionId": "D-r143-371",
   "lastChosen": "Run the decision cycle: read state, choose one pre-approved action, execute within boundary, append evidence to DECISION_LOG.jsonl",
   "lastVerdict": "DECIDED",
-  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 273 דק' · כלכלה: pnl-snapshots seq=14 (realizedSbd=-1.509569 · trips=274 · unrealizedPremiumSbd=0.005374 · orders=8 · בת 1160 דק') · מילויי-שרשרת 368 (maxIndex=72635)",
+  "lastDetail": "מדידת-בית: house-state · ראיה-כי-ישנה ביותר: sovereign/ops-log.json בת 294 דק' · כלכלה: pnl-snapshots seq=14 (realizedSbd=-1.509569 · trips=274 · unrealizedPremiumSbd=0.005374 · orders=8 · בת 1181 דק') · מילויי-שרשרת 368 (maxIndex=72806)",
   "brainUsed": true,
   "lastGate": {
-    "at": "2026-10-06T19:24:54.346Z",
-    "verdict": "DENY",
-    "score": 35,
+    "at": "2026-10-06T19:45:58.501Z",
+    "verdict": "REVIEW",
+    "score": 45,
     "reasonsHe": [
-      "הפעולה דורשת הקצאת תקציב ללא דיווח עלות מדודה (estimatedCost: לא דווח)",
-      "הפעולה דורשת הקצאת תקציב ללא דיווח ערך מדוד (expectedValue: לא דווח)",
-      "הפעולה דורשת הקצאת תקציב ללא דיווח שורת-הרג מדודה (killLineAware: לא דווח)",
-      "הפעולה דורשת הקצאת תקציב ללא דיווח היפוך-פוטנציאלי (reversible: לא דווח)"
+      "פעולת ממשלה ללא מספרי עלות/ערך מדודים ('לא דווח') עוברת על חוק-הראיה-הכלכלית",
+      "העלות-השולית לא נמדדה ('killLineAware: לא דווח') מה שמפר את חוק-שורת-ההרג",
+      "הפעולה אינה דורשת הון ואינה שורפת תקציב, מה שמתיישב עם חוק-הקיבולת",
+      "הפעולה מתבצעת במסגרת התקציב הקיים (2/16) ואינה חורגת ממנו"
     ],
     "actionsToday": 2,
     "cap": 16,
-    "actionId": "D-r143-370"
+    "actionId": "D-r143-371"
   }
 }
