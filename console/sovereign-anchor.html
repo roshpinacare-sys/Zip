@@ -2,10 +2,24 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SAOS · עוגן ריבוני · Sovereign Anchor</title>
+<meta name="theme-color" content="#09090b">
 <meta name="description" content="העוגן הריבוני: הפעלת קו העדות ב-Steem ישירות מהדפדפן. אפס תלות ב-GitHub, בדקות-Actions או בכל מתווך. המפתח לעולם לא עוזב את הלשונית.">
-<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SAOS Network">
+<meta property="og:title" content="SAOS · עוגן ריבוני · Sovereign Anchor">
+<meta property="og:locale" content="he_IL">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:description" content="העוגן הריבוני: הפעלת קו העדות ב-Steem ישירות מהדפדפן. אפס תלות ב-GitHub, בדקות-Actions או בכל מתווך. המפתח לעולם לא עוזב את הלשונית.">
+<meta property="og:url" content="https://roshpinacare-sys.github.io/Console/sovereign-anchor.html">
+<meta property="og:image" content="https://roshpinacare-sys.github.io/Console/assets/og-cover.png">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="1024">
+<meta property="og:image:alt" content="SAOS Network seal">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SAOS · עוגן ריבוני · Sovereign Anchor">
+<meta name="twitter:description" content="העוגן הריבוני: הפעלת קו העדות ב-Steem ישירות מהדפדפן. אפס תלות ב-GitHub, בדקות-Actions או בכל מתווך. המפתח לעולם לא עוזב את הלשונית.">
 <link rel="canonical" href="https://roshpinacare-sys.github.io/Console/sovereign-anchor.html">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8' fill='none' stroke='%2310b981' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='%2310b981' stroke-width='1.8'/%3E%3C/svg%3E">
 <style>
@@ -84,7 +98,42 @@ button{cursor:pointer;font-family:var(--sans)}
 .rcbar{height:7px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:8px}
 .rcbar>div{height:100%;border-radius:4px;transition:width .4s}
 @media(max-width:640px){.card{padding:18px}}
+
+/* ═══════ Z-29-a design-system upgrade · graphite base, emerald accent ═══════ */
+body{
+  background:
+    radial-gradient(rgba(255,255,255,.04) 1px, transparent 1.5px) 0 0/28px 28px,
+    radial-gradient(880px 420px at 82% -140px, rgba(16,185,129,.08), transparent 68%),
+    radial-gradient(680px 400px at 8% -160px, rgba(255,255,255,.05), transparent 68%),
+    var(--bg);
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(16,185,129,.28);color:#fafafa}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
+h1,h2,h3{text-wrap:balance}
+h1{letter-spacing:-.3px}
+.card,.tblwrap,.note{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 34px -26px rgba(0,0,0,.9)}
+header.site{background:linear-gradient(180deg,rgba(9,9,11,.94),rgba(9,9,11,.84))}
+.backlink{transition:border-color .18s,background .18s,transform .18s}
+.backlink:hover{transform:translateY(-1px);border-color:var(--acc-line);text-decoration:none}
+.btn-main{background:linear-gradient(180deg,#10b981,#059669);border:1px solid rgba(16,185,129,.6);color:#022c22;box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 26px -14px rgba(16,185,129,.5)}
+.btn-main:hover:not(:disabled){filter:brightness(1.06)}
+footer.site{background:rgba(255,255,255,.012)}
+@media(max-width:640px){
+  footer .wrap a,footer.site a{display:inline-flex;align-items:center;min-height:44px}
+  th,td{padding:10px 9px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
 </style>
+  <link rel="stylesheet" href="assets/site.css">
+  <script src="assets/site.js" defer></script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@graph": [{"@type": "WebPage", "@id": "https://roshpinacare-sys.github.io/Console/sovereign-anchor.html#webpage", "url": "https://roshpinacare-sys.github.io/Console/sovereign-anchor.html", "name": "SAOS · עוגן ריבוני · Sovereign Anchor", "description": "העוגן הריבוני: הפעלת קו העדות ב-Steem ישירות מהדפדפן. אפס תלות ב-GitHub, בדקות-Actions או בכל מתווך. המפתח לעולם לא עוזב את הלשונית.", "inLanguage": "\"he\",\"en\"", "isPartOf": {"@id": "https://roshpinacare-sys.github.io/Console/#website"}, "about": {"@id": "https://roshpinacare-sys.github.io/Console/#org"}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "בית", "item": "https://roshpinacare-sys.github.io/Console/"}, {"@type": "ListItem", "position": 2, "name": "SAOS · עוגן ריבוני · Sovereign Anchor", "item": "https://roshpinacare-sys.github.io/Console/sovereign-anchor.html"}]}, {"@type": "Organization", "@id": "https://roshpinacare-sys.github.io/Console/#org", "name": "SAOS Network", "url": "https://roshpinacare-sys.github.io/Console/", "logo": "https://roshpinacare-sys.github.io/Console/assets/og-cover.png"}]}
+</script>
+<link rel="manifest" href="manifest.webmanifest">
 </head>
 <body>
 <header class="sov-head">
