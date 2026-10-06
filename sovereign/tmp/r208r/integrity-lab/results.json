@@ -1,5 +1,5 @@
 {
- "at": "2026-10-05T23:23:01.118Z",
+ "at": "2026-10-06T00:24:14.059Z",
  "results": [
   {
    "attack": "A1|byte-mutation-in-may(preserve-JSON+schema)",
@@ -28,7 +28,7 @@
    "section": "VIII",
    "injected": "builtAt→עכשיו",
    "reject": "AUTHORITY-MAP-UNANCHORED",
-   "detail": "בייטס-המפה (aafb98bcb39f) ≠ העיגון (a84280b6a77c) — פורמט-תקין אינו סמכות-תקינה (§VIII)",
+   "detail": "בייטס-המפה (11004db33861) ≠ העיגון (a84280b6a77c) — פורמט-תקין אינו סמכות-תקינה (§VIII)",
    "verdictForSeed": null,
    "pass": true,
    "expectation": "reject=AUTHORITY-MAP-UNANCHORED",
@@ -155,7 +155,7 @@
   {
    "attack": "S1|NaN",
    "section": "X",
-   "injected": "{\"value\":null,\"unit\":\"SBD\",\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":null,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
    "detail": "מדידת-SBD לא-מספרית",
    "verdictForSeed": null,
@@ -166,7 +166,7 @@
   {
    "attack": "S2|Infinity",
    "section": "X",
-   "injected": "{\"value\":null,\"unit\":\"SBD\",\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":null,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
    "detail": "מדידת-SBD לא-מספרית",
    "verdictForSeed": null,
@@ -177,7 +177,7 @@
   {
    "attack": "S3|1e308",
    "section": "X",
-   "injected": "{\"value\":1e+308,\"unit\":\"SBD\",\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":1e+308,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
    "detail": "מדידת-SBD מחוץ-לטווח-סביר (1e+308) — לקח חיישן-powerdown ×4",
    "verdictForSeed": null,
@@ -188,7 +188,7 @@
   {
    "attack": "S4|negative",
    "section": "X",
-   "injected": "{\"value\":-3.5,\"unit\":\"SBD\",\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":-3.5,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
    "detail": "מדידת-SBD מחוץ-לטווח-סביר (-3.5) — לקח חיישן-powerdown ×4",
    "verdictForSeed": null,
@@ -199,7 +199,7 @@
   {
    "attack": "S5|missing-unit",
    "section": "X",
-   "injected": "{\"value\":3.5,\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":3.5,\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "UNIT-MISMATCH",
    "detail": "מדידה בלי-יחידה — היחידה חובה (לקח 0.1041); אין ברירת-מחדל-שקטה",
    "verdictForSeed": null,
@@ -210,7 +210,7 @@
   {
    "attack": "S6|SBD-STEEM-substitution",
    "section": "X",
-   "injected": "{\"value\":3.5,\"unit\":\"SBD/STEEM\",\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":3.5,\"unit\":\"SBD/STEEM\",\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "UNIT-MISMATCH",
    "detail": "ההכרעה דורשת SBD אך המדידה נושאת SBD/STEEM — אין המרה-שקטה (לקח 0.1041)",
    "verdictForSeed": null,
@@ -221,7 +221,7 @@
   {
    "attack": "S7|USD-STEEM-substitution(0.1041-lesson)",
    "section": "X",
-   "injected": "{\"value\":0.1041,\"unit\":\"USD/STEEM\",\"at\":\"2026-10-05T23:23:01.091Z\"}",
+   "injected": "{\"value\":0.1041,\"unit\":\"USD/STEEM\",\"at\":\"2026-10-06T00:24:14.029Z\"}",
    "reject": "UNIT-MISMATCH",
    "detail": "ההכרעה דורשת SBD אך המדידה נושאת USD/STEEM — אין המרה-שקטה (לקח 0.1041)",
    "verdictForSeed": null,
@@ -232,7 +232,7 @@
   {
    "attack": "S8|stale-2h",
    "section": "X",
-   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-05T21:23:01.091Z\"}",
+   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-05T22:24:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
    "detail": "מדידת-SBD בת 120 דק' — נחשבת UNKNOWN להכרעה",
    "verdictForSeed": null,
@@ -243,9 +243,9 @@
   {
    "attack": "S9|frozen-future-clock(+1h)",
    "section": "X",
-   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:23:01.091Z\"}",
+   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-06T01:24:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
-   "detail": "זמן-מדידה בעתיד (2026-10-06T00:23:01.091Z) — שעון-חיישן לא-אמין ⇒ UNKNOWN (§X)",
+   "detail": "זמן-מדידה בעתיד (2026-10-06T01:24:14.029Z) — שעון-חיישן לא-אמין ⇒ UNKNOWN (§X)",
    "verdictForSeed": null,
    "pass": true,
    "expectation": "reject=RESOURCE-UNKNOWN-REQUIRED",
@@ -254,9 +254,9 @@
   {
    "attack": "S10|future-clock-slight(+120s)",
    "section": "X",
-   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-05T23:25:01.091Z\"}",
+   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:26:14.029Z\"}",
    "reject": "RESOURCE-UNKNOWN-REQUIRED",
-   "detail": "זמן-מדידה בעתיד (2026-10-05T23:25:01.091Z) — שעון-חיישן לא-אמין ⇒ UNKNOWN (§X)",
+   "detail": "זמן-מדידה בעתיד (2026-10-06T00:26:14.029Z) — שעון-חיישן לא-אמין ⇒ UNKNOWN (§X)",
    "verdictForSeed": null,
    "pass": true,
    "expectation": "reject=RESOURCE-UNKNOWN-REQUIRED",
@@ -265,7 +265,7 @@
   {
    "attack": "S11|future-clock-tolerance(+30s)(control-accept)",
    "section": "X",
-   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-05T23:23:31.091Z\"}",
+   "injected": "{\"value\":3.5,\"unit\":\"SBD\",\"at\":\"2026-10-06T00:24:44.029Z\"}",
    "reject": null,
    "detail": null,
    "verdictForSeed": "QUALIFIED-AFTER-ARMING",

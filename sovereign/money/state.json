@@ -2,7 +2,7 @@
   "service": "money-mover",
   "version": "1.13.0",
   "bootedAt": "2026-10-05T23:28:12.606Z",
-  "beats": 4031,
+  "beats": 4081,
   "checkIntervalSec": 60,
   "policy": {
     "triggers": {
@@ -41,14 +41,14 @@
     },
     "truthSource": "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)"
   },
-  "lastActionAt": "2026-10-05T23:30:12.742Z",
-  "actionsToday": 9,
-  "actionDay": "2026-10-05",
+  "lastActionAt": "2026-10-06T00:01:14.076Z",
+  "actionsToday": 0,
+  "actionDay": "2026-10-06",
   "acting": false,
   "lastDecision": {
-    "at": "2026-10-05T23:56:12.688Z",
+    "at": "2026-10-06T00:46:12.685Z",
     "kind": "WAIT-COOLDOWN",
-    "detail": "WAIT-COOLDOWN · עוד 5 דק' · WAIT-COOLDOWN · עוד 5 דק'"
+    "detail": "WAIT-COOLDOWN · עוד 16 דק' · צינון-נלמד +30' (ראיות: 3 כישלונות רצופים זהים (exp#53–#55)) · WAIT-COOLDOWN · עוד 16 דק' · צינון-נלמד +30' (ראיות: 3 כישלונות רצופים זהים (exp#53–#55))"
   },
   "canonLast": {
     "at": "2026-10-05T23:30:16.261Z",
@@ -58,22 +58,23 @@
   "fillsSeen": 0,
   "fillDeployPending": false,
   "lastActionOk": false,
-  "lastDepositScanAt": "2026-10-05T23:51:12.688Z",
+  "lastDepositScanAt": "2026-10-06T00:45:12.683Z",
   "lastStreamDay": "2026-09-27",
   "lastTotalSteem": 10.792,
   "fleetSeen": {
-    "pulseDay": "2026-10-05",
-    "studentDay": "2026-10-05",
+    "pulseDay": "2026-10-06",
+    "studentDay": "2026-10-06",
     "keeperRestartAt": "2026-10-05T23:28:12.463Z"
   },
-  "lastPoolGuardAt": "2026-10-05T23:50:12.692Z",
-  "lastFleetSweepAt": "2026-10-05T23:52:12.690Z",
+  "lastPoolGuardAt": "2026-10-06T00:44:12.676Z",
+  "lastFleetSweepAt": "2026-10-06T00:45:37.849Z",
   "autonomyMode": "THINKING",
   "autonomyHeldCount": 78,
   "learning": {
-    "backoffMin": 0,
-    "epistemic": "baseline",
+    "backoffMin": 30,
+    "epistemic": "inferred-bounded",
     "suspended": false,
-    "updatedAt": "2026-10-05T16:36:44.713Z"
+    "streak": 3,
+    "updatedAt": "2026-10-06T00:01:15.030Z"
   }
 }

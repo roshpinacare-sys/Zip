@@ -220,3 +220,16 @@ spec:
   resources:
     limits: { memoryMB: 200 }
   phase: Running
+---
+apiVersion: sovereign.io/v1alpha1
+kind: FleetService
+metadata:
+  name: proof-law
+  notes: R209 standing enforcer of the proof-book gate (chain+evidence+rotating live repro)
+spec:
+  port: 3052
+  healthPath: /health
+  entry: mini-services/proof-law (bun)
+  resources:
+    limits: { memoryMB: 120 }
+  phase: Running

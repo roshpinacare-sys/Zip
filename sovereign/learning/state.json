@@ -1,22 +1,31 @@
 {
   "version": 1,
-  "updatedAt": "2026-10-05T16:36:44.713Z",
-  "lastExperienceSeq": 53,
+  "updatedAt": "2026-10-06T00:01:15.030Z",
+  "lastExperienceSeq": 55,
   "suspended": false,
-  "lastAbstain": {
-    "at": "2026-10-05T22:59:28.153Z",
-    "reason": "insufficient-evidence"
-  },
+  "lastAbstain": null,
   "params": {
     "retryBackoffMin": {
-      "value": 0,
+      "value": 30,
       "min": 0,
       "max": 120,
-      "epistemic": "baseline",
-      "authority": "bounded-adaptation-law r205 · תיקון-ייחוס r206 (ראיה: TxGate)",
-      "updatedAt": "2026-10-05T16:36:44.713Z",
-      "updateSeq": 3,
-      "evidence": null
+      "epistemic": "inferred-bounded",
+      "authority": "bounded-adaptation-law r205",
+      "updatedAt": "2026-10-06T00:01:15.030Z",
+      "updateSeq": 5,
+      "evidence": {
+        "actor": "money-mover",
+        "action": "grid-act",
+        "streak": 3,
+        "signature": "הבלם-הריבוני עצר את נתיב-החתימה לפני השידור (stasis/lane-guards)",
+        "experienceSeqs": [
+          53,
+          54,
+          55
+        ],
+        "windowFrom": "2026-10-05T22:59:28.150Z",
+        "windowTo": "2026-10-06T00:01:15.025Z"
+      }
     }
   }
 }
