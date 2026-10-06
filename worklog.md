@@ -8070,3 +8070,25 @@ Stage Summary:
 - **האוצר עכשיו כן**: המפה מדווחת את הנכס-הגולם ואת רכיבי-in-flight בלי-לגעת-בנוסחאות-הקיימות (אומת-מול-תמונת-מצב-קפואה + המפרך).
 - **חסמים-ליום-2**: פריצה-3 (זרוע-מדיד→הכרעה ל-arbitrage +283.5bps בתוך-GATE) · פריצה-4 (חיווט-דיון→reward-pay — 5-התחייבויות) · פריצה-5 (עד-חוץ ממארח-שני) · זיהוי-מאציל-ה-~225-SP · שיקול-דחיסת-next-server (1.6GB=41%).
 - **גבולות-נשמרו**: אפס-נגיעה במפתחות/כסף/סודות · אפס-הרחבת-סמכות (F-1-נשאר-אטום) · אפס-יצירת-אירוע-חי-מלאכותי (2-ה-OPEN-נשארים-כנים) · המאכף קורא-בלבד (הכתיבה-היחידה: קובץ-המצב-שלו).
+---
+Task ID: 1
+Agent: Z.ai Code (main)
+Task: Upload THE WEAVE (saos) repo from the user's git and bring the console live in the sandbox
+
+Work Log:
+- Read uploaded credentials: upload/pat.env (GitHub fine-grained PAT), upload/headcorner.txt (headcorner account + master key line), password 934381 delivered in chat
+- Identified GitHub user roshpinacare-sys via API (token verified)
+- Enumerated repos; located THE WEAVE: repo `Zip` = "weave-core · THE WEAVE — רשת האימות הריבונית לסוכני AI" (Console/Domain are its beacon/home satellites)
+- Cloned https://github.com/roshpinacare-sys/Zip.git (272MB, HEAD 4dd121e) into /home/z/my-project, replacing the scaffold while preserving upload/
+- Wrote .env (DATABASE_URL=file:/home/z/my-project/db/custom.db per .env.example) and .env.local (WEAVE_SEAL_PASSPHRASE=934381 as operator custody)
+- bun install (907 packages) · prisma generate · prisma db push
+- weave-seal --status: envelope exists (rotated 2026-09-21, scrypt 2^14 + AES-256-GCM)
+- weave-beat --no-push: imported the book — 1511 attestations, 1452 checkpoints, agents/market/plan/brain rows — then failed at sealOpen: GCM auth rejected 934381 on BOTH sovereign/weave-seal.enc and sovereign/headcorner-seal.enc (formula-verified probe)
+- Conclusion: 934381 is NOT the current seal passphrase (possibly the GitHub account password). Console runs fail-closed on authority features; custody-return door /api/arm/seal is the operator path to restore
+- Started dev server (next dev -p 3000) detached via setsid; browser-verified home page (title "SAOS · THE WEAVE | רשת האימות הריבונית לסוכני AI", operator gate renders, 0 JS/hydration errors, desktop+mobile screenshots in /tmp/weave-*.png)
+- /api/weave/state live: chainCount 1511 · agents 14 · checkpoints 1453 (local daemons fired a fresh checkpoint)
+
+Stage Summary:
+- THE WEAVE console (weave-core, repo Zip) is cloned, installed, DB seeded from the sovereign book, and serving on port 3000
+- Credentials in place: upload/pat.env (git+project), upload/headcorner.txt (owner key), .env.local (seal custody as delivered)
+- OPEN ITEM: seal envelopes reject passphrase 934381 — operator must deliver the true seal passphrase (custody: GitHub Secret WEAVE_SEAL_PASSPHRASE / MAIN_KEY) or paste it via /api/arm/seal (rate-limited 5/h) to restore network identity, brain keys and signing channels
