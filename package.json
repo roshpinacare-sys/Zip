@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
-    "verify:book": "bun run scripts/weave-verify-book.ts"
+    "verify:book": "bun run scripts/weave-verify-book.ts",
+    "dev:console": "next dev -p 3050 -H 127.0.0.1"
   },
   "dependencies": {
     "@blurtfoundation/blurtjs": "^1.0.0",
