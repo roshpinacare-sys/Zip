@@ -41,13 +41,19 @@ id = "generic-api-key"  # same-ID stub: base regex/entropy kept, allowlist appen
 [rules.allowlists]
 description = "weave ledger sealed-envelope fields (by-design inert GCM ciphertext metadata; KEK never in repo — Task 15 triage of Zip org-gitleaks findingsHead=8)"
 condition = "and"
-paths = '''(^|/)sovereign/ledger\.json$'''
+paths = '''(^|/)sovereign/ledger\.json$,(^|/)sovereign/proofs/evidence/[0-9]+/ledger\.json$'''
 regexTarget = "match"
 # regexTarget=match: the generic-api-key Match starts mid-field (verified shape
 # `encKey": "…"`), so the field-name key is unquoted here. Hex-gated (no comma
 # allowed — trap 3) so a non-hex value in these fields would still flag.
 regexes = '''(encKey|keyIv|keyTag)":\s*"[0-9a-f][0-9a-f]+'''
 
+# ── headcorner-seal triage (2026-10-06): paths widened to the evidence-ledger
+# books sovereign/proofs/evidence/*/ledger.json — SAME known-inert class as the
+# main ledger (encKey/keyIv/keyTag GCM envelope metadata, digests and chain
+# hashes only; KEK never in repo). Also: headcorner-seal.meta.json stores NO
+# key material (fingerprint lives inside the encrypted envelope only).
+#
 # ── r186-a: BIP39 seed-literal tripwire ─────────────────────────────
 # WHY: gitleaks default rules have NO seed-phrase rule (verified empirically
 # r186-a) — the 12-word TRON seed lived tracked in scripts/check-tron-
