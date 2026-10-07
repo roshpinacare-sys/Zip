@@ -25,6 +25,9 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url)); // bootstrap/ — מקור-האמת-שבגיט
 
 // ─── פרמטרים (env-בלבד — אף-סוד-קשיח) ───────────────────────────────────────
 const MP = process.env.BOOTSTRAP_MYPROJECT ?? "/home/z/my-project"; // עץ-העבודה
@@ -756,6 +759,72 @@ async function phaseHealth(spawnedNames) {
   return results;
 }
 
+// ─── שלב-מפתח-ראשי (Task 11) ────────────────────────────────────────────────
+// הוראת-המפעיל: "יש אוטונומיה שצריכה לדעת להפעיל את המפתח הראשי והכל בלעדיי".
+// הכספת-הסוברנית (12 חיילים) חיה בהיסטוריה-של-גיט — החילוץ-אוטונומי-לחלוטין:
+// bootstrap/vault-from-history.mjs סורק את-ההיסטוריה-של-steem-ומשיב-את-הכספת.
+async function phaseMasterKey() {
+  log("── שלב 3.5 · מפתח-ראשי — הפעלה-אוטונומית מהיסטוריית-הגיט ──");
+  const vaultPath = process.env.SAOS_SOLDIER_VAULT ?? "/home/z/fleet-tmp/nvx-vault-extracted.json";
+  let have = false;
+  try {
+    const j = JSON.parse(fs.readFileSync(vaultPath, "utf8"));
+    have = (j?.accounts?.length ?? 0) >= 3;
+    if (have) log(`  ✓ כספת-כבר-חיה (${j.accounts.length} חיילים) · ${vaultPath}`);
+  } catch {}
+  if (!have) {
+    const ok = await runStep("vault-from-history", [bunBin, path.join(HERE, "vault-from-history.mjs")], { cwd: HERE, timeoutMs: 420_000 });
+    log(`  ${ok ? "✓" : "✗"} חילוץ-כספת-מההיסטוריה → code=${ok ? "OK" : "FAIL"}`);
+    return ok ? "EXTRACTED" : "FAIL";
+  }
+  return "ALREADY-LIVE";
+}
+
+// ─── שלב-קצב-ריבוני (Task 11) ───────────────────────────────────────────────
+// cadence-daemon = הקרון-המקומי (פתרון-הבילינג של המפעיל). מקור-אמת-שבגיט:
+// bootstrap/cadence/* → מועתק-לבית-הריצה /home/z/revive ומושגר-אם-מת.
+async function phaseCadence() {
+  log("── שלב 4.7 · קצב-ריבוני — cadence-daemon (שעתי :17 · יומי 04:23Z) ──");
+  const src = path.join(HERE, "cadence");
+  const home = path.join(H, "revive");
+  try {
+    fs.mkdirSync(home, { recursive: true });
+    for (const f of ["cadence-daemon.mjs", "sovereign-cadence.sh"]) {
+      if (fs.existsSync(path.join(src, f))) {
+        fs.copyFileSync(path.join(src, f), path.join(home, f));
+        fs.chmodSync(path.join(home, f), 0o755);
+      }
+    }
+  } catch (e) { log(`  ⚠ סנכרון-בית-ריצה-נכשל: ${String(e.message).slice(0, 80)}`); }
+  let alive = false;
+  try {
+    const out = Bun.spawnSync(["pgrep", "-f", "cadence-daemon.mjs"], { stdout: "pipe", stderr: "pipe" }).stdout.toString();
+    alive = out.trim().length > 0;
+  } catch {}
+  if (alive) { log("  ✓ cadence-daemon כבר-חי — לא-נוגעים"); return "ALREADY-UP"; }
+  if (CHECK) { log("  ✗ cadence-daemon לא-חי — יושגר-בריצה-מלאה"); return "DOWN"; }
+  const runHome = path.join(home, "cadence-daemon.mjs");
+  if (!fs.existsSync(runHome)) { log("  ⛔ cadence-daemon.mjs-נעדר-בגיט — חוסם-בכנות"); return "NO-SOURCE"; }
+  spawnDetached("cadence-daemon", [bunBin, runHome], { cwd: H });
+  return "SPAWNED";
+}
+
+// ─── שלב-שומר-ריבוני (Task 11) ──────────────────────────────────────────────
+// השומר = האוטונומיה-שדואגת-לעצמה: כל-5-דקות בודק-את-כל-הצי (19 דיבונים +
+// קונסולה + cadence) ומשגר-מחדש-מה-שמת. "וודא שזה נשאר חי".
+async function phaseWatchdog() {
+  log("── שלב 4.8 · שומר-ריבוני — self-healing כל-5-דקות ──");
+  let alive = false;
+  try {
+    const out = Bun.spawnSync(["pgrep", "-f", "sovereign-watchdog.mjs"], { stdout: "pipe", stderr: "pipe" }).stdout.toString();
+    alive = out.trim().length > 0;
+  } catch {}
+  if (alive) { log("  ✓ השומר-כבר-חי — לא-נוגעים"); return "ALREADY-UP"; }
+  if (CHECK) { log("  ✗ השומר-לא-חי — יושגר-בריצה-מלאה"); return "DOWN"; }
+  spawnDetached("sovereign-watchdog", [bunBin, path.join(HERE, "sovereign-watchdog.mjs")], { cwd: HERE });
+  return "SPAWNED";
+}
+
 async function phaseTruth(results) {
   // עדויות-חיות-נוספות (כנות — נכשל-גם-הוא-מדווח)
   const extras = {};
@@ -785,6 +854,7 @@ async function main() {
   const repos = await phaseRepos();
   const deps = await phaseDeps();
   const secrets = phaseSecrets();
+  const masterKey = await phaseMasterKey();
 
   const consoleStatus = await phaseConsole();
   const sovereignState = phaseSovereignState();
@@ -798,6 +868,9 @@ async function main() {
   if (dexStatus.guard === "SPAWNED") spawnedNames.add("dex-guard");
   for (const [name, st] of Object.entries(fleetStatus)) if (st === "SPAWNED") spawnedNames.add(name);
   if (brainStatus === "SPAWNED") spawnedNames.add("decision-brain");
+
+  const cadenceStatus = await phaseCadence();
+  const watchdogStatus = await phaseWatchdog();
 
   const results = await phaseHealth(spawnedNames);
   const extras = await phaseTruth(results);
@@ -815,6 +888,7 @@ async function main() {
   log(`  תלות: ${deps.map((d) => `${d.name}=${d.status}`).join(" · ")}`);
   log(`  סודות: .env=${secrets.status} · חסרים=${secrets.missing.length ? secrets.missing.join(",") : "אפס"} · gitignore=${secrets.ignoredDex ? "דקס-מוגן" : "דקס-חשוף!"}/${secrets.ignoredZipPat ? "pat-מוגן" : "pat-חשוף!"}`);
   log(`  קונסולה: ${consoleStatus} · DEX: ${dexStatus.dex} · dex-guard: ${dexStatus.guard} · decision-brain: ${brainStatus} · סוברן-מצב: ${sovereignState}`);
+  log(`  מפתח-ראשי: ${masterKey} · קצב: ${cadenceStatus} · שומר: ${watchdogStatus}`);
   log(`  זמן-ריצה: ${Math.round((Date.now() - t0) / 1000)}s`);
   log("  נותר-ידני (fail-closed-מכוון): חימוש-מנועים ב-POST-מפעיל בלבד (חוק-הדיבונים) · pat.rar/סיסמת-כספת — אצל-המפעיל");
   log("════════════════════════════════════════════════════════");
