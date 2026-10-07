@@ -1,0 +1,16 @@
+#!/bin/bash
+# no-push-git — gitsafety ריבוני (תבנית agentcraft, הותאם): git שמסרב ל-push/fetch
+# מדיבוני-הכסף. מוצב בראש-ה-PATH בהשגרה — חוק-אל-דחיפה כתכונת-סביבה,
+# לא כהבטחה. שימוש: PATH="/home/z/my-project/zip/bootstrap/bin:$PATH"
+REAL_GIT=""
+for d in /usr/bin /bin /usr/local/bin /usr/lib/git-core; do
+  [ -x "$d/git" ] && REAL_GIT="$d/git" && break
+done
+if [ -z "$REAL_GIT" ]; then echo "[gitsafety] git אמיתי לא נמצא" >&2; exit 112; fi
+for a in "$@"; do
+  case "$a" in
+    push|fetch|remote|send-pack|receive-pack)
+      echo "[gitsafety] git $a מנוטרל לדיבון-זה (חוק: אפס-דחיפה-מדיבוני-כסף)" >&2; exit 111 ;;
+  esac
+done
+exec "$REAL_GIT" "$@"

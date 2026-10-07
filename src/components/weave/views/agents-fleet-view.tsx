@@ -31,6 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useWeave } from "../store";
 import { PageWash } from "../shared";
+import { CompetitionBoard } from "./competition-board";
 
 // ── עזרי זמן ────────────────────────────────────────────────────────
 
@@ -748,6 +749,9 @@ export function AgentsFleetView() {
           ))}
         </div>
       )}
+
+      {/* תחרות-הסוכנים — החיילים-החיים מתחרים על רווחים on-chain מדודים */}
+      <CompetitionBoard />
 
       {/* מפעל האימות המקומי — הריבונות מהמכסה (R109) · חוק דחיפת פסק-הדין (R118) */}
       <section className="mb-8" aria-label="מפעל האימות המקומי">

@@ -7,7 +7,7 @@
  */
 import { readFileSync, writeFileSync, appendFileSync, existsSync } from "node:fs";
 
-const STATE_DIR = process.env.COMP_STATE_DIR || "/home/z/my-project/sovereign/competition";
+const STATE_DIR = process.env.COMP_STATE_DIR || (await import("node:path")).default.resolve(process.cwd(), "sovereign", "competition");
 const REGISTRY = `${STATE_DIR}/registry.json`;
 const STATE = `${STATE_DIR}/state.json`;
 const SCORES = `${STATE_DIR}/scores.jsonl`;

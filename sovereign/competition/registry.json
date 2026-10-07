@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "createdAt": "2026-10-08T00:00:00.000Z",
+  "law": "תחרות-סוכנים-ריבונית — כל חייל = זהות-סוכן אמיתית על השרשרת; הניקוד נגזר מרווחים on-chain מדודים בלבד (author_reward / curation_reward / pending rewards); אפס ניקוד-מומצא; תגמולי-אוצר מוקצים בספר-הפרסים ומשולמים רק דרך שער-המפעיל",
+  "epoch": { "kind": "daily_utc", "rollover": "00:00Z" },
+  "roster": [
+    { "account": "cashmachine", "agent": "market-maker",  "role": "בריאת-שוק ונזילות", "chains": ["steem", "hive"] },
+    { "account": "haran",      "agent": "curation-hawk", "role": "קורא-ערך ומצביע (ה-HP הגדול בחיילים)", "chains": ["steem", "hive"] },
+    { "account": "israelnews", "agent": "news-anchor",   "role": "חדשות ישראל", "chains": ["steem", "hive"] },
+    { "account": "lsa",        "agent": "essayist",      "role": "מאמרי-עומק", "chains": ["steem", "hive"] },
+    { "account": "macrame",    "agent": "craftsman",     "role": "תוכן-עשייה ומלאכה", "chains": ["steem", "hive"] },
+    { "account": "siq",        "agent": "questionist",   "role": "שאלות ותובנות", "chains": ["steem", "hive"] },
+    { "account": "tov",        "agent": "goodness",      "role": "תוכן-טוב (STEEM בלבד — HIVE סובב מפתחות)", "chains": ["steem"] },
+    { "account": "wic",        "agent": "wisdom",        "role": "חוכמה וציטוטים", "chains": ["steem", "hive"] },
+    { "account": "wog",        "agent": "good-news",     "role": "חדשות-טובות", "chains": ["steem", "hive"] },
+    { "account": "woq",        "agent": "scout",         "role": "סריקת-הזדמנויות", "chains": ["steem", "hive"] },
+    { "account": "headcorner", "agent": "head-treasury", "role": "ראש-האוצר (HIVE חי 4/4; STEEM אצל המפעיל בלבד)", "chains": ["hive"] },
+    { "account": "ynet",       "agent": "news-delegate", "role": "מוסד-חדשות (operator-delegated; אין WIF — לא בסבב-החי)", "chains": [], "active": false }
+  ],
+  "pointsFormula": {
+    "usdEarnedX100": "ערך-דולרי של תגמולים שנצברו (delta) × 100",
+    "authorRewardX10": "פרסי-יוצר שנצפו בחלון",
+    "curationRewardX5": "פרסי-אוצרה שנצפו בחלון",
+    "postX10": "פוסט/תגובה שנצפה בחלון",
+    "voteX1": "הצבעה שנצפה בחלון"
+  },
+  "rewards": {
+    "law": "התגמול-האמיתי = הרווחים on-chain של החייל עצמו (curation/author) + מלגת-אוצר שבועית ל-3 המובילים — מוקצית ב-ledger ומשולמת אך ורק דרך שער-המפעיל",
+    "weeklyPoolLedger": "rewards-ledger.jsonl",
+    "payoutGate": "GATED-until-operator"
+  },
+  "prices": { "source": "api.coingecko.com/simple/price (ids=steem,hive)", "fallback": "last-known-in-state" }
+}
