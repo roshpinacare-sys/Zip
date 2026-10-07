@@ -59,9 +59,14 @@ git clone https://github.com/roshpinacare-sys/saos-dex.git saos-dex
 **e. הצי + הקונסולה:**
 ```
 bun scripts/daemons-revive.mjs     # core 3033–3046 (pulse, hunter, keeper, student...)
-bun scripts/web-revive-once.mjs    # סופרוויזר → next-dev :3050 (הקמה-מנותקת, ילד→קובץ-לוג!)
+bun scripts/web-revive-once.mjs    # סופרוויזר :3050 — מאז r192-d הפורט שייך לגלאי-הארביטראז;
+                                   #   הסופרוויזר רואה-תפוס ומוותר (נוהג-תחרות-פורטים — תקין)
 ```
-- גשר-הקצה :3000 (my-project next dev) — `bun scripts/dev-revive.mjs`
+- **הקונסולה-הריבונית = :3000 (my-project next dev) — `bun scripts/dev-revive.mjs`**
+  ⚠ לקח-מחיקה #3 (2026-10-07): חובה לפני-עליית :3000 — **סנכרון-src מ-zip** (zip/src/app/api → src/app/api · zip/src/lib → src/lib · components/weave · hooks · types · page/layout/globals · prisma/schema + db:push · מיזוג-תלות מ-zip/package.json) — בלי זה /api/money מחזיר 404 וכל-שרשרת-הכסף (money-mover · treasury-audit) מתה-בכנות (HONEST-FAIL)
+  ⚠ לקח-מחיקה #3: **בדיקת-דורס-:3000** — DEX next-start שנולד כש-3010 תפוס מדלג ל-:3000 ודורך על הקונסולה; הרוג דורס ש-cwd-שלו ≠ my-project
+  ⚠ שחזור-סוברן: `cp -rn zip/sovereign/{businesses,economy,governance,money,revenue} sovereign/` (no-clobber — רישומים שהמנועים קוראים)
+  ⚠ הכל-כבר-ממוכן: `bash scripts/revive/revive-on-pat.sh "<PAT>"` (שלב ה+ · 2026-10-07)
 - keeper מפקח-מעתה גם על web:3050 (r205 — fleet-defs)
 - סימלינקים-חוזרים: `mini-services/{hunter,pulse,weblift,web}` + `scripts` → עץ-zip
 
@@ -69,9 +74,10 @@ bun scripts/web-revive-once.mjs    # סופרוויזר → next-dev :3050 (הק
 | בדיקה | תשובה-נדרשת |
 |---|---|
 | `:3000/api/health` | 200 (דרך-הגשר → קונסולה) |
+| `:3000/api/money` | 200 + `keyPresent:true` + יתרות-חיות (שער-הכסף — בלעדיו המנועים HONEST-FAIL) |
 | `:3010/saos-dex/api/dex/metrics` | `saos_height` זורם · `saos_db_ok 1` |
 | `:3010/saos-dex/api/dex/relay` | `enabled:true · account:"headcorner"` · steem+blurt anchored גדל · mismatches:0 |
-| `:3033` `:3035` `:3036` `:3050` | 200 |
+| `:3033` `:3034` `:3035` `:3036` `:3040` `:3043` `:3049` `:3050` `:3051` | 200 |
 | `:3035` → `canary.repo` | **roshpinacare-sys/Domain** (v1.4.0) |
 | keeper patrol | web:UP · הצי-UP |
 
