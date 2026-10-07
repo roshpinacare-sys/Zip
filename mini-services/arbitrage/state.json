@@ -1,7 +1,7 @@
 {
-  "bootedAt": "2026-10-07T03:50:19.279Z",
-  "scans": 2,
-  "lastScanAt": "2026-10-07T03:51:19.283Z",
+  "bootedAt": "2026-10-07T17:57:49.942Z",
+  "scans": 3,
+  "lastScanAt": "2026-10-07T17:59:49.946Z",
   "lastScanOk": true,
   "lastError": null,
   "markets": {
@@ -14,29 +14,69 @@
   },
   "opportunities": [],
   "parity": {
-    "steemDevBps": 148.6,
+    "steemDevBps": 82.9,
     "hiveDevBps": 0
   },
   "history": [
     {
-      "at": "2026-10-07T03:51:19.283Z",
+      "at": "2026-10-07T17:59:49.946Z",
       "ok": true,
       "oppCount": 0,
       "parity": {
-        "steemDevBps": 148.6,
+        "steemDevBps": 82.9,
         "hiveDevBps": 0
       },
-      "ms": 464
+      "ms": 511
     },
     {
-      "at": "2026-10-07T03:50:19.283Z",
+      "at": "2026-10-07T17:58:49.946Z",
       "ok": true,
       "oppCount": 0,
       "parity": {
-        "steemDevBps": 0,
+        "steemDevBps": 76.7,
         "hiveDevBps": 0
       },
-      "ms": 915
+      "ms": 250
+    },
+    {
+      "at": "2026-10-07T17:57:49.946Z",
+      "ok": true,
+      "oppCount": 0,
+      "parity": {
+        "steemDevBps": 76.3,
+        "hiveDevBps": 0
+      },
+      "ms": 1348
     }
-  ]
+  ],
+  "exec": {
+    "dryRun": true,
+    "dryRunSource": "ARB_EXEC_DRY != \"false\" → dryRun:true (ברירת-מחדל מנדט 7-a)",
+    "limits": {
+      "maxRiskUsd": 2,
+      "maxPerDay": 5,
+      "cooldownMin": 10,
+      "slippageGuard": 0.95
+    },
+    "day": "2026-10-07",
+    "executedToday": 0,
+    "lastLiveAt": null,
+    "cooldownUntil": null,
+    "totals": {
+      "candidates": 0,
+      "liveAttempts": 0,
+      "dryRuns": 0,
+      "executed": 0,
+      "partial": 0,
+      "failed": 0,
+      "blockedCex": 0,
+      "blockedRail": 0,
+      "blockedBudget": 0,
+      "blockedCooldown": 0
+    },
+    "lastRecord": null,
+    "lastBlock": null,
+    "logFile": "/home/z/my-project/mini-services/arbitrage/arbitrage-exec.jsonl",
+    "cexPolicy": "רגלי-CEX: תצפית-בלבד — חסום-קשיח (שער-מפעיל: Binance אסור עד-הודעה); אף-קריאה לא יוצאת ל-CEX ממודול-זה"
+  }
 }

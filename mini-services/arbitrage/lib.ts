@@ -112,6 +112,10 @@ export interface OppLeg {
   feeBps: number;
   cexReference?: boolean;
   peg?: boolean;
+  // r210 — חיווט-ביצוע: כמות-הקלט של הרגל (ביחידות-הנכס-הנכנס) ומוצא-מדומה
+  // בגודל-המועמד S — מתועדות לרגלי-הזירה; מבצע-החי מחשב-מחדש מול רזרבות-חיות.
+  amountIn?: number;
+  expectedOut?: number;
 }
 
 export interface Opportunity {
@@ -338,9 +342,9 @@ export function oppSteemBookVsExchangePool(
       ok: true,
       netUsd: outUsd - S,
       legs: [
-        { venue: "steem-internal", side: "buy-asks", price: wb.vwap, feeBps: FEES.steemInternalBps },
-        { venue: `exchange:${pool.pair}`, side: "sell-A2B", price: outW / gotWsteem, feeBps: pool.feeBps },
-        { venue: "exchange:peg", side: "WSBD→USDS", price: 1, feeBps: 0, peg: true },
+        { venue: "steem-internal", side: "buy-asks", price: wb.vwap, feeBps: FEES.steemInternalBps, amountIn: spendSbd, expectedOut: wb.got },
+        { venue: `exchange:${pool.pair}`, side: "sell-A2B", price: outW / gotWsteem, feeBps: pool.feeBps, amountIn: gotWsteem, expectedOut: outW },
+        { venue: "exchange:peg", side: "WSBD→USDS", price: 1, feeBps: 0, peg: true, amountIn: outW, expectedOut: outW },
       ],
     });
   }
@@ -367,9 +371,9 @@ export function oppExchangePoolVsSteemBook(
       ok: true,
       netUsd: outUsd - S,
       legs: [
-        { venue: "exchange:peg", side: "USDS→WSBD", price: 1, feeBps: 0, peg: true },
-        { venue: `exchange:${pool.pair}`, side: "buy-B2A", price: inW / outSteem, feeBps: pool.feeBps },
-        { venue: "steem-internal", side: "sell-bids", price: ws.vwap, feeBps: FEES.steemInternalBps },
+        { venue: "exchange:peg", side: "USDS→WSBD", price: 1, feeBps: 0, peg: true, amountIn: inW, expectedOut: inW },
+        { venue: `exchange:${pool.pair}`, side: "buy-B2A", price: inW / outSteem, feeBps: pool.feeBps, amountIn: inW, expectedOut: outSteem },
+        { venue: "steem-internal", side: "sell-bids", price: ws.vwap, feeBps: FEES.steemInternalBps, amountIn: outSteem, expectedOut: ws.got },
       ],
     });
   }

@@ -5,7 +5,16 @@
 // (money-mover והסורק עצמו טסו מוטל-עוור — נמדד). הקונסולה חוזרת ל-3050,
 // הסורק עובר ל-3053 — שני-העולמות חיים, אפס-תחרות.
 //
-// מנוע-מודיעין קריאה-בלבד (READ-ONLY): כל 60ש' מודד —
+// r210 — חיווט-ביצוע (EDGE-MAP טירה-1 סעיף 6 · משימה 7-a):
+//   מעבר-מ-READ-ONLY-טהור ל-DETECT+EXEC מבוקר: הזדמנויות-פנימיות
+//   (book↔pool — klass book-vs-exchange) ברווח-נטו-חיובי אחרי-עמלות
+//   (כולל 30bps-סוואפ-בריכות) מועברות למודול-הביצוע exec.ts — הרגליים
+//   נשלחות חיה אל POST :3000/api/exchange (swap / usds-mint / usds-burn)
+//   בכפוף-לתקציב-ביטחון: $2-מקס · 5/יום · צינון-10דק' · dryRun:true
+//   ברירת-מחדל (ARB_EXEC_DRY=false מצית-חי). רגלי-CEX: תצפית-בלבד —
+//   חסום-קשיח (שער-מפעיל — Binance אסור עד-הודעה). יומן: arbitrage-exec.jsonl.
+//
+// מנוע-מודיעין (קריאה): כל 60ש' מודד —
 //   (a) ספר-השוק-הפנימי של Steem (condenser_api.get_order_book — ה-RPC
 //       הקנוני של הריפו: api.steemit.com ← api.justyy.com)
 //   (b) ספר-השוק-הפנימי של Hive (api.hive.blog — הקנון של הריפו)
@@ -40,6 +49,7 @@ import {
   parityBps,
   sortBook,
 } from "./lib";
+import { arbExecTick, execPublic, execRecords, type ExecSnapshot } from "./exec";
 
 // r202-fix2: פורט קבוע — ירושת-PORT-מה-env יצרה מופע-רפאים-על-3050 (פורט-הקונסולה,
 // נמדד: pid-14577 שישב-על-3050-והחזיר-404 ל-/api/money). קבוע-בקוד = אפס-עמימות.
@@ -83,6 +93,7 @@ interface State {
   opportunities: Opportunity[];
   parity: Record<string, number | null>;
   history: ScanHistoryEntry[]; // טבעת — הזיכרון מחזיק 200; הקובץ 50
+  exec?: ExecSnapshot; // r210 — צילום-מצב-המבצע לספר state.json
 }
 
 const G = globalThis as unknown as { __ARB_STATE__?: State };
@@ -365,6 +376,12 @@ async function scan(): Promise<void> {
     state.history.unshift({ at, ok: true, oppCount: opps.length, best, parity: { steemDevBps, hiveDevBps }, ms: Date.now() - t0 });
     if (state.history.length > 200) state.history.length = 200;
     log(`scan #${state.scans} ok ${Date.now() - t0}ms · opps=${opps.length} · steem-parity=${steemDevBps}bps · hive-parity=${hiveDevBps}bps`);
+    // r210 — שער-המבצע: מועמד-פנימי-יחיד (הטוב-ביותר), כבול לתקציב/צינון/dryRun.
+    try {
+      await arbExecTick(opps);
+    } catch (e) {
+      log(`exec tick FAILED: ${e instanceof Error ? e.message : e}`);
+    }
   } catch (e) {
     state.lastScanAt = at;
     state.lastScanOk = false;
@@ -378,14 +395,19 @@ async function scan(): Promise<void> {
 
 function persist(): void {
   try {
-    const fileState = { ...state, history: state.history.slice(0, 50), opportunities: state.opportunities.slice(0, 20) };
+    const fileState = {
+      ...state,
+      history: state.history.slice(0, 50),
+      opportunities: state.opportunities.slice(0, 20),
+      exec: execPublic(), // r210 — מצב-המבצע נשמר-לספר
+    };
     writeJsonAtomic(STATE_FILE, fileState);
   } catch (e) {
     log(`persist FAILED: ${e instanceof Error ? e.message : e}`);
   }
 }
 
-// ── שרת — /status · /opps · /history ─────────────────────────────────
+// ── שרת — /status · /opps · /exec · /history ─────────────────────
 const B = globalThis as unknown as {
   Bun?: {
     serve: (opts: { port: number; hostname: string; fetch: (req: Request) => Response | Promise<Response> }) => unknown;
@@ -400,7 +422,7 @@ function handle(req: Request): Response {
       ok: true,
       service: "arbitrage",
       port: PORT,
-      mode: "READ-ONLY — detection only; no execution, no broadcasts (r192-d)",
+      mode: `DETECT+EXEC — internal book↔pool legs → POST :3000/api/exchange (swap/mint/burn) · CEX legs observation-only (hard-blocked, שער-מפעיל) · dryRun=${execPublic().dryRun} (r210)`,
       bootedAt: state.bootedAt,
       now: new Date().toISOString(),
       scans: state.scans,
@@ -410,10 +432,16 @@ function handle(req: Request): Response {
       markets: state.markets,
       parity: state.parity,
       oppCount: state.opportunities.length,
+      exec: execPublic(), // כנות-מלאה: dryRun/תקציב/צינון/חסימות — תמיד גלוי
     });
   }
   if (p === "/opps") {
     return Response.json({ ok: true, count: state.opportunities.length, opportunities: state.opportunities, at: state.lastScanAt });
+  }
+  if (p === "/exec") {
+    // r210 — מצב-המבצע המלא: מדיניות, תקציב, חסימות, ורשומות-אחרונות (יבש+חי)
+    const n = Math.min(Number(url.searchParams.get("n") ?? "20") || 20, 30);
+    return Response.json({ ok: true, exec: execPublic(), records: execRecords(n) });
   }
   if (p === "/history") {
     const n = Math.min(Number(url.searchParams.get("n") ?? "50") || 50, 200);
@@ -423,7 +451,7 @@ function handle(req: Request): Response {
 }
 
 B.Bun?.serve({ port: PORT, hostname: "127.0.0.1", fetch: handle });
-log(`arbitrage detector UP on 127.0.0.1:${PORT} — READ-ONLY (r192-d) · state=${STATE_FILE}`);
+log(`arbitrage DETECT+EXEC UP on 127.0.0.1:${PORT} (r210) · dryRun=${execPublic().dryRun} · exec-log=${execPublic().logFile} · state=${STATE_FILE}`);
 
 // ── פעימה-60ש' + מתג-איש-מת (חיישן-אמת בלבד — אין-רישום-אצל fleet-guard) ──
 const G_T = globalThis as unknown as { __ARB_TIMER__?: ReturnType<typeof setInterval> };
