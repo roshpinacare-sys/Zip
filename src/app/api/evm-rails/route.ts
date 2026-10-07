@@ -146,7 +146,7 @@ const CACHE_MS = 60_000;
 
 export async function GET() {
   if (cache && Date.now() - new Date(cache.measuredAt).getTime() < CACHE_MS) {
-    return NextResponse.json({ ...(cache.data as Record<string, unknown>), cached: true });
+    return NextResponse.json({ ok: true, ...(cache.data as Record<string, unknown>), cached: true });
   }
 
   const [
@@ -224,5 +224,6 @@ export async function GET() {
   };
 
   cache = { measuredAt: data.measuredAt, data };
-  return NextResponse.json(data);
+  // קונבנציית-הקונסולה: כל תשובה { ok: true, ... } — apiFetch בצד-הלקוח מחייב זאת
+  return NextResponse.json({ ok: true, ...(data as Record<string, unknown>) });
 }

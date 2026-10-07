@@ -67,6 +67,7 @@ import {
 } from "../shared";
 import { ChallengeDialog } from "../evm/challenge-dialog";
 import { Evm3Section } from "../evm/evm3-section";
+import { EvmRailsSection } from "../evm/evm-rails-section";
 import { RotateDialog, type MechanismState } from "../evm/rotate-dialog";
 
 // ── תג מקור הנתונים: ענן חי / סנדבוקס מקומי ─────────────────────────
@@ -178,6 +179,9 @@ export function AgentsTab() {
 
       {/* פס סטטיסטיקות EVM-3 - replay protection */}
       <Evm3Section refreshKey={evm3Key} />
+
+      {/* מסילות-EVM + חלופות-Binance — מדידה חיה (epoch 8) */}
+      <EvmRailsSection />
 
       <Alert className="border-amber-500/40 bg-amber-500/[0.06]">
         <KeyRound className="text-amber-600 dark:text-amber-400" />
