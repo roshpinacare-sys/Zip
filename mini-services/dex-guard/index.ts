@@ -10,7 +10,10 @@ import net from "node:net";
 
 const DEX = "/home/z/my-project/saos-dex";
 const LOG = "/home/z/fleet-tmp/logs/dex-guard.log";
-const HEALTH_PORT = 3051;
+// FIX(port-war-3051 · 2026-10-07): dex-grid גם יושב על 3051 (EADDRINUSE נמדד) —
+// אותו-פתרון-משפחה של arbitrage r202-fix2: ברירת-מחדל קנונית 3051, אך ניתן-ל-override
+// ב-env (HEALTH_PORT=3054) כדי-ששני-השירותים יחיו-יחד בלי-מלחמת-פורטים.
+const HEALTH_PORT = Number(process.env.HEALTH_PORT ?? 3051);
 
 function log(msg: string): void {
   try { fs.appendFileSync(LOG, `[${new Date().toISOString()}] ${msg}\n`); } catch {}
@@ -40,9 +43,15 @@ async function ensureDex(): Promise<void> {
     log("DEX down — reviving (bun-runtime, survivor lineage)");
     revives++;
     const out = fs.openSync(LOG, "a");
+    // FIX(reaper-lineage · 2026-10-07): dex-guard עצמו חייב להיות-מושגר דרך
+    // Bun.spawn-detached (חוק-2026-10-06 — תהליכי-bash/setsid נקצרים בסוף-הבקשה;
+    // 4 מיתות נמדדו). הבן כאן: `bun --bun next start` — ההשקה-המוכחת (pid 2255
+    // שרד 8 דק' כשהאב-שלו הושגר-קנונית). פורט/מארח בפקודה עצמה.
     const child = spawn("/usr/local/bin/bun", ["--bun", "node_modules/next/dist/bin/next", "start", "-p", "3010", "-H", "127.0.0.1"], {
       cwd: DEX,
-      env: { ...process.env, DATABASE_URL: "file:/home/z/my-project/saos-dex/db/dex.db", NODE_ENV: "production" },
+      // FIX(oom-2×· 2026-10-07): תקרת-JSC-512MB — מצב-השרשרת כולו = snapshot של 250KB;
+      // בלי-תקרה התהליך ניפח ל-1.9GB-RSS והקרנל OOM-kill (pid 2648 · pid 3290 — dmesg).
+      env: { ...process.env, DATABASE_URL: "file:/home/z/my-project/saos-dex/db/dex.db", NODE_ENV: "production", BUN_JSC_forceRamSize: "536870912" },
       stdio: ["ignore", out, out],
     });
     child.on("exit", (c) => log(`dex exited code=${c}`));

@@ -130,8 +130,9 @@ declare -A checks=(
   ["curation :3040"]="http://127.0.0.1:3040/"
   ["treasury-audit :3043"]="http://127.0.0.1:3043/"
   ["market-maker :3049"]="http://127.0.0.1:3049/status"
-  ["arbitrage :3050"]="http://127.0.0.1:3050/"
-  ["dex-guard :3051"]="http://127.0.0.1:3051/"
+  ["arbitrage :3053"]="http://127.0.0.1:3053/"  # FIX(r202-fix2): פורט-קבוע 3053 — ישיבה-על-3050 שיתקה /api/money (נמדד)
+  ["dex-grid :3051"]="http://127.0.0.1:3051/"
+  ["dex-guard :3054"]="http://127.0.0.1:3054/"  # FIX(מחיקה-5): dex-guard עבר ל-3054 (מלחמת-פורטים עם dex-grid על 3051 — HEALTH_PORT=3054)
 )
 for name in "${!checks[@]}"; do
   code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 "${checks[$name]}" 2>/dev/null)
@@ -140,7 +141,8 @@ done
 h=$(curl -s --max-time 5 "http://127.0.0.1:3010/saos-dex/api/dex/metrics" 2>/dev/null | grep -oE 'saos_height[": ]+[0-9]+' | grep -oE '[0-9]+$' | head -1)
 [ -n "$h" ] && ok "saos_height זורם: $h" || bad "saos_height לא נמדד"
 cv=$(curl -s --max-time 5 "http://127.0.0.1:3035/" 2>/dev/null | grep -o '"canary.repo":"[^"]*"' | head -1)
-[ "$cv" = '"canary.repo":"Domain"' ] && ok "hunter canary.repo=Domain" || bad "hunter canary.repo לא מאומת ($cv)"
+# FIX(מחיקה-5): השדה המלא הוא roshpinacare-sys/Domain (v1.4.0) — ה-pattern הקודם ("Domain" בלבד) נכשל-גם-על-הצלחה
+[ "$cv" = '"canary.repo":"roshpinacare-sys/Domain"' ] && ok "hunter canary.repo=roshpinacare-sys/Domain" || bad "hunter canary.repo לא מאומת ($cv)"
 
 step "ז׳ · מפתח-הראש — verify-owner-key (fail-closed; חוסם כסף אמיתי)"
 if [ -f $MP/saos-dex/scripts/verify-owner-key.ts ]; then
