@@ -41,16 +41,22 @@ const DAEMONS = [
   { name: "llm-bridge", port: 3048, dir: `${HOME}/mini-services/llm-bridge` }, // r175: השער-הלשוני-היחיד — בלי-כיסוי-החייאה-היה-נקודת-כשל-יחידה (נמדד: 502-חד-פעמי-ב-gate-r175)
   { name: "dex-grid", port: 3051, dir: `${HOME}/mini-services/dex-grid` }, // r197: הגריד-המתנגד — היה-חוץ-לספר-ההחייאות-ומת-בשקט (נמדד); השער-האוטונומי שלו חי-בקוד
   { name: "market-maker", port: 3049, dir: `${HOME}/mini-services/market-maker` }, // r199: נמצא-חוץ-לכל-ספרי-ההחייאה (ביקורת-r199) — אותו-כשל-שקט-של-dex-grid-r197; מנוע-הגריד-הראשי-עתה-בספר
-  { name: "arbitrage", port: 3050, dir: `${HOME}/mini-services/arbitrage` }, // r199: גלאי-הארביטראז (קריאה-בלבד) — אותו-פער-כיסוי; נמדד-חי-3049/3050-רצים-אך-לא-משוחזרים-אוטומטית
+  { name: "arbitrage", port: 3053, dir: `${HOME}/mini-services/arbitrage` }, // r202: הועבר מ-3050 (פורט-הקונסולה לפי-הדוקטרינה) — מלחמת-הפורט ששיתקה את /api/money+/api/exchange נגמרה; הסורק על 3053, הקונסולה חוזרת ל-3050
 ];
 
 function httpOk(port, timeoutMs = 2500) {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), timeoutMs);
-  return fetch(`http://127.0.0.1:${port}/`, { signal: ctl.signal, cache: "no-store" })
-    .then((r) => r.ok)
-    .catch(() => false)
-    .finally(() => clearTimeout(t));
+  // FIX(r202): קודם נבדק רק "/" — שירותים-שמגישים /health אך מחזירים 404 בשורש
+  // (content-factory, llm-bridge, market-maker) סומנו "נעולים" ונרצחו-מחזורית
+  // בכל הרצה. עתה: /health קודם, / כנפילה. כנות מלאה — 200 בלבד נחשב חי.
+  const tryPath = (p) => {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), timeoutMs);
+    return fetch(`http://127.0.0.1:${port}${p}`, { signal: ctl.signal, cache: "no-store" })
+      .then((r) => r.ok)
+      .catch(() => false)
+      .finally(() => clearTimeout(t));
+  };
+  return tryPath("/health").then((ok) => ok || tryPath("/"));
 }
 
 function tcpAlive(port, timeoutMs = 1500) {

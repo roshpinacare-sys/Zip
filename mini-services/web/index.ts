@@ -68,6 +68,8 @@ async function ensureNext(): Promise<void> {
 
 log(`web-supervisor up pid=${process.pid} (DEX lineage)`);
 void ensureNext();
-setInterval(() => { void ensureNext(); }, 20_000).unref?.();
-// שמירה-על-ההורה-חי (בון-טהור — הליבה-ששורדת)
-setInterval(() => { /* heartbeat */ }, 60_000).unref?.();
+// FIX(r202): ה-intervals היו unref'ים — אחרי-מות-הילד לולאת-האירועים התרוקנה
+// והסופרוויזר יצא-בשקט (נמדד: 03:12:15 next exited code=0 → אף-respawn).
+// הלולאה היא הייעוד — היא מחזיקה-את-התהליך-חי במכוון.
+setInterval(() => { void ensureNext(); }, 20_000);
+setInterval(() => { /* heartbeat */ }, 60_000);

@@ -211,6 +211,15 @@ function freshFleet(): FleetEntry[] {
     ["web", 3050, "קונסולת ה-WEAVE — מסוף הבית מאחורי הגשר (:3000)", "The WEAVE console — home terminal behind the bridge (:3000)", 120],
     // r210 (Task 10): dex-guard עצמאי (חוק-השרידות) — משחרר את סלוט-money למוביל-האמיתי
     ["dex-guard", 3051, "דואג-השרשרת — שומר ה-DEX (:3010) בפרודקשן", "The chain keeper — guards the DEX (:3010) in production", 60],
+    // r202: סגירת-הפער — שירותים-שחיו-חוץ-לספר-הפיקוח-ומתו-בשקט (נמדד: arbitrage
+    // ו-llm-bridge מתו ואיש-לא-הקימם). עתה: כל-הצי תחת-סיור הפעימות + חייאה.
+    ["governance", 3042, "דיבון-הממשל — פעימת-ההחלטות (D-OP-01)", "The governance daemon — decision heartbeat", 300],
+    ["treasury-audit", 3043, "מבקר-האוצר — אותו-פער-שקט-שנסגר", "The treasury auditor — silent-gap closer", 120],
+    ["scout-market", 3044, "סורק-השוק — גילוי-פעימות-קפואות ומענה", "The market scout — stale-beat detection and response", 300],
+    ["business", 3045, "מנוע-העסקים — טיק-כל-10-דק'", "The business engine — 10-minute tick", 300],
+    ["content-factory", 3046, "מפעל-התוכן — מנוע-ההכנסה-הראשון-שאינו-תלוי-הון", "The content factory — the first capital-independent income engine", 300],
+    ["llm-bridge", 3048, "השער-הלשוני-היחיד — נקודת-כשל-יחידה-לשעבר", "The only language gate — former single point of failure", 300],
+    ["arbitrage", 3053, "גלאי-הארביטראז (קריאה-בלבד) — עין-ההזדמנויות בין-שווקים", "The arbitrage detector (read-only) — the cross-market opportunity eye", 120],
   ];
   return defs.map(([name, port, roleHe, roleEn, intervalSec]) => ({
     name,
@@ -1068,19 +1077,28 @@ async function flushCanon() {
 }
 
 // ── בדיקת-חיים של דיבון ────────────────────────────────────────────
+// FIX(r202): קודם נבדק רק "/" עם-דרישת ok:true בגוף — שירותים-בריאים-שמגישים
+// /health (content-factory/llm-bridge/market-maker) או ok:false-לגיטימי
+// (governance בלי-החלטה-פעילה) סומנו מתים והוקמו-מחדש-בלי-סוף. עתה:
+// /health קודם, / כנפילה; 200-HTTP = חי (הגוף נשמר כמידע, לא כשער-חיים).
 async function probe(port: number): Promise<{ ok: boolean; body?: any }> {
-  const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 4000);
-  try {
-    const res = await fetch(`http://127.0.0.1:${port}/`, { signal: ctl.signal, cache: "no-store" });
-    if (!res.ok) return { ok: false };
-    const j = await res.json().catch(() => null);
-    return { ok: !!j?.ok, body: j };
-  } catch {
-    return { ok: false };
-  } finally {
-    clearTimeout(t);
-  }
+  const attempt = async (p: string): Promise<{ ok: boolean; body?: any }> => {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 4000);
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}${p}`, { signal: ctl.signal, cache: "no-store" });
+      if (!res.ok) return { ok: false };
+      const j = await res.json().catch(() => null);
+      return { ok: true, body: j };
+    } catch {
+      return { ok: false };
+    } finally {
+      clearTimeout(t);
+    }
+  };
+  const h = await attempt("/health");
+  if (h.ok) return h;
+  return attempt("/");
 }
 
 // ── הקמה מחדש: ניקוי פורט → bun run dev ──────────────────────────

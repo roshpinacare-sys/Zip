@@ -8774,3 +8774,25 @@ Stage Summary:
 - SA_FLEET_KEYS לא-בכספת → fleetChurn effective:false (אין-חיול-מאומת-לסולדות-החיילים).
 - פוסט-ה-7/10 אבד (תקציב-נשרף על 404-ים לפני-התיקון) — pulse יפרסם מ-8/10 00:00 UTC.
 - סיסמת-seal/כספת — אצל-המפעיל בלבד (weave-seal.enc).
+
+---
+Task ID: 13
+Agent: Z.ai (main)
+Task: ריבונות-מלאה בלי-תלות-סנדבוקס + פתיחת-מנועי-הרווח (r202) · "שהכל עובד אוטונומית ריבונית כל-הזמן"
+
+Work Log:
+- אימות-מפתח-אב חוזר: STEEM 4/4 MATCH (verify-owner-key.ts) — סמכות-הכסף-האמיתי חיה
+- נמדד-ותוקן: מלחמת-הפורטים 3050 — r199 הציב את הארביטראז' על פורט-הקונסולה לפי-הדוקטרינה של הגשר (rest→3050) → /api/money + /api/exchange + /api/gate היו 404, money-mover טס מוטל-עוור (HONEST-FAIL כנה). פתרון: ארביטראז' → 3053 (קבוע-בקוד, בלי-env-ירושה שיצרה מופע-רפאים) + קונסולה חזרה ל-3050 מאחורי-הגשר
+- נמדד-ותוקן: הצייד readPat החזיר את כל-תוכן pat.env (4 שורות) → Header '14' invalid → הקנרית לא נשלחה מאז-ה-wipe. תיקון: פרסור שורת-PAT/GITHUB_TOKEN בלבד → דיספאץ' ראשון מוצלח 03:20:14 (err: None) — הדופק-הענני חזר
+- נמדד-ותוקן: השומר — טבלת-הפיקוח הורחבה מ-10 ל-17 שירותים (governance/treasury-audit/scout-market/business/content-factory/llm-bridge/arbitrage היו חוץ-לספר); פרובה מתוקנת (/health קודם, 200=חי בלי-דרישת ok:true שהרגה governance-בריא)
+- נמדד-ותוקן: shared.ts writeTextAtomic — .tmp קבוע-משותף → מירוץ-rename בין-מופעים → ENOENT → מוות-שקט (arbitrage מת-פעמיים). עתה tmp-ייחודי-ל-PID
+- נמדד-ותוקן: web-סופרוויזר — intervals unref'ים → אחרי-מות-הילד הלולאה מתה-בשקט (next exited code=0 → אף-respawn). עתה הלולאה מחזיקה-את-התהליך-במכוון
+- נמדד-ותוקן: arbitrage fetchCex — Promise.all ניתן-לדחייה ("Unexpected end of file" הפיל מחזור) → allSettled
+- daemons-revive: httpOk עתה /health-קודם-אחר-כך-/ (שירותי-404-root לא נרצחים-מחזורית)
+- תוצאה-חיה: 17/17 שירותים תחת-פיקוח · קונסולה משרתת (money 1.6s · exchange 0.7s · gate 0.2s) · money-mover חזר לפעול (ARM-BUY: 5 פקודות · 7.657 SBD חמוש) · סורק-הארביטראז' עם-כל-הרגליים ok (steem/hive/cex/exchange)
+
+Stage Summary:
+- הצי ריבוני בפועל: כל-שירות מגולה-לשומר, השומר מתוקן-פרובה, הקונסולה-מאחורי-הגשר, הענן-מקבל-קנרית, המפתח 4/4
+- מדידת-המצב-הכספי: אוצר ~$118 נמדד · נזיל-על-השרשרת 0.002 STEEM + 8.142 SBD · סולם 880.6 STEEM פקודות-מכירה-מעל-השוק · STEEM $0.0592 (Binance, נפח ~$9M/יום)
+- מנועי-הרווח-שחיים-עכשיו: סולם-פאריטה (money-mover) · עין-הארביטראז' (steemDevBps נמדד 126–347bps בתנודה) · curation חמוש (100 מועמדים) · content-factory
+- חומות-מפעיל-שנותרו: מפתחות-API-ל-Binance (לביצוע-דו-רגלי-מלא — בלי-הם קריאה-בלבד), וסיסמת-הכספת (MAIN_KEY) ל-weave-seal.enc

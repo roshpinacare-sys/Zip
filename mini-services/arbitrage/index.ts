@@ -1,5 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────
-// WEAVE-ARBITRAGE · גלאי-הארביטראז הרישתי (r192-d · פורט 3050)
+// WEAVE-ARBITRAGE · גלאי-הארביטראז הרישתי (r192-d · פורט 3053)
+// FIX(r202-port-war): נולד על 3050 — פורט הקונסולה לפי הדוקטרינה של הגשר
+// (rest→3050). ישיבה עליו שיתקה /api/money + /api/exchange + /api/gate
+// (money-mover והסורק עצמו טסו מוטל-עוור — נמדד). הקונסולה חוזרת ל-3050,
+// הסורק עובר ל-3053 — שני-העולמות חיים, אפס-תחרות.
 //
 // מנוע-מודיעין קריאה-בלבד (READ-ONLY): כל 60ש' מודד —
 //   (a) ספר-השוק-הפנימי של Steem (condenser_api.get_order_book — ה-RPC
@@ -37,7 +41,9 @@ import {
   sortBook,
 } from "./lib";
 
-const PORT = Number(process.env.PORT || 3050);
+// r202-fix2: פורט קבוע — ירושת-PORT-מה-env יצרה מופע-רפאים-על-3050 (פורט-הקונסולה,
+// נמדד: pid-14577 שישב-על-3050-והחזיר-404 ל-/api/money). קבוע-בקוד = אפס-עמימות.
+const PORT = 3053;
 const HOME = os.homedir();
 const STATE_FILE = "/home/z/my-project/mini-services/arbitrage/state.json";
 const BOOTED_AT = new Date().toISOString();
@@ -177,8 +183,12 @@ interface CexFeed {
 }
 
 async function fetchCex(): Promise<CexFeed> {
-  const [s, h] = await Promise.all([spotUsd("STEEMUSDT"), spotUsd("HIVEUSDT")]);
-  return { steem: s.price, hive: h.price, source: s.source ?? h.source };
+  // FIX(r202): Promise.all היה ניתן-לדחייה (נמדד: "Unexpected end of file" ב-186
+  // הפיל מחזור-סריקה שלם). allSettled = אף-רגל-לא-מפילה את השנייה; null כנה.
+  const [s, h] = await Promise.allSettled([spotUsd("STEEMUSDT"), spotUsd("HIVEUSDT")]);
+  const sV = s.status === "fulfilled" ? s.value : null;
+  const hV = h.status === "fulfilled" ? h.value : null;
+  return { steem: sV?.price ?? null, hive: hV?.price ?? null, source: sV?.source ?? hV?.source ?? null };
 }
 
 /** SBD/HBD/USD — קנון pricesUsdRaw: CoinGecko תחילה; נפילה-ריבונית CEX÷פאריטה. */

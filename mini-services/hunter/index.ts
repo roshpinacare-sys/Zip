@@ -154,8 +154,16 @@ function saveState() {
 
 function readPat(): string | null {
   try {
-    const t = fs.readFileSync(`${HOME}/upload/pat.env`, "utf8").trim();
-    return t.length > 20 ? t : null;
+    const t = fs.readFileSync(`${HOME}/upload/pat.env`, "utf8");
+    // FIX(r202): קודם הוחזר כל-תוכן-הקובץ (4 שורות: PAT/ZIP_PAT/WEAVE_OPS_PAT/
+    // GITHUB_TOKEN) — כותרת-Authorization פסולה לעולם (נמדד: Header '14' has
+    // invalid value: 'token PAT=...'). עתה: שורת-PAT/GITHUB_TOKEN בלבד,
+    // ערך-נקי בלי-קידומת ובלי-CRLF. אין-שורה-כזו = null (fail-closed).
+    for (const line of t.split(/\r?\n/)) {
+      const m = line.match(/^\s*(?:PAT|GITHUB_TOKEN)\s*=\s*(\S+)\s*$/);
+      if (m && m[1].length > 20) return m[1];
+    }
+    return null;
   } catch {
     return null;
   }

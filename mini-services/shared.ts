@@ -71,9 +71,17 @@ export function verifyHashChain(entries: Array<Record<string, unknown>>): ChainV
 
 export function writeTextAtomic(file: string, content: string): void {
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
+  // FIX(r202): tmp ייחודי-לתהליך — קודם היה `${file}.tmp` קבוע, ושני מופעים
+  // שכתבו את אותו state (הקמה-כפולה בזמן-churn) חלקו אותו → מירוץ-rename →
+  // ENOENT → מוות-שקט (נמדד חי: arbitrage מת פעמיים ברצף). PID-ייחודי מנטרל.
+  const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, content, "utf8");
-  fs.renameSync(tmp, file);
+  try {
+    fs.renameSync(tmp, file);
+  } catch (e) {
+    try { fs.unlinkSync(tmp); } catch { /* כבר אינו */ }
+    throw e;
+  }
 }
 
 export function writeJsonAtomic(file: string, data: unknown, space: number = 2): void {
