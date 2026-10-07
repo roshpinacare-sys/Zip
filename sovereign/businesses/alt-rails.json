@@ -1,0 +1,161 @@
+{
+  "generatedAt": "2026-10-08T00:00:00Z",
+  "generatedBy": "epoch-8 (agent) · mandate: 'find as many legit alternative ways as possible — no Binance, no scams'",
+  "measurement": {
+    "venues": "coinlore.net /api/coin/markets (live tickers, 2026-10-07T~22:30Z)",
+    "traps": "web-search with recency filter (2026-09/10 sources)",
+    "policy": "Binance is BLOCKED by operator gate (KYC dispute, no withdrawals). Only long-running, well-known venues. No hype projects, no bridge-of-the-week. Every row notes what must be verified on the account before trusting it."
+  },
+  "binanceStatus": "BLOCKED-OPERATOR-GATE (until the operator settles the account — do not touch)",
+  "exitRails": [
+    {
+      "venue": "Poloniex",
+      "assets": ["STEEM"],
+      "vol24hUsd": 34850012,
+      "role": "STEEM exit #1 — the deepest STEEM book anywhere right now (measured)",
+      "kyc": "account required; historically basic crypto withdrawals with limited verification",
+      "verifyBeforeTrust": "current withdrawal policy + any new restrictions",
+      "age": "running since 2014, listed STEEM since 2016"
+    },
+    {
+      "venue": "Upbit (KRW)",
+      "assets": ["STEEM", "HIVE"],
+      "vol24hUsd": 17893026,
+      "role": "deepest HIVE book ($9.8M/day) + strong STEEM KRW market",
+      "kyc": "Korean real-name verification (bank-linked) — hard for non-residents; treat as a partner/sister-account rail, not a self-serve rail",
+      "verifyBeforeTrust": "whether a non-Korean account can be opened/maintained"
+    },
+    {
+      "venue": "Bithumb (KRW)",
+      "assets": ["STEEM", "HIVE"],
+      "vol24hUsd": 2272677,
+      "role": "second Korean book, KRW pairs",
+      "kyc": "Korean real-name KYC — same caveat as Upbit",
+      "verifyBeforeTrust": "non-resident policy"
+    },
+    {
+      "venue": "XT",
+      "assets": ["HIVE"],
+      "vol24hUsd": 1733822,
+      "role": "HIVE mid-book",
+      "kyc": "tiered; small crypto withdrawals historically OK without full KYC",
+      "verifyBeforeTrust": "current tier limits"
+    },
+    {
+      "venue": "Whitebit",
+      "assets": ["STEEM"],
+      "vol24hUsd": 769966,
+      "role": "STEEM mid-book (European)",
+      "kyc": "tiered (0-tier withdrawals exist for small amounts)",
+      "verifyBeforeTrust": "tier-0 daily cap"
+    },
+    {
+      "venue": "HTX (ex-Huobi)",
+      "assets": ["STEEM", "HIVE"],
+      "vol24hUsd": 311425,
+      "role": "both assets, thin books",
+      "kyc": "full KYC required for most flows",
+      "verifyBeforeTrust": "withdrawal fees vs volume"
+    },
+    {
+      "venue": "Gate",
+      "assets": ["STEEM", "HIVE"],
+      "vol24hUsd": 344650,
+      "role": "both assets",
+      "kyc": "tiered; historically small withdrawals OK without KYC — but policy tightened in 2025-2026",
+      "verifyBeforeTrust": "current no-KYC cap"
+    },
+    {
+      "venue": "DigiFinex",
+      "assets": ["STEEM", "HIVE"],
+      "vol24hUsd": 732244,
+      "role": "both assets, small caps",
+      "kyc": "tiered",
+      "verifyBeforeTrust": "withdrawal limits"
+    },
+    {
+      "venue": "Bitget",
+      "assets": ["HIVE"],
+      "vol24hUsd": 255101,
+      "role": "HIVE small book",
+      "kyc": "tiered",
+      "verifyBeforeTrust": "HIVE deposit network support"
+    }
+  ],
+  "instantNoAccountRails": [
+    {
+      "service": "BlockTrades",
+      "assets": ["STEEM", "HIVE"],
+      "role": "the STEEM/HIVE-native instant gateway — operating since ~2014, built BY Steem/HIVE veterans; converts STEEM/HIVE → BTC/LTC/ETH/USDT with no account",
+      "trust": "longest-running name in the Steem ecosystem; built the original Steemit wallets",
+      "verifyBeforeTrust": "current pair list + limits at blocktrades.us before each deal; split large amounts"
+    },
+    {
+      "service": "ChangeNow",
+      "assets": ["HIVE", "STEEM↔HIVE", "→BTC/ETH/USDT"],
+      "role": "no-registration instant swap, fixed or floating rate",
+      "trust": "high-traffic, long-running (since 2018)",
+      "verifyBeforeTrust": "per-swap min/max; always do a small test deal first"
+    },
+    {
+      "service": "SimpleSwap",
+      "assets": ["STEEM→HIVE", "→BTC/ETH"],
+      "role": "no-registration instant swap",
+      "trust": "long-running (since 2018)",
+      "verifyBeforeTrust": "same rule: small test deal first"
+    }
+  ],
+  "trapsMeasured": [
+    {
+      "trap": "CoinEx",
+      "danger": "SHUTTING DOWN — withdrawal deadline announced December 2026 (measured via news 2026-09). Deposits after the wind-down announcement = funds stuck in a closing venue.",
+      "verdict": "AVOID — do not deposit anything"
+    },
+    {
+      "trap": "MEXC",
+      "danger": "lists STEEM/HIVE with big books ($1.4-1.9M/day) BUT now requires KYC for withdrawals (user reports 2026). Deposit without KYC → may not be able to withdraw.",
+      "verdict": "AVOID for new deposits until the operator holds a fully-KYC'd account there"
+    },
+    {
+      "trap": "no-KYC 'miracle' swaps / TG-bots / new bridges",
+      "danger": "the operator's explicit warning: 'שלא תיפול על תרמית מפתה בטעות'. Rule: venue must be ≥2 years old, independently reviewed, and only ever receive amounts we can afford to lose on the FIRST deal.",
+      "verdict": "POLICY — test-deal-first law, hard cap on first contact"
+    }
+  ],
+  "ourOwnRails": [
+    {
+      "rail": "internal Steem/HIVE market + SAOS-DEX",
+      "status": "LIVE — STEEM + HIVE + BLURT signing rails measured 2026-10-07 (relay anchored/verified, mismatches 0)",
+      "role": "zero-fee internal execution; the arb detector (:3053) is wired to it"
+    },
+    {
+      "rail": "Z-Chain 9369 (Zero Network) — zero-gas EVM",
+      "status": "LIVE — block 36.55M+, sealer 0xe376…F1b2 nonce 810→812 during this session (anchors fired on demand); hourly checkpoint anchors from Domain public Actions at $0.00",
+      "role": "sovereign EVM presence with NO gas cost — the 'actions without fees' wish, running"
+    },
+    {
+      "rail": "SAOSRelay contracts (mainnet 0xa52D…78E6 · OP 0x56c9…2ECe)",
+      "status": "DEPLOYED+LIVE-CODE (803 bytes each); mainnet funded wallet empty (0x2767… = 0), OP EOA fuel ≈ 0.000066 ETH, treasury dust 0x0FB6… ≈ 0.000367 ETH",
+      "role": "on-chain anchor contract — needs a small gas top-up to fire again on mainnet"
+    },
+    {
+      "rail": "PAYMASTER (steem/agent/paymaster.cjs)",
+      "status": "READY+GATED — in tree, deps installed, capital-gate holds STASIS-HALT per owner directive 2026-10-04. Lift STASIS or grant lane exemption to run --fuel/--relay",
+      "role": "meta-transactions on Steem/HIVE: clients sign, the treasury carries RC/VESTS — 'actions without fees' for every soldier"
+    },
+    {
+      "rail": "STEEM witness line (cloud anchor) — KEY RECOVERY VERDICT",
+      "status": "OPERATOR-GATED — measured 2026-10-07: WEAVE_STEEM_WIF (cloud) matches NO live posting authority; SA_FLEET_KEYS (11 entries) are invalid base58check (corrupt/transcription-broken, sha256d checksums fail); local .env holds headcorner's HIVE posting (LIVE, proven) but NOT headcorner's STEEM posting (STM4uaH1…)/active (STM6YB7iUEr2…) — the chain itself rejected our tx naming exactly those authorities. The fleet's STEEM posting keys are held by the operator alone.",
+      "repairTool": "Domain: steem-posting-repair workflow (dispatch mode=check|repair) — matches any future live key material from SA_FLEET_KEYS and relays it sealed into WEAVE_STEEM_WIF automatically; alternatively the operator provides the WIF and the epoch relays it",
+      "role": "hourly external custom_json witness on STEEM — red-honest until the key arrives"
+    }
+  ],
+  "recommendedPlaybook": [
+    "1. STEEM/SBD out (small deals): BlockTrades first (native, no account), test-deal law.",
+    "2. STEEM out (size): Poloniex account — the measured $34.8M/day book; verify withdrawal policy before deposit.",
+    "3. HIVE out: Upbit if a Korean-rail account exists; else XT/Bithumb-tier; instant rails for small.",
+    "4. Never single-venue: split exits, keep the internal market as the settlement layer.",
+    "5. ETH presence: Z-Chain is free to operate; mainnet SAOSRelay needs a tiny gas top-up (~$5) to revive the funded-anchor line.",
+    "6. Every new venue: first deal ≤ $50, withdraw out completely, only then scale."
+  ]
+}
