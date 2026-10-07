@@ -262,13 +262,28 @@ function GateSection({
 
 const DROP_TXID = "8d84e637f3ebc87b8248361a58342eb05014315beb9a9e9b6f3c1c403de9e917";
 const DROP_CUSTODY = "TYVwwuvdDmfy3shxT3cb3RKLrRCshaZxTy";
-const WORLD_URL = "https://roshpinacare-sys.github.io/Console/dex/world.json";
+// Task 6-b · live-first: דרך השרת — :3010 דגימה ראשונה, מראת-הענן רק נפילה
+// (התשובה חתומה source + ageMs; בלי זה הכרטיסים היו מציגים מראה בת-שעות כחי)
+const DEX_LIVE_URL = "/api/live/dex";
 
 interface WorldMirror {
   ok?: boolean;
   publishedAt?: string;
+  source?: "live-saosdex" | "mirror-stale";
+  ageMs?: number;
   state?: { height?: number; backing?: Record<string, number> };
   wallets?: Array<{ name?: string; balances?: Record<string, number> }>;
+}
+
+// תווית-מקור כנה לכל כרטיס-הוכחה — המקור והגיל על השעון החי
+function sourceStamp(w: { source?: string; ageMs?: number; publishedAt?: string } | null, height?: number): string {
+  if (!w) return "…";
+  const h = height != null ? `h${height.toLocaleString("en-US")}` : "h—";
+  if (w.source === "mirror-stale") {
+    const ageH = w.ageMs != null ? (w.ageMs / 3_600_000).toFixed(1) : "?";
+    return `מראת-ענן קפואה · ${h} · גיל ~${ageH}ש'`;
+  }
+  return `חי מהשרשרת :3010 · ${h} · נמדד ${w.publishedAt?.slice(11, 16) ?? "?"}Z`;
 }
 
 function FirstDropProof() {
@@ -277,7 +292,7 @@ function FirstDropProof() {
   const load = useCallback(async () => {
     setErr(null);
     try {
-      const r = await fetch(`${WORLD_URL}?t=${Date.now()}`, { cache: "no-store" });
+      const r = await fetch(DEX_LIVE_URL, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setW((await r.json()) as WorldMirror);
     } catch (e) {
@@ -305,12 +320,14 @@ function FirstDropProof() {
           </h3>
           <Badge
             className={cn(
-              live
-                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-                : "border-zinc-600/40 bg-zinc-600/10 text-zinc-400",
+              w?.source === "mirror-stale"
+                ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                : live
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                  : "border-zinc-600/40 bg-zinc-600/10 text-zinc-400",
             )}
           >
-            {live ? "נטען-חי מהאתר-הציבורי" : "ממתין לקריאה…"}
+            {w?.source === "mirror-stale" ? "מראת-ענן ישנה — עותק קפוא" : live ? "חי מהשרשרת" : "ממתין לקריאה…"}
           </Badge>
         </div>
         <p className="text-sm leading-relaxed text-zinc-300">
@@ -365,14 +382,13 @@ function FirstDropProof() {
           <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
             <div className="text-[11px] text-zinc-500">מקור-המדידה</div>
             <div className="font-mono text-[11px] text-zinc-400">
-              {w ? `world.json · h${w.state?.height} · ${w.publishedAt?.slice(11, 16) ?? "?"}Z` : err ? `קריאה נכשלה (${err})` : "…"}
+              {w ? sourceStamp(w, w.state?.height) : err ? `קריאה נכשלה (${err})` : "…"}
             </div>
           </div>
         </div>
         <div className="flex items-center justify-between gap-3">
           <p className="text-[11px] leading-relaxed text-zinc-500">
-            כל-מספר בכרטיס נקרא בזמן-פתיחת-העמוד מהמראה-הציבורית שפרסם הלב (GitHub Pages) — לא מהאתר-הזה. אם-הוא
-            מופיע-כאן, הוא נכתב על-ידי השרשרת-הקנונית ונראה-לכל-אדם.
+            השרשרת נדגמת חי מהדמון המקומי (:3010) ברגע-הקריאה; אם-הדמון לא ענה — מוצג עותק-ענן מסומן בכנות כקפוא. שום-מספר לא מדומה.
           </p>
           <Button size="sm" variant="outline" onClick={() => void load()} className="shrink-0">
             <RefreshCw className="ml-1 h-3.5 w-3.5" aria-hidden />
@@ -393,6 +409,8 @@ interface CycleMirror {
   ok?: boolean;
   publishedAt?: string;
   version?: number;
+  source?: "live-saosdex" | "mirror-stale";
+  ageMs?: number;
   state?: {
     height?: number;
     backing?: Record<string, number>;
@@ -409,7 +427,7 @@ function FullCycleProof() {
   const load = useCallback(async () => {
     setErr(null);
     try {
-      const r = await fetch(`${WORLD_URL}?t=${Date.now()}`, { cache: "no-store" });
+      const r = await fetch(DEX_LIVE_URL, { cache: "no-store" });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setW((await r.json()) as CycleMirror);
     } catch (e) {
@@ -533,7 +551,7 @@ function FullCycleProof() {
           <div className="rounded-lg border border-zinc-800 bg-zinc-950/60 p-3">
             <div className="text-[11px] text-zinc-500">מקור-המדידה</div>
             <div className="mt-0.5 font-mono text-[11px] text-zinc-400">
-              {w ? `world.json · h${w.state?.height} · ${w.publishedAt?.slice(11, 16) ?? "?"}Z` : err ? `קריאה נכשלה (${err})` : "…"}
+              {w ? sourceStamp(w, w.state?.height) : err ? `קריאה נכשלה (${err})` : "…"}
             </div>
           </div>
         </div>

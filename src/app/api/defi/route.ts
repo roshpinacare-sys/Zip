@@ -17,6 +17,7 @@
 
 import { NextResponse } from "next/server";
 import { swrGet, cacheHeader } from "@/lib/live/swr";
+import { fetchDexStateLiveFirst, type DexSource } from "@/lib/live/dex-state";
 
 export const dynamic = "force-dynamic";
 
@@ -111,8 +112,14 @@ function mu(v: number | undefined): number {
   return (v ?? 0) / 1000;
 }
 
-async function worldSide() {
-  const w: WorldDoc = await jget(`${CONSOLE_BASE}/dex/world.json`);
+// Task 6-b · live-first: השרשרת החיה (:3010) דגימה ראשונה; המראה רק נפילה.
+// התשובה נושאת את המקור ואת גילו — התצוגה חייבת להציג את השניים.
+async function worldSide(): Promise<{ side: Awaited<ReturnType<typeof worldSideInner>>; source: DexSource; ageMs: number | null }> {
+  const r = await fetchDexStateLiveFirst();
+  return { side: await worldSideInner(r.doc as unknown as WorldDoc), source: r.source, ageMs: r.ageMs };
+}
+
+async function worldSideInner(w: WorldDoc) {
   const pools = w.pools ?? [];
   const wallets = w.wallets ?? [];
 
@@ -329,11 +336,12 @@ export async function GET() {
 
 async function composeDefi() {
   const down: string[] = [];
-  const [world, money, giants] = await Promise.all([
+  const [worldR, money, giants] = await Promise.all([
     worldSide().catch((e) => { down.push(`world: ${String(e.message).slice(0, 40)}`); return null; }),
     moneySide().catch((e) => { down.push(`money: ${String(e.message).slice(0, 40)}`); return null; }),
     giantsSide().catch((e) => { down.push(`giants: ${String(e.message).slice(0, 40)}`); return null; }),
   ]);
+  const world = worldR ? worldR.side : null;
 
   // ── הכספות: אסטרטגיות מהבריכות החיות בלבד ─────────────────────────
   // התשואה נמדדת ב-bps מעל הון ה-LP (lpYieldBps) — לא הבטחה. ריבית-
@@ -428,6 +436,9 @@ async function composeDefi() {
   const data = {
     ok: true,
     at: new Date().toISOString(),
+    // Task 6-b · חתימת-מקור: חי-מהשרשרת או מראה-ענן קפואה — התצוגה מחויבת להציג
+    source: worldR?.source ?? "mirror-stale",
+    ageMs: worldR?.ageMs ?? null,
     world, money, giants,
     vaults,
     flywheel,
@@ -438,7 +449,7 @@ async function composeDefi() {
     },
     down,
     honesty:
-      "כל מספר נמדד חי מהקונסולה הציבורית (world/money/grid/watch.json) ומ-DefiLlama. פרמטרי עקומת-הריבית גלויים ב-full. מקור שנפל מסומן ב-down. אף תשואה אינה מובטחת — זו רשת הוכחות, לא הבטחות.",
+      "מצב-השרשרת נדגם חי מהדמון המקומי (127.0.0.1:3010) קודם — ואם-לא ענה, מוצג עותק-ענן עם חתימת mirror-stale. נתיב-הכסף (money/grid/watch.json) ו-DefiLlama נמדדים חי בכל הרכבה. פרמטרי עקומת-הריבית גלויים ב-full. מקור שנפל מסומן ב-down. אף תשואה אינה מובטחת — זו רשת הוכחות, לא הבטחות.",
   };
   return data;
 }

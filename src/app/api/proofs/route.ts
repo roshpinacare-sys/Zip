@@ -34,7 +34,12 @@ export async function GET(req: NextRequest) {
     // מאכף-החוק העומד (R209) — מצבו החי מוצמד לתשובה (קריאה-בלבד)
     const lawPath = path.join(process.cwd(), "sovereign/proofs/proof-law-state.json");
     const law = fs.existsSync(lawPath) ? JSON.parse(fs.readFileSync(lawPath, "utf8")) : null;
-    return NextResponse.json({ ok: true, head, totalEntries: all.length, entries, gate, law });
+    // Task 6-b · גיל-אמת: הדמון :3052 פועם כל 5 דק' וכותב את קובץ-המצב.
+    // גיל הקובץ מול השעון החי = האמת על "המאכף-העומד" — התצוגה מחויבת להציג אותו.
+    const lawAgeMs = fs.existsSync(lawPath)
+      ? Math.max(0, Date.now() - fs.statSync(lawPath).mtimeMs)
+      : null;
+    return NextResponse.json({ ok: true, head, totalEntries: all.length, entries, gate, law, lawAgeMs });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e).slice(0, 200) }, { status: 500 });
   }

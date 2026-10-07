@@ -107,6 +107,30 @@ function witnessAge(at: string): string {
   return ` · לפני ~${Math.round(hours)} שעות`;
 }
 
+// Task 6-b · טריות-מורכבת: הפסידה כנה על כל-המטען — גם גיל המראה (הספר)
+// וגם גיל עד-השרשרת, שניהם נמדדים מהשעון החי בצד-הלקוח, לא מהשדה
+// הקפוא שפורסם עם המראה.
+function ageHoursOf(iso: string | null | undefined): number | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.max(0, (Date.now() - t) / 3_600_000);
+}
+
+function fmtAgeH(h: number | null): string {
+  if (h == null) return "—";
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} דק׳`;
+  if (h < 48) return `${h.toFixed(1)} שע׳`;
+  return `${Math.round(h / 24)} ימים`;
+}
+
+function fmtAgeMin(min: number): string {
+  if (!Number.isFinite(min) || min < 0) return "—";
+  if (min < 60) return `${Math.round(min)} דק׳`;
+  if (min < 60 * 48) return `${(min / 60).toFixed(1)} שע׳`;
+  return `${Math.round(min / 60 / 24)} ימים`;
+}
+
 function explorerHost(url: string): string {
   try {
     return new URL(url).hostname;
@@ -136,11 +160,21 @@ function WitnessStatus({
       </p>
     );
   }
-  const fresh = f?.verdict === "FRESH";
+  // Task 6-b · פסק-הטריות מתאר את כל-המטען המורכב: גיל המראה (הספר)
+  // + גיל עד-השרשרת — שניהם מהשעון החי. אם אחד מהם עבר את סף
+  // הטריות — הפסק הוא MIRROR-STALE בכנות, לא ה-FRESH הקפוא מזמן-פרסום.
+  const mirrorAgeH = ageHoursOf(live?.mirrorGeneratedAt);
+  const witnessAgeH = ageHoursOf(w?.at);
+  const thresholdH = f?.thresholdHours ?? 6;
+  const composedStale =
+    (mirrorAgeH != null && mirrorAgeH > thresholdH) ||
+    (witnessAgeH != null && witnessAgeH > thresholdH);
+  const verdictLabel = f ? (composedStale ? "MIRROR-STALE" : f.verdict) : null;
+  const fresh = f != null && !composedStale;
   const host = w ? explorerHost(w.explorer) : "";
   return (
     <>
-      {f ? (
+      {verdictLabel ? (
         <Badge
           dir="ltr"
           className={cn(
@@ -151,13 +185,13 @@ function WitnessStatus({
           )}
         >
           <Activity className="size-4" aria-hidden="true" />
-          {f.verdict} · ~{f.ageHours.toFixed(1)}h
+          {verdictLabel} · ספר ~{fmtAgeH(mirrorAgeH)} · עד ~{fmtAgeH(witnessAgeH)}
         </Badge>
       ) : null}
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
         {f ? (
           <>
-            גיל הספר מול סף{" "}
+            סף טריות{" "}
             <span dir="ltr" className="font-mono">
               {f.thresholdHours}h
             </span>{" "}
@@ -195,7 +229,8 @@ function WitnessStatus({
         </a>
       ) : null}
       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-        הלב מאמת את השרשרת בכל פעימה - חישוב-מחדש מלא זמין במצב סנדבוקס
+        הלב מאמת את השרשרת בכל פעימה - גיל הספר וגיל העד נמדדים מהשעון החי;
+        חישוב-מחדש מלא זמין במצב סנדבוקס
       </p>
     </>
   );
@@ -439,14 +474,19 @@ export function DashboardTab() {
             ימים
           </span>
           <span className="text-xs text-muted-foreground">
+            {/* Task 6-b · שעון-חי: הגיל נמדד כאן מהשעון של הדפדפן מהאימות
+                החדש-ביותר במטען — לא השדה הקפוא שפורסם עם המראה */}
             אימות אחרון לפני{" "}
             <span dir="ltr" className="font-mono font-bold tabular-nums text-foreground">
-              {lv.vitality.lastAttAgeMin}
-            </span>{" "}
-            דק׳
+              {fmtAgeMin(
+                ageHoursOf(lv.recentAttestations[0]?.at) != null
+                  ? (ageHoursOf(lv.recentAttestations[0]?.at) as number) * 60
+                  : lv.vitality.lastAttAgeMin,
+              )}
+            </span>
           </span>
           <span className="ms-auto text-[10px] text-muted-foreground">
-            מראה עודכנה{" "}
+            מראה בת ~{fmtAgeH(ageHoursOf(lv.mirrorGeneratedAt))} · עודכנה{" "}
             {new Date(lv.mirrorGeneratedAt).toLocaleTimeString("he-IL", {
               hour: "2-digit",
               minute: "2-digit",

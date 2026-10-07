@@ -419,15 +419,28 @@ export function computeVitalityFromMirror(mirror: Mirror): MirrorVitalityView {
   // R119 · חוק המקור-היחיד: אם המראה פורסמה עם vitality מהספר המלא — היא האמת
   // (נחשבה בזמן הפרסום על-ידי mirror.ts בדיוק באותה הגדרה קנונית). החלון
   // (120 האימותים האחרונים) אינו מקור לחיים — הוא מציג את גודלו כאילו היה אמת.
+  // Task 6-b · שעון-חי: lastAttAgeMin חושב בזמן-פרסום-המראה וקפא שם
+  // (נמדד: "לפני 5 דק׳" על מראה בת-יומיים). מעתה הגיל נמדד-מחדש מהשעון
+  // החי בכל בקשה: עכשיו − האימות החדש-ביותר במראה.
+  const now = Date.now();
+  const at = (iso: string) => new Date(iso).getTime();
   const canon = mirror.stats.vitality;
   if (canon) {
+    const newestAt = mirror.attestations[0]?.at ?? null;
+    const newestMs = newestAt != null ? now - at(newestAt) : NaN;
+    const publishMs = canon.computedAtIso ? now - at(canon.computedAtIso) : NaN;
+    const lastAttAgeMin = Number.isFinite(newestMs)
+      ? Math.max(0, Math.round(newestMs / 60_000))
+      : Number.isFinite(publishMs)
+        ? Math.max(0, canon.lastAttAgeMin + Math.round(publishMs / 60_000))
+        : canon.lastAttAgeMin;
     return {
       atts24h: canon.atts24h,
       atts7d: canon.atts7d,
       signers24h: canon.signers24h,
       checkpoints24h: canon.checkpoints24h,
       marketEvents24h: canon.marketEvents24h,
-      lastAttAgeMin: canon.lastAttAgeMin,
+      lastAttAgeMin,
       aliveDays: canon.aliveDays,
       windowLimited: false,
       computedAtIso: canon.computedAtIso ?? null,
@@ -435,8 +448,6 @@ export function computeVitalityFromMirror(mirror: Mirror): MirrorVitalityView {
   }
   // פאלבק כנה למראה ישנה (טרום-R119): מה שהחלון מסוגל למדוד באמת נמדד
   // (atts24h/signers24h — החלון מכסה לפחות 24 שעות), והשאר מתויג חלון.
-  const now = Date.now();
-  const at = (iso: string) => new Date(iso).getTime();
   const atts = mirror.attestations;
   const cps = mirror.checkpoints;
   const atts24hWindow = atts.filter((a) => now - at(a.at) < 86_400_000);

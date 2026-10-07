@@ -54,6 +54,9 @@ interface DefiDoc {
   ok: boolean;
   at: string;
   cached?: boolean;
+  // Task 6-b · חתימת-מקור מצב-השרשרת (live-first / מראה-ענן)
+  source?: "live-saosdex" | "mirror-stale";
+  ageMs?: number | null;
   down?: string[];
   world?: {
     height: number | null;
@@ -243,6 +246,16 @@ export function FlywheelView() {
               {data ? `נמדד ${dataAge(data.at)}` : "טוען…"}
               {data?.cached ? " · מטמון" : ""}
             </div>
+            {/* Task 6-b · תג-מקור השרשרת: סטייה חייבת להיות נראית */}
+            {data?.source === "mirror-stale" ? (
+              <Badge variant="outline" className="border-amber-500/40 text-[10px] text-amber-400">
+                מראת-ענן ישנה · {data.ageMs != null ? `${(data.ageMs / 3_600_000).toFixed(1)} שע׳` : "—"} — עותק קפוא
+              </Badge>
+            ) : data?.source === "live-saosdex" ? (
+              <Badge variant="outline" className="border-emerald-500/40 text-[10px] text-emerald-400">
+                חי מהשרשרת · :3010
+              </Badge>
+            ) : null}
           </div>
         </div>
         {/* טבעת הגלגל המסתובבת — אנימציית רקע עדינה */}

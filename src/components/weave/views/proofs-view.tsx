@@ -91,7 +91,7 @@ const SCOPE_LABEL: Record<string, string> = {
 };
 
 export function ProofsView() {
-  const [data, setData] = useState<{ head: string | null; totalEntries: number; entries: ProofEntry[]; gate: GateReport | null; law?: LawState | null } | null>(null);
+  const [data, setData] = useState<{ head: string | null; totalEntries: number; entries: ProofEntry[]; gate: GateReport | null; law?: LawState | null; lawAgeMs?: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const reduced = useReducedMotion();
@@ -128,6 +128,18 @@ export function ProofsView() {
   const lastRepro = law?.repro?.history?.[0] ?? null;
   const provenCount = entries.filter((e) => ["PROVEN", "STRENGTHENED", "RESOLVED-BY-DECISION"].includes(e.verdict)).length;
   const openCount = entries.filter((e) => ["OPEN", "UNOBSERVED"].includes(e.verdict)).length;
+  // Task 6-b · גיל-אמת של המאכף: קובץ-המצב נכתב כל 5 דק' ע"י דמון :3052.
+  // מעל שעתיים בלי פעימה = הדמון מת — מציגים DOWN, לא "המאכף-העומד".
+  const lawAgeH = data?.lawAgeMs != null ? data.lawAgeMs / 3_600_000 : null;
+  const lawDown = lawAgeH != null && lawAgeH > 2;
+  const lawAgeLabel =
+    lawAgeH == null
+      ? "—"
+      : lawAgeH >= 48
+        ? `${Math.floor(lawAgeH / 24)} ימים`
+        : lawAgeH >= 1
+          ? `${lawAgeH.toFixed(1)} שעות`
+          : `${Math.max(1, Math.round(lawAgeH * 60))} דק'`;
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-12">
@@ -221,15 +233,33 @@ export function ProofsView() {
 
       {/* המאכף-העומד (R209) — החוק רץ בעצמו, בלי זיכרון-סוכן */}
       {law && (
-        <Card className={lawCrit > 0 ? "border-rose-500/30 bg-rose-500/5" : "border-teal-500/20 bg-teal-500/5"}>
+        <Card
+          className={
+            lawCrit > 0
+              ? "border-rose-500/30 bg-rose-500/5"
+              : lawDown
+                ? "border-amber-500/30 bg-amber-500/5"
+                : "border-teal-500/20 bg-teal-500/5"
+          }
+        >
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-              <ShieldCheck className={`size-4 ${lawCrit > 0 ? "text-rose-600 dark:text-rose-400" : "text-teal-600 dark:text-teal-400"}`} aria-hidden="true" />
+              <ShieldCheck className={`size-4 ${lawCrit > 0 ? "text-rose-600 dark:text-rose-400" : lawDown ? "text-amber-600 dark:text-amber-400" : "text-teal-600 dark:text-teal-400"}`} aria-hidden="true" />
               המאכף-העומד של החוק (R209 · :3052) — השער רץ כל 5 דק' גם כשאף-סוכן לא זוכר
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             <div className="flex flex-wrap items-center gap-2">
+              {/* Task 6-b: מצב-הדמון על גיל-אמת — DOWN כשהפעימה נעלמה */}
+              {lawDown ? (
+                <Badge className="border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300">
+                  DOWN · הדמון :3052 לא פועם — פעימה אחרונה לפני {lawAgeLabel}
+                </Badge>
+              ) : (
+                <Badge className="border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                  חי · פעימה לפני {lawAgeLabel}
+                </Badge>
+              )}
               <Badge className={law.book?.chainOk && lawCrit === 0 ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" : "border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"}>
                 {law.book?.chainOk && lawCrit === 0 ? "שרשרת תקינה" : `אזעקות חמורות: ${lawCrit}`}
               </Badge>
@@ -238,6 +268,11 @@ export function ProofsView() {
               <Badge variant="outline">כשלי-שחזור מצטברים {law.repro?.failsTotal ?? 0}</Badge>
               {law.at && <span className="text-xs text-muted-foreground">פעימה אחרונה: {new Date(law.at).toLocaleString("he-IL")}</span>}
             </div>
+            {lawDown && (
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                קובץ-מצב החוק בן {lawAgeLabel} — המדידות כאן הן ההיסטוריה האחרונה הידועה, לא פעימה חיה. הפעלת הדמון מחדש תחזיר את התג לחי.
+              </p>
+            )}
             {lastRepro && (
               <p className="text-xs text-muted-foreground">
                 שחזור-חי אחרון: <span className="font-mono">{lastRepro.claimId}</span> —{" "}

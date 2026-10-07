@@ -43,6 +43,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ErrorBox, FadeIn, MotionCard, Section, StatusBadge } from "@/components/weave/shared";
+import { ProfitProofBoard } from "@/components/weave/views/profit-proof-board";
 
 // ── טיפוסים (מראה של ה-API) ─────────────────────────────────────────
 
@@ -177,6 +178,91 @@ function fmtTimeAgo(iso: string | null | undefined): string {
   return `לפני ${Math.floor(h / 24)} ימים`;
 }
 
+// ── Task 6-b · כרטיס-מצב דיבון-האוצרות ──────────────────────────────────
+//
+// ל-/api/curation היה נתון-חי ואין-מציג — יתום ב-UI (נמדד בביקורת 5-b).
+// הכרטיס מציג את המצב הנמדד בכנות: armed:false הוא "לא-חמוש", לא כיבוי-מכובס.
+// דפוס-התצוגה זהה לכרטיסי-המנועים (market-maker/dex-grid).
+
+interface CurationStatus {
+  ok?: boolean;
+  daemonReachable?: boolean;
+  state?: {
+    armed?: boolean;
+    paused?: boolean;
+    pauseReason?: string | null;
+    beats?: number;
+    votesToday?: number;
+    lastVoteAt?: string | null;
+  };
+  votingPower?: { at?: string; pct: number | null; detail?: string | null };
+}
+
+function CurationStatusCard() {
+  const [data, setData] = useState<CurationStatus | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    try {
+      const res = await fetch("/api/curation", { cache: "no-store" });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setData((await res.json()) as CurationStatus);
+      setErr(null);
+    } catch (e) {
+      setErr(String((e as Error).message).slice(0, 80));
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    const t = setInterval(() => void load(), 120_000);
+    return () => clearInterval(t);
+  }, [load]);
+
+  const armed = data?.state?.armed === true;
+  const paused = data?.state?.paused === true;
+  return (
+    <Card className="bg-muted/30">
+      <CardContent className="space-y-2 p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-xs font-semibold">דיבון-האוצרות (curation · :3040)</p>
+          <Badge
+            variant="outline"
+            className={cn(
+              "text-[10px]",
+              armed
+                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+            )}
+          >
+            {armed ? "חמוש — מצביע" : "לא-חמוש (armed:false)"}
+          </Badge>
+          {paused && <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-700 dark:text-amber-400">מושהה{data?.state?.pauseReason ? ` · ${data.state.pauseReason}` : ""}</Badge>}
+          <Badge variant="outline" className={cn("text-[10px]", data?.daemonReachable ? "border-teal-500/40 text-teal-700 dark:text-teal-400" : "border-zinc-500/40 text-muted-foreground")}>
+            {data == null ? "מודד…" : data.daemonReachable ? "דיבון-חי" : "דיבון לא-עונה"}
+          </Badge>
+        </div>
+        {err ? (
+          <p className="text-[11px] text-destructive">קריאת המצב נכשלה: {err} — כנה, בלי ניחושים.</p>
+        ) : (
+          <div className="grid gap-1 text-[11px] text-muted-foreground sm:grid-cols-3">
+            <p>כוח-הצבעה: {data?.votingPower?.pct != null ? `${data.votingPower.pct.toFixed(1)}%` : "—"}{data?.votingPower?.pct == null && data != null ? " (לא נמדד)" : ""}</p>
+            <p>הצבעות היום: {data?.state?.votesToday ?? 0} · אחרונה {fmtTimeAgo(data?.state?.lastVoteAt)}</p>
+            <p>פעימות: {data?.state?.beats ?? 0}</p>
+          </div>
+        )}
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          החימוש בידי המפעיל בלבד — POST /api/curation {"{"}action: "arm"{"}"}. עד-אז הדיבון סורק ולא מצביע: אפס-שקר, אפס-הצבעה-שקטה.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ── התצוגה ──────────────────────────────────────────────────────────
 
 export function MoneyMoverView({ section }: { section?: string }) {
@@ -227,6 +313,10 @@ export function MoneyMoverView({ section }: { section?: string }) {
       <RailsStrip />
       {/* Task 2-b · לוח-מנוע-הגריד — הסוחר השני (SBD:STEEM דו-צדדי, פורט 3049) */}
       <MarketMakerView />
+      {/* Task 6-b · לוח-הוכחת-רווח — P&L כנה מ-/api/money/pnl: הרווח המדוד, לא המצויר */}
+      <ProfitProofBoard />
+      {/* Task 6-b · מצב דיבון-האוצרות — armed:false מוצג בכנות לצד כרטיסי-המנועים */}
+      <CurationStatusCard />
       {/* פתיח */}
       <Section
         wash

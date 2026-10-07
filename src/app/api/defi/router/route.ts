@@ -657,7 +657,7 @@ async function composeRouter() {
       operates: ["grid-external"],
       status: grid?.armed ? `חמוש · ${grid?.run?.filledTotal ?? 0} מילויים` : `ממתין למכסה — ${grid?.verdict ?? "WAIT"}`,
       autonomy: "OPERATOR-GATE",
-      evidence: "grid.json + /api/arm/grid (החימוש דורש שער-מפעיל — החלטת סיכון-הון)",
+      evidence: "grid.json + /api/admin/arm-grid (החימוש דורש שער-מפעיל — החלטת סיכון-הון)",
     },
     {
       id: "deposit-watcher",

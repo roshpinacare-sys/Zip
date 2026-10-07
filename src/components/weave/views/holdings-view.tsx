@@ -156,13 +156,22 @@ export function HoldingsView() {
   const live = data?.live ?? null;
   const dex = data?.dex;
   // r121 — גיל ה-pack בכנות: replay אמיתי על תמונה קפואה אינו "מצב נוכחי"
-  // (אותו כלל-סף כמו ה-runner: pack מעל 24 שעות מתויג FROZEN-PACK)
+  // (Task 6-b: הסף הוחמר ל-2 שעות — ה-pack הנמדד היה קפוא 23 ימים בלי תג)
   const packLastAdvanced = net?.lastTime ?? null;
   const packAgeHours =
     packLastAdvanced != null
       ? Math.floor((Date.now() - new Date(packLastAdvanced).getTime()) / 3_600_000)
       : null;
-  const packFrozen = packAgeHours != null && packAgeHours > 24;
+  // Task 6-b · סף-קיפאון 2ש' (נמדד: SAOS-NET קפוא 23 ימים) — מוצג על הגיל האמיתי
+  const packFrozen = packAgeHours != null && packAgeHours > 2;
+  const packAgeLabel =
+    packAgeHours == null
+      ? "?"
+      : packAgeHours >= 48
+        ? `${Math.floor(packAgeHours / 24)} ימים`
+        : packAgeHours >= 1
+          ? `${packAgeHours} שעות`
+          : "פחות משעה";
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
@@ -216,7 +225,8 @@ export function HoldingsView() {
                     : "border-emerald-500/40 text-emerald-600 dark:text-emerald-400"
                 }
               >
-                {packFrozen ? "מאומת מתמטית · חבילה קפואה" : "מאומת מתמטית"}
+                {/* Task 6-b: תג FROZEN על גיל אמיתי — replay מושלם על תמונה קפואה אינו מצב נוכחי */}
+                {packFrozen ? `FROZEN · קפוא ${packAgeLabel}` : "מאומת מתמטית"}
               </Badge>
             </div>
             {loading && !net ? (
@@ -258,10 +268,8 @@ export function HoldingsView() {
                   הצומת) - {v0?.measuredBy ?? "scripts/saosnet-status.cjs"}.{" "}
                   {packFrozen && (
                     <>
-                      חבילה קפואה — לא התקדמה מאז {packLastAdvanced?.slice(0, 10)} (עדכון
-                      חד-פעמי, גיל{" "}
-                      {packAgeHours != null ? packAgeHours.toLocaleString("he-IL") : "?"} שעות):
-                      replay מושלם על תמונה קפואה אינו מצב נוכחי.
+                      חבילה קפואה — לא התקדמה מאז {packLastAdvanced?.slice(0, 10)} (גיל{" "}
+                      {packAgeLabel}): replay מושלם על תמונה קפואה אינו מצב נוכחי.
                     </>
                   )}
                 </SourceNote>

@@ -90,6 +90,12 @@ interface DexStateResponse {
   version: number;
   tick: number;
   publishedAt: string;
+  // Task 6-b · חתימת-מקור מ-/api/live/dex: חי-מהשרשרת או מראה-ענן קפואה
+  source?: "live-saosdex" | "mirror-stale";
+  /** גיל הנתון במילישניות — נגזר מ-publishedAt בזמן-ההרכבה */
+  ageMs?: number;
+  /** כשהמקור mirror-stale: סיבת-כישלון הדגימה החיה */
+  sourceError?: string | null;
   state: {
     height: number;
     tps: number;
@@ -388,7 +394,7 @@ export function ExchangeView() {
         }
       }
       if (alive) {
-        // מראת ענן: הגרסה מתקדמת בפעימות הבורסה - סקירה רגועה של 12ש'
+        // השרת דוגם חי את :3010 — הגרסה מתקדמת בפעימות השרשרת; סקירה רגועה של 12ש'
         timer = setTimeout(poll, 12_000);
       }
     };
@@ -447,10 +453,9 @@ export function ExchangeView() {
         },
         {
           icon: HeartPulse,
-          label: "גיל המראה",
-          // R117 — אמת-הגיל: המראה מתפרסמת בקצב dex-beat (~כל שעתיים). lastBlockAgoMs
-          // קפוא מזמן הבנייה ולכן שיקר בעבר ("9.6 שניות" על נתונים בני שעה). הגיל
-          // האמיתי נמדד מ-publishedAt מול השעון החי — תמיד.
+          label: "גיל הנתון",
+          // R117 + Task 6-b: גיל-אמת מהשעון החי (publishedAt מול עכשיו) —
+          // חי-מהשרשרת = שניות; מראה-ענן = שעות (ונראה באמבר + באנר מעל)
           value: fmtMirrorAge,
           ok: mirrorAgeMs != null && mirrorAgeMs < 2.5 * 3_600_000,
         },
@@ -490,21 +495,31 @@ export function ExchangeView() {
           <div>
             <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold tracking-tight sm:text-2xl">
               הבורסה הריבונית
+              {/* Task 6-b · תג-המקור: האמת על מה שמוצג — חי-מהשרשרת או עותק קפוא */}
               <Badge
                 variant="outline"
-                className="border-emerald-500/40 bg-emerald-500/10 text-[10px] text-emerald-700 dark:text-emerald-300"
+                className={cn(
+                  "text-[10px]",
+                  data?.source === "mirror-stale"
+                    ? "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                )}
               >
-                מראת ענן · פועמת כל ~2 שעות
+                {data?.source === "mirror-stale"
+                  ? `מראת-ענן ישנה · ${fmtMirrorAge} — עותק קפוא`
+                  : "חי מהשרשרת · :3010"}
               </Badge>
             </h1>
             <p className="text-xs text-muted-foreground sm:text-sm">
-              שרשרת פנימית דטרמיניסטית · מנוע-ריפליי בענן (dex-beat, 480 טיקים
-              לפעימה) · אפס משתמשים אנושיים — סוחרים אוטונומיים בלבד ·
+              שרשרת פנימית דטרמיניסטית · מנוע-ריפליי חי על :3010 (נדגם דרך השרת;
+              המראה רק נפילה) · אפס משתמשים אנושיים — סוחרים אוטונומיים בלבד ·
               יחידות פנימיות (USDS = זכות-פדיון מתועדת)
             </p>
             {data?.publishedAt ? (
               <p className="mt-0.5 font-mono text-[10px] text-muted-foreground/70">
-                world.json · פורסם {data.publishedAt.slice(11, 16)}Z · גיל אמיתי {fmtMirrorAge}
+                {data.source === "mirror-stale"
+                  ? `world.json (מראת-ענן) · פורסם ${data.publishedAt.slice(11, 16)}Z · גיל אמיתי ${fmtMirrorAge}`
+                  : `שרשרת-חיה · נמדד ${data.publishedAt.slice(11, 16)}Z · גיל ${fmtMirrorAge}`}
               </p>
             ) : null}
           </div>
@@ -536,12 +551,22 @@ export function ExchangeView() {
         </div>
       </div>
 
+      {data?.source === "mirror-stale" && (
+        <Card className="mb-6 border-amber-500/40 bg-amber-500/[0.06]">
+          <CardContent className="flex items-center gap-2 p-3 text-xs text-amber-700 dark:text-amber-300">
+            <HeartPulse className="size-4 shrink-0" aria-hidden="true" />
+            מראת-ענן ישנה · {fmtMirrorAge} — מציג עותק קפוא מ-world.json. הדמון המקומי (:3010) לא נענה
+            {data.sourceError ? ` (${data.sourceError})` : ""}; הבאנר יעבור לירוק ברגע שהדגימה החיה תחזור.
+          </CardContent>
+        </Card>
+      )}
+
       {error && (
         <Card className="mb-6 border-amber-500/40 bg-amber-500/5">
           <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
             <p className="text-sm">
-              מראת הדקס בענן לא נענית כרגע ({error}). הבורסה עצמה פועמת
-              בענן - הבעיה בקריאה בלבד; נסה שוב בעוד רגע.
+              גם השרשרת החיה (:3010) וגם מראת-הענן לא נענו כרגע ({error}).
+              הבורסה עצמה פועמת בענן — הבעיה בקריאה בלבד; נסה שוב בעוד רגע.
             </p>
             <Button size="sm" variant="outline" onClick={refreshNow}>
               נסה שוב

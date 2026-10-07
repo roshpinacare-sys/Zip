@@ -29,6 +29,7 @@
 
 import { NextResponse } from "next/server";
 import { swrGet, cacheHeader } from "@/lib/live/swr";
+import { fetchDexStateLiveFirst, type DexSource } from "@/lib/live/dex-state";
 
 export const dynamic = "force-dynamic";
 
@@ -114,6 +115,10 @@ export interface HoldingsAudit {
   ok: boolean;
   at: string;
   height: number | null;
+  // Task 6-b · חתימת-מקור מצב-השרשרת (live-first / מראה-ענן)
+  source?: DexSource | null;
+  /** גיל הנתון במילישניות — נגזר מ-publishedAt */
+  ageMs?: number | null;
   assets: HoldingAsset[];
   valueStreams: ValueStream[];
   gaps: GapItem[];
@@ -204,16 +209,29 @@ async function composeAudit() {
     return null;
   };
 
-  const [status, money, world, grid, watch, tronAcct, steem, ghPublic] = await Promise.all([
+  const [status, money, worldR, grid, watch, tronAcct, steem, ghPublic] = await Promise.all([
     jget(`${CONSOLE_BASE}/status.json`).catch(pushDown("status")),
     jget(`${CONSOLE_BASE}/dex/money.json`).catch(pushDown("money")),
-    jget(`${CONSOLE_BASE}/dex/world.json`).catch(pushDown("world")),
+    // Task 6-b · live-first: השרשרת החיה (:3010) דגימה ראשונה; המראה רק נפילה —
+    // והמקור מוצמד לתשובה כדי שהתצוגה תציג את האמת על הנתונים.
+    fetchDexStateLiveFirst()
+      .then((r) => ({ doc: r.doc, source: r.source as DexSource, ageMs: r.ageMs }))
+      .catch(pushDown("world")),
     jget(`${CONSOLE_BASE}/dex/grid.json`).catch(pushDown("grid")),
     jget(`${CONSOLE_BASE}/dex/watch.json`).catch(pushDown("watch")),
     jget(`https://api.trongrid.io/v1/accounts/${TRON_CUSTODY}`).catch(pushDown("tron")),
     steemAccounts(FLEET_ACCOUNTS).catch(pushDown("steem")),
     jget(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=pushed`).catch(pushDown("github")),
   ]);
+
+  // Task 6-b: המקור שנדגם — חי מהשרשרת או עותק-ענן; התווית נכנסת לכל שורת-מקור
+  const world = (worldR as { doc?: any } | null)?.doc ?? null;
+  const worldSource: DexSource | null = (worldR as { source?: DexSource } | null)?.source ?? null;
+  const worldAgeMs: number | null = (worldR as { ageMs?: number | null } | null)?.ageMs ?? null;
+  const worldSrcLabel =
+    worldSource === "live-saosdex"
+      ? "השרשרת החיה :3010 · נמדד עכשיו"
+      : "world.json — מראת-ענן קפואה (הדמון לא ענה)";
 
   // ── חילוץ מספרים חיים ─────────────────────────────────────────────
   const head = steem?.find?.((a: any) => a?.name === "headcorner") ?? null;
@@ -328,7 +346,7 @@ async function composeAudit() {
       height != null
         ? `גובה ${height.toLocaleString("en-US")} · ${swaps.toLocaleString("en-US")} החלפות · ${pools.length} בריכות · עומק ${poolsTvl.toFixed(0)} USDS`
         : "—",
-    source: `world.json חי · עמלות נאספו ${feesTotal.toFixed(2)} USDS · אוצר ${treasuryUsds.toFixed(0)} USDS פנויים`,
+    source: `${worldSrcLabel} · עמלות נאספו ${feesTotal.toFixed(2)} USDS · אוצר ${treasuryUsds.toFixed(0)} USDS פנויים`,
     potential: "מפעל-עמלות מפעילות-עצמה: כל החלפה מזינה אוצר→קרן→חוסכים — נזילות יש מאין",
   });
   assets.push({
@@ -337,7 +355,7 @@ async function composeAudit() {
     group: "capital",
     state: (savings?.potMu ?? 0) > 0 ? "LIVE" : "DORMANT",
     primary: `${mu(savings?.potMu).toFixed(0)} USDS בקרן · APY ${pct(savApy)} נמדד · ${savings?.savers ?? 0} חוסכים`,
-    source: `world.json חי · שולם ${mu(savings?.paidMu).toFixed(2)} USDS לחוסכים עד היום`,
+    source: `${worldSrcLabel} · שולם ${mu(savings?.paidMu).toFixed(2)} USDS לחוסכים עד היום`,
     potential: "מנוע ריבית-דריבית: 30% חית-עמלות + ריבית + עתודה — מתועד ומורכב יומית",
   });
   assets.push({
@@ -532,7 +550,7 @@ async function composeAudit() {
       severity: "medium",
       status: "PARTIAL",
       unlocks: "כל בריכה מעל עומק-מינימום = נזילות עבור זרימה אחרת",
-      evidence: `${thinPools} מתוך ${pools.length} בריכות מתחת ל-1 USDS עומק (world.json חי)`,
+      evidence: `${thinPools} מתוך ${pools.length} בריכות מתחת ל-1 USDS עומק (${worldSrcLabel})`,
     },
     {
       id: "gap-sandbox",
@@ -674,6 +692,9 @@ async function composeAudit() {
     ok: down.length === 0,
     at: new Date().toISOString(),
     height,
+    // Task 6-b · חתימת-מקור מצב-השרשרת — התצוגה מחויבת להראות סטייה
+    source: worldSource,
+    ageMs: worldAgeMs,
     assets,
     valueStreams,
     gaps,

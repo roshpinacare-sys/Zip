@@ -53,7 +53,12 @@ import { useWeave } from "../store";
 const CONSOLE_BASE = "https://roshpinacare-sys.github.io/Console";
 const MONEY_URL = `${CONSOLE_BASE}/dex/money.json`;
 const GRID_URL = `${CONSOLE_BASE}/dex/grid.json`;
-const WORLD_URL = `${CONSOLE_BASE}/dex/world.json`;
+const WORLD_URL = `${CONSOLE_BASE}/dex/world.json`; // קישור-אימות בלבד (בתחתית העמוד)
+// Task 6-b · live-first: השרשרת נדגמת דרך השרת (/api/live/dex מציץ
+// 127.0.0.1:3010 קודם, ונופל למראת-הענן רק אם-הדמון לא ענה — חתום source+ageMs)
+const DEX_LIVE_URL = "/api/live/dex";
+
+type WorldSource = "live-saosdex" | "mirror-stale" | null;
 
 // ── טיפוסים (משקפים את ה-JSON הציבורי בדיוק) ─────────────────────────
 
@@ -134,6 +139,22 @@ function dataAge(iso: string | undefined): string {
   if (min < 1) return "כרגע";
   if (min < 60) return `לפני ${min} דק׳`;
   return `לפני ${Math.round(min / 60)} שע׳`;
+}
+
+// Task 6-b · שומר-אפוק: nextPayout "1969-12-31" = אפוק-התקופה (powerdown כבוי)
+// — לא תאריך עתיד ולא "נחת": פשוט אין נחיתת-דלק מתוכננת.
+function isEpochDate(iso: string | null | undefined): boolean {
+  if (!iso) return false;
+  const t = new Date(iso).getTime();
+  return Number.isFinite(t) && new Date(iso).getFullYear() < 1980;
+}
+
+function fmtAgeH(ageMs: number | null | undefined): string {
+  if (ageMs == null) return "—";
+  const h = ageMs / 3_600_000;
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} דק׳`;
+  if (h < 48) return `${h.toFixed(1)} שע׳`;
+  return `${Math.round(h / 24)} ימים`;
 }
 
 // ── צ'יפ-מצב ─────────────────────────────────────────────────────────
@@ -305,6 +326,7 @@ export function ArrayView() {
   const [money, setMoney] = useState<MoneyDoc | null>(null);
   const [grid, setGrid] = useState<GridDoc | null>(null);
   const [world, setWorld] = useState<WorldDoc | null>(null);
+  const [worldSrc, setWorldSrc] = useState<{ source: WorldSource; ageMs: number | null }>({ source: null, ageMs: null });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -316,12 +338,18 @@ export function ArrayView() {
       const [m, g, w] = await Promise.all([
         fetch(MONEY_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
         fetch(GRID_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
-        fetch(WORLD_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
+        // Task 6-b · live-first: המסמך מ-/api/live/dex — חי-מהשרשרת או מראה-ענן,
+        // תמיד עם source + ageMs כנים (השרת הוא-זה שדוגם)
+        fetch(DEX_LIVE_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)),
       ]);
-      if (!m && !g) throw new Error("מקורות המערך לא נענו");
+      if (!m && !g && !w) throw new Error("מקורות המערך לא נענו");
       setMoney(m as MoneyDoc | null);
       setGrid(g as GridDoc | null);
       setWorld(w as WorldDoc | null);
+      setWorldSrc({
+        source: ((w as { source?: WorldSource } | null)?.source ?? null),
+        ageMs: (w as { ageMs?: number | null } | null)?.ageMs ?? null,
+      });
       setErr(null);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -359,7 +387,11 @@ export function ArrayView() {
 
   const gridVerdict = grid?.verdict ?? "—";
   const gridArmed = grid?.armed ?? false;
-  const fuelNext = money?.fuel?.powerdown?.nextPayout ?? grid?.fuel?.nextPayout ?? null;
+  // Task 6-b · סטטוס-ה-powerdown קשור לשדה הנמדד — לא "פעיל" קשיח:
+  const pdActive = money?.fuel?.powerdown?.active === true;
+  const fuelNextRaw = money?.fuel?.powerdown?.nextPayout ?? grid?.fuel?.nextPayout ?? null;
+  // אפוק-1969 = powerdown כבוי — אין נחיתת-דלק לספור לאחור
+  const fuelNext = fuelNextRaw != null && !isEpochDate(fuelNextRaw) ? fuelNextRaw : null;
   const rateSp = money?.fuel?.powerdown?.rateSp ?? null;
   const steemUsdMark = money?.marks?.steemUsd ?? null;
   const weeklyUsd = grid?.fuel?.weeklyUsd ?? (rateSp !== null && steemUsdMark !== null ? rateSp * steemUsdMark : null);
@@ -402,7 +434,7 @@ export function ArrayView() {
             מצב המערך
           </h1>
           <p className="mt-1 text-xs text-zinc-500">
-            המפה החיה של כל המערך — תנוחה, נתיב-כסף, צי, וספר-הפערים. הכל מה-URLs הציבוריים שהעולם רואה.
+            המפה החיה של כל המערך — תנוחה, נתיב-כסף, צי, וספר-הפערים. השרשרת נדגמת חי מהדמון המקומי; הדלק והגריד מה-URLs הציבוריים.
             {money?.publishedAt && <span className="font-mono"> · עודכן {dataAge(money.publishedAt)}</span>}
           </p>
         </div>
@@ -421,6 +453,27 @@ export function ArrayView() {
         </Card>
       )}
 
+      {/* Task 6-b · באנר-מקור השרשרת: סטייה חייבת להיות נראית */}
+      {worldSrc.source === "mirror-stale" ? (
+        <Card className="border-amber-500/40 bg-amber-500/[0.07]">
+          <CardContent className="flex items-center gap-2 p-3 text-xs text-amber-300">
+            <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              מראת-ענן ישנה · {fmtAgeH(worldSrc.ageMs)} — מציג עותק קפוא. הדמון המקומי (:3010) לא נענה; הנתונים מ-world.json המפורסם.
+            </span>
+          </CardContent>
+        </Card>
+      ) : worldSrc.source === "live-saosdex" ? (
+        <Card className="border-emerald-500/30 bg-emerald-500/[0.05]">
+          <CardContent className="flex items-center gap-2 p-3 text-xs text-emerald-300">
+            <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+            <span>
+              חי מהשרשרת · נמדד {fmtAgeH(worldSrc.ageMs)} מהדמון המקומי (:3010) — גובה {world?.state?.height != null ? world.state.height.toLocaleString("en-US") : "—"}
+            </span>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* ── 1. תנוחת המערך ── */}
       <ArraySection
         id="posture"
@@ -438,8 +491,9 @@ export function ArrayView() {
           <StatusPill
             icon={CalendarClock}
             label="דלק נוחת"
-            value={countdown(fuelNext)}
-            tone="gold"
+            // Task 6-b: powerdown כבוי (אפוק-1969) = "לא-פעיל", לא ספירה מזויפת
+            value={pdActive ? countdown(fuelNext) : "לא-פעיל"}
+            tone={pdActive && fuelNext ? "gold" : "zinc"}
           />
           <StatusPill
             icon={Waypoints}
@@ -496,10 +550,12 @@ export function ArrayView() {
           <PipeStep
             n={1}
             title="עורק החיים — powerdown"
-            status="פעיל"
-            tone="gold"
+            // Task 6-b: הסטטוס מהשדה הנמדד (money.json), לא קשיח —
+            // powerdown.active=false נמדד ומוצג בכנות כ"לא-פעיל"
+            status={pdActive ? "פעיל" : "לא-פעיל"}
+            tone={pdActive ? "gold" : "zinc"}
             rows={[
-              { k: "תשלום הבא", v: fuelNext ? new Date(fuelNext).toLocaleDateString("he-IL") : "—" },
+              { k: "תשלום הבא", v: pdActive && fuelNext ? new Date(fuelNext).toLocaleDateString("he-IL") : "לא-פעיל" },
               { k: "קצה שבועי", v: `≈${money?.fuel?.powerdown?.rateSp?.toFixed(0) ?? grid?.fuel?.weeklySp?.toFixed(0) ?? "—"} SP` },
               { k: "שווי לשבוע", v: weeklyUsd != null ? `$${fmtUsd(weeklyUsd)}` : "—" },
               { k: "נותרו", v: `${grid?.fuel?.remainingWeeks ?? "—"} תשלומים` },
@@ -594,8 +650,19 @@ export function ArrayView() {
               <div className="mb-3 flex items-center gap-2">
                 <Landmark className="h-4 w-4 text-[#e8cd6e]" aria-hidden />
                 <h3 className="text-sm font-bold text-zinc-100">THE-MARKET · שוק-הכספים</h3>
-                <Badge variant="outline" className="ml-auto border-emerald-500/30 font-mono text-[10px] text-emerald-400">
-                  חי על-השרשרת
+                {/* Task 6-b: התג מספר את האמת על המקור — חי-מהשרשרת או מראה-ענן עם גילו */}
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "ml-auto font-mono text-[10px]",
+                    worldSrc.source === "mirror-stale"
+                      ? "border-amber-500/40 text-amber-400"
+                      : "border-emerald-500/30 text-emerald-400"
+                  )}
+                >
+                  {worldSrc.source === "mirror-stale"
+                    ? `מראת-ענן · גיל ${fmtAgeH(worldSrc.ageMs)}`
+                    : `חי מהשרשרת · h${world?.state?.height != null ? world.state.height.toLocaleString("en-US") : "—"}`}
                 </Badge>
               </div>
               <dl className="grid gap-1.5">

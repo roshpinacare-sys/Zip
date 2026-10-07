@@ -33,7 +33,9 @@ async function probeDaemon(port: number, timeoutMs = 2500): Promise<boolean> {
   const t = setTimeout(() => ac.abort(), timeoutMs);
   try {
     const r = await fetch(`http://127.0.0.1:${port}/`, { signal: ac.signal, cache: "no-store" });
-    return r.ok || (r.status >= 400 && r.status < 500);
+    // Task 6-b · רק 2xx = UP: תשובת-4xx היא דיבון עונה-שגוי, לא דיבון-חי —
+    // לספור אותה UP היה לייפות נופלים (נמדד: 404 נספר "חי").
+    return r.ok;
   } catch {
     return false;
   } finally {

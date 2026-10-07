@@ -44,6 +44,7 @@ import {
   RefreshCw,
   Scale,
   ShieldAlert,
+  ShieldCheck,
   Ship,
   Smartphone,
   TrendingUp,
@@ -95,6 +96,9 @@ interface MissingSystem {
 
 interface AuditData {
   ok: boolean; at: string; height: number | null;
+  // Task 6-b · חתימת-מקור מצב-השרשרת (live-first / מראה-ענן)
+  source?: "live-saosdex" | "mirror-stale" | null;
+  ageMs?: number | null;
   assets: HoldingAsset[];
   valueStreams: ValueStream[];
   gaps: GapItem[];
@@ -358,6 +362,27 @@ export function HoldingsAuditView({ section = "assets" }: { section?: string }) 
           >
             <ShieldAlert className="size-4 shrink-0" aria-hidden="true" />
             נפילת קריאה: {err} — מנסה שוב אוטומטית בעוד {POLL_MS / 1000} שנ׳
+          </div>
+        ) : null}
+        {/* Task 6-b · באנר-מקור השרשרת: סטייה חייבת להיות נראית */}
+        {data?.source === "mirror-stale" ? (
+          <div
+            role="status"
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/[0.07] px-4 py-2.5 text-xs text-amber-700 dark:text-amber-300"
+          >
+            <ShieldAlert className="size-3.5 shrink-0" aria-hidden="true" />
+            <span className="font-medium">
+              מראת-ענן ישנה · {data.ageMs != null ? `${(data.ageMs / 3_600_000).toFixed(1)} שע׳` : "גיל לא ידוע"} — מציג עותק קפוא.
+            </span>
+            הדמון המקומי (:3010) לא נענה; שורות-השרשרת למטה מהמראה המפורסמת, לא מהמצב החי.
+          </div>
+        ) : data?.source === "live-saosdex" ? (
+          <div
+            role="status"
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.05] px-4 py-2.5 text-xs text-emerald-700 dark:text-emerald-400"
+          >
+            <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
+            חי מהשרשרת · גובה {(data.height ?? 0).toLocaleString("en-US")} · נמדד עכשיו מהדמון המקומי (:3010)
           </div>
         ) : null}
         {!loading && data && data.down.length > 0 ? (
