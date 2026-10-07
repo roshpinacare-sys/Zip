@@ -81,6 +81,8 @@ if [ -d $MP/zip/src ]; then
   for f in page.tsx layout.tsx globals.css; do cp $MP/zip/src/app/$f $MP/src/app/$f 2>/dev/null; done
   cp $MP/zip/src/instrumentation.ts $MP/src/instrumentation.ts 2>/dev/null
   cp $MP/zip/prisma/schema.prisma $MP/prisma/schema.prisma 2>/dev/null
+  # מודולי-הספר שנטענים-דינמית (saoslite.ts → ../../../console/*.js)
+  mkdir -p $MP/console && cp $MP/zip/console/gate-crypto.js $MP/zip/console/saos-live.js $MP/zip/console/acid-engine.js $MP/console/ 2>/dev/null
   ok "src+prisma סונכרנו מ-zip ($(ls $MP/src/app/api | wc -l) נתיבי-API)"
   # תלות-חסרה מ-zip (blurtjs/ethers/steem וכו') — מיזוג לתוך package.json + התקנה
   python3 - <<'PYEOF'
