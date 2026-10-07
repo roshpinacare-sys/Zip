@@ -1116,6 +1116,31 @@ async function POST_core(req: Request) {
   // במסלול-הביצוע (אותו reprice, אותם חוקים, רק תג-ראיה שונה).
   const triggerTag = payload?.tag === "fill-deploy" ? "FILL-DEPLOY" : null;
 
+  // R97 — שער-העסקאות: מפעיל שהוציא את הפעולה = השער עצמו; הדיבון אוטונומי
+  // רק מתחת לסף (הוראת המפעיל: "רק במקרים של עסקאות באמת גדולות $100 ומעלה")
+  // (הוקדם לפני PROFIT-ACTUATOR — issuedBy נדרש ל-guardActive)
+  const session = operatorFromRequest(req);
+  const issuedBy: "operator" | "daemon" = session ? "operator" : "daemon";
+
+  // ── PROFIT-ACTUATOR (EDGE-MAP טירה-1 · r209) — שער-השולח-מהדאימון ──
+  // RECOVERY/KNIFE-GUARD = החלטה-כלכלית-מדודה-מהשרשרת (capturedSbd/טבעת-מגמה):
+  //   · arm-buy — נדחה כנה (אפס-קניות-חדשות בהתאוששות/סכין).
+  //   · reprice — רגל-המכירה (מעל-הפאריטה) ממשיכה-לעבוד; רגל-הבידים מדולגת.
+  // ה-guard מגיע מהדאימון בלבד (מקור-המדידה) — שער-ידני לא מייצר-אותו.
+  const guardRaw = payload?.guard && typeof payload.guard === "object" ? payload.guard : null;
+  const guardMode =
+    guardRaw && (guardRaw.mode === "RECOVERY" || guardRaw.mode === "KNIFE-GUARD") ? String(guardRaw.mode) : null;
+  const guardActive = guardMode != null && issuedBy !== "operator"; // המפעיל-תמיד-חופשי-מהשער
+
+  // PROFIT-ACTUATOR — arm-buy מתחת-לשער-הכלכלי נדחה כנה (לפני-כל-עבודה-כבדה)
+  if (action === "arm-buy" && guardActive) {
+    return bad(
+      `PROFIT-GUARD ${guardMode}: ${guardMode === "RECOVERY" ? `רווח-ממומש-נמדד ${Number(guardRaw?.capturedSbd ?? 0).toFixed(3)} SBD מתחת-לרצפה — אפס-קניות-חדשות` : "ירידת-מגמה-חדה-בפאריטה — אפס-תפיסת-סכינים"} — סירוב-כנה (ההתאוששות נבנית במכירות-מעל-הפאריטה, לא בהגדלת-חשיפה)`,
+      409,
+      { code: "PROFIT-GUARD", guard: guardMode },
+    );
+  }
+
   // המפתח: בזיכרון-ההרצה בלבד
   const ownerKey = readOwnerKey();
   if (!ownerKey) {
@@ -1201,8 +1226,7 @@ async function POST_core(req: Request) {
 
   // R97 — שער-העסקאות: מפעיל שהוציא את הפעולה = השער עצמו; הדיבון אוטונומי
   // רק מתחת לסף (הוראת המפעיל: "רק במקרים של עסקאות באמת גדולות $100 ומעלה")
-  const session = operatorFromRequest(req);
-  const issuedBy: "operator" | "daemon" = session ? "operator" : "daemon";
+  // (session/issuedBy חושבו-למעלה — לפני-ה-guard)
 
   const liquid = parseFloat(account.balance);
   // r190 · רק פקודות-המוביל: דלק-המוביל אינו כולל את ה-STEEM הנעול בסולם-הגריד
@@ -1920,7 +1944,12 @@ async function POST_core(req: Request) {
         );
         return Math.abs(nearest - p) / nearest > 0.005; // 50bps — אותו סף-סטייה של צד-המכירה
       });
-    if (bidStale && lawPre.per >= 0.05) {
+    if (guardActive) {
+      // PROFIT-ACTUATOR — רגל-הבידים מדולגת-בכוונה (RECOVERY/KNIFE-GUARD):
+      // בידים-ישנות לא-מבוטלות ולא-מוחלפות — הספר-הקיים נשאר-כמו-שהוא,
+      // אף-קנייה-חדשה-לא-נפרסת. כנות-מלאה בקבלה.
+      noteError(`bid leg skipped: PROFIT-GUARD ${guardMode} (capturedSbd=${guardRaw?.capturedSbd ?? "?"} · knifeBps=${guardRaw?.knifeBps ?? "?"}) — אפס-קניות-חדשות; רגל-המכירה המשיכה`);
+    } else if (bidStale && lawPre.per >= 0.05) {
       // א. ביטול הבידים הישנות — במקביל (אותו דפוס של צד-המכירה)
       // r190 · רק בידים של המוביל מבוטלות — פקודות-הגריד (טווח-שמור) לא נוגעות לעולם
       const bidCancelResults = await Promise.allSettled(

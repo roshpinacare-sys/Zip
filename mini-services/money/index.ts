@@ -88,6 +88,17 @@ const POLICY = {
   armBuy: { minSbd: 0.30, offsetsBps: [20, 40, 80, 160] }, // R97 — צד הקנייה של המיקרו-גריד · r145-a: 5 רמות · r147-a: צמוד-שוק · r151: הידוק מהמדידה — קצץ 320bps (תופסת-סכין, ניתוח pnl-scan: קנייה-avg 0.1056 מול מכירה-avg 0.1019) + רף-חימוש 0.15→0.30 (פחות-גלגולים, יותר-מובהקות)
   hive: { driftBps: 50 },
   stockSbd: { premiumCapBps: 200, keepSteem: 0.5 }, // R101b - arming-inventory stock (bounded taker) // R101 — סטיית רגל-HIVE מהסולם
+  // ── PROFIT-ACTUATOR (EDGE-MAP טירה-1 · הוראת-המפעיל "כל-השאר חייב לבצע עכשיו") ──
+  // הביטוי-הרווח-שהיה-חסר בתוך decide(): שני-שערים-מדודים-מהשרשרת:
+  //   · RECOVERY — capturedSbd (רווח-ממומש נמדד) מתחת-לרצפה → אפס-קניות-חדשות
+  //     (arm-buy מדוכא; רגל-הבידים-ב-reprice מדולגת-ב-API). הסולם ממשיך-למכור
+  //     מעל-הפאריטה — זו-הדרך-היחידה-להחזיר-את-הרווח. נולד-מהמדידה:
+  //     capturedSbd=-1.72 SBD (428 מילויים, 70% טייקר, קריסת-STEEM-41%).
+  //   · KNIFE-GUARD — ירידת-פאריטה-חדה בחלון-המדידה (טבעת-parity מקומית) →
+  //     אפס-קניות. לא-תופסים-סכינים-נופלות (הפסד-41%-נמדד-בעבר).
+  //   · כנות: אין-מדידת-PnL או אין-טבעת-מגמה = אין-דיכוי (fail-open-לפעולה,
+  //     לא-לשקר). stock-sbd-מותר-תמיד (מקטין-חשיפת-STEEM — כיוון-ההתאוששות).
+  profitGuard: { floorSbd: -1.0, knifeBps: 500, knifeWindowMin: 360, ringCadenceMin: 5, ringWindowMin: 1440 },
   rewards: { saosPerFill: 2, member: "money-mover" }, // R103 — עבודה→מטבע→נזילות
   liquidityStream: { waveSteem: 200, share: 0.2 }, // R103 — גל-פאוורדאון → 20% עומק בריכות
   truthSource: "api.steemit.com · get_open_orders/get_accounts (via /api/money) + api.hive.blog (via /api/money/hive)",
@@ -117,6 +128,8 @@ type MoneyState = {
   lastStreamDay?: string; // R103 — הזרמת-נזילות אחת לכל היום ביותר
   lastTotalSteem?: number; // R111 — חתימת הון-כולל לטריגר הגל (נזיל+פרוס)
   noKeySince?: string | null; // r133 · D-021: המעבר חסום בכנות — אין מפתח-אב בסנדבוקס; backoff 4ש' + ביטול מיידי כשמפתח חוזר
+  parityRing?: Array<{ at: string; parity: number }>; // PROFIT-ACTUATOR — טבעת-מגמה ל-KNIFE-GUARD (24ש' מקומית)
+  profitGuard?: { mode: string | null; since: string; capturedSbd: number | null; knifeBps: number | null } | null; // PROFIT-ACTUATOR — המצב-החי-המוצג (mode=null = אין-שער)
   fleetSeen?: { keeperRestartAt?: string; pulseDay?: string; studentDay?: string }; // R108 — סימני-מים לגוב-הצי
   autonomyMode?: string; // r197 — מצב-שער-האוטונומיה הגלובלי (PAUSED/THINKING/ACTIVE) — נמדד בכל פעימה
   autonomyHeldCount?: number; // r197 — כמה פעולות נעצרו על-ידי שער-העצירה (כנות)
@@ -180,6 +193,8 @@ function readState(): MoneyState {
       autonomyMode: prev.autonomyMode ?? null,
       autonomyHeldCount: prev.autonomyHeldCount ?? 0,
       learning: prev.learning ?? null,
+      parityRing: Array.isArray(prev.parityRing) ? prev.parityRing.slice(-288) : [], // PROFIT-ACTUATOR — הטבעת שורדת-ריסטארט (288 = 24ש' בקצב 5דק')
+      profitGuard: prev.profitGuard ?? null, // PROFIT-ACTUATOR — מצב-השער שורד-ריסטארט
     };
   } catch (e: any) {
     // כנות (R123): state קיים אך בלתי-קריא אינו נבלע בשקט — האיתחול נרשם
@@ -441,7 +456,7 @@ async function canonPush(path: string, content: string): Promise<boolean> {
 }
 
 // ── החלטה ───────────────────────────────────────────────────────────
-async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream"; tag?: "fill-deploy" }> {
+async function decide(meas: any): Promise<{ act: boolean; reason: string; action?: "reprice" | "arm-buy" | "stock-sbd" | "arena-stream"; tag?: "fill-deploy"; guard?: { mode: string; capturedSbd: number | null; knifeBps: number | null } }> {
   const now = new Date();
   // r146-d — תג-מילוי: מילוי נמדד מאז-הפעולה האחרונה → הפעולה הבאה נולדה מעבודה
   // אמיתית ונושאת FILL-DEPLOY בספר-הקבלות (וצינון-מקוצר — ראה POLICY.fillDeploy).
@@ -487,6 +502,42 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   if (state.actionsToday >= POLICY.actionsBudgetPerDay) {
     return { act: false, reason: "WAIT-BUDGET · 12/12 פעולות היום — התקציב נאכל" };
   }
+  // ── PROFIT-ACTUATOR (EDGE-MAP טירה-1 · הביטוי-הרווח-שהיה-חסר-ב-decide) ──
+  // שני-שערים-מדודים-מהשרשרת-ומטבעת-המגמה-המקומית:
+  //   RECOVERY  — capturedSbd < floorSbd ⇒ אפס-קניות-חדשות עד-ההתאוששות.
+  //   KNIFE-GUARD — ירידת-פאריטה ≥ knifeBps בתוך-החלון ⇒ אפס-קניות (לא-תופסים-סכינים).
+  // מצב-השער נשמר-ב-state (שורד-ריסטארט) ומוצג-בכנות; הרגל-הפנימית (reprice)
+  // נושאת-את-ה-guard-ל-API שמדלג-על-הצבת-הבידים — אפס-קנייה-גם-בגרירת-הסולם.
+  const PG = POLICY.profitGuard;
+  const parityNowPG = Number(meas?.marks?.parity);
+  const ringPG = state.parityRing ?? (state.parityRing = []);
+  if (Number.isFinite(parityNowPG) && parityNowPG > 0) {
+    const lastRingAt = ringPG.length ? new Date(ringPG[ringPG.length - 1].at).getTime() : 0;
+    if (Date.now() - lastRingAt >= PG.ringCadenceMin * 60_000) {
+      ringPG.push({ at: now.toISOString(), parity: parityNowPG });
+      const cutoffPG = Date.now() - PG.ringWindowMin * 60_000;
+      while (ringPG.length && new Date(ringPG[0].at).getTime() < cutoffPG) ringPG.shift();
+    }
+  }
+  const capturedSbdPG =
+    typeof meas?.pnl?.capturedSbd === "number" && Number.isFinite(meas.pnl.capturedSbd) ? meas.pnl.capturedSbd : null;
+  const winCutPG = Date.now() - PG.knifeWindowMin * 60_000;
+  const windowedPG = ringPG.filter((e) => new Date(e.at).getTime() >= winCutPG && e.parity > 0);
+  const refPxPG = windowedPG.length ? windowedPG[0].parity : null;
+  const knifeBpsPG =
+    refPxPG != null && parityNowPG > 0 ? Math.round(((parityNowPG - refPxPG) / refPxPG) * 10_000) : null;
+  const recoveryModePG = capturedSbdPG != null && capturedSbdPG < PG.floorSbd;
+  const knifeGuardPG = knifeBpsPG != null && knifeBpsPG <= -PG.knifeBps;
+  const buySuppressedPG = recoveryModePG || knifeGuardPG;
+  const guardModePG = recoveryModePG ? "RECOVERY" : knifeGuardPG ? "KNIFE-GUARD" : null;
+  state.profitGuard = {
+    mode: guardModePG,
+    since: guardModePG && state.profitGuard?.mode === guardModePG && state.profitGuard.since
+      ? state.profitGuard.since
+      : now.toISOString(),
+    capturedSbd: capturedSbdPG,
+    knifeBps: knifeBpsPG,
+  };
   // R103 — LIQUIDITY-STREAM: גל-דלק (חתימת פאוורדאון: נזיל ≥ 200 STEEM
   // בבת אחת) ← 20% ממנו הופך לעומק בבריכות הזירה לפני שהסולם פורש
   // את השאר. הזרמה אחת ליום בלבד — חוק התקציב.
@@ -664,6 +715,16 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
     Number(arm127?.commitable ?? 0) >= POLICY.armBuy.minSbd &&
     bidsLive === 0
   ) {
+    // PROFIT-ACTUATOR — שער-הקניות: RECOVERY/KNIFE-GUARD ⇒ אפס-קניות-חדשות.
+    // זו-ההחלטה-הכלכלית-המדודה: הספר מראה הפסד-ממומש/סכין-נופלת — בונים-רווח
+    // במכירות-מעל-הפאריטה, לא בהגדלת-חשיפה. כנות-מלאה בסיבה; אין-שריפת-תקציב
+    // (act לא נקרא) ואין-צינון-שנשרף.
+    if (buySuppressedPG) {
+      return {
+        act: false,
+        reason: `WAIT-PROFIT-GUARD · ${recoveryModePG ? "RECOVERY" : "KNIFE-GUARD"}: ${recoveryModePG ? `רווח-ממומש-נמדד ${capturedSbdPG!.toFixed(3)} SBD < רצפה ${PG.floorSbd} — אפס-קניות-חדשות עד-ההתאוששות (המכירות-מעל-הפאריטה ממשיכות-לעבוד)` : `הפאריטה ירדה ${Math.abs(knifeBpsPG!)}bps בתוך-${PG.knifeWindowMin}דק' — לא-תופסים-סכינים-נופלות`} · ספר-הקנייה נשאר ריק בכוונה`,
+      };
+    }
     return {
       act: true,
       action: "arm-buy",
@@ -672,8 +733,14 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   }
   // טריגר: נזיל
   const idle = Number(meas?.idleSteem ?? 0);
+  // PROFIT-ACTUATOR — ה-guard נוסע-עם-ה-reprice: ה-API מדלג-על-הצבת-רגל-הבידים
+  // כש-RECOVERY/KNIFE-GUARD פעילים (המכירות-מעל-הפאריטה ממשיכות-לעבוד —
+  // זו-מנועת-ההתאוששות). stock-sbd-מותר-תמיד (מקטין-חשיפת-STEEM).
+  const pgGuard = buySuppressedPG
+    ? { mode: guardModePG!, capturedSbd: capturedSbdPG, knifeBps: knifeBpsPG }
+    : undefined;
   if (idle >= POLICY.triggers.idleTriggerSteem) {
-    return { act: true, tag: fillTag, reason: `נזיל ${idle.toFixed(3)} STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)${fillTag ? " · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון" : ""}` };
+    return { act: true, tag: fillTag, ...(pgGuard ? { guard: pgGuard } : {}), reason: `נזיל ${idle.toFixed(3)} STEEM יושב מחוץ לסולם — נפרס לעבודה (חוק 2)${fillTag ? " · FILL-DEPLOY: מילוי אמיתי נמדד — הספר חוזר לקו במקום להמתין צינון" : ""}${pgGuard ? " · PROFIT-GUARD:" + pgGuard.mode + " (רגל-קנייה תדולג)" : ""}` };
   }
   // טריגר: סטיית פאריטה מהמדרגה שהוצבה בפועל (R93).
   // לקח-הבאג החי (נמדד 00:19Z): ה-ladder מה-API הוא הסולם *המומלץ* —
@@ -692,7 +759,8 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
       return {
         act: true,
         tag: fillTag,
-        reason: `הפאריטה זזה ${driftBps > 0 ? "+" : ""}${driftBps}bps מעל הסולם שהוצב (${base.toFixed(6)} → קו ${parity.toFixed(6)}) — הסולם נגרר אליה (חוק 3)${fillTag ? " · FILL-DEPLOY" : ""}`,
+        ...(pgGuard ? { guard: pgGuard } : {}),
+        reason: `הפאריטה זזה ${driftBps > 0 ? "+" : ""}${driftBps}bps מעל הסולם שהוצב (${base.toFixed(6)} → קו ${parity.toFixed(6)}) — הסולם נגרר אליה (חוק 3)${fillTag ? " · FILL-DEPLOY" : ""}${pgGuard ? " · PROFIT-GUARD:" + pgGuard.mode + " (רגל-קנייה תדולג)" : ""}`,
       };
     }
   }
@@ -711,7 +779,8 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
     return {
       act: true,
       tag: fillTag,
-      reason: `חוק-הרצפה (L4): פקודת-מכירה ${worstBelowBps}bps מתחת לערך-החוץ — הסולם נגרר אל הקו (הצינון והקצבה חוסמי-שחיקה)${fillTag ? " · FILL-DEPLOY" : ""}`,
+      ...(pgGuard ? { guard: pgGuard } : {}),
+      reason: `חוק-הרצפה (L4): פקודת-מכירה ${worstBelowBps}bps מתחת לערך-החוץ — הסולם נגרר אל הקו (הצינון והקצבה חוסמי-שחיקה)${fillTag ? " · FILL-DEPLOY" : ""}${pgGuard ? " · PROFIT-GUARD:" + pgGuard.mode + " (רגל-קנייה תדולג)" : ""}`,
     };
   }
   // טריגר R97 — ARM-BUY: SBD חמוש → סולם קנייה מתחת לפאריטה (O1).
@@ -720,6 +789,13 @@ async function decide(meas: any): Promise<{ act: boolean; reason: string; action
   // רק ממילוי אמיתי — לא ממכירה מתחת לערך.
   const arm = meas?.sbdArming;
   if (arm?.state === "ARMED" && Number(arm?.commitable ?? 0) >= POLICY.armBuy.minSbd) {
+    // PROFIT-ACTUATOR — שער-הקניות-השני (O1): אותו-חוק — RECOVERY/KNIFE ⇒ אפס-קניות.
+    if (buySuppressedPG) {
+      return {
+        act: false,
+        reason: `WAIT-PROFIT-GUARD · ${recoveryModePG ? "RECOVERY" : "KNIFE-GUARD"}: סולם-הקנייה נעצר — ${recoveryModePG ? `רווח-ממומש ${capturedSbdPG!.toFixed(3)} SBD מתחת-לרצפה ${PG.floorSbd}` : `ירידת-מגמה ${Math.abs(knifeBpsPG!)}bps`} · המכירות-מעל-הפאריטה ממשיכות-לעבוד`,
+      };
+    }
     return {
       act: true,
       action: "arm-buy",
@@ -777,7 +853,23 @@ async function measure(): Promise<any | null> {
     const res = await fetch(`${API}?fresh=1`, { signal: ctl.signal, cache: "no-store" });
     if (!res.ok) return null;
     const j = await res.json();
-    return j?.ok ? j : null;
+    if (!j?.ok) return null;
+    // ── PROFIT-ACTUATOR מקור-המדידה (EDGE-MAP טירה-1) ──
+    // capturedSbd — הרווח-הממומש-הנמדד-מהשרשרת (fill_order, לא מזיכרון ולא מהצהרה).
+    // זה הקלט-הכלכלי ש-decide() מעולם לא קרא: בלי-זה המנוע יכול-לפרוס-קניות-חדשות
+    // בזמן-שהספר מראה הפסד-מבני. כנות: כישלון-קריאה = null = אין-דיכוי (fail-open
+    // לפעולה, לא לשקר) — הפעימה ממשיכה, המדידה תנסה-שוב בפעימה-הבאה.
+    try {
+      const pres = await fetch(`${API}/pnl`, { signal: AbortSignal.timeout(15_000), cache: "no-store" });
+      if (pres.ok) {
+        const pj = await pres.json();
+        const st = pj?.stats;
+        if (st && typeof st.capturedSbd === "number" && Number.isFinite(st.capturedSbd)) {
+          j.pnl = { capturedSbd: st.capturedSbd, lastFillAt: st.lastFillAt ?? null, fillsTotal: st.fillsTotal ?? null };
+        }
+      }
+    } catch { /* PnL לא נמדד בפעימה-זו — כנות, לא אפס */ }
+    return j;
   } catch {
     return null;
   } finally {
@@ -792,6 +884,7 @@ async function act(
   tag?: "fill-deploy",
   deliberation?: DeliberationRef, // r205 — רף-התחזית שנכתבה לפני (לקישור-ניסיון)
   thought?: ThoughtBody, // r206 — הדיון המלא נוסע לשער (THINKING מחייב אותו ב-payload)
+  guard?: { mode: string; capturedSbd: number | null; knifeBps: number | null } | undefined, // PROFIT-ACTUATOR — ה-API מדלג-על-רגל-הקנייה ב-RECOVERY/KNIFE
 ): Promise<boolean> {
   // R208P · intent-first — שער-ירי: אם כוונה קודמת של אותו (action,target)
   // נותרה בלתי-פתורה (מוות-בין-שידור-לתוצאה), הירי-החוזר אסור עד שקט-עולם.
@@ -847,6 +940,7 @@ async function act(
         reason,
         ...(tag && target === "steem" && action === "reprice" ? { tag } : {}),
         ...(deliberationBody ? { deliberation: deliberationBody } : {}),
+        ...(guard ? { guard } : {}), // PROFIT-ACTUATOR — השער-הכלכלי-נוסע-עם-הפעולה
       }),
       signal: ctl.signal,
     });
@@ -1282,7 +1376,7 @@ async function tick() {
         state.lastDecision = { at: new Date().toISOString(), kind: "AUTONOMY-HELD", detail: gA.why };
         saveState();
       } else {
-        await act(d.reason, d.action ?? "reprice", "steem", d.tag, gA.deliberation, gA.thought); // r205+206 — התחזית נוסעת עם הפעולה · הדיון נוסע לשער
+        await act(d.reason, d.action ?? "reprice", "steem", d.tag, gA.deliberation, gA.thought, d.guard); // r205+206 — התחזית נוסעת עם הפעולה · הדיון נוסע לשער · PROFIT-ACTUATOR — ה-guard נוסע עם ה-reprice
       }
     } else {
       // R101c — חוק-הברזל לשתי הרגליים: צינון + תקציב חלים גם על HIVE.
