@@ -1121,41 +1121,52 @@ function recentRestarts(d: FleetEntry): number {
 }
 
 function restartDaemon(d: FleetEntry): boolean {
+  const dir = `${HOME}/mini-services/${d.name}`;
+  if (!fs.existsSync(`${dir}/index.ts`)) return false;
+  const spawn = (): boolean => {
+    // הקמה — process.execPath (הבאג של R90: 'bun' לא תמיד ב-PATH; עכשיו אבסולוטי)
+    const logDir = `${HOME}/sovereign/keeper/logs`;
+    fs.mkdirSync(logDir, { recursive: true });
+    const fd = fs.openSync(`${logDir}/${d.name}-daemon.log`, "a");
+    try {
+      Bun.spawn({
+        cmd: [process.execPath, "--hot", "index.ts"],
+        cwd: dir,
+        stdin: "ignore",
+        stdout: fd,
+        stderr: fd,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  };
   // חוק היילוד (R110, נתפס חי): רשימת-ההרג נתפסת לפני ההקמה —
   // ה-SIGKILL המושהה חייב לפגוע רק בזקן שסירב למות, לעולם לא ב"מי
   // שעל הפורט עכשיו": 1.5ש' אחרי ההקמה שם עומד היילוד עצמו. מרוץ-ההרגה
   // הקודם רצח כל הקמה חדשה תוך שניות (fleet-verify: 8 רציחות ברצף,
   // כל "החייאה" הרגה את בנה — ספירלת מוות שנראתה כמו דיבון גוסס).
   const doomed = pidsOnPort(d.port);
+  if (doomed.length === 0) return spawn();
   for (const pid of doomed) {
     try { process.kill(pid, "SIGTERM"); } catch {}
   }
-  if (doomed.length > 0) {
-    setTimeout(() => {
-      // רק ה-PI שנתפסו לפני ההקמה — הזקנים שסירבו למות
-      for (const pid of doomed) {
-        try { process.kill(pid, "SIGKILL"); } catch {}
+  setTimeout(() => {
+    // רק ה-PI שנתפסו לפני ההקמה — הזקנים שסירבו למות
+    for (const pid of doomed) {
+      try { process.kill(pid, "SIGKILL"); } catch {}
+    }
+    // FIX(r202): ההקמה רק אחרי-שחרור-הפורט בפועל (עד-5ש') — היילוד שנולד
+    // מיד-מול-הזקן-הגוסס התרסק על EADDRINUSE (נמדד: arbitrage).
+    void (async () => {
+      for (let i = 0; i < 10; i++) {
+        if (pidsOnPort(d.port).length === 0) break;
+        await new Promise((r) => setTimeout(r, 500));
       }
-    }, 1500).unref?.();
-  }
-  // הקמה — process.execPath (הבאג של R90: 'bun' לא תמיד ב-PATH; עכשיו אבסולוטי)
-  const dir = `${HOME}/mini-services/${d.name}`;
-  if (!fs.existsSync(`${dir}/index.ts`)) return false;
-  const logDir = `${HOME}/sovereign/keeper/logs`;
-  fs.mkdirSync(logDir, { recursive: true });
-  const fd = fs.openSync(`${logDir}/${d.name}-daemon.log`, "a");
-  try {
-    Bun.spawn({
-      cmd: [process.execPath, "--hot", "index.ts"],
-      cwd: dir,
-      stdin: "ignore",
-      stdout: fd,
-      stderr: fd,
-    });
-    return true;
-  } catch {
-    return false;
-  }
+      spawn();
+    })();
+  }, 1500).unref?.();
+  return true;
 }
 
 // R113 — שומר שרת-הרשת: כמה החייאות בחלון-ה-6ש' הגולש
@@ -1588,6 +1599,21 @@ async function patrol() {
     if (sinceRestartMs < RESTART_COOLDOWN_MS) {
       d.state = "DOWN";
       continue; // צינון בין הקמות
+    }
+
+    // FIX(r202) — חסד-אחרון: לפני-ההרג, פרובה-נוספת. דיבון-שעונה-עכשיו = חי
+    // (הפסילות היו חולפות — נמדד: arbitrage בריא נרצח-מחזורית על-ידי המחיה
+    // עצמה). מאמצים-במקום-להרוג; ענף-הזומבי למעלה נשאר קפדני (HTTP-חי+טיימר-מת).
+    const grace = await probe(d.port);
+    if (grace.ok) {
+      d.state = "UP";
+      d.consecutiveFails = 0;
+      d.beatsStalePatrols = 0;
+      d.lastHealthyAt = now.toISOString();
+      if (grace.body?.bootedAt) d.bootedAtSeen = grace.body.bootedAt as string;
+      if (typeof grace.body?.beats === "number") d.lastBeats = grace.body.beats as number;
+      parts.push(`${d.name}:ADOPTED`);
+      continue;
     }
 
     // RESTARTING — עם חוק-הפעולה בפנים (acting כבר נבדק למעלה; כאן רק חיזוק)
