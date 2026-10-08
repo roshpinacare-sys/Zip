@@ -310,6 +310,32 @@ interface HistEntry {
   block?: number;
 }
 
+/**
+ * r213 — נרמול-צורת-appbase (account_history_api) לצורת-condenser ([type, val]).
+ * העוקף-המדוד (web-vault-rescan, 369p/full): ה-condenser בצמתים-הציבוריים
+ * מפגר/נשבר (Bad Cast) — השופט חייב לקרוא את הראש-האמיתי.
+ */
+function normalizeAppbaseHistory(raw: unknown): Array<[number, HistEntry]> {
+  const out: Array<[number, HistEntry]> = [];
+  const obj = (raw ?? {}) as Record<string, unknown>;
+  for (const v of Object.values(obj)) {
+    if (!Array.isArray(v) || v.length < 2) continue;
+    const idx = Number(v[0]);
+    const e = v[1] as Record<string, unknown>;
+    const opRaw = e?.op as unknown;
+    let op: [string, Record<string, unknown>] | undefined;
+    if (Array.isArray(opRaw)) {
+      op = [String(opRaw[0]), opRaw[1] as Record<string, unknown>];
+    } else if (opRaw && typeof opRaw === "object") {
+      const o = opRaw as Record<string, unknown>;
+      const type = String(o.type ?? "").replace(/_operation$/, "");
+      op = [type, (o.value ?? {}) as Record<string, unknown>];
+    }
+    out.push([idx, { op, trx_id: e.trx_id as string | undefined, block: e.block as number | undefined }]);
+  }
+  return out;
+}
+
 const scanCache = new Map<"steem" | "hive", { at: number; entries: number; res: DeepScanResult }>();
 // רענון-רקע single-flight לכל שרשרת + backoff משותף (לא להציף צומת)
 const scanBgInflight = new Map<"steem" | "hive", Promise<void>>();
@@ -388,8 +414,14 @@ async function liveDeepScan(
   while (meta.entriesScanned < entriesWanted) {
     let hist: Array<[number, HistEntry]> | null = null;
     try {
+      // r213 — עוקף-מדוד ל-STEEM: account_history_api (appbase) במקום ה-condenser
+      // המפגר/השבור — אותו דפוס שהוכח-חי ב-web-vault-rescan (369p/full). אילוצי-צומת:
+      // limit≤100 · start=-1 או start≥limit-1 ⇒ קלמפ-פר-קריאה.
+      const steemLimit = start === -1 ? pageSize : Math.min(pageSize, start + 1);
       hist = chain === "steem"
-        ? await steemRpc<Array<[number, HistEntry]>>("condenser_api.get_account_history", [account, start, pageSize])
+        ? normalizeAppbaseHistory(
+            await steemRpc<{ history: unknown }>("account_history_api.get_account_history", { account, start, limit: steemLimit }).then((r) => r?.history ?? {})
+          )
         : await hiveRpc<Array<[number, HistEntry]>>("condenser_api.get_account_history", [account, start, pageSize]);
     } catch {
       // כשל-צומת: מחזירים את מה שנצבר עד עתה (ניווט-רך, שיטת R50)
@@ -433,14 +465,17 @@ async function liveDeepScan(
  */
 export async function deepScanChain(
   chain: "steem" | "hive",
-  opts?: { entries?: number; account?: string }
+  opts?: { entries?: number; account?: string; fresh?: boolean }
 ): Promise<DeepScanResult> {
   const account = (opts?.account || WEB_ACCOUNT).toLowerCase();
   const pageSize = chain === "steem" ? SCAN_PAGE_STEEM : SCAN_PAGE_HIVE;
   const entriesWanted = Math.min(Math.max(opts?.entries ?? SCAN_ENTRIES_SERVE, pageSize), SCAN_ENTRIES_MAX);
 
+  // r213 — דוקטרינת-שופט-חי: SWR תקף להגשה (קוראים סבלניים), אבל המפרסם
+  // משתמש בסריקה כשופט-נחיתה — מטמון-טרי-מדי מסתיר שידורים שנחתו זה-עתה
+  // (נתפס-חי: "שודר אך טרם נראה" ⇒ שידור-כפול). fresh=true עוקף מטמון-קריאה.
   const cached = scanCache.get(chain);
-  if (cached && cached.entries >= entriesWanted) {
+  if (!opts?.fresh && cached && cached.entries >= entriesWanted) {
     const now = Date.now();
     if (now - cached.at < SCAN_CACHE_TTL_MS) return cached.res;
     // בשלה — מוגשת מיד; רענון-רקע פעם אחת (backoff 30s משותף)

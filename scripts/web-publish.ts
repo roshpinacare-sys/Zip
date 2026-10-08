@@ -158,19 +158,60 @@ interface HistoryScan {
  * סריקה על-גבי deepScanChain של הרשת: עימוד chain-aware (Steem 100,
  * Hive 1,000 — נמדד חי ב-R51), התקדמות עד תקציב-הרשומות.
  */
-async function scanChain(hash: string, chain: "steem" | "hive" = "steem", entries = 2000): Promise<HistoryScan> {
-  const deep = await deepScanChain(chain, { entries });
+async function scanChain(
+  hash: string,
+  chain: "steem" | "hive" = "steem",
+  entries = 2000,
+  fresh = false,
+  priorTxids?: Map<number, string>
+): Promise<HistoryScan> {
+  // r213 — fresh: השופט-חי (אימות-נחיתה ורצף-פתיחה תמיד סורקים בפועל)
+  const deep = await deepScanChain(chain, { entries, fresh });
   const entry = deep.byHash.get(hash);
+  const rawChunkMap = entry ? entry.chunks : new Map<number, ChainChunkRaw>();
+  // r213 — שופט-עובר-חורים: אינדקס account_history חסר-רשומות בצמתים (נמדד-חי:
+  // צ'אנק-1 מ-24/9 חי בבלוק-לוג ונעדר מהאינדקס של שני-הצמתים). צ'אנק עם txid
+  // מוקלט שחסר בסריקה — נשפט ישירות מהבלוק-לוג (get_transaction = הרשות).
+  if (priorTxids) {
+    for (const [i, txid] of priorTxids) {
+      if (rawChunkMap.has(i)) continue;
+      try {
+        const tx = await getTransaction(txid);
+        const op = tx?.operations?.[0] as unknown;
+        const val = (Array.isArray(op) ? op[1] : ((op as Record<string, unknown>)?.value ?? (op as unknown[])?.[1])) as
+          { id?: string; json?: string } | undefined;
+        if (val?.id !== WEB_CHUNK_OP_ID) continue;
+        const pl = JSON.parse(String(val.json || "{}")) as { h?: string; i?: number; d?: string };
+        if (pl.h === hash && pl.i === i && typeof pl.d === "string") {
+          rawChunkMap.set(i, { i, d: pl.d, chars: pl.d.length, txid, block: tx?.block });
+        }
+      } catch { /* שיפוט-בלוק-לוג הוא קריאת-רשת — כשל לא מפיל את הסריקה */ }
+    }
+  }
   return {
     manifestOp: entry?.manifest?.block
       ? { block: entry.manifest.block, txid: entry.manifest.txid }
       : null,
-    chunks: entry
-      ? [...entry.chunks.values()].sort((a, b) => a.i - b.i).map((c) => ({ i: c.i, chars: c.chars, block: c.block, txid: c.txid }))
-      : [],
-    rawChunkMap: entry ? entry.chunks : new Map<number, ChainChunkRaw>(),
+    chunks: [...rawChunkMap.values()].sort((a, b) => a.i - b.i).map((c) => ({ i: c.i, chars: c.chars, block: c.block, txid: c.txid })),
+    rawChunkMap,
     scan: deep.meta,
   };
+}
+
+/**
+ * r213 — קריאת-בלוק-לוג לפי txid (עם סבב-צמתים) — שופט-נחיתה עובר-חורים.
+ */
+async function getTransaction(txid: string): Promise<{ block?: number; operations?: Array<unknown> } | null> {
+  let lastErr: unknown = null;
+  for (const node of STEEM_RPC_NODES) {
+    try {
+      return await rpcV4<{ block?: number; operations?: Array<unknown> }>(node, "condenser_api.get_transaction", [txid], 20_000);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  if (lastErr) throw lastErr;
+  return null;
 }
 
 // ── שידור עם שער-RC לומד ─────────────────────────────────────────────
@@ -372,8 +413,9 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
   // רענון שדות המשימה
   rec.inboxJob = job;
 
-  const chain = await scanChain(hash, "steem");
-  const chainHive = await scanChain(hash, "hive");
+  const priorStart = new Map((rec.chain.chunks ?? []).filter((c) => c.txid).map((c) => [c.i, c.txid as string]));
+  const chain = await scanChain(hash, "steem", 2000, true, priorStart);
+  const chainHive = await scanChain(hash, "hive", 2000, true);
   const prefix0 = contiguousPrefix([...chain.rawChunkMap.values()].map((c) => ({ i: c.i, chars: c.chars })));
   const sealed = chain.manifestOp || chainHive.manifestOp;
   log(
@@ -402,8 +444,8 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
     let ok = false;
     for (let t = 0; t < 6 && !ok; t++) {
       await sleep(4000);
-      const againS = await scanChain(hash, "steem", 600);
-      const againH = await scanChain(hash, "hive", 600);
+      const againS = await scanChain(hash, "steem", 600, true);
+      const againH = await scanChain(hash, "hive", 600, true);
       const found = againS.manifestOp || againH.manifestOp;
       if (found) {
         rec.chain.manifestOp = found;
@@ -468,8 +510,8 @@ async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "
   }
 
   // 3. שלמות? (צ׳אנקים חיים על Steem בלבד — הנתיב הזול לבייט)
-  const finalScan = await scanChain(hash, "steem");
-  const finalHive = await scanChain(hash, "hive");
+  const finalScan = await scanChain(hash, "steem", 2000, true, priorStart);
+  const finalHive = await scanChain(hash, "hive", 2000, true);
   const finalPrefix = contiguousPrefix([...finalScan.rawChunkMap.values()].map((c) => ({ i: c.i, chars: c.chars })));
   const finalChars = finalPrefix.chars;
   rec.chain.chunks = finalScan.chunks;
