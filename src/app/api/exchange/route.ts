@@ -17,6 +17,7 @@ import {
   type ExchangeAsset,
 } from "@/lib/weave/sovereign-exchange";
 import { operatorFromRequest } from "@/lib/operator-auth";
+import { scholarshipPay } from "@/lib/weave/sovereign-scholarship";
 import { saosLiveRegisterWallet, saosAddressOf, foldLiveState, treasuryIdentity } from "@/lib/weave/saos-rail";
 
 export const dynamic = "force-dynamic";
@@ -121,6 +122,13 @@ export async function POST(req: NextRequest) {
       case "deposit-scan": {
         const r = await depositScan();
         return NextResponse.json({ ...r, at });
+      }
+      case "scholarship-pay": {
+        // Task 12 — מלגות-האוצר האוטונומיות: top-3 שבועי ב-SAOS פנימי מהאוצרה.
+        // חוק-אוטונומיה: אין-צורך-בסשן — התקרות (250/150/100 SAOS) + האידמפוטנציה
+        // השבועית + היעדר-שידור-חיצוני נאכפים בשרת. אפשר-להפעיל-מקצב-או-ידנית.
+        const s = await scholarshipPay();
+        return NextResponse.json({ ...s, at }, { status: s.ok ? 200 : 409 });
       }
       case "reward-pay": {
         // R108 — רייל-התגמול לצי: חברי-הצי מוגדרים עם תקרות-יום

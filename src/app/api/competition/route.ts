@@ -21,6 +21,12 @@ export async function GET() {
     const state = JSON.parse(stateRaw);
     const registry = JSON.parse(registryRaw);
     const serveMs = Date.now() - t0;
+    // Task 12 — מלגות-האוצר האוטונומיות: קריאת-ה-ledger (5-האחרונות) — כנות מלאה
+    let scholarships: Array<Record<string, unknown>> = [];
+    try {
+      const ledgerRaw = await readFile(path.join(dir, "rewards-ledger.jsonl"), "utf8");
+      scholarships = ledgerRaw.split("\n").filter(Boolean).slice(-5).map((l) => JSON.parse(l));
+    } catch { /* אין-מלגות-עדיין — כנה וריק */ }
     return NextResponse.json(
       {
         ok: true,
@@ -36,6 +42,7 @@ export async function GET() {
         leaderboard: state.leaderboard ?? [],
         roster: registry.roster ?? [],
         rewards: registry.rewards ?? null,
+        scholarships,
       },
       { headers: { "X-SAOS-Serve-Ms": String(serveMs) } }
     );

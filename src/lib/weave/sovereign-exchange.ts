@@ -69,7 +69,7 @@ async function lastEvent(): Promise<ChainedEvent | null> {
   return r ? { seq: r.seq, kind: r.kind, member: r.member, payload: r.payload, prevHash: r.prevHash, hash: r.hash } : null;
 }
 
-async function chainEvent(kind: string, member: string, payload: Record<string, unknown>, usdValue: number | null): Promise<ChainedEvent> {
+export async function chainEvent(kind: string, member: string, payload: Record<string, unknown>, usdValue: number | null): Promise<ChainedEvent> {
   const prev = await lastEvent();
   const seq = (prev?.seq ?? 0) + 1;
   const canonical = JSON.stringify(payload);
@@ -164,7 +164,7 @@ async function writeBalances(member: string, b: Balances): Promise<void> {
   });
 }
 
-async function adjust(member: string, asset: ExchangeAsset, delta: number): Promise<number> {
+export async function adjust(member: string, asset: ExchangeAsset, delta: number): Promise<number> {
   const b = await readBalances(member);
   const next = Math.round(((b[asset] ?? 0) + delta) * 1e9) / 1e9; // דיוק נאיבי של µ
   if (next < -1e-9) throw new Error(`INSUFFICIENT: ל-${member} אין מספיק ${asset}`);
@@ -1139,7 +1139,7 @@ export async function withdraw(params: {
 // ── רייל-התגמול: עבודה → מטבע → נזילות (R103) ─────────────────────────
 
 /** מחיר SAOS חי מהבריכה שלנו — השוק הפנימי הוא המקור */
-async function saosUsdPrice(): Promise<number | null> {
+export async function saosUsdPrice(): Promise<number | null> {
   const pool = await db.exchangePool.findUnique({ where: { pair: "SAOS/USDS" } });
   if (!pool || pool.reserveA <= 0) return null;
   return pool.reserveB / pool.reserveA;

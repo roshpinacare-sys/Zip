@@ -23,6 +23,15 @@ interface LeaderRow {
   hive: { hp: number; earned: number; pend: number; hist?: { ok?: boolean; posts?: number; votes?: number } } | null;
 }
 
+interface ScholarshipDTO {
+  at?: string;
+  kind?: string;
+  week?: string;
+  total?: number;
+  issuedBy?: string;
+  payouts?: Array<{ member: string; agent: string; rank: number; amount: number }>;
+}
+
 interface CompetitionDTO {
   ok: boolean;
   error?: string;
@@ -34,6 +43,7 @@ interface CompetitionDTO {
   leaderboard?: LeaderRow[];
   history?: Array<{ epoch: string; top3: Array<{ account: string; points: number }> }>;
   law?: string;
+  scholarships?: ScholarshipDTO[];
 }
 
 const rankBadge = (rank: number) => {
@@ -66,6 +76,7 @@ export function CompetitionBoard() {
   }, [load]);
 
   const board = data?.leaderboard ?? [];
+  const lastScholarship = data?.scholarships?.[data.scholarships.length - 1];
 
   return (
     <section className="mb-8" aria-label="תחרות הסוכנים">
@@ -80,8 +91,8 @@ export function CompetitionBoard() {
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             הניקוד נגזר מרווחים on-chain מדודים בלבד (פרסי-יוצר ×10 · פרסי-אוצרה ×5 · פוסט ×10 · הצבעה ×1 ·
-            תגמולים-שנפדו ×100). אפס ניקוד-מומצא. תגמול-האוצר השבועי ל-3 המובילים מוקצה בספר-הפרסים ומשולם
-            דרך שער-המפעיל.
+            תגמולים-שנפדו ×100). אפס ניקוד-מומצא. מלגת-האוצר השבועית (SAOS פנימי) משולמת אוטונומית ל-3 המובילים;
+            תגמולים-חיצוניים בלבד עוברים דרך שער-המפעיל.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -101,6 +112,21 @@ export function CompetitionBoard() {
           </Button>
         </div>
       </div>
+      {lastScholarship?.payouts?.length ? (
+        <Card className="mb-3 border-emerald-500/30 bg-emerald-500/5">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                מלגת-אוצר אוטונומית · {lastScholarship.week} · {lastScholarship.total} SAOS
+              </span>
+              <span className="text-muted-foreground">(מטבע-פנימי · תקרות-קשיחות · hash-chained · אפס-שער-חיצוני)</span>
+              <span className="tabular-nums">
+                {lastScholarship.payouts.map((p) => `#${p.rank} ${p.member} ${p.amount}`).join(" · ")}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardContent className="p-0">

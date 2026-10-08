@@ -132,11 +132,27 @@ async function reviveDaemon(svc, state) {
   return "REVIVED";
 }
 
-// ─── ריפוי-קונסולה ───────────────────────────────────────────────────────────
+// ─── ריפוי-קונסולה (דוקטרינת-הקצה: :3000 = גשר-התצוגה בתוך תהליך-ה-DEX) ──
+// נמדד (Task 12-אודיט): :3000 אינו next-dev של my-project — הוא preview-bridge
+// שנקשר בתוך תהליך ה-DEX החי (saos-dex/src/lib/dex/preview-bridge.ts) ומנתב
+// /saos-dex→3010 · rest→3050. השגרת bun-run-dev של my-project על :3000 הייתה
+// מצלילה את הגשר. הריפוי הנכון: לחתור ל-/api/revive של ה-DEX (וו-ההחיה הרשמי
+// שמשגר משושלת-ההישרדות), ואם ה-DEX מת — השגרת-DEX טרייה שמקשרת-מחדש את
+// הגשר-על-:3000 כשהפורט-פנוי.
 async function reviveConsole(state) {
-  spawnDetached("console-3000", [bunBin, "run", "dev"], { cwd: MP });
-  state.revives["console-3000"] = (state.revives["console-3000"] ?? 0) + 1;
-  return "REVIVED";
+  if (await httpOk(SPECIAL.dex.port, SPECIAL.dex.paths)) {
+    // ה-DEX חי — לחיצה-על-הוו-הרשמי שלו (משגר-משושלת-ההישרדות)
+    try {
+      const r = await fetch(`http://127.0.0.1:${SPECIAL.dex.port}/api/revive`, { signal: AbortSignal.timeout(8000) });
+      log(`  ↑ dex /api/revive → HTTP ${r.status}`);
+    } catch (e) { log(`  ⚠ dex /api/revive נכשל: ${String(e?.message ?? e).slice(0, 80)}`); }
+    state.revives["edge-console"] = (state.revives["edge-console"] ?? 0) + 1;
+    return "REVIVED-VIA-DEX-HOOK";
+  }
+  // DEX מת — השגרה טרייה: הוא מקשר גם :3010 וגם את הגשר-על-:3000 (אם-פנוי)
+  spawnDetached("dex-3010", [bunBin, "--bun", "node_modules/next/dist/bin/next", "start", "-p", "3010", "-H", "127.0.0.1"], { cwd: `${MP}/saos-dex` });
+  state.revives["edge-dex"] = (state.revives["edge-dex"] ?? 0) + 1;
+  return "REVIVED-FRESH-DEX";
 }
 
 // ─── cadence (pgrep → השגרה מהעותק-שבגיט) ──────────────────────────────────
@@ -174,21 +190,31 @@ async function round() {
     if (!ONCE) actions.push(`${svc.name}:${await reviveDaemon(svc, state)}`);
     else actions.push(`${svc.name}:WOULD-REVIVE`);
   }
-  // dex (:3010)
+  // dex (:3010) — התהליך-הזה מארח-גם-את-גשר-:3000 — אסור-להרוג-פורט-נעול!
   if (!(await httpOk(SPECIAL.dex.port, SPECIAL.dex.paths))) {
-    log(`✗ dex :3010 לא-עונה — משגר next start`);
-    if (!ONCE) {
-      if (await tcpAlive(SPECIAL.dex.port)) await killPort(SPECIAL.dex.port);
-      spawnDetached("dex-3010", [bunBin, "--bun", "node_modules/next/dist/bin/next", "start", "-p", "3010", "-H", "127.0.0.1"], { cwd: `${MP}/saos-dex` });
-      state.revives["dex"] = (state.revives["dex"] ?? 0) + 1;
-      actions.push("dex:REVIVED");
-    } else actions.push("dex:WOULD-REVIVE");
+    if (await tcpAlive(SPECIAL.dex.port)) {
+      log(`⚠ dex :3010 נעול (TCP-בלי-HTTP) — לא-נוגעים: התהליך מארח-את-גשר-:3000; מדווח-בכנות`);
+      actions.push("dex:WEDGED-COHOST");
+    } else {
+      const buildId = `${MP}/saos-dex/.next/BUILD_ID`;
+      if (!fs.existsSync(buildId)) {
+        log(`✗ dex :3010 מת ו-.next/BUILD_ID חסר — BUILD-MISSING (הריבייב-המלא-יבנה)`);
+        actions.push("dex:BUILD-MISSING");
+      } else {
+        log(`✗ dex :3010 מת — משגר next start`);
+        if (!ONCE) {
+          spawnDetached("dex-3010", [bunBin, "--bun", "node_modules/next/dist/bin/next", "start", "-p", "3010", "-H", "127.0.0.1"], { cwd: `${MP}/saos-dex` });
+          state.revives["dex"] = (state.revives["dex"] ?? 0) + 1;
+          actions.push("dex:REVIVED");
+        } else actions.push("dex:WOULD-REVIVE");
+      }
+    }
   }
-  // קונסולה (:3000)
+  // קונסולה (:3000) — הגשר מארח-בתוך-ה-DEX: אסור-להרוג-פורט-נעול-כאן!
   if (!(await httpOk(CONSOLE.port, ["/api/health", "/"]))) {
-    if (await tcpAlive(CONSOLE.port)) { if (!ONCE) await killPort(CONSOLE.port); log(`⚠ קונסולה-נעולה`); }
-    else log(`✗ קונסולה :3000 מתה — משגר-מחדש`);
-    if (!ONCE) { await reviveConsole(state); actions.push("console:REVIVED"); }
+    if (await tcpAlive(CONSOLE.port)) log(`⚠ קונסולה :3000 נעולה (TCP-בלי-HTTP) — לא-נוגעים (גשר-מארח-דקס); מדווח-בכנות`);
+    else log(`✗ קונסולה :3000 מתה — ריפוי-לפי-דוקטרינת-הקצה`);
+    if (!ONCE) { const how = await reviveConsole(state); actions.push(`console:${how}`); }
     else actions.push("console:WOULD-REVIVE");
   }
   // cadence-daemon
