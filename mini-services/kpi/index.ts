@@ -321,9 +321,24 @@ async function measure(): Promise<Measurement> {
   }
   state.lastCi = { id: ciProof.id, conclusion: ciProof.conclusion, createdAt: ciProof.createdAt };
 
+  // r213 — נרמול-צורה: /api/mission העביר measured/capital/triggers/fleet לרמה-העליונה;
+  // קוראי-ה-KPI נשארו על הצורה-המקוננת הישנה ⇒ mission.measured=null ⇒ revenue 0 תמידי
+  // (המספרים האמיתיים: daysRecorded=12 · capitalUsd=55.05 — נמדדו-חי). נרמול-פעם-אחת:
+  // כל-הבלוקים נגישים בשתי-הצורות, ה-ok העליון נשמר.
+  const mRaw = mission.json ?? {};
+  const mNested = (mRaw as any).mission ?? {};
+  const mShape = {
+    ...(mRaw as any),
+    ...(mNested as any),
+    measured: (mRaw as any).measured ?? mNested.measured ?? null,
+    capital: (mRaw as any).capital ?? mNested.capital ?? null,
+    triggers: (mRaw as any).triggers ?? mNested.triggers ?? null,
+    fleet: (mRaw as any).fleet ?? mNested.fleet ?? null,
+  };
+
   return {
     at: new Date().toISOString(),
-    mission: mission.json,
+    mission: mShape,
     health: health.json,
     grid: grid.json,
     ci: ciProof,

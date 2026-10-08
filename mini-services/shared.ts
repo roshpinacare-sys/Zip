@@ -137,3 +137,21 @@ export function installDeadManWatch(o: DeadManOptions): ReturnType<typeof setInt
   G[key] = timer;
   return timer;
 }
+
+// ── N) קריאת-PAT — הקורא-הקנוני של הצי (r213, נתפס-חי) ──────────────
+// upload/pat.env נושא 4 מפתחות (PAT/ZIP_PAT/WEAVE_OPS_PAT/GITHUB_TOKEN).
+// קריאת-הקובץ-כולו כטוקן הזריקה \n לכותרת-Authorization ⇒ TypeError בכל-fetch ⇒
+// כל-הדחיפות-לענן נכשלות בשקט (נתפס-חי: money-canonLast · kpi-pushes).
+// החוק: נכתב/שורה PAT= · ערך-גולמי ללא רווח · מינימום 40 תווים · אפס-המצאה.
+export function readFleetPat(envFile = "/home/z/my-project/upload/pat.env"): string | null {
+  try {
+    const line = fs
+      .readFileSync(envFile, "utf8")
+      .split(/\r?\n/)
+      .find((l: string) => l.startsWith("PAT="));
+    const t = line ? line.slice(4).trim() : "";
+    return /^\S{40,}$/.test(t) ? t : null;
+  } catch {
+    return null;
+  }
+}

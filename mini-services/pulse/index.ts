@@ -15,6 +15,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
+import { readFleetPat } from "./shared";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
@@ -243,13 +244,9 @@ function secretsGate(text: string): { ok: boolean; reason?: string } {
   return { ok: true };
 }
 
+// r213 — מקור-אחד: הקורא-הקנוני של הצי (shared.ts) — קריאת-שורה PAT= (הקובץ נושא 4 מפתחות)
 function readPat(): string | null {
-  try {
-    const t = fs.readFileSync(`${HOME}/upload/pat.env`, "utf8").trim();
-    return t.length > 20 ? t : null;
-  } catch {
-    return null;
-  }
+  return readFleetPat(`${HOME}/upload/pat.env`);
 }
 
 async function canonPush(path: string, content: string): Promise<boolean> {

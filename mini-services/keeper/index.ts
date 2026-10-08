@@ -53,6 +53,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
+import { readFleetPat } from "./shared";
 import os from "node:os";
 import { readGate } from "../autonomy";
 
@@ -409,13 +410,9 @@ function secretsGate(text: string): { ok: boolean; reason?: string } {
   return { ok: true };
 }
 
+// r213 — מקור-אחד: הקורא-הקנוני של הצי (shared.ts) — קריאת-שורה PAT= (הקובץ נושא 4 מפתחות)
 function readPat(): string | null {
-  try {
-    const t = fs.readFileSync(`${HOME}/upload/pat.env`, "utf8").trim();
-    return t.length > 20 ? t : null;
-  } catch {
-    return null;
-  }
+  return readFleetPat(`${HOME}/upload/pat.env`);
 }
 
 // ── r188 · פיקוח-הגוף: משמעת-דיסק + gitleaks-מקומי-מתוזמן ──────────────
