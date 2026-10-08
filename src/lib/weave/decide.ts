@@ -24,6 +24,8 @@ import { readGate } from "@/lib/autonomy-law";
 import { composeIncome, writeIncomeDay } from "@/lib/weave/income";
 import { scholarshipPay } from "@/lib/weave/sovereign-scholarship";
 import { runFeeMeter, type FeeMeterRun } from "@/lib/weave/fee-meter";
+import { zeroReadiness } from "@/lib/weave/zero";
+import { heartbeatLiveness, type HeartbeatLiveness } from "@/lib/weave/heartbeat";
 
 const MP = "/home/z/my-project";
 const ZIP = `${MP}/zip`;
@@ -141,6 +143,38 @@ function candidateFeeMeter(run: FeeMeterRun | null): DecideLine {
   return { id: "fee-meter", kind: "economy", verdict: "DEFER", detailHe: run.noteHe };
 }
 
+function candidateZeroRail(zr: Awaited<ReturnType<typeof zeroReadiness>> | null): DecideLine {
+  // Task 18 — קו-ZERO במוח: כל שעה מדידה חיה של התכונה-הריבונית (gasPrice=0).
+  // אם-הרשת תשנה כלל — ALERT (שינוי-תכונה, לא כשל-רשת). אם-הרשת לא נגישה —
+  // DEFER כנה. אפס-המצאה.
+  if (!zr) {
+    return { id: "zero-rail", kind: "fleet", verdict: "DEFER", detailHe: "קו-ZERO לא נמדד — כשל-רשת (כנות, לא אפס-מומצא)" };
+  }
+  if (zr.ok && zr.zeroGasConfirmed) {
+    return { id: "zero-rail", kind: "fleet", verdict: "EXECUTED-NOOP", detailHe: `שער-האפס פתוח (מדוד): gasPrice 0 בבלוק ${zr.blockNumber} · ${zr.endpoint}` };
+  }
+  if (zr.ok && !zr.zeroGasConfirmed) {
+    return { id: "zero-rail", kind: "fleet", verdict: "ALERT", detailHe: `${zr.verdict}` };
+  }
+  return { id: "zero-rail", kind: "fleet", verdict: "DEFER", detailHe: `${zr.verdict}` };
+}
+
+function candidateHeartbeat(lv: HeartbeatLiveness | null): DecideLine {
+  // Task 18 — מסילת-הלב במוח: הפורנזיקה גילתה שהעוגנים מורעבים-גז מאז
+  // 2026-09-12. מעכשיו כל שעה: מדידה חיה מהמייננט. STARVED/STALE ⇒ QUEUE
+  // (חוק-פיצול-המטבע: הזרמת-גז = כסף-חיצוני = רק-המפעיל). ALIVE ⇒ רישום.
+  if (!lv || !lv.ok) {
+    return { id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: lv?.noteHe ?? "סורק-הלב לא נמדד" };
+  }
+  if (lv.verdict === "ALIVE") {
+    return { id: "heartbeat", kind: "fleet", verdict: "EXECUTED-NOOP", detailHe: lv.noteHe };
+  }
+  if (lv.verdict === "STARVED" || lv.verdict === "STALE") {
+    return { id: "heartbeat", kind: "fleet", verdict: "QUEUE", detailHe: `${lv.noteHe} · זהות ${lv.identityCensored} · בסל h${lv.baselineHeight}` };
+  }
+  return { id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: lv.noteHe };
+}
+
 function candidateWatchdog(): DecideLine {
   const st = readJson(WATCHDOG_STATE) as { revives?: Record<string, number>; lastRound?: string } | null;
   if (!st) return { id: "watchdog", kind: "fleet", verdict: "DEFER", detailHe: "מצב-השומר לא נקרא" };
@@ -212,11 +246,30 @@ export async function runDecide(opts: { execute?: boolean } = {}): Promise<Decid
     verdicts.push({ id: "fee-meter", kind: "economy", verdict: "DEFER", detailHe: `מונה-העמלות נכשל: ${String((e as Error)?.message ?? e).slice(0, 120)}` });
   }
 
+  // 3.7) מסילות-פיזיקה — קו-ZERO + לב-המייננט (מדידה אחת לכל אחד, fail-soft:
+  //      כשל-רשת לא מפיל את ההכרעות — נרשם כנה)
+  let zeroStatus: Awaited<ReturnType<typeof zeroReadiness>> | null = null;
+  try {
+    zeroStatus = await zeroReadiness();
+  } catch (e) {
+    zeroStatus = null;
+    verdicts.push({ id: "zero-rail", kind: "fleet", verdict: "DEFER", detailHe: `קריאת-ZERO נכשלה: ${String((e as Error)?.message ?? e).slice(0, 100)}` });
+  }
+  let hb: HeartbeatLiveness | null = null;
+  try {
+    hb = await heartbeatLiveness();
+  } catch (e) {
+    hb = null;
+    verdicts.push({ id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: `סריקת-הלב נכשלה: ${String((e as Error)?.message ?? e).slice(0, 100)}` });
+  }
+
   // 4) מועמדויות-חוק וראייה
   verdicts.push(candidateIncomeGap(incomeReport));
   verdicts.push(candidateHeldLane());
   verdicts.push(candidateWatchdog());
   if (feeRun) verdicts.push(candidateFeeMeter(feeRun));
+  verdicts.push(candidateZeroRail(zeroStatus));
+  verdicts.push(candidateHeartbeat(hb));
 
   // 5) רישום hash-chained
   const prev = readJsonl(RUNS_FILE);
