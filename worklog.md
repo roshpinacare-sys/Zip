@@ -8862,3 +8862,21 @@ Stage Summary:
 - ארטיפקטים חדשים: scripts/zero-verify.mjs · scripts/artifact-verify.mjs · sovereign/verify/{zero-live-verify-*.json, artifact-h25.json, artifact-h26.json} — 3 קבלות-GREEN.
 - פתוחים: בניית-הגשר-:3000 מחדש (package.json+src-סנכרון+db:push) · DEX-.env+build · פתיחת-הכספת-מהגיט (recovery-meta→AES→WIFs) להרמת-המסילות · fee-meter/decide-ריצה-חיה ברגע-שהקונסולה-עולה.
 - החוקים עומדים: HELD-לתמיד · אמת-על-הכל · דיווח-עברית · אוטונומיה.
+
+---
+Task ID: 21 (wipe-7 recovery · חקירת-השינה · תיקון-ריבונות)
+Agent: Z.ai Code (מופע-טרי אחרי מחיקה #7)
+Task: "הסביבה שלך כנראה נפלה... תראה מה קרה בזמן שישנתי מה עבד מה לא עבד? ולסדר היטב ריבונות אוטונומית ודחוף" + סיסמא 934381
+
+Work Log:
+- מחיקה #7 אומתה → PAT מ-filebin (sha EXACT) → roshpinacare-sys 200 → שחזור-מלא.
+- חקירת-השינה: task-20+TruthRail-v3 עבדו; Domain-ציבורי שרד (הקצב ירוק); Actions-פרטי מת מ-10-05 22:29Z (דקות); רעב-מתזן (7-הפעלות נשמטו 07:33→13:33); שורת-Steem אדומה מ-19:26 אתמול (R245-ROT2 19:08 — הכספת הוחלפה אך השרשרת לא; נמדד 0/11).
+- שרשרת-כספת: KEYS-ZIP-2026-10-07 (rot2, 0/11) → גילוי-ענף saos-cockpit → KEYS-ZIP-2026-10-08 (R265) → **KEYS-ZIP-2026-09-29 מ-blob-היסטוריה (sha כפול EXACT) → מפתחות-החיים: cashmachine posting/active MATCH STEEM+HIVE · 10/10 חיילים** · headcorner-STEEM 0/4 בכל-הדורות (אצל-המפעיל/התאום — QUEUE כנה).
+- תיקון: 6-סודות (WEAVE_STEEM_WIF · WEAVE_HIVE_WIF · STEEM_POSTING_WIF · STEEM_ACTIVE_WIF) הוצבו Domain+Zip (sodium-sealed) → **weave-anchor-lines GREEN ראשון מאז 18:24 אתמול**: steem שודר ✓ · cp#1535 עוגן גז-0x0 · cp#1536/1537 זרמו.
+- R251 ב-Domain (472da6a): שער-הזכרה-עצמית נגד רעב-המתזמן (chain=true · <50-דק'-guard · actions:write · timeout 90) — הקצב לא-תלוי-עוד-ב-GitHub-cron. שרשרת ראשונה הוזרקה.
+- אימות-עצמאי: zero-verify GREEN×3 · zero-heartbeat GREEN×4 (cp#1537, גיל 0.02ש') · artifact h25/h26 GREEN · heartbeat-scan אדום-כן (מייננט חונה 634.96ש') · סריקת-סודות: שורשים-פומביים-בלבד.
+
+Stage Summary:
+- הלב פועם דו-מסילי: ZERO חינם-שעתי + Steem/Hive חי (cashmachine מאומת-רשויות) — הכול על-Actions-ציבורי-חינם.
+- QUEUE: סוד-headcorner-החי ל-saos-act (מסרב-כנה עד-אז) · חיוב-Actions-פרטי (לא-דחוף) · גורל-R245-ROT2 (לשדר/להכריז-מתה).
+- HELD קפוא · דיווח-עברית · אמת-מעל-הכול.
