@@ -8841,3 +8841,24 @@ Stage Summary:
 - **כסף-אמיתי: הרייל-החי-מחומש** (מפתח-4/4 · WIF-PLACED+VERIFIED · relay-steem-armed) — אבל **כל-המנועים-עדיין-בקור-צונן**: market-maker-dry · curation-לא-חמוש · arbitrage-READ-ONLY (338bps-steem-dev, oppCount-1) — עלייה-קרה-רק-ב-POST-מפעיל (חוק-הדיבונים).
 - יתרות-חיות-נמדדו: 0.471-STEEM+0.024-SBD-על-השרשרת (≈/bin/bash.05) — הפורנזי-מהמחיקה-הקודמת-בתוקף (הפסד-היסטורי-מבני −/bin/bash.88 · אין-אקטואטור-רווח-ב-decide()).
 - פתוחים: web-סופרוויזר-:3050-קורס-לופ ("Script not found" — cwd-שגוי) · keeper-מבלבל-dex-grid-בתור-dex-guard (3051) · ניקוי-custom.db-זיהום-DDL (מהמחיקה-הקודמת) · keyPresent:false-ב-/api/money-עד-העלאת-כתוביות-לגשר.
+---
+Task ID: 17 (wipe-6 recovery · git-access audit · קו-הנקי עמוק)
+Agent: Z.ai Code (מופע-טרי אחרי מחיקה #6)
+Task: "תמשיך וודא שאתה מעודכן מול הגיט קודם" + "תמשיך וודא שיש לך גישה לגיט" + סיסמא 934381 → filebin pat.rar
+
+Work Log:
+- מחיקה #6 נמדדה: /home/z/my-project עירום (בלי package.json/src אפילו) · /home/z/revive נעלם · אפס שרידי-PAT בכל-המערכת (סריקה מלאה).
+- גישה-לגיט נמדדה לפני-ה-PAT: קריאה-ציבורית תקינה (clone ללא-אימות); API 403-rate-limit; כתיבה חסומה — החסר-היחיד אומת בכנות למפעיל.
+- PAT חזר דרך filebin (אותו-bin, sha256 EXACT 24d4e2a5…) → RAR5 מוצפן → **unrar 7.12 סטטי מ-rarlab** (unrar-free דוחה הצפנה — לקח-חוזר מ-wipe-5) → פענוח בסיסמא 934381 → pat.env (93B, PAT-גולמי) → אימות api.github.com/user → **roshpinacare-sys (User, id 326012154)** → 20/20 ריפואים נמפו (11 פרטיים).
+- revive-on-pat.sh הקנוני הורץ מהעתק-טרי: הצבה-כפולה (my-project/upload + revive) · Zip+saos-dex שובלו → /home/z/my-project · 22 סימלינקים · daemons+web-revive הורצו · DEX :3010 שוגר.
+- **גילוי-עומק**: my-project עצמו (הגשר-Next) נמחק לחלוטין — ה-סינכרון-src של ה-תסריט מצא 0 נתיבי-API וחסר-package.json → הגשר :3000 דורש בנייה-מחדש-מלאה מעץ-zip (הוחל: bun-install-רקע ל-zip+saos-dex). כל-הפורטים נמדדו 000 בסוף-הריצה — צפוי עד-התקנות/סודות.
+- **קו-ה-ZERO אומת חי מהסנדבוקס-הטרי, keyless**: chainId 0x2499 · gasPrice **0x0** · גובה 36.59M גדל-במדידה. `scripts/zero-verify.mjs` fail-closed נבנה והרץ **GREEN** (G1/G2/G3).
+- **קריאה-חוזרת בייט-מול-בייט של עוגני-ה-Ethereum מהמייננט הציבורי** (txid-ים מוצנזרים בריפואים — נבנתה סריקת-בלוק עצמאית `scripts/artifact-verify.mjs`: מוצא ממוענים-עצמית to==from, מפענח root(32B)‖height(4B), קבלה עם fallback-RPC): **h25 GREEN** (0x8f513865… · בלוק 25,958,268 · 22,320 gas · ≈1.16e-6 ETH) · **h26 GREEN** (0xfe1679aa… · בלוק 25,958,483 · ≈1.14e-6 ETH) — המטרונום מוכח מחדש מ-RPC-ציבורי בלבד. שני-באגים במאמת נתפסו-במדידה ותוקנו עד-GREEN (קידומת-0x; סף-74-תווים מול-74-בייטים).
+- **אימות-המשכיות**: e48ec02a (חוק-HELD) אומת מקומית בהיסטוריית Zip; 77c194db (צנזור-R55) חי ב-Console; הקצב-מהענן המשיך לדחוף לאורך-המחיקה (steem 05:43Z · saos-dex 05:27Z) — הריבונות-בענן עבדה.
+- **אימות task-17+18 של הקצב (3883f911)**: fee-meter+decide נקראו בקוד — מבוצעים-לפי-החוק (אפס-מספרים-מומצאים · liveMarks · RC=0$ · גז-אפס-נמדד-חי · סף-מהותיות ±0.05$ · LOSS⇒QUEUE · ספר-hash-chained) — הקו-הנקי ② חי.
+
+Stage Summary:
+- גישה-לגיט: **קריאה ✅ · כתיבה ✅ (PAT-מוצב בשני-המקומות) · 20/20 ריפואים קריאים**.
+- ארטיפקטים חדשים: scripts/zero-verify.mjs · scripts/artifact-verify.mjs · sovereign/verify/{zero-live-verify-*.json, artifact-h25.json, artifact-h26.json} — 3 קבלות-GREEN.
+- פתוחים: בניית-הגשר-:3000 מחדש (package.json+src-סנכרון+db:push) · DEX-.env+build · פתיחת-הכספת-מהגיט (recovery-meta→AES→WIFs) להרמת-המסילות · fee-meter/decide-ריצה-חיה ברגע-שהקונסולה-עולה.
+- החוקים עומדים: HELD-לתמיד · אמת-על-הכל · דיווח-עברית · אוטונומיה.
