@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import fs from "node:fs";
 import { db } from "@/lib/db";
+import { latestDecideRun, decideHistory } from "@/lib/weave/decide";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +68,11 @@ export async function GET() {
 
     const defers = watchdogState?.lastActions?.filter((a) => /WEDGED|BUILD-MISSING|MISSING/.test(a)) ?? [];
 
+    // Task 17 — פעימת-המוח: הריצה האחרונה של decide() בתוך הפודיום
+    const decide = (() => {
+      try { return { latest: latestDecideRun(), history: decideHistory(5) }; } catch { return { latest: null, history: [] }; }
+    })();
+
     return NextResponse.json({
       ok: true, at,
       law: "פיצול-מטבע: חיצוני=GATED (שער-המפעיל, 100$+) · פנימי=אוטונומי (תקרות-קשיחות בשרת)",
@@ -77,6 +83,7 @@ export async function GET() {
         defers,
       },
       counts: { queued: queued.length, autonomous: autonomous.length, refused24h },
+      decide,
       watchdog: { lastRound: watchdogState?.lastRound ?? null, tail: watchdogTail },
     });
   } catch (e) {

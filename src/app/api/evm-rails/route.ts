@@ -15,6 +15,7 @@
 
 import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
+import fs from "node:fs";
 import path from "path";
 
 export const dynamic = "force-dynamic";
@@ -82,7 +83,6 @@ function readPat(): string | null {
     "/home/z/my-project/upload/pat.env",
   ];
   try {
-    const fs = require("fs") as typeof import("fs");
     for (const p of candidates) {
       try {
         const raw = fs.readFileSync(p, "utf8");

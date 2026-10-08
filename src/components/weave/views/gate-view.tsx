@@ -17,7 +17,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   ArrowLeft,
+  BadgeDollarSign,
   Banknote,
+  BrainCircuit,
   CalendarClock,
   CheckCircle2,
   CircleSlash,
@@ -50,6 +52,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TxGateCard } from "@/components/weave/views/tx-gate-card";
+import { DecideCard } from "@/components/weave/views/decide-card";
+import { FeeMeterCard } from "@/components/weave/views/fee-meter-card";
 import { ActivationDoorCard } from "@/components/weave/views/admin/activation-door-card";
 
 // ── טיפוסי-הבנת-הרגע (משקפים את /api/moment בדיוק) ────────────────
@@ -1329,6 +1333,30 @@ export function GateView() {
           sub="הוראת המפעיל: המערכת פועלת לבד; רק עסקאות באמת גדולות (מעל הסף) ממתינות להחלטת המפעיל. כל הכרעה — עם ערך-USD חי וקבלה."
         >
           <TxGateCard />
+        </GateSection>
+      </motion.div>
+
+      {/* ── decide() — המוח המבצע של האוטונומיה (Task 17) ── */}
+      <motion.div {...fade(3)}>
+        <GateSection
+          id="decide"
+          icon={BrainCircuit}
+          title="decide() — המוח המבצע: כל שעה אוסף, שופט-חוק, מבצע, רושם"
+          sub="פעולות-בטוחות (אידמפוטנטיות, אפס-כסף-חיצוני) מבוצעות לבד; הסלמות עולות לתור שלך; חוק-ההחזקה נאמת בכל שעה. רישום hash-chained."
+        >
+          <DecideCard />
+        </GateSection>
+      </motion.div>
+
+      {/* ── fee-meter — הוכחת-הרווח-העצמי (Task 18) ── */}
+      <motion.div {...fade(3)}>
+        <GateSection
+          id="fee-meter"
+          icon={BadgeDollarSign}
+          title="fee-meter — הכלכלה הנמדדת: הכנסה מול עלות לכל מסילה"
+          sub="ריבונות שאינה מתקיימת כלכלית היא סיסמה: טרנספרים-החוצה = עלות-אמיתית · RC = תקציב-רגנרציה (0$) · קו-ה-ZERO = גז 0x0 (0$). LOSS ⇒ תור-המפעיל."
+        >
+          <FeeMeterCard />
         </GateSection>
       </motion.div>
 

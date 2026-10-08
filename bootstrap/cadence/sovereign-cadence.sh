@@ -22,6 +22,9 @@ cd "$ZIP" && bun scripts/competition-beat.mjs >> "$LOG" 2>&1 || log "competition
 # 1.5) מנוע-הצבעת-החיילים (posting-authority חי; תקציב 4/שרשרת/חייל/יום)
 cd "$ZIP" && bun scripts/soldier-vote-beat.mjs --max 2 >> "$LOG" 2>&1 || log "soldier-vote-beat FAIL"
 
+# 1.7) Task 17 — פעימת-המוח: decide() — החלטות-אוטונומיות + אימות-שערים + רישום-שרשרת
+cd "$ZIP" && bun scripts/decide-beat.ts >> "$LOG" 2>&1 || log "decide-beat FAIL"
+
 # 2) יומי: תחיית-כספת-האתר (השרשרת היא הגיבוי) + מלגות-האוצר (אוטונומי מלא)
 if [ "$MODE" = "daily" ]; then
   cd "$MP" && bun zip/scripts/web-vault-rescan.mjs >> "$LOG" 2>&1 || log "web-vault-rescan FAIL"

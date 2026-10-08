@@ -183,7 +183,9 @@ async function scanHistory(): Promise<{ ops: HistOp[]; pages: number; stopReason
 
 interface Marks { steemUsd: number | null; sbdUsd: number | null; perVestSteem: number | null; marksAgeHe: string }
 
-async function liveMarks(): Promise<Marks> {
+/** Task 18 — מונה-העמלות צריך את אותם שערי-אמת (STEEM/SBD→USD) להמרת
+ *  הוצאה-חיצונית; ייצוא במקום שכפול-מקור (מקור-אמת אחד). */
+export async function liveMarks(): Promise<Marks> {
   let steemUsd: number | null = null;
   let sbdUsd: number | null = null;
   let marksAgeHe = "";
