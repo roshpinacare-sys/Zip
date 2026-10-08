@@ -138,7 +138,9 @@ board.forEach((b, i) => (b.rank = i + 1));
 if (W && state.epoch && state.leaderboard.length) {
   state.history.push({ epoch: state.epoch, top3: state.leaderboard.slice(0, 3).map((b) => ({ account: b.account, agent: b.agent, points: b.points })) });
   if (state.history.length > 90) state.history = state.history.slice(-90);
-  for (const b of state.dayPoints ?? {}) b.pointsCarried = 0;
+  // FIX(task-13-audit): dayPoints הוא אובייקט {account: {...}} — לא מערך;
+  // for..of-על-אובייקט קורס (נמדד: סבב-חצות 00:17 FAIL) — Object.values.
+  for (const b of Object.values(state.dayPoints ?? {})) b.pointsCarried = 0;
 }
 // accumulate day points
 state.dayPoints = state.dayPoints ?? {};

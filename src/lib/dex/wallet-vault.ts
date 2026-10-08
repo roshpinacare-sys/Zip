@@ -251,11 +251,48 @@ export function openVaultWithControlWif(controlWif: string): VaultOpener {
 }
 
 /**
+ * Task 13 · openSoldierVaultKey — מסלול-הגיבוי הריבוני.
+ * כספת-החיילים (nvx/agent/keys/vault.json מהיסטוריית-גיט; נחלצת אוטונומית
+ * ע"י bootstrap/vault-from-history.mjs) מחזיקה WIFs-ישירים לכל-חייל.
+ * המפתחות מוכחים 4/4 דו-שרשרתיים (soldier-vault-verify). הקריאה מסומנת-בכנות
+ * ב-detail עם-מקור-המפתח — אפס-הסתרה, אפס-שינוי-מצב-עולם.
+ */
+function openSoldierVaultKey(chain: VaultChain, account: string, role: string): VaultKeyResult {
+  const vaultFile = process.env.SAOS_SOLDIER_VAULT ?? "/home/z/fleet-tmp/nvx-vault-extracted.json";
+  try {
+    if (!fs.existsSync(vaultFile)) {
+      return { ok: false, detail: `NO-SOLDIER-VAULT: ${vaultFile} נעדר — הרץ bootstrap/vault-from-history.mjs (הכספת חיה בהיסטוריית-הגיט)` };
+    }
+    const vault = JSON.parse(fs.readFileSync(vaultFile, "utf8")) as {
+      accounts?: Array<{ username: string; keys?: Record<string, string> }>;
+    };
+    const acc = vault.accounts?.find((a) => a.username === account);
+    if (!acc) return { ok: false, detail: `NO-SOLDIER: ${account} אינו בכספת-החיילים (${vault.accounts?.length ?? 0} חיילים)` };
+    // hive/blurt = אותם-WIF-גרפניים (המפתחות-סובבו-דו-שרשרתית — נמדד 4/4)
+    // צורת-הכספת: keys[role] = { wif, pub } (נמדד) — עם-נדיבות-למחרוזת-ישירה
+    const entry = acc.keys?.[role];
+    const wif = typeof entry === "string" ? entry : (entry as { wif?: string } | undefined)?.wif;
+    if (!wif) return { ok: false, detail: `NO-ROLE: אין ${role} ל-${account} בכספת-החיילים` };
+    const pub = nodeSteemLib().auth.wifToPublic(wif);
+    return { ok: true, wif, pub, entryPub: pub, detail: `soldier-vault-from-git:${chain}/${account}/${role}` };
+  } catch (e) {
+    return { ok: false, detail: `SOLDIER-VAULT-ERROR: ${String((e as Error).message ?? e).slice(0, 140)}` };
+  }
+}
+
+/**
  * פתיחת רשומת-מפתח מהארנק בנתיב הריבוני.
  * זורם: סיסמת-האב → WIF-ה-active החי של STEEM → חותמת → מפתח-אב → AES-GCM → WIF.
  */
 export function openVaultKey(chain: VaultChain, account: string, role: string): VaultKeyResult {
   try {
+    // 0) Task 13 · מסלול-גיבוי ריבוני: אין-ארנק-מוצפן → כספת-החיילים-מהגיט.
+    //    (הארנק מת עם מחיקת-הסנדבוקס — נמדד: weblift VAULT-REFUSED NO-WALLET-DB;
+    //    דבר-המפעיל: "המפתחות כולם בגיט — האוטונומיה מפעילה את המפתח-הראשי בלעדיו".
+    //    כספת-החיילים נחלצת אוטונומית מהיסטוריית-הגיט: bootstrap/vault-from-history.mjs)
+    if (!fs.existsSync(WALLET_DB)) {
+      return openSoldierVaultKey(chain, account, role);
+    }
     // 1+2) r137 · D-026: מקור-המפתח הדו-מצבי → WIF-השליטה (שורש-המורשת,
     //      מפתח-הפתיחה של החותמת) — קריאה דרך העוזר המשותף
     const src = readOwnerControlWif();
@@ -268,9 +305,6 @@ export function openVaultKey(chain: VaultChain, account: string, role: string): 
     const controlPub = steemLib.auth.wifToPublic(controlWif);
 
     // 3) פתיחת הארנק (קריאה-בלבד)
-    if (!fs.existsSync(WALLET_DB)) {
-      return { ok: false, detail: `NO-WALLET-DB: ${path.basename(WALLET_DB)} לא נמצא — הארנק המוצפן חסר` };
-    }
     const { DatabaseSync } = createRequire(path.join(HOME, "package.json"))("node:sqlite") as {
       DatabaseSync: new (p: string, o?: { readOnly?: boolean }) => {
         prepare(q: string): { get(...a: unknown[]): Record<string, unknown> | undefined };

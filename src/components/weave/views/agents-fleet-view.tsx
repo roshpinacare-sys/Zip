@@ -25,6 +25,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { OfficeLiveStrip } from "@/components/weave/views/office-live-strip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -588,6 +589,7 @@ export function AgentsFleetView() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
+      <OfficeLiveStrip />
       <div className="relative isolate mb-6 flex flex-wrap items-end justify-between gap-3">
         <PageWash className="-inset-x-4 -inset-y-3 rounded-2xl" />
         <div>
