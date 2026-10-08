@@ -53,7 +53,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
-import { readFleetPat } from "./shared";
+import { readFleetPat } from "../shared.ts";
 import os from "node:os";
 import { readGate } from "../autonomy";
 

@@ -26,7 +26,7 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
-import { readFleetPat } from "./shared";
+import { readFleetPat } from "../shared.ts";
 
 // זמן-ריצה של Bun ללא חבילת טיפוסים בפרויקט — הצהרה מקומית נקייה (כמו במפעל-האימות)
 declare const Bun: {
