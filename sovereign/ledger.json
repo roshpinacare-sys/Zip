@@ -1,8 +1,8 @@
 {
   "format": "weave-ledger-v1",
-  "exportedAt": "2026-10-08T20:02:52.867Z",
-  "chainCount": 1602,
-  "headHash": "0x92f89b3e2aef8bb9fb7792d0e4f3ebbe8d5184d9aa571d6c58b81ab25dfc7efa",
+  "exportedAt": "2026-10-08T21:19:28.851Z",
+  "chainCount": 1605,
+  "headHash": "0x3f90bd3a2ed5cb41b4fa37b209f22947b3bda902ec1aaebf9829bd13e465fe2d",
   "agents": [
     {
       "id": "cmu16xzwa001bsqwz1ryi8041",
@@ -24189,6 +24189,51 @@
       "sig": "0x33d514917651face225c4a010c46306fdba5223ed58ad7728c6c713feb9099f50e58d8b1f872d604cd9d18f98cf89ca9046dd2eb8bfd23ad6a4e264dcf3413fe1b",
       "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
       "createdAt": "2026-10-08T20:02:52.777Z"
+    },
+    {
+      "id": "cmv01hft300014cp3ih4l4mdi",
+      "seq": 1603,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "מדידת אקוסיסטם (G6) הונחה בספר: dup=0.2937 - 723 עותקים יתרים מתוך 2462 קבצי-סטטוס שנמדדו (688 קבוצות שכפול) · יעד <0.2 מופר - התראה אדומה חיה בריצת הסריקה",
+      "claimType": "AUDIT",
+      "evidence": "ecoMeasuredAt=2026-10-08T06:55:38.256Z · measured=2462 · dupGroups=688 · redundantCopies=723 · dupRatio=0.2937 · target=<0.2 · verdict=VIOLATED · scanner=weave-ecosystem (daily, cloud) · runner=github-actions · commit=bffd057 · run=https://github.com/roshpinacare-sys/Domain/actions/runs/37845869399",
+      "evidenceHash": "0xcdadf8841132283ea5c54b56c8c36f749348d92286e46c7fde16028f6a1b2a20",
+      "status": "VERIFIED",
+      "prevHash": "0x92f89b3e2aef8bb9fb7792d0e4f3ebbe8d5184d9aa571d6c58b81ab25dfc7efa",
+      "entryHash": "0x0f16320ebbca819934aff39b3a9c81a8e10bd308fda6eb563976c6ae0b91a11f",
+      "sig": "0x0ad22e4f9f135527d5641c762a417043b16ba7223cad50beafe7723d00c3b33e69c9101bbcace5bacb502289cc789d32cc6e0adbc3bae80541b063b15c4d4fde1b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-10-08T21:19:15.778Z"
+    },
+    {
+      "id": "cmv01hfu800044cp3orjj6def",
+      "seq": 1604,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "ביקורת יכולת-חתימה יומית: 14 זהויות תפקיד בספר, 1 חותמים בפועל (sealed) · השאר memory-only - מפתחותיהם חיו ב-DB סביבתי ומתים עם הסביבה · הפונקציות שלהם נבלעו בלב (gitkeeper·דחיפות, scout·סריקת האקוסיסטם) או ממתינות (relayer·עדות הפוכה)",
+      "claimType": "AUDIT",
+      "evidence": "capAuditDate=2026-10-08 · identities=14 · sealedSigners=1 · roster=gitkeeper(DAEMON:memory-only - key lost with its environment) · glm-53-builder(BUILDER:memory-only - key lost with its environment) · glm-53-ui-builder(BUILDER:memory-only - key lost with its environment) · scout-r19(SCOUT:memory-only - key lost with its environment) · weave-archive-witness(DAEMON:memory-only - key lost with its environment) · weave-auditor(AUDITOR:memory-only - key lost with its environment) · weave-charter-anchor(DAEMON:memory-only - key lost with its environment) · weave-charter-restore(DAEMON:memory-only - key lost with its environment) · weave-cloud-heart(RELAYER:sealed-key ok) · weave-market-regulator(DAEMON:memory-only - key lost with its environment) · weave-market-regulator-v1-retired(DAEMON:memory-only - key lost with its environment) · weave-proof-registrar(DAEMON:memory-only - key lost with its environment) · weave-relayer(RELAYER:memory-only - key lost with its environment) · weave-saosnet-witness(DAEMON:memory-only - key lost with its environment) · law15-next=separate sealed keys per role · runner=github-actions · commit=bffd057",
+      "evidenceHash": "0x64fef5b65c569cd5191dcda81b52cbac838ab20d88a60b94bde61ce16a17e1e0",
+      "status": "VERIFIED",
+      "prevHash": "0x0f16320ebbca819934aff39b3a9c81a8e10bd308fda6eb563976c6ae0b91a11f",
+      "entryHash": "0x21f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f",
+      "sig": "0x1a3c2434ed073ac751b5613658ff056482291f5e09cacf2ef72025c25b0987b3676a026d35389c42aa24f2284ae58f8a3df854c3defbe8aef5f63b52c11ca4c41b",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-10-08T21:19:15.819Z"
+    },
+    {
+      "id": "cmv01hoz500074cp37xz100af",
+      "seq": 1605,
+      "agentId": "cmu1cyhj50000sqvur96avqf9",
+      "claim": "פעימת לב ריבונית: הספר אומת מחדש — 1604 רשומות, חתימות 1604/1604, head תואם. הרץ: GitHub Actions (הענן שלנו).",
+      "claimType": "MEASUREMENT",
+      "evidence": "runner=github-actions · gitHead=bffd057 · repo=roshpinacare-sys/Domain · run=https://github.com/roshpinacare-sys/Domain/actions/runs/37845869399 · verify: valid=true checked=1604 sigOk=1604 sigFail=0 firstBreak=null · recomputedHead=0x21f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f · headHash=0x21f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f · at=2026-10-08T21:19:27.660Z",
+      "evidenceHash": "0xc8a49bec07b1b3352fc74c20e11d1e2c5b2d4cc4a9b80bfb948dfe059ac432ee",
+      "status": "VERIFIED",
+      "prevHash": "0x21f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f",
+      "entryHash": "0x3f90bd3a2ed5cb41b4fa37b209f22947b3bda902ec1aaebf9829bd13e465fe2d",
+      "sig": "0xcff1e0519630e9e67ad6d3fe7f47fd3fda902a150d3f248d618656a4dc9c35a4328b30cbf20d2af76649acde4041fd5e806ab0fd9f16e94ca938b88b4371b62a1c",
+      "signerAddr": "0xaB07095053FC50a306A6d26FAa2c8887c5827B92",
+      "createdAt": "2026-10-08T21:19:27.663Z"
     }
   ],
   "checkpoints": [
@@ -50439,6 +50484,57 @@
       "anchorTx": null,
       "calldata": "0xeecdf92792f89b3e2aef8bb9fb7792d0e4f3ebbe8d5184d9aa571d6c58b81ab25dfc7efa",
       "createdAt": "2026-10-08T20:02:52.789Z"
+    },
+    {
+      "id": "cmv01hftw00024cp3ucjr8jvv",
+      "index": 1545,
+      "attFrom": 1603,
+      "attTo": 1603,
+      "leafCount": 1,
+      "root": "0x0f16320ebbca819934aff39b3a9c81a8e10bd308fda6eb563976c6ae0b91a11f",
+      "prevRoot": "0x92f89b3e2aef8bb9fb7792d0e4f3ebbe8d5184d9aa571d6c58b81ab25dfc7efa",
+      "entryHash": "0x82227a419123feae0a83cd8e2865b1f21da85e7463b9d681b1509e28711addba",
+      "sig": "0xe09c613b130e09e6cb3cef999694a5442caae5439cedd143d10f97f9db86a0dc79354cbd2050dc9366968dcad7292e298b707cfc038116de4794fc88fecccd251b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9270f16320ebbca819934aff39b3a9c81a8e10bd308fda6eb563976c6ae0b91a11f",
+      "createdAt": "2026-10-08T21:19:15.813Z"
+    },
+    {
+      "id": "cmv01hfuf00054cp3mumkb02s",
+      "index": 1546,
+      "attFrom": 1604,
+      "attTo": 1604,
+      "leafCount": 1,
+      "root": "0x21f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f",
+      "prevRoot": "0x0f16320ebbca819934aff39b3a9c81a8e10bd308fda6eb563976c6ae0b91a11f",
+      "entryHash": "0x6b0caabe84535818c24960836cb2faea624c77c839b770a062378cdec579068c",
+      "sig": "0x89b770c2f952b50509509f8743bfcba5273014bc30dabe1e5d4c8624677c2be444e68069a82a3a6671ca2846d32f8a92842d9641816d1ac670593cc64dc72dbc1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf92721f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f",
+      "createdAt": "2026-10-08T21:19:15.831Z"
+    },
+    {
+      "id": "cmv01hp1h00084cp32ax7oh0t",
+      "index": 1547,
+      "attFrom": 1605,
+      "attTo": 1605,
+      "leafCount": 1,
+      "root": "0x3f90bd3a2ed5cb41b4fa37b209f22947b3bda902ec1aaebf9829bd13e465fe2d",
+      "prevRoot": "0x21f6df9726df5da9c7ba0f43ce3ef14693b2a307f6dcc2e76a166bf78d34937f",
+      "entryHash": "0xedd718852595035e9431f8a1e666fd7a3de26f142400f24cc56b1a4cdef69efa",
+      "sig": "0x30d2758dfbc67ba8cb1a4561c35c8d927343790f00853e9a554d152e427ea1f42d11e08b8f5badffa4f2b5ef4ec412caa79c754550e222cfed9de38f6cab015b1b",
+      "signerAddr": "0xe376d8431089A0275A0CF125655B6Bc7d693F1b2",
+      "anchorStatus": "LOCAL",
+      "anchorNet": null,
+      "anchorTx": null,
+      "calldata": "0xeecdf9273f90bd3a2ed5cb41b4fa37b209f22947b3bda902ec1aaebf9829bd13e465fe2d",
+      "createdAt": "2026-10-08T21:19:27.749Z"
     }
   ],
   "networkKey": {
@@ -51241,7 +51337,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-10-08T20:02:40.234Z",
+      "verifiedAt": "2026-10-08T21:19:28.637Z",
       "createdAt": "2026-09-15T13:13:34.866Z"
     },
     {
@@ -51253,7 +51349,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-10-08T20:02:40.051Z",
+      "verifiedAt": "2026-10-08T21:19:28.329Z",
       "createdAt": "2026-09-15T13:13:34.864Z"
     },
     {
@@ -51265,7 +51361,7 @@
       "status": "verified",
       "lastCode": "200",
       "cooldownUntil": null,
-      "verifiedAt": "2026-10-08T20:02:40.356Z",
+      "verifiedAt": "2026-10-08T21:19:28.799Z",
       "createdAt": "2026-09-15T13:13:34.868Z"
     }
   ]
