@@ -25,7 +25,7 @@ import { composeIncome, writeIncomeDay } from "@/lib/weave/income";
 import { scholarshipPay } from "@/lib/weave/sovereign-scholarship";
 import { runFeeMeter, type FeeMeterRun } from "@/lib/weave/fee-meter";
 import { zeroReadiness } from "@/lib/weave/zero";
-import { heartbeatLiveness, type HeartbeatLiveness } from "@/lib/weave/heartbeat";
+import { heartbeatLiveness, zeroHeartbeatLiveness, type HeartbeatLiveness } from "@/lib/weave/heartbeat";
 
 const MP = "/home/z/my-project";
 const ZIP = `${MP}/zip`;
@@ -159,20 +159,22 @@ function candidateZeroRail(zr: Awaited<ReturnType<typeof zeroReadiness>> | null)
   return { id: "zero-rail", kind: "fleet", verdict: "DEFER", detailHe: `${zr.verdict}` };
 }
 
-function candidateHeartbeat(lv: HeartbeatLiveness | null): DecideLine {
-  // Task 18 — מסילת-הלב במוח: הפורנזיקה גילתה שהעוגנים מורעבים-גז מאז
-  // 2026-09-12. מעכשיו כל שעה: מדידה חיה מהמייננט. STARVED/STALE ⇒ QUEUE
-  // (חוק-פיצול-המטבע: הזרמת-גז = כסף-חיצוני = רק-המפעיל). ALIVE ⇒ רישום.
-  if (!lv || !lv.ok) {
-    return { id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: lv?.noteHe ?? "סורק-הלב לא נמדד" };
+function candidateHeartbeat(zeroLv: HeartbeatLiveness | null, mainLv: HeartbeatLiveness | null): DecideLine {
+  // Task 20 — הלב-הדו-מסילי: **הפתרון ל"אין-סכום-כזה"** — הלב פועם **חינם**
+  // על ZERO (גז מדוד 0x0): הראשית. מסילת-המייננט חונה (מורעבת-גז, מתועדת,
+  // אפס-דחיפות) — רישום-כן, לא-אזעקה. QUEUE רק-אם-המסילה-החינמית עצרה.
+  const zeroPart = zeroLv?.noteHe ?? "קו-ZERO לא נמדד";
+  const mainPart = mainLv ? `מייננט: חונה (מורעבת ${mainLv.baselineAgeHours?.toFixed(0) ?? "?"}ש' — מתועד, אפס-דחיפות)` : "מייננט: לא נמדד";
+  if (!zeroLv || !zeroLv.ok) {
+    return { id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: `${zeroPart} · ${mainPart}` };
   }
-  if (lv.verdict === "ALIVE") {
-    return { id: "heartbeat", kind: "fleet", verdict: "EXECUTED-NOOP", detailHe: lv.noteHe };
+  if (zeroLv.verdict === "ALIVE") {
+    return { id: "heartbeat", kind: "fleet", verdict: "EXECUTED-NOOP", detailHe: `${zeroPart} · ${mainPart}` };
   }
-  if (lv.verdict === "STARVED" || lv.verdict === "STALE") {
-    return { id: "heartbeat", kind: "fleet", verdict: "QUEUE", detailHe: `${lv.noteHe} · זהות ${lv.identityCensored} · בסל h${lv.baselineHeight}` };
+  if (zeroLv.verdict === "STALE" || zeroLv.verdict === "STARVED") {
+    return { id: "heartbeat", kind: "fleet", verdict: "QUEUE", detailHe: `${zeroPart} · ${mainPart}` };
   }
-  return { id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: lv.noteHe };
+  return { id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: `${zeroPart} · ${mainPart}` };
 }
 
 function candidateWatchdog(): DecideLine {
@@ -255,12 +257,19 @@ export async function runDecide(opts: { execute?: boolean } = {}): Promise<Decid
     zeroStatus = null;
     verdicts.push({ id: "zero-rail", kind: "fleet", verdict: "DEFER", detailHe: `קריאת-ZERO נכשלה: ${String((e as Error)?.message ?? e).slice(0, 100)}` });
   }
-  let hb: HeartbeatLiveness | null = null;
+  let hb: HeartbeatLiveness | null = null; // מייננט — מסילה-חונה (מתועדת)
   try {
     hb = await heartbeatLiveness();
   } catch (e) {
     hb = null;
-    verdicts.push({ id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: `סריקת-הלב נכשלה: ${String((e as Error)?.message ?? e).slice(0, 100)}` });
+    verdicts.push({ id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: `סריקת-המייננט נכשלה: ${String((e as Error)?.message ?? e).slice(0, 100)}` });
+  }
+  let zhb: HeartbeatLiveness | null = null; // ZERO — הלב-החינמי (ראשי)
+  try {
+    zhb = await zeroHeartbeatLiveness();
+  } catch (e) {
+    zhb = null;
+    verdicts.push({ id: "heartbeat", kind: "fleet", verdict: "DEFER", detailHe: `סריקת-ZERO נכשלה: ${String((e as Error)?.message ?? e).slice(0, 100)}` });
   }
 
   // 4) מועמדויות-חוק וראייה
@@ -269,7 +278,7 @@ export async function runDecide(opts: { execute?: boolean } = {}): Promise<Decid
   verdicts.push(candidateWatchdog());
   if (feeRun) verdicts.push(candidateFeeMeter(feeRun));
   verdicts.push(candidateZeroRail(zeroStatus));
-  verdicts.push(candidateHeartbeat(hb));
+  verdicts.push(candidateHeartbeat(zhb, hb));
 
   // 5) רישום hash-chained
   const prev = readJsonl(RUNS_FILE);
