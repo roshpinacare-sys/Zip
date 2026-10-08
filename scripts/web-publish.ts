@@ -55,6 +55,18 @@ const INBOX = path.join(ROOT, "sovereign", "web", "inbox");
 const MANIFESTS = path.join(ROOT, "sovereign", "web", "manifests");
 const PACKAGES = path.join(ROOT, "sovereign", "web", "packages");
 
+// ── חוק ההחזקה (הוראת מפעיל 2026-10-08) ─────────────────────────
+// חבילות משחקי-המזל מוחזקות: לעולם לא מועלות, לא משודרות, לא
+// מתקדמות — גם אם מישהו מחזיר אותן לתור. דילוג-כנה ומתועד.
+// זהו שער-קוד, לא רק דגל-מניפסט: הריסקן שמבנה מניפסטים מהשרשרת
+// לא יכול לשחרר החזקה. שחרור רק בהוראת-מפעיל מפורשת.
+const HELD_PACKAGES = new Set<string>([
+  "23b9c550d7c0d691e5e36e86c6bb32251d5bf321a4f96f0f418da7031291f14b", // saos-luck-v1 (rebuilt)
+  "417a4baa57dbadf721a8d157b48e4c6fafba7b63b154b4660c7dc1cfeedfb5a2", // saos-luck-v1 (original R55)
+  "8a9bff7a7e83346e8e05d47d23010d6b86225d29abb5e547ef361bebece52273", // saos-games-v1 (held with the lane)
+]);
+const HELD_NOTE = "HELD-BY-OPERATOR: צינור-המזל מושהה לפי הוראת המפעיל 2026-10-08 (שטח-רגולטורי) — דילוג-כנה";
+
 const DRY = process.argv.includes("--dry");
 const VERIFY_ONLY = process.argv.includes("--verify-only");
 const WIF = (process.env.WEAVE_STEEM_WIF || "").trim();
@@ -367,6 +379,10 @@ function writeRecordIfLive(rec: RepoRecord): void {
 
 async function publishJob(job: WebInboxJob): Promise<"complete" | "progress" | "skipped"> {
   const hash = job.sha256;
+  if (HELD_PACKAGES.has(hash)) {
+    log(`  ${HELD_NOTE} (${job.name} · ${hash.slice(0, 16)}…)`);
+    return "skipped";
+  }
   log(`חבילה: ${job.name} · ${job.bytes}B · sha256=${hash.slice(0, 16)}…`);
 
   const b64Path = path.join(INBOX, hash, "package.b64");
