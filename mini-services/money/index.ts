@@ -395,8 +395,14 @@ function secretsGate(text: string): { ok: boolean; reason?: string } {
 
 function readPat(): string | null {
   try {
-    const t = fs.readFileSync(`${HOME}/upload/pat.env`, "utf8").trim();
-    return t.length > 20 ? t : null;
+    // r213 — תיקון-צינור-ה-canon: הקובץ נושא 4 מפתחות (PAT/ZIP_PAT/WEAVE_OPS_PAT/GITHUB_TOKEN).
+    // קריאת-הקובץ-כולו כטוקן הזריקה \n לכותרת-Authorization ⇒ TypeError בכל-PUT ⇒
+    // canonLast.ok=false תמידי. כעת: נכתב/שורה עם PAT=, ערך-גולמי בלבד (אפס רווח).
+    const line = fs.readFileSync(`${HOME}/upload/pat.env`, "utf8")
+      .split(/\r?\n/)
+      .find((l: string) => l.startsWith("PAT="));
+    const t = line ? line.slice(4).trim() : "";
+    return /^\S{40,}$/.test(t) ? t : null;
   } catch {
     return null;
   }

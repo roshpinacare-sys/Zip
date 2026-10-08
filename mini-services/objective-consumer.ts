@@ -20,9 +20,13 @@
 // ─────────────────────────────────────────────────────────────────────
 
 import fs from "node:fs";
+import path from "node:path";
 import { createHash } from "node:crypto";
 
-const OBJ_DIR = process.env.OBJ_DIR ?? "/home/z/my-project/sovereign/objectives";
+// r213 — נגזרת-מקום: המודל חי בעץ-zip (מקור-אמת גיט, מוקפל בקצב). הנתיב-הקודם
+// היה מוחלט לבית-מת (/home/z/my-project/sovereign/objectives — נמחק במחיקה #5)
+// ⇒ PREF-THRESHOLD-UNKNOWN בכל-פעימה. כעת: env-גלוי > נגזרת מהמודול עצמו.
+const OBJ_DIR = process.env.OBJ_DIR ?? path.resolve(import.meta.dir, "../sovereign/objectives");
 const HOME = process.env.PROJ_HOME ?? "/home/z/my-project";
 
 const MODEL_FILES = ["objectives.json", "options.json", "capabilities.json", "authority-map.json"] as const;
