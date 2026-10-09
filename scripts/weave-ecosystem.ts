@@ -137,18 +137,25 @@ async function dupScanMode(jsonOut: string): Promise<void> {
   });
   console.log(`קבצי-סטטוס בסך הכל: ${candidates.length}; נמשכים לבדיקת תוכן: ${fetchList.length}`);
 
-  // 3) משיכת blobs + sha256 — במקביל (10 עובדים) + ספירת כשלים וניסיונות חוזרים.
+  // 3) משיכת blobs + sha256 — במקביל (4 עובדים) + ספירת כשלים וניסיונות חוזרים.
   //    מדידה שמדלגת בשקט על דגימות היא לא מדידה — דוח נכתב רק אם הושלם במלואו.
   const scanned: ScanFile[] = [];
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  // T-49: עמידות-למגבלת-משנה (secondary rate limit — 403 של-אכיפת-abuse):
+  // ① עובדים 10→4 (פיצוץ-10-מקבילי-על-2.5K בלובים טריגר-חסימה-אמצע-ריצה —
+  //    נמדד-חי 18:13: 207 זנב-קבוע נכשלו-בכל-4-המעברים) ② ספירה-מעריכית
+  //    15/30/60/90/120ש׳ עד-6 מעברים (במקום 4×15ש׳).
+  //    חוק-הכנות-נשמר: מדידה-חסרה = אין-דוח, בכלל-לא דילוג-שקט.
   let pending = [...fetchList];
   let attempt = 0;
+  const BACKOFF_MS = [15_000, 30_000, 60_000, 90_000, 120_000];
+  const MAX_ATTEMPTS = 6;
   for (;;) {
     attempt++;
     const queue = [...pending];
     pending = [];
     let done = 0;
-    await Promise.all(Array.from({ length: 10 }, () =>
+    await Promise.all(Array.from({ length: 4 }, () =>
       (async () => {
         for (;;) {
           const c = queue.shift();
@@ -168,11 +175,12 @@ async function dupScanMode(jsonOut: string): Promise<void> {
       })(),
     ));
     if (pending.length === 0) break;
-    console.warn(`  ⚠ ${pending.length} קריאות נכשלו (מעבר ${attempt}) — המתנה 15 שניות וניסיון חוזר`);
-    if (attempt >= 4) {
+    const wait = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
+    console.warn(`  ⚠ ${pending.length} קריאות נכשלו (מעבר ${attempt}) — המתנה ${Math.round(wait / 1000)} שניות וניסיון חוזר`);
+    if (attempt >= MAX_ATTEMPTS) {
       throw new Error(`מדידה לא שלמה: ${pending.length}/${fetchList.length} קבצים לא נקראו אחרי ${attempt} מעברים — הדוח לא ייכתב (דוגמאות: ${pending.slice(0, 3).map((p) => p.repo + ":" + p.path).join(", ")})`);
     }
-    await sleep(15_000);
+    await sleep(wait);
   }
 
   // 4) קבוצות שכפול (אותו hash ב-≥2 ריפואים)
