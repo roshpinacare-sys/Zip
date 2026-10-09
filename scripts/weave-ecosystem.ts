@@ -19,6 +19,7 @@
 
 import { execSync } from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as crypto from "crypto";
 import { db } from "@/lib/db";
 import { appendAttestation } from "@/lib/weave/ledger";
@@ -100,97 +101,83 @@ async function dupScanMode(jsonOut: string): Promise<void> {
   const repos = await listRepos();
   console.log(`מודד שכפול על ${repos.length} ריפואים…`);
 
-  // 1) עצים
-  const perRepo = new Map<string, { files: TreeEntry[]; truncated: boolean }>();
-  for (const r of repos) {
-    const t = await gh<{ tree: TreeEntry[]; truncated: boolean }>(
-      `/repos/${OWNER}/${r.name}/git/trees/${r.default_branch}?recursive=1`,
-    );
-    if (t.status !== 200 || !t.json) {
-      console.warn(`  ⚠ ${r.name}: עץ לא נקרא (${t.status}) — דילוג`);
-      perRepo.set(r.name, { files: [], truncated: true });
-      continue;
+  // T-49 (מהפכת-האספקה): המדידה-כולה-עוברת-מ-API-לפרוטוקול-git.
+  // למה: ה-API-חולק-מכסת-5000/שעה-של-משתמש-ה-PAT-המשותף-עם-כל-עורקי-הצי —
+  // נמדד-חי: 18:13 (207-זנב) · 19:24 (605) · 19:37 (הריצה-מתה-בשלב-setup:
+  // "API rate limit exceeded for user ID 326012154"). שיבוט-git-רדוד אינו-נשען
+  // על-מכסת-API-כלל — 24 שיבוטים-רדודים זולים-ומהירים, וההשוואה-הפנימית
+  // (sha256-מקומי) זהה-בדיוק. חוק-הכנות-נשמר: ריפו-שלא-נשכפל = דילוג-גלוי
+  // (נרשם-בדוח), ואם-מחצית-הממלכה-נכשלה — המדידה-מבוטלת-בכנות.
+  const { execFile } = await import("node:child_process");
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const TOKEN_PAT = pat();
+  const CLONE_ROOT = mkdtempSync(path.join(os.tmpdir(), "dupscan-"));
+  const perRepo = new Map<string, { cloned: boolean; failed?: string }>();
+  const cloneOne = async (name: string, branch: string): Promise<boolean> => {
+    const dst = path.join(CLONE_ROOT, name);
+    const url = "https://x-access-token:" + TOKEN_PAT + "@github.com/" + OWNER + "/" + name + ".git";
+    try {
+      await new Promise<void>((res, rej) => {
+        execFile("git", ["clone", "--depth", "1", "--single-branch", "--no-tags",
+          "--branch", branch, url, dst],
+          { timeout: 240_000, stdio: ["ignore", "ignore", "ignore"] },
+          (err) => (err ? rej(err) : res()));
+      });
+      perRepo.set(name, { cloned: true });
+      return true;
+    } catch (e) {
+      perRepo.set(name, { cloned: false, failed: String((e as Error).message || e).slice(0, 80) });
+      console.warn(`  ⚠ ${name}: שיבוט-נכשל — דילוג-גלוי`);
+      return false;
     }
-    perRepo.set(r.name, {
-      files: (t.json.tree || []).filter((e) => e.type === "blob"),
-      truncated: !!t.json.truncated,
-    });
-    if (t.json.truncated) console.warn(`  ⚠ ${r.name}: עץ נחתך (truncated) — מדידה חלקית`);
+  };
+  const cloneQueue = [...repos];
+  const cloneResults = await Promise.all(Array.from({ length: 4 }, async () => {
+    let ok = 0;
+    for (;;) {
+      const r = cloneQueue.shift();
+      if (!r) return ok;
+      if (await cloneOne(r.name, r.default_branch)) ok++;
+    }
+  }));
+  const clonedTotal = cloneResults.reduce((s, n) => s + n, 0);
+  const failedRepos = repos.filter((r) => !perRepo.get(r.name)?.cloned);
+  console.log(`שוכפלו: ${clonedTotal}/${repos.length} ריפואים (פרוטוקול-git — אפס-מכסת-API)`);
+  if (failedRepos.length > repos.length / 2) {
+    rmSync(CLONE_ROOT, { recursive: true, force: true });
+    throw new Error(`מדידה-לא-ייצוגית: ${failedRepos.length}/${repos.length} ריפואים-לא-נשכפלו — הדוח-לא-ייכתב`);
   }
 
-  // 2) מועמדים + מסנן (בסיס-שם+גודל ב-≥2 ריפואים, או נתיב זהה ב-≥2)
-  const byBasename = new Map<string, number>();
-  const byPath = new Map<string, number>();
-  const candidates: Array<{ repo: string; path: string; size: number; sha: string }> = [];
-  for (const [repo, { files }] of perRepo) {
-    for (const f of files) {
-      if (!isStatusCandidate(f.path, f.size)) continue;
-      candidates.push({ repo, path: f.path, size: f.size!, sha: f.sha });
-      const base = f.path.split("/").pop() || "";
-      byBasename.set(base, (byBasename.get(base) || 0) + 1);
-      byPath.set(f.path, (byPath.get(f.path) || 0) + 1);
-    }
-  }
-  const fetchList = candidates.filter((c) => {
-    const base = c.path.split("/").pop() || "";
-    return (byBasename.get(base) || 0) > 1 || (byPath.get(c.path) || 0) > 1;
-  });
-  console.log(`קבצי-סטטוס בסך הכל: ${candidates.length}; נמשכים לבדיקת תוכן: ${fetchList.length}`);
-
-  // 3) משיכת blobs + sha256 — במקביל (4 עובדים) + ספירת כשלים וניסיונות חוזרים.
-  //    מדידה שמדלגת בשקט על דגימות היא לא מדידה — דוח נכתב רק אם הושלם במלואו.
+  // 2) הליכה-מקומית על שיבוטים + sha256 (כל-קבצי-הסטטוס — לא רק חשודי-שכפול)
   const scanned: ScanFile[] = [];
-  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-  // T-49: עמידות-למגבלת-משנה (secondary rate limit — 403 של-אכיפת-abuse):
-  // ① עובדים 10→4 (פיצוץ-10-מקבילי-על-2.5K בלובים טריגר-חסימה-אמצע-ריצה —
-  //    נמדד-חי 18:13: 207 זנב-קבוע נכשלו-בכל-4-המעברים) ② ספירה-מעריכית
-  //    15/30/60/90/120ש׳ עד-6 מעברים (במקום 4×15ש׳).
-  //    חוק-הכנות-נשמר: מדידה-חסרה = אין-דוח, בכלל-לא דילוג-שקט.
-  let pending = [...fetchList];
-  let attempt = 0;
-  const BACKOFF_MS = [15_000, 30_000, 60_000, 90_000, 120_000];
-  const MAX_ATTEMPTS = 6;
-  const statusCounts = new Map<number, number>();   // T-49: אבחון-כנה — מה-בדיוק-נכשל
-  const statusRepos = new Map<number, Set<string>>();
-  for (;;) {
-    attempt++;
-    const queue = [...pending];
-    pending = [];
-    let done = 0;
-    await Promise.all(Array.from({ length: 4 }, () =>
-      (async () => {
-        for (;;) {
-          const c = queue.shift();
-          if (!c) return;
-          const b = await gh<{ content?: string; encoding?: string }>(
-            `/repos/${OWNER}/${c.repo}/git/blobs/${c.sha}`,
-          );
-          if (b.status === 200 && b.json?.content) {
-            const buf = Buffer.from(b.json.content, "base64");
-            scanned.push({ ...c, hash: crypto.createHash("sha256").update(buf).digest("hex") });
-          } else {
-            pending.push(c); // כשל — ינוסה שוב
-            statusCounts.set(b.status, (statusCounts.get(b.status) || 0) + 1);
-            const rs = statusRepos.get(b.status) || new Set<string>();
-            rs.add(c.repo);
-            statusRepos.set(b.status, rs);
-          }
-          done++;
-          if (done % 200 === 0) console.error(`  … ${done}/${fetchList.length} (מעבר ${attempt})`);
-        }
-      })(),
-    ));
-    if (pending.length === 0) break;
-    if (attempt === 1) {
-      console.error(`  [אבחון] ${[...statusCounts.entries()].map(([s, v]) => `http-${s}=${v} (${[...(statusRepos.get(s) || [])].slice(0, 5).join(",")})`).join(" · ")}`);
+  const candidates: ScanFile[] = [];
+  for (const r of repos) {
+    const dst = path.join(CLONE_ROOT, r.name);
+    if (!perRepo.get(r.name)?.cloned) continue;
+    const stack = [""];
+    while (stack.length) {
+      const rel = stack.pop()!;
+      const abs = path.join(dst, rel);
+      for (const e of fs.readdirSync(abs, { withFileTypes: true })) {
+        if (e.name === ".git") continue;
+        const relChild = rel ? rel + "/" + e.name : e.name;
+        if (e.isDirectory()) { stack.push(relChild); continue; }
+        if (!e.isFile()) continue;
+        let size = 0;
+        try { size = fs.statSync(path.join(abs, e.name)).size; } catch { continue; }
+        if (!isStatusCandidate(relChild, size)) continue;
+        let hash = "";
+        try {
+          hash = crypto.createHash("sha256").update(fs.readFileSync(path.join(abs, e.name))).digest("hex");
+        } catch { continue; }
+        const entry: ScanFile = { repo: r.name, path: relChild, size, sha: hash, hash };
+        candidates.push(entry);
+        scanned.push(entry);
+      }
     }
-    const wait = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
-    console.warn(`  ⚠ ${pending.length} קריאות נכשלו (מעבר ${attempt}) — המתנה ${Math.round(wait / 1000)} שניות וניסיון חוזר`);
-    if (attempt >= MAX_ATTEMPTS) {
-      throw new Error(`מדידה לא שלמה: ${pending.length}/${fetchList.length} קבצים לא נקראו אחרי ${attempt} מעברים — הדוח לא ייכתב (דוגמאות: ${pending.slice(0, 3).map((p) => p.repo + ":" + p.path).join(", ")})`);
-    }
-    await sleep(wait);
   }
+  console.log(`קבצי-סטטוס בסך הכל: ${scanned.length} (נמדדו-במלואם-מקומית)`);
+  rmSync(CLONE_ROOT, { recursive: true, force: true });
 
   // 4) קבוצות שכפול (אותו hash ב-≥2 ריפואים)
   const byHash = new Map<string, ScanFile[]>();
@@ -227,7 +214,9 @@ async function dupScanMode(jsonOut: string): Promise<void> {
     measuredAt: new Date().toISOString(),
     owner: OWNER,
     definition: "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
-    repos: repos.map((r) => ({ name: r.name, kb: r.size, pushed_at: r.pushed_at, truncated: perRepo.get(r.name)?.truncated || false })),
+    method: "T-49: shallow git clones (zero API quota) — every status file hashed locally; clone-failed repos listed in skippedRepos and excluded",
+    repos: repos.map((r) => ({ name: r.name, kb: r.size, pushed_at: r.pushed_at, cloned: perRepo.get(r.name)?.cloned || false })),
+    skippedRepos: failedRepos.map((r) => ({ name: r.name, reason: perRepo.get(r.name)?.failed || "unknown" })),
     totals: { statusCandidates: candidates.length, measured: totalFiles, dupGroups: dupGroups.length, dupInstances, redundantCopies: redundant, dupRatio: Number(dup.toFixed(4)) },
     dupGroups: dupGroups.map((g) => ({ hash: g.hash, size: g.files[0].size, files: g.files.map((f) => `${f.repo}:${f.path}`) })),
     driftedSamePath: Object.fromEntries([...drift.entries()].map(([p, v]) => [p, v])),
