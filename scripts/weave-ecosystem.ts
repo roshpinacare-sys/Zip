@@ -150,6 +150,8 @@ async function dupScanMode(jsonOut: string): Promise<void> {
   let attempt = 0;
   const BACKOFF_MS = [15_000, 30_000, 60_000, 90_000, 120_000];
   const MAX_ATTEMPTS = 6;
+  const statusCounts = new Map<number, number>();   // T-49: אבחון-כנה — מה-בדיוק-נכשל
+  const statusRepos = new Map<number, Set<string>>();
   for (;;) {
     attempt++;
     const queue = [...pending];
@@ -168,6 +170,10 @@ async function dupScanMode(jsonOut: string): Promise<void> {
             scanned.push({ ...c, hash: crypto.createHash("sha256").update(buf).digest("hex") });
           } else {
             pending.push(c); // כשל — ינוסה שוב
+            statusCounts.set(b.status, (statusCounts.get(b.status) || 0) + 1);
+            const rs = statusRepos.get(b.status) || new Set<string>();
+            rs.add(c.repo);
+            statusRepos.set(b.status, rs);
           }
           done++;
           if (done % 200 === 0) console.error(`  … ${done}/${fetchList.length} (מעבר ${attempt})`);
@@ -175,6 +181,9 @@ async function dupScanMode(jsonOut: string): Promise<void> {
       })(),
     ));
     if (pending.length === 0) break;
+    if (attempt === 1) {
+      console.error(`  [אבחון] ${[...statusCounts.entries()].map(([s, v]) => `http-${s}=${v} (${[...(statusRepos.get(s) || [])].slice(0, 5).join(",")})`).join(" · ")}`);
+    }
     const wait = BACKOFF_MS[Math.min(attempt - 1, BACKOFF_MS.length - 1)];
     console.warn(`  ⚠ ${pending.length} קריאות נכשלו (מעבר ${attempt}) — המתנה ${Math.round(wait / 1000)} שניות וניסיון חוזר`);
     if (attempt >= MAX_ATTEMPTS) {
