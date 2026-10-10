@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-10-09T20:14:06.347Z",
+  "measuredAt": "2026-10-10T12:57:58.728Z",
   "owner": "roshpinacare-sys",
   "definition": "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
   "method": "T-49: shallow git clones (zero API quota) — every status file hashed locally; clone-failed repos listed in skippedRepos and excluded",
@@ -18,8 +18,8 @@
     },
     {
       "name": "Console",
-      "kb": 11173,
-      "pushed_at": "2026-10-09T20:03:36Z",
+      "kb": 11118,
+      "pushed_at": "2026-10-10T12:48:47Z",
       "cloned": true
     },
     {
@@ -30,20 +30,20 @@
     },
     {
       "name": "Domain",
-      "kb": 10531,
-      "pushed_at": "2026-10-09T19:51:39Z",
+      "kb": 10610,
+      "pushed_at": "2026-10-10T12:34:57Z",
       "cloned": true
     },
     {
       "name": "fleet-vault",
-      "kb": 6846,
-      "pushed_at": "2026-10-09T18:18:42Z",
+      "kb": 6936,
+      "pushed_at": "2026-10-10T12:46:52Z",
       "cloned": true
     },
     {
       "name": "FleetHQ",
-      "kb": 15236,
-      "pushed_at": "2026-10-09T19:23:09Z",
+      "kb": 16331,
+      "pushed_at": "2026-10-10T12:39:52Z",
       "cloned": true
     },
     {
@@ -60,14 +60,14 @@
     },
     {
       "name": "sanbox",
-      "kb": 756,
-      "pushed_at": "2026-10-09T20:12:54Z",
+      "kb": 758,
+      "pushed_at": "2026-10-10T12:47:46Z",
       "cloned": true
     },
     {
       "name": "Sandbox",
-      "kb": 409,
-      "pushed_at": "2026-10-09T20:03:38Z",
+      "kb": 1192,
+      "pushed_at": "2026-10-10T12:53:42Z",
       "cloned": true
     },
     {
@@ -78,14 +78,14 @@
     },
     {
       "name": "saos-control-center",
-      "kb": 15508,
-      "pushed_at": "2026-10-09T19:14:54Z",
+      "kb": 18856,
+      "pushed_at": "2026-10-10T12:52:22Z",
       "cloned": true
     },
     {
       "name": "saos-dex",
-      "kb": 47162,
-      "pushed_at": "2026-10-09T19:11:18Z",
+      "kb": 47789,
+      "pushed_at": "2026-10-10T12:38:48Z",
       "cloned": true
     },
     {
@@ -125,38 +125,50 @@
       "cloned": true
     },
     {
+      "name": "sovereign-beacon",
+      "kb": 5,
+      "pushed_at": "2026-10-10T06:30:30Z",
+      "cloned": true
+    },
+    {
+      "name": "sovereign-lighthouse",
+      "kb": 616,
+      "pushed_at": "2026-10-10T12:47:52Z",
+      "cloned": true
+    },
+    {
       "name": "SovereignConsole",
-      "kb": 12966,
-      "pushed_at": "2026-10-09T19:09:09Z",
+      "kb": 14668,
+      "pushed_at": "2026-10-10T12:53:39Z",
       "cloned": true
     },
     {
       "name": "steem",
-      "kb": 436333,
-      "pushed_at": "2026-10-09T20:02:23Z",
+      "kb": 460305,
+      "pushed_at": "2026-10-10T12:49:47Z",
       "cloned": true
     },
     {
       "name": "TruthRail",
-      "kb": 100,
-      "pushed_at": "2026-10-09T20:07:15Z",
+      "kb": 118,
+      "pushed_at": "2026-10-10T12:49:34Z",
       "cloned": true
     },
     {
       "name": "Zip",
-      "kb": 120167,
-      "pushed_at": "2026-10-09T20:13:39Z",
+      "kb": 110025,
+      "pushed_at": "2026-10-10T12:53:43Z",
       "cloned": true
     }
   ],
   "skippedRepos": [],
   "totals": {
-    "statusCandidates": 3405,
-    "measured": 3405,
-    "dupGroups": 782,
-    "dupInstances": 1637,
-    "redundantCopies": 855,
-    "dupRatio": 0.2511
+    "statusCandidates": 3282,
+    "measured": 3282,
+    "dupGroups": 701,
+    "dupInstances": 1443,
+    "redundantCopies": 742,
+    "dupRatio": 0.2261
   },
   "dupGroups": [
     {
@@ -196,149 +208,6 @@
         "saos-sovereign-platform:FLEET-NOTE.md",
         "Saosmartwallet:FLEET-NOTE.md",
         "Zip:FLEET-NOTE.md"
-      ]
-    },
-    {
-      "hash": "2657813a8873820118df848911cf88f6976ba8a4f0b3b7e9496feff1e7f02218",
-      "size": 5802,
-      "files": [
-        "Console:README.md",
-        "FleetHQ:public/console/README.md",
-        "SovereignConsole:Console/README.md",
-        "SovereignConsole:public/console/README.md",
-        "Zip:console/README.md"
-      ]
-    },
-    {
-      "hash": "dee70a346308d151a6de6a7770664649ca819b5290a417defa95c7e7268d6cfb",
-      "size": 1793,
-      "files": [
-        "Console:verify/VERIFY.md",
-        "FleetHQ:public/console/verify/VERIFY.md",
-        "SovereignConsole:Console/verify/VERIFY.md",
-        "SovereignConsole:public/console/verify/VERIFY.md",
-        "Zip:console/verify/VERIFY.md"
-      ]
-    },
-    {
-      "hash": "063ee9225525834d0da6cac8adccf94bf37bd0bb22feb90bf73e489ab0fb0f0c",
-      "size": 2505,
-      "files": [
-        "Console:verify/README.md",
-        "FleetHQ:public/console/verify/README.md",
-        "SovereignConsole:Console/verify/README.md",
-        "SovereignConsole:public/console/verify/README.md",
-        "Zip:console/verify/README.md"
-      ]
-    },
-    {
-      "hash": "89a69b6a70862b239b1fd2da45f367d74b7b8b7486de9406df68067f61365931",
-      "size": 4292,
-      "files": [
-        "Console:ESTATE-INDEX.md",
-        "FleetHQ:public/console/ESTATE-INDEX.md",
-        "SovereignConsole:Console/ESTATE-INDEX.md",
-        "SovereignConsole:public/console/ESTATE-INDEX.md"
-      ]
-    },
-    {
-      "hash": "c6a8a173f7d8c9e67247e92800eaa7d4a872b0e8daac435839be1816ce638c70",
-      "size": 9376,
-      "files": [
-        "Console:DESIGN.md",
-        "FleetHQ:public/console/DESIGN.md",
-        "SovereignConsole:Console/DESIGN.md",
-        "SovereignConsole:public/console/DESIGN.md"
-      ]
-    },
-    {
-      "hash": "65c5331fa6340d5b6ed1cb1641bfe18db919cf2559bc48d15bead5406656d304",
-      "size": 2924,
-      "files": [
-        "Console:AGENTS.md",
-        "FleetHQ:public/console/AGENTS.md",
-        "SovereignConsole:Console/AGENTS.md",
-        "SovereignConsole:public/console/AGENTS.md"
-      ]
-    },
-    {
-      "hash": "f1309e8c82dfef0a9a9b76af2dbb22c94ab404cf986befacc94f2d8d107d22c5",
-      "size": 7061,
-      "files": [
-        "Console:BLOC.md",
-        "FleetHQ:public/console/BLOC.md",
-        "SovereignConsole:Console/BLOC.md",
-        "SovereignConsole:public/console/BLOC.md"
-      ]
-    },
-    {
-      "hash": "848c0fb23a02bc5470eec5bf93195d04b3316d4b8647b3b7342068bef52308cd",
-      "size": 906,
-      "files": [
-        "Console:progress.md",
-        "FleetHQ:public/console/progress.md",
-        "SovereignConsole:Console/progress.md",
-        "SovereignConsole:public/console/progress.md"
-      ]
-    },
-    {
-      "hash": "9d7d22e40fd9ec6e97a2d9da68fde7ab96f0d6945bf3ebee7f685419e3518cf1",
-      "size": 9115,
-      "files": [
-        "Console:FLEET-LOG.md",
-        "FleetHQ:public/console/FLEET-LOG.md",
-        "SovereignConsole:Console/FLEET-LOG.md",
-        "SovereignConsole:public/console/FLEET-LOG.md"
-      ]
-    },
-    {
-      "hash": "486f78977b3d8bf28783ce15a223b4c586deb636a48db0d98941171d108946a1",
-      "size": 5660,
-      "files": [
-        "Console:SYSTEM-ACTIVATION-REPORT.md",
-        "FleetHQ:public/console/SYSTEM-ACTIVATION-REPORT.md",
-        "SovereignConsole:Console/SYSTEM-ACTIVATION-REPORT.md",
-        "SovereignConsole:public/console/SYSTEM-ACTIVATION-REPORT.md"
-      ]
-    },
-    {
-      "hash": "f35dc0bfe85f65d81c430ea380be538647c13b2025d9a7a97a9a2d851ea78504",
-      "size": 898,
-      "files": [
-        "Console:session-handoff.md",
-        "FleetHQ:public/console/session-handoff.md",
-        "SovereignConsole:Console/session-handoff.md",
-        "SovereignConsole:public/console/session-handoff.md"
-      ]
-    },
-    {
-      "hash": "b5e3a0ed0080f8a1d8e72fd95b42c17ca46e936199a23bc6b0a01f99058d39dd",
-      "size": 5799,
-      "files": [
-        "Console:agent/handoff.md",
-        "FleetHQ:public/console/agent/handoff.md",
-        "SovereignConsole:Console/agent/handoff.md",
-        "SovereignConsole:public/console/agent/handoff.md"
-      ]
-    },
-    {
-      "hash": "b26afbaf03ebd5c8547eda7911f63f80661e3151977795f6e5d2762eda093a56",
-      "size": 5788,
-      "files": [
-        "Console:agent/limitations.md",
-        "FleetHQ:public/console/agent/limitations.md",
-        "SovereignConsole:Console/agent/limitations.md",
-        "SovereignConsole:public/console/agent/limitations.md"
-      ]
-    },
-    {
-      "hash": "56db1bfec11bd784f884ad888087bc201cc1e1edb3a9f2a086b89491283e6940",
-      "size": 4186,
-      "files": [
-        "Console:agent/verify/README.md",
-        "FleetHQ:public/console/agent/verify/README.md",
-        "SovereignConsole:Console/agent/verify/README.md",
-        "SovereignConsole:public/console/agent/verify/README.md"
       ]
     },
     {
@@ -452,39 +321,30 @@
       ]
     },
     {
-      "hash": "cacebf77d483d571d1db42bfca59d99f1a8c174614d347ffdd130383e2548777",
-      "size": 93806,
+      "hash": "2657813a8873820118df848911cf88f6976ba8a4f0b3b7e9496feff1e7f02218",
+      "size": 5802,
       "files": [
-        "Adsmarket:fact-sheet.md",
-        "Domain:market/fact-sheet.md",
-        "SovereignConsole:Domain/market/fact-sheet.md"
+        "Console:README.md",
+        "FleetHQ:public/console/README.md",
+        "Zip:console/README.md"
       ]
     },
     {
-      "hash": "47f073b127f57790ed3a899b6c6242fb0d5970eda702d7058b9fbec61f5cfd4b",
-      "size": 5657,
+      "hash": "dee70a346308d151a6de6a7770664649ca819b5290a417defa95c7e7268d6cfb",
+      "size": 1793,
       "files": [
-        "Domain:agent/limitations.md",
-        "SovereignConsole:Domain/agent/limitations.md",
-        "Zip:console/agent/limitations.md"
+        "Console:verify/VERIFY.md",
+        "FleetHQ:public/console/verify/VERIFY.md",
+        "Zip:console/verify/VERIFY.md"
       ]
     },
     {
-      "hash": "17ee39033a0f506e1e8bfb1012c80c7246580c6b3593b836ab4358db448116c9",
-      "size": 3035,
+      "hash": "063ee9225525834d0da6cac8adccf94bf37bd0bb22feb90bf73e489ab0fb0f0c",
+      "size": 2505,
       "files": [
-        "Domain:agent/inspections/README.md",
-        "SovereignConsole:Domain/agent/inspections/README.md",
-        "Zip:console/agent/inspections/README.md"
-      ]
-    },
-    {
-      "hash": "5627b3f441adc62af9e6420045fa0452d7c02bfcea664ec5758db46504631609",
-      "size": 730,
-      "files": [
-        "FleetHQ:tsconfig.json",
-        "SovereignConsole:tsconfig.json",
-        "steem:tsconfig.json"
+        "Console:verify/README.md",
+        "FleetHQ:public/console/verify/README.md",
+        "Zip:console/verify/README.md"
       ]
     },
     {
@@ -497,6 +357,14 @@
       ]
     },
     {
+      "hash": "cacebf77d483d571d1db42bfca59d99f1a8c174614d347ffdd130383e2548777",
+      "size": 93806,
+      "files": [
+        "Adsmarket:fact-sheet.md",
+        "Domain:market/fact-sheet.md"
+      ]
+    },
+    {
       "hash": "5b48961b1e9be1f05d59c80ca3bd1c2fb70f7240a3383d72661f94009e07d3e0",
       "size": 10601,
       "files": [
@@ -505,7 +373,7 @@
       ]
     },
     {
-      "hash": "1051bb97cc3293370435de8ef72b08f08195468044897e0d791b122d8c35d8c6",
+      "hash": "c2b47b00d6acb447950ee80199e0bbb3eac7cda9cbadc99b53c1b3a416b3bd9e",
       "size": 3987,
       "files": [
         "Console:saos-live.json",
@@ -513,11 +381,99 @@
       ]
     },
     {
-      "hash": "bc5289eb536c6027349f16e12435e7e493ba6652d25589eadfca8b21bf919ca9",
-      "size": 76035,
+      "hash": "89a69b6a70862b239b1fd2da45f367d74b7b8b7486de9406df68067f61365931",
+      "size": 4292,
+      "files": [
+        "Console:ESTATE-INDEX.md",
+        "FleetHQ:public/console/ESTATE-INDEX.md"
+      ]
+    },
+    {
+      "hash": "e2dbdeeee55f82e5b0ebb40749fdbd11291d5c6deddc0716a95bf494642d7c8d",
+      "size": 75547,
       "files": [
         "Console:mirror.json",
         "Domain:mirror.json"
+      ]
+    },
+    {
+      "hash": "c6a8a173f7d8c9e67247e92800eaa7d4a872b0e8daac435839be1816ce638c70",
+      "size": 9376,
+      "files": [
+        "Console:DESIGN.md",
+        "FleetHQ:public/console/DESIGN.md"
+      ]
+    },
+    {
+      "hash": "65c5331fa6340d5b6ed1cb1641bfe18db919cf2559bc48d15bead5406656d304",
+      "size": 2924,
+      "files": [
+        "Console:AGENTS.md",
+        "FleetHQ:public/console/AGENTS.md"
+      ]
+    },
+    {
+      "hash": "f1309e8c82dfef0a9a9b76af2dbb22c94ab404cf986befacc94f2d8d107d22c5",
+      "size": 7061,
+      "files": [
+        "Console:BLOC.md",
+        "FleetHQ:public/console/BLOC.md"
+      ]
+    },
+    {
+      "hash": "848c0fb23a02bc5470eec5bf93195d04b3316d4b8647b3b7342068bef52308cd",
+      "size": 906,
+      "files": [
+        "Console:progress.md",
+        "FleetHQ:public/console/progress.md"
+      ]
+    },
+    {
+      "hash": "9d7d22e40fd9ec6e97a2d9da68fde7ab96f0d6945bf3ebee7f685419e3518cf1",
+      "size": 9115,
+      "files": [
+        "Console:FLEET-LOG.md",
+        "FleetHQ:public/console/FLEET-LOG.md"
+      ]
+    },
+    {
+      "hash": "486f78977b3d8bf28783ce15a223b4c586deb636a48db0d98941171d108946a1",
+      "size": 5660,
+      "files": [
+        "Console:SYSTEM-ACTIVATION-REPORT.md",
+        "FleetHQ:public/console/SYSTEM-ACTIVATION-REPORT.md"
+      ]
+    },
+    {
+      "hash": "f35dc0bfe85f65d81c430ea380be538647c13b2025d9a7a97a9a2d851ea78504",
+      "size": 898,
+      "files": [
+        "Console:session-handoff.md",
+        "FleetHQ:public/console/session-handoff.md"
+      ]
+    },
+    {
+      "hash": "b5e3a0ed0080f8a1d8e72fd95b42c17ca46e936199a23bc6b0a01f99058d39dd",
+      "size": 5799,
+      "files": [
+        "Console:agent/handoff.md",
+        "FleetHQ:public/console/agent/handoff.md"
+      ]
+    },
+    {
+      "hash": "b26afbaf03ebd5c8547eda7911f63f80661e3151977795f6e5d2762eda093a56",
+      "size": 5788,
+      "files": [
+        "Console:agent/limitations.md",
+        "FleetHQ:public/console/agent/limitations.md"
+      ]
+    },
+    {
+      "hash": "56db1bfec11bd784f884ad888087bc201cc1e1edb3a9f2a086b89491283e6940",
+      "size": 4186,
+      "files": [
+        "Console:agent/verify/README.md",
+        "FleetHQ:public/console/agent/verify/README.md"
       ]
     },
     {
@@ -569,627 +525,19 @@
       ]
     },
     {
-      "hash": "35272ef74cc47504e9b103db720925a375ba6d300ead0cb0be9ed517933e06df",
-      "size": 11830,
+      "hash": "47f073b127f57790ed3a899b6c6242fb0d5970eda702d7058b9fbec61f5cfd4b",
+      "size": 5657,
       "files": [
-        "Domain:STATE-REPORT-20261006.md",
-        "SovereignConsole:Domain/STATE-REPORT-20261006.md"
+        "Domain:agent/limitations.md",
+        "Zip:console/agent/limitations.md"
       ]
     },
     {
-      "hash": "23a18129f7d19b0017d92f46884db3957189d5f4e14183cca95777b1043f4dce",
-      "size": 11742,
+      "hash": "17ee39033a0f506e1e8bfb1012c80c7246580c6b3593b836ab4358db448116c9",
+      "size": 3035,
       "files": [
-        "Domain:STATE-REPORT-20261004.md",
-        "SovereignConsole:Domain/STATE-REPORT-20261004.md"
-      ]
-    },
-    {
-      "hash": "c84bd2e778fa1835277ba795e1e41da7f623fa415ebfaca82dffb6dd4d3ea0fa",
-      "size": 12445,
-      "files": [
-        "Domain:FATE-DEFENSE.md",
-        "SovereignConsole:Domain/FATE-DEFENSE.md"
-      ]
-    },
-    {
-      "hash": "6971162ae4ba2e320f28049ccc0b60be6201e952cdb181aedf4a78ca87a42eaf",
-      "size": 3094,
-      "files": [
-        "Domain:STATE-REPORT-20260929.md",
-        "SovereignConsole:Domain/STATE-REPORT-20260929.md"
-      ]
-    },
-    {
-      "hash": "e4349f4cebe82771c3e97f57e32500b03a828023ed41701b3cf103c02066eda6",
-      "size": 7212,
-      "files": [
-        "Domain:STATE-REPORT-20261002.md",
-        "SovereignConsole:Domain/STATE-REPORT-20261002.md"
-      ]
-    },
-    {
-      "hash": "b9ed5ae1213839f601825e610f9f2bdcaee4f0145340e592b06d1c4ee5cbc0b6",
-      "size": 11718,
-      "files": [
-        "Domain:STATE-REPORT-20261005.md",
-        "SovereignConsole:Domain/STATE-REPORT-20261005.md"
-      ]
-    },
-    {
-      "hash": "8a14fdab4a32b08ece1746f6cfac493e9cda9f90f4c2c12dde551fd69eb5b939",
-      "size": 3326,
-      "files": [
-        "Domain:STATE-REPORT-20260930.md",
-        "SovereignConsole:Domain/STATE-REPORT-20260930.md"
-      ]
-    },
-    {
-      "hash": "952dd386d02a88127e07c7a61eb81f71b527af78bfbc0d579f232c9141cee29f",
-      "size": 4616,
-      "files": [
-        "Domain:CUA-ADOPTION.md",
-        "SovereignConsole:Domain/CUA-ADOPTION.md"
-      ]
-    },
-    {
-      "hash": "61ed01dec39202db472bfddd62fab3addc0d1e2d61f2c217521b0e73b897cb1d",
-      "size": 7781,
-      "files": [
-        "Domain:AGENTS.md",
-        "SovereignConsole:Domain/AGENTS.md"
-      ]
-    },
-    {
-      "hash": "b86eeed9d6746e47be1c589aca662aaec1acff6f93a5896424e7061bc85de550",
-      "size": 8163,
-      "files": [
-        "Domain:BLOC.md",
-        "SovereignConsole:Domain/BLOC.md"
-      ]
-    },
-    {
-      "hash": "633cec1beca91ca7582f57cbfb0ef14f0a1ef394a9e99d84e8de62d73f5c8a42",
-      "size": 11300,
-      "files": [
-        "Domain:STATE-REPORT-20261003.md",
-        "SovereignConsole:Domain/STATE-REPORT-20261003.md"
-      ]
-    },
-    {
-      "hash": "372f37789e4ea67938ece683929f59c2ebf7922b1f1381030458dc3e399135ee",
-      "size": 5938,
-      "files": [
-        "Domain:FLEET-NOTE.md",
-        "SovereignConsole:Domain/FLEET-NOTE.md"
-      ]
-    },
-    {
-      "hash": "547a2da36fd0f7f7aa2650a57010dfac0b86431140ee8d912edd2fd3f4215b52",
-      "size": 1710,
-      "files": [
-        "Domain:progress.md",
-        "SovereignConsole:Domain/progress.md"
-      ]
-    },
-    {
-      "hash": "b216aaf05b4f545dc656f5d66b0770478bef1faff880450ac4ad28371838bfad",
-      "size": 6759,
-      "files": [
-        "Domain:STATE-REPORT-20261001.md",
-        "SovereignConsole:Domain/STATE-REPORT-20261001.md"
-      ]
-    },
-    {
-      "hash": "64344529e0161affe35feb0a1a4062b1baa257259e6129491a1eaddd8d556abc",
-      "size": 5873,
-      "files": [
-        "Domain:session-handoff.md",
-        "SovereignConsole:Domain/session-handoff.md"
-      ]
-    },
-    {
-      "hash": "e78f1529ca3b43612137f8bba419371cb7b9a58e88456f5e5ddf370bf6464d7e",
-      "size": 23663,
-      "files": [
-        "Domain:README.md",
-        "SovereignConsole:Domain/README.md"
-      ]
-    },
-    {
-      "hash": "f786eb71085c317f106f2e2a04f33fe64caa3de8b14f567c41a631b3d7428874",
-      "size": 10545,
-      "files": [
-        "Domain:research/liquidity-routes.md",
-        "SovereignConsole:Domain/research/liquidity-routes.md"
-      ]
-    },
-    {
-      "hash": "3cc1db1a54a821f53b1a6d4d923701ed8c81c59138c013e8447689598b3601c1",
-      "size": 1212,
-      "files": [
-        "Domain:audience/digest-2026-10-05.md",
-        "SovereignConsole:Domain/audience/digest-2026-10-05.md"
-      ]
-    },
-    {
-      "hash": "51ef1f675d785aae30431f129bdf1df018d417f4c5edd57649ecfcd960ed74ed",
-      "size": 1280,
-      "files": [
-        "Domain:audience/digest-2026-10-06.md",
-        "SovereignConsole:Domain/audience/digest-2026-10-06.md"
-      ]
-    },
-    {
-      "hash": "0d7fdcd67cf0cf6f2b4dc1db1095c59aa8485a6678d59f6b58310dfb493c643e",
-      "size": 1340,
-      "files": [
-        "Domain:audience/digest-2026-10-02.md",
-        "SovereignConsole:Domain/audience/digest-2026-10-02.md"
-      ]
-    },
-    {
-      "hash": "2349034d0188009b7719e78df810602f67d970d1693664c308b43a4a518a9cc6",
-      "size": 1377,
-      "files": [
-        "Domain:audience/digest-2026-10-03.md",
-        "SovereignConsole:Domain/audience/digest-2026-10-03.md"
-      ]
-    },
-    {
-      "hash": "8ac82680ced392c3dae7e549cb6a9ffcdebeca6c93fcae58bd415da6d026d359",
-      "size": 1296,
-      "files": [
-        "Domain:audience/digest-2026-10-01.md",
-        "SovereignConsole:Domain/audience/digest-2026-10-01.md"
-      ]
-    },
-    {
-      "hash": "0366f60caa2c5e8bcb97bbceba9d8bbb6ece1cb2d57c0c3cdc3485e0bfa7ab14",
-      "size": 1452,
-      "files": [
-        "Domain:audience/digest-2026-10-04.md",
-        "SovereignConsole:Domain/audience/digest-2026-10-04.md"
-      ]
-    },
-    {
-      "hash": "35dd6bd28ca002b3a0026b464b50d5d337182c0df591ca7d6d9cb729ad2834d1",
-      "size": 9097,
-      "files": [
-        "Domain:agent/handoff.md",
-        "SovereignConsole:Domain/agent/handoff.md"
-      ]
-    },
-    {
-      "hash": "f8cd4cf3cd457039964d2a44fdb5ffaefb095da848ce1c045cadf7a4a8502aa5",
-      "size": 4165,
-      "files": [
-        "Domain:agent/verify/README.md",
-        "SovereignConsole:Domain/agent/verify/README.md"
-      ]
-    },
-    {
-      "hash": "c2215f7a8baf138eec19c5596a9a8ac77f38c087de3209f5606f79af1081197d",
-      "size": 812,
-      "files": [
-        "Domain:agents/reef-rung3.md",
-        "SovereignConsole:Domain/agents/reef-rung3.md"
-      ]
-    },
-    {
-      "hash": "21e8500fd439d64d3fae9af719d45afcfa284123e9bf985083bedff32a9a98ba",
-      "size": 5854,
-      "files": [
-        "Domain:agents/scheduler-audit.md",
-        "SovereignConsole:Domain/agents/scheduler-audit.md"
-      ]
-    },
-    {
-      "hash": "6253d48299d7e3967ce47c57bc52877b0bad21e10f7f8e7ce319fc0875a29d36",
-      "size": 8190,
-      "files": [
-        "Domain:agents/fleet-graph.md",
-        "SovereignConsole:Domain/agents/fleet-graph.md"
-      ]
-    },
-    {
-      "hash": "2ee3fd67290e5a4b59a52ab79a745441c63db090292879b797d1b50ec9b2b314",
-      "size": 1764,
-      "files": [
-        "Domain:agents/dex-xc.md",
-        "SovereignConsole:Domain/agents/dex-xc.md"
-      ]
-    },
-    {
-      "hash": "66ad22c8b0fa99472f50a048116faa7f0d11cf5b9f1b50cb567d1a521e83cbb1",
-      "size": 11705,
-      "files": [
-        "Domain:agents/emergence-autopsy.md",
-        "SovereignConsole:Domain/agents/emergence-autopsy.md"
-      ]
-    },
-    {
-      "hash": "aa1ed70006adb9b0e4ec8cad9e21bd3ee11f789dcb26f7d32c46ec503533d71b",
-      "size": 8781,
-      "files": [
-        "Domain:agents/evm-convergence.md",
-        "SovereignConsole:Domain/agents/evm-convergence.md"
-      ]
-    },
-    {
-      "hash": "e8855da45cbeff4aa4f6542fdb83d58f4f3af69a5d598fe694d897c57ada2a0b",
-      "size": 1505,
-      "files": [
-        "Domain:agents/skill-library.md",
-        "SovereignConsole:Domain/agents/skill-library.md"
-      ]
-    },
-    {
-      "hash": "d88a7a939188d83d7771f00b170bbb3d2276463319ddfc860c286f04a7b5d39e",
-      "size": 429,
-      "files": [
-        "Domain:agents/deep-audit.md",
-        "SovereignConsole:Domain/agents/deep-audit.md"
-      ]
-    },
-    {
-      "hash": "7ef0c3184050939d9362868c3dccdbb592adf321350db32772b03b394d81de99",
-      "size": 1211,
-      "files": [
-        "Domain:agents/cadence-week.md",
-        "SovereignConsole:Domain/agents/cadence-week.md"
-      ]
-    },
-    {
-      "hash": "efe8e63d67638cbbea9de1901e8989e06602c01dc44d0ee4df309ee427bb2dab",
-      "size": 7229,
-      "files": [
-        "Domain:agents/owner-proof.md",
-        "SovereignConsole:Domain/agents/owner-proof.md"
-      ]
-    },
-    {
-      "hash": "9154ad9d18f65865221ae110bb2d7276cb0357524a084b4287d26b0bc5b09701",
-      "size": 4124,
-      "files": [
-        "Domain:agents/dex-router.md",
-        "SovereignConsole:Domain/agents/dex-router.md"
-      ]
-    },
-    {
-      "hash": "fa83bc40a3bc6c873c7566c7746b397d5000c9ee402bae04964f520e59f22e88",
-      "size": 718,
-      "files": [
-        "Domain:agents/fill-ledger.md",
-        "SovereignConsole:Domain/agents/fill-ledger.md"
-      ]
-    },
-    {
-      "hash": "c37cd4845ea7b0469540ae1048c32905a646d3cd153ce5008a5ed48447d67547",
-      "size": 1806,
-      "files": [
-        "Domain:agents/econ-book.md",
-        "SovereignConsole:Domain/agents/econ-book.md"
-      ]
-    },
-    {
-      "hash": "d43dd92ad0895fa43253d89ccbce6fea0883c3bd6d66623710f5bd8308772a7d",
-      "size": 3944,
-      "files": [
-        "Domain:agents/evo-windows.md",
-        "SovereignConsole:Domain/agents/evo-windows.md"
-      ]
-    },
-    {
-      "hash": "6792204600aca9e4f675a6c791bc33ccead532476816c762d5842c83df101909",
-      "size": 928,
-      "files": [
-        "Domain:agents/claims-audit.md",
-        "SovereignConsole:Domain/agents/claims-audit.md"
-      ]
-    },
-    {
-      "hash": "7a032b0bbf895d2c489235b3afbd1ad786f7d48c340678fb3f080d8729920043",
-      "size": 887,
-      "files": [
-        "Domain:agents/sovereign-trade.md",
-        "SovereignConsole:Domain/agents/sovereign-trade.md"
-      ]
-    },
-    {
-      "hash": "61ae8431a9af3e407167c32da55376db530ca75c3bf669c601031eeb7eb9d2f5",
-      "size": 1314,
-      "files": [
-        "Domain:agents/pnl-book.md",
-        "SovereignConsole:Domain/agents/pnl-book.md"
-      ]
-    },
-    {
-      "hash": "153c068dc3a14e61177135d361806f2d23972f195a62d023dcab44660a5fc86b",
-      "size": 550,
-      "files": [
-        "Domain:agents/reef-harness-evo.md",
-        "SovereignConsole:Domain/agents/reef-harness-evo.md"
-      ]
-    },
-    {
-      "hash": "360164ef2169eb18051763d3502788f3fd6f895bdb8830778bfdfe0641120520",
-      "size": 2198,
-      "files": [
-        "Domain:agents/agent-registry.md",
-        "SovereignConsole:Domain/agents/agent-registry.md"
-      ]
-    },
-    {
-      "hash": "9f80b1d51a2af7261de8cbbedaab066b9ebcabe645c7e39717cd9c0a81e87af5",
-      "size": 961,
-      "files": [
-        "Domain:agents/laya-triage.md",
-        "SovereignConsole:Domain/agents/laya-triage.md"
-      ]
-    },
-    {
-      "hash": "b27eb9bbdce07bea778fc8aa53c254d9562037c3fadbcf7302b5ec47fbb20cfd",
-      "size": 1956,
-      "files": [
-        "Domain:agents/arb-mesh.md",
-        "SovereignConsole:Domain/agents/arb-mesh.md"
-      ]
-    },
-    {
-      "hash": "bba00f5a1ed668a325bba66071346d3b4515ca402d87443052fac485afc6966d",
-      "size": 10507,
-      "files": [
-        "Domain:agents/dex-core.md",
-        "SovereignConsole:Domain/agents/dex-core.md"
-      ]
-    },
-    {
-      "hash": "4c6ccee50f6244905787d41289c3a958efb247d6eb38d142ea867e1d7cd3b1d3",
-      "size": 6371,
-      "files": [
-        "Domain:agents/fleet-census.md",
-        "SovereignConsole:Domain/agents/fleet-census.md"
-      ]
-    },
-    {
-      "hash": "be3835cd4d844211a5f959b8e4c6b836ae18ee56155ac7290fbfbad0baa785ce",
-      "size": 8700,
-      "files": [
-        "Domain:agents/mm-volume.md",
-        "SovereignConsole:Domain/agents/mm-volume.md"
-      ]
-    },
-    {
-      "hash": "b4e10c01dadaa25aa66d71205cadf69aadae742e6e4e3d3e2c112246f2252de6",
-      "size": 757,
-      "files": [
-        "Domain:agents/market-cycle.md",
-        "SovereignConsole:Domain/agents/market-cycle.md"
-      ]
-    },
-    {
-      "hash": "ec3e2055c433540c3b8c917853ba057034afb8121e1a187abf3928ea37351ade",
-      "size": 6048,
-      "files": [
-        "Domain:agents/cross-layer.md",
-        "SovereignConsole:Domain/agents/cross-layer.md"
-      ]
-    },
-    {
-      "hash": "0cee961f21883cb6f76edc24bab8578a8ac671a5279663080af666f616011fc3",
-      "size": 933,
-      "files": [
-        "Domain:agents/capability-matrix.md",
-        "SovereignConsole:Domain/agents/capability-matrix.md"
-      ]
-    },
-    {
-      "hash": "09a12d1fb307d9947fe6c10dc0c917cb43a598e266987fff014b99345ec7f1e6",
-      "size": 554,
-      "files": [
-        "Domain:agents/workflow-parse-gate.md",
-        "SovereignConsole:Domain/agents/workflow-parse-gate.md"
-      ]
-    },
-    {
-      "hash": "6a9f59380365791032ab985c17f6391538408846651b571744d6f2d32466f537",
-      "size": 14716,
-      "files": [
-        "Domain:agents/sovereignty.md",
-        "SovereignConsole:Domain/agents/sovereignty.md"
-      ]
-    },
-    {
-      "hash": "02560f3c4050e2fabb54a9a2c0c31a8317c2c997496861d0da055ba442ee1553",
-      "size": 818,
-      "files": [
-        "Domain:agents/human-cadence.md",
-        "SovereignConsole:Domain/agents/human-cadence.md"
-      ]
-    },
-    {
-      "hash": "f297b717d158c199066384de282633721ef452852d481d671ec7141edebab6d9",
-      "size": 760,
-      "files": [
-        "Domain:agents/counter-grid.md",
-        "SovereignConsole:Domain/agents/counter-grid.md"
-      ]
-    },
-    {
-      "hash": "63af739791d4f9d342df1ff4dc83247645a0db40184bad780d153c0657fc9345",
-      "size": 1156,
-      "files": [
-        "Domain:agents/tick-keeper.md",
-        "SovereignConsole:Domain/agents/tick-keeper.md"
-      ]
-    },
-    {
-      "hash": "7f5780c11dbc576cab8de9f1aea61aa35a0d8fafe0d2b7c15dc01bdc869a29be",
-      "size": 2195,
-      "files": [
-        "Domain:agents/liquidity-ladder.md",
-        "SovereignConsole:Domain/agents/liquidity-ladder.md"
-      ]
-    },
-    {
-      "hash": "c57df70d4dc5fbbca9bb4bbd7b6213029e3081994f48e61fed576d4b2b3e91b1",
-      "size": 369,
-      "files": [
-        "Domain:agents/pegout-hand.md",
-        "SovereignConsole:Domain/agents/pegout-hand.md"
-      ]
-    },
-    {
-      "hash": "d96aa34f2f5008bdf600c88a8c8860c5321b08639266df20cc548d0962d835aa",
-      "size": 804,
-      "files": [
-        "Domain:agents/curation-book.md",
-        "SovereignConsole:Domain/agents/curation-book.md"
-      ]
-    },
-    {
-      "hash": "b330df1ffc8933896b09d5e6446c81dcd0688adbd2e54249388ce78bfff90fac",
-      "size": 1882,
-      "files": [
-        "Domain:agents/market-grid.md",
-        "SovereignConsole:Domain/agents/market-grid.md"
-      ]
-    },
-    {
-      "hash": "4fbc1377a3e21a5251225dfce109d4441f2c95fa2dfe94a103ba0e3698e099e4",
-      "size": 1600,
-      "files": [
-        "Domain:agents/convert-canon.md",
-        "SovereignConsole:Domain/agents/convert-canon.md"
-      ]
-    },
-    {
-      "hash": "da0bd7ef89568180fffcfe51664733dbec65a7343d80d03081a74400c91528f9",
-      "size": 10958,
-      "files": [
-        "Domain:agents/sovereign-convergence.md",
-        "SovereignConsole:Domain/agents/sovereign-convergence.md"
-      ]
-    },
-    {
-      "hash": "75037fa49b7c4079d9e68fa820d3fc2031bd82a5be4a1cffdcea1e8844133e11",
-      "size": 1348,
-      "files": [
-        "Domain:agents/ventures/v2-NOTES.md",
-        "SovereignConsole:Domain/agents/ventures/v2-NOTES.md"
-      ]
-    },
-    {
-      "hash": "0204e04c3958fcd9802ec5f94f121d593e57f09aaade508099be8aa5fb72b2e2",
-      "size": 677,
-      "files": [
-        "Domain:agents/ventures/v3-NOTES.md",
-        "SovereignConsole:Domain/agents/ventures/v3-NOTES.md"
-      ]
-    },
-    {
-      "hash": "97e607d65918bb82e6de6ee50f469c4f4e58b87c911d85a3440ef1d45c7a9565",
-      "size": 652,
-      "files": [
-        "Domain:agents/ventures/v5-NOTES.md",
-        "SovereignConsole:Domain/agents/ventures/v5-NOTES.md"
-      ]
-    },
-    {
-      "hash": "8d5205e77d4f092938c765125d02bd1a7f5fa9cccee08c7ac16cda604bd51e58",
-      "size": 1639,
-      "files": [
-        "Domain:agents/ventures/v1-NOTES.md",
-        "SovereignConsole:Domain/agents/ventures/v1-NOTES.md"
-      ]
-    },
-    {
-      "hash": "745217ed2c7254b15e4dace175eee221c53c883215c2ce9200e6b5d1a7cab970",
-      "size": 589,
-      "files": [
-        "Domain:agents/ventures/v4-NOTES.md",
-        "SovereignConsole:Domain/agents/ventures/v4-NOTES.md"
-      ]
-    },
-    {
-      "hash": "7bfcab29dcf26a573ec931bf9fb2b37344515dce9abcb71ceb45331460446f13",
-      "size": 5086,
-      "files": [
-        "Domain:agents/skill-library/SKILL-AUTHORING-STANDARD.md",
-        "SovereignConsole:Domain/agents/skill-library/SKILL-AUTHORING-STANDARD.md"
-      ]
-    },
-    {
-      "hash": "3ad34a82406cd226580b3deb10b4ffad96ea118f9fa24575c173269a9a63a849",
-      "size": 26746,
-      "files": [
-        "Domain:agents/skill-library/THIRD-PARTY-NOTICES.md",
-        "SovereignConsole:Domain/agents/skill-library/THIRD-PARTY-NOTICES.md"
-      ]
-    },
-    {
-      "hash": "5aab28a537713df0acee085b1150b0d81e043c7c042083b48c5dcca23f264d06",
-      "size": 2678,
-      "files": [
-        "Domain:agents/security-audit/REPORT.md",
-        "SovereignConsole:Domain/agents/security-audit/REPORT.md"
-      ]
-    },
-    {
-      "hash": "2a5a569423ddec83fd5a38d077757a05cc0edfb19c2337a9e9c0244c21654c20",
-      "size": 14431,
-      "files": [
-        "Domain:agents/security-audit/PROBE-LANE.md",
-        "SovereignConsole:Domain/agents/security-audit/PROBE-LANE.md"
-      ]
-    },
-    {
-      "hash": "45e0b51050babb0f47035b545f5fa46bbe11dcc537b3c0beec30502871db60c0",
-      "size": 1695,
-      "files": [
-        "Domain:agents/security-audit/ANTI-PATTERNS.md",
-        "SovereignConsole:Domain/agents/security-audit/ANTI-PATTERNS.md"
-      ]
-    },
-    {
-      "hash": "32d4a9e307beae377a9ec5d1a2d79794bea350da46d215e38f044032648962fe",
-      "size": 974,
-      "files": [
-        "Domain:agents/security-audit/NEEDS-VALIDATION.md",
-        "SovereignConsole:Domain/agents/security-audit/NEEDS-VALIDATION.md"
-      ]
-    },
-    {
-      "hash": "697f5847625514e6c9581b5b5b9082e51508b550da4fad8f52b0b950d836ad97",
-      "size": 865,
-      "files": [
-        "Domain:agents/vendor/security-audit/VENDOR-NOTE.md",
-        "SovereignConsole:Domain/agents/vendor/security-audit/VENDOR-NOTE.md"
-      ]
-    },
-    {
-      "hash": "421519e9d0478bd2c478e15130a4561a52a338c205126d302482b590d007dabf",
-      "size": 683,
-      "files": [
-        "Domain:agents/retired/TOMBSTONE.md",
-        "SovereignConsole:Domain/agents/retired/TOMBSTONE.md"
-      ]
-    },
-    {
-      "hash": "1a2144f2168023150d998fb46762a8c90572b2e23d44284d9f5c38979f7ee736",
-      "size": 2699,
-      "files": [
-        "Domain:market/README.md",
-        "SovereignConsole:Domain/market/README.md"
-      ]
-    },
-    {
-      "hash": "1abbc3715cf01066e4dc37fd2a65f85fdcce77f2c4752ee8c3bb188d086e1e30",
-      "size": 15221,
-      "files": [
-        "fleet-vault:SOVEREIGNTY.md",
-        "FleetHQ:SOVEREIGNTY.md"
+        "Domain:agent/inspections/README.md",
+        "Zip:console/agent/inspections/README.md"
       ]
     },
     {
@@ -1209,35 +557,11 @@
       ]
     },
     {
-      "hash": "52c57fa53b4022f49479979ed5d31ee7922fe7058abe150467a6de377ecd0865",
-      "size": 1920,
+      "hash": "09b0a25bca1a23170f5cc785875aa9b17f9fc77f53581c0aba054f280e5ee5cd",
+      "size": 39790,
       "files": [
-        "sanbox:worklog.md",
-        "SovereignConsole:sanbox/worklog.md"
-      ]
-    },
-    {
-      "hash": "0bd72915934011193034ed1db6398b252934f8a9949569d71ffe79e6554cdc2f",
-      "size": 3458,
-      "files": [
-        "sanbox:README.md",
-        "SovereignConsole:sanbox/README.md"
-      ]
-    },
-    {
-      "hash": "f82ff82512cc4a50713362e7baeff4c225779db9295d78dbd6ff959db0cc3f4b",
-      "size": 12800,
-      "files": [
-        "sanbox:docs/INTEGRATION.md",
-        "SovereignConsole:sanbox/docs/INTEGRATION.md"
-      ]
-    },
-    {
-      "hash": "3371ff6908982eb3e9fd76ebd2b7ae4fa01965a619dede1c473424bc15066dbe",
-      "size": 2344,
-      "files": [
-        "sanbox:portal/README.md",
-        "SovereignConsole:sanbox/portal/README.md"
+        "sanbox:memory/MEMORY.md",
+        "saos-control-center:MEMORY.md"
       ]
     },
     {
@@ -6487,6 +5811,14 @@
         "Saosmartwallet:skills/skill-finder-cn/SKILL.md",
         "steem:skills/skill-finder-cn/SKILL.md"
       ]
+    },
+    {
+      "hash": "5627b3f441adc62af9e6420045fa0452d7c02bfcea664ec5758db46504631609",
+      "size": 730,
+      "files": [
+        "SovereignConsole:tsconfig.json",
+        "steem:tsconfig.json"
+      ]
     }
   ],
   "driftedSamePath": {
@@ -6537,17 +5869,19 @@
       "Defi:8e5a699b21",
       "Domain:e78f1529ca",
       "fleet-vault:98fa70fb26",
-      "FleetHQ:088ebb08d7",
+      "FleetHQ:6224095217",
       "Project-files:a462bf6925",
       "roshpina:acb69ff2fc",
       "sanbox:0bd7291593",
-      "Sandbox:8c00a1cef7",
+      "Sandbox:57834b0d2a",
       "saos-agents:438428c5b4",
       "saos-dex:5e54f72066",
       "saos-jummper:a99bcc9cb4",
       "saos-sovereign-platform:8b9f38b19e",
       "Saosmartwallet:2e03f90643",
       "Sdk:34c2e5e18e",
+      "sovereign-beacon:ba74249853",
+      "sovereign-lighthouse:28558f828e",
       "steem:cc83444042",
       "TruthRail:3d8f815a80",
       "Zip:9b7213f7b4"
@@ -7495,12 +6829,12 @@
       "Zip:53ed2addb3"
     ],
     "status.json": [
-      "Console:e65f5661db",
-      "Domain:309b6c9016"
+      "Console:5ad01c8e7f",
+      "Domain:e65f5661db"
     ],
     "DESIGN.md": [
       "Console:c6a8a173f7",
-      "FleetHQ:d595bf18ea"
+      "FleetHQ:aeecf2ddc2"
     ],
     "AGENTS.md": [
       "Console:65c5331fa6",
@@ -7554,29 +6888,29 @@
       "Zip:bd4ff7145c"
     ],
     "worklog.md": [
-      "fleet-vault:c33400a1dd",
-      "FleetHQ:aabee210de",
+      "fleet-vault:6516a922ee",
+      "FleetHQ:ce3dee6f5e",
       "sanbox:52c57fa53b",
-      "Sandbox:9d545e7adf",
-      "SovereignConsole:669280ba7b",
-      "steem:d3dc98f1ea",
+      "Sandbox:e3446786bf",
+      "SovereignConsole:f704b65cc3",
+      "steem:3914eb2a48",
       "TruthRail:6bcc73c904"
     ],
     "SOVEREIGNTY.md": [
-      "fleet-vault:1abbc3715c",
-      "FleetHQ:1abbc3715c",
+      "fleet-vault:ac0007d67e",
+      "FleetHQ:04881fd277",
       "Zip:5e3eaa1b3d"
     ],
     "SECURITY.md": [
       "FleetHQ:c49b296d1e",
-      "Sandbox:cb19d6889d",
+      "Sandbox:c9d2116472",
       "saos-agents:9b05268084"
     ],
     "tsconfig.json": [
-      "FleetHQ:5627b3f441",
+      "FleetHQ:988b85280f",
       "roshpina:99c14be837",
       "saos-control-center:e79e32908c",
-      "saos-dex:734bc14821",
+      "saos-dex:5290d8e3dc",
       "saos-sovereign-foundry:af4d428516",
       "saos-sovereign-platform:4f707ac10d",
       "Saosmartwallet:67f407789f",
@@ -7585,9 +6919,8 @@
       "Zip:2204eb5770"
     ],
     "MEMORY.md": [
-      "FleetHQ:31ca9ed14f",
-      "saos-control-center:2bc507773a",
-      "SovereignConsole:9b5d9eb233"
+      "FleetHQ:356cf62bbf",
+      "saos-control-center:09b0a25bca"
     ],
     "AGENT-BRIEFING.md": [
       "roshpina:37bea8f830",
@@ -7639,9 +6972,9 @@
       "saos-sovereign-platform:29e46a4749",
       "Saosmartwallet:389303915d"
     ],
-    "sanbox/README.md": [
-      "SovereignConsole:0bd7291593",
-      "steem:f5547075a9"
+    "state.json": [
+      "sovereign-beacon:a208c104e4",
+      "sovereign-lighthouse:4fc41b2ebc"
     ]
   }
 }
