@@ -6,7 +6,7 @@
   "spec": "./FLEET-BUS-SPEC-2026-10-11.md",
   "validator": "./bus-validate.mjs",
   "tierLaw": "7-b exposure policy: A=public-by-design · B=internal-adjacent (aggregate/redact before any republish) · C=secret (never on the bus)",
-  "feedCount": 16,
+  "feedCount": 17,
   "feeds": [
     {
       "id": "fleethq-digest",
@@ -375,6 +375,30 @@
       "freshnessField": "generatedAt",
       "shape": ["schema", "generatedAt", "verdict"],
       "notes": "PRIVATE-raw: anonymous fetch = 404; token-authenticated fetch measured 200 · 1300B · generatedAt 2026-10-11T19:23Z (MIRROR-GREEN 5/5). Today it is an ORPHAN (written, zero readers) — the top-ranked future wiring is publishing its verdict through FleetHQ digest (public, keyless)."
+    },
+    {
+      "id": "sandbox-profit-oracle",
+      "producer": "Sandbox (ops/profit-oracle/oracle.mjs + profit-oracle.yml, daily 05:29 UTC + dispatch)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/receipts/profit-oracle-latest.json",
+      "schema": "roshpinacare.profit-oracle/1",
+      "cadence": "daily 05:29 UTC",
+      "tier": "A",
+      "consumers": [
+        "FleetHQ office/retro.mjs (14-c)",
+        "Domain index.html research panel (14-d)",
+        "office retro proposals"
+      ],
+      "potentialConsumers": [
+        "ECONOMIC-PLAN refresh (10-d lineage)",
+        "sovereign/bus-validate.mjs"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-12T00:00Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "at",
+      "shape": ["ok", "at", "summary"],
+      "notes": "Standing daily profit pulse (zai-14b, trace 1a12d502a99b7021 — 'the autonomy itself checks profitability daily'): V-WORTH 14-roster own/eff-SP + liquid + order-book mid → netWorthSbdEquiv · V-GRID-EDGE pnl-desk verdict/edge (value is data, desk decides) · V-ZOMBIE-LADDER headcorner open orders vs prior. Keyless, public sources only, fail-open honest verdicts, union receipt runs≤12 + prior verbatim. Top-level summary = latest run."
     }
   ]
 }
