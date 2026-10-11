@@ -1,0 +1,63 @@
+{
+  "task": "9-b exposure-convergence (resume)",
+  "agent": "exposure-convergence-agent",
+  "date": "2026-10-11",
+  "mandate": "Execute 7-b tiered exposure policy: YAML ops-comment scrub + cron randomization, telemetry write-time redaction, anchors hash-only, gmail hygiene, FleetHQ pass",
+  "repos": {
+    "Domain": { "sha": "010550d", "base": "44af219", "note": "yaml batches aa-ab-ac-ad + telemetry redaction recovered from dead attempt; verified + one-time HEAD redact pass added" },
+    "Console": { "sha": "902cef9b", "base": "d4e1b2b9", "note": "yaml sweep ca/cb pushed this lane; telemetry redaction 300f42bf recovered; one-time HEAD redact pass added" },
+    "Zip": "this commit (deliverables + coordination row)",
+    "steem": { "sha": "8b0b1b4e", "note": "anchor-producer audit only — no change needed" },
+    "FleetHQ": { "sha": "9dad94d", "note": "verified-clean, no workflows, no personal data — no change" }
+  },
+  "yaml_swept": {
+    "Domain": { "workflows_total": 65, "scrubbed": 55, "commits": ["b343ac6", "998a415", "77e6ffc", "ddaed00"], "exempt": ["content-campaign.yml (9-a lane, closed)", "gitleaks.yml + org-gitleaks.yml (forbidden lane)"], "post_bot_commit_validation": "all 65 parse OK at 44af219" },
+    "Console": { "workflows_total": 18, "scrubbed": 17, "commits": ["d99c36ad", "aa626094"], "exempt": ["gitleaks.yml (forbidden lane)"], "comment_lines_removed": 165 }
+  },
+  "cron_randomization_samples": [
+    { "repo": "Domain", "workflow": "dex-beat", "old": "53 */4 * * *", "new": "12 */4 * * *" },
+    { "repo": "Domain", "workflow": "daily-digest", "old": "5 1 * * *", "new": "2 1 * * *" },
+    { "repo": "Domain", "workflow": "anchor-execute", "old": "55 13 * * *", "new": "8 13 * * *" },
+    { "repo": "Domain", "workflow": "weave-anchor-lines", "old": "33 * * * *", "new": "20 * * * *" },
+    { "repo": "Domain", "workflow": "dex-grid (load-bearing, money-watch dispatch)", "old": "43 3 * * *", "new": "26 3 * * *", "constraint": "comments+minute only" },
+    { "repo": "Console", "workflow": "weave-census", "old": "8 */2 * * *", "new": "6 */2 * * *" },
+    { "repo": "Console", "workflow": "line-agreement", "old": "14 */2 * * *", "new": "19 */2 * * *", "constraint": "kept after weave-census" },
+    { "repo": "Console", "workflow": "console-publish", "old": "45 * * * *", "new": "38 * * * *", "constraint": "kept after the :20 anchor line, before old :45" },
+    { "repo": "Console", "workflow": "trigger-mesh", "old": "23 */3 * * *", "new": "44 */3 * * *" },
+    { "repo": "Console", "workflow": "money-watch (grid dispatch)", "old": "31 */2 * * *", "new": "33 */2 * * *" },
+    { "repo": "Console", "workflow": "rea-desk", "old": "27 4 * * 2", "new": "52 4 * * 2" }
+  ],
+  "telemetry_redaction": {
+    "mechanism": "agents/redact-telemetry.mjs (idempotent, fail-closed): personal addresses (TG6S/TYVw/0x01Bd prefixes + full TRON/EVM/STM patterns) -> 4-char-prefix…[redacted]; grid params (commitPct/stepBps/spread/pegOut/threshold/fee/expiry) -> coarse bands; secret-name fields -> [redacted]; roster tables (roster/soldiers/accounts/members/keycheck/registry keys + account/username/owner fields) -> masked; tier-A survives: 64-hex digests, deposit receive addresses, counts, verdicts, hashes",
+    "Domain": { "write_time_writers_wired": 14, "commit": "6d85c5a", "one_time_pass": { "commit": "010550d", "files_listed": 43, "files_changed": 32, "notable": "weave/census roster accounts masked" } },
+    "Console": { "write_time_writers_wired": 9, "commit": "300f42bf", "one_time_pass": { "commit": "902cef9b", "files_listed": 11, "files_changed": 8, "notable": "receipts/r35-full-cycle.json custody TYVw… + destTron TG6S… masked, spreadBpsVsOracle -60 -> -100 band" } },
+    "validation": "local runs on real files exit 0; synthetic tier-B fixture: commitPct 0.9->1, spreadBps 50->100, pegOut 1.05->1, threshold 0.35->0.5, roster/secret/addresses masked, digests+deposit addrs survive; key-set integrity check 0 dropped/0 added; all outputs json/yaml valid",
+    "deliberately_not_redacted": "agent/verify/assertions.json (live verifier fixture — redacting would fake-fail honest verification), content-review reports, moment.json, status.json (not in wired lists; consumers unknown — dropped rather than guess)"
+  },
+  "anchor_hash_only_audit": {
+    "verdict": "COMPLIANT — no change needed",
+    "evidence": [
+      "steem saos-engine anchor-now-t38.mjs:86 + ci-act.mjs:203 custom_json id=saos-git-custody-v1 payload = {branch, tip(git hash), at, src, fp}",
+      "Zip scripts/weave-anchor.ts (invoked by Domain weave-anchor-lines) custom_json id=saos.weave.core.v1 payload = {protocol, action, at, net, repo, checkpoint index, root(Merkle), attFrom/attTo, attestations COUNT, headHash, commit}",
+      "weave-anchor-zero.ts: no chain broadcast",
+      "@headcorner daily transparency posts = keyless real numbers (tier A); content audited clean by 9-a (1 historical leak, permanent on-chain)"
+    ]
+  },
+  "email_hygiene": {
+    "workflows_touched_fixed": 0,
+    "reason": "zero gmail user.email in any workflow of any local clone (Domain, Console, FleetHQ, Sandbox, saos-dex, steem, Zip, TruthRail, sovereign-lighthouse/beacon, saos-agents)",
+    "bot_emails": "all noreply.github.com or saos.local/fleet.local placeholders",
+    "historical": "~2,465 gmail-author commits across 8 repos remain (7-b) — owner-blocked, history rewrite forbidden"
+  },
+  "fleethq": { "workflows": 0, "hebrew": 0, "personal_addresses": 0, "roster": 0, "receipts": "machine lineage/boot telemetry only", "action": "none (verified clean)" },
+  "forbidden_lanes_respected": ["no history rewrites", "no visibility flips", "no secret access", "no .gitleaksignore edits", "no workflow deletions", "no STASIS/signer/vault/blurt/delegation/gitleaks/Social-probe/Sandbox-probe files", "content-campaign.mjs/.yml untouched (9-a closed)", "dex-grid.yml comments+minute only"],
+  "residual_risks": [
+    { "id": "R1", "severity": "CRITICAL", "risk": "R11 vault archive + 48-hex passphrase recoverable from PUBLIC git history of roshpina@5983d4b, anchor-baseline@cc308e0, saos-jummper@9898805, Sdk@3c34f35/de0edbe, Adsmarket@6138491", "status": "owner-blocked (rotation R11); outside 9-b lane" },
+    { "id": "R2", "severity": "HIGH", "risk": "tier-B values remain in git HISTORY of Domain/Console telemetry (write-time + one-time HEAD passes do not rewrite history); key-check.json + r35-full-cycle.json originals retrievable from history", "status": "accepted per no-rewrite law; Pages/raw HEAD surface closed" },
+    { "id": "R3", "severity": "MEDIUM", "risk": "Hebrew runtime log strings remain in 3 Domain workflows (weave-anchor-lines/weave-heart/workflow-yaml-guard echo lines) + gitleaks*.yml (forbidden lane) + content-campaign.yml (9-a lane) — Actions logs are public OSINT", "status": "behavior-preserving choice; comments fully clean" },
+    { "id": "R4", "severity": "MEDIUM", "risk": "exact Actions secret NAMES (STEEM_ACTIVE_WIF, WEAVE_STEEM_WIF, EVM_ANCHOR_PK, WEAVE_SEAL_PASSPHRASE/MAIN_KEY…) still referenced in env: blocks — renaming breaks workflow/secret pairing (owner action in repo Settings + workflows together)", "status": "secret-name MAP comments removed; names themselves kept to avoid breakage" },
+    { "id": "R5", "severity": "MEDIUM", "risk": "on-chain permanence: historical @headcorner posts/custom_json carry past ops metadata — un-fixable by policy", "status": "future payloads verified hash+timestamp+version only" },
+    { "id": "R6", "severity": "LOW", "risk": "cron minute map still enumerable from the repo itself (any reader sees the new minutes); randomization removes the PUBLISHED rationale/pattern, not the values", "status": "accepted; schedules remain internally consistent (order-preserved chains)" },
+    { "id": "R7", "severity": "LOW", "risk": "identical-body cross-account posts from saos-social-rail/saos-engine engines outside Domain (9-a remaining risk #1)", "status": "content lane, not exposure lane" }
+  ]
+}
