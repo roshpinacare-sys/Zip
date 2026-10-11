@@ -1,0 +1,289 @@
+{
+ "protocol": "saos/key-proof/1",
+ "kind": "roshpinacare.zai-audit.key-proof/1",
+ "generatedAt": "2026-10-11T21:06:46.314Z",
+ "source": "Sandbox proof/key-proof.mjs saos/key-proof/1 (full artifact: roshpinacare-sys/Sandbox proof/out/key-proof-2026-10-11.json @ f084ee57)",
+ "mandate": "owner trace 1a12c9d6f5df1b95 — dead-key standing proof for R11 leaked key material (roshpina/anchor-baseline/saos-jummper/Sdk/Adsmarket)",
+ "redaction": {
+  "law": "hash16-of-material + derived pubkeys + place metadata ONLY; no private material, no passphrases, no file contents; auditor enforced pre-write (violation = hard failure, nothing written)",
+  "selfAudited": true
+ },
+ "scan": {
+  "repos": {
+   "roshpina": {
+    "commits": 136,
+    "blobs": 432,
+    "bytes": 2400429,
+    "reachable": true
+   },
+   "anchor-baseline": {
+    "commits": 127,
+    "blobs": 133,
+    "bytes": 686279,
+    "reachable": true
+   },
+   "saos-jummper": {
+    "commits": 436,
+    "blobs": 508,
+    "bytes": 4636385,
+    "reachable": true
+   },
+   "Sdk": {
+    "commits": 129,
+    "blobs": 204,
+    "bytes": 762945,
+    "reachable": true
+   },
+   "Adsmarket": {
+    "commits": 584,
+    "blobs": 548,
+    "bytes": 10990547,
+    "reachable": true
+   }
+  },
+  "totalBlobs": 1825,
+  "totalBytes": 19476585,
+  "note": "candidate values are hashed in-memory only; never persisted anywhere"
+ },
+ "chain": {
+  "node": "https://api.steemit.com",
+  "fleetAccounts": 14,
+  "fleetAliveKeyBodies": 56,
+  "keyReferencesAvailable": true,
+  "keyReferenceNote": "condenser_api.get_key_references used (global reference census)",
+  "rotationOpsWalked": 8787,
+  "rotationReachedWindowEnd": true,
+  "gen2ActiveMatchesLive": true,
+  "headcornerLastOwnerUpdate": "2026-10-08T17:29:09"
+ },
+ "verdictCounts": {
+  "DEAD": 9,
+  "ALIVE-ALERT": 0,
+  "UNKNOWN": 0,
+  "UNKNOWN-NOT-CHAIN-TESTABLE": 3,
+  "incident": false
+ },
+ "materials": [
+  {
+   "hash16": "658d061ca1a85765",
+   "kind": "archive",
+   "verdict": "UNKNOWN-NOT-CHAIN-TESTABLE",
+   "repos": [
+    "Adsmarket",
+    "Sdk",
+    "anchor-baseline",
+    "roshpina",
+    "saos-jummper"
+   ],
+   "paths": [
+    "agent/vault/KEYS-ACCESS-README-HE.md"
+   ],
+   "firstIntroduced": {
+    "sha": "5d7c41a817",
+    "date": "2026-09-13"
+   },
+   "gitBlobSha": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0"
+  },
+  {
+   "hash16": "dadf2d6c8cfdc1aa",
+   "kind": "passphrase",
+   "verdict": "UNKNOWN-NOT-CHAIN-TESTABLE",
+   "repos": [
+    "Adsmarket",
+    "Sdk",
+    "anchor-baseline",
+    "roshpina",
+    "saos-jummper"
+   ],
+   "paths": [
+    "agent/vault/recovery-meta-2026-09-12.json"
+   ],
+   "firstIntroduced": {
+    "sha": "2b554afea0",
+    "date": "2026-09-13"
+   },
+   "matrixProbe": {
+    "tested": 392,
+    "aliveMatches": []
+   }
+  },
+  {
+   "hash16": "fd51fe837e016ea9",
+   "kind": "archive",
+   "verdict": "UNKNOWN-NOT-CHAIN-TESTABLE",
+   "repos": [
+    "Adsmarket",
+    "Sdk",
+    "anchor-baseline",
+    "roshpina",
+    "saos-jummper"
+   ],
+   "paths": [
+    "agent/vault/KEYS-ACCESS-2026-09-12.tar.enc"
+   ],
+   "firstIntroduced": {
+    "sha": "9dae05b6c9",
+    "date": "2026-09-13"
+   },
+   "gitBlobSha": "3d8221a345c42798fc1897ffdcd638bb93d09ad4"
+  },
+  {
+   "hash16": "68c891d39dce9928",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "docs/KEY-INCIDENT.md",
+    "scripts/coverage_harness.py",
+    "tests/test_rotation.py"
+   ],
+   "firstIntroduced": {
+    "sha": "ae38a43b8e",
+    "date": "2026-09-10"
+   },
+   "derivedPubkey": "STM8mSbBz8zsMfBow2xa1yfTuNhdp6KZf3v7kAs1BSQAB1AMQM1Fw"
+  },
+  {
+   "hash16": "a060933235738c89",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "docs/KEY-INCIDENT.md",
+    "scripts/coverage_harness.py",
+    "tests/test_rotation.py"
+   ],
+   "firstIntroduced": {
+    "sha": "ae38a43b8e",
+    "date": "2026-09-10"
+   },
+   "derivedPubkey": "STM8c9vp3hUnNsXHaWLPTpcYWkPpK5GrnySgN51FiGX9dxhwVz8YZ"
+  },
+  {
+   "hash16": "fabbcdf2278d8858",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "docs/KEY-INCIDENT.md",
+    "scripts/coverage_harness.py",
+    "tests/test_rotation.py"
+   ],
+   "firstIntroduced": {
+    "sha": "ae38a43b8e",
+    "date": "2026-09-10"
+   },
+   "derivedPubkey": "STM6u99ogJKojfZC94VCs73N3wVRxnm9XTjVSmkSm2BE59yDEuH6b"
+  },
+  {
+   "hash16": "5ad1a13d7cb91a44",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "docs/KEY-INCIDENT.md",
+    "scripts/coverage_harness.py",
+    "tests/test_rotation.py"
+   ],
+   "firstIntroduced": {
+    "sha": "ae38a43b8e",
+    "date": "2026-09-10"
+   },
+   "derivedPubkey": "STM7pmsRp7QrEnuGT6EWfnJMuSiAU9wXSoNUJRBYQio5qfGCSrax5"
+  },
+  {
+   "hash16": "9e3af764371b8d68",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "state/hive-intel-latest.json"
+   ],
+   "firstIntroduced": {
+    "sha": "38d48f9fec",
+    "date": "2026-10-11"
+   },
+   "derivedPubkey": "STM8PFEEhF9g3PMZu9mu9vso56bzP6i4aMYM73aWL8CkcKi4LEGLR"
+  },
+  {
+   "hash16": "e76c845274793ed2",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "state/hive-intel-latest.json"
+   ],
+   "firstIntroduced": {
+    "sha": "38d48f9fec",
+    "date": "2026-10-11"
+   },
+   "derivedPubkey": "STM82sVNpRXV86ARhL1mPoqjBTQUsdR5YwUg2dGAtJognb4cZveYH"
+  },
+  {
+   "hash16": "9805443d09068ce9",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "state/hive-intel-latest.json"
+   ],
+   "firstIntroduced": {
+    "sha": "38d48f9fec",
+    "date": "2026-10-11"
+   },
+   "derivedPubkey": "STM7ZReKWfMREwGQp4jDe8mxPXuLQLUro4WXks2s7rTzjAjpsGi3Y"
+  },
+  {
+   "hash16": "b9f93d6be956f71b",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "state/hive-intel-latest.json"
+   ],
+   "firstIntroduced": {
+    "sha": "38d48f9fec",
+    "date": "2026-10-11"
+   },
+   "derivedPubkey": "STM6aq8Ymd7NRVk2ry7buNHSFYCy5yGMKBXMZAa7hS7rtVL4VarGb"
+  },
+  {
+   "hash16": "0b7273ebe23da4e3",
+   "kind": "pubkey",
+   "verdict": "DEAD",
+   "repos": [
+    "saos-jummper"
+   ],
+   "paths": [
+    "state/hive-intel-latest.json"
+   ],
+   "firstIntroduced": {
+    "sha": "38d48f9fec",
+    "date": "2026-10-11"
+   },
+   "derivedPubkey": "STM6wjYfYn728hR5yXNBS5GcMoACfYymKEWW1WFzDGiMaeo9qUKwH"
+  }
+ ],
+ "r11Gate": "DISSOLVED by standing proof (all chain-testable material DEAD, zero ALIVE-ALERT) — refreshed weekly by Sandbox workflow key-proof (Wed 04:23 UTC)",
+ "stillOwnerNeeded": [
+  "passphrase-protected archives (KEYS-ACCESS-2026-09-12.tar.enc + its README) unopened by redaction law — hash-only documented here",
+  "9 soldiers owner-authority rotation (tx_missing_owner_auth) — sovereign/ceremonies/soldiers-key-ceremony.md (task 11-b)"
+ ],
+ "discipline": "read-only chain + history; no broadcasts; no STASIS; no vault/key writes; token env-only, never printed"
+}
