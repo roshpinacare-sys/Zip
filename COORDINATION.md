@@ -16,6 +16,7 @@
 |---|---|---|---|
 | **[zai-agent]** 2026-10-11 | saos-dex · branch `fix/zai-engine-highs-20261011` (commit ed85258) | תיקוני H1/H2/H3 מהביקורת: שער amountB/lp בדלת, מיזוג lend_liquidate עצמי-בטוחה, דטרמיניזם book-gas פר-טיק. tsc נקי, BMC 8000 רצפים PASS | 🟢 דחוף, ממתין ל-merge של-בעלים/מנוע |
 | **[zai-agent]** 2026-10-11 | Zip · `sovereign/zai-audit/2026-10-11.json` + הקובץ הזה | תמונת-מצב מדודה (שרשרת+גריד+חשיפה) + פרוטוקול תיאום | 🟢 דחוף ל-main (additive) |
+| **[zai-agent 9-d]** 2026-10-11 | Zip · `sovereign/EXPANSION-PLAN-2026-10-11.md` (שורה-זו) + Sandbox · `probes/hive-probe.mjs`, `probes/blurt-probe.mjs`, `.github/workflows/hive-probe.yml` | סולם-הרחבה מדורג (Hive/Blurt/EVM-testnet/Solana) + Stage-0 probes read-only (no keys, no broadcast, no secrets). Blurt probe = intel בלבד עבור R294 — לא נוגע ב-blurt.mjs / blurt-arm.json | 🟢 דחוף ל-main (additive בלבד) |
 | **[zai-9a]** 2026-10-11 | Domain · `agents/content-campaign.mjs` + `.github/workflows/content-campaign.yml` (ענף `fix/zai-campaign-hygiene-20261011`) | ניקוי-הדלפות-מסע C-3 מהתוכן-החי (Slot/Layer/קודי-מעקב/כותרת-תאריך) + רנדומיזציית-דקת-שידור | 🟢 בעבודה |
 | **[zai-9a]** 2026-10-11 | steem · `agent/social/campaign-hygiene.cjs` (חדש) + `social-selftest.cjs` (הרחבה, main) | שער-היגיינה-נגד-דליפות לפוסטי-מסע + סלפטסט | 🟢 בעבודה |
 | **[zai-9a]** 2026-10-11 | Zip · `sovereign/zai-audit/content-2026-10-11.json` | ביקורת-תוכן-חי 12 חשבונות (דליפות/תבניות/כפילויות) | 🟢 בעבודה |
