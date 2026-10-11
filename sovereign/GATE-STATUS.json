@@ -1,0 +1,106 @@
+{
+  "protocol": "SAOS-OWNER-GATE-STATUS/1",
+  "generatedAt": "2026-10-11T20:40:00Z",
+  "generatedBy": "zai-11b (owner-gate-playbook agent) — live-verified via Steem RPC + GitHub API + git trees before writing",
+  "mandateTrace": "1a12c9d6f5df1b95",
+  "sources": [
+    "Zip/sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md",
+    "Zip/sovereign/ceremonies/soldiers-key-ceremony.md",
+    "Zip/sovereign/ceremonies/vault-home-recovery-meta-migration.md"
+  ],
+  "gates": [
+    {
+      "id": "gate-01-steem-active-wif-domain",
+      "title": "STEEM_ACTIVE_WIF בכספת-Domain — מסילת-החתימה של המכונה (grid twin + delegations twin + liquidity-bootstrap)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "עדכון הסוד STEEM_ACTIVE_WIF בריפו Domain (Settings→Secrets) למפתח שגוזר את רשות-ה-active החיה STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf (נמדד-חי 20:34Z), ואז re-dispatch dex-grid. ≈3 דק'. הבעלים כבר סוחר ישירות עם GEN-2 (242 הצבות+247 ביטולים בחלון 19:55–20:24Z) — השער נועל רק את המכונה. עד-אז כל-חתימה-מכונה נכשלת fail-closed BY DESIGN (grids/key-gate.mjs). אזהרה: לפני re-dispatch של רגל-ה-delegator — הכרעת-תוכנית (gate-08 note).",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:34:00Z"
+    },
+    {
+      "id": "gate-02-actions-billing",
+      "title": "חיוב-Actions — 15 ריפואים פרטיים אדומים (חתימת 3–5ש/0-שלבים נמדדה מחדש)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "GitHub → Settings → Billing and plans → שדרוג/רכישת-דקות. ≈5 דק'. אחרי-ההרמה fleet-heal (Sandbox, cron 5,35 * * * *, PROBE_TTL 24h, קנרית sanbox) מצית כל-ריפו-אדום ≤1/יום → הריפוי מתגלה מעצמו תוך ≤24h. תיקון-הנחה: כל-ה-workflows הפרטיים dispatch-only מאז 10-06 11:52Z — ההרמה משחזרת יכולת-לרוץ, לא הקפדה-אוטומטית. מפת-קריטיות: steem/saos-dex/Zip כבר עובדים דרך תאומים-ציבוריים (saos-runtime/Domain-twin/weave-lines חיים); הנותרים = QA/ראיות בלבד; vault-home = 0-workflows.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:33:00Z"
+    },
+    {
+      "id": "gate-03-r11-rotation-9-soldiers",
+      "title": "סבבת-מפתות R11 + 9-חיילים tx_missing_owner_auth (cashmachine, haran, israelnews, lsa, macrame, siq, tov, wog, woq)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "החלטה אחת: (א) העלאת סוד STEEM_SOLDIERS_OWNER_ROTATION בריפו steem עם מפתחות-ה-owner החיים → המכונה משלימה רוטציה-GEN-2 בטקס-המוכן (קנרית קודם, עיקור-מפתח-ישן, אימות 8/8 פר-חשבון) ≈10 דק'; או (ב) הכרזת-מוזנחים ≈1 דק'. ה-9 עובדים כבר היום עם GEN-1-active מאומת (20:15Z) — נעול רק שינוי-רשויות. הוכחת-מנגנון: wic tx 9fd13d50. הוכחת-מתים-שבועית: KEY-PROOF-LATEST.md (מסילת 11-a — עשוי שלא להיות ב-HEAD עדיין).",
+      "artifactLinks": ["sovereign/ceremonies/soldiers-key-ceremony.md", "sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/KEY-PROOF-LATEST.md"],
+      "measuredAt": "2026-10-11T20:34:00Z"
+    },
+    {
+      "id": "gate-04-vault-home-recovery-meta",
+      "title": "vault-home vault-chain/recovery-meta.json — סיסמאות בטקסט-גלוי ב-HEAD (תאום-steem זהה)",
+      "state": "MACHINE-READY",
+      "ownerActionSummary": "טקס-הגירה מוכן במלואו (diff בתוך המסמך, לא ענף-דחוף). צעד-הבעלים: העלאת סוד RECOVERY_META_JSON (≈5 דק') → המכונה: ענף-קוד (סוד-קודם, fallback-קובץ, קובץ-מצונזר=דחייה-כנה) → selftest-שקילות → מיזוג → קומיט-צנזור-חד-פעמי HEAD-only (דפוס 9-b) → אימות-קוראים-חיים. כנות: ההיסטוריה נשארת (כתיבה-מחדש אסורה-בחוק; HEAD-only מתועד במסמך). vault-home לא נגעו. דחיפות-מיוחדת: הקורא vault-drip.mjs רץ על ריפו-ציבורי (saos-runtime).",
+      "artifactLinks": ["sovereign/ceremonies/vault-home-recovery-meta-migration.md"],
+      "measuredAt": "2026-10-11T20:36:00Z"
+    },
+    {
+      "id": "gate-05-stasis-convert",
+      "title": "STASIS-lane convert — נמדדה מתה-כלכלית (sbd_print_rate=0, sbd_interest_rate=0, אוצר-תגמולים ריק)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "המלצה: DEPRECATE — מילת-בעלים אחת סוגרת-את-המסילה רישומית (STASIS.json history-append; המכונה מפסיקה לחשב תוכניות-convert). עלות-אפס: אף-הכנסה לא נמדדה ממנה מעולם. ≈1 דק'.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/ECONOMIC-PLAN-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:34:00Z"
+    },
+    {
+      "id": "gate-06-stasis-transfers",
+      "title": "STASIS-lane transfers — מדיניות-משיכה מהגריד (ספי-פתיחה מוצעים)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "הצעה: פנימיות נפתחות-אוטומטית-מתוקשבת כאשר הכנסת-גריד נמדדת ≥5 SBD/שבוע ×2 שבועות (המד-קיים: research-lane E1/LEDGER.md); משיכות-חוץ = מילת-בעלים פר-העברה לעולם, מוצעות-מכונה רק מעל SBD-נזיל >100; engine-transfers (SWAP.BLURT) נשאר סגור (מלאי ≈0.083 BLURT). מימוש: מילת-בעלים ב-COORDINATION.md + stagedLanes.allow += transfers + arm-file חדש grids/transfers-arm.json (יוכן-מכונה אחרי-המילה).",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/ECONOMIC-PLAN-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:35:00Z"
+    },
+    {
+      "id": "gate-07-stasis-votes",
+      "title": "STASIS-lane votes — הצעת-מדיניות-הצבעה (ניסוי 14 יום, כלכלה כנה: תקרה ~102 STEEM/שנה, תשועה-מציאותית ≤0.02 SBD/שבוע; הערך=מולטיפלייר-הפצה)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "מילת-בעלים לניסוי: stagedLanes.allow += votes + כתיבת grids/votes-arm.json (SAOS-VOTES-ARM/1: dailyCap 10, weightBand 2500–5000, vpFloor 80) — בדפוס liquidity-arm.json/blurt-arm.json. כנות: נכון-לעכשיו אין צרכן-קוד לקובץ (משימת-מכונה אחרי-המילה; curate.mjs הקיים = keyless-planner + STEEM_POSTING_WIF, אפס-הצבעה-עצמית). הבעלים כבר מצביע ידנית (5 הצבעות 20:15–20:16Z) — הניסוי מכניס-משמעת-ומדידה, לא-מגלה-את-הפעולה. סף-הצלחה = הפצה (votes-לפוסט 2–3→≥8), לא SBD.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/ECONOMIC-PLAN-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:35:00Z"
+    },
+    {
+      "id": "gate-08-stasis-delegations",
+      "title": "STASIS-lane delegations — DISSOLVED (הבעלים מזרים ישירות עם GEN-2: 603.3 SP/14 יעדים נמדד-חי)",
+      "state": "DISSOLVED",
+      "ownerActionSummary": "דוגמת-הראייה: מילת-בעלים + מפתח-חי = זרימה בדקות, בלי-המכונה. אזהרת-סדר לפני re-dispatch-מכונה: grids/state/delegation-plan.json (חתום 14:20Z, 1024 SP) חוסה מהמצב-החי (posters 75→150 עלייה; woq 66.4→50 וחיילים 17→8 ירידות אם ירוץ כפי-שהוא) → דרוש re-seal לתמונת-603.3 (מומלץ, דלתא=0) או אישור-ה-1024. עד-אז: לא להצית רגל-ה-delegator ב-twin.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/ECONOMIC-PLAN-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:35:00Z"
+    },
+    {
+      "id": "gate-09-blurt-ignition",
+      "title": "Blurt — עדכון-מצב: R254-pause כבר אינו המצב; R294 פתח כניסוי-מחמיר, arm-file חמוש (armed:true), probe OK דרך saboin (20:15Z)",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "החלטות: א=הצתה-מלאה (custody-judge ירוק + הרחבת blurt-ser ל-comment/vote ואז שידור-ניסוי 1/יום); ב=החזקה (arm-חמוש, probe-שבועי בלבד) — המלצת-המכונה עכשיו; ג=פרישה-ריבונית של רוסטר-blurt. השער-האמיתי = custody-מפתחות-פוסטינג-על-blurt (\"החשבונות לא מחוברים\" — ערוץ-סודות כמו gate-03). צמתים: saboin ראשון (כבר-מוגדר BLURT_NODES); מ-Actions-ענן blurt.blog=403/429.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/EXPANSION-PLAN-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:35:00Z"
+    },
+    {
+      "id": "gate-10-saosmartwallet-vault-db",
+      "title": "Saosmartwallet — db/custom.db (4,046,848 בייט, 248 VaultEntry) מחובר-ל-git ב-HEAD",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "החלטה: א=הוצאה מ-tracking בקומיט-HEAD-אחד (דפוס 9-b) + vault-home נשאר הכספת-הקאנונית — המומלץ, לביצוע אחרי סבבת-הרוטציות (gate-01/03); ב=להשאיר ולהכריז הריפו ארכיון-עיצוב (ניגוד-דוקטרינה מתמשך). ≈1 דק'.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/ONE-ROSTER-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:37:00Z"
+    },
+    {
+      "id": "gate-11-saos-agents-distribution",
+      "title": "saos-agents — npm/GitHub-Packages vs Release-only",
+      "state": "WAITING-OWNER",
+      "ownerActionSummary": "החלטה: א=פרסום (GitHub-Packages, טוקן write:packages); ב=הישארות Release-only עד לקוח-חוץ ראשון — המומלץ (אפס-ייבוא בכל-האחוזה; הריצות-האמיתיות = vendored-זהות בתוך steem; npm-E403×3 תועד). ≈1 דק'.",
+      "artifactLinks": ["sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md", "sovereign/ONE-ROSTER-2026-10-11.md"],
+      "measuredAt": "2026-10-11T20:37:00Z"
+    }
+  ],
+  "honesty": {
+    "notMeasured": "תוכנית-החיוב הנוכחית של חשבון-GitHub (שדה plan לא מוחזר לטוקן) — המסך Billing הוא מקור-האמת",
+    "machineActionsTaken": "אפס — קריאה בלבד (RPC קריאה, GitHub API קריאה, git fetch); אף-שער לא הורם, אף-שידור, אף-כתיבת-כספת, אף-תוכן",
+    "ownership": "מסמך-זה + OWNER-GATE-PLAYBOOK + ceremonies/* בלבד; COORDINATION.md נסגר על-ידי המתזמן; KEY-PROOF-LATEST.md שייך ל-11-a"
+  }
+}
