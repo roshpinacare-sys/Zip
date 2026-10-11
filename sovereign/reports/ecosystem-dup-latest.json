@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-10-10T12:57:58.728Z",
+  "measuredAt": "2026-10-11T13:22:12.877Z",
   "owner": "roshpinacare-sys",
   "definition": "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
   "method": "T-49: shallow git clones (zero API quota) — every status file hashed locally; clone-failed repos listed in skippedRepos and excluded",
@@ -18,8 +18,8 @@
     },
     {
       "name": "Console",
-      "kb": 11118,
-      "pushed_at": "2026-10-10T12:48:47Z",
+      "kb": 10621,
+      "pushed_at": "2026-10-11T13:12:14Z",
       "cloned": true
     },
     {
@@ -30,20 +30,14 @@
     },
     {
       "name": "Domain",
-      "kb": 10610,
-      "pushed_at": "2026-10-10T12:34:57Z",
-      "cloned": true
-    },
-    {
-      "name": "fleet-vault",
-      "kb": 6936,
-      "pushed_at": "2026-10-10T12:46:52Z",
+      "kb": 10445,
+      "pushed_at": "2026-10-11T13:06:44Z",
       "cloned": true
     },
     {
       "name": "FleetHQ",
-      "kb": 16331,
-      "pushed_at": "2026-10-10T12:39:52Z",
+      "kb": 15519,
+      "pushed_at": "2026-10-10T16:24:55Z",
       "cloned": true
     },
     {
@@ -60,32 +54,32 @@
     },
     {
       "name": "sanbox",
-      "kb": 758,
-      "pushed_at": "2026-10-10T12:47:46Z",
+      "kb": 2461,
+      "pushed_at": "2026-10-10T17:47:21Z",
       "cloned": true
     },
     {
       "name": "Sandbox",
-      "kb": 1192,
-      "pushed_at": "2026-10-10T12:53:42Z",
+      "kb": 1436,
+      "pushed_at": "2026-10-11T13:21:00Z",
       "cloned": true
     },
     {
       "name": "saos-agents",
       "kb": 80,
-      "pushed_at": "2026-10-08T06:48:25Z",
+      "pushed_at": "2026-10-11T12:23:29Z",
       "cloned": true
     },
     {
       "name": "saos-control-center",
-      "kb": 18856,
-      "pushed_at": "2026-10-10T12:52:22Z",
+      "kb": 20931,
+      "pushed_at": "2026-10-11T13:18:06Z",
       "cloned": true
     },
     {
       "name": "saos-dex",
-      "kb": 47789,
-      "pushed_at": "2026-10-10T12:38:48Z",
+      "kb": 48248,
+      "pushed_at": "2026-10-11T13:20:26Z",
       "cloned": true
     },
     {
@@ -96,8 +90,8 @@
     },
     {
       "name": "saos-runtime",
-      "kb": 6,
-      "pushed_at": "2026-10-08T16:38:24Z",
+      "kb": 10,
+      "pushed_at": "2026-10-11T12:58:42Z",
       "cloned": true
     },
     {
@@ -115,7 +109,7 @@
     {
       "name": "Saosmartwallet",
       "kb": 52039,
-      "pushed_at": "2026-10-08T06:09:17Z",
+      "pushed_at": "2026-10-11T13:03:30Z",
       "cloned": true
     },
     {
@@ -132,45 +126,65 @@
     },
     {
       "name": "sovereign-lighthouse",
-      "kb": 616,
-      "pushed_at": "2026-10-10T12:47:52Z",
+      "kb": 815,
+      "pushed_at": "2026-10-10T17:55:51Z",
       "cloned": true
     },
     {
       "name": "SovereignConsole",
-      "kb": 14668,
-      "pushed_at": "2026-10-10T12:53:39Z",
+      "kb": 14712,
+      "pushed_at": "2026-10-10T16:27:51Z",
       "cloned": true
     },
     {
       "name": "steem",
-      "kb": 460305,
-      "pushed_at": "2026-10-10T12:49:47Z",
+      "kb": 461195,
+      "pushed_at": "2026-10-11T13:03:06Z",
       "cloned": true
     },
     {
       "name": "TruthRail",
-      "kb": 118,
-      "pushed_at": "2026-10-10T12:49:34Z",
+      "kb": 100,
+      "pushed_at": "2026-10-11T13:02:49Z",
+      "cloned": true
+    },
+    {
+      "name": "vault-home",
+      "kb": 6954,
+      "pushed_at": "2026-10-10T15:05:05Z",
       "cloned": true
     },
     {
       "name": "Zip",
-      "kb": 110025,
-      "pushed_at": "2026-10-10T12:53:43Z",
+      "kb": 119458,
+      "pushed_at": "2026-10-11T07:37:32Z",
       "cloned": true
     }
   ],
   "skippedRepos": [],
   "totals": {
-    "statusCandidates": 3282,
-    "measured": 3282,
-    "dupGroups": 701,
-    "dupInstances": 1443,
-    "redundantCopies": 742,
-    "dupRatio": 0.2261
+    "statusCandidates": 3300,
+    "measured": 3300,
+    "dupGroups": 699,
+    "dupInstances": 1440,
+    "redundantCopies": 741,
+    "dupRatio": 0.2245
   },
   "dupGroups": [
+    {
+      "hash": "0a345f2f749266ca2d137ab27249a8480f89a9bcb33ad51fe3afb149c81a7acc",
+      "size": 34,
+      "files": [
+        "anchor-baseline:download/README.md",
+        "FleetHQ:download/README.md",
+        "saos-control-center:download/README.md",
+        "saos-sovereign-foundry:download/README.md",
+        "saos-sovereign-platform:download/README.md",
+        "Saosmartwallet:download/README.md",
+        "SovereignConsole:download/README.md",
+        "steem:download/README.md"
+      ]
+    },
     {
       "hash": "b8be06c49cf44d97a973a6f7ad38a6bc78ab04f78a2614d407738de9aa900983",
       "size": 430,
@@ -183,19 +197,6 @@
         "SovereignConsole:components.json",
         "steem:components.json",
         "Zip:components.json"
-      ]
-    },
-    {
-      "hash": "0a345f2f749266ca2d137ab27249a8480f89a9bcb33ad51fe3afb149c81a7acc",
-      "size": 34,
-      "files": [
-        "anchor-baseline:download/README.md",
-        "FleetHQ:download/README.md",
-        "saos-sovereign-foundry:download/README.md",
-        "saos-sovereign-platform:download/README.md",
-        "Saosmartwallet:download/README.md",
-        "SovereignConsole:download/README.md",
-        "steem:download/README.md"
       ]
     },
     {
@@ -373,7 +374,7 @@
       ]
     },
     {
-      "hash": "c2b47b00d6acb447950ee80199e0bbb3eac7cda9cbadc99b53c1b3a416b3bd9e",
+      "hash": "b977997914dae2e640aba628771f7e29645ef20343b9fb43def738f9ce26a055",
       "size": 3987,
       "files": [
         "Console:saos-live.json",
@@ -389,8 +390,8 @@
       ]
     },
     {
-      "hash": "e2dbdeeee55f82e5b0ebb40749fdbd11291d5c6deddc0716a95bf494642d7c8d",
-      "size": 75547,
+      "hash": "a3453ab8c56ff31678aecf2bf96b7a9e3a6960c1836a7d827f281a0f7c13bab4",
+      "size": 75124,
       "files": [
         "Console:mirror.json",
         "Domain:mirror.json"
@@ -544,24 +545,16 @@
       "hash": "98fa70fb265bcdc44a3a0de579727e18cc46217364117055c6c32019e20ff879",
       "size": 2738,
       "files": [
-        "fleet-vault:README.md",
-        "FleetHQ:vault/README.md"
+        "FleetHQ:vault/README.md",
+        "vault-home:README.md"
       ]
     },
     {
       "hash": "712fe9c6e8b67d260b887925b5d1224d4336d2a328d16692bed4c2105bb9e5eb",
       "size": 5110,
       "files": [
-        "fleet-vault:sovereign/ROAST.md",
-        "FleetHQ:sovereign/ROAST.md"
-      ]
-    },
-    {
-      "hash": "09b0a25bca1a23170f5cc785875aa9b17f9fc77f53581c0aba054f280e5ee5cd",
-      "size": 39790,
-      "files": [
-        "sanbox:memory/MEMORY.md",
-        "saos-control-center:MEMORY.md"
+        "FleetHQ:sovereign/ROAST.md",
+        "vault-home:sovereign/ROAST.md"
       ]
     },
     {
@@ -2202,14 +2195,6 @@
       "files": [
         "Saosmartwallet:skills/coding-agent/planning.md",
         "steem:skills/coding-agent/planning.md"
-      ]
-    },
-    {
-      "hash": "e3048deafc62fb65192f99e51a48094571de059634b8bb27f50f37af0c43ba59",
-      "size": 2635,
-      "files": [
-        "Saosmartwallet:skills/ui-ux-pro-max/SKILL.md",
-        "steem:skills/ui-ux-pro-max/SKILL.md"
       ]
     },
     {
@@ -5868,7 +5853,6 @@
       "Console:2657813a88",
       "Defi:8e5a699b21",
       "Domain:e78f1529ca",
-      "fleet-vault:98fa70fb26",
       "FleetHQ:6224095217",
       "Project-files:a462bf6925",
       "roshpina:acb69ff2fc",
@@ -5884,6 +5868,7 @@
       "sovereign-lighthouse:28558f828e",
       "steem:cc83444042",
       "TruthRail:3d8f815a80",
+      "vault-home:98fa70fb26",
       "Zip:9b7213f7b4"
     ],
     "docs/reports/SAOS-PULSE-2026-09-13-R21-WEDGE-CURE.md": [
@@ -6829,12 +6814,12 @@
       "Zip:53ed2addb3"
     ],
     "status.json": [
-      "Console:5ad01c8e7f",
-      "Domain:e65f5661db"
+      "Console:b5df0ef465",
+      "Domain:8d3fa3245e"
     ],
     "DESIGN.md": [
       "Console:c6a8a173f7",
-      "FleetHQ:aeecf2ddc2"
+      "FleetHQ:d02c2e097f"
     ],
     "AGENTS.md": [
       "Console:65c5331fa6",
@@ -6888,23 +6873,23 @@
       "Zip:bd4ff7145c"
     ],
     "worklog.md": [
-      "fleet-vault:6516a922ee",
-      "FleetHQ:ce3dee6f5e",
+      "FleetHQ:6f8a2ebaee",
       "sanbox:52c57fa53b",
-      "Sandbox:e3446786bf",
-      "SovereignConsole:f704b65cc3",
-      "steem:3914eb2a48",
-      "TruthRail:6bcc73c904"
-    ],
-    "SOVEREIGNTY.md": [
-      "fleet-vault:ac0007d67e",
-      "FleetHQ:04881fd277",
-      "Zip:5e3eaa1b3d"
+      "Sandbox:ab9ff29b4e",
+      "SovereignConsole:13894670f2",
+      "steem:5318efc5cc",
+      "TruthRail:314ec46788",
+      "vault-home:5b6f0d6762"
     ],
     "SECURITY.md": [
       "FleetHQ:c49b296d1e",
       "Sandbox:c9d2116472",
       "saos-agents:9b05268084"
+    ],
+    "SOVEREIGNTY.md": [
+      "FleetHQ:04881fd277",
+      "vault-home:bdb4105f19",
+      "Zip:5e3eaa1b3d"
     ],
     "tsconfig.json": [
       "FleetHQ:988b85280f",
@@ -6920,7 +6905,7 @@
     ],
     "MEMORY.md": [
       "FleetHQ:356cf62bbf",
-      "saos-control-center:09b0a25bca"
+      "saos-control-center:2d3f2374b4"
     ],
     "AGENT-BRIEFING.md": [
       "roshpina:37bea8f830",
@@ -6972,9 +6957,13 @@
       "saos-sovereign-platform:29e46a4749",
       "Saosmartwallet:389303915d"
     ],
+    "skills/ui-ux-pro-max/SKILL.md": [
+      "Saosmartwallet:e3048deafc",
+      "steem:8b5578df54"
+    ],
     "state.json": [
       "sovereign-beacon:a208c104e4",
-      "sovereign-lighthouse:4fc41b2ebc"
+      "sovereign-lighthouse:2d1fc873f8"
     ]
   }
 }
