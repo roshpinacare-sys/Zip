@@ -1,0 +1,380 @@
+{
+  "schema": "roshpinacare.fleet-bus-registry/1",
+  "generatedAt": "2026-10-11T20:35:00Z",
+  "generator": "zai-11c (task 11-c — fleet bus flow layer)",
+  "ownerMandate": "trace 1a12c9d6f5df1b95 — הכל משתמש בהכל: למקסם את היעילות של מה שקיים",
+  "spec": "./FLEET-BUS-SPEC-2026-10-11.md",
+  "validator": "./bus-validate.mjs",
+  "tierLaw": "7-b exposure policy: A=public-by-design · B=internal-adjacent (aggregate/redact before any republish) · C=secret (never on the bus)",
+  "feedCount": 16,
+  "feeds": [
+    {
+      "id": "fleethq-digest",
+      "producer": "FleetHQ (office-window/fleet-digest.mjs + office-window.yml, daily 06:17 UTC + dispatch)",
+      "url": "https://roshpinacare-sys.github.io/FleetHQ/digest.json",
+      "schema": "roshpinacare.fleet-digest/1",
+      "cadence": "daily 06:17 UTC",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (office panel loadOffice)",
+        "Domain/agents/office-feed.mjs (digestOk probe)",
+        "FleetHQ/office-window/render.mjs (self-render)",
+        "Sandbox/engine/flow-map.mjs (node census)",
+        "sovereign/bus-validate.mjs"
+      ],
+      "potentialConsumers": [
+        "FleetHQ office retro loop (11-d)",
+        "Console truth page"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "generatedAt",
+      "shape": ["generatedAt", "repos"],
+      "notes": "Keyless fleet aggregates; private repo names masked private-NN per 7-b. Measured 200 · 8017B · age 0.2h."
+    },
+    {
+      "id": "domain-dex-grid",
+      "producer": "Domain (dex-grid.yml daily 03:26 UTC + grid twins)",
+      "url": "https://roshpinacare-sys.github.io/Domain/dex/grid.json",
+      "schema": null,
+      "cadence": "daily 03:26 UTC (twin-triggered)",
+      "tier": "B",
+      "consumers": [
+        "Domain/index.html (grid panel loadGrid)",
+        "Domain/money.html + sovereign.html + receipts",
+        "Domain/agents/{daily-digest,proof-pipeline,dex-mirror,moment-watch}.mjs",
+        "FleetHQ/office-window/fleet-digest.mjs (grid verdict)"
+      ],
+      "potentialConsumers": [
+        "FleetHQ office retro (11-d) — verdict trend",
+        "bus health report in digest"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live-stale",
+      "exposure": "public",
+      "freshnessField": "publishedAt",
+      "shape": ["publishedAt", "verdict"],
+      "notes": "Measured 200 · 17566B · publishedAt 2026-10-10T10:08Z = age ~34.4h → past the 24h law; page shows the stale chip honestly. Freshness fix belongs to the grid lane, not consumers. Tier B: consumers aggregate/redact (commitPct/spread/pegOut tokens) — never republish raw."
+    },
+    {
+      "id": "domain-dex-world",
+      "producer": "Domain (dex-mirror.yml daily 12:50 UTC)",
+      "url": "https://roshpinacare-sys.github.io/Domain/dex/world.json",
+      "schema": null,
+      "cadence": "daily 12:50 UTC",
+      "tier": "B",
+      "consumers": [
+        "Domain/index.html (world panel loadWorld)",
+        "Sandbox/engine/flow-map.mjs (age census)"
+      ],
+      "potentialConsumers": [
+        "office retro (11-d) — fills/swaps trend",
+        "research lane E1 context"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live-stale",
+      "exposure": "public",
+      "freshnessField": "publishedAt",
+      "shape": ["publishedAt", "state"],
+      "notes": "Measured 200 · 62225B · publishedAt 2026-10-10T14:49Z = age ~29.8h → stale per 24h law. Tier B: aggregate only."
+    },
+    {
+      "id": "domain-dex-deposits",
+      "producer": "Domain (mirror-from-console.yml every 2h at :48)",
+      "url": "https://roshpinacare-sys.github.io/Domain/dex/deposits.json",
+      "schema": null,
+      "cadence": "every 2h (:48 odd-hours law respected)",
+      "tier": "B",
+      "consumers": [
+        "Domain/index.html (world panel deposits cell)"
+      ],
+      "potentialConsumers": [
+        "office retro (11-d)",
+        "deposits watcher UI"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "updatedAt",
+      "shape": ["version", "deposits"],
+      "notes": "Measured 200 · 80B · updatedAt 2026-10-11T12:57Z = age ~7.6h. Deposit receive addresses are tier-A by 9-b design; zero entries now — honest empty array."
+    },
+    {
+      "id": "domain-office-feed",
+      "producer": "Domain (agents/office-feed.mjs + office-feed.yml daily 03:41 UTC)",
+      "url": "https://roshpinacare-sys.github.io/Domain/dex/office-feed.json",
+      "schema": "roshpinacare.office-feed/1",
+      "cadence": "daily 03:41 UTC",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (office fallback when FleetHQ digest 404s)"
+      ],
+      "potentialConsumers": [
+        "Console truth page",
+        "office retro (11-d)"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "publishedAt",
+      "shape": ["schema", "publishedAt"],
+      "notes": "Measured 200 · 3422B · publishedAt 2026-10-11T19:19Z. Tier-A keyless aggregates only, redaction-scan law baked into the writer."
+    },
+    {
+      "id": "domain-office-data",
+      "producer": "Domain (office-pulse.yml every 20min :09/:29/:49 — E-series lane)",
+      "url": "https://roshpinacare-sys.github.io/Domain/office/data.json",
+      "schema": null,
+      "cadence": "every 20 minutes",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (office pulse strip loadPulse)"
+      ],
+      "potentialConsumers": [
+        "FleetHQ office window (artery freshness)",
+        "console mirror (surface health)"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "generatedAt",
+      "shape": ["generatedAt", "verdict"],
+      "notes": "Measured 200 · 4470B · generatedAt 2026-10-11T19:36Z. 7-artery freshness + office git-wire, keyless."
+    },
+    {
+      "id": "domain-grid-truth",
+      "producer": "Domain (grid-doctor.cjs + grid-doctor.yml hourly :19)",
+      "url": "https://roshpinacare-sys.github.io/Domain/agents/grid-truth.json",
+      "schema": null,
+      "cadence": "hourly at :19",
+      "tier": "A",
+      "consumers": [
+        "FleetHQ/office-window/fleet-digest.mjs (grid-doctor truth)",
+        "Domain/agents/cognition-beat.cjs"
+      ],
+      "potentialConsumers": [
+        "research lane (chain-truth joins)",
+        "office retro (11-d)"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "generatedAt",
+      "shape": ["generatedAt", "totals"],
+      "notes": "Measured 200 · 19766B · generatedAt 2026-10-11T18:57Z. Live chain RPC truth (effSP totals, alive accounts) — zero self-reports."
+    },
+    {
+      "id": "sandbox-probe-hive",
+      "producer": "Sandbox (probes/hive-probe.mjs + hive-probe.yml daily 05:41 UTC + dispatch)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/probes/hive/{utc-date}.json",
+      "schema": null,
+      "cadence": "daily 05:41 UTC",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (probe panel, today→yesterday failover)",
+        "FleetHQ/office-window/fleet-digest.mjs (latestProbeDir)",
+        "Sandbox/research/research-lane.mjs (probe join)",
+        "Domain/agents/office-feed.mjs"
+      ],
+      "potentialConsumers": [
+        "research lane E1 baseline automation",
+        "console truth page"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "at",
+      "shape": ["ok", "at"],
+      "resolve": { "placeholder": "{utc-date}", "offsetsDays": [0, 1] },
+      "notes": "Date-named digest; consumers resolve latest via {utc-date} offsets [0,1]. Measured 200 · 46776B · at 2026-10-11T15:18Z. Stage-0 read-only, keyless."
+    },
+    {
+      "id": "sandbox-probe-blurt",
+      "producer": "Sandbox (probes/blurt-probe.mjs, same workflow)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/probes/blurt/{utc-date}.json",
+      "schema": null,
+      "cadence": "daily 05:41 UTC",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (probe panel)",
+        "FleetHQ/office-window/fleet-digest.mjs",
+        "Sandbox/research/research-lane.mjs (probe join)",
+        "Domain/agents/office-feed.mjs"
+      ],
+      "potentialConsumers": [
+        "R294 blurt decision feed (node-health trend)",
+        "console truth page"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "at",
+      "shape": ["ok", "at"],
+      "resolve": { "placeholder": "{utc-date}", "offsetsDays": [0, 1] },
+      "notes": "Measured 200 · 3146B · at 2026-10-11T15:18Z. Intel only — never touches blurt.mjs/blurt-arm.json (R294 ceremony)."
+    },
+    {
+      "id": "sandbox-research-findings",
+      "producer": "Sandbox (research/research-lane.mjs + research-lane.yml weekly Mon 05:23 UTC)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/research/findings-{utc-date}.json",
+      "schema": "saos.research.findings/1",
+      "cadence": "weekly (Monday 05:23 UTC)",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (research panel מחקר-וגילוי — NEW wiring this round, 11-c)",
+        "sovereign/bus-validate.mjs"
+      ],
+      "potentialConsumers": [
+        "FleetHQ office retro (11-d) — hypotheses → backlog",
+        "office-feed aggregates (verdicts only)",
+        "ECONOMIC-PLAN refresh (10-d)"
+      ],
+      "stalenessWarningHours": 192,
+      "lastChecked": "2026-10-11T20:35Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "at",
+      "shape": ["schema", "at", "experiments"],
+      "resolve": { "placeholder": "{utc-date}", "offsetsDays": [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+      "notes": "Date-named weekly findings; consumers walk back up to 9 days. Measured 200 · 3485B · at 2026-10-11T20:13Z. Companion ledger: research/LEDGER.md (markdown, human-facing). Read-only, no keys, honest failures recorded."
+    },
+    {
+      "id": "sandbox-flow-map",
+      "producer": "Sandbox (engine/flow-map.mjs, every 3h)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/ops/flow/flow-map.json",
+      "schema": null,
+      "cadence": "every 3 hours",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (flow panel p-flow)"
+      ],
+      "potentialConsumers": [
+        "bus-registry reconciliation (orphans/ghosts census)",
+        "office retro (11-d)"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:35Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "generatedAt",
+      "shape": ["generatedAt", "summary"],
+      "notes": "Measured 200 · generatedAt 2026-10-11T20:30Z. The bus's own immune system: orphans (written, never read) and ghosts (page reads dead producer) — registry should reconcile against it."
+    },
+    {
+      "id": "sandbox-lessons-ledger",
+      "producer": "Sandbox (scribe distillation, daily)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/ops/lessons/ledger.md",
+      "schema": "text/markdown · '## scribe #N · <ISO>' entries",
+      "cadence": "daily",
+      "tier": "A",
+      "consumers": [
+        "Domain/index.html (lessons panel p-lessons)"
+      ],
+      "potentialConsumers": [
+        "office retro (11-d) — lessons → backlog"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:35Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "last '## scribe' ISO timestamp",
+      "shape": [],
+      "notes": "Markdown (not JSON) — validator does text-presence + ISO-extraction, not JSON.parse. Measured 200."
+    },
+    {
+      "id": "domain-status",
+      "producer": "Domain (weave-console-chain v1 writer)",
+      "url": "https://roshpinacare-sys.github.io/Domain/status.json",
+      "schema": "weave-console-chain-v1",
+      "cadence": "pages-build driven (bot commits)",
+      "tier": "A",
+      "consumers": [
+        "Sandbox/engine/flow-map.mjs (age census)"
+      ],
+      "potentialConsumers": [
+        "Domain page chain-status section (future)",
+        "bus validator"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:35Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "generatedAt",
+      "shape": ["format", "generatedAt"],
+      "notes": "Measured 200 · 4154B · generatedAt 2026-10-10T22:00Z = age ~22.6h (inside 24h, near the line). Public Steem accounts only — chain data tier A."
+    },
+    {
+      "id": "console-dex-grid",
+      "producer": "Console (own dex suite writer)",
+      "url": "https://roshpinacare-sys.github.io/Console/dex/grid.json",
+      "schema": null,
+      "cadence": "console writers (observed irregular)",
+      "tier": "B",
+      "consumers": [
+        "Console Pages renderer (own suite)"
+      ],
+      "potentialConsumers": [
+        "Domain mirror (mirror-from-console pattern already exists for deposits/money)"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:35Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "publishedAt|updatedAt|at|generatedAt",
+      "shape": [],
+      "notes": "Measured 200 · 16669B. Sibling mirror of the DEX telemetry (Domain/dex/grid.json is the fresher public twin). Tier B: aggregate only."
+    },
+    {
+      "id": "console-dex-world",
+      "producer": "Console (own dex suite writer)",
+      "url": "https://roshpinacare-sys.github.io/Console/dex/world.json",
+      "schema": null,
+      "cadence": "console writers (observed irregular)",
+      "tier": "B",
+      "consumers": [
+        "Console Pages renderer (own suite)"
+      ],
+      "potentialConsumers": [
+        "Domain mirror pattern"
+      ],
+      "stalenessWarningHours": 24,
+      "lastChecked": "2026-10-11T20:35Z",
+      "status": "live",
+      "exposure": "public",
+      "freshnessField": "publishedAt|updatedAt|at|generatedAt",
+      "shape": [],
+      "notes": "Measured 200 · 35898B. Tier B: aggregate only."
+    },
+    {
+      "id": "console-mirror-status",
+      "producer": "SovereignConsole (scripts/office-mirror.mjs + office-mirror.yml, dispatch-only)",
+      "url": "https://raw.githubusercontent.com/roshpinacare-sys/SovereignConsole/main/agent/status.json",
+      "schema": "saos.office-mirror/1",
+      "cadence": "dispatch-only (private repo, Actions billing-walled since ~09-20)",
+      "tier": "A",
+      "consumers": [],
+      "potentialConsumers": [
+        "FleetHQ digest.json (mirror verdict section — kills the orphan)",
+        "Domain office panel (mirror line)",
+        "office retro (11-d)"
+      ],
+      "stalenessWarningHours": 192,
+      "lastChecked": "2026-10-11T20:34Z",
+      "status": "live-private",
+      "exposure": "private-raw",
+      "freshnessField": "generatedAt",
+      "shape": ["schema", "generatedAt", "verdict"],
+      "notes": "PRIVATE-raw: anonymous fetch = 404; token-authenticated fetch measured 200 · 1300B · generatedAt 2026-10-11T19:23Z (MIRROR-GREEN 5/5). Today it is an ORPHAN (written, zero readers) — the top-ranked future wiring is publishing its verdict through FleetHQ digest (public, keyless)."
+    }
+  ]
+}
