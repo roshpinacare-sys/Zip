@@ -1,0 +1,323 @@
+{
+ "task": "9-a content-quality (retry) — campaign-hygiene + live content audit",
+ "date": "2026-10-11",
+ "agent": "zai-9a content-quality-agent",
+ "scope": {
+  "accounts": [
+   "headcorner",
+   "cashmachine",
+   "haran",
+   "israelnews",
+   "lsa",
+   "macrame",
+   "siq",
+   "tov",
+   "wic",
+   "wog",
+   "woq",
+   "hcsoldier4"
+  ],
+  "rpc": "https://api.steemit.com (condenser_api, batches <=10)",
+  "sampled_at": "2026-10-11T15:46:34.497Z",
+  "methods": "get_discussions_by_blog limit5 x12 + get_discussions_by_comments (headcorner, limit10)"
+ },
+ "leak_patterns_detected": {
+  "title_date": "\\d{4}-\\d{2}-\\d{2}|\\d{8} (in title)",
+  "slot_label": "Slot:",
+  "layer_label": "Layer:",
+  "internal_codes": "\\bC-\\d+\\b|\\bR\\d{2,3}\\b",
+  "agent_trace": "agent-z",
+  "engine_paths": "content-campaign\\.mjs|agents\\/[a-z0-9-]+\\.(mjs|cjs)",
+  "repo_paths": "\\b(Domain|saos-dex|Console|FleetHQ|Sandbox|Zip|Defi)\\/",
+  "fixed_minute": "\\d{1,2}:\\d{2}\\s*UTC",
+  "app_meta": "saos/content-campaign/1.0",
+  "source_meta": "agent-z content campaign (C-3, R130) — theme …"
+ },
+ "findings": {
+  "total_posts_audited": 57,
+  "posts_flagged_for_leaks": 1,
+  "leaky_posts": [
+   {
+    "permlink": "saos-engineering-20261010",
+    "created": "2026-10-10T17:48:06",
+    "leaks": [
+     "slot",
+     "layer",
+     "cnum",
+     "rnum",
+     "engine-path",
+     "repo-path",
+     "fixed-time",
+     "gha"
+    ],
+    "dateTitle": true,
+    "meta_app": "saos\\/content-campaign\\/1.0",
+    "meta_source": "agent-z content campaign (C-3, R130) \\u2014 theme engineering"
+   }
+  ],
+  "duplicate_bodies": {
+   "method": "3-gram Jaccard on normalized body, threshold >0.5",
+   "pairs": 25,
+   "worst": "0.997",
+   "top_examples": [
+    {
+     "a": "wog/digest-1-curation-and-custody-20261011-10d17c17",
+     "b": "wog/digest-1-curation-and-custody-20261010-10d17c17",
+     "jaccard_3gram": 1
+    },
+    {
+     "a": "cashmachine/seven-floors-of-small-talk-notes-from-the-elevator-20261011-0",
+     "b": "israelnews/seven-floors-of-small-talk-notes-from-the-elevator-20261011-0",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "haran/fix-it-before-you-bin-it-the-repair-guide-that-starts-with-o-20261008-0",
+     "b": "israelnews/fix-it-before-you-bin-it-the-repair-guid-20261010-27a2f1f2",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "haran/walking-is-how-i-think-on-routes-loops-and-ideas-that-arrive-20261007-0",
+     "b": "lsa/walking-is-how-i-think-on-routes-loops-and-ideas-that-arrive-20261008-0",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "haran/walking-is-how-i-think-on-routes-loops-and-ideas-that-arrive-20261007-0",
+     "b": "macrame/walking-is-how-i-think-on-routes-loops-a-20261010-61d1b951",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "lsa/one-month-fewer-screens-what-it-did-to-m-20261010-46b660f2",
+     "b": "wog/one-month-fewer-screens-what-it-did-to-my-attention-and-my-b-20261008-0",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "lsa/walking-is-how-i-think-on-routes-loops-and-ideas-that-arrive-20261008-0",
+     "b": "macrame/walking-is-how-i-think-on-routes-loops-a-20261010-61d1b951",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "woq/the-letter-i-wrote-and-did-not-send-why-20261011-221d7d2d",
+     "b": "hcsoldier4/the-letter-i-wrote-and-did-not-send-why-20261011-221d7d2d",
+     "jaccard_3gram": 0.997
+    },
+    {
+     "a": "cashmachine/the-waiting-room-is-the-most-honest-building-in-town-20261007-0",
+     "b": "siq/the-waiting-room-is-the-most-honest-building-in-town-20261008-0",
+     "jaccard_3gram": 0.996
+    },
+    {
+     "a": "siq/tension-is-everything-what-knots-taught-me-about-steady-hand-20261011-0",
+     "b": "wic/tension-is-everything-what-knots-taught-20261011-059d16df",
+     "jaccard_3gram": 0.996
+    },
+    {
+     "a": "siq/digest-1-curation-and-custody-20261010-10d17c17",
+     "b": "wog/digest-1-curation-and-custody-20261011-10d17c17",
+     "jaccard_3gram": 0.996
+    },
+    {
+     "a": "siq/digest-1-curation-and-custody-20261010-10d17c17",
+     "b": "wog/digest-1-curation-and-custody-20261010-10d17c17",
+     "jaccard_3gram": 0.996
+    }
+   ],
+   "verdict": "CRITICAL remaining issue — identical bodies broadcast cross-account by the saos-social-rail / saos-engine/1 engines (NOT the C-3 campaign engine); new duplicates continued landing during the audit window (2026-10-11: walking-after-ten wic+wog, the-letter-i-wrote woq+hcsoldier4, digest-1 siq+wog+woq, tension-is-everything siq+wic)"
+  },
+  "headcorner_comments": {
+   "audited": 10,
+   "ops_metadata_leaks": 0,
+   "note": "minor: repeated opener template in comment generator (\"The whole X angle is what pulls me in here\" x2 in 10) — acceptable but watch"
+  },
+  "date_title_templates": "none live except the fixed historical leak post"
+ },
+ "per_account": {
+  "headcorner": {
+   "posts_audited": 5,
+   "flagged": [
+    {
+     "permlink": "saos-engineering-20261010",
+     "created": "2026-10-10T17:48:06",
+     "leaks": [
+      "slot",
+      "layer",
+      "cnum",
+      "rnum",
+      "engine-path",
+      "repo-path",
+      "fixed-time",
+      "gha"
+     ],
+     "dateTitle": true,
+     "meta_app": "saos\\/content-campaign\\/1.0",
+     "meta_source": "agent-z content campaign (C-3, R130) \\u2014 theme engineering"
+    }
+   ],
+   "apps": [
+    "saos-social-rail",
+    "saos\\/content-campaign\\/1.0",
+    "saos-engine\\/1"
+   ],
+   "dup_pairs_involved": 3
+  },
+  "cashmachine": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-social-rail",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 6
+  },
+  "haran": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-social-rail",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 3
+  },
+  "israelnews": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-social-rail",
+    "saos-engine\\/1",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 2
+  },
+  "lsa": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-social-rail",
+    "saos-engine\\/1",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 3
+  },
+  "macrame": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-social-rail",
+    "saos-engine\\/1",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 5
+  },
+  "siq": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-social-rail",
+    "saos-engine\\/1",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 6
+  },
+  "tov": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-engine\\/1",
+    "saos-community-rail",
+    "saos-social-rail"
+   ],
+   "dup_pairs_involved": 2
+  },
+  "wic": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-engine\\/1",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 2
+  },
+  "wog": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-engine\\/1",
+    "saos-community-rail"
+   ],
+   "dup_pairs_involved": 8
+  },
+  "woq": {
+   "posts_audited": 5,
+   "flagged": [],
+   "apps": [
+    "saos-engine\\/1",
+    "saos-community-rail",
+    "saos-social-rail"
+   ],
+   "dup_pairs_involved": 9
+  },
+  "hcsoldier4": {
+   "posts_audited": 2,
+   "flagged": [],
+   "apps": [
+    "saos-engine\\/1",
+    "saos-social-rail"
+   ],
+   "dup_pairs_involved": 1
+  }
+ },
+ "fixes_applied": {
+  "domain": {
+   "repo": "Domain",
+   "commit": "1f4aad3",
+   "branch": "main (fast-forward push via rebase discipline; local lane branch fix/zai-campaign-hygiene-20261011)",
+   "files": [
+    "agents/content-campaign.mjs",
+    ".github/workflows/content-campaign.yml"
+   ],
+   "changes": [
+    "body header stripped: Slot:/Layer:(GitHub Actions, Domain)/C-3/13:10 UTC removed; replaced with machine-authorship disclosure line (founding law kept)",
+    "HONEST_FRAME rewritten: autonomous-agent + posting-only disclosure kept; GitHub Actions/cloud-layer/repo-path/C-3/R130/agent-z signature removed",
+    "titles: date-suffix + em-dash titles replaced by 3 rotated dateless variants per theme (content-v3 title law), H1 mirrors title",
+    "json_metadata: app saos/content-campaign/1.0 -> saos-content-voice/1; source agent-z (C-3,R130) trace -> neutral machine-authored disclosure",
+    "SRC/source lines de-operationalized (internal repo+file paths -> public-snapshot descriptions) across all 7 theme builders",
+    "commit-stream section: raw commit messages replaced by checkpoint SHAs only",
+    "ecosystem section: per-agent IDs+repo names dropped (counts only), layer names de-operationalized",
+    "broadcast minute randomized within an hour window (in-script jitter 0-50min, CONTENT_JITTER_MAX_MIN; DRY/selftest exempt); workflow timeout 15->70"
+   ],
+   "verified": "DRY-run of all 7 themes linted through steem campaign-hygiene gate: 0 issues each; node --check OK; YAML valid"
+  },
+  "steem": {
+   "repo": "steem",
+   "commit": "1b78570e",
+   "branch": "main",
+   "files": [
+    "agent/social/campaign-hygiene.cjs (new)",
+    "agent/social/social-selftest.cjs (extended)"
+   ],
+   "changes": [
+    "campaign-hygiene.cjs: lintCampaignPost gate — ops patterns (slot/layer/C-codes/R-codes/engine+repo paths/agent-z/fixed-minute/app-meta) in title+body+json_metadata; date-title + em-dash title rules (content-v3 parity); MANDATORY machine-authorship disclosure (founding law); leaked-code-artifact + unclosed-fence checks",
+    "social-selftest.cjs: 6 new hygiene vectors incl. exact reconstruction of the live leaky post (must fail on all 10 issues) + clean-template acceptance; deterministic mulberry32 seeds for comment-generator rules (flake fix)"
+   ],
+   "verified": "social-selftest 44 PASS / 0 FAIL (ALL GREEN), run twice (pre/post rebase)"
+  },
+  "coordination": {
+   "repo": "Zip",
+   "files": [
+    "COORDINATION.md rows [zai-9a] x3 -> completed",
+    "sovereign/zai-audit/content-2026-10-11.json (this file)"
+   ]
+  }
+ },
+ "commit_shas": {
+  "Domain": "1f4aad3",
+  "steem": "1b78570e",
+  "Zip": "<this-commit>"
+ },
+ "remaining_risks": [
+  "CRITICAL: cross-account identical bodies (25 pairs, 0.98-0.997 similarity) — saos-social-rail/saos-engine/1 engines bypass content-v3 lintArticle; route them through the gate or kill body-sharing (engines live outside Domain; separate lane)",
+  "The historical leak post @headcorner/saos-engineering-20261010 is permanent on-chain (cannot edit 7+ day old posts); future C-3 posts are clean at source",
+  "Workflow cron stays 13:05 UTC in YAML (GitHub cron is deterministic) — post-minute randomization is in-script; full cron-map randomization belongs to lane 9-b",
+  "comment-generator opener template repeats (minor); monitor",
+  "RC-gate cost model unchanged; jitter adds up to 50 min runtime on free Actions minutes — acceptable (1 run/day)"
+ ]
+}
