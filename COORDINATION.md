@@ -46,3 +46,15 @@
 | לולאת-למידה שבועית ארגונית | Sandbox `22b902e` | ✅ live: 1,171 ריצות נדגמו · 525 instant-fail (חתימת-חיוב) · 4 הנחיות; רץ שני 05:17 UTC על דקות-ציבור |
 
 **הלקח-המוסרי לכל-הסוכנים:** ה-refusal של ה-delegator לא היה כישלון — היה הצלחת-הבטיחות. המכונה חתמה אפס-חתימות על-ספק. זו הריבונות.
+
+## עדכון-ביצוע [zai-9c] · 2026-10-11 (grid-liquidity lane)
+
+| פעולה | ריפו · קומיט | תוצאה |
+|---|---|---|
+| אבחון 0-placed | saos-dex · ענף `fix/zai-grid-liquidity-20261011` | ✅ שורש נמדד: **לא STASIS, לא מלאי** — ה-WIF בכספת אינו גוזר את רשות-ה-active החיה (רוטציית-בעלים `last_owner_update 2026-10-08T17:29:09Z`; הצבה-חיה-אחרונה 10-07T17:46Z) → כל-שידור מאז נדחה "broadcast answered without id", והרץ פרסם **שקר** verdict=ARMED-STABLE · blocker=null (twin run 38144052862, job 114483601276: 12 ביטולים + 6 הצבות — כולם-כושלים, ובאותו-job ה-delegator סירב בכנות על-אותו-סוד). מדידה-נוספת: ladderIntact הושפל-מפקודות-זרות/זומבים שאינן במעקה → ריצות-מתוזמנות 10-08..10-11 לא ניסו לחתום בכלל. HIVE = מלאי-אפס-אמת (0.034 HIVE/0.003 HBD מול רצפת 0.2 HBD R99) — מתועד-במספרים |
+| תיקון fail-safe | saos-dex `43f8908` | ✅ שער-מפתח לפני-כל-חתימה (grids/key-gate.mjs — אותו-משטר delegate-plan/hivemarket): WIF-ישן = אפס-שידורים + verdict ARMED-KEY-STALE כנה; כשלי-שידור נספרים-ומתפרסמים (אסור ARMED-STABLE עם-דחיות); זומבים מעקה↔שרשרת מתפרסמים; פרמטרים-חיים דרך validate-params (fail-closed → defaults-מדודים) |
+| פרמטרים | saos-dex `72c6417` | ✅ `grids/param-proposal-2026-10-11.json` + שומר `grids/validate-params.mjs` (פסיקות fail-closed; selftest 20/20) — מתמטיקה-מתועדת: askStep 50→80bps מול-סחיפת-פאריטי נמדדת 44bps/4-ימים (מילויי-maker נמדדו -64/-83bps), bidStep 200→150bps (~שבועיים-של-סחיפה = עומק-בר-השגה; כל-מילוי-ביד ≥ +120bps עודף), commitPct 0.85 (רזרבה מול-סופת-ביטולים 6d6c169); מחובר ל-grid-beat |
+| מסילת-נזילות | saos-dex `6e3ad6c` | ✅ `grids/liquidity-bootstrap.mjs` בדפוס-מסילת-ההאצלות: STASIS(lane=grid) → קובץ-חימוש-בעלים `grids/liquidity-arm.json` (חסר = סירוב-כנה exit 0 = הצלחה-על-פי-תכנון; לא נכתב-במכוון) → validate-params → שער-מפתח → דלתא-בלבד + קריאה-אחרי-כתיבה + קבלות; אידמפוטנטי; selftest 12/12; חובר ל-dex-grid.yml המקורי (רגל + קבלה) |
+| אימות | saos-dex ענף | ✅ tsc נקי · BMC 8000-רצפים PASS B1..B9 · book-law 27/27 · arb 264/264 · peg/observe/brake(+3) PASS · params 20/20 · liquidity 12/12. שים-לב: `grids:run --selftest` כושל 2-וקטורים **גם-על main הנקי** (ed4195b) — קדם-קיים, לא-של-הענף |
+
+**צעד-owner יחיד לחימוש-הגריד:** עדכון `STEEM_ACTIVE_WIF` בכספת-Domain למפתח-הגוזר את הרשות-החיה החיה של headcorner (`STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf`) → re-dispatch dex-grid. עד-אז כל-מסילות-החתימה על-הסוד-הזה נכשלות-בכנות (by design). מיזוג-הענף ל-main ממתין לאישור-בעלים/מנוע-כמקובל.
