@@ -1,0 +1,67 @@
+{
+  "agent": "zai-agent",
+  "at": "2026-10-11T13:10:00Z",
+  "kind": "measured-state-snapshot+plan",
+  "source": "live chain reads (api.steemit.com) + local repo states + Actions-API ground truth",
+  "grid": {
+    "stasisMode": "staged (owner 2026-10-04 halt; staged re-entry 2026-10-05)",
+    "openLanes": ["grid (limit_order_create/cancel ladder)", "claims (claim_reward_balance)"],
+    "haltedLanes": ["convert", "agent-swap-api", "transfers", "delegations", "votes"],
+    "answer": "הגריד לא 'לא התחמש' — הוא מדורג לפי צו-ה-owner; ההאצלות וההצבעות חסומות fail-closed עד החלטה מפורשת"
+  },
+  "fleet": {
+    "totalEffSP": 4247,
+    "headcorner": { "ownSP": 4026, "effSP": 3676, "delegatedOut": 594, "liquid": "125.171 STEEM", "sbd": "1.028" },
+    "workers": { "cashmachine": 75, "haran": 78, "israelnews": 94, "lsa": 80, "macrame": 75, "siq": 31, "tov": 31, "wic": 33, "wog": 31, "woq": 34 },
+    "soldiers": { "hcsoldier4": 3, "hcsoldier5": 3, "hcsoldier6": 3 },
+    "verdict": "הכוונה של המנוע מיושמת (הכל פעיל במכסות) — אבל ההון לא מוצב: 87% מה-SP אצל headcorner, החיילים על 3 SP (RC מוגבל)"
+  },
+  "delegationPlan": {
+    "vestsPerSP": 1612.4,
+    "deploy": [
+      { "account": "cashmachine", "role": "poster+trail", "sp": 150, "vests": "241860.000000" },
+      { "account": "haran", "role": "poster+trail", "sp": 150, "vests": "241860.000000" },
+      { "account": "israelnews", "role": "poster", "sp": 150, "vests": "241860.000000" },
+      { "account": "lsa", "role": "poster", "sp": 150, "vests": "241860.000000" },
+      { "account": "macrame", "role": "poster", "sp": 150, "vests": "241860.000000" },
+      { "account": "siq", "role": "trail-rc", "sp": 50, "vests": "80620.000000" },
+      { "account": "tov", "role": "trail-rc", "sp": 50, "vests": "80620.000000" },
+      { "account": "wic", "role": "trail-rc", "sp": 50, "vests": "80620.000000" },
+      { "account": "wog", "role": "trail-rc", "sp": 50, "vests": "80620.000000" },
+      { "account": "woq", "role": "trail-rc", "sp": 50, "vests": "80620.000000" },
+      { "account": "hcsoldier4", "role": "rc-min", "sp": 8, "vests": "12899.000000" },
+      { "account": "hcsoldier5", "role": "rc-min", "sp": 8, "vests": "12899.000000" },
+      { "account": "hcsoldier6", "role": "rc-min", "sp": 8, "vests": "12899.000000" }
+    ],
+    "deployTotalSP": 1024,
+    "headcornerRetainsSP": 3002,
+    "mechanics": "delegate_vesting_shares עם סכומים-אבסולוטיים (מעלה גם את ההאצלות הקיימות במכה); לביצוע: פתיחת מסילת delegations ב-STASIS (מילת-ה-owner ניתנה ב-IM trace 1a12af43fc4d7489 — 'אני רוצה להאציל SP לכלל החשבונות')"
+  },
+  "social": {
+    "activity": "אף חשבון לא רדום; מכסת 1 פוסט/יום מוקפדת; 9+ חשבונות פרסמו באותו-יום 10-10 (פיצוץ-זהה-אנטי-תבנית)",
+    "quality": "הפוסטים-המבצעיים ('SAOS Open Engineering') מדליפים מונחי-פנים וקריאים כמכונה; קול-המאמר ('The Drawer') הוא הסגנון-לשמר",
+    "engagement": "~0.000-0.005 SBD, 4-11 הצבעות — בעיית-הפצה/מוניטין, לא נפח",
+    "coordination": "headcorner מצביע-ראשון (עוגן-שביל), הצי מצטרף 5-30 דק' אחרי ב-40-80% משקל; VP-floor 80% פוסטרים/50% אוצרי-הצבעה; 20 שעות מינימום בין פוסטים-עצמיים; אין שני פוסטי-צי באותה שעה"
+  },
+  "blurt": {
+    "rootCause": "לא-חיבור-שבור — spamgate.mjs:120 operator-pause (R254 'לגבי blurt תמתין') fail-closed; צומת rpc.blurt.blog היחיד-החי (blurt.world מת NXDOMAIN); 403 מהסנדבוקס הזה",
+    "fix": "החלטת-הדלקה של ה-owner + צומת-גיבוי (api.blurt.bloodcurve.com לבדיקה) + בדיקת BLURT_ACTIVE_WIF בכספת; התשתית (signAndSendBlurt + @beblurt/dblurt + chain_id) מוכנה"
+  },
+  "exposure": {
+    "headline": "7 ריפואים עברו-לפרטי במהלך הביקורת (Defi/roshpina/Adsmarket/Saosmartwallet/anchor-baseline/Sdk/saos-jummper) — אבל מה שנלכד בזמן-שהיו ציבוריים נלכד לנצח: כספת-R11+סיסמה בהיסטוריה ציבורית של 5 ריפואים",
+    "stillPublicLeaking": {
+      "Domain": "ספר-המשחק של הגריד (מפלסים/קצב/כתובות-יעד/מטריצת-מפתחות key-check) — 58 קבצי-workflow חושפים מפת-סודות+לוחות-זמנים",
+      "Console": "טלמטריה-חיה מלאה של ה-DEX (world/grid/portfolio/fee-law) + EOA של העוגן",
+      "FleetHQ": "מראה-שנייה של הטלמטריה + doctrine",
+      "Sandbox": "ארכיטקטורת-התחברות של הסוכנים"
+    },
+    "onChainForever": "פוסטים/הצבעות/custom_json על Steem ציבוריים לנצח — הכלל-החדש: עוגנים נושאים hash-ים בלבד; אין פרוזה-כספית/אסטרטגיה על השרשרת",
+    "policy": "שכבה-א: הוכחות-חיים חסרות-מפתח בלבד בציבור (Domain דף-שיווק+proofs, TruthRail, saos-agents SDK); שכבה-ב (אסטרטגיה/פרמטרים/רשימות) מהגרת לפרטי; שכבה-ג (מפתחות/זהות) לעולם לא בגיט"
+  },
+  "codeFixesPushed": {
+    "repo": "saos-dex",
+    "branch": "fix/zai-engine-highs-20261011",
+    "commit": "ed85258",
+    "verified": "tsc clean + BMC 8000-seq PASS (B1..B9)"
+  }
+}
