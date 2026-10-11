@@ -1,0 +1,179 @@
+{
+  "format": "saos-profit-review/1",
+  "at": "2026-10-11T23:42:30Z",
+  "agent": "zai-14a",
+  "ownerTrace": "1a12d502a99b7021",
+  "headBlock": 110360133,
+  "baseline": {
+    "source": "Zip/sovereign/ECONOMIC-PLAN-2026-10-11.md (zai-10d)",
+    "measuredAt": "2026-10-11T19:54-19:57Z",
+    "headBlock": 110355622
+  },
+  "worth": {
+    "ownSp": 4294.48,
+    "ownSpNetOfDelegations": 2689.74,
+    "effSp": 3556.03,
+    "liquidSteem": 30.985,
+    "liquidSbd": 10.617,
+    "lockedOrdersSbd": 118.145,
+    "lockedOrdersNominalNote": "26.95 STEEM + 91.195 SBD nominal sum (baseline method: 29.95+92.063=122.0); mid-based SBD-equiv = 93.90",
+    "mid": 0.102805,
+    "spreadBps": 49.9,
+    "feedMedian": 0.10409,
+    "netWorthSbdEquiv": 549.26,
+    "netWorthFormula": "mid*(ownSpGross+lockedSteem+liquidSteem)+liquidSbd+lockedSbd; baseline same formula = 543.66",
+    "vestsPerSp": 1612.3619
+  },
+  "income": {
+    "gridRealizedSbdSinceBaseline": 1.857,
+    "gridRealizedNote": "SBD received from fills after baseline window end 19:47:36Z: maker asks 15.825 STEEM -> 1.612 SBD (vwap 0.101864) + taker 2.425 STEEM -> 0.245 SBD; gridBuysSbd 2.537 (25.382 STEEM @ 0.099953); gridNetSbdFlow -0.680; windowVwapEdgePct +1.91 (19:55-22:14, 43 maker fills); fullWindowVwapEdgePct +1.78 (16:55-22:14, 48 fills)",
+    "contentPendingSbd": 0.009,
+    "contentPendingNote": "sum over last 10 headcorner posts (2 at 0.004/0.005); last-100-posts lifetime payouts 0.092 SBD",
+    "curationOps24h": 0,
+    "externalTransfers": 0,
+    "claimableAll14": 0
+  },
+  "grid": {
+    "verdict": "EDGE-NEGATIVE-GRID-HOLD",
+    "verdictSource": "Domain/dex/pnl-desk.json generatedAt 2026-10-11T15:02:49.879Z (consumer: market-exec governorVerdict via hourly mirror)",
+    "edgePct": 0.5,
+    "edgePctScope": "trailing7d per pnl-desk (last computed 15:02Z; lifetime -2.25)",
+    "weeklyEdgeLaw": "weekly edge >= +1% or the grid holds",
+    "weeklyEdgeLawOk": false,
+    "todayWindowEdgePct": 1.91,
+    "todayWindowScope": "19:55-22:14Z maker vwap edge, 43 fills; full window 16:55-22:14Z +1.78%, 48 fills; sub-weekly window - not law-satisfying by kill-list rule 1",
+    "engineLastOp": "2026-10-11T22:14:48Z",
+    "engineSilentHoursAtMeasure": 1.46,
+    "engineReceiptsNote": "saos-bus-v1 cycle.receipts ok:false (seq 68-80, 133-135; single ok:true 20:22:03Z); last order placed 22:09:09Z filled 22:09:27Z",
+    "restingAsksStale": "11 asks 26.95 STEEM @ 0.104-0.1047 sit above new best ask 0.103061 (+0.9-1.6% behind market)"
+  },
+  "ladder": {
+    "zombieOpenSbd": 91.195,
+    "ordersN": 5,
+    "priceRangeSbdPerSteem": [0.095537, 0.098498],
+    "expires": "2026-11-03T17:45:33Z",
+    "steemIfFilled": 935.7,
+    "valueIfFilledAtMidSbd": 96.196,
+    "profitIfFilledAtMidSbd": 5.001,
+    "profitIfFilledAtBidSbd": 4.76,
+    "belowBidPctNow": 3.94,
+    "belowBidPctAtBaseline": 2.59,
+    "status": "INTACT-RESTING (survived baseline->now; 7 other owner-key orders consumed)"
+  },
+  "vp": {
+    "headcornerPct": 50.13,
+    "baselinePct": 51.67,
+    "votesMeasured": 21,
+    "votesNote": "17:44-22:09Z: fleet trail (soldiers->headcorner @2500) + 10 headcorner external votes (weights 4082-6799); declared STASIS-votes vs measured activity mismatch flagged for owner word"
+  },
+  "rc": {
+    "minPct": 8.05,
+    "minAccount": "hcsoldier4",
+    "below40": ["hcsoldier4 8.05", "hcsoldier6 8.73", "wog 15.77", "hcsoldier5 21.85"],
+    "trend": "worsened since baseline (wog 25.9->15.77, hcsoldier5 35.4->21.85, hcsoldier6 31.0->8.73)"
+  },
+  "delegationReturn": {
+    "airReturnSp": 741.3,
+    "landed": false,
+    "evidence": "headcorner delegated_out 1344.63 SP unchanged (= 603.31 live + 741.3 in-return); period 432000s",
+    "delegationsLiveSp": 603.31,
+    "delegationsCount": 14
+  },
+  "deltas": {
+    "ownSpGross": {"baseline": 4294.44, "now": 4294.48, "delta": 0.04},
+    "effSp": {"baseline": 3555.99, "now": 3556.03, "delta": 0.04},
+    "liquidSteem": {"baseline": 20.853, "now": 30.985, "delta": 10.132},
+    "liquidSbd": {"baseline": 10.429, "now": 10.617, "delta": 0.188},
+    "lockedSteem": {"baseline": 29.95, "now": 26.95, "delta": -3.0},
+    "lockedSbd": {"baseline": 92.063, "now": 91.195, "delta": -0.868},
+    "openOrdersN": {"baseline": 23, "now": 16, "delta": -7},
+    "mid": {"baseline": 0.10153, "now": 0.102805, "deltaPct": 1.25},
+    "spreadBps": {"baseline": 93.5, "now": 49.9, "delta": -43.6},
+    "vpHeadcornerPct": {"baseline": 51.67, "now": 50.13, "delta": -1.54},
+    "contentPendingSbd": {"baseline": 0.004, "now": 0.009, "note": "baseline top-3 posts vs now last-10 sum"},
+    "netWorthSbdEquiv": {"baseline": 543.66, "now": 549.26, "delta": 5.6, "deltaPct": 1.03}
+  },
+  "growth": [
+    {
+      "id": "G1",
+      "title": "STEEM_ACTIVE_WIF -> GEN-2 in Domain vault + re-dispatch dex-grid",
+      "valueSbdEst": 1.857,
+      "valueSbdEstNote": "grid realized SBD inflow in 2.3h post-baseline window on ~27 ST + ~91 SBD working capital; window vwap edge +1.91%; also unlocks zombie-ladder management + 1,024 SP delegation plan + liquidity-bootstrap",
+      "cost": "one owner minute (vault secret update + workflow dispatch)",
+      "gate": "G1 owner gate (OWNER-GATE-PLAYBOOK)",
+      "rank": 1
+    },
+    {
+      "id": "G3",
+      "title": "Zombie buy ladder 10-07 (keep working)",
+      "valueSbdEst": 5.001,
+      "valueSbdEstNote": "91.195 SBD @ 0.0955-0.0985 buys 935.7 STEEM; at mid 0.102805 worth 96.196 SBD -> +5.001 SBD (+5.5%); +4.76 at best bid; expires 2026-11-03; already resting, zero cost",
+      "cost": "0 (resting order; kill-list 8 forbids cancel)",
+      "gate": "none (G1 needed only to manage proceeds after fill)",
+      "rank": 2
+    },
+    {
+      "id": "G4",
+      "title": "Curation STASIS-votes lift",
+      "valueSbdEst": 0.2,
+      "valueSbdEstNote": "ceiling ~10.4 SBD/year (ECONOMIC-PLAN §3 naive, 25% share unmeasured) = ~0.20 SBD/week at mid; lifetime curation APR 0.07%/yr; VP 50.13% idle",
+      "cost": "owner word + VP spend",
+      "gate": "owner word for STASIS-votes (COORDINATION rule 5); measured 21 votes vs declared halted - reconcile first",
+      "rank": 3
+    },
+    {
+      "id": "G2",
+      "title": "Actions billing -> 15 private repos + posting engine (CI_SOCIAL_ARMED) + fleet-heal",
+      "valueSbdEst": 0.0,
+      "valueSbdEstNote": "measured content yield 0.009 SBD per 10 posts; today SBD ROI = 0; value is machine aliveness feeding G5/G6",
+      "cost": "real money (billing)",
+      "gate": "G2 owner decision",
+      "rank": 4
+    },
+    {
+      "id": "G5",
+      "title": "Delegation plan 1,024 SP (7-a) on top of live 603.31 SP / 14 targets",
+      "valueSbdEst": null,
+      "valueSbdEstNote": "direct SBD yield UNKNOWN (no measured stream); measured purpose yield = RC repair (4 accounts below 40% and worsening)",
+      "cost": "G1 unlock + plan re-sign (zai-11b: plan deviates from live)",
+      "gate": "G1 + owner word delegations",
+      "rank": 5
+    },
+    {
+      "id": "G6",
+      "title": "Content stream scale-up",
+      "valueSbdEst": 0.0,
+      "valueSbdEstNote": "measured library 40 pieces / 10 desks (content-library.json CR-0065; '28 essays' from task brief not reproduced); per-post measured 0.000-0.005 SBD -> scaling multiplies ~0 until reach fixed",
+      "cost": "RC fuel per post",
+      "gate": "G2 + external-attention channel (ECONOMIC-PLAN arrow 5)",
+      "rank": 6
+    },
+    {
+      "id": "G7",
+      "title": "Deprecate convert from the gate surface",
+      "valueSbdEst": 0.0,
+      "valueSbdEstNote": "print 0 + interest 0 (measured in dgp now) + lane halted = 0 yield, closed risk (kill-list 6)",
+      "cost": "0",
+      "gate": "one owner word",
+      "rank": 7
+    },
+    {
+      "id": "G8",
+      "title": "Zero-cost proof infrastructure (zero-line EVM anchors @ 0.0 gas; EXPANSION Stage-0/1 probes; ledger 1,654 chains)",
+      "valueSbdEst": 0.0,
+      "valueSbdEstNote": "not SBD - sovereignty moat at measured zero cost (gasUsed 38120 @ effectiveGasPrice 0); keep running",
+      "cost": "0",
+      "gate": "none (Stage 0/1 open without owner word)",
+      "rank": 8
+    }
+  ],
+  "honestUnknowns": [
+    "fresh weekly edge from full 7d chain walk not computed this session (hundreds of RPC calls needed; law judged per pnl-desk verdict 15:02Z, book source 2026-10-04)",
+    "external USD price of STEEM not measured (same boundary as baseline)",
+    "actor identity behind votes/grid ops not provable from chain (key-era hint only)",
+    "SBD purpose-yield of 603.31 delegated SP: unknown",
+    "curation 25% share assumption inherited from ECONOMIC-PLAN, unmeasured",
+    "double-entry reconciliation residual +/-2.4 STEEM / +/-0.25 SBD (baseline-minute boundary 19:47-19:57 + 3-decimal rounding)"
+  ],
+  "verdict": "WORTH-UP-EDGE-TURNING-POSITIVE-ENGINE-STALLED: netWorth +5.60 SBD (+1.03%) since 19:54Z baseline; first measured positive maker vwap edge (+1.78/+1.91% window, sub-weekly); governing grid verdict remains EDGE-NEGATIVE-GRID-HOLD (weekly law not satisfied on its book: +0.5% < +1%) so placements stay suppressed; zombie ladder intact worth +5.0 SBD potential; engine silent since 22:14:48Z with ok:false receipts; single highest-leverage action = G1 key update (one owner minute)."
+}
