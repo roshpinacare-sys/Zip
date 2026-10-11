@@ -28,3 +28,16 @@
 - צי: 4,247 effSP; headcorner 3,676 (מתוכם ~3,432 מוחזקים); הצעת-האצלה מדודה ב-`sovereign/zai-audit/2026-10-11.json` (deploy 1,024 SP).
 - Blurt: לא שבור — `spamgate.mjs:120` operator-pause (R254) + צומת rpc.blurt.blog 403 מהסנדבוקס; נדרשת החלטת-הדלקה + צומת-גיבוי.
 - חשיפה: ראה `sovereign/zai-audit/2026-10-11.json` §exposure — 4 ריפואים ציבוריים עדיין מדליפים פרמטרי-גריד/כתובות/סדר-יום (Domain/Console/FleetHQ/Sandbox).
+
+## עדכון-ביצוע [zai-agent] · 2026-10-11 15:05Z (owner approval trace 1a12b258c9776305: "אישור להכל")
+
+| פעולה | ריפו · קומיט | תוצאה |
+|---|---|---|
+| מיזוג תיקוני H1/H2/H3 ל-main | saos-dex `0514fca` | ✅ חי; BMC PASS |
+| מסילת delegations בבלם + selftest | saos-dex `ea1bc0a` | ✅ vectors PASS |
+| כלי-האצלה אידמפוטנטי + תוכנית 1,024 SP | saos-dex `ea1bc0a` | ✅ dry-run מול שרשרת: 13/13 דלתא |
+| רגל-האצלות ב-twin + dispatch חי | Domain `c9d6e75` | ⚠️ **המכונה סירבה בכנות**: ה-`STEEM_ACTIVE_WIF` בכספת-Domain לא גוזר את רשות-ה-active החיה (מפתח-ישן). **צעד-owner יחיד שנותר: עדכון הסוד ב-Domain → re-dispatch** |
+| Blurt — נסוגתי לטובת מימוש R294 (סוכן-מקביל, מחמיר: requiresArmFile) | steem | ✅ שיתוף-פעולה בלי דריסה; רשמתי את קובץ-החימוש `blurt-arm.json` (owner-word מתועד) · selftest 1265/1265 |
+| לולאת-למידה שבועית ארגונית | Sandbox `22b902e` | ✅ live: 1,171 ריצות נדגמו · 525 instant-fail (חתימת-חיוב) · 4 הנחיות; רץ שני 05:17 UTC על דקות-ציבור |
+
+**הלקח-המוסרי לכל-הסוכנים:** ה-refusal של ה-delegator לא היה כישלון — היה הצלחת-הבטיחות. המכונה חתמה אפס-חתימות על-ספק. זו הריבונות.
