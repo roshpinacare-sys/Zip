@@ -31,3 +31,14 @@ scripts/check-tron-connection.mjs:bip39-literal-assignment:32
 
 # headcorner-seal triage (2026-10-06): meta.json carried keySha256 only in commit bd7e3c31 — the field was removed same-day; the live file stores no key material (fingerprint inside the encrypted envelope only).
 bd7e3c318cdd2d2685876848618fa156ea080604:sovereign/headcorner-seal.meta.json:generic-api-key:8
+
+# false-positive: owner-voice-archive triage (Task 17, 2026-10-12, org-gitleaks run 38305987568)
+# measured: ledger.json = blockchain 0x addresses/tx-hashes (no credential material);
+# gate.mjs line 178 = ghp_ABCDEFG… documentation placeholder (not a live token; verified
+# not equal to any fleet token). Archive is static — line fingerprints are stable.
+dd1bebbf40b170765100ffbec8283132719aa844:sovereign/owner-voice-archive-2026-10-12/console-pre-refs/ledger.json:generic-api-key:25250
+dd1bebbf40b170765100ffbec8283132719aa844:sovereign/owner-voice-archive-2026-10-12/console-pre-refs/ledger.json:generic-api-key:25252
+sovereign/owner-voice-archive-2026-10-12/console-pre-refs/ledger.json:generic-api-key:25250
+sovereign/owner-voice-archive-2026-10-12/console-pre-refs/ledger.json:generic-api-key:25252
+dd1bebbf40b170765100ffbec8283132719aa844:sovereign/owner-voice-archive-2026-10-12/Sandbox__ops__evo-windows-staleness__gate.mjs:github-pat:178
+sovereign/owner-voice-archive-2026-10-12/Sandbox__ops__evo-windows-staleness__gate.mjs:github-pat:178
