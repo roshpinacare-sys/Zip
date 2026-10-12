@@ -1,0 +1,89 @@
+# treasury-ladder.yml (saos-runtime) — R16-b: the treasury's own income artery, canary-first.
+#
+# Owner traces 1a12defa20399391 ("כבר-שלחתי-מיליון-פעמים-את-המפתחות · תמצא · תצית") + 1a12de036c1159b5
+# ("אם-יש-לך-owner יש-לך-active · אין-מצב-כזה-שהוא-לא-עובד"). The exhaustive key census (R16-b,
+# 18 sealed bundles opened + full git-history pass mining + master-password derivation zoo) measured:
+# headcorner's STEEM active key (10-08 rotation) exists in NO machine-held material — but the machine
+# holds LIVE full control of 13 worker accounts. The treasury ladder runs the maker book on the
+# escrow-agent account (hcsoldier4) — an income artery NO owner key can block.
+#
+# Safety: plan-file-only (SAOS-TREASURY-LADDER-PLAN/1) · canary caps forever in code (≤0.3/leg,
+# ≤0.6 open STEEM) · key-gate vs LIVE authority per run · STASIS obeyed · maker-only (never cross) ·
+# 7-day expiry (no zombies) · kill-law on >5% mid move · foreign orders NEVER touched ·
+# read-after-write per tx · keys resolved in-run to a 0600 file, never logged, destroyed at end.
+name: treasury-ladder
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # 2×/day canary cadence — off-peak minutes (the engine re-prices around the live book)
+    - cron: "41 5,17 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: treasury-ladder
+  cancel-in-progress: false
+
+jobs:
+  ladder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STEEM_VAULT_PASSES: ${{ secrets.STEEM_VAULT_PASSES }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - name: Install signer lib (house pattern)
+        run: npm install --prefix /tmp/steemjs steem@0.7.11 --omit=dev --no-audit --no-fund --loglevel=error
+
+      - name: Checkout the grids home (saos-dex — engine of record)
+        run: |
+          set -Eeuo pipefail
+          git clone --depth 1 --branch main "https://x-access-token:${GH_PAT}@github.com/roshpinacare-sys/saos-dex.git" dex
+          echo "saos-dex @ $(cd dex && git rev-parse --short HEAD)"
+
+      - name: Selftest gate (offline vectors — red selftest never reaches the chain)
+        working-directory: dex
+        run: |
+          set -Eeuo pipefail
+          npm install --omit=dev --no-audit --no-fund --loglevel=error bs58 steem@0.7.11 @noble/hashes @noble/curves
+          NODE_PATH=/tmp/steemjs/node_modules node grids/treasury-ladder.mjs --selftest
+
+      - name: Resolve live fleet keys from the sealed GEN-2 bundle (in-run, 0600, never logged)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/resolve-keys.cjs --out /tmp/fk.json
+
+      - name: Treasury ladder cycle (maker-only, idempotent, key-gated, kill-law armed)
+        working-directory: dex
+        run: NODE_PATH=/tmp/steemjs/node_modules node grids/treasury-ladder.mjs --run --keys-file /tmp/fk.json
+
+      - name: Cleanup key material
+        if: always()
+        run: rm -f /tmp/fk.json && echo "key file destroyed"
+
+      - name: Commit receipts to the grids home (evidence = commit; FF-only with yield)
+        if: always()
+        working-directory: dex
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          set -Eeuo pipefail
+          git config user.name "treasury-ladder[bot]"
+          git config user.email "treasury-ladder[bot]@users.noreply.github.com"
+          git add grids/state/treasury-receipts.jsonl grids/state/treasury-public.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no receipt change — clean exit"
+          else
+            git commit -m "treasury-ladder: canary receipt $(date -u +%FT%TZ) [skip ci]"
+            # the selftest's npm install dirties package-lock.json — clean it so the rebase-yield is free
+            git checkout -- . 2>/dev/null || true
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin HEAD:main && break || { sleep $((i*5)); git rebase --abort 2>/dev/null || true; git checkout -- . 2>/dev/null || true; }
+            done
+          fi

@@ -1,0 +1,71 @@
+# fresh-oracle — the standing byte-oracle (zai-14, owner mandate trace
+# 1a12cf8c33f87d71: "מתאמן ובודק את עצמו בלי לסמוך על טענות — יש לנו דרך לאמת").
+# Round-7's oracle was a one-time proof (4/4 MATCH); this makes it STANDING:
+# every 30 minutes the public surfaces are byte-compared against their deploy
+# refs. Drift or missing = honest RED. No green without byte equality.
+# Public repo = free Actions minutes. Concurrency-collides with office-ci only
+# on receipt pushes (sibling-stand-down + rebase-then-push handles the race).
+
+name: fresh-oracle
+
+on:
+  schedule:
+    - cron: "23,53 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fresh-oracle
+  cancel-in-progress: false
+
+jobs:
+  oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run the oracle (byte equality, fail-loud)
+        env:
+          GITHUB_TOKEN: ${{ github.token }} # raises API rate limit for the V-OPS-DOCS existence+age scan (public read-only; same-repo token, no sibling writes)
+        run: node tools/fresh-oracle.mjs
+
+      - name: Publish receipt (sibling-stand-down + rebase-then-push x6, jittered)
+        if: always()
+        run: |
+          git config user.name "fresh-oracle-bot"
+          git config user.email "fresh-oracle-bot@users.noreply.github.com"
+          sibling_stand_down() {
+            git fetch -q origin main 2>/dev/null || return 1
+            if git show origin/main:receipts/fresh-oracle/latest.json 2>/dev/null | grep -q "\"at\""; then
+              L=$(git show origin/main:receipts/fresh-oracle/latest.json | grep -o '"at": "[^"]*"' | head -1)
+              M=$(grep -o '"at": "[^"]*"' receipts/fresh-oracle/latest.json | head -1)
+              if [ "$L" = "$M" ]; then
+                echo "SIBLING-STAND-DOWN: an identical oracle receipt is already published — honest exit 0"
+                return 0
+              fi
+            fi
+            return 1
+          }
+          git add receipts/fresh-oracle/
+          if git diff --cached --quiet; then echo "no receipt delta"; exit 0; fi
+          git commit -m "fresh-oracle receipt: $(node -e 'console.log(JSON.parse(require("fs").readFileSync("receipts/fresh-oracle/latest.json","utf8")).summary.verdict)') [skip ci]"
+          ok=0
+          for i in 1 2 3 4 5 6; do
+            if git pull --rebase -q origin main && git push -q origin main; then ok=1; echo "PUSH-OK attempt $i"; break; fi
+            git rebase --abort 2>/dev/null || true
+            if sibling_stand_down; then ok=1; break; fi
+            sleep $((3 + RANDOM % 7))
+            echo "push attempt $i failed, retrying"
+          done
+          if [ "$ok" != "1" ]; then sibling_stand_down || { echo "PUSH-FAILED after retries"; exit 1; }; fi
+
+      - name: Verdict gate (red unless FRESH)
+        if: always()
+        run: |
+          node -e 'const r=JSON.parse(require("fs").readFileSync("receipts/fresh-oracle/latest.json","utf8"));console.log("gate:",r.summary.verdict,r.summary.match+"/"+r.summary.checked,"drift="+r.summary.drift,"missing="+r.summary.missing);if(r.summary.verdict!=="FRESH")process.exit(1);'

@@ -1,0 +1,192 @@
+# gen2-rotation.yml — N1/D3 (T-63): the GEN-2 custody passphrase rotation, executed BY the runner itself.
+#
+# WHY in-runner: STEEM_VAULT_PASSES (the era bundle) is readable ONLY inside Actions (write-only API).
+# The bundle holds gen1 (seed-vault era) + recovery-3 (current) — neither is reconstructable outside,
+# so the gen2 era MUST be merged where the bundle lives. This workflow preserves every existing era
+# and adds gen2. Zero pass material in code/logs/inputs — passes are generated in-step and travel env-only.
+#
+# Doctrine continuity: repo-side system custody (operator directive 2026-09-10) keeps the v3 meta values;
+# the engine path (R-VAULTPASS-1) gains the off-repo gen2 era. Follow-up (full off-repo consumer migration)
+# is recorded in GEN-2-ERA-META.json boundaries — not hidden.
+#
+# Fail-closed: nothing is pushed unless the secret PUT succeeds on BOTH repos and round-trips verify.
+name: gen2-rotation
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gen2-rotation
+  cancel-in-progress: false
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      STEEM_VAULT_PASSES: ${{ secrets.STEEM_VAULT_PASSES }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - name: Preflight (bundle present, fail-loud otherwise — honest death beats silent forgery)
+        run: |
+          set -Eeuo pipefail
+          if [ -z "${STEEM_VAULT_PASSES:-}" ]; then echo "ABORT: STEEM_VAULT_PASSES absent"; exit 1; fi
+          node -e "JSON.parse(process.env.STEEM_VAULT_PASSES)" || { echo "ABORT: bundle not valid JSON"; exit 1; }
+          node -e "const b=JSON.parse(process.env.STEEM_VAULT_PASSES); const need=['recovery-3.keysZipUnlock','recovery-3.keysBackupUnlock']; for(const ref of need){let v=b; for(const k of ref.split('.')){ if(!(k in (v||{}))) { console.error('ABORT: bundle missing '+ref); process.exit(1);} v=v[k]; } if(typeof v!=='string'||v.length<8){ console.error('ABORT: bundle value malformed '+ref); process.exit(1);} }"
+          if [ -z "${GH_PAT:-}" ]; then echo "ABORT: GH_PAT absent"; exit 1; fi
+          echo "preflight OK (bundle eras: $(node -e "console.log(Object.keys(JSON.parse(process.env.STEEM_VAULT_PASSES)).join(',')))"))"
+
+      - name: Generate GEN-2 passes (in-runner, env-only, never logged)
+        run: |
+          set -Eeuo pipefail
+          G2ZIP="$(openssl rand -base64 24 | tr '+/' '-_' | tr -d '\n')"
+          G2BKP="$(openssl rand -base64 24 | tr '+/' '-_' | tr -d '\n')"
+          echo "zipLen=${#G2ZIP}" >> "$GITHUB_OUTPUT"
+          {
+            echo "G2ZIP<<EOF"; echo "$G2ZIP"; echo "EOF";
+            echo "G2BKP<<EOF"; echo "$G2BKP"; echo "EOF";
+          } >> "$GITHUB_ENV"
+
+      - name: Checkout steem main (the vault of record)
+        run: |
+          set -Eeuo pipefail
+          git clone --depth 1 --branch main "https://x-access-token:${GH_PAT}@github.com/roshpinacare-sys/steem.git" steem
+          cd steem
+          echo "steem main @ $(git rev-parse --short HEAD)"
+
+      - name: Re-seal the active custody bundle under GEN-2 (round-trip verified, inner sha pinned)
+        working-directory: steem
+        run: |
+          set -Eeuo pipefail
+          INNER_EXPECT="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('agent/recovery-meta.json','utf8')).keysZipInnerSha256)")"
+          BUNDLEZIP="$(node -e "const b=JSON.parse(process.env.STEEM_VAULT_PASSES); process.stdout.write(b['recovery-3'] && b['recovery-3'].keysZipUnlock || '')")"
+          BUNDLEBKP="$(node -e "const b=JSON.parse(process.env.STEEM_VAULT_PASSES); process.stdout.write(b['recovery-3'] && b['recovery-3'].keysBackupUnlock || '')")"
+          METAZIP="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('agent/recovery-meta.json','utf8')).keysZipPass || '')")"
+          METABKP="$(node -e "process.stdout.write(JSON.parse(require('fs').readFileSync('agent/recovery-meta.json','utf8')).keysBackupPass || '')")"
+          mkdir -p /tmp/g2 && chmod 700 /tmp/g2
+          # decrypt with bundle value first (engine-canonical), v2 meta value as fallback — both env-only, never logged
+          dec() { # dec <in> <out> <cand1> <cand2>
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 300000 -in "$1" -out "$2" -pass env:C1 2>/dev/null && return 0
+            C1="$4" openssl enc -d -aes-256-cbc -pbkdf2 -iter 300000 -in "$1" -out "$2" -pass env:C1 2>/dev/null && return 0
+            return 1
+          }
+          C1="$BUNDLEZIP" dec agent/vault/KEYS-ZIP-2026-10-09.zip.enc /tmp/g2/keys.zip "$BUNDLEZIP" "$METAZIP" || { echo "ABORT: keys zip decrypt failed on both candidate passes"; exit 1; }
+          C1="$BUNDLEBKP" dec agent/vault/KEYS-BACKUP-2026-09-09.tar.enc /tmp/g2/keys.tar "$BUNDLEBKP" "$METABKP" || { echo "ABORT: backup decrypt failed on both candidate passes"; exit 1; }
+          INNER_ACTUAL="$(sha256sum /tmp/g2/keys.zip | cut -d' ' -f1)"
+          if [ "$INNER_ACTUAL" != "$INNER_EXPECT" ]; then echo "ABORT: inner sha mismatch ($INNER_ACTUAL != $INNER_EXPECT) — payload drift, refusing"; exit 1; fi
+          # re-seal under GEN-2
+          openssl enc -aes-256-cbc -pbkdf2 -iter 300000 -in /tmp/g2/keys.zip -out agent/vault/KEYS-ZIP-GEN2-$(date -u +%Y-%m-%d).zip.enc -pass env:G2ZIP
+          openssl enc -aes-256-cbc -pbkdf2 -iter 300000 -in /tmp/g2/keys.tar -out agent/vault/KEYS-BACKUP-GEN2-$(date -u +%Y-%m-%d).tar.enc -pass env:G2BKP
+          # round-trip proofs
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 300000 -in agent/vault/KEYS-ZIP-GEN2-$(date -u +%Y-%m-%d).zip.enc -out /tmp/g2/rt.zip -pass env:G2ZIP
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 300000 -in agent/vault/KEYS-BACKUP-GEN2-$(date -u +%Y-%m-%d).tar.enc -out /tmp/g2/rt.tar -pass env:G2BKP
+          [ "$(sha256sum /tmp/g2/rt.zip | cut -d' ' -f1)" = "$INNER_ACTUAL" ] || { echo "ABORT: gen2 zip roundtrip mismatch"; exit 1; }
+          [ "$(sha256sum /tmp/g2/rt.tar | cut -d' ' -f1)" = "$(sha256sum /tmp/g2/keys.tar | cut -d' ' -f1)" ] || { echo "ABORT: gen2 tar roundtrip mismatch"; exit 1; }
+          rm -f /tmp/g2/keys.zip /tmp/g2/keys.tar /tmp/g2/rt.zip /tmp/g2/rt.tar
+          echo "round-trip verified: zip inner-sha MATCH, tar roundtrip MATCH"
+          echo "ZIPFILE=agent/vault/KEYS-ZIP-GEN2-$(date -u +%Y-%m-%d).zip.enc" >> "$GITHUB_ENV"
+          echo "BKPFILE=agent/vault/KEYS-BACKUP-GEN2-$(date -u +%Y-%m-%d).tar.enc" >> "$GITHUB_ENV"
+
+      - name: Build recovery-meta v3 + GEN-2-ERA-META (refs for the engine path; lengths only in the era record)
+        working-directory: steem
+        run: |
+          set -Eeuo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const crypto = require('crypto');
+          const m = JSON.parse(fs.readFileSync('agent/recovery-meta.json', 'utf8'));
+          const now = new Date().toISOString();
+          const shaF = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+          const zipFile = process.env.ZIPFILE, bkpFile = process.env.BKPFILE;
+          const v3 = {
+            ...m,
+            keysZipPass: process.env.G2ZIP,
+            keysZipFile: zipFile,
+            keysZipSha256: shaF(zipFile),
+            keysZipInnerSha256: m.keysZipInnerSha256,
+            keysBackupPass: process.env.G2BKP,
+            keysBackupFile: bkpFile,
+            keysBackupSha256: shaF(bkpFile),
+            replacedArchive: m.keysZipFile + ' (kept in history; GEN-2-2026-10-12 — passphrase rotation by the sovereignty, owner directive trace 1a12d4ae2964f45d; payload identical, inner sha unchanged)',
+            sealedAt: now,
+            keysZipUnlockRef: 'gen2.keysZipUnlock',
+            keysBackupUnlockRef: 'gen2.keysBackupUnlock',
+            format: 'recovery-meta-3',
+            rotation: {
+              id: 'GEN-2-2026-10-12', prior: (m.rotation && m.rotation.id) || 'T50-TRUTH1',
+              masterPasswordRef: 'gen2.keysZipUnlock (STEEM_VAULT_PASSES bundle, steem + saos-runtime secrets) — repo-side system custody unchanged (operator doctrine 2026-09-10)',
+              note: 'Executed by the runner itself (gen2-rotation.yml): fresh 32-char passes generated in-step (env-only), round-trip verified, inner sha pinned. GEN-1/T50 values superseded for the ACTIVE bundle; historical archives stay GEN-1-decryptable (documented boundary — passphrase rotation cannot re-protect already-published ciphertext; on-chain key-material rotation is a separate higher operation). PERSONAS_KEY escrow = armed decision D3b (Domain write-only secret).',
+            },
+            personasEscrow: { status: 'armed', decidedIn: 'T-63 D3b, trace 1a12d4ae2964f45d', detail: 'PERSONAS_KEY lives in Domain repo secrets (write-only by design); escrow into this vault at the next Domain keeper window' },
+          };
+          fs.writeFileSync('agent/recovery-meta.json', JSON.stringify(v3, null, 2) + '\n');
+          const era2 = {
+            format: 'gen-2-era-meta', createdAt: now,
+            createdBy: 'gen2-rotation.yml (saos-runtime) — T-63 D3, owner directive trace 1a12d4ae2964f45d',
+            eras: {
+              gen1: { status: 'preserved-in-bundle', passLengths: { keysZipUnlock: 32, keysBackupUnlock: 32 }, note: 'untouched — seed-vault era (KEYS-SEED-2026-10-04) resolves through it' },
+              'recovery-3': { status: 'superseded-for-active-bundle', passLengths: { keysZipUnlock: 32, keysBackupUnlock: 32 }, note: 'values preserved in bundle' },
+              gen2: { status: 'ACTIVE', passLengths: { keysZipUnlock: process.env.G2ZIP.length, keysBackupUnlock: process.env.G2BKP.length }, bundleRef: 'gen2.* (STEEM_VAULT_PASSES, steem + saos-runtime)', files: [zipFile, bkpFile], innerShasUnchanged: true },
+            },
+            proof: 'round-trip verified in-runner; inner sha256 of the keys zip pinned to recovery-meta and MATCHED pre-rotation',
+            boundaries: [
+              'historical archives in git history stay GEN-1/recovery-3-decryptable — passphrase rotation cannot re-protect already-published ciphertext (documented, not hidden)',
+              'on-chain key-material rotation = separate higher operation (recorded boundary)',
+              'repo-side system custody (values in private repo per operator doctrine 2026-09-10) continues; full off-repo migration of repo-side consumers (absorb-sheet-vault, sovereign-selfcustody, vault-revival, integrations-revival, toolbelt-revival) = recorded custody-lane follow-up',
+              'PERSONAS_KEY escrow = armed D3b (Domain write-only secret)',
+            ],
+          };
+          fs.writeFileSync('agent/vault/GEN-2-ERA-META.json', JSON.stringify(era2, null, 2) + '\n');
+          console.log('recovery-meta v3 + GEN-2-ERA-META written (pass values only in v3 per operator doctrine; era record lengths-only)');
+          NODE
+
+      - name: Probe + merge the era bundle, PUT secrets on steem + saos-runtime (fail-closed before any push)
+        working-directory: steem
+        run: |
+          set -Eeuo pipefail
+          npm i --no-save libsodium-wrappers --silent
+          node - <<'NODE'
+          const fs = require('fs');
+          const sodium = require('libsodium-wrappers');
+          const bundle = JSON.parse(process.env.STEEM_VAULT_PASSES);
+          if (bundle.gen2 && bundle.gen2.keysZipUnlock) { console.error('ABORT: gen2 era already present — refusing to double-rotate'); process.exit(1); }
+          bundle.gen2 = { keysZipUnlock: process.env.G2ZIP, keysBackupUnlock: process.env.G2BKP };
+          const PAT = process.env.GH_PAT;
+          const H = { Authorization: `Bearer ${PAT}`, Accept: 'application/vnd.github+json' };
+          const put = async (repo) => {
+            const pkr = await fetch(`https://api.github.com/repos/roshpinacare-sys/${repo}/actions/secrets/public-key`, { headers: H });
+            if (!pkr.ok) throw new Error(`public-key ${repo}: HTTP ${pkr.status}`);
+            const pk = await pkr.json();
+            await sodium.ready;
+            const sealed = sodium.crypto_box_seal(Buffer.from(JSON.stringify(bundle), 'utf8'), Buffer.from(pk.key, 'base64'));
+            const r = await fetch(`https://api.github.com/repos/roshpinacare-sys/${repo}/actions/secrets/STEEM_VAULT_PASSES`, {
+              method: 'PUT', headers: { ...H, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ encrypted_value: Buffer.from(sealed).toString('base64'), key_id: pk.key_id }),
+            });
+            if (r.status !== 201 && r.status !== 204) throw new Error(`secret PUT ${repo}: HTTP ${r.status}`);
+            console.log(`secret STEEM_VAULT_PASSES on ${repo}: HTTP ${r.status} (eras: ${Object.keys(bundle).join(',')})`);
+          };
+          (async () => { await put('steem'); await put('saos-runtime'); })().catch(e => { console.error('ABORT:', e.message); process.exit(1); });
+          NODE
+
+      - name: Push vault files + metas to steem main (FF-only, one commit)
+        working-directory: steem
+        run: |
+          set -Eeuo pipefail
+          git config user.name "saos-runtime-ci"
+          git config user.email "saos-runtime-ci@users.noreply.github.com"
+          git add agent/vault/KEYS-ZIP-GEN2-*.zip.enc agent/vault/KEYS-BACKUP-GEN2-*.tar.enc agent/recovery-meta.json agent/vault/GEN-2-ERA-META.json
+          git commit -m "custody(N1/T-63): GEN-2 passphrase rotation executed by the runner - active zip+backup re-sealed (inner sha pinned, roundtrip verified), bundle gen2 era merged (gen1/recovery-3 preserved), recovery-meta v3 + GEN-2-ERA-META"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && break || { echo "retry $i"; sleep 5; }
+          done
+          git log --oneline -1
+          echo "pushed: $(git rev-parse --short HEAD)"
+
+      - name: Honest summary (lengths and shas only — zero pass material)
+        run: |
+          echo "GEN-2 rotation executed by the runner. Active bundle re-sealed; eras preserved; secrets PUT on steem + saos-runtime; steem main pushed." 
+          echo "Boundaries recorded in GEN-2-ERA-META.json. PERSONAS_KEY escrow = armed D3b."

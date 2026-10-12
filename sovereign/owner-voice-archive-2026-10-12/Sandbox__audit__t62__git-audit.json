@@ -1,0 +1,148 @@
+{
+  "task": "T-62 (2-b) git-audit",
+  "trace": "1a1268338e36d0ed",
+  "measured_at_utc": "2026-10-10T16:02:37Z",
+  "method": "read-only audit; git fetch per house; GitHub API auth via pat.env in subshell (token never printed/stored); receipts tails; live curl probes",
+  "houses": {
+    "Sandbox": {
+      "path": "~/fleet/Sandbox",
+      "origin": "https://github.com/roshpinacare-sys/Sandbox.git",
+      "remote_visibility": "public",
+      "fetch": "ok (441b1d9..7c6dbdd main)",
+      "branch": "main",
+      "default_branch": "main",
+      "divergence_vs_origin_main": { "ahead": 0, "behind": 9, "note": "behind measured after fetch, before audit commit; origin head now 7c6dbdd, local head 441b1d9" },
+      "dirty_files": 2,
+      "dirty_list": ["receipts/latest.json", "receipts/ticks.jsonl"],
+      "branches": ["main", "origin/main"],
+      "last_local_commit": { "sha": "441b1d9", "at": "2026-10-10T15:03:52Z", "subject": "T-61 (trace 1a12632b71721ef9): stream released" },
+      "github_pushed_at": "2026-10-10T15:57:59Z",
+      "verdict": "behind 9 / dirty 2 — local heartbeat writers did not pull cloud state push-back; reconciliation (fetch+rebase) required before next push"
+    },
+    "steem": {
+      "path": "~/fleet/steem",
+      "origin": "https://github.com/roshpinacare-sys/steem.git",
+      "remote_visibility": "private",
+      "fetch": "FAILED (auth required: 'could not read Username' — no credential in audit shell; not a repo failure)",
+      "branch": "saos-cockpit",
+      "default_branch": "saos-cockpit",
+      "divergence_vs_origin_default": { "ahead": 0, "behind": 0, "note": "synced per last successful fetch data (origin/saos-cockpit)" },
+      "divergence_vs_origin_main": { "ahead": 1042, "behind": 1198, "note": "expected: main is legacy line; working branch is saos-cockpit (origin default)" },
+      "dirty_files": 16,
+      "dirty_detail": "9 modified + 1 MM + 7 untracked, all under mini-services/saos-engine/state + content/drafts (live engine state)",
+      "github_pushed_at": "2026-10-10T15:59:43Z",
+      "corroboration": "GitLab mirror receipt 2026-10-10T15:57:30.196Z verified steem head12=064ca0c5b5d5 == local HEAD",
+      "workflows": [
+        { "file": ".github/workflows/ci-probe.yml", "name": "ci-probe", "triggers": ["workflow_dispatch"], "cron": null },
+        { "file": ".github/workflows/sovereign-cycle.yml", "name": "sovereign-cycle", "triggers": ["workflow_dispatch"], "cron": null, "note": "RETIRED from schedule (R280): private-repo Actions behind billing wall; real pulse lives on public roshpinacare-sys/saos-runtime" }
+      ],
+      "actions_last_5": [
+        { "name": "sovereign-cycle", "status": "completed", "conclusion": "failure", "created_at": "2026-10-09T18:13:19Z", "event": "workflow_dispatch" },
+        { "name": "sovereign-cycle", "status": "completed", "conclusion": "failure", "created_at": "2026-10-09T18:07:06Z", "event": "workflow_dispatch" },
+        { "name": "sovereign-cycle", "status": "completed", "conclusion": "failure", "created_at": "2026-10-09T18:05:03Z", "event": "workflow_dispatch" },
+        { "name": "sovereign-cycle", "status": "completed", "conclusion": "failure", "created_at": "2026-10-08T17:31:13Z", "event": "workflow_dispatch" },
+        { "name": "sovereign-cycle", "status": "completed", "conclusion": "failure", "created_at": "2026-10-08T09:53:57Z", "event": "schedule" }
+      ],
+      "verdict": "synced on default branch; Actions failures = documented billing wall, mitigated on public host"
+    },
+    "fleet-vault": {
+      "path": "~/fleet/fleet-vault",
+      "is_git_repo": true,
+      "origin": "https://github.com/roshpinacare-sys/vault-home.git (embedded x-access-token in URL — redacted, never printed)",
+      "remote_visibility": "private",
+      "fetch": "ok, no changes",
+      "branch": "main",
+      "divergence": { "ahead": 0, "behind": 0 },
+      "dirty_files": 0,
+      "last_local_commit": { "sha": "45c09e1", "at": "2026-10-10T15:05:00Z", "subject": "T-61: §8.10 released-stream law" },
+      "github_pushed_at": "2026-10-10T15:05:05Z",
+      "doctrine_check": "README.md + SOVEREIGNTY.md confirm: vault = sovereign root repo (private); wraps/ private-only; ciphertext-only in public FleetHQ; .gitignore bans keys.env/.session-pass/identity",
+      "workflows": [],
+      "verdict": "synced, clean, intentionally-private git home — healthy"
+    },
+    "my-project": {
+      "path": "~/my-project",
+      "remote": "NONE (git remote empty; no remote.* in git config) — recorded honestly",
+      "branch": "main",
+      "divergence": "N/A — no upstream configured",
+      "dirty_files": 1,
+      "dirty_list": ["tool-results/ (untracked)"],
+      "last_local_commit": { "sha": "5e6051f", "at": "2026-10-10T15:09:50Z" },
+      "git_home_note": "per T-61 history the Git home is via SovereignConsole@main (GitHub pushed_at 2026-10-10T15:08:27Z corroborates the T-61 push); the local repo itself has no origin — if sandbox dies, untracked/uncommitted local state dies with it",
+      "verdict": "no-origin gap (second-grade finding); local commits are not backed by any remote"
+    }
+  },
+  "github_actions_truth": {
+    "auth": { "http": 200, "source": "pat.env (subshell only)", "login": "roshpinacare-sys" },
+    "account_repos": { "total": 26, "public": 9, "private": 17 },
+    "runs": {
+      "Sandbox": [
+        { "name": "sovereign-state", "status": "in_progress", "conclusion": null, "created_at": "2026-10-10T15:57:46Z" },
+        { "name": "sovereign-tick", "status": "in_progress", "conclusion": null, "created_at": "2026-10-10T15:57:28Z" },
+        { "name": "artery-catchup", "status": "completed", "conclusion": "success", "created_at": "2026-10-10T15:51:31Z" },
+        { "name": "artery-watch", "status": "in_progress", "conclusion": null, "created_at": "2026-10-10T15:51:17Z" },
+        { "name": "sovereign-state", "status": "completed", "conclusion": "success", "created_at": "2026-10-10T15:43:30Z" }
+      ],
+      "SovereignConsole": { "workflows": 0, "runs": 0, "note": "no cloud heart in this repo by design (app repo; deploy via Render)" },
+      "saos-runtime": [
+        { "name": "sovereign-runtime", "status": "in_progress", "conclusion": null, "created_at": "2026-10-10T15:48:20Z" },
+        { "name": "sovereign-runtime", "status": "completed", "conclusion": "failure", "created_at": "2026-10-10T15:23:42Z" },
+        { "name": "sovereign-runtime", "status": "completed", "conclusion": "success", "created_at": "2026-10-10T15:03:47Z" },
+        { "name": "sovereign-runtime", "status": "completed", "conclusion": "success", "created_at": "2026-10-10T14:43:48Z" },
+        { "name": "sovereign-runtime", "status": "completed", "conclusion": "success", "created_at": "2026-10-10T14:23:53Z" }
+      ],
+      "steem": "5x failure (see steem.actions_last_5) — documented billing wall",
+      "vault-home": { "workflows": 0, "runs": 0 }
+    }
+  },
+  "sandbox_workflow_schedules": [
+    { "file": "sovereign-state.yml", "cron": "3,18,33,48 * * * *" },
+    { "file": "sovereign.yml", "cron": "*/15 * * * *" },
+    { "file": "sovereign.yml", "cron": "9-59/20 * * * *" },
+    { "file": "artery-watch.yml", "cron": "*/15 * * * *" },
+    { "file": "artery-catchup.yml", "cron": "7,37 * * * *" },
+    { "file": "federation.yml", "cron": "19,49 * * * *" },
+    { "file": "fleet-heal.yml", "cron": "5,35 * * * *" },
+    { "file": "fleet-yield.yml", "cron": "11 */2 * * *" },
+    { "file": "pages.yml", "cron": null, "triggers": ["push(main)", "workflow_dispatch"] },
+    { "file": "agent-access.yml", "cron": null, "triggers": ["workflow_dispatch"] },
+    { "file": "agent-roster-reseal.yml", "cron": null, "triggers": ["workflow_dispatch"] }
+  ],
+  "gitlab_mirror": {
+    "engine": "engine/gitlab-mirror.mjs",
+    "target_host": "https://gitlab.com (API v4), namespace: roshpinacare",
+    "mirrored_repos": ["Sandbox", "steem", "SovereignConsole"],
+    "last_receipt_at": "2026-10-10T15:57:30.196Z",
+    "freshness_minutes": 5,
+    "last_results": [
+      { "repo": "Sandbox", "pushed": true, "verified": true, "head12": "441b1d9557c8", "matches_local_head": true },
+      { "repo": "steem", "pushed": true, "verified": true, "head12": "064ca0c5b5d5", "matches_local_head": true },
+      { "repo": "SovereignConsole", "pushed": false, "verified": false, "skipped": true, "head12": null, "note": "no change since last verified push 43f2ebb7ddc2" }
+    ],
+    "unauth_probe": "gitlab project 404 without token (private, expected)"
+  },
+  "render_home": {
+    "receipt": "receipts/render-home.jsonl",
+    "last_receipt_at": "2026-10-10T15:57:48.902Z",
+    "service": "73805iqg",
+    "url": "https://sovereign-cockpit-zjmz.onrender.com",
+    "last_receipt": { "http": 200, "healthy": true, "action": "redeployed", "head": "441b1d9557c8", "failedRecent": 0 },
+    "live_curl_at_audit": { "http": 200, "time_total_s": 0.28 }
+  },
+  "live_probes": {
+    "github_pages_root": 200,
+    "github_pages_cockpit": 200,
+    "render_home": 200
+  },
+  "divergence_matrix": [
+    { "house": "Sandbox", "sync": "behind 9 / ahead 0 (pre-commit)", "dirty": 2, "remote_verified": true, "actions": "live+success" },
+    { "house": "steem", "sync": "synced 0/0 (default branch saos-cockpit)", "dirty": 16, "remote_verified": "partial (fetch auth-blocked; corroborated by GitLab mirror + pushed_at)", "actions": "failures (documented billing wall)" },
+    { "house": "fleet-vault", "sync": "synced 0/0", "dirty": 0, "remote_verified": true, "actions": "none (by design)" },
+    { "house": "my-project", "sync": "no upstream", "dirty": 1, "remote_verified": "none-exists", "actions": "none" }
+  ],
+  "broken_flow": {
+    "primary": "Sandbox local main behind origin/main by 9 commits (cloud state push-back) while local heartbeat writers keep committing+dirty state locally — next local push will be non-fast-forward; requires fetch+rebase discipline (heal) before next push",
+    "secondary": "my-project has NO git remote — its history is only locally-rooted; Git home is a copy-push to SovereignConsole (not a configured upstream)"
+  },
+  "secrets_hygiene": "no token printed/stored; pat.env used in subshell only; fleet-vault origin URL token redacted in all outputs"
+}

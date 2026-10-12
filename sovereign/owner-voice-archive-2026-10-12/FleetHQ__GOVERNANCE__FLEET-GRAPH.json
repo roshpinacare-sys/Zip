@@ -1,0 +1,575 @@
+{
+ "schema": "fleet-graph/1.0",
+ "updatedAt": "2026-10-11T22:15:20.022Z",
+ "authority": "הנחיית בעלים trace 1a12c57bccbf89bd — שחרור-במקום-ארכוב · מקשה אחת · הכל משתמש בהכל (trace 1a12c8edcc32d7bd) — למקסם יעילות של הקיים, לא לשרוף",
+ "summary": {
+  "nodes": 26,
+  "edges": 27,
+  "live": 17,
+  "policy": 9,
+  "armed": 1,
+  "queued": 0,
+  "reposActive24h": "26/26"
+ },
+ "nodes": [
+  {
+   "id": "FleetHQ",
+   "vis": "public",
+   "role": "המשרד — חדר-מבצעים חי (agent-hq) + ממשל GOVERNANCE + זרימה",
+   "status": "alive"
+  },
+  {
+   "id": "Domain",
+   "vis": "public",
+   "role": "הוויטרינה — המשרד נפתח ראשון + דופק רשת חי + שערי T3 + מדף dex",
+   "status": "alive"
+  },
+  {
+   "id": "TruthRail",
+   "vis": "public",
+   "role": "ערוץ הקבלות — אימות keyless, אפס סודות",
+   "status": "alive"
+  },
+  {
+   "id": "saos-runtime",
+   "vis": "public",
+   "role": "מארח הריצה — heartbeat + revival rails, commit-back FF",
+   "status": "alive"
+  },
+  {
+   "id": "Sandbox",
+   "vis": "public",
+   "role": "מעבדת אינטגרציה ציבורית (קאנון הזוג)",
+   "status": "alive"
+  },
+  {
+   "id": "Console",
+   "vis": "public",
+   "role": "קונסולה ציבורית + מראת פרסום (money-watch)",
+   "status": "alive"
+  },
+  {
+   "id": "saos-agents",
+   "vis": "public",
+   "role": "ליבת תזמור הסוכנים (canon 5-e)",
+   "status": "alive"
+  },
+  {
+   "id": "sovereign-beacon",
+   "vis": "public",
+   "role": "אספן עדכונים חוץ-מכונה",
+   "status": "alive"
+  },
+  {
+   "id": "sovereign-lighthouse",
+   "vis": "public",
+   "role": "תצוגת המגדלור (Pages)",
+   "status": "alive"
+  },
+  {
+   "id": "steem",
+   "vis": "private",
+   "role": "custody שריון-מטמון + סוכן השרשרת (branch of record: saos-cockpit)",
+   "status": "alive"
+  },
+  {
+   "id": "vault-home",
+   "vis": "private",
+   "role": "כספת המפתחות החתומה — קאנון סודות",
+   "status": "alive"
+  },
+  {
+   "id": "Zip",
+   "vis": "private",
+   "role": "אריזות מפתחות מוצפנות (KEYS-ZIP) — הפצה",
+   "status": "alive"
+  },
+  {
+   "id": "saos-dex",
+   "vis": "private",
+   "role": "הבורסה — ספר-הזמנות, AMM, D-023 convert, מושל T2",
+   "status": "alive"
+  },
+  {
+   "id": "roshpina",
+   "vis": "private",
+   "role": "פלטפורמת הערך — מנוע עמלות ורווח (חי T-63: D4 אירוח על מסילת saos-runtime, kernel-smoke 7/7, רץ cron 23 */4)",
+   "status": "alive"
+  },
+  {
+   "id": "Saosmartwallet",
+   "vis": "private",
+   "role": "ארנק הבעלים (owner-only 🔴)",
+   "status": "alive"
+  },
+  {
+   "id": "saos-control-center",
+   "vis": "private",
+   "role": "כניסת מפתח חכם + בקרה",
+   "status": "alive"
+  },
+  {
+   "id": "saos-jummper",
+   "vis": "private",
+   "role": "נוטריון הוכחות — חי: מסילת עיגון merkle מעל קבלות TruthRail (T-58); עיגון ETH/SOL ממתין למפתחות בעלים",
+   "status": "alive"
+  },
+  {
+   "id": "saos-sovereign-foundry",
+   "vis": "private",
+   "role": "עיגון חוצה-רשתות ואנרגיה (חי — פסיקת בעלים)",
+   "status": "alive"
+  },
+  {
+   "id": "Adsmarket",
+   "vis": "private",
+   "role": "קיט השיווק — מזין תוכן ל-Domain",
+   "status": "alive"
+  },
+  {
+   "id": "SovereignConsole",
+   "vis": "private",
+   "role": "מראת-ענן DR של הקונסולה",
+   "status": "alive"
+  },
+  {
+   "id": "saos-sovereign-platform",
+   "vis": "private",
+   "role": "עותק קאנוני עומד (DR snapshot)",
+   "status": "alive"
+  },
+  {
+   "id": "Sdk",
+   "vis": "private",
+   "role": "SDK הסוכנים — חי: @saos/fleet-sdk keyless + selftest ירוק (T-58)",
+   "status": "alive"
+  },
+  {
+   "id": "Project-files",
+   "vis": "private",
+   "role": "מצבור קבצי עבודה והעלאות",
+   "status": "alive"
+  },
+  {
+   "id": "anchor-baseline",
+   "vis": "private",
+   "role": "בסיס-ייחוס קפוא לשחזור (baseline 5356dab)",
+   "status": "alive"
+  },
+  {
+   "id": "Defi",
+   "vis": "private",
+   "role": "מעבדת מחקר DeFi — מקור הקוד לפני ייצור",
+   "status": "alive"
+  },
+  {
+   "id": "sandbox-private",
+   "vis": "private",
+   "role": "סביבת הבעלים (חצי-הזוג הפרטי מול Sandbox הציבורי; N4→D2 בוצע T-63: שינוי-שם אומת + redirect 301)",
+   "status": "alive"
+  }
+ ],
+ "edges": [
+  {
+   "from": "FleetHQ",
+   "to": "Domain",
+   "artifact": "office/data.json (office-state)",
+   "mode": "office-heartbeat.yml cron 41 */2 → git",
+   "cadence": "2h",
+   "slaMinutes": 180,
+   "status": "live",
+   "evidence": "Domain/office/data.json ts=19:36:28Z age=30min @20:06Z; FleetHQ office-heartbeat.yml 'office works, state JSON lands, Domain renders LIVE'"
+  },
+  {
+   "from": "saos-dex",
+   "to": "Domain",
+   "artifact": "dex/pnl-desk.json (T2 verdict)",
+   "mode": "git publish",
+   "cadence": "per-cycle",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "verdict=EDGE-NEGATIVE-GRID-HOLD, last publish age=232min @20:06Z"
+  },
+  {
+   "from": "saos-runtime",
+   "to": "steem",
+   "artifact": "heartbeat state-back (saos-cockpit)",
+   "mode": "commit-back FF-only, no force, ever",
+   "cadence": "~25min",
+   "slaMinutes": 180,
+   "status": "live",
+   "evidence": "last3 runs ages=32,58,80min all success; saos-cockpit last commit age=4min"
+  },
+  {
+   "from": "fleet",
+   "to": "TruthRail",
+   "artifact": "receipts/*.json",
+   "mode": "Git data API FF",
+   "cadence": "per-wave",
+   "slaMinutes": 2880,
+   "status": "live",
+   "evidence": "31 receipts, last commit age=35min, newest artifact-h25.json"
+  },
+  {
+   "from": "Domain",
+   "to": "public",
+   "artifact": "Pages vitrine (office-first + pulse)",
+   "mode": "GitHub Pages",
+   "cadence": "always-on",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "HTTP 200, last push age=11min"
+  },
+  {
+   "from": "FleetHQ",
+   "to": "public",
+   "artifact": "Pages office (משרד חי לשיווק)",
+   "mode": "GitHub Pages",
+   "cadence": "always-on",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "HTTP 200, last push age=21min"
+  },
+  {
+   "from": "Console",
+   "to": "public",
+   "artifact": "Pages publish mirror",
+   "mode": "GitHub Pages",
+   "cadence": "always-on",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "HTTP 200, last push age=25min"
+  },
+  {
+   "from": "sovereign-lighthouse",
+   "to": "public",
+   "artifact": "Pages מגדלור",
+   "mode": "GitHub Pages",
+   "cadence": "always-on",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "HTTP 200, last push age=38min"
+  },
+  {
+   "from": "steem",
+   "to": "steem",
+   "artifact": "saos-cockpit branch-of-record state",
+   "mode": "heartbeat commit-back",
+   "cadence": "~25min",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "last commit age=4min @20:06Z"
+  },
+  {
+   "from": "sovereign-beacon",
+   "to": "FleetHQ",
+   "artifact": "external updates collection",
+   "mode": "git",
+   "cadence": "continuous",
+   "slaMinutes": 2880,
+   "status": "live",
+   "evidence": "pushed 16:26:49 (FLEET-ROLES live map 19:10Z); 24h activity sweep 20:06Z: 26/26"
+  },
+  {
+   "from": "FleetHQ",
+   "to": "fleet",
+   "artifact": "GOVERNANCE (write-log law + roles + graph)",
+   "mode": "git, additive-first",
+   "cadence": "per-write",
+   "slaMinutes": 0,
+   "status": "live",
+   "evidence": "write-log.jsonl 5 entries incl. self-receipts 56c4daa/c2d7965; law enforced on own author"
+  },
+  {
+   "from": "Domain",
+   "to": "agents",
+   "artifact": "agents/social-dedupe.cjs T3 gates",
+   "mode": "fail-closed gates",
+   "cadence": "per-post",
+   "slaMinutes": 0,
+   "status": "live",
+   "evidence": "gatePost 0.85 + threadLockVerdict armed (G10); Adsmarket feeding measured by freshness gate"
+  },
+  {
+   "from": "Adsmarket",
+   "to": "Domain",
+   "artifact": "marketing content (kit)",
+   "mode": "T-60 product-activation — canon static (kit untouched), serving surface public Pages",
+   "cadence": "per-campaign",
+   "slaMinutes": 0,
+   "status": "live",
+   "evidence": "commit a4e2aa25 on Domain (base e1b10a32) ships marketing/index.html + marketing/products.json; Pages /Domain/marketing/ HTTP 200 measured post-push; local claims-guard PASS (0 forbidden glyphs, 0 own-network dead links, 12 links checked, 10 receipt mentions); canon intact: Adsmarket README role declaration + claims-guard.yml unchanged at HEAD"
+  },
+  {
+   "from": "Defi",
+   "to": "saos-dex",
+   "artifact": "tested strategies → production",
+   "mode": "FLEET-ROLES §5 promotion rule",
+   "cadence": "on-validation",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "Defi אף פעם לא מסחר אמיתי; קוד שעובר בדיקות עובר ל-saos-dex"
+  },
+  {
+   "from": "vault-home",
+   "to": "Zip",
+   "artifact": "key canon → encrypted KEYS-ZIP packages",
+   "mode": "seal+encrypt",
+   "cadence": "on-rotation",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "הפרדת סוד/פצה — שניהם חיים ומוצדקים"
+  },
+  {
+   "from": "vault-home",
+   "to": "steem",
+   "artifact": "custody doctrine (GEN-2 rotation queue)",
+   "mode": "governance",
+   "cadence": "on-rotation",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "קאנון סודות אחד; GEN-1 ממתין רוטציה (N1)"
+  },
+  {
+   "from": "Console",
+   "to": "SovereignConsole",
+   "artifact": "one-way DR mirror",
+   "mode": "FLEET-ROLES §2 weekly sync",
+   "cadence": "weekly",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "Console קאנון; SovereignConsole מראת DR"
+  },
+  {
+   "from": "saos-sovereign-foundry",
+   "to": "saos-sovereign-platform",
+   "artifact": "milestone DR snapshot",
+   "mode": "FLEET-ROLES §3 manual sync",
+   "cadence": "on-milestone",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "foundry = המקור (חי); platform = עותק"
+  },
+  {
+   "from": "saos-agents",
+   "to": "fleet",
+   "artifact": "orchestration core (canon 5-e)",
+   "mode": "git",
+   "cadence": "continuous",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "ליבת התזמור לכל סוכני הצי"
+  },
+  {
+   "from": "saos-control-center",
+   "to": "steem",
+   "artifact": "smart-key entry + control",
+   "mode": "git",
+   "cadence": "on-demand",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "כניסת מפתח חכם למערכת הסוכן על השרשרת"
+  },
+  {
+   "from": "Sandbox",
+   "to": "Defi",
+   "artifact": "public integration lab → research",
+   "mode": "FLEET-ROLES §1 pair canon",
+   "cadence": "on-experiment",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "116 commits/24h — המעבדה הציבורית"
+  },
+  {
+   "from": "anchor-baseline",
+   "to": "fleet",
+   "artifact": "frozen restore base (5356dab)",
+   "mode": "passive reference",
+   "cadence": "frozen",
+   "slaMinutes": 0,
+   "status": "policy",
+   "evidence": "בסיס שחזור — לא משתנה לעולם"
+  },
+  {
+   "from": "roshpina",
+   "to": "economics",
+   "artifact": "fee-engine/state.json + REVIVAL.md (armed snapshot lane)",
+   "mode": "git snapshot (pnl-desk doctrine)",
+   "cadence": "per-cycle (cron 23 */4)",
+   "slaMinutes": 1440,
+   "status": "live",
+   "evidence": "D4 T-63: kernel-smoke 7/7 (מקומית) + ריצת-runner ראשונה ירוקה 38187803398 → fee-engine/state.json status=live @ roshpina (ירושה מדודה של חומת-החיוב: 38187350674+38187704256)"
+  },
+  {
+   "from": "saos-jummper",
+   "to": "TruthRail",
+   "artifact": "anchors/truthrail-anchor-latest.json (merkle root d841499f על 16 קבלות, 2 הוכחות)",
+   "mode": "notary produce (private) → public rail publish",
+   "cadence": "per-wave",
+   "slaMinutes": 10080,
+   "status": "live",
+   "evidence": "פרסום ציבורי TruthRail 7e922f33; אימות עצמאי משולש: PY merkle.py ≡ JS SDK ≡ verifier (G19); bytes spot-check=true; ETH/SOL ממתין למפתחות בעלים"
+  },
+  {
+   "from": "Sdk",
+   "to": "fleet",
+   "artifact": "sdk/ @saos/fleet-sdk — קוראים keyless לכל המשטחים + verifyAnchor עצמאי",
+   "mode": "zero-dep module + honest selftest",
+   "cadence": "always-on (selftest on demand/dispatch)",
+   "slaMinutes": 0,
+   "status": "live",
+   "evidence": "selftest חי מ-HEAD: passes=21 fails=0 live=6/6 anchor=VERIFIED (G18); fallback chain raw→jsDelivr→API (מדידת T-58: raw CDN lag + private-repo impossibility)"
+  },
+  {
+   "from": "FleetHQ",
+   "to": "public",
+   "artifact": "public/office3d — חדר-3D אפוי + פריימים לחלון הציבורי",
+   "mode": "office-3d.yml bake → Pages",
+   "cadence": "daily",
+   "slaMinutes": 1560,
+   "status": "live",
+   "evidence": "Pages /office3d/ HTTP 200 (G21); receipts/office-3d/latest.json honest bake capturedAt=2026-10-11T20:56:15Z (6 frames, honest:true)"
+  },
+  {
+   "from": "FleetHQ",
+   "to": "agents",
+   "artifact": "worlds/ WorldDeck + /api/worlds-state (7 מקורות keyless) + דלת /worlds + value-scan (גיוס·ערך כל 30 דק׳)",
+   "mode": "T-59 worlds-wiring — additive-only (claim a3643a40, law #2)",
+   "cadence": "always-on",
+   "slaMinutes": 0,
+   "status": "live",
+   "evidence": "commits cc8c762e + fix 6023c4ba; office-ci PASS (typecheck+build) on 6023c4ba; first value-scan published: 12 opportunities from measured evidence; G21 measures the chain live"
+  }
+ ],
+ "freshness": [
+  {
+   "surface": "Domain/office/data.json",
+   "check": "office-state age",
+   "slaMinutes": 180,
+   "measuredAgeMin": 30,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "Domain Pages",
+   "check": "HTTP 200 + last push",
+   "slaMinutes": 1440,
+   "measuredAgeMin": 11,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "FleetHQ Pages",
+   "check": "HTTP 200 + last push",
+   "slaMinutes": 1440,
+   "measuredAgeMin": 21,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "Console Pages",
+   "check": "HTTP 200 + last push",
+   "slaMinutes": 1440,
+   "measuredAgeMin": 25,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "sovereign-lighthouse Pages",
+   "check": "HTTP 200 + last push",
+   "slaMinutes": 1440,
+   "measuredAgeMin": 38,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "saos-runtime heartbeat",
+   "check": "last success run",
+   "slaMinutes": 180,
+   "measuredAgeMin": 32,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "TruthRail receipts",
+   "check": "last receipt commit",
+   "slaMinutes": 2880,
+   "measuredAgeMin": 35,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "steem/saos-cockpit",
+   "check": "branch-of-record commit",
+   "slaMinutes": 1440,
+   "measuredAgeMin": 4,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "Domain/dex/pnl-desk.json",
+   "check": "T2 verdict publish",
+   "slaMinutes": 1440,
+   "measuredAgeMin": 232,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:06Z"
+  },
+  {
+   "surface": "TruthRail/anchors (notary merkle anchor)",
+   "check": "anchor freshness + independent verify",
+   "slaMinutes": 10080,
+   "measuredAgeMin": 0,
+   "status": "OK",
+   "measuredAt": "2026-10-11T20:55Z (shipped T-58; G19 triple-port verify)"
+  }
+ ],
+ "economics": {
+  "engine": "saos-dex (T2 governor + D-023 convert)",
+  "state": "EDGE-NEGATIVE-GRID-HOLD (lifetime −2.30%) — המושל עוצר הפסד, לא מסתיר",
+  "pipeline": [
+   {
+    "step": "N2 — D-023 escrow ≥1 SBD",
+    "value": "ההשקעה עם התשואה המוגדרת ביותר: edge +40.8% נמדד על מסילת ה-convert"
+   },
+   {
+    "step": "N3 — T2 gate hardening",
+    "value": "מדגם ≥20 fills, hysteresis resume 1.2%/hold 1.0%, mirror-חסר → HOLD fail-closed"
+   },
+   {
+    "step": "roshpina fee-engine revival",
+    "value": "מנוע עמלות — זרם הכנסה מבני"
+   },
+   {
+    "step": "R67-C content (2 posts/day, steem)",
+    "value": "ערך רשת שוטף; שערי T3 אוכפים איכות (0.85 fail-closed)"
+   },
+   {
+    "step": "Marketing: Domain office-first + דופק חי",
+    "value": "הראייה החיה היא המוצר — המשרד נפתח ראשון, הכל מתעדכן"
+   },
+   {
+    "step": "saos-jummper notary",
+    "value": "עיגון קבלות על Ethereum — אמינות מוכחת → ערך מוכח"
+   }
+  ]
+ },
+ "revivalQueue": [
+  {
+   "repo": "saos-jummper",
+   "lane": "notary — LIVE",
+   "next": "חי: עיגון merkle מעל קבלות TruthRail; הצעד הבא = עיגון חוצה-שרשרת ETH/SOL ברגע שהבעלים מספק מפתח (adapters מוכנים)"
+  },
+  {
+   "repo": "Sdk",
+   "lane": "agent SDK — LIVE",
+   "next": "חי: @saos/fleet-sdk ב-selftest ירוק; הצעד הבא = npm-packaging + טביעת סוכנים חדשים על ה-SDK ב-onboarding"
+  }
+ ],
+ "laws": [
+  "M1: אימות דו-שלבי — כל קשת נמדדת מול ה-API החי, לא מול הצהרות",
+  "M2: write-log לפני כתיבה — לפחות 20 שיאים אחרונים; אין דריסת סוכנים",
+  "שחרור במקום ארכוב: אסור לארכב — מתקנים, מנתבים תפקיד, מחברים לזרימה",
+  "חלון-תצפית 48h לפני פסק-דין ״מת״ — כל ריפו חי עד שיוכח אחרת ממדידה",
+  "FF בלבד — לעולם לא force, לעולם לא מחיקת עבודת אחר"
+ ]
+}

@@ -1,0 +1,111 @@
+{
+  "schema": "t62-limits-inventory/1",
+  "trace": "1a1268338e36d0ed",
+  "agent": "2-c limits-release",
+  "at": "2026-10-10T16:20:00Z",
+  "scope": ["Sandbox: docs/, engine/, boot/(ro), .github/(ro)", "steem: .github/workflows, docs/, scripts/(ro), mini-services/saos-engine(ro-inventory)"],
+  "classA_falseSelfLimits": [
+    {
+      "id": "A1",
+      "file": "steem:mini-services/saos-engine/social-streamer.mjs",
+      "line": 65,
+      "mechanism": "MAX_POSTS_PER_DAY=4 FLEET-WIDE + DAILY-CAP verdict in live mode",
+      "blocks": "every live broadcast once 4 fleet posts/day sit in the cross-machine sent ledger",
+      "measured": "2026-10-10: 6 real broadcasts by 14:34Z (union-ledger chain truth) => cap already breached by the chain itself; every heartbeat since returns DAILY-CAP until UTC midnight — the stream is stalled right now",
+      "classification": "A",
+      "verdict": "RELEASED at doctrine level (content-compiler L-26 says the doctrine cap 'stays the boss' — the boss is now released); code constant = handoff to engine owner: raise to fleet target 8-16/day (or per-account accounting <=4/account)",
+      "editedInThisTask": "steem/docs/SPAMINATOR-DOCTRINE.md (§1 table + §3.2 checklist + new §6)"
+    },
+    {
+      "id": "A2",
+      "file": "steem:docs/SPAMINATOR-DOCTRINE.md",
+      "line": "17,48",
+      "mechanism": "doctrine declaration: maxPostsPerDay=1 per account (R246)",
+      "blocks": "publishing cadence law that L-26 code defers to",
+      "classification": "A",
+      "verdict": "RELEASED: <=4 posts/day/account with >=90min per-account spacing; fleet target 8-16/day across custody-alive roster; structural gates unchanged",
+      "editedInThisTask": true
+    },
+    {
+      "id": "A3",
+      "file": "steem:docs/ANTI-SPAM-LAW.md",
+      "line": "64 (section 4)",
+      "mechanism": "experiment protocol: one probe post/day max",
+      "blocks": "R243-era probe cadence still on the books while the stream is already live",
+      "classification": "A",
+      "verdict": "RELEASED via §6 addendum: protocol phase complete (6 live broadcasts measured, 14/14 custody); standing law = SPAMINATOR-DOCTRINE §6",
+      "editedInThisTask": true
+    },
+    {
+      "id": "A4",
+      "file": "Sandbox:engine/fleet-yield.mjs",
+      "line": "40,166",
+      "mechanism": "FETCH_LIMIT_DEFAULT=50 + clamp 20..50 (R290 prudence band) on candidate scan width",
+      "blocks": "candidate discovery width per yield run (not a posting gate)",
+      "classification": "A",
+      "verdict": "RELEASED: default 80, clamp 20..100 — real bound is the node page size (<=100/call for get_discussions_by_*); mirror clamp in steem curator.mjs:201 = engine-owner handoff",
+      "editedInThisTask": true
+    },
+    {
+      "id": "A5",
+      "file": "cloud:saos-runtime/.github/workflows/sovereign-runtime.yml (fetched raw 2026-10-10)",
+      "mechanism": "CI_SOCIAL_ARMED arming gate",
+      "blocks": "nothing extra — verified SINGLE gate: secret present -> .secrets/social-armed.json (0600); absent -> honest LIVE-REFUSED-NOT-ARMED; no approval job, no environment gate, no second manual switch; mode file is a committed standing order (R308)",
+      "classification": "A",
+      "verdict": "VERIFIED-ALREADY-SINGLE-GATE — no edit needed",
+      "editedInThisTask": false
+    },
+    {
+      "id": "A6",
+      "file": "steem:mini-services/saos-engine/ci-cycle.mjs:27-29",
+      "mechanism": "'master signing, trading, custody stay machine-local' lane declaration",
+      "blocks": "only the MASTER active/trading lane — the cloud POSTING lane is already alive (2 of today's 6 broadcasts were cloud-side via git-vault custody revival)",
+      "classification": "A (suspect) -> verified already-released; master lane = B8",
+      "verdict": "NO-EDIT (posting lane released in practice before this task; verified live)",
+      "editedInThisTask": false
+    },
+    {
+      "id": "A7",
+      "file": "posting path (mode file + armed file + pause file)",
+      "mechanism": "'wait for operator approval' in POSTING path",
+      "blocks": "nothing found — mode=live standing order (R308), armed secret present (http 201), pause file absent",
+      "classification": "A (suspect) -> verified absent",
+      "verdict": "NO-EDIT — posting is autonomous today (measured)",
+      "editedInThisTask": false
+    },
+    {
+      "id": "A8",
+      "file": "boot/watchdog.sh:21, cloud pulse job",
+      "mechanism": "heartbeat intervals: watchdog 15min; cloud pulse self-clocks ~20-25min",
+      "blocks": "nothing — the pulse EXISTS as the countermeasure to the measured GitHub scheduler degradation (30min cron -> 7.5h gaps, R280); 15min watchdog = cron-slot rhythm",
+      "classification": "A (suspect) -> verified not-a-limit",
+      "verdict": "NO-EDIT (intervals are already the anti-limit mechanism)",
+      "editedInThisTask": false
+    }
+  ],
+  "classB_realExternalConstraints": [
+    { "id": "B1", "file": "steem:docs/ANTI-SPAM-LAW.md §2 + spamgate.mjs", "limit": "body >=1200 chars, 0 bait, link<=15%, dup<=15%, grounding", "external_reason": "@spaminator measured 2026-10-07: 46.6% of its ops are downvotes at -25; flagged victims start at 283 chars" },
+    { "id": "B2", "file": "steem:content.mjs/army-social.mjs (monoculture-veto, pacing, pair-guard) + social-streamer dedupe sha8", "limit": "titleSimilarity>=0.5 veto; 1 action/account/cycle; pair-guard; sha8 dedupe", "external_reason": "R244 measured self-failure: 45 posts/72h -> 0 real conversation; bot-pattern detection on monoculture/metronome shapes" },
+    { "id": "B3", "file": "steem:social-streamer.mjs:66 MIN_GAP_MIN_PER_ACCOUNT=180 (doc-released to >=90)", "limit": "per-account spacing between posts", "external_reason": "anti-spam natural spacing — mission law: DO NOT remove spacing entirely" },
+    { "id": "B4", "file": "steem:curator.mjs policy (maxPerDay=30, maxVotesPerCycle=3, minVpEffPct=35, weights 70/35) + R290 army budget", "limit": "votes/day governed by VP conservation (burn% < 20% regen)", "external_reason": "VP regen physics — measured dayCapReached on cycle cap 3; cockpit fallback 4 is display-only" },
+    { "id": "B5", "file": "steem:social-streamer.mjs:209-225 + cockpit verify_authority", "limit": "self-verify signature against LIVE on-chain authority before any broadcast; fail-closed on verify error", "external_reason": "chain validity — verify_authority before broadcast" },
+    { "id": "B6", "file": "Sandbox:engine/leak-scan.mjs + steem:docs/GITHUB-COMPLIANCE.md (G1-G4) + scripts/github-guard.sh", "limit": "fail-closed leak scan before every push", "external_reason": "zero-key-over-the-wire law + GitHub ToS/secrets compliance" },
+    { "id": "B7", "file": "steem:lib.mjs T-80 + soldiers.mjs DEPLOY-OPERATOR-GATED + daily.mjs freeze", "limit": "dead-soldiers (no chain-verified custody) get zero calls/ops/funding; revival needs explicit operator order + chain-verified key", "external_reason": "no credential = no authority; prevents keyless thought-acts" },
+    { "id": "B8", "file": "steem:ci-cycle.mjs 'master stays machine-local' + CI_ADOPT_WIF_ACTIVE takeover only on stale anchor", "limit": "master active/trading credential never on cloud by default", "external_reason": "zero-key-over-the-wire for the master's active authority; takeover is chain-judged and anchor-stale-gated" },
+    { "id": "B9", "file": "steem:.github/workflows/sovereign-cycle.yml", "limit": "schedule retired -> dispatch-only", "external_reason": "measured R280: private repo Actions sit behind the billing wall (job-level failures, 0 minutes) — the pulse lives on the public host" },
+    { "id": "B10", "file": "Sandbox:engine/sovereign-tick.mjs:33 MIN_INTERVAL_MS=12min", "limit": "CI tick throttle", "external_reason": "4 trigger sources (cron/push/dispatch/self-chain) vs 15min cron slot — prevents duplicate receipts; local/--force exempt" },
+    { "id": "B11", "file": "steem:spamgate cross-chain pause (STEEM-ONLY)", "limit": "Hive/Blurt publishing frozen", "external_reason": "operator stop order, code-enforced — not ours to lift" },
+    { "id": "B12", "file": "Sandbox:engine/operator.mjs:46 arm requires SBX_NOTE", "limit": "arm action refuses without a written reason", "external_reason": "audit trail for irreversible mode changes (kill-switch ledger)" },
+    { "id": "B13", "file": "Sandbox:docs/app.js:734 maxPerDay fallback 4", "limit": "cockpit curation UI day-cap display/enforcement fallback", "external_reason": "display fallback only — the engine law (maxPerDay=30, measured in receipt) is the boss; underlying cap = VP conservation (B4)" }
+  ],
+  "measuredEffect": {
+    "postingCadence": {
+      "before": "4/day FLEET-WIDE (streamer) + 1/day/account doctrine — measured stall: DAILY-CAP verdicts from 14:34Z until UTC midnight on 2026-10-10",
+      "after": "doctrine: <=4/day/account, >=90min per-account spacing, fleet target 8-16/day across 14 custody-alive accounts (theoretical capacity ~56-112/day; target is the conservative 2.5-4x release)",
+      "expectedPostsPerDay": "4-6 -> 8-16 (after engine-owner syncs social-streamer.mjs constant)"
+    },
+    "yieldScanWidth": { "before": "50/call clamp (R290)", "after": "80 default, clamp 20..100 — real bound = node page size" }
+  },
+  "zeroSecretsMoved": true,
+  "committedLocallyNotPushed": true
+}

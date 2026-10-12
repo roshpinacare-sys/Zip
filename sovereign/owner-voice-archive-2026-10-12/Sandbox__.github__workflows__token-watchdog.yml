@@ -1,0 +1,127 @@
+name: token-watchdog
+
+# מערך-נגד-מוות-שקט של-הטוקן-הריבוני (OWNER-P0 §1) · משודרג session-10 · session-11: +MAIN_KEY+ZIP_PAT (טוקני-קבע-של-הבעלים, מנותבים-מ-Domain — B-①):
+# 1. בודק-יומית: תפוגה · מכסה · סוג — לכל-טוקן-צי בסודות-Sandbox
+# 2. מפרסם-אמת-מדודה-לגיט: ops/TOKEN-TRUTH.md (מטא-דאטה-בלבד, אפס-ערכים — G9)
+#    למה: סיכומי-UI אינם-קריאים-מכונה; אמת-שלא-בגיט = פוטנציאל-זיוף (הוראת-בעלים: "אין זיופים")
+# 3. T-14 ימים → issue-אוטומטי-אידמפוטנטי
+# ראה: ops/TOKEN-ROTATION-RUNBOOK.md · G4 (ריפו-ציבורי) · G3 (קריאות-מעטות-ביום)
+
+on:
+  schedule:
+    - cron: "40 5 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Measure fleet tokens (expiry / quota / type) — metadata only
+        env:
+          PAT_MAIN: ${{ secrets.ECO_WALLET_TOKEN }}
+          PAT_FLEET: ${{ secrets.SBX_FLEET_PAT }}
+          PAT_PERM_MAIN: ${{ secrets.MAIN_KEY }}
+          PAT_PERM_ZIP: ${{ secrets.ZIP_PAT }}
+        run: |
+          set -euo pipefail
+          : > /tmp/truth.tsv
+          measure() {
+            local name="$1" pat="$2"
+            if [ -z "${pat}" ]; then
+              printf '%s\tMISSING\t-\t-\t-\t-\t-\n' "${name}" >> /tmp/truth.tsv
+              echo "::error::${name} secret missing in Sandbox"
+              return 0
+            fi
+            local code login exp scopes rem days type
+            code=$(curl -s -o /tmp/user.json -D /tmp/h.txt -w '%{http_code}' \
+              -H "Authorization: token ${pat}" https://api.github.com/user) || code=000
+            if [ "${code}" != "200" ]; then
+              printf '%s\tDEAD\tHTTP-%s\t-\t-\t-\t-\n' "${name}" "${code}" >> /tmp/truth.tsv
+              echo "::error::${name} dead or unauthorized (HTTP ${code})"
+              return 0
+            fi
+            login=$(python3 -c "import json;print(json.load(open('/tmp/user.json')).get('login',''))")
+            exp=$(grep -i '^github-authentication-token-expiration:' /tmp/h.txt | cut -d' ' -f2- | tr -d '\r' || true)
+            scopes=$(grep -i '^x-oauth-scopes:' /tmp/h.txt | cut -d' ' -f2- | tr -d '\r' || true)
+            rem=$(grep -i '^x-ratelimit-remaining:' /tmp/h.txt | cut -d' ' -f2- | tr -d '\r')
+            if [ -z "${exp}" ]; then
+              days=9999; type="non-expiring"
+              [ -n "${scopes}" ] && type="classic-non-expiring"
+            else
+              days=$(( ( $(date -u -d "${exp}" +%s) - $(date -u +%s) ) / 86400 ))
+              type="fine-grained"; [ -n "${scopes}" ] && type="classic"
+            fi
+            printf '%s\tALIVE\t%s\t%s\t%s\t%s\t%s\n' "${name}" "${type}" "${exp:-non-expiring}" "${days}" "${rem}" "${login}" >> /tmp/truth.tsv
+            echo "### ${name}" >> "$GITHUB_STEP_SUMMARY"
+            echo "- login: \`${login}\` · type: \`${type}\` · expires: \`${exp:-non-expiring}\` · days left: \`${days}\` · rate: \`${rem}\`" >> "$GITHUB_STEP_SUMMARY"
+          }
+          measure ECO_WALLET_TOKEN "${PAT_MAIN}"
+          measure SBX_FLEET_PAT "${PAT_FLEET}"
+          measure MAIN_KEY "${PAT_PERM_MAIN}"
+          measure ZIP_PAT "${PAT_PERM_ZIP}"
+          min_days=$(awk -F'\t' '$2=="ALIVE"{print $5}' /tmp/truth.tsv | sort -n | head -1)
+          [ -n "${min_days}" ] || min_days=9999
+          echo "DAYS_LEFT=${min_days}" >> "$GITHUB_ENV"
+
+      - name: Publish TOKEN-TRUTH to git (public, machine-readable)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64, json, os, urllib.request
+          from datetime import datetime, timezone
+          token = os.environ["GH_TOKEN"]; repo = os.environ["GITHUB_REPOSITORY"]
+          path = "ops/TOKEN-TRUTH.md"
+          now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+          lines = [l.rstrip("\n") for l in open("/tmp/truth.tsv") if l.strip()]
+          rows = "\n".join(f"{now} | " + " | ".join(l.split("\t")) for l in lines)
+          header = ("# TOKEN-TRUTH · אמת-טוקנים-מדודה (מטא-דאטה-בלבד, אף-פעם-לא-ערכים — G9)\n"
+                    "# מעודכן-אוטומטית-על-ידי token-watchdog · פורמט: זמן | סוד | מצב | סוג | תפוגה | ימים | יתרה | login\n")
+          req = urllib.request.Request(f"https://api.github.com/repos/{repo}/contents/{path}",
+                                       headers={"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"})
+          old = ""; sha = None
+          try:
+              with urllib.request.urlopen(req) as r:
+                  d = json.loads(r.read()); old = base64.b64decode(d["content"]).decode(); sha = d["sha"]
+          except Exception:
+              pass
+          keep = (old if old else header).rstrip("\n").split("\n")
+          head = [l for l in keep if l.startswith("#")]
+          hist = [l for l in keep if not l.startswith("#")]
+          hist = (hist + rows.split("\n"))[-380:]
+          new = "\n".join(head + [""] + hist) + "\n"
+          data = {"message": "token-truth: measured fleet tokens (metadata only) [ci]", "content": base64.b64encode(new.encode()).decode()}
+          if sha: data["sha"] = sha
+          req = urllib.request.Request(f"https://api.github.com/repos/{repo}/contents/{path}",
+                                       data=json.dumps(data).encode(), method="PUT",
+                                       headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json", "Accept": "application/vnd.github+json"})
+          with urllib.request.urlopen(req) as r:
+              print("TOKEN-TRUTH committed:", json.loads(r.read())["commit"]["sha"])
+          PY
+
+      - name: Ensure deadline label exists
+        if: env.DAYS_LEFT != '9999'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh label create token-expiry --color E99695 --force || true
+
+      - name: Open deadline issue at T-14 (idempotent)
+        if: env.DAYS_LEFT != '9999' && env.DAYS_LEFT <= 14
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list -R "$GITHUB_REPOSITORY" --label token-expiry --state open --json number --jq 'length')
+          if [ "${existing}" -eq 0 ]; then
+            gh issue create -R "$GITHUB_REPOSITORY" \
+              --title "PAT expires in ${DAYS_LEFT} days — run ops/TOKEN-ROTATION-RUNBOOK.md" \
+              --label token-expiry \
+              --body "Watchdog measured days_left=${DAYS_LEFT}. The human part is ~3 minutes: follow **ops/TOKEN-ROTATION-RUNBOOK.md** §3. Everything after that is automated."
+          else
+            echo "deadline issue already open — not duplicating"
+          fi

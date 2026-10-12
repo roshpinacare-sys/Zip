@@ -1,0 +1,133 @@
+{
+  "task": "T-62 (2-e) dedupe consolidation",
+  "trace": "1a1268338e36d0ed",
+  "agent": "dedupe",
+  "method": "ZERO TRUST — sha256 byte-equality (never names); every removal grep-verified unreferenced house-wide before git rm",
+  "generated": "2026-10-10T16:05Z",
+  "summary": {
+    "true_duplicates_consolidated": 24,
+    "kept_groups": 6,
+    "kept_reasons": {
+      "mirror_vault_untouchable": 3,
+      "near_duplicate_not_byte_identical": 1,
+      "by_design_per_house": 2
+    },
+    "broad_scan_files_hashed": 123,
+    "broad_scan_duplicate_groups": 0,
+    "tick_noise_ratio_last100": "61% ([tick]+[state]) / 82% (all ledger autos) / 18% real work",
+    "tick_noise_ratio_alltime": "214/351 = 61% ([tick]+[state])"
+  },
+  "groups": [
+    {
+      "id": "G1",
+      "name": "vault-mirror wrap c029b0b7…",
+      "hash12": "c3e842945a8d",
+      "files": [
+        "~/fleet/vault/wraps/c029b0b7….enc",
+        "~/fleet/fleet-vault/wraps/c029b0b7….enc"
+      ],
+      "verdict": "kept-both",
+      "reason": "byte-identical mirror of the same vault; vault/wraps/*.enc zone is untouchable by law — recorded, not deleted"
+    },
+    {
+      "id": "G2",
+      "name": "vault-mirror wrap c224c15f…",
+      "hash12": "4ebcb2e1d30f",
+      "files": [
+        "~/fleet/vault/wraps/c224c15f….enc",
+        "~/fleet/fleet-vault/wraps/c224c15f….enc"
+      ],
+      "verdict": "kept-both",
+      "reason": "byte-identical mirror of the same vault; untouchable zone — recorded, not deleted"
+    },
+    {
+      "id": "G3",
+      "name": "vault-mirror keys.env.enc",
+      "hash12": "80073c473317",
+      "files": [
+        "~/fleet/vault/keys.env.enc",
+        "~/fleet/fleet-vault/keys.env.enc"
+      ],
+      "verdict": "kept-both",
+      "reason": "byte-identical — SAME vault mirrored (proven by hash, as suspected); untouchable zone — recorded, not deleted"
+    },
+    {
+      "id": "G4",
+      "name": "ui-ux-pro-max skill data copy (assets/data/ vs data/)",
+      "files": [
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/charts.csv", "hash12": "b754c0efffcf" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/colors.csv", "hash12": "4cc0df2785f3" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/icons.csv", "hash12": "351fe61ba45b" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/landing.csv", "hash12": "010e1e46db27" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/products.csv", "hash12": "5359e3037dcb" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/react-performance.csv", "hash12": "904c8afcda22" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/astro.csv", "hash12": "ad18dae3ab6d" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/flutter.csv", "hash12": "e470e6bc2bcd" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/html-tailwind.csv", "hash12": "1f004891dd18" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/jetpack-compose.csv", "hash12": "6c8fd4b0391c" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/nextjs.csv", "hash12": "06a8e8c13bd4" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/nuxt-ui.csv", "hash12": "05d6e74501b2" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/nuxtjs.csv", "hash12": "f7a3f2d95428" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/react-native.csv", "hash12": "a08ca77fcf6b" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/react.csv", "hash12": "b6e3eb0e4c9c" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/shadcn.csv", "hash12": "395c2e415ef6" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/svelte.csv", "hash12": "bc8d158994a8" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/swiftui.csv", "hash12": "e87cb9eee208" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/stacks/vue.csv", "hash12": "9b793c3f4eec" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/styles.csv", "hash12": "ad3c3236134d" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/typography.csv", "hash12": "64695e05ac33" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/ui-reasoning.csv", "hash12": "58fc52fff69f" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/ux-guidelines.csv", "hash12": "1870ee048f2a" },
+        { "dup_removed": "~/fleet/steem/skills/ui-ux-pro-max/assets/data/web-interface.csv", "hash12": "10bfc24e09a6" }
+      ],
+      "canonical_kept": "~/fleet/steem/skills/ui-ux-pro-max/data/ (identical hashes, diff -rq exit 0)",
+      "reference_evidence": "scripts/core.py:14 DATA_DIR = Path(__file__).parent.parent / \"data\"; scripts/design_system.py:49 loads DATA_DIR/ui-reasoning.csv — the ONLY functional loader points at data/; assets/data/ was pointed to solely by SKILL.md line 28",
+      "verdict": "consolidated",
+      "action": "git rm -r assets/data (24 files) + SKILL.md pointer updated assets/data/ → data/ ; scoped local commit 3c5710bb in steem house (NOT pushed); post-removal functional sanity: core.search() returns results — no breakage"
+    },
+    {
+      "id": "G5",
+      "name": "revive-anywhere.sh (steem root vs scripts/)",
+      "hash12_root": "8dbea0d58901",
+      "hash12_scripts": "c384ab7432e5",
+      "verdict": "kept-both",
+      "reason": "NOT byte-identical (different hashes) — root copy is the superseded R282 revision, scripts/ copy is the live R284 revision referenced by AGENTS.md + docs/SOVEREIGN-RUNTIME-LAW.md; deletion outside mandate (byte-identity law). Recommendation: operator may archive the root R282 copy"
+    },
+    {
+      "id": "G6",
+      "name": "worklog.md in three houses",
+      "hashes12": ["ab9ff29b4e09 (Sandbox)", "2b60d2381593 (steem)", "5b6f0d676237 (fleet-vault)"],
+      "verdict": "kept-by-design",
+      "reason": "per-house append-only logs — different content by design, not duplicates"
+    },
+    {
+      "id": "G7",
+      "name": "steem audit/ (r213…r244) vs docs/measured/",
+      "verdict": "kept-by-design",
+      "reason": "different purposes (point-in-time audit rounds vs living measured evidence); sha256 cross-check found 0 byte-identical pairs between them"
+    },
+    {
+      "id": "G8",
+      "name": "broad content scan (three houses)",
+      "scope": "~/fleet/Sandbox maxdepth2 (minus .git, receipts); ~/fleet/steem/scripts + root *.md; ~/fleet/fleet-vault top (minus *.enc); ~/fleet/mini-services top",
+      "files_hashed": 123,
+      "unique_hashes": 123,
+      "verdict": "clean",
+      "reason": "zero identical-content groups across houses — no name-only suspicions survived hashing"
+    }
+  ],
+  "noise_commit_measurement": {
+    "repo": "Sandbox",
+    "total_commits": 351,
+    "last_100": {
+      "tick": 30,
+      "state": 31,
+      "tick_state_total": 61,
+      "other_ledger_autos": { "heal": 9, "federation": 8, "fleet-yield": 4 },
+      "real_work": 18
+    },
+    "all_time": { "tick_state": 214, "other_ledger_autos": 60 },
+    "recommendation": "route [tick]/[state] heartbeats into ONE rolling per-day file (e.g. receipts/ticks-YYYY-MM-DD.jsonl) with a single daily commit — would cut ~61% of commit noise; history NOT rewritten per law",
+    "note": "suspected broken commit prefixes ('eal] fleet scan') were od-verified byte-true as '[heal] …' — terminal rendering illusion only, no defect"
+  }
+}

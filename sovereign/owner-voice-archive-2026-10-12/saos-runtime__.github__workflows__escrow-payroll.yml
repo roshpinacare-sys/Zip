@@ -1,0 +1,96 @@
+# escrow-payroll.yml (saos-runtime) — R16-a: THE on-chain payroll primitive, canary-first.
+#
+# Owner mandate trace 1a12dbe9812eff11 ("הריבונות מורשית להשתמש בבלוקצ'יין להקים פרויקטים
+# ולבצע ולפתח") + R30 full-lift (lane general). escrow_transfer/approve/release on Steem =
+# payroll the CHAIN itself enforces (funds locked until both parties ratify; released only by
+# the authorized releaser). The canary lane (dust amounts, hard caps in code) runs entirely
+# between fleet accounts whose LIVE keys the machine holds (measured by key-census-probe
+# 2026-10-12: 13/14 accounts posting+active live in the GEN-2 custody bundle).
+#
+# Safety: keys decrypted in-run from the sealed bundle → 0600 job-only file → never logged;
+# every leg key-gated against the LIVE authority; chain-history idempotency (safe re-runs);
+# receipts committed to the saos-dex home. Dispatch-only by design (confirm=ESCROW friction).
+name: escrow-payroll
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type ESCROW to execute the canary cycle'
+        required: true
+        default: 'ESCROW'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: escrow-payroll
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      STEEM_VAULT_PASSES: ${{ secrets.STEEM_VAULT_PASSES }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - name: Install signer lib (house pattern)
+        run: npm install --prefix /tmp/steemjs steem@0.7.11 --omit=dev --no-audit --no-fund --loglevel=error
+
+      - name: Confirm friction
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "ESCROW" ]; then
+            echo "CONFIRM-REFUSED — type ESCROW to execute"; exit 1
+          fi
+
+      - name: Checkout the grids home (saos-dex — engine of record)
+        run: |
+          set -Eeuo pipefail
+          git clone --depth 1 --branch main "https://x-access-token:${GH_PAT}@github.com/roshpinacare-sys/saos-dex.git" dex
+          echo "saos-dex @ $(cd dex && git rev-parse --short HEAD)"
+
+      - name: Selftest gate (offline vectors — red selftest never reaches the chain)
+        working-directory: dex
+        run: |
+          set -Eeuo pipefail
+          # ESM imports resolve from the checkout (NODE_PATH does not apply to import) —
+          # the exact runtime deps of the escrow import tree (mover/key-gate/brake/events).
+          npm install --omit=dev --no-audit --no-fund --loglevel=error bs58 steem@0.7.11 @noble/hashes @noble/curves
+          NODE_PATH=/tmp/steemjs/node_modules node grids/escrow-payroll.mjs --selftest
+
+      - name: Resolve live fleet keys from the sealed GEN-2 bundle (in-run, 0600, never logged)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/resolve-keys.cjs --out /tmp/fk.json
+
+      - name: Canary cycle (transfer -> approve to -> approve agent -> release; idempotent, key-gated per leg)
+        working-directory: dex
+        run: NODE_PATH=/tmp/steemjs/node_modules node grids/escrow-payroll.mjs --run --lane canary-1 --keys-file /tmp/fk.json
+
+      - name: Cleanup key material
+        if: always()
+        run: rm -f /tmp/fk.json && echo "key file destroyed"
+
+      - name: Commit receipts to the grids home (evidence = commit; FF-only with yield)
+        if: always()
+        working-directory: dex
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          set -Eeuo pipefail
+          git config user.name "escrow-payroll[bot]"
+          git config user.email "escrow-payroll[bot]@users.noreply.github.com"
+          git add grids/state/escrow-receipts.jsonl grids/state/events.jsonl 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no receipt change — clean exit"
+          else
+            git commit -m "escrow-payroll: canary cycle receipt $(date -u +%FT%TZ) [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase --autostash origin main && git push origin HEAD:main && break || { sleep $((i*5)); git rebase --abort 2>/dev/null || true; }  # --autostash (exec-20 measured: npm residuals refused the rebase 3x, receipts stranded)
+            done
+          fi

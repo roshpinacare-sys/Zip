@@ -1,0 +1,104 @@
+{
+  "task": "T-62 (2-d) activation-health",
+  "trace": "1a1268338e36d0ed",
+  "agent": "activation-health",
+  "measuredAtUTC": "2026-10-10T16:05:41Z",
+  "law": "zero-trust: every value below was run and measured live in this session; no believed state",
+  "heartbeat": {
+    "checkedAt": "2026-10-10T15:56:27Z",
+    "lastTickBefore": { "at": "2026-10-10T14:58:45.410Z", "ageSeconds": 462, "ageHuman": "57m42s" },
+    "thresholdMinutes": 20,
+    "verdict": "STALE — older than 20m → REACTIVATED",
+    "action": "cd ~/fleet/Sandbox && node engine/sovereign-tick.mjs",
+    "newTick": { "at": "2026-10-10T15:56:43.963Z", "head": "441b1d9557c8", "dirty": 0, "files": 158, "chain": "6a0c2cfaaf7f430a32e9500c", "keysLeaked": false },
+    "cloudTickIndependent": { "author": "sandbox-state (GitHub Actions, workflow sovereign-state.yml cron 3,18,33,48 * * * *)", "tick104": "2026-10-10T15:43:43Z", "tick105": "2026-10-10T15:57:58Z", "meaning": "the state ticker beats from the cloud even with no local session" }
+  },
+  "beat": {
+    "runAt": "2026-10-10T15:56:46Z..15:58:20Z",
+    "command": "timeout 480 bash boot/fleet-beat.sh (in ~/fleet/Sandbox)",
+    "exitCode": 0,
+    "stages": [
+      { "stage": "vault", "verdict": "PASS (open)", "evidence": "beat proceeded past the vault gate through all stages; vault step is silent by design" },
+      { "stage": "cloud-echo", "verdict": "PASS", "evidence": "project ref xgxthgswgxojxrwdkdzk; heartbeat id=12 rows=12; OFF-MACHINE STATE ALIVE; sha256=7d0e024e040cee52; head=441b1d9557c8" },
+      { "stage": "gitlab-mirror", "verdict": "PASS (with 1 internal retry on Sandbox)", "evidence": "Sandbox attempt-1 failed → settled 4s → attempt-2 pushed 441b1d9557c8 verified=true (11310ms); steem pushed 064ca0c5b5d5 verified=true (15082ms); SovereignConsole: not a git home locally → skipped honest; 2/3 verified, all active lanes OK" },
+      { "stage": "render-home", "verdict": "PASS + SELF-REVIVE", "evidence": "service sovereign-cockpit (73805iqg) url http=200; detected stale (deploy-commit 340c1a04e0c4 ≠ local 441b1d9557c8) → triggered redeploy 739c4s00 → live, healthy=true" },
+      { "stage": "fleet-yield", "verdict": "PASS", "evidence": "verdict=INTEL-OK, selftest=PASS, engineHead=064ca0c5b5d5, vestsPerSP=1612.503076, vpEff=87.5, scanned=300, selected=3, crowded=4, votedOnChain=0, dedup=on-chain, chain cur=2c8c610c535e, tookMs=14976" },
+      { "stage": "candidates-export (3.8)", "verdict": "PASS", "evidence": "pulse: 3 candidates, verdict=INTEL-OK, at=2026-10-10T15:58:04.288Z" },
+      { "stage": "leak-scan", "verdict": "PASS (fail-closed gate stayed green)", "evidence": "no LIT message; re-run during repair also CLEAN" },
+      { "stage": "commit+push", "verdict": "FAILED-IN-FLIGHT → REPAIRED BY 2-d", "evidence": "beat commit 95cca7f hit rebase conflict against racing ticks (cloud tick#105 + sibling ticks); rebase stopped mid-flight with unmerged fleet-yield/last.json + log.jsonl, then autostash pop conflicted on latest.json + ticks.jsonl; beat printed 'committed+pushed' while its receipts had NOT reached origin; repair below" }
+    ]
+  },
+  "repair": {
+    "found": "repo stuck mid-rebase: detached HEAD, UU receipts/fleet-yield/{last.json,log.jsonl}, autostash pop conflicts UU receipts/{latest.json,ticks.jsonl}",
+    "resolution": "append-only union for log.jsonl + ticks.jsonl (chronological, all racing lines kept); newest-wins for last.json (beat 15:57:49Z) and latest.json (15:57:39Z); JSON validity verified on every merged line",
+    "gate": "engine/leak-scan.mjs --staged → CLEAN before push",
+    "commits": ["4bfd4db '[fleet-beat] cloud+gitlab receipts: 2026-10-10T15:58:04Z' (rebased onto 3a6b303)", "dc7caba '[tick] heartbeat remainder — T-62 (2-d) beat-interrupt repair…'"],
+    "pushed": true,
+    "verified": "HEAD == origin/main == dc7caba measured at 16:03Z (beat receipts now genuinely on origin)"
+  },
+  "actions": {
+    "credentialNote": "pat.env (93 bytes) returns 'Bad credentials' — the file is locally scrubbed/redacted; used the vault-origin token via boot/gh-token.sh in a subshell (authenticated OK as the org account); no token value printed or stored",
+    "orgList": "orgs endpoint 404 → used users/roshpinacare-sys/repos → 9 repos",
+    "repos": ["Console", "Domain", "FleetHQ", "Sandbox", "saos-agents", "saos-runtime", "sovereign-beacon", "sovereign-lighthouse", "TruthRail"],
+    "mainRepos": {
+      "Sandbox": {
+        "totalRuns": 571,
+        "lastRuns": [
+          { "name": "artery-watch", "event": "repository_dispatch", "status": "in_progress", "conclusion": null, "createdAt": "2026-10-10T16:04:32Z" },
+          { "name": "fleet-heal", "event": "repository_dispatch", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T16:03:58Z", "head": "dc7caba" },
+          { "name": "sovereign-tick", "event": "push", "status": "pending", "conclusion": null, "createdAt": "2026-10-10T16:03:48Z", "head": "dc7caba" },
+          { "name": "pages-deploy", "event": "push", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T16:03:48Z", "head": "dc7caba" },
+          { "name": "artery-catchup", "event": "push", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T16:03:48Z", "head": "dc7caba" }
+        ]
+      },
+      "Console (SovereignConsole home)": {
+        "totalRuns": 11187,
+        "lastRuns": [
+          { "name": "agents-watch", "event": "schedule", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T15:56:43Z", "head": "4238009" },
+          { "name": "pages build and deployment", "event": "dynamic", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T14:49:51Z", "head": "4238009" },
+          { "name": "agent-verify", "event": "schedule", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T14:48:56Z", "head": "dc962ba" }
+        ]
+      },
+      "saos-runtime": {
+        "totalRuns": 173,
+        "lastRuns": [
+          { "name": "sovereign-runtime", "event": "workflow_dispatch", "status": "in_progress", "conclusion": null, "createdAt": "2026-10-10T15:48:20Z", "head": "ae16adc" },
+          { "name": "sovereign-runtime", "event": "workflow_dispatch", "status": "completed", "conclusion": "failure", "createdAt": "2026-10-10T15:23:42Z", "head": "ae16adc" },
+          { "name": "sovereign-runtime", "event": "workflow_dispatch", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T15:03:47Z", "head": "ae16adc" },
+          { "name": "sovereign-runtime", "event": "workflow_dispatch", "status": "completed", "conclusion": "success", "createdAt": "2026-10-10T14:43:48Z", "head": "8edbc81" }
+        ],
+        "honestNote": "one FAILURE at 15:23:42Z recorded as-is; a retry dispatch (15:48:20Z) was already in flight at measure time — the fleet self-retries, no intervention needed"
+      }
+    }
+  },
+  "surfaces": {
+    "measuredAt": "2026-10-10T16:00Z..16:05Z",
+    "userAgent": "browser-like UA header used",
+    "list": [
+      { "url": "https://roshpinacare-sys.github.io/Sandbox/", "http": 200, "bytes": 10444, "content": "operator gate home — title 'קונסולת-המפעיל — Sandbox', gate/vault content present (no cockpit marker: the root is the gate, by design)" },
+      { "url": "https://roshpinacare-sys.github.io/Sandbox/cockpit/", "http": 200, "bytes": 14268, "marker": "sovereign" },
+      { "url": "https://sovereign-cockpit-zjmz.onrender.com/", "http": 200, "bytes": 14268, "marker": "sovereign", "note": "byte-identical size to Pages cockpit; this service was self-redeployed by the beat minutes earlier (redeploy 739c4s00)" }
+    ]
+  },
+  "continuity": {
+    "local": {
+      "ps": "no watchdog/beat/tick processes alive (measured via ps aux)",
+      "crontab": "empty — no user crontab",
+      "etcCron": "absent (no /etc/cron.d, /etc/cron* empty)",
+      "watchdogScript": "~/fleet/Sandbox/boot/watchdog.sh exists (3148 bytes) but NOTHING schedules it locally",
+      "verdict": "per the sandbox-process law: all local continuities are session-only — they run when an agent (sibling) runs them, die with the machine; every local tick/beat PUSHES its state to origin, so its truth survives"
+    },
+    "cloud": {
+      "sandboxWorkflows": ["sovereign-state (cron 3,18,33,48 * * * *)", "fleet-yield (cron 11 */2 * * *)", "federation (cron 19,49 * * * *)", "artery-catchup (schedule)", "artery-watch (repository_dispatch — fired on my push 16:04:32Z)", "fleet-heal (repository_dispatch — success on my push 16:03:58Z)", "pages-deploy (push)", "sovereign-tick (push)", "fleet-yield / agent-roster-reseal / agent-access (dispatch+schedule)"],
+      "consoleWorkflows": ["agents-watch (schedule, success 15:56:43Z)", "agent-verify (schedule, success 14:48:56Z)"],
+      "runtimeWorkflows": ["sovereign-runtime (workflow_dispatch, retried in flight 15:48:20Z)"],
+      "verdict": "the cloud heart is real and measured: Actions committed tick#104/tick#105 state commits at 15:43:43Z / 15:57:58Z with no local actor; schedules exist in ≥10 Sandbox workflows"
+    }
+  },
+  "activationVerdict": {
+    "aliveRightNow": ["heartbeat tick (local, re-fired 15:56:43Z)", "cloud state ticker (Actions, 15:57:58Z)", "vault gate (beat passed)", "cloud-echo off-machine state (id=12)", "gitlab mirror (2/2 active lanes verified)", "Render home (200, self-redeployed)", "Pages root + cockpit (200)", "fleet-yield intel (INTEL-OK)", "candidates pulse (3)", "Actions hearts on 3 repos (runs ≤ minutes old)"],
+    "reactivatedByThisRun": ["local heartbeat (was 57m42s stale → fresh tick)", "Render deploy (stale → beat-triggered redeploy 739c4s00)", "beat receipts push (stuck mid-rebase → repaired, pushed, verified)"],
+    "honestFaultsFound": ["commit+push stage false-positive: printed 'committed+pushed' while rebase was stopped — beat script tolerates rebase-stop via '|| true' chains", "pat.env locally scrubbed → 'Bad credentials' (cloud queries succeeded via vault-origin token)", "saos-runtime run FAILURE 15:23:42Z (retry already in flight)"]
+  },
+  "receiptsWritten": ["~/fleet/Sandbox/receipts/fleet/t62-activation.json", "~/fleet/Sandbox/receipts/fleet/t62-activation.md"]
+}

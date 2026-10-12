@@ -1,0 +1,41 @@
+# sovereign-decider.yml — T-63: the sovereignty's standing decision organ (sense → decide → act → verify → record).
+# Owner law trace 1a12d4ae2964f45d: the sovereignty decides — no referral upward, no fakes, measured evidence only.
+name: sovereign-decider
+
+on:
+  schedule:
+    - cron: "13,43 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sovereign-decider
+  cancel-in-progress: false
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sense + decide + record (keyless, honest)
+        run: node tools/sovereign-decider.mjs
+      - name: Commit ledger only when meaningful (no-noise law)
+        run: |
+          DECISION=$(node -e "console.log(require('./office/state/sovereign-decisions.json').commitDecision)")
+          if [ "$DECISION" != "commit" ]; then
+            echo "no-delta: ledger unchanged in meaning — discarding"
+            git checkout -- office/state/sovereign-decisions.json
+            exit 0
+          fi
+          git config user.name "sovereign-decider"
+          git config user.email "sovereign-decider@users.noreply.github.com"
+          git add office/state/sovereign-decisions.json
+          git commit -m "decide: sovereign decision cycle (SOV-POLICY/1) — sense/decide/record, evidence-anchored"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin main && break || { echo "yield+retry $i"; sleep 6; }
+          done

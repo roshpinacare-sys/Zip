@@ -1,0 +1,71 @@
+# RESEARCH & DISCOVERY LANE — task 10-d (owner mandate trace 1a12c59452cbc355)
+#
+# "שיהיה גם מחקר וגילוי על דברים בטוחים שיכולים לשפר את המערכת —
+#  קדמה, אבטחה, יעילות, אוטונומיה ריבונית אוטומטית אינטליגנטית שתהיה דוגמא למופת."
+#
+# קריאה-בלבד. אפס-מפתחות. אפס-אימות. אפס-שידור.
+# Weekly safe read-only experiments on public chains + fleet digests.
+# The findings ARE the product — hypothesis → measurement → verdict → next.
+#
+# fail-open-honest: a failed experiment still commits its findings (an
+# inconclusive verdict is a fact) and the job exits non-zero so the truth shows.
+# אף-פעם לא מזויף-הצלחה.
+#
+# Runs on free public minutes (this repo is public), zero sandbox dependency.
+# Baselines cited from sovereign/ECONOMIC-PLAN-2026-10-11 §2 (Zip).
+
+name: research-lane
+
+on:
+  schedule:
+    - cron: "23 5 * * 1" # שני 05:23 UTC — מחזור-מחקר שבועי
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research-lane
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Selftest first (mocked fetch — network-independent gate)
+        run: node research/research-lane.mjs --selftest
+
+      - name: Run research lane (read-only; honest exit codes preserved)
+        run: |
+          set +e
+          node research/research-lane.mjs | tee /tmp/research.out
+          echo ${PIPESTATUS[0]} > /tmp/research.exit
+          echo "research exit=$(cat /tmp/research.exit)"
+
+      - name: Commit the findings (receipt = commit)
+        run: |
+          set -u
+          git config user.name "research-runner[bot]"
+          git config user.email "research-runner[bot]@users.noreply.github.com"
+          git add research/ 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no findings change — clean exit"
+          else
+            git commit -m "[research] weekly findings: spread-regime · feed-divergence · rc-census $(date -u +%FT%TZ) [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Honest exit (red job = inconclusive research, recorded in committed findings)
+        run: |
+          r=$(cat /tmp/research.exit)
+          echo "research exit=$r"
+          test "$r" = "0"

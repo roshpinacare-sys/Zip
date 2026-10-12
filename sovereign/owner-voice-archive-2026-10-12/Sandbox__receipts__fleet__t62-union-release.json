@@ -1,0 +1,33 @@
+{
+  "schema": "t62-union-release/1",
+  "at": "2026-10-10T16:35:00Z",
+  "trace": "1a1268338e36d0ed",
+  "operatorOrder": "sharper and deeper — release every false limit; all agents as one; examine all Git; activation forever; push",
+  "agentsAsOne": {
+    "2a-chain-truth": { "posts48h": 12, "gridOps48h": 1099, "ghostVotes48h": 28, "receipt": "receipts/fleet/t62-chain-truth.json" },
+    "2b-git-audit": { "houses": 4, "schedules": 10, "gapFound": "my-project had no Git home", "receipt": "audit/t62/git-audit.json" },
+    "2c-limits-release": { "limitsFound": 21, "classAReleased": 8, "classBKept": 13, "receipt": "audit/t62/limits-release.md" },
+    "2d-activation": { "beat": "exit 0 all stages", "selfRevived": ["render redeploy", "local tick"], "receipt": "receipts/fleet/t62-activation.json" },
+    "2e-dedupe": { "trueDuplicatesRemoved": 24, "keptByDesign": 6, "tickNoiseRatio": "82% auto vs 18% work", "receipt": "audit/t62/dedupe.json" }
+  },
+  "unionRelease": {
+    "fleetCapPerDay": { "was": 4, "now": 16, "evidence": "DAILY-CAP verdicts measured live while custody accounts idle" },
+    "perAccountGapMin": { "was": 180, "now": 45, "evidence": "9x the chain's real 5-minute posting window" },
+    "perAccountCapPerDay": { "was": 1, "now": 4 },
+    "curatorFetchCeiling": { "was": 50, "now": 100 },
+    "dualReleaseReconciled": "local T-62 + cloud R309/R310 merged as one law, zero overwrite"
+  },
+  "proofs": {
+    "selftestSteem": "1229/1229 PASS (contract follows released law)",
+    "doctrineAudit": "PASS — the map is true",
+    "leakScan": "clean (mirror 90 files; source scrubbed twice: 8+2 key-pointers removed at the source)",
+    "custody": "FF-only law honored; custody recorded on every push"
+  },
+  "pushes": {
+    "steem": "273b1171..1b591a15 -> saos-cockpit (engine release 0272cd7c + heartbeat 55a66131 + union merge 1b591a15)",
+    "sandbox": "457a33b..a94d18d -> main (5 sibling commits rebased on cloud state)",
+    "sovereignConsole": "my-project mirror 89 files -> main (first permanent Git home for my-project, was ad-hoc-manual before)"
+  },
+  "zeroSecretsMoved": true,
+  "nextValueFrontier": "28 ghost votes/48h (hcsoldier4/5/6 zero-rshares ~3SP) — the grid votes but earns nothing; route or power up"
+}

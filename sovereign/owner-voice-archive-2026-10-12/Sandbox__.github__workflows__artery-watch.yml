@@ -1,0 +1,133 @@
+name: artery-watch
+# ═══════════════════════════════════════════════════════════════════════════
+# T-51 · המפעיל-הפנימי (trace 1a1228e1f1f29429): "שלא יחכו למפעיל — יהיה להם מפעיל פנימי להכל"
+# ───────────────────────────────────────────────────────────────────────────
+# הבעיה-שנמדדה-חיה (T-51): cron של-GitHub מוכח-שוקק-שעות-בריפו-הזה
+#   (fleet-heal נשתק 18:49 · federation 17:50 · fleet-yield 16:51 — בעוד-השרשרת-הראשית-חיה,
+#    כי-היא-מופעלת-dispatch ולא-לוח-זמנים). כל-עורק-שמקור-הצתתו-cron-בלבד = עורק-שימות-בשקט.
+#   הלקח-מתועד-מ-T-42 (cron-שקט) · T-39 תיקן-את-השרשרת-הראשית בלבד; T-51 מכליל-את-הדפוס.
+#
+# ארכיטקטורת-המפעיל-הפנימי:
+#   · מדידה-אמיתית: גיל-הריצה-האחרונה-של-כל-עורק (API) — המדד הוא "האם-העורק-מנסה-לפעום",
+#     לא רק "האם-הצליח": עורק-שמנסה-ונכשל ימשיך-לנסות-בקצב-סף-החיים-שלו (אפס-סערות).
+#   · הצתה: event_type-dispatch לשרשרת-הראשית (הדפוס-המוכח-חי-מ-T-39c) · workflow-dispatch לשאר.
+#   · המשכיות-נצחית: כל-מקצה נח 13 דק' ואז מצית-את-עצמו (repository_dispatch) —
+#     מטרונום-עצמאי ללא cron וללא-דחיפות-חוץ. צעד-ההצתה-העצמית if: always() —
+#     הלולאה-שורדת-גם-כשלי-מדידה-וגם-כשלי-API.
+#   · שכבה-שנייה: artery-catchup (מופעל-דחיפות) מפקח גם על המטרונום עצמו — כיסוי-הדדי.
+#   · אפס-סודות: GITHUB_TOKEN-מקומי-בלבד.
+#   · חוק-הרשאות-נמדד-חי (T-51): GITHUB_TOKEN + permissions-contents:write → POST /dispatches = 204
+#     (מוכח-חי-עשרות-פעמים-יומית-בשרשרת-הראשית); actions:write-מפורש-עם-contents:read → 403 (נמדד-חי).
+#     לכן: contents:write-בלבד · כל-ההצתות-דרך-/dispatches (repository_dispatch) — הנתיב-המוכח-היחיד.
+# ═══════════════════════════════════════════════════════════════════════════
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # ניסיון-הצתה-חיצוני-בלבד — הלולאה-העצמית-היא-המקור-האמיתי
+  workflow_dispatch:
+  repository_dispatch:
+    types: [artery-watch]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: artery-watch
+  cancel-in-progress: false
+
+jobs:
+  beat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: measure all arteries — ignite any stale (מפעיל-פנימי · מדידה-והצתה)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node --input-type=module -e '
+          const REPO = "roshpinacare-sys/Sandbox";
+          const API = `https://api.github.com/repos/${REPO}`;
+          const H = { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: "application/vnd.github+json" };
+          const ok = (r) => { if (!r.ok) throw new Error(`${r.status}`); return r.json(); };
+          // עורק · מקסימום-גיל-ריצה-אחרונה-בשניות · אופן-הצתה (chain=repository_dispatch / workflow_dispatch)
+          const ARTERIES = [
+            { wf: "sovereign.yml",       maxAge: 1200, chain: "sovereign-tick"       },  // דופק ~15 דק׳
+            { wf: "sovereign-state.yml", maxAge: 1200, chain: "sovereign-state-tick" },  // מדינה ~15 דק׳
+            { wf: "artery-catchup.yml",  maxAge: 2700 },                                  // דחיפה-מונעת
+            { wf: "fleet-heal.yml",      maxAge: 2700 },                                  // cron 30 דק׳
+            { wf: "federation.yml",      maxAge: 2700 },                                  // cron 30 דק׳
+            { wf: "fleet-yield.yml",     maxAge: 9900 },                                  // cron 120 דק׳
+            { wf: "artery-wallet.yml",   maxAge: 5400, chain: "wallet-verify-tick" },   // ארנק — מדידה שעתית (T-52)
+            { wf: "artery-scribe.yml",   maxAge: 90000, chain: "scribe-tick" },        // רישומת-למידה — יומית (T-52)
+            { wf: "artery-fleet.yml",    maxAge: 9000, chain: "fleet-verify-tick" },
+            { wf: "artery-grid.yml",    maxAge: 2700, chain: "grid-watch-tick" },
+            { wf: "artery-participation.yml", maxAge: 5400, chain: "participation-tick" },   // ספר-ההשתתפות — שעתית (T-65, zai-code-3)
+            { wf: "artery-flow.yml",    maxAge: 12600, chain: "flow-map-tick" },
+            { wf: "artery-integrity.yml", maxAge: 5400, chain: "integrity-tick" },
+            { wf: "artery-decision-truth.yml", maxAge: 2700, chain: "decision-truth-tick" },   // עורק-אמת-ההכרעות — כל 30 דק׳ (H-series, zai-code-3)   // שומר-השלמות — אנטי-זיוף שעתי (G-series)   // flow map - every 3h (F-series)     // שעון-ה-grid — כל 30 דק׳ (T-63)    // מוח+dex+ספרייה — כל שעתיים (T-53)
+            { wf: "value-scan.yml", maxAge: 2700, chain: "value-scan-tick" },                  // [T16] סריקת-ערך — כל 30 דק׳ (T13; cron מוכח-שוקק, מצטרף-למפעיל-הפנימי)
+            { wf: "sovereign-decider.yml", maxAge: 2700, chain: "sovereign-decider-tick" },    // [T16] עורק-ההכרעה-הריבוני — כל 30 דק׳ (T14; cron מוכח-שוקק, מצטרף-למפעיל-הפנימי)
+          ];
+          for (const a of ARTERIES) {
+            try {
+              const runs = await fetch(`${API}/actions/workflows/${a.wf}/runs?per_page=1`, { headers: H }).then(ok);
+              const last = runs.workflow_runs?.[0];
+              const ageS = last ? Math.round((Date.now() - Date.parse(last.created_at)) / 1000) : 9e9;
+              if (ageS <= a.maxAge) {
+                console.log(`ALIVE  ${a.wf} last-run ${ageS}s ago (${last?.status ?? "-"}/${last?.conclusion ?? "-"})`);
+                continue;
+              }
+              let http, how;
+              if (a.chain) {
+                how = `repository_dispatch:${a.chain}`;
+                http = (await fetch(`${API}/dispatches`, { method: "POST", headers: H,
+                  body: JSON.stringify({ event_type: a.chain, client_payload: { from: "artery-watch", staleS: ageS } }) })).status;
+              } else {
+                // T-51-fix: אירוע-הצתה-פר-עורק — מונע-חצימה-הדדית (כל-אירוע-מצית-רק-את-יעדו;
+                // הדפוס-הקודם artery-revive-משותף גרם-ל-2-אירועים×4-מאזינים=8-ריצות-והתנגשויות-rebase)
+                how = `repository_dispatch:revive-${a.wf.replace(".yml", "")}`;
+                http = (await fetch(`${API}/dispatches`, { method: "POST", headers: H,
+                  body: JSON.stringify({ event_type: `revive-${a.wf.replace(".yml", "")}`, client_payload: { from: "artery-watch", staleS: ageS } }) })).status;
+              }
+              console.log(`STALE  ${a.wf} last-run ${ageS}s ago > ${a.maxAge}s — ignited via ${how} http=${http}`);
+            } catch (e) {
+              // fail-open למדידה: עורק-אחד-שגוי לא עוצר את סיור-שאר-העורקים ולא את המטרונום
+              console.log(`ERROR  ${a.wf}: ${e.message} — loop continues`);
+            }
+          }
+          '
+
+      - name: rest until next beat (13min — קצב-המטרונום)
+        run: sleep 780
+
+      - name: self-arm next beat — the loop is its own operator (if-always)
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          HTTP="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/roshpinacare-sys/Sandbox/dispatches \
+            -d '{"event_type":"artery-watch","client_payload":{"from":"beat-chain"}}')"
+          echo "next-beat dispatch http=$HTTP"
+          if [ "$HTTP" != "204" ]; then
+            HTTP2="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 -X POST \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/roshpinacare-sys/Sandbox/actions/workflows/artery-watch.yml/dispatches \
+              -d '{"ref":"main"}')"
+            echo "fallback workflow-dispatch http=$HTTP2"
+            if [ "$HTTP2" != "204" ]; then
+              echo "::warning::self-arm failed on both paths — artery-catchup push/cron layer + schedule remain as revival layers"
+            fi
+          fi

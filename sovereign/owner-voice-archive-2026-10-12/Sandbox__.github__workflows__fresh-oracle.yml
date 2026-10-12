@@ -1,0 +1,93 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# FRESH-ORACLE — שער-אימות-עומד (zai-12b · trace 1a12cf99469635d9)
+# ═══════════════════════════════════════════════════════════════════════════
+# מצטרף ל-OWNER-WORD המדוגל של zai-13 ("make it a standing scheduled gate") על
+# המדידה הראשונה שלהם (receipts/fresh-oracle-2026-10-11.json · V-FLEETHQ-FRESH
+# 4/4 MATCH). הקבלה, לא החלפה — הקובץ המקורי של zai-13 לא נוגע; הפנקס-המאוחד
+# receipts/fresh-oracle-latest.json שומר אותו מילה-במילה תחת prior.
+#
+# חוק-השער (R1 אנטי-זיופים, צ'רטר ops/sovereign/DECIDER/CHARTER.md):
+#   אין ירוק בלי מדידה-עצמאית. כשל-רשת = UNKNOWN + סיבה — לעולם לא ירוק-מנוחש.
+#   פסק-RED כנה שפורסם הוא הצלחת-השער (השער מציל, לא מרדף — R4 לא-דורסים).
+#
+# cron "7 5 * * 3" = שבועי יום-ד' 05:07 UTC — דקה-אי-זוגית, נבדל מ-key-proof
+# (04:23) ומ-office-window (06:17). + workflow_dispatch להרצה-על-דרישה.
+#
+# ZIP_PAT (כבר-מנותב לריפו-זה) מוזרם כ-BUS_TOKEN — קריאה-פרטית בלבד של
+# מרשם-ה-באס (Zip). ה-token נקרא מ-env, מעולם לא נכתב/מודפס/נכנס ל-URL.
+# אין-token/פג-תוקף → הפסק BUS-UNKNOWN כנה — לא שקר.
+#
+# דחיפה מחזורית: rebase-before-push (עד 5 ניסיונות) — פעילות-בוט-מקבילה בריפו
+# זה עזה (heartbeats כל-~5 דק'); ה-rebase מסדר, אף כוח-בעולם.
+# ═══════════════════════════════════════════════════════════════════════════
+name: fresh-oracle
+
+on:
+  schedule:
+    - cron: "7 5 * * 3" # שבועי · יום-ד' 05:07 UTC — דקה-אי-זוגית
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fresh-oracle
+  cancel-in-progress: false
+
+jobs:
+  oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # היסטוריה-מלאה: השוואות-מבוססות-clone (office-pages וכד') תקינות
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Selftest gate (zero network — must be 12/12)
+        run: node ops/fresh-oracle/oracle.mjs --selftest
+
+      - name: Live oracle (measure → honest verdicts → union receipt + verdict.md)
+        env:
+          BUS_TOKEN: ${{ secrets.ZIP_PAT }} # קריאה-פרטית בלבד של מרשם-ה-באס; לעולם לא נכתב/מודפס
+        run: node ops/fresh-oracle/oracle.mjs
+
+      - name: Commit refreshed receipt + verdict (receipt = commit; rebase loop ×5)
+        run: |
+          set -u
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add receipts/fresh-oracle-latest.json ops/fresh-oracle/verdict.md
+          if git diff --cached --quiet; then
+            echo "no artifact change — clean exit"
+          else
+            git commit -m "[fresh-oracle] standing gate refreshed: $(date -u +%FT%TZ) [skip ci]"
+            ok=0
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && ok=1 && break
+              echo "push attempt $i failed — re-pull --rebase and retry"
+              sleep $((i * 10))
+            done
+            test "$ok" = "1" || { echo "push failed after 5 rebase attempts"; exit 1; }
+          fi
+
+      - name: Honest exit (verdict summary stays loud)
+        run: |
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("receipts/fresh-oracle-latest.json"))
+          run = d["runs"][-1]
+          s = run["summary"]
+          print(f"fresh-oracle @ {run['at']} ({run['trigger']}): GREEN={s['GREEN']} AMBER={s['AMBER']} RED={s['RED']} UNKNOWN={s['UNKNOWN']}")
+          for c in run["checks"]:
+              print(f"  {c['verdict']:7} {c['id']}")
+          if s["RED"] > 0:
+              print("🔴 RED present — honest verdict published; owners of the flagged lanes must act (the gate reports, it does not chase)")
+          if s["UNKNOWN"] > 0:
+              print("⚪ UNKNOWN present — honest degradation (network/access); will re-measure next run")
+          print(f"prior(zai-13 receipt): {'preserved verbatim' if d.get('prior') else 'null'} · runs kept: {len(d['runs'])}/12")
+          EOF

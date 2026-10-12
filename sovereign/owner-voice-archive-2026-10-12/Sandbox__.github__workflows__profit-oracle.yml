@@ -1,0 +1,91 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# PROFIT-ORACLE — פעימת-רווחיות-עומדת יומית (zai-14b · trace 1a12d502a99b7021)
+# ═══════════════════════════════════════════════════════════════════════════
+# מצטרף ל-OWNER-WORD: "the autonomy itself checks profitability daily" —
+# האוטונומיה בודקת-רווחיות כל-יום. V-WORTH (14-roster שווי-חי) · V-GRID-EDGE
+# (pnl-desk verdict/edge/realized — הנתון הוא נתון, ההכרעה ב-desk) ·
+# V-ZOMBIE-LADDER (פקודות-פתוחות של headcorner מול-הריצה-הקודמת) + דלתא-רווחיות
+# יומית על netWorth → PROFIT/FLAT/LOSS/UNKNOWN.
+#
+# חוק-השער (R1/R5, ארכיטקט ops/fresh-oracle zai-12b): fail-open — השער מדווח,
+# לעולם לא רודף; כשל-רשת = UNKNOWN + סיבה, לעולם לא ירוק-מנוחש; פסק-כן
+# (כולל LOSS/AMBER) שפורסם הוא הצלחת-השער.
+#
+# cron "29 5 * * *" = יומי 05:29 UTC — דקה-אי-זוגית, נבדל מ-token-watchdog
+# (05:40) ומ-hive-probe (05:41). + workflow_dispatch להרצה-על-דרישה.
+#
+# אין-סודות: כל-המקורות ציבוריים (api.steemit.com + Domain Pages pnl-desk).
+# אפס-מפתחות, אפס-חתימה, קריאה-בלבד.
+#
+# דחיפה מחזורית: rebase-before-push (עד 5 ניסיונות) — פעילות-בוט-מקבילה בריפו
+# זה עזה (heartbeats כל-~5 דק'); ה-rebase מסדר, אף כוח-בעולם.
+# ═══════════════════════════════════════════════════════════════════════════
+name: profit-oracle
+
+on:
+  schedule:
+    - cron: "29 5 * * *" # יומי · 05:29 UTC — דקה-אי-זוגית
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profit-oracle
+  cancel-in-progress: false
+
+jobs:
+  oracle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 # פעימת-מדידה: אין-צורך בהיסטוריה-מלאה
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Selftest gate (zero network — must be all green)
+        run: node ops/profit-oracle/oracle.mjs --selftest
+
+      - name: Live pulse (measure → honest verdicts → union receipt + verdict.md)
+        run: node ops/profit-oracle/oracle.mjs
+
+      - name: Commit refreshed receipt + verdict (receipt = commit; rebase loop ×5)
+        run: |
+          set -u
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add receipts/profit-oracle-latest.json ops/profit-oracle/verdict.md
+          if git diff --cached --quiet; then
+            echo "no artifact change — clean exit"
+          else
+            git commit -m "[profit-oracle] daily pulse refreshed: $(date -u +%FT%TZ) [skip ci]"
+            ok=0
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && ok=1 && break
+              echo "push attempt $i failed — re-pull --rebase and retry"
+              sleep $((i * 10))
+            done
+            test "$ok" = "1" || { echo "push failed after 5 rebase attempts"; exit 1; }
+          fi
+
+      - name: Honest exit (verdict summary stays loud)
+        run: |
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("receipts/profit-oracle-latest.json"))
+          run = d["runs"][-1]
+          s = run["summary"]
+          print(f"profit-oracle @ {run['at']} ({run['trigger']}): GREEN={s['GREEN']} AMBER={s['AMBER']} RED={s['RED']} UNKNOWN={s['UNKNOWN']}")
+          for c in run["checks"]:
+              print(f"  {c['verdict']:7} {c['id']}")
+          print(f"  daily verdict: {s['verdict']} · netWorth {s['netWorthSbdEquiv']} SBD-equiv · delta {s['deltaVsPriorPct']}% · own-SP {s['ownSp']} · eff-SP {s['effSp']}")
+          print(f"  grid: {s['gridVerdict']} (postLaw.edgePct {s['gridEdgePct']}%) · ladder: {s['ladderOpenSbd']} SBD open ×{s['ladderCount']} (zombie {s['ladderZombieSbd']} SBD)")
+          if s["UNKNOWN"] > 0:
+              print("⚪ UNKNOWN present — honest degradation (network/first-run); will re-measure next run")
+          print(f"runs kept: {len(d['runs'])}/12 · prior seed: {'preserved verbatim' if d.get('prior') else 'null'}")
+          EOF

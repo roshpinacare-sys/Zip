@@ -1,0 +1,69 @@
+# key-census-probe.yml (saos-runtime) — R16-a: verify-only census of key material the machine ALREADY holds.
+#
+# Owner mandate trace 1a12dbe9812eff11 ("תצית תפתור תפעיל שלא יהיו חסימות — הריבונות מורשית להשתמש
+# בבלוקצ'יין להקים פרויקטים"). The measured wall: no candidate in the Domain vault derives headcorner's
+# live active authority (census 2026-10-11 23:08Z). Before asking the owner again, MEASURE what the
+# machine already holds: the GEN-2 custody bundle (steem/agent/vault/KEYS-ZIP-GEN2-*.zip.enc) unlocks
+# with STEEM_VAULT_PASSES — a secret THIS repo holds. Verify-only: no broadcast, no secret writes.
+# Receipt carries PUBLIC data only (derived publics are on-chain public anyway). Dispatch-only by design.
+name: key-census-probe
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: key-census-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STEEM_VAULT_PASSES: ${{ secrets.STEEM_VAULT_PASSES }}
+      CI_ADOPT_WIF_ACTIVE: ${{ secrets.CI_ADOPT_WIF_ACTIVE }}
+      CI_ADOPT_WIF_POSTING: ${{ secrets.CI_ADOPT_WIF_POSTING }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - name: Install signer lib (house pattern)
+        run: npm install --prefix /tmp/steemjs steem@0.7.11 --omit=dev --no-audit --no-fund --loglevel=error
+
+      - name: Selftest gate (offline vectors — a red selftest never reaches the vault)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/probe.cjs --selftest
+
+      - name: Live census probe (verify-only; decrypts the bundle in-run, env-only passes)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/probe.cjs --receipt ops/key-census-probe/receipt.json
+
+      - name: Hive flow census (verify-only — same GEN-2 bundle vs live hive authorities; T-65 hive-flow, additive)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/hive-census.cjs --receipt ops/key-census-probe/hive-receipt.json
+
+      - name: Commit receipt (public data only; FF-only with yield)
+        if: always()
+        run: |
+          set -Eeuo pipefail
+          git config user.name "key-census-probe[bot]"
+          git config user.email "key-census-probe[bot]@users.noreply.github.com"
+          git add ops/key-census-probe/receipt.json ops/key-census-probe/hive-receipt.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no receipt change — clean exit"
+          else
+            git commit -m "key-census-probe: $(node -e "try{const r=require('./ops/key-census-probe/receipt.json');process.stdout.write(r.verdict+' · matches='+r.matches.length+' · candidates='+r.scanned.wifCandidates)}catch(e){process.stdout.write('receipt-read-fail')}") · hive: $(node -e "try{const h=require('./ops/key-census-probe/hive-receipt.json');process.stdout.write(h.verdict+' · matches='+h.matches.length+' · onHive='+Object.keys(h.hiveAccounts||{}).length)}catch(e){process.stdout.write('hive-receipt-absent')}") $(date -u +%FT%TZ) [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin HEAD:main && break || { sleep $((i*5)); git rebase --abort 2>/dev/null || true; }
+            done
+          fi
+
+      - name: Honest summary
+        if: always()
+        run: |
+          node -e "try{const r=require('./ops/key-census-probe/receipt.json');console.log('VERDICT:',r.verdict);(r.matches||[]).forEach(m=>console.log('MATCH',m.account,m.role,'src='+m.sourceTag,'pub='+m.derivedPub));if(r.verdict==='MATCH-HEAD-ACTIVE')console.log('NEXT: dispatch key-adopt (sealed vault write -> Domain/saos-dex STEEM_ACTIVE_WIF + dex-grid ignition)');}catch(e){console.log('receipt missing — probe aborted honestly')}"
+          node -e "try{const h=require('./ops/key-census-probe/hive-receipt.json');console.log('HIVE VERDICT:',h.verdict,'· hive head_block='+h.hiveChain?.headBlock);(h.matches||[]).forEach(m=>console.log('HIVE MATCH',m.account,m.role,'src='+m.sourceTag));if(h.verdict==='MATCH-HIVE')console.log('NEXT: hive flows — lanes may key-gate against hive authorities (verify-only proof complete)');if(h.verdict==='NO-MATCH')console.log('HONEST: no held key derives a live hive authority — hive stays read-only-flow until custody adds hive keys');}catch(e){console.log('hive receipt missing — hive-census aborted honestly')}"

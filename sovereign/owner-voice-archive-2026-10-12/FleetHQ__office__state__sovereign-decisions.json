@@ -1,0 +1,255 @@
+{
+ "schema": "saos.sovereign-decisions/1",
+ "generatedAt": "2026-10-12T11:31:18.520Z",
+ "policyVersion": "SOV-POLICY/1",
+ "principle": "הריבונות מחליטה ומבצעת — הבעלים קבע (trace 1a12d4ae2964f45d) שהמערכת מקבלת החלטות חכמות בעצמה בצורה הכי מתקדמת שיש; הפניה לבעלים = שלילת הריבונות. כל-החלטה: ראיה-מדודה + אימות-כפול. בעלים = בעלים; ריבונות = הגוף שמחליט.",
+ "authority": {
+  "execute": [
+   "שינויי-תצורה/מצב הפיכים במסילות מתובעות (claim-first)",
+   "workflow dispatches באותו-ריפו וחוצי-ריפו דרך כתב-ההרשאה המואצל (CROSS_REVIVE_PAT)",
+   "ניהול-סודות דרך sealed box (שמות-בלבד בלוגים)",
+   "תחייה/השבה של מסילות שנפלו",
+   "מעשי-הכרעה המנותבים לפרוטוקולי-המסילות (SAOS-GRID-PARAMS/1 וכד׳)"
+  ],
+  "gates": [
+   "העברת-כספים על-השרשרת מחוץ למנדט-מסילה חמוש — מנותב למסילה עם נגזרת-מדודה",
+   "ייצור חומרת-מפתח מעבר להיקף-רוטציה מוגדר",
+   "פעולה בלתי-הפיכה בלי ראיה מדודה"
+  ]
+ },
+ "sense": {
+  "valueScan": {
+   "ok": true,
+   "ageMin": 69
+  },
+  "gridTruth": {
+   "ok": true,
+   "ageMin": 34
+  },
+  "officeState": {
+   "ok": true,
+   "ageMin": 83
+  },
+  "decisionsPrev": {
+   "ok": true,
+   "ageMin": 18
+  },
+  "openCloser": {
+   "ok": true,
+   "ageMin": 0
+  }
+ },
+ "decisions": [
+  {
+   "id": "D1",
+   "from": "N6",
+   "area": "operations",
+   "title": "כתב-הרשאה החוצי-ריפואריים — CROSS_REVIVE_PAT",
+   "status": "executed",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "executedAt": "2026-10-12T00:29:25.281Z",
+   "reasoning": "הבעלים האציל את ההרשאה לריבונות (״הריבונות היא הבעלים״) — התחייבות N6 עצמה הגדירה את הפתרון: PAT כסוד ב-FleetHQ. הריבונות ביצעה: sealed box (libsodium), הערך לעולם לא נדפס/נרשם.",
+   "evidence": {
+    "secret": "CROSS_REVIVE_PAT @ FleetHQ (201 created, name-only attestation)",
+    "patch": "FleetHQ 7a7ccc71 (tools/opens-closer.mjs + workflow env)",
+    "drills": "beacon-pulse + lighthouse-pulse cross-repo dispatches 204×2 + opens-closer 204",
+    "rollback": "OFFICE_GIT_PAT לא נגע — משמעת סודות מלאה"
+   }
+  },
+  {
+   "id": "D2",
+   "from": "N4",
+   "area": "governance",
+   "title": "שינוי-שם sanbox → sandbox-private",
+   "status": "executed",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "executedAt": "2026-10-12T00:29:25.281Z",
+   "reasoning": "ההצעה הייתה ב-FLEET-ROLES כ״דורש אישור בעלים״; הבעלים העביר את סמכות-ההכרעה לריבונות. הפיכות מלאה (redirect 301 מובנה), אפס-שבירה מדוד.",
+   "evidence": {
+    "rename": "PATCH 200 → roshpinacare-sys/sandbox-private",
+    "redirect": "GET /sanbox → 301 (אומת)",
+    "receipt": "README 5fb059a2",
+    "graph": "FleetHQ 3e673654 (node id + FLEET-ROLES סעיף-כפילויות סגור)",
+    "g17": "ghosts=NONE (גרף == ריפואריים חיים)"
+   }
+  },
+  {
+   "id": "D3",
+   "from": "N1",
+   "area": "custody",
+   "title": "רוטציית GEN-2 לסיסמאות-המטמון",
+   "status": "executed",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "executedAt": "2026-10-12T00:29:25.281Z",
+   "reasoning": "N1 מתאר: GEN-1 בהיסטוריה + כפול-32 בקאנון. הריבונות בנתה את הביצוע על תקדים R-VAULTPASS-1 (zai-code-3): הרוטציה בוצעה על-ידי ה-runner עצמו (ה-bundle קריא רק בתוך Actions; gen1 — עידן-ה-seed — נשמר ללא-פגיעה), אפס חומר-סוד בקוד/לוגים/inputs.",
+   "evidence": {
+    "rotationRun": "saos-runtime 38187049062 SUCCESS (gen2-rotation.yml, one-shot)",
+    "artifacts": "KEYS-ZIP-GEN2-2026-10-12.zip.enc + KEYS-BACKUP-GEN2-2026-10-12.tar.enc @ steem main (FF)",
+    "meta": "recovery-meta v3 (refs gen2.*, values per operator system-custody doctrine) + GEN-2-ERA-META.json (lengths only, 4 boundaries)",
+    "payload": "inner sha256 IDENTICAL pre/post (byte-identical payload, roundtrip verified)",
+    "secrets": "STEEM_VAULT_PASSES PUT on steem + saos-runtime (bundle gen1+recovery-3+gen2 preserved)",
+    "independent": "sha256 of live blobs == meta; decrypt-with-gen2 == pinned inner sha"
+   },
+   "boundaries": [
+    "ארכיונים היסטוריים נשארים GEN-1-פתיחים — רוטציית-סיסמה לא מחזירה חיסיון לצופן-שפורסם (מתועד, לא מוסתר)",
+    "רוטציית חומרת-מפתח על-השרשרת = מבצע-נפרד וגבוה יותר",
+    "מיגרזת ה-consumers המקומיים ל-bundle = משימת-המשך של מסילת-הcustody"
+   ]
+  },
+  {
+   "id": "D3b",
+   "area": "custody",
+   "title": "escrow של PERSONAS_KEY לכספת",
+   "status": "armed-conditional",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "trigger": "חלון-הkeeper הבא של Domain — הערך חי כסוד Domain (write-only בעיצוב); המסילה הבעלים-על-יודע מייצאת ואוטמת ל-vault ה-GEN-2",
+   "law": "לא מזויף: אין-קריאה-חזרה של סודות GitHub — ה-escrow מתבצע רק מהמקום שבו הערך נגיש לגיטימית"
+  },
+  {
+   "id": "D4",
+   "from": "N5",
+   "area": "revival",
+   "title": "החלטת-האירוח של roshpina — חמוש→חי",
+   "status": "executed",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "executedAt": "2026-10-12T00:29:25.281Z",
+   "reasoning": "REVIVAL.md: ״kernel-smoke green on a runner = live״. נמדד: Actions של roshpina עצמו חומת-חיוב (ריצות מתות בשניות, 0 שלבים — כולל controls-audit ותיק; הריצה הירוקה האחרונה 10-06). ההחלטה החכמה: לא נאבקים בחומה — המסילה עוברת ל-runner החי של saos-runtime (״runner חוץ״ מבין-שתי-האופציות; :3044 נפסל — אין מארח קבוע מדוד).",
+   "evidence": {
+    "kernelProof": "kernel-smoke GREEN 7/7 invariants מקומית (escrow lifecycle, TOCTOU, resume-log, refund guard, settlement, canonical-json, integrity — ״אין טענות, יש הוכחות״)",
+    "wallProof": "roshpina fee-engine 38187350674 + controls-audit 38187704256 — כשל-התנעה מיידי, 0 steps, לוגים ריקים",
+    "reroute": "fee-engine.yml @ saos-runtime b7596e9b18 (cron 23 */4 + dispatch), walled yml removed from roshpina 1011dd3bb3",
+    "firstRun": "saos-runtime 38187803398 SUCCESS → roshpina fee-engine/state.json status=live, lastSmoke green on the runner lane"
+   }
+  },
+  {
+   "id": "D5",
+   "from": "N3",
+   "area": "economics",
+   "title": "אישור קיצוח פרמטרים למושל T2",
+   "status": "executed",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "reasoning": "D3 (היחידה QUESTIONABLE-PARAMS) דרש מדגם ≥20 fills + hysteresis. נמדד: הפרמטרים האטומים (9-c, מנדט-בעלים trace 1a12b258c9776305) עוברים את שומר-הסף fail-closed + selftest 20/20; מדגם 72 fills (grid-public) / 61 postLaw (pnl-desk) ≥ 20. ה-ratification סוגר את הדגל בראיה.",
+   "evidence": {
+    "validator": "grids/validate-params.mjs grids/state/grid-params.json → OK exit 0 (steem 85% commit, 150/80bps; hive 90%, 200/50bps)",
+    "selftest": "grids/params-selftest.mjs → 20 passed, 0 failed",
+    "sample": "72 fills (db/grid-public.json @cc8c2cd) + 61 postLaw fills (dex/pnl-desk.json) ≥ 20"
+   },
+   "governorSpec": {
+    "resumePct": 1.2,
+    "holdPct": 1,
+    "mirrorMissing": "HOLD fail-closed",
+    "enforcement": "הפרמטרים נכנסים לחותם-ה-T2 הבא של המסילה דרך פרוטוקול SAOS-GRID-PARAMS/1 (בדיוק כפי ש-9-c צרך את מנדט-הבעלים) — הריבונות מכריעה ומקודדת, המסילה מבצעת בתוך המשמעות שלה"
+   }
+  },
+  {
+   "id": "D6",
+   "from": "N2",
+   "area": "economics",
+   "title": "החלטת-המימון D-023 — escrow ≥1 SBD",
+   "status": "armed-conditional → mandate issued",
+   "decidedAt": "2026-10-12T00:29:25.281Z",
+   "reasoning": "ההחלטה עצמה (לא ההפניה): D-023 מאושר — ה-escrow (≥1 SBD על מסילת-ה-convert, התשואה המוגדרת-ביותר: edge +40.8% נמדד) יבוצע על-ידי מסילת-ה-convert של saos-dex (המסילות פתוחות לפי הבעלים trace 1a12d295c7da9241 — FULL LIFT). החוכמה: ה-escrow הוא ב-SBD (נמדד: 91.195 ≥ 1 — זמין) ואינו מעמיק את חריגת-רצפת-ה-STEEM (55.2 < 90); ההוצאה מתוזמנת עם סעיפי-שמירה, והריבונות לא חותמת על-השרשרת מחוץ למסילה-החמושה שלה.",
+   "measured": {
+    "sbd": 91.195,
+    "source": "grid-truth (RPC-measured)",
+    "steemFloor": "liquid 28.261 + orders 26.95 = 55.211 < 90 (UNDERFLOOR — האוצר בכיוון-הכנסה, לא-הוצאה)",
+    "edge": "+40.8% מדוד על מסילת-ה-convert (value-scan scan-econ-0)"
+   },
+   "mandate": {
+    "to": "saos-dex convert lane (staged lane open per STASIS full-lift trace 1a12d295c7da9241)",
+    "guards": [
+     "escrow ≤ 1 SBD ראשוני",
+     "קבלת-ביצוע על-השרשרת ל-dex/pnl-desk.json + עדכון פנקס-ההחלטות",
+     "מדידת-רצפה חוזרת אחרי-ביצוע"
+    ],
+    "laneProtocol": "SAOS-GRID-PARAMS/1 + STASIS brake obeys — אפס דריסת-מסילות"
+   }
+  },
+  {
+   "id": "D1-watch",
+   "area": "verification",
+   "title": "עגינת-ראיה להחלטה D1",
+   "status": "attested",
+   "evidence": {
+    "check": "CROSS_REVIVE_PAT secret presence is attested by opens-closer healNote lineage (cross-repo dispatch capability, T-63)",
+    "priorStatus": "executed",
+    "recheckedAt": "2026-10-12T00:29:54.914Z"
+   },
+   "policy": "SOV-POLICY/1",
+   "decidedAt": "2026-10-12T00:29:54.914Z",
+   "by": "sovereign-decider"
+  },
+  {
+   "id": "D4-watch",
+   "area": "verification",
+   "title": "עגינת-ראיה להחלטה D4",
+   "status": "attested",
+   "evidence": {
+    "check": "fee-engine cron live on saos-runtime lane (23 */4 * * *); state.json status=live at roshpina main",
+    "priorStatus": "executed",
+    "recheckedAt": "2026-10-12T00:29:54.914Z"
+   },
+   "policy": "SOV-POLICY/1",
+   "decidedAt": "2026-10-12T00:29:54.914Z",
+   "by": "sovereign-decider"
+  },
+  {
+   "id": "auto-treasury-floor",
+   "area": "economics",
+   "title": "אוצר מתחת לרצפה (2 התראות מדודות)",
+   "status": "constraint-active",
+   "evidence": {
+    "source": "Domain/agents/grid-truth.json (grid-doctor v2, RPC-measured)",
+    "alerts": [
+     "steem:headcorner SP-UNDERFLOOR — effective 2925.726 SP below floor 3000 — arming waves must respect the treasury floor",
+     "steem:headcorner TREASURY-UNDERFLOOR — liquid 30.12 + locked-in-orders 40.82 = 70.94 below floor 90"
+    ],
+    "measuredAt": "2026-10-12T10:57:09.909Z"
+   },
+   "law": "הגשות-חימוש חייבות לכבד רצפות; הכיוון הריבוני = הכנסה מבנית (fee-engine) לפני הוצאה",
+   "policy": "SOV-POLICY/1",
+   "decidedAt": "2026-10-12T11:31:18.520Z",
+   "by": "sovereign-decider"
+  },
+  {
+   "id": "auto-freshness",
+   "area": "operations",
+   "title": "טריות הצי: הכל טרי מעל SLA (office-state 83דק, beacon 25דק, lighthouse 16דק, value-scan 69דק, domain-pulse 125דק, live 11",
+   "status": "clear",
+   "evidence": {
+    "source": "FleetHQ/office/state/opens-closer.json",
+    "metrics": {
+     "staleCount": 0,
+     "dispatchedCount": 0
+    },
+    "selfHeal": "same-repo GITHUB_TOKEN + cross-repo CROSS_REVIVE_PAT (D1)"
+   },
+   "policy": "SOV-POLICY/1",
+   "decidedAt": "2026-10-12T11:31:18.520Z",
+   "by": "sovereign-decider"
+  },
+  {
+   "id": "auto-office",
+   "area": "operations",
+   "title": "משרד תקין",
+   "status": "clear",
+   "evidence": {
+    "source": "office-state.json",
+    "capturedAt": "2026-10-12T10:08:43.259Z",
+    "tasks": "n/a"
+   },
+   "law": "אין דריסת-מסילות: למשרד יש לולאת-רטרו משלו; הריבונות מתעדת ומאמתת, לא לוקחת",
+   "policy": "SOV-POLICY/1",
+   "decidedAt": "2026-10-12T11:31:18.520Z",
+   "by": "sovereign-decider"
+  }
+ ],
+ "stats": {
+  "standing": 9,
+  "thisRun": 5,
+  "total": 12
+ },
+ "ownerActionsRemaining": [],
+ "eraNote": "מ- T-63: לוח-״פעולות-בעלים״ מוחלף בפנקס-ההחלטות הריבוני. הבעלים ממשיך להוביל דרך דירקטיבות; הריבונות מחליטה, מבצעת, ומאמתת.",
+ "commitDecision": "commit"
+}

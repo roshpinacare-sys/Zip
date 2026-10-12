@@ -1,0 +1,33 @@
+{
+  "schema": "signing-pipeline/1",
+  "task": "T-58",
+  "trace": "1a12589cd7cef741",
+  "at": "2026-10-10T11:40:18Z",
+  "claim": "signing pipeline proven end-to-end live: engine candidates -> pulse receipt -> /api/curation relay -> browser cockpit -> one-click approve -> in-browser signature -> chain broadcast",
+  "measured": {
+    "yieldVerdict": "INTEL-OK",
+    "selftest": "1222/1222 PASS",
+    "engineHead": "2d8a01cf524e",
+    "merkle": "a30eb9b044ac",
+    "candidates": ["bilpcoinbpc", "tworld", "tomoyan"],
+    "vote": {
+      "voter": "headcorner",
+      "author": "bilpcoinbpc",
+      "permlink": "open-your-eyes-the-ledger-is-waiting",
+      "percent": 6892,
+      "rshares": "70882667176",
+      "txid": "3badc4cb57fe8fe339292b0605ec78b68a39ba433338b53c2ecc1c18070934f9",
+      "chainProof": "condenser_api.get_content active_votes contains headcorner (get_transaction lags on hot nodes; get_account_votes dead on modern nodes — T-56 known)"
+    },
+    "quotaAfter": "29/30",
+    "gateForms": {
+      "primary-52": "manager key opens the primary gate — proven live in browser",
+      "canon-62": "the shared canon opens its gate — proven live in Node",
+      "multilinePasteFix": "paste handler ground-truthed live: synthetic multiline -> canonical join (len 9)"
+    },
+    "cockpitShortPath": "/cockpit/ 404 -> 308/307 redirect -> 200 (next.config redirects, measured)",
+    "sameCode": "docs/cockpit == public/cockpit (my-project) == public/cockpit (SovereignConsole) — one sha256 after fix"
+  },
+  "screenshot": "t58-pipeline-live-vote.png",
+  "zeroKeysOnNetwork": true
+}

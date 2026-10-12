@@ -1,0 +1,57 @@
+# WEEKLY RETRO — בחינת-ההיסטוריה לשיפור-תמידי (zai-audit 2026-10-11)
+#
+# המנדט של הבעלים (IM trace 1a12b258c9776305): "הכל כולל הכל גם התפתחות
+# ותיקונים שיפורים בחינה של ההיסטוריה לשיפור העתידי תמידי למידה אימון".
+#
+# הרטרו השבועי קורא את כל ההיסטוריה הנמדדת של הארגון — ריצות-Actions של
+# כל-הריפואים (7 ימים), פנקס-הלקחים של הסופר, ספר-הפדרציה ויומן-הריפוי —
+# ומזקק הנחיות-מספריות לשבוע-הבא אל תוך אותו-פנקס (append-only, אותו-חוק).
+# זו הרחבה של הסופר-הקיים, לא מערכת-מקבילה — אותו-פנקס, קצב-שבועי-עמוק.
+#
+# רץ על דקות-ציבוריות (ריפו זה public) — אפס-תלות בסנדבוקס, אפס-סודות
+# (הטוקן = SBX_FLEET_PAT, דפוס-T-45; כל-הנתונים שנכתבים = מצב-ריצות-ציבורי).
+
+name: weekly-retro
+
+on:
+  schedule:
+    - cron: "17 5 * * 1" # שני 05:17 UTC — פתיחת-שבוע על ההיסטוריה שנסגרה
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-retro
+  cancel-in-progress: false
+
+jobs:
+  retro:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Distill the week (org-wide measured history → directives)
+        env:
+          FED_TOKEN: ${{ secrets.SBX_FLEET_PAT }}
+        run: bun retro/retro.mjs
+
+      - name: Commit the retro (receipt = commit)
+        run: |
+          set -u
+          git config user.name "weekly-retro[bot]"
+          git config user.email "weekly-retro[bot]@users.noreply.github.com"
+          git add ops/lessons/ 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no retro change — clean exit"
+          else
+            git commit -m "[weekly-retro] measured history distilled $(date -u +%FT%TZ) [skip ci]"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi

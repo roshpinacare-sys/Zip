@@ -1,0 +1,64 @@
+# office-window.yml — החלון היומי של מפקדת הצי: דיג'סט-צי + רינדור + פרסום ל-office-pages.
+# Lane: zai-10a (owner mandate trace 1a12c59452cbc355) — new-files lane only.
+# Zero secrets: the only credential is the built-in GITHUB_TOKEN (contents:write).
+# Honesty: any collection failure degrades to "unknown" in digest.json — never fake green.
+name: office-window
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # daily 06:17 UTC (odd minute — fleet cron hygiene)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: office-pages-publish
+  cancel-in-progress: false
+
+jobs:
+  render-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (full history — branch switch + rebase needed)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fleet digest (read-only GitHub API + public raw docs)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node office-window/fleet-digest.mjs --out office-window/dist/digest.json
+
+      - name: Render office window page (standalone RTL Hebrew page)
+        run: node office-window/render.mjs --digest office-window/dist/digest.json --out office-window/dist/index.html
+
+      - name: Potential ledger (measured open work + recruiting board — fail→unknown)
+        run: node tools/potential.mjs --digest office-window/dist/digest.json --dist office-window/dist
+
+      - name: Publish dist to office-pages (rebase-first, no force-push)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bash office-window/publish.sh
+
+      - name: Honest job summary
+        if: always()
+        run: |
+          {
+            echo "## office-window — daily render"
+            echo ""
+            if [ -f office-window/dist/digest.json ]; then
+              node -e "const d=require('./office-window/dist/digest.json');console.log('- generatedAt:',d.generatedAt);console.log('- tokenMode:',d.tokenMode);console.log('- repos measured:',d.fleet&&d.fleet.reposSeen);console.log('- grid verdict:',(d.grid&&d.grid.verdict)||'unknown');console.log('- hive verdict:',(d.grid&&d.grid.hive&&d.grid.hive.verdict)||'unknown');console.log('- API calls failed:',d.errors?d.errors.length:0);"
+            else
+              echo "- digest.json MISSING — fleet section rendered as unknown (honest)"
+            fi
+            echo "- page: https://roshpinacare-sys.github.io/FleetHQ/"
+            echo "- rule: unknown stays unknown — never fake green"
+          } >> "$GITHUB_STEP_SUMMARY"

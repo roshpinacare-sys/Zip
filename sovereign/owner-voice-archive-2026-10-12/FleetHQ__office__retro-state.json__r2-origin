@@ -1,0 +1,288 @@
+{
+  "protocol": "SAOS-OFFICE-RETRO/1",
+  "lane": "office-retro (zai-11d · E1-deed zai-13c)",
+  "ownerMandate": "trace 1a12c9d6f5df1b95 — חקר/זיקוק/תכנון/ביצוע",
+  "generatedAt": "2026-10-11T23:56:36.105Z",
+  "laws": [
+    "retro לא משדר, לא חותם, לא נוגע בכסף/מפתחות/STASIS",
+    "תופעות-לוואי: קבצי-המסילה שלו בלבד (office/*)",
+    "אפס-סודות בכל-פלט (סורק fail-closed לפני כתיבה)",
+    "שמות-ריפואים-פרטיים ממוסכים private-NN (7-b) — כולל שערים",
+    "שערי-בעלים מוזכרים לפי id/כותרת מוקטנת בלבד",
+    "כנות: לא-ידוע נשאר לא-ידוע; פיד אדום מודפס אדום"
+  ],
+  "registry": {
+    "source": "fallback-embedded",
+    "note": "registry לא-נגיש: HTTP 404 (private-7 פרטי — גם עם-token נדחה) — משתמש ב-snapshot מוטמע (11-c @ 2026-10-11T20:35:00Z)",
+    "feedCount": 16,
+    "fallbackSnapshotOf": "sovereign/bus-registry.json @ 686e0d00 (zai-11c, מקור-פרטי — השם אינו נמנה, 7-b)"
+  },
+  "digest": {
+    "source": "pages",
+    "note": "digest.json חי (200)",
+    "generatedAt": "2026-10-11T23:54:12.008Z",
+    "ageHours": 0,
+    "reposSeen": 9,
+    "degradedEarly": false,
+    "gridVerdict": "ARMED-STABLE",
+    "hiveVerdict": "ARMED-WAITING",
+    "errors": 1
+  },
+  "findings": {
+    "found": true,
+    "date": "2026-10-11",
+    "at": "2026-10-11T20:13:07.191Z",
+    "experiments": [
+      {
+        "id": "E1",
+        "name": "spread-regime",
+        "ok": true
+      },
+      {
+        "id": "E2",
+        "name": "feed-divergence",
+        "ok": true
+      },
+      {
+        "id": "E3",
+        "name": "rc-census",
+        "ok": true
+      }
+    ]
+  },
+  "bus": {
+    "at": "2026-10-11T23:56:36.105Z",
+    "counts": {
+      "green": 15,
+      "amber": 0,
+      "red": 0,
+      "grey": 1
+    },
+    "feeds": [
+      {
+        "id": "fleethq-digest",
+        "status": "green",
+        "ageHours": 0,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-dex-grid",
+        "status": "green",
+        "ageHours": 10.3,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-dex-world",
+        "status": "green",
+        "ageHours": 3.7,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-dex-deposits",
+        "status": "green",
+        "ageHours": 3.5,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-office-feed",
+        "status": "green",
+        "ageHours": 1.1,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-office-data",
+        "status": "green",
+        "ageHours": 1,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-grid-truth",
+        "status": "green",
+        "ageHours": 1,
+        "httpStatus": 200
+      },
+      {
+        "id": "sandbox-probe-hive",
+        "status": "green",
+        "ageHours": 8.6,
+        "httpStatus": 200
+      },
+      {
+        "id": "sandbox-probe-blurt",
+        "status": "green",
+        "ageHours": 8.6,
+        "httpStatus": 200
+      },
+      {
+        "id": "sandbox-research-findings",
+        "status": "green",
+        "ageHours": 3.7,
+        "httpStatus": 200
+      },
+      {
+        "id": "sandbox-flow-map",
+        "status": "green",
+        "ageHours": 0.2,
+        "httpStatus": 200
+      },
+      {
+        "id": "sandbox-lessons-ledger",
+        "status": "green",
+        "ageHours": 10,
+        "httpStatus": 200
+      },
+      {
+        "id": "domain-status",
+        "status": "green",
+        "ageHours": 3.4,
+        "httpStatus": 200
+      },
+      {
+        "id": "console-dex-grid",
+        "status": "green",
+        "ageHours": 10.3,
+        "httpStatus": 200
+      },
+      {
+        "id": "console-dex-world",
+        "status": "green",
+        "ageHours": 1.1,
+        "httpStatus": 200
+      },
+      {
+        "id": "console-mirror-status",
+        "status": "grey",
+        "ageHours": null,
+        "httpStatus": 404
+      }
+    ]
+  },
+  "e1": {
+    "builtin": "builtin-e1-spread-regime",
+    "value": 100,
+    "deltaBps": 6.5,
+    "ageHours": 10.3,
+    "publishedAt": "2026-10-11T13:40:06.612Z",
+    "verdict": "HOLD",
+    "direction": "loosened",
+    "source": "live-pages",
+    "block": "SPREAD-REGIME: value=100bps · delta=+6.50 vs 93.5 · מקור-בן-10.3h · HOLD (loosened) — הפיזור התרחב — לעקוב בלבד (verify/doc-only)"
+  },
+  "profit": {
+    "unavailable": false,
+    "source": "live-sandbox-raw",
+    "note": "profit-oracle חי (200, at 2026-10-11 23:52 UTC) — המשרד לומד-רווחיות",
+    "netWorthSbdEquiv": 455.32,
+    "deltaVsPriorPct": 0,
+    "verdict": "FLAT",
+    "gridVerdict": "EDGE-NEGATIVE-GRID-HOLD",
+    "at": "2026-10-11T23:52:50.902Z"
+  },
+  "workOrders": {
+    "source": "live-sandbox-raw",
+    "note": "work-orders חי (200, 127ms) — 6 פתוחים · 6 נפתרו · P1 פתוחים: 1",
+    "counts": {
+      "total": 12,
+      "open": 6,
+      "resolved": 6,
+      "openP1": 1
+    }
+  },
+  "gates": {
+    "source": "unavailable",
+    "note": "GATE-STATUS לא-נגיש (HTTP 404) — מצבי-השערים לא-ידועים כעת (מקור-פרטי; כנה, לא-מדומה)"
+  },
+  "items": [
+    {
+      "id": "research-e1-spread-regime",
+      "source": "research/2026-10-11 (E1 spread-regime)",
+      "title": "E1 spread-regime — spread tightened (93.48 < 93.5 bps) — grid-side liquidity improving",
+      "riskClass": "SAFE",
+      "value": 4,
+      "effort": 2,
+      "ownerWordRequired": false,
+      "status": "EXECUTED",
+      "executableBy": "builtin-e1-spread-regime",
+      "detail": {
+        "ok": true,
+        "next": "track weekly; correlate with grid-beat placements (private-12 ledger) before claiming causality",
+        "executedByBuiltin": "builtin-e1-spread-regime",
+        "proposalRef": "PROPOSALS/2026-10-11-research-e1-spread-regime.md",
+        "verdict": "SPREAD-REGIME: value=100bps · delta=+6.50 vs 93.5 · מקור-בן-10.3h · HOLD (loosened) — הפיזור התרחב — לעקוב בלבד (verify/doc-only)"
+      }
+    },
+    {
+      "id": "WO-unwired-adsmarket-marketing",
+      "source": "work-orders.json (Sandbox raw)",
+      "title": "חבר את ערן-השיווק החי (private-1) למשטח-חי — fact-sheet/pitch/kits EN-HE נגישים מ-Domain",
+      "riskClass": "MACHINE-PREP",
+      "value": 7,
+      "effort": 2,
+      "ownerWordRequired": false,
+      "status": "OPEN",
+      "executableBy": "owner-after-prep",
+      "detail": {
+        "area": "private-1",
+        "priority": "P1",
+        "why": "הנכס-השיווקי-המלא (fact-sheet 93KB מגובה-txids · deck · social 54KB · press) חי-בגיט אך אינו-נגיש-מאף-משטח-חי = תוכן-איכותי-קבור (לפי-הוראת-בעלים — נוסח-מלא בערוץ-הפרטי)",
+        "acceptance": "פאנל/עמוד-שיווק-חי ב-Domain הצורך-מתוך-private-1 (או מראה-מדודה-שלו דרך-Pages/raw-ציבורי) + קשת-זרימה-מדודה-חדשה ב-ops/flow/flow-map.json + קבלה-חיה; אסור-לשכפ…"
+      }
+    },
+    {
+      "id": "research-e2-feed-divergence",
+      "source": "research/2026-10-11 (E2 feed-divergence)",
+      "title": "E2 feed-divergence — healthy band: divergence 252.14 bps ≤ 300 (feed_above_market)",
+      "riskClass": "MACHINE-PREP",
+      "value": 4,
+      "effort": 2,
+      "ownerWordRequired": false,
+      "status": "OPEN",
+      "executableBy": "owner-after-prep",
+      "detail": {
+        "ok": true,
+        "next": "if >300 bps repeats 2× consecutively, escalate to operator brief (peg-door policy ref)"
+      }
+    },
+    {
+      "id": "research-e3-rc-census",
+      "source": "research/2026-10-11 (E3 rc-census)",
+      "title": "E3 rc-census — 4 RC-starved accounts (<40%): wog 25.94%, hcsoldier4 8.05%, hcsoldier5 28.55%, hcsoldier6 21.63% — …",
+      "riskClass": "OWNER-WORD",
+      "value": 4,
+      "effort": 2,
+      "ownerWordRequired": true,
+      "status": "OPEN",
+      "executableBy": "owner-only",
+      "detail": {
+        "ok": true,
+        "next": "if starved persists 2× weekly, draft a delegation delta into grids/delegate-plan (owner word gate)"
+      }
+    }
+  ],
+  "executed": [
+    {
+      "id": "builtin-refresh-lane",
+      "title": "רענון קבצי-המסילה: BACKLOG + RETRO-LATEST + retro-state (SAFE: כתיבה למסילה-שלו בלבד)",
+      "riskClass": "SAFE",
+      "ownerWordRequired": false
+    },
+    {
+      "id": "builtin-verify-bus",
+      "title": "אימות-אוטובוס: מדידת כל-הפידים הרשומים + טבלת-בריאות מוטמעת (SAFE: קריאה-בלבד)",
+      "riskClass": "SAFE",
+      "ownerWordRequired": false
+    },
+    {
+      "id": "builtin-e1-spread-regime",
+      "title": "אימות-משטר-הפיזור (E1): grid.json חי מול חוק-93.5bps — פסק-כנה לתיק (SAFE: קריאה-בלבד)",
+      "riskClass": "SAFE",
+      "covers": "research-e1-spread-regime",
+      "proposalRef": "PROPOSALS/2026-10-11-research-e1-spread-regime.md",
+      "ownerWordRequired": false
+    }
+  ],
+  "proposal": {
+    "file": "2026-10-11-wo-unwired-adsmarket-marketing.md",
+    "item": "WO-unwired-adsmarket-marketing"
+  }
+}

@@ -1,0 +1,85 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# EVO-WINDOWS-STALENESS — מדיד-האמת השבועי של שרשרת reef→evo-windows (zai-13d · trace 1a12d186d2f8b86d)
+# ═══════════════════════════════════════════════════════════════════════════
+# WO-unwired-evo-windows (P2, מפקד zai-12a): השרשרת חיה ב-Domain/agents
+# (evo-windows.cjs — CR-0033 PULLED-SCHEDULE) וספריה נצרכים שם ע"י pulse —
+# חדר-אחד (חוק-ה-owner "לא צריך 2 אותו הדבר"): אין כאן ספר-תאום, יש מדיד-טריות.
+#
+# חוק-השער (כמו fresh-oracle, zai-12b): fail-open — השער מדווח, לעולם לא רודף;
+# פסק-RED כנה שפורסם הוא הצלחת-השער; תיקון-השרשרת = צעד-בעלים ב-Domain, לא צעד-סוכן.
+#
+# cron "37 6 * * 2" = שבועי יום-ג' 06:37 UTC — דקה-אי-זוגית, נבדל מכל-הקרונים
+# השבועיים הקיימים (Mon 05:17 retro · Mon 05:23 research-lane · Wed 04:23
+# key-proof · Wed 05:07 fresh-oracle). + workflow_dispatch להרצה-על-דרישה.
+#
+# אין-סודות: קריאות-ציבוריות בלבד (raw/Pages של Domain) + clone-רדוד חד-פעמי.
+# ═══════════════════════════════════════════════════════════════════════════
+name: evo-windows-staleness
+
+on:
+  schedule:
+    - cron: "37 6 * * 2" # שבועי · יום-ג' 06:37 UTC — דקה-אי-זוגית
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: evo-windows-staleness
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 # מדיד-טריות: אין-צורך בהיסטוריה-מלאה
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Selftest gate (zero network — must be ALL GREEN)
+        run: node ops/evo-windows-staleness/gate.mjs --selftest
+
+      - name: Live gate (measure → honest verdicts → union receipt + verdict.md)
+        run: node ops/evo-windows-staleness/gate.mjs
+
+      - name: Commit refreshed receipt + verdict (receipt = commit; rebase loop ×5)
+        run: |
+          set -u
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add receipts/evo-windows-staleness-latest.json ops/evo-windows-staleness/verdict.md
+          if git diff --cached --quiet; then
+            echo "no artifact change — clean exit"
+          else
+            git commit -m "[evo-windows-staleness] weekly truth-measure refreshed: $(date -u +%FT%TZ) [skip ci]"
+            ok=0
+            for i in 1 2 3 4 5; do
+              git pull --rebase origin main && git push origin HEAD:main && ok=1 && break
+              echo "push attempt $i failed — re-pull --rebase and retry"
+              sleep $((i * 10))
+            done
+            test "$ok" = "1" || { echo "push failed after 5 rebase attempts"; exit 1; }
+          fi
+
+      - name: Honest exit (verdict summary stays loud)
+        run: |
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("receipts/evo-windows-staleness-latest.json"))
+          run = d["runs"][-1]
+          s = run["summary"]
+          print(f"evo-windows-staleness @ {run['at']} ({run['trigger']}): GREEN={s['GREEN']} AMBER={s['AMBER']} RED={s['RED']} UNKNOWN={s['UNKNOWN']}")
+          for c in run["checks"]:
+              print(f"  {c['verdict']:7} {c['id']}")
+          if s["RED"] > 0:
+              print("🔴 RED present — honest verdict published; the evo chain's owner-side fix (Domain cron or acceptance) is an owner step, not an agent step")
+          if s["UNKNOWN"] > 0:
+              print("⚪ UNKNOWN present — honest degradation (network/access); will re-measure next run")
+          print(f"runs kept: {len(d['runs'])}/12")
+          EOF

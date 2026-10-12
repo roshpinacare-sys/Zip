@@ -1,0 +1,92 @@
+# office-retro.yml — מחזור-השיפור-העצמי של המשרד: חקר → זיקוק → תכנון → ביצוע.
+# Lane: zai-11d (owner mandate trace 1a12c9d6f5df1b95) — new-files lane only,
+# zero overlap with office-window/* (10-a), office/state (heartbeat), tools/* (others).
+# Zero secrets: the only credential is the built-in GITHUB_TOKEN (contents:write).
+#   NOTE: GITHUB_TOKEN cannot read the private Zip repo, so at runtime the registry
+#   falls back to the embedded snapshot and gates render as honest unknown — by design.
+#   The owner may later add a read-only PAT secret to light the private raws up.
+# Honesty: any collection failure degrades to "unknown/gray" — never fake green.
+# Safety: retro auto-executes ONLY its SAFE built-ins (lane-file refresh + bus verify);
+#   it never broadcasts, never signs, never touches money/keys/STASIS.
+name: office-retro
+
+on:
+  schedule:
+    - cron: "43 7 * * 4"   # weekly Thursday 07:43 UTC (odd minute — fleet cron hygiene, distinct from office-window 06:17 daily)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: office-pages-publish   # SAME lane as office-window — office-pages publishes serialize, never race
+  cancel-in-progress: false
+
+jobs:
+  retro-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (full history — branch publish + main receipt need it)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Selftest (offline — the loop's laws must be green before any live run)
+        run: node office/retro.mjs --selftest
+
+      - name: Retro cycle (live measurement — research/bus/gates/digest → backlog → proposal)
+        env:
+          # GITHUB_TOKEN cannot read the private Zip raws — registry degrades to the
+          # embedded snapshot and gates render honest-unknown (by design). The owner
+          # may set a read-only FLEET_READ_PAT secret to light the private raws up.
+          GH_TOKEN: ${{ secrets.FLEET_READ_PAT || secrets.GITHUB_TOKEN }}
+        run: node office/retro.mjs
+
+      - name: Publish retro to office-pages (rebase-first, no force-push, worktree-isolated)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: bash office/publish-retro.sh
+
+      - name: Commit receipt to main (lane files only — BACKLOG/RETRO-LATEST/retro-state/proposals)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TOKEN="${GH_TOKEN:-}"
+          [ -n "$TOKEN" ] || { echo "receipt: token missing (fail-closed)" >&2; exit 1; }
+          git config user.name "fleet-office-bot"
+          git config user.email "roshpinacare-sys@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git add office/BACKLOG.md office/RETRO-LATEST.md office/retro-state.json office/PROPOSALS 2>/dev/null || true
+          # note: office/dist/* is a build artifact — it ships via office-pages only, never on main
+          if git diff --cached --quiet; then
+            echo "receipt: lane files identical — nothing to commit"
+          else
+            git commit -q -m "[zai] office-retro: weekly cycle artifacts — backlog/retro-latest/proposal [skip ci]"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+            echo "receipt: pushed to main"
+          fi
+
+      - name: Honest job summary
+        if: always()
+        run: |
+          {
+            echo "## office-retro — self-improvement cycle"
+            echo ""
+            if [ -f office/retro-state.json ]; then
+              node -e "const s=require('./office/retro-state.json');console.log('- generatedAt:',s.generatedAt);console.log('- registry:',s.registry&&s.registry.source);console.log('- bus counts:',JSON.stringify(s.bus&&s.bus.counts));console.log('- findings:',s.findings&&s.findings.found?('measured '+s.findings.date):'not measured (honest)');console.log('- gates:',s.gates&&(s.gates.gates? s.gates.gates.length+' mapped ('+s.gates.source+')':'unknown (honest)'));console.log('- items:',(s.items||[]).length,'→ executed built-ins:',(s.executed||[]).map(e=>e.id).join(', '));console.log('- proposal:',s.proposal&&s.proposal.file);"
+            else
+              echo "- retro-state.json MISSING — cycle did not complete (honest failure)"
+            fi
+            echo "- Pages: https://roshpinacare-sys.github.io/FleetHQ/retro/index.html"
+          } >> "${GITHUB_STEP_SUMMARY:-/dev/stdout}"

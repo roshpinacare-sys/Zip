@@ -1,0 +1,31 @@
+{
+ "protocol": "SAOS-CHANGE-REQUEST/1",
+ "cr": "CR-0075",
+ "title": "THE OWNER GATES — the approved batch settlement lane + the engine fee law (R77)",
+ "ok": true,
+ "opens": ["BATCH-SETTLE", "ENGINE-FEE-LAW"],
+ "directive": "מאשר בצע תמשיך",
+ "trace": "1a117de3a33a3b25",
+ "directiveAt": "2026-10-07",
+ "ratified": "תמשיך מאיפה שעצרת",
+ "ratifiedAt": "2026-10-08",
+ "at": "2026-10-07T20:40:00Z",
+ "scope": [
+  "the APPROVED batch settlement lane (dex-batch-settle): the uniform clearing (the CoW take) settles the mesh queue on the ENGINE BOOK — keyless, internal-only, one price for every trader, conservation-checked, idempotent",
+  "the ENGINE fee law (the Meteora take, engine-adopted): the pools price by the measured law at trade time — fills, batch clears and routes; the stored ledger fee stays BASE (no fee-creep)"
+ ],
+ "honesty": [
+  "the settle lane moves INTERNAL SIM LEDGER UNITS on the dex-core book — the book the honest-econ doctrine labels NOT-REAL-MONEY; zero real-chain value, zero keys, zero broadcasts",
+  "real on-chain money remains exactly what honest-econ.json measures ($0.7103 custody + the realized LOSS -0.388666 SBD) — this gate changes NOTHING about real money; it turns the honest simulation into an honest, live, one-price market",
+  "STASIS stays armed: active=true, mode=staged — only the dex-batch-settle lane joins grid+claims in stagedLanes.allow; every other lane (delegations, transfers, converts, votes, account creation, chain broadcasts) stays halted fail-closed",
+  "the DRY proof lane (agents/dex-batch.json) continues unchanged — movedNothing:true forever; the two lanes are separate books (measure vs settle)"
+ ],
+ "revocation": "the owner revokes by DELETING this file or removing the kind from opens[] — the engine refuses the lane on the next tick (fail-closed: absent, malformed, or kind-not-opened all refuse); the gate itself is audited in git history (the CR-0074 artifact law)",
+ "proofs": {
+  "selftestBatchSettle": "28/28 (gate laws, staged-lane laws, refusals move nothing, conservation+attestation, one-price uniform, solver dust, two-sided netting at the fair, pure no-mutation, permuted-queue identical ledger, law fee rides the batch, ledger fee stays base)",
+  "selftestBatch": "15/15 (the R76 uniform clearing laws)",
+  "selftest": "the engine main selftest green",
+  "authority": "resumePolicy satisfied: judge-node green (selftests) + owner word EXPLICIT (IM trace 1a117de3a33a3b25 2026-10-07 'מאשר בצע תמשיך', ratified 'תמשיך מאיפה שעצרת') + the staged re-entry calibration mandate 2026-10-05 (IM trace 1a10bfe1342b2391): the safest path first — keyless, internal-only, one-price, anti-sandwich"
+ },
+ "note": "an artifact someone can audit in git history, not a boolean an import can flip in memory"
+}

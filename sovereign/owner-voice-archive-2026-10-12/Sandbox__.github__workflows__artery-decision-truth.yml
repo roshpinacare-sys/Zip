@@ -1,0 +1,91 @@
+name: artery-decision-truth
+# ═══════════════════════════════════════════════════════════════════════════
+# ARTERY-DECISION-TRUTH · עורק-אמת-ההכרעות (H-series · zai-code-3, 2026-10-11).
+# ───────────────────────────────────────────────────────────────────────────
+# דרישת-בעלים מילה-במילה (trace 1a12cf891f8dad2d): "לבדוק מה לא מחובר ...
+# בלי לסמוך על טענות יש לנו דרך לאמת ... להפוך מתיאור למעשים אוטונומית
+# ריבונית למעשה".
+#
+# החוק (H): כל הכרעה ENFORCED של צו-הריבונות (T14 CHARTER R1) חייבת —
+#   · אימות-עצמאי של כל-מספר-עדות (אותו-נוסחה, ריצה-עצמאית, מקורות-פומביים)
+#   · EXECUTION-EXISTENCE: צרכן-מדוד. ENFORCED בלי צרכן = UNEXECUTED.
+#   · עדויות-שהעולם-עבר-מעליהן = STALE-TRUTH (RE-MEASURE חייב-להכריע-מחדש)
+#   · מקור-שנפל = UNVERIFIABLE — כנות, לעולם לא "זיוף".
+#   · לב-ההכרעות עצמו מקבל-שעון (decider שקט >90 דק׳ = דגל).
+#
+# קצב: cron 16,46 (T14 מפרסם 4,34 — אנחנו מאמתים 12 דק׳ אחרי כל-פרסום).
+# תחום: קריאה-בלבד של DECIDER/** (T14) · כתיבה אך-ורק ops/decision-truth/**.
+# ═══════════════════════════════════════════════════════════════════════════
+on:
+  schedule:
+    - cron: "16,46 * * * *"
+  workflow_dispatch:
+  repository_dispatch:
+    types:
+      - decision-truth-tick
+
+permissions:
+  contents: write
+
+concurrency:
+  group: artery-decision-truth
+  cancel-in-progress: false
+
+jobs:
+  truth:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: setup-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # שער-עצמי: המנוע מוכיח את-עצמו על וקטורים דטרמיניסטיים לפני כל-ריצה-חיה
+      - name: selftest (fail-closed)
+        run: node engine/decision-truth.mjs --selftest
+
+      - name: re-measure every sovereign decision (never trust, always verify)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node engine/decision-truth.mjs
+
+      - name: leak-scan (fail-closed)
+        if: always()
+        run: |
+          [ -f ops/decision-truth/verdict.json ] && node engine/leak-scan.mjs ops/decision-truth/verdict.json
+          [ -f ops/decision-truth/log.jsonl ] && node engine/leak-scan.mjs ops/decision-truth/log.jsonl
+          [ -f ops/decision-truth/run.log ] && node engine/leak-scan.mjs ops/decision-truth/run.log
+
+      # קומיט-ממושפע: רק ops/decision-truth (אף-פעם לא -A) · rebase ×3 · כשל = יציאה 1
+      - name: commit verdict (honest verdicts always land, FAIL included)
+        if: always()
+        run: |
+          git config user.name "decision-truth"
+          git config user.email "decision-truth@users.noreply.github.com"
+          git add ops/decision-truth
+          if git diff --cached --quiet; then
+            echo "verdict unchanged - nothing to commit"
+            exit 0
+          fi
+          git commit -m "decision-truth verdict: $(date -u +%FT%TZ)"
+          OK=0
+          for i in 1 2 3; do
+            if git pull --rebase origin main && git push origin main; then OK=1; echo "push ok (attempt $i)"; break; fi
+            git rebase --abort 2>/dev/null || true
+            git status --short
+            sleep 5
+          done
+          [ "$OK" = "1" ] || { echo "verdict push failed after 3 attempts - honest failure"; exit 1; }
+
+      - name: verdict law (red unless PASS/PASS_WITH_ALERTS — after the verdict landed)
+        if: always()
+        run: |
+          V="$(node -e 'try{console.log(JSON.parse(require("fs").readFileSync("ops/decision-truth/verdict.json","utf8")).overall)}catch{console.log("ERROR")}')"
+          echo "decision-truth verdict: $V"
+          [ "$V" = "PASS" ] || [ "$V" = "PASS_WITH_ALERTS" ] || { echo "decider book unreadable or engine self-fail - run stays red (honesty over comfort)"; exit 1; }

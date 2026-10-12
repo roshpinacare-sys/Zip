@@ -1,0 +1,1349 @@
+{
+ "protocol": "saos/key-proof/1",
+ "generatedAt": "2026-10-11T21:06:00.499Z",
+ "finishedAt": "2026-10-11T21:06:46.314Z",
+ "mandate": "owner trace 1a12c9d6f5df1b95 — dead-key standing proof for R11 leaked key material (roshpina/anchor-baseline/saos-jummper/Sdk/Adsmarket)",
+ "redaction": {
+  "law": "hash16-of-material + derived pubkeys + place metadata ONLY; no private material, no passphrases, no file contents; auditor enforced pre-write (violation = hard failure, nothing written)",
+  "selfAudited": true
+ },
+ "scan": {
+  "repos": [
+   {
+    "repo": "roshpina",
+    "reachable": true,
+    "head": "3f887102f3",
+    "commits": 136,
+    "blobs": 432,
+    "bytes": 2400429,
+    "ms": 2507
+   },
+   {
+    "repo": "anchor-baseline",
+    "reachable": true,
+    "head": "0d36d35b0c",
+    "commits": 127,
+    "blobs": 133,
+    "bytes": 686279,
+    "ms": 2024
+   },
+   {
+    "repo": "saos-jummper",
+    "reachable": true,
+    "head": "022eec59f9",
+    "commits": 436,
+    "blobs": 508,
+    "bytes": 4636385,
+    "ms": 2638
+   },
+   {
+    "repo": "Sdk",
+    "reachable": true,
+    "head": "2e78f54f91",
+    "commits": 129,
+    "blobs": 204,
+    "bytes": 762945,
+    "ms": 1914
+   },
+   {
+    "repo": "Adsmarket",
+    "reachable": true,
+    "head": "174187b83d",
+    "commits": 584,
+    "blobs": 548,
+    "bytes": 10990547,
+    "ms": 3442
+   }
+  ],
+  "totalBlobs": 1825,
+  "totalBytes": 19476585,
+  "reachabilityNote": "all 5 repos reachable",
+  "noise": {
+   "oversizeBlobs": 0,
+   "skippedBudget": 0,
+   "unreadableBlobs": 0
+  },
+  "note": "candidate values are hashed in-memory only; never persisted anywhere"
+ },
+ "derive": {
+  "engine": "zero-dep port of Domain/gate-crypto.js (secp256k1 BigInt Jacobian + base58check + ripemd160), selftest-anchored (EC G/2G KATs, WIF KAT, rmd160 KAT, real-chain-key decode)"
+ },
+ "chain": {
+  "node": "https://api.steemit.com",
+  "fleetAccounts": 14,
+  "fleetAliveKeyBodies": 56,
+  "keyReferencesAvailable": true,
+  "keyReferenceNote": "condenser_api.get_key_references used (global reference census)",
+  "rotation": {
+   "window": {
+    "from": "2026-10-08T15:00:00",
+    "to": "2026-10-08T19:00:00"
+   },
+   "opsWalked": 8787,
+   "pages": 87,
+   "reachedWindowEnd": true,
+   "truncated": false,
+   "accountUpdateOps": [
+    {
+     "timestamp": "2026-10-08T17:29:09",
+     "block": 110266615,
+     "trxId": "8edc45ed502c9a6c6f60f29dee7591798f234e1a",
+     "op": "account_update",
+     "newAuthorities": {
+      "owner": [
+       "STM5Ao2voWBnv8Nwfd5hMA4zwjBQZE8a8J8RkLUd8HpuFWhrSQFJ7"
+      ],
+      "active": [
+       "STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf"
+      ],
+      "posting": [
+       "STM7RqZtbL1GQMJz7Lt59qeCkiCgkyRqVSpW59UXX3aTNGjh7QjY3"
+      ]
+     }
+    }
+   ]
+  },
+  "headcornerLastOwnerUpdate": "2026-10-08T17:29:09",
+  "headcornerActiveLive": "STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf",
+  "gen2ActiveExpected": "STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf",
+  "gen2ActiveMatchesLive": true
+ },
+ "summary": {
+  "DEAD": 9,
+  "ALIVE-ALERT": 0,
+  "UNKNOWN": 0,
+  "UNKNOWN-NOT-CHAIN-TESTABLE": 3,
+  "incident": false
+ },
+ "verdicts": [
+  {
+   "hash16": "658d061ca1a85765",
+   "kind": "archive",
+   "where": [
+    {
+     "repo": "roshpina",
+     "blob": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0",
+     "path": "agent/vault/KEYS-ACCESS-README-HE.md"
+    },
+    {
+     "repo": "anchor-baseline",
+     "blob": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0",
+     "path": "agent/vault/KEYS-ACCESS-README-HE.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0",
+     "path": "agent/vault/KEYS-ACCESS-README-HE.md"
+    },
+    {
+     "repo": "Sdk",
+     "blob": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0",
+     "path": "agent/vault/KEYS-ACCESS-README-HE.md"
+    },
+    {
+     "repo": "Adsmarket",
+     "blob": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0",
+     "path": "agent/vault/KEYS-ACCESS-README-HE.md"
+    }
+   ],
+   "gitBlobSha": "39ae0b5eb3c93f5bc661df5125ce01c3b6910ca0",
+   "size": 5928,
+   "introducedIn": [
+    {
+     "sha": "5d7c41a817",
+     "date": "2026-09-13"
+    },
+    {
+     "sha": "7364c141fd",
+     "date": "2026-09-12"
+    }
+   ],
+   "verdict": "UNKNOWN-NOT-CHAIN-TESTABLE"
+  },
+  {
+   "hash16": "dadf2d6c8cfdc1aa",
+   "kind": "passphrase",
+   "where": [
+    {
+     "repo": "roshpina",
+     "blob": "0114d64c2761ba286a1099df6bd7390ae20c6ded",
+     "path": "agent/vault/recovery-meta-2026-09-12.json"
+    },
+    {
+     "repo": "anchor-baseline",
+     "blob": "0114d64c2761ba286a1099df6bd7390ae20c6ded",
+     "path": "agent/vault/recovery-meta-2026-09-12.json"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "0114d64c2761ba286a1099df6bd7390ae20c6ded",
+     "path": "agent/vault/recovery-meta-2026-09-12.json"
+    },
+    {
+     "repo": "Sdk",
+     "blob": "0114d64c2761ba286a1099df6bd7390ae20c6ded",
+     "path": "agent/vault/recovery-meta-2026-09-12.json"
+    },
+    {
+     "repo": "Adsmarket",
+     "blob": "0114d64c2761ba286a1099df6bd7390ae20c6ded",
+     "path": "agent/vault/recovery-meta-2026-09-12.json"
+    }
+   ],
+   "context": "keys_access_2026_09_12\"",
+   "introducedIn": [
+    {
+     "sha": "2b554afea0",
+     "date": "2026-09-13"
+    },
+    {
+     "sha": "ad09ca5570",
+     "date": "2026-09-12"
+    }
+   ],
+   "verdict": "UNKNOWN-NOT-CHAIN-TESTABLE",
+   "matrixProbe": {
+    "tested": 392,
+    "derivedPubkeysTested": 336,
+    "aliveMatches": [],
+    "note": "master-password derivation (steemit-standard + 6 seed-orders × 14 fleet accounts × 4 roles) matched no live authority; as an archive passphrase it remains untestable by design (archive never opened)"
+   }
+  },
+  {
+   "hash16": "fd51fe837e016ea9",
+   "kind": "archive",
+   "where": [
+    {
+     "repo": "roshpina",
+     "blob": "3d8221a345c42798fc1897ffdcd638bb93d09ad4",
+     "path": "agent/vault/KEYS-ACCESS-2026-09-12.tar.enc"
+    },
+    {
+     "repo": "anchor-baseline",
+     "blob": "3d8221a345c42798fc1897ffdcd638bb93d09ad4",
+     "path": "agent/vault/KEYS-ACCESS-2026-09-12.tar.enc"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "3d8221a345c42798fc1897ffdcd638bb93d09ad4",
+     "path": "agent/vault/KEYS-ACCESS-2026-09-12.tar.enc"
+    },
+    {
+     "repo": "Sdk",
+     "blob": "3d8221a345c42798fc1897ffdcd638bb93d09ad4",
+     "path": "agent/vault/KEYS-ACCESS-2026-09-12.tar.enc"
+    },
+    {
+     "repo": "Adsmarket",
+     "blob": "3d8221a345c42798fc1897ffdcd638bb93d09ad4",
+     "path": "agent/vault/KEYS-ACCESS-2026-09-12.tar.enc"
+    }
+   ],
+   "gitBlobSha": "3d8221a345c42798fc1897ffdcd638bb93d09ad4",
+   "size": 138288,
+   "introducedIn": [
+    {
+     "sha": "9dae05b6c9",
+     "date": "2026-09-13"
+    },
+    {
+     "sha": "5983d4b745",
+     "date": "2026-09-12"
+    }
+   ],
+   "verdict": "UNKNOWN-NOT-CHAIN-TESTABLE"
+  },
+  {
+   "hash16": "68c891d39dce9928",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "ec871101e84070456d40f820563a843e6d2a4f80",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "20c3fc5cfa96114be8e7a064407195ee57889714",
+     "path": "tests/test_rotation.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7ab070798bd7075909d899dbb0015b56a99a6f38",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "9d6870916a9bda53d9d7007de67f5cd3d7625b52",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "cb5abdb7373d91affd8904aa8a9762e76ac1a2e5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6fd2c7af76bd518dabb48b852872b7721f08e8fd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e780980e428e599768d899611d65b87330a234dd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "efbe2e11db2fea286a3dc041481bf0f82b113ab0",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "16bd8fca834550a26cfa5a6ef361cd27e98f3d6f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e302cbf97145482619a1daca17e6eb96558da50d",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fd9c11751bc5b02b0c5d0e18f675fa98ebf2c9b5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "579fe9853151eba5f2c6c19cda2aa9055f450c43",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "bcbdb20071c6a920285ea962ece0cdb94e2730d4",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e484e6770fb23d937208af330a2dcf7059fbac96",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1ba26b89491da52e9daadcc36413c2b42d7df0f9",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6d1e4b7cddb8c5bd125557aa6d9a5d209717926f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "84f0216053ad8e893ee78240bea4fd4c4ebe9687",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8b42ee89180aad4f54b981ad8c018b228dc61d65",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "faf4a0914020189056d2a477669c4baa4d85b7f8",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1369c614ca999256c6b195f32bff4208499c0ca1",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5ed156a327e014a120bc22f96bf8df53f4db2e9a",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5cd8e2d229e7fc31f0ed46c787fe8bbb510961cd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8ed8379b56e16c5a4a9af36c5a99822f2ba9152c",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "2447a9c0ed08573d24fc7753ff65f776d45e6c6e",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "72df0493241d628db20e26bd085f3e638aa6aa75",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "78bd76d8493ed9f0a5d7614811d663484431daf3",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "45ce65632740ce19ebbcd284f862cc00031b83ba",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "017cd2d263487da3fd7ef39714c01e8ab4274c4f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7fbb6d6cf83f87dc13597b7a85dfa6d30ed29724",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "d0e51cefcc30f4e2083c07141f754837111d62f1",
+     "path": "tests/test_rotation.py"
+    }
+   ],
+   "derivedPubkey": "STM8mSbBz8zsMfBow2xa1yfTuNhdp6KZf3v7kAs1BSQAB1AMQM1Fw",
+   "introducedIn": [
+    {
+     "sha": "ae38a43b8e",
+     "date": "2026-09-10"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "a060933235738c89",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "ec871101e84070456d40f820563a843e6d2a4f80",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "20c3fc5cfa96114be8e7a064407195ee57889714",
+     "path": "tests/test_rotation.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7ab070798bd7075909d899dbb0015b56a99a6f38",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "9d6870916a9bda53d9d7007de67f5cd3d7625b52",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "cb5abdb7373d91affd8904aa8a9762e76ac1a2e5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6fd2c7af76bd518dabb48b852872b7721f08e8fd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e780980e428e599768d899611d65b87330a234dd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "efbe2e11db2fea286a3dc041481bf0f82b113ab0",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "16bd8fca834550a26cfa5a6ef361cd27e98f3d6f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e302cbf97145482619a1daca17e6eb96558da50d",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fd9c11751bc5b02b0c5d0e18f675fa98ebf2c9b5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "579fe9853151eba5f2c6c19cda2aa9055f450c43",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "bcbdb20071c6a920285ea962ece0cdb94e2730d4",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e484e6770fb23d937208af330a2dcf7059fbac96",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1ba26b89491da52e9daadcc36413c2b42d7df0f9",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6d1e4b7cddb8c5bd125557aa6d9a5d209717926f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "84f0216053ad8e893ee78240bea4fd4c4ebe9687",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8b42ee89180aad4f54b981ad8c018b228dc61d65",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "faf4a0914020189056d2a477669c4baa4d85b7f8",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1369c614ca999256c6b195f32bff4208499c0ca1",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5ed156a327e014a120bc22f96bf8df53f4db2e9a",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5cd8e2d229e7fc31f0ed46c787fe8bbb510961cd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8ed8379b56e16c5a4a9af36c5a99822f2ba9152c",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "2447a9c0ed08573d24fc7753ff65f776d45e6c6e",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "72df0493241d628db20e26bd085f3e638aa6aa75",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "78bd76d8493ed9f0a5d7614811d663484431daf3",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "45ce65632740ce19ebbcd284f862cc00031b83ba",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "017cd2d263487da3fd7ef39714c01e8ab4274c4f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7fbb6d6cf83f87dc13597b7a85dfa6d30ed29724",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "d0e51cefcc30f4e2083c07141f754837111d62f1",
+     "path": "tests/test_rotation.py"
+    }
+   ],
+   "derivedPubkey": "STM8c9vp3hUnNsXHaWLPTpcYWkPpK5GrnySgN51FiGX9dxhwVz8YZ",
+   "introducedIn": [
+    {
+     "sha": "ae38a43b8e",
+     "date": "2026-09-10"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "fabbcdf2278d8858",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "ec871101e84070456d40f820563a843e6d2a4f80",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "20c3fc5cfa96114be8e7a064407195ee57889714",
+     "path": "tests/test_rotation.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7ab070798bd7075909d899dbb0015b56a99a6f38",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "9d6870916a9bda53d9d7007de67f5cd3d7625b52",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "cb5abdb7373d91affd8904aa8a9762e76ac1a2e5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6fd2c7af76bd518dabb48b852872b7721f08e8fd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e780980e428e599768d899611d65b87330a234dd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "efbe2e11db2fea286a3dc041481bf0f82b113ab0",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "16bd8fca834550a26cfa5a6ef361cd27e98f3d6f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e302cbf97145482619a1daca17e6eb96558da50d",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fd9c11751bc5b02b0c5d0e18f675fa98ebf2c9b5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "579fe9853151eba5f2c6c19cda2aa9055f450c43",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "bcbdb20071c6a920285ea962ece0cdb94e2730d4",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e484e6770fb23d937208af330a2dcf7059fbac96",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1ba26b89491da52e9daadcc36413c2b42d7df0f9",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6d1e4b7cddb8c5bd125557aa6d9a5d209717926f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "84f0216053ad8e893ee78240bea4fd4c4ebe9687",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8b42ee89180aad4f54b981ad8c018b228dc61d65",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "faf4a0914020189056d2a477669c4baa4d85b7f8",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1369c614ca999256c6b195f32bff4208499c0ca1",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5ed156a327e014a120bc22f96bf8df53f4db2e9a",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5cd8e2d229e7fc31f0ed46c787fe8bbb510961cd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8ed8379b56e16c5a4a9af36c5a99822f2ba9152c",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "2447a9c0ed08573d24fc7753ff65f776d45e6c6e",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "72df0493241d628db20e26bd085f3e638aa6aa75",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "78bd76d8493ed9f0a5d7614811d663484431daf3",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "45ce65632740ce19ebbcd284f862cc00031b83ba",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "017cd2d263487da3fd7ef39714c01e8ab4274c4f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7fbb6d6cf83f87dc13597b7a85dfa6d30ed29724",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "d0e51cefcc30f4e2083c07141f754837111d62f1",
+     "path": "tests/test_rotation.py"
+    }
+   ],
+   "derivedPubkey": "STM6u99ogJKojfZC94VCs73N3wVRxnm9XTjVSmkSm2BE59yDEuH6b",
+   "introducedIn": [
+    {
+     "sha": "ae38a43b8e",
+     "date": "2026-09-10"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "5ad1a13d7cb91a44",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6b0d5b4aef4bce9ec09fc15ca42f40507703408e",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "ec871101e84070456d40f820563a843e6d2a4f80",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "20c3fc5cfa96114be8e7a064407195ee57889714",
+     "path": "tests/test_rotation.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7ab070798bd7075909d899dbb0015b56a99a6f38",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "9d6870916a9bda53d9d7007de67f5cd3d7625b52",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "cb5abdb7373d91affd8904aa8a9762e76ac1a2e5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6fd2c7af76bd518dabb48b852872b7721f08e8fd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e780980e428e599768d899611d65b87330a234dd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "efbe2e11db2fea286a3dc041481bf0f82b113ab0",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "16bd8fca834550a26cfa5a6ef361cd27e98f3d6f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e302cbf97145482619a1daca17e6eb96558da50d",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fd9c11751bc5b02b0c5d0e18f675fa98ebf2c9b5",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "579fe9853151eba5f2c6c19cda2aa9055f450c43",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "bcbdb20071c6a920285ea962ece0cdb94e2730d4",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "e484e6770fb23d937208af330a2dcf7059fbac96",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1ba26b89491da52e9daadcc36413c2b42d7df0f9",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "6d1e4b7cddb8c5bd125557aa6d9a5d209717926f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "84f0216053ad8e893ee78240bea4fd4c4ebe9687",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8b42ee89180aad4f54b981ad8c018b228dc61d65",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "faf4a0914020189056d2a477669c4baa4d85b7f8",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "1369c614ca999256c6b195f32bff4208499c0ca1",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5ed156a327e014a120bc22f96bf8df53f4db2e9a",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "5cd8e2d229e7fc31f0ed46c787fe8bbb510961cd",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "8ed8379b56e16c5a4a9af36c5a99822f2ba9152c",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "2447a9c0ed08573d24fc7753ff65f776d45e6c6e",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "72df0493241d628db20e26bd085f3e638aa6aa75",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "78bd76d8493ed9f0a5d7614811d663484431daf3",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "45ce65632740ce19ebbcd284f862cc00031b83ba",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "017cd2d263487da3fd7ef39714c01e8ab4274c4f",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "7fbb6d6cf83f87dc13597b7a85dfa6d30ed29724",
+     "path": "scripts/coverage_harness.py"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "fe40e46eed8abc8470ee7c2b9dba4a7b9b37c3eb",
+     "path": "docs/KEY-INCIDENT.md"
+    },
+    {
+     "repo": "saos-jummper",
+     "blob": "d0e51cefcc30f4e2083c07141f754837111d62f1",
+     "path": "tests/test_rotation.py"
+    }
+   ],
+   "derivedPubkey": "STM7pmsRp7QrEnuGT6EWfnJMuSiAU9wXSoNUJRBYQio5qfGCSrax5",
+   "introducedIn": [
+    {
+     "sha": "ae38a43b8e",
+     "date": "2026-09-10"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "9e3af764371b8d68",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "72241f2af1dd654684b9e04e9b2b96e384042c70",
+     "path": "state/hive-intel-latest.json"
+    }
+   ],
+   "derivedPubkey": "STM8PFEEhF9g3PMZu9mu9vso56bzP6i4aMYM73aWL8CkcKi4LEGLR",
+   "introducedIn": [
+    {
+     "sha": "38d48f9fec",
+     "date": "2026-10-11"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "e76c845274793ed2",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "72241f2af1dd654684b9e04e9b2b96e384042c70",
+     "path": "state/hive-intel-latest.json"
+    }
+   ],
+   "derivedPubkey": "STM82sVNpRXV86ARhL1mPoqjBTQUsdR5YwUg2dGAtJognb4cZveYH",
+   "introducedIn": [
+    {
+     "sha": "38d48f9fec",
+     "date": "2026-10-11"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "9805443d09068ce9",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "72241f2af1dd654684b9e04e9b2b96e384042c70",
+     "path": "state/hive-intel-latest.json"
+    }
+   ],
+   "derivedPubkey": "STM7ZReKWfMREwGQp4jDe8mxPXuLQLUro4WXks2s7rTzjAjpsGi3Y",
+   "introducedIn": [
+    {
+     "sha": "38d48f9fec",
+     "date": "2026-10-11"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "b9f93d6be956f71b",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "72241f2af1dd654684b9e04e9b2b96e384042c70",
+     "path": "state/hive-intel-latest.json"
+    }
+   ],
+   "derivedPubkey": "STM6aq8Ymd7NRVk2ry7buNHSFYCy5yGMKBXMZAa7hS7rtVL4VarGb",
+   "introducedIn": [
+    {
+     "sha": "38d48f9fec",
+     "date": "2026-10-11"
+    }
+   ],
+   "verdict": "DEAD"
+  },
+  {
+   "hash16": "0b7273ebe23da4e3",
+   "kind": "pubkey",
+   "where": [
+    {
+     "repo": "saos-jummper",
+     "blob": "72241f2af1dd654684b9e04e9b2b96e384042c70",
+     "path": "state/hive-intel-latest.json"
+    }
+   ],
+   "derivedPubkey": "STM6wjYfYn728hR5yXNBS5GcMoACfYymKEWW1WFzDGiMaeo9qUKwH",
+   "introducedIn": [
+    {
+     "sha": "38d48f9fec",
+     "date": "2026-10-11"
+    }
+   ],
+   "verdict": "DEAD"
+  }
+ ],
+ "soldierProbe": {
+  "measuredAt": "2026-10-11T21:06:46.314Z",
+  "method": "condenser_api.get_accounts live authorities — facts only, zero key material, zero vault access",
+  "rows": [
+   {
+    "account": "headcorner",
+    "lane": "treasury",
+    "ownerPubkey": "STM5Ao2voWBnv8Nwfd5hMA4zwjBQZE8a8J8RkLUd8HpuFWhrSQFJ7",
+    "activePubkey": "STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf",
+    "postingPubkey": "STM7RqZtbL1GQMJz7Lt59qeCkiCgkyRqVSpW59UXX3aTNGjh7QjY3",
+    "memoPubkey": "STM6uwJR2sQ7cyoUFWocKVabLrcHs68haTY3T7WeCB8E5mW9x14uu",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-08T17:29:09",
+    "created": "2018-03-02T12:20:24",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": null
+   },
+   {
+    "account": "cashmachine",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM7Rp6auWyWPWRVaafT5CCtoUrHXnYQHesebPnskH3HwyAu8nh8N",
+    "activePubkey": "STM8JV3DQLKRHYotkdAZmcJPrNSjNBDgwayMwWZcj84o2c2G5KhZ9",
+    "postingPubkey": "STM6EML1FKrnTGHMkkudANMxvLejGfzi3qCkZZUrtfxggLafF6ZwW",
+    "memoPubkey": "STM58G9GqCBUfeWrmzkPFSAbqCH23xAtKgNXhd2ECipxw7VSZxUxC",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:18",
+    "created": "2018-03-26T11:18:12",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "haran",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM7LK2d2oHw1Bk63fqcpqgVyNUQxbnY3xuT7L554yVKCcY6mywxV",
+    "activePubkey": "STM6nxdp2zQFjwGdHmdqV4PikxvWhoERYh2coRPg7TgHR9vKtN7Zi",
+    "postingPubkey": "STM5ULLGRnaFPCAwrU7WH4PHamtNpjA76tc9mNRuao1QkuGESr24U",
+    "memoPubkey": "STM7b51qcvqoaJwvWckZXDGwakca7eYJGeMNGhNrgWwTfqSRwAuGt",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:21",
+    "created": "2018-03-26T10:28:21",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "israelnews",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM7t1VE72QDKW6e7xZDGxgBY6FCruVyA7rbhBmrN6ojK5Q6dwNqT",
+    "activePubkey": "STM6smVd5vHp73Z5qDkiQFPzUBBBnjdxm85ReiJFJqDgifKRtq6aj",
+    "postingPubkey": "STM5Y57MBMC1ViYZ48nTFsX5Ycwg33WWbisu4dVRkinnECrxzT8ok",
+    "memoPubkey": "STM7qiznscicwUQk7gvzc6ddBAbvbHgx1HngN6CnSXfY1AehETRTC",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:21",
+    "created": "2018-03-12T17:21:15",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "lsa",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM7M5QQmSXbEh3PxfTUnG9yUFTsnbGvtsMGoEkAwG77i1hychzQ9",
+    "activePubkey": "STM5gbp3w8F1oDoWeZvtb1LkW1oXqyXMFhGSfYHHYGZYqMZ6spFV4",
+    "postingPubkey": "STM5vLjvNjvMt7dRVDYY9Xuww887yvrS9Sy7osHpVXy3AKS2tCUCm",
+    "memoPubkey": "STM5Ctguov5Q7KwVvSBc1Sc1wbA67ueYb4yAL7zkX4tVRXcAvTtbB",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:21",
+    "created": "2018-04-12T17:11:12",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "macrame",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM6ebPT6RWvHXuzq56gw8SxRjEjVNe9JfBf6wPqfvJ6PvvRvxkmL",
+    "activePubkey": "STM4yEe1tt7xTmzPjyM6Czvt7ULR2noXbvcLUANQ8zN5zjqm44et8",
+    "postingPubkey": "STM58LJ5v7NgtRTFZ8LRtecL1P5UTh4BbSwaJeUy4eR8LsGiuy4yr",
+    "memoPubkey": "STM599wdMN9mc8QdfMbe75VjmD2Ga5DRfGfLEQhNSVAjg3ApjMauw",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:24",
+    "created": "2018-03-12T15:56:18",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "siq",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM69NZih1wNYpMRSfbg8mJgMG1xfoakyfaqRPvyfzbzEfsFJCdUT",
+    "activePubkey": "STM5wBqKg31oj2FF4kp7cg2KXAedT3WdAVkXLLxzQ33RgpkwJdWh3",
+    "postingPubkey": "STM6a6NgoWdJVdbMkdaD1QwQ8AsfcYjKdRWMm99BRR5b2M23ho2yL",
+    "memoPubkey": "STM4xe3pLfnQ6SojubZNEAKXGARC7CUBFKs4ccXBq5tNTaj41HTsL",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:27",
+    "created": "2018-04-12T17:12:00",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "tov",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM8FFj1oU3dHHGvJiE5moGJJk7wtjDamrdVeNmYSZQyCP84rmaqd",
+    "activePubkey": "STM6uZsi19EPhmcTCtrmbu7qqZPwoBQcdd1RBM5PbXAKbwnTb61x4",
+    "postingPubkey": "STM6Dx3bEgwX6KpWgd7iXciNS8LivU4evRCqwkeJVcDoTEZxjAoxo",
+    "memoPubkey": "STM5h8dDCoR5DYbXPsX7nPBT3XbApvE5bvqCD7kQeH2xCE4M66vRF",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:27",
+    "created": "2018-04-12T17:09:09",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "wic",
+    "lane": "fleet",
+    "ownerPubkey": "STM5XScMFug2xXfqTSSqjpdUjJFB7zpTXBKSHvDcCNefTr2ZNGF8t",
+    "activePubkey": "STM5MgbfjdBEhRTREsChF8DaBU9Q2zvZZC1nMD2bdZGDJhYEJFp4F",
+    "postingPubkey": "STM54F5sbwshggfPAeHURo9NuxPpoc4Ku6fiYNXJsK9fqJmGfKjtn",
+    "memoPubkey": "STM55CjMnwksWT49tY8HFR97xtKiF5BoaaQS7fvcd3Sb4BWfycAUY",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:30",
+    "created": "2018-04-12T17:07:45",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "proof-of-mechanism: rotated 2026-09-12 (tx 9fd13d50…) per SAOS_BREAKTHROUGH_PROOF §15.4"
+   },
+   {
+    "account": "wog",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM7RXg2o2PZk1tqospN11EHNaXVwq7nEPomtZNqkT9YK9c4pmTif",
+    "activePubkey": "STM8mUCFqX9E27yWKwhNNENhYqYy6SAbyBVVzFyKruKgcG9iEwuq9",
+    "postingPubkey": "STM8U3yKr9uBUPubhc5bVknfKjRWytoonHzcGtqrVbCEKdxvJ4m95",
+    "memoPubkey": "STM6H6U3AywiZtRgrz3EvHcpDyQsWEnm8gogs87K15PyFgLS5HT97",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:30",
+    "created": "2018-04-12T17:04:36",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "woq",
+    "lane": "r11-nine (owner keys not in machine vault — owner-auth ops blocked tx_missing_owner_auth)",
+    "ownerPubkey": "STM6jcx7BrzawVR5E1AhmCBKBPDWTq3qDkBDsqY47VGAQxJEAXcyc",
+    "activePubkey": "STM7XzPtWbsWLHMdQ4KCrywsCeeGXqmqGmGGFMwQcKUamAuDLYXa1",
+    "postingPubkey": "STM6HEQvmHPnA43gcfRq5PwF8RsihBXXVdeWh2rBc8NiQ3aAgiy37",
+    "memoPubkey": "STM5pXs2rBEjoGMALih6U7FFgm2i6899gRhCzVDS6KNiSjyPBWVaE",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:33",
+    "created": "2018-04-12T17:16:03",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": "rotation requires owner-issued keys (cross-ref 11-b OWNER-GATE-PLAYBOOK)"
+   },
+   {
+    "account": "hcsoldier4",
+    "lane": "fleet",
+    "ownerPubkey": "STM86KbSx7mGNv5EZhs9To6zgNTnR9MbjRxCnoCY4E6cVRSuX2qSp",
+    "activePubkey": "STM59DR18EpsjTxqmTnH4SayD6dJkXpWyRtqKQJdqFFpYJfesMnDk",
+    "postingPubkey": "STM7GGJVxP5LcZT6SbDWot5AK8yYJ14yMjNVMCVevDuRYXRao9y4L",
+    "memoPubkey": "STM8T4ndfFuE1XxHmoY3EVqyod8bH1kYKYnb5emY2M8gPbE4iegYw",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:33",
+    "created": "2026-10-04T15:25:51",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": null
+   },
+   {
+    "account": "hcsoldier5",
+    "lane": "fleet",
+    "ownerPubkey": "STM79Cu5oMMgp1JnWpRL6iRfnmyBgfw28C5kiAZ1u5cLteLNHQnXe",
+    "activePubkey": "STM7SrhnUPT92A6GBysRiPfDWVZk5LyKKJ6LQrECMkuZ7MNPcbaK8",
+    "postingPubkey": "STM6m1u6xZgyPYCMJZQmMUjhX5k93YCjSXtjoncDiTt7Zni96Rmj7",
+    "memoPubkey": "STM7wEE2KefAoCfF4Q7Za4Gt9GBLSpXXqWKrwm2nZAWbNNWRujVGf",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:36",
+    "created": "2026-10-04T15:26:06",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": null
+   },
+   {
+    "account": "hcsoldier6",
+    "lane": "fleet",
+    "ownerPubkey": "STM62HQwpzVVRFvEZ6Ko1wPmysKh74s1c41KD6XRASEhLNEcFAKYY",
+    "activePubkey": "STM57AX4ZeTpG4HUZqipvsJaiV7UTN1rtiU9mPA419RYg1xiFq7sq",
+    "postingPubkey": "STM7jJXnJYqJJUci7cPAeFg2FTVvFVcpKLFkLi8Zxv34d1Ed8PrVp",
+    "memoPubkey": "STM4zUMqzDjr4D53qrofxhrNaUAhmMXjr7oTK5bXkYeaDAEpva16B",
+    "ownerEqualsActive": false,
+    "lastOwnerUpdate": "2026-10-07T19:05:36",
+    "created": "2026-10-04T15:26:12",
+    "ownerThreshold": 1,
+    "ownerAuthCount": 1,
+    "postingAuthCount": 1,
+    "note": null
+   }
+  ],
+  "summary": {
+   "nineAccounts": [
+    "cashmachine",
+    "haran",
+    "israelnews",
+    "lsa",
+    "macrame",
+    "siq",
+    "tov",
+    "wog",
+    "woq"
+   ],
+   "nineWithOwnerEqualsActive": 0,
+   "nineWithOwnerUpdatedSinceLeak_2026_09_12": [
+    "cashmachine@2026-10-07T19:05:18",
+    "haran@2026-10-07T19:05:21",
+    "israelnews@2026-10-07T19:05:21",
+    "lsa@2026-10-07T19:05:21",
+    "macrame@2026-10-07T19:05:24",
+    "siq@2026-10-07T19:05:27",
+    "tov@2026-10-07T19:05:27",
+    "wog@2026-10-07T19:05:30",
+    "woq@2026-10-07T19:05:33"
+   ],
+   "fleetWithOwnerUpdatedSinceLeak_2026_09_12": [
+    "headcorner@2026-10-08T17:29:09",
+    "cashmachine@2026-10-07T19:05:18",
+    "haran@2026-10-07T19:05:21",
+    "israelnews@2026-10-07T19:05:21",
+    "lsa@2026-10-07T19:05:21",
+    "macrame@2026-10-07T19:05:24",
+    "siq@2026-10-07T19:05:27",
+    "tov@2026-10-07T19:05:27",
+    "wic@2026-10-07T19:05:30",
+    "wog@2026-10-07T19:05:30",
+    "woq@2026-10-07T19:05:33",
+    "hcsoldier4@2026-10-07T19:05:33",
+    "hcsoldier5@2026-10-07T19:05:36",
+    "hcsoldier6@2026-10-07T19:05:36"
+   ],
+   "machineClaimCrossRef": "11-b recon (claims, not secrets): hcsoldier4/5/6 ACTIVE=GEN-2 · the 9 ACTIVE=GEN-1 (machine can sign active ops; owner-auth blocked). Possession of machine-held keys is intentionally NOT verifiable here — the vault is never touched by this engine."
+  }
+ },
+ "log": [
+  "chain node=https://api.steemit.com · 14 fleet accounts · 56 distinct alive key bodies"
+ ]
+}

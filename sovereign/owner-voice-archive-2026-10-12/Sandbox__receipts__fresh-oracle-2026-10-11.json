@@ -1,0 +1,39 @@
+{
+  "schema": "sandbox/fresh-oracle/1",
+  "at": "2026-10-11T21:40:00Z",
+  "mandate": "owner trace 1a12cab8a1748829 — אין-זיופים: V-FLEETHQ-FRESH freshness gate, first standing proof (role recruited by recruitment.json → executed by zai-13)",
+  "law": "a live page is FRESH only if sha256(live bytes) == sha256(committed source bytes in the deploy branch); no green without byte equality",
+  "results": [
+    {
+      "page": "https://roshpinacare-sys.github.io/FleetHQ/",
+      "source": "FleetHQ@origin/office-pages:index.html",
+      "liveSha16": "30726a56b44e637a",
+      "committedSha16": "30726a56b44e637a",
+      "verdict": "MATCH"
+    },
+    {
+      "page": "https://roshpinacare-sys.github.io/FleetHQ/potential.html",
+      "source": "FleetHQ@origin/office-pages:potential.html",
+      "liveSha16": "c7d63b422f559850",
+      "committedSha16": "c7d63b422f559850",
+      "verdict": "MATCH"
+    },
+    {
+      "page": "https://roshpinacare-sys.github.io/Domain/",
+      "source": "Domain@origin/main:index.html",
+      "liveSha16": "a31d74e9671b88fd",
+      "committedSha16": "a31d74e9671b88fd",
+      "verdict": "MATCH"
+    },
+    {
+      "page": "https://roshpinacare-sys.github.io/Domain/office3d/",
+      "source": "Domain@origin/main:office3d/index.html",
+      "liveSha16": "8a63e64ba55ea125",
+      "committedSha16": "8a63e64ba55ea125",
+      "verdict": "MATCH"
+    }
+  ],
+  "summary": { "checked": 4, "match": 4, "drift": 0, "verdict": "FRESH" },
+  "method": "curl live → sha256sum; git show <deploy-ref>:<path> → sha256sum; byte equality required",
+  "next": "standing gate: re-run on every office-window/pages deploy (candidate for a scheduled workflow — OWNER-WORD: wire into office-window.yml or a 30-min cron lane)"
+}

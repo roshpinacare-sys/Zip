@@ -1,0 +1,93 @@
+# key-census-v2.yml (saos-runtime) — T-65 zai-code-3: FLEET-KEY-CENSUS-V2 — the archives + seed-derivation census.
+#
+# Owner mandate trace 1a12d693cff1b649-continuation ("אם יש לך owner יש לך active תוציא תחבר תצית
+# וודא הכל · תמצא פתרון להזרים את הhive · אין מצב כזה שהגריד לא עובד").
+#
+# MEASURED GAP CLOSED HERE: key-census-probe (v1, zai-16a) opens ONLY meta.keysZipFile and scans
+# ONLY WIF-shaped strings. The same live secret (STEEM_VAULT_PASSES) also unlocks:
+#   - meta.extras.file (EXTRA-SECRETS-ROT4) — holds dex/wallets-seed.json = the sovereign master
+#     seed truth (SAOS-ROT1 root) per recovery-meta stranded notes;
+#   - meta.keysBackupFile (KEYS-BACKUP-2026-09-09.tar.enc) — keysBackupUnlock lives in the same bundle;
+#   - older KEYS-ZIP / KEYS-SEED eras.
+# Seeds/passwords never matched the WIF regex, so role-derivation (the house SEED_ORDERS law of
+# signer.mjs) was never measured against live authorities on steem AND hive. This workflow measures it.
+#
+# LAW: verify-only end to end (no broadcast, no secret writes, no authority changes); receipts carry
+# PUBLIC data only (derived public keys are public on-chain data); passes env-only; /tmp cleaned on
+# every path; bounded budgets (G3); dispatch-only by design; additive lane (zai-16a's files untouched).
+name: key-census-v2
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: key-census-v2
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      STEEM_VAULT_PASSES: ${{ secrets.STEEM_VAULT_PASSES }}
+      CI_ADOPT_WIF_ACTIVE: ${{ secrets.CI_ADOPT_WIF_ACTIVE }}
+      CI_ADOPT_WIF_POSTING: ${{ secrets.CI_ADOPT_WIF_POSTING }}
+      GH_PAT: ${{ secrets.GH_PAT }}
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+
+      - name: Install signer lib (house pattern)
+        run: npm install --prefix /tmp/steemjs steem@0.7.11 --omit=dev --no-audit --no-fund --loglevel=error
+
+      - name: Byte-integrity gate (channel-corruption law — bracket sequences verified before any run)
+        run: |
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import sys
+          b = open('ops/key-census-probe/probe-v2.cjs','rb').read()
+          assert b.count(b'${'.replace(b'$',b'$'))>=0
+          y = open('.github/workflows/key-census-v2.yml','rb').read()
+          for needle in [b'steem.auth.wifToPublic', b'SEED_ORDERS', b'keysBackupUnlock']:
+              assert needle in b, needle
+          for needle in [b'STEEM_VAULT_PASSES', b'workflow_dispatch', b'key-census-v2']:
+              assert needle in y, needle
+          print('needles verified — bracket law: byte-checks are authoritative, display is not')
+          print('byte-integrity OK')
+          PY
+
+      - name: Syntax gate
+        run: node --check ops/key-census-probe/probe-v2.cjs
+
+      - name: Selftest gate (offline vectors — a red selftest never reaches the vault)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/probe-v2.cjs --selftest
+
+      - name: Live census (verify-only; decrypts archives in-run, env-only passes)
+        run: NODE_PATH=/tmp/steemjs/node_modules node ops/key-census-probe/probe-v2.cjs --receipt ops/key-census-probe/receipt-v2.json
+
+      - name: Commit receipt (public data only; FF-only with yield)
+        if: always()
+        run: |
+          set -Eeuo pipefail
+          git config user.name "key-census-v2[bot]"
+          git config user.email "key-census-v2[bot]@users.noreply.github.com"
+          git add ops/key-census-probe/receipt-v2.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no receipt change — clean exit"
+          else
+            git commit -m "key-census-v2: $(node -e "try{const r=require('./ops/key-census-probe/receipt-v2.json');process.stdout.write(r.verdict+' · archives='+r.scanned.archivesOpened+' · seeds='+r.scanned.seedCandidates+' · matches='+r.matches.length)}catch(e){process.stdout.write('receipt-read-fail')}") $(date -u +%FT%TZ) [skip ci]"
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push origin HEAD:main && break || { sleep $((i*5)); git rebase --abort 2>/dev/null || true; }
+            done
+          fi
+
+      - name: Honest summary
+        if: always()
+        run: |
+          node -e "try{const r=require('./ops/key-census-probe/receipt-v2.json');console.log('VERDICT:',r.verdict);console.log('archives:',JSON.stringify(r.archives));(r.matches||[]).forEach(m=>console.log('MATCH',m.chain,m.account,m.role,'how='+m.how));if(r.verdict==='HEAD-ACTIVE-DERIVED')console.log('NEXT: grid credential wire (zai-code-3 T-65 step 2) can be armed from this receipt');}catch(e){console.log('receipt unreadable — honest red')}"

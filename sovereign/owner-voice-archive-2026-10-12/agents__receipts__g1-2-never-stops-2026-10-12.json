@@ -1,0 +1,41 @@
+{
+  "schema": "saos/g1-receipt/2",
+  "at": "2026-10-12T02:47:00Z",
+  "ownerTrace": "1a12de036c1159b5",
+  "ownerWords": "פתח הכל זה לא אצלי אם יש לך owner יש לך active תוציא תחבר תצית וודא הכל שיהיה טוב גם בסטים ותמצא פתרון להזרים את הhive ממי שאישר ... חשוב לוודא פעילות של הגריד אין מצב כזה שהוא לא עובד",
+  "measured": {
+    "authority_recheck_0240Z": {
+      "hive_headcorner": "LIVE via the engine itself — beat 02:38:37 (7e30a315) hive leg authorityOk=true (the vault/GitHub-secret HIVE_ACTIVE_WIF derives the live active authority); the agent-hq/.env STEEM_* A/B slots are NOT the HIVE keys (bit-compare 02:20Z: 0 matches on every role, every account) — the live HIVE material lives only in the vault sealed slots + repo secrets",
+      "steem_headcorner": "0 matches re-verified (02:20Z scan, all 9 estate accounts × all roles × A/B slots + master-derived) — the 10-08 rotated active STM5jRfQ*** exists only with the owner; 'owner→active' derivation is impossible without the owner key material (fail-closed holds, honest)",
+      "cornerstone_13036_hive": "3rd independent census refusal — no key anywhere matches owner/active/posting; account_auths empty; posting-auths are buildteam/peakd/steemauto; legacy outgoing withdraw-route id=1096 → riverhead 100% auto_vest (measured) — no reachable flow path today; the CORNERSTONE_HIVE_WIF slot (Task 20, CR-0076 caps) remains the single owner-word rail",
+      "cashmachine": "posting account_auths INCLUDES headcorner w1 (threshold 1) — measured; posting-only, cannot move funds"
+    },
+    "chain_inventory_picture_0240Z": {
+      "steem": "headcorner 43.990 STEEM + 9.685 SBD + 6.49M VESTS (owner-keyed active; 18 zombie open orders from the pre-rotation era — un-cancellable by the fleet, auto-expire ≤30d by their own terms); hcsoldier1-3 18.667 STEEM each + hcsoldier4-6 small + cashmachine dust — fleet-keyed (twins' GEN-2 census 13/14 live); cornerstone 49.771 STEEM + 39.545 SBD (owner-keyed)",
+      "hive": "headcorner 0.034 HIVE + 0.003 HBD + 21.6 HP (ARMED-WAITING — R99 minimums honest: 0.026 commitable vs ≥0.2 HBD recv per ask level); cashmachine 0.001; cornerstone 13,036.489 HIVE + 41.655 HBD + 164.64M VESTS ≈ 86k HP (owner-keyed)"
+    },
+    "posts_verified": {
+      "saos_daily": "saos-daily-20261012 on-chain STEEM (get_content): 2109 chars, created 01:41:27Z — 'גם בסטים' measured good",
+      "sovereign_pulse": "custom_json saos-pulse VERIFIED BY THIS ROUND'S OWN READBACK (independent of the engine's deferred readback): condenser_api.get_transaction 528cfd9ec585a5519944f2e522948b8736c9c959 → block 110362968 on STEEM, protocol SAOS-SOVEREIGN-PULSE/1, netWorthSbdEquiv 455.32, honest gridVerdict ARMED-KEY-STALE — the sovereignty's existence is now self-verifiable from the chain by any node, zero trust in our servers"
+    },
+    "grid_never_stops": {
+      "law": "owner: 'אין מצב כזה שהוא לא עובד'",
+      "existing_mesh_measured": "dex-grid 4×/day (twin 14-a upgrade, cron 26 3,9,15,21), grid-trigger-twin 2×/h (:27,:57), grid-heartbeat twin ~30min (49da32f5), grid-doctor hourly :19, book-audit hourly :53, dex-mirror hourly :52, Console grid-pulse 2×/day",
+      "gap_found": "GitHub crons dilute under load (measured in-repo: 48 planned → 12-24 actual runs/day) and NOTHING re-dispatched on staleness — cadence alone is not a guarantee",
+      "fix": "grid-guard.mjs wired into grid-doctor (commits 65b37fe2 + 4cee35d4): hourly measurement of beat age (saos-dex db/grid-public.json via vault PAT) + Console mirror age + HIVE working inventory (live RPC); re-ignites the engine twin (same-repo workflow_dispatch, actions:write) when beat >7h stale, mirror >26h stale, or when inventory crosses the R99 minimums (flow-watch — the moment real HIVE lands, the grid arms within the hour, no human in the loop); idempotent ≥2h; exit-0 always; zero secret material printed",
+      "loop_proven_live": "forced-fire test → decision 'beat-stale 0.6h > 0h' → dispatch 204 → twin run → fresh beat 7e30a315 @02:38:37Z → guard measures beatAgeH=0 — measure→ignite→verify, end-to-end, before commit"
+    },
+    "saos_dex_reds": "gitleaks/dex-ci/workflow-yaml-guard failures on saos-dex pushes are the documented org-wide Actions-minutes exhaustion since 09-20 (the gitleaks.yml NOTE in-repo) + empty log zip — NOT a secret leak; owner-level billing fix pending (owner lane)",
+    "twins_lane_live": "zai-16a measured live this round: escrow-payroll canary (cashmachine→hcsoldier4, agent hcsoldier5, 0.05 SBD, escrow_approve approve=true fix measured 02:07Z), delegation-plan re-sealed to the live chain picture (delta=0 verified), sovereign-pulse attestation — the answer to 'מה אפשר להקים על הבלוקציין' is being built: escrow payroll, on-chain attestations, delegation rails — all with fleet-held keys, canary-first, caps in code"
+  },
+  "honest_blockers_remaining_owner_only": [
+    "STEEM active key (10-08 rotation) — unlocks headcorner STEEM signing leg + cancels the 18 zombie orders early",
+    "cornerstone keys (13,036 HIVE + 41.655 HBD + 86k HP) — slots CORNERSTONE_{STEEM,HIVE}_WIF pre-wired (Task 20) under CR-0076 caps",
+    "Actions minutes billing (org-wide CI red since 09-20)"
+  ],
+  "self_caught_this_round": [
+    "autoStash staging loss: the grid-doctor.yml wiring edit was committed separately from the guard code (65b37fe2 had code, yml stayed uncommitted) — caught by inspecting dispatched run 38196689286's step list (ran WITHOUT the guard) and fixed in 4cee35d4",
+    "first scratch scan compared the WRONG key set (.env A/B slots) against live HIVE authorities and briefly contradicted Task 20 — resolved by re-reading the receipts: the live HIVE material is vault/GitHub-secret-only; the engine's own authorityOk=true at 02:38:37 is the ground truth"
+  ],
+  "selfProof": "zero key material in this receipt or any log (all comparisons bitwise in memory / public keys only); every verdict above is a measured artifact (commit sha, block number, txid, API status) — see git sha of this file"
+}
