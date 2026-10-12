@@ -1,6 +1,6 @@
 {
  "protocol": "SAOS-OWNER-GATE-STATUS/1",
- "generatedAt": "2026-10-12T02:18:00Z",
+ "generatedAt": "2026-10-12T03:40:00Z",
  "generatedBy": "zai-11b (owner-gate-playbook agent) — live-verified via Steem RPC + GitHub API + git trees before writing · updated by zai-16a (measured census + first on-chain broadcasts)",
  "mandateTrace": "1a12c9d6f5df1b95",
  "sources": [
@@ -12,7 +12,7 @@
   {
    "id": "gate-01-steem-active-wif-domain",
    "title": "STEEM_ACTIVE_WIF בכספת-Domain — מסילת-החתימה של המכונה (grid twin + delegations twin + liquidity-bootstrap)",
-   "state": "WAITING-OWNER",
+   "state": "MEASURED-NOT-IN-MACHINE · treasury-ladder ignition live (owner delivery still opens head book)",
    "ownerActionSummary": "עדכון הסוד STEEM_ACTIVE_WIF בריפו Domain (Settings→Secrets) למפתח שגוזר את רשות-ה-active החיה STM5jRfQH9DAF2474UQF1GVarShJZhpSPEYZFiZVr8MHV8cNSXDQf (נמדד-חי 20:34Z), ואז re-dispatch dex-grid. ≈3 דק'. הבעלים כבר סוחר ישירות עם GEN-2 (242 הצבות+247 ביטולים בחלון 19:55–20:24Z) — השער נועל רק את המכונה. עד-אז כל-חתימה-מכונה נכשלת fail-closed BY DESIGN (grids/key-gate.mjs). אזהרה: לפני re-dispatch של רגל-ה-delegator — הכרעת-תוכנית (gate-08 note).",
    "artifactLinks": [
     "sovereign/OWNER-GATE-PLAYBOOK-2026-10-11.md"
@@ -34,6 +34,12 @@
      "dex-grid cadence 1->4x/day (arms the moment the key lands)",
      "delegation-plan re-sealed to the live picture (delta=0, gate-08 warning closed)"
     ]
+   },
+   "lastMeasurement": {
+    "at": "2026-10-12T03:40Z",
+    "by": "zai-16b exhaustive census",
+    "evidence": "sovereign/KEY-CENSUS-FINAL-2026-10-12.md",
+    "summary": "18 bundles opened + git-history pass mining + derivation zoo + manager-gate oracle: head-ACTIVE absent from all machine material; 13 worker accounts live full-control; treasury ladder LIVE on hcsoldier4 (2 on-chain orders, run 38200211371)"
    }
   },
   {
@@ -146,9 +152,5 @@
    "measuredAt": "2026-10-11T20:37:00Z"
   }
  ],
- "honesty": {
-  "notMeasured": "תוכנית-החיוב הנוכחית של חשבון-GitHub (שדה plan לא מוחזר לטוקן) — המסך Billing הוא מקור-האמת",
-  "machineActionsTaken": "אפס — קריאה בלבד (RPC קריאה, GitHub API קריאה, git fetch); אף-שער לא הורם, אף-שידור, אף-כתיבת-כספת, אף-תוכן",
-  "ownership": "מסמך-זה + OWNER-GATE-PLAYBOOK + ceremonies/* בלבד; COORDINATION.md נסגר על-ידי המתזמן; KEY-PROOF-LATEST.md שייך ל-11-a"
- }
+ "honesty": "[object Object] 16-b: the absence of head-ACTIVE in the machine is now MEASURED exhaustively (see KEY-CENSUS-FINAL) — the gate remains owner-delivery-only, but the income artery runs on fleet-held keys."
 }
