@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-10-12T16:11:53.723Z",
+  "measuredAt": "2026-10-12T20:10:49.939Z",
   "owner": "roshpinacare-sys",
   "definition": "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
   "method": "T-49: shallow git clones (zero API quota) — every status file hashed locally; clone-failed repos listed in skippedRepos and excluded",
@@ -18,8 +18,8 @@
     },
     {
       "name": "Console",
-      "kb": 10143,
-      "pushed_at": "2026-10-12T16:06:28Z",
+      "kb": 10342,
+      "pushed_at": "2026-10-12T19:52:24Z",
       "cloned": true
     },
     {
@@ -30,21 +30,27 @@
     },
     {
       "name": "Domain",
-      "kb": 18704,
-      "pushed_at": "2026-10-12T16:11:37Z",
+      "kb": 20370,
+      "pushed_at": "2026-10-12T20:00:26Z",
       "cloned": true
     },
     {
       "name": "FleetHQ",
-      "kb": 70129,
-      "pushed_at": "2026-10-12T16:11:38Z",
+      "kb": 70198,
+      "pushed_at": "2026-10-12T20:07:08Z",
+      "cloned": true
+    },
+    {
+      "name": "GridWatch",
+      "kb": 0,
+      "pushed_at": "2026-10-12T20:09:06Z",
       "cloned": true
     },
     {
       "name": "negen",
-      "kb": 0,
-      "pushed_at": "2026-10-12T16:09:10Z",
-      "cloned": false
+      "kb": 160,
+      "pushed_at": "2026-10-12T16:13:13Z",
+      "cloned": true
     },
     {
       "name": "Project-files",
@@ -53,15 +59,21 @@
       "cloned": true
     },
     {
+      "name": "Pulse",
+      "kb": 0,
+      "pushed_at": "2026-10-12T19:44:11Z",
+      "cloned": true
+    },
+    {
       "name": "roshpina",
       "kb": 984,
-      "pushed_at": "2026-10-12T15:06:23Z",
+      "pushed_at": "2026-10-12T19:13:38Z",
       "cloned": true
     },
     {
       "name": "Sandbox",
-      "kb": 3080,
-      "pushed_at": "2026-10-12T15:33:46Z",
+      "kb": 3240,
+      "pushed_at": "2026-10-12T20:06:31Z",
       "cloned": true
     },
     {
@@ -84,8 +96,8 @@
     },
     {
       "name": "saos-dex",
-      "kb": 48578,
-      "pushed_at": "2026-10-12T15:21:05Z",
+      "kb": 48631,
+      "pushed_at": "2026-10-12T19:24:56Z",
       "cloned": true
     },
     {
@@ -96,8 +108,8 @@
     },
     {
       "name": "saos-runtime",
-      "kb": 160,
-      "pushed_at": "2026-10-12T16:06:00Z",
+      "kb": 228,
+      "pushed_at": "2026-10-12T17:22:34Z",
       "cloned": true
     },
     {
@@ -126,19 +138,19 @@
     },
     {
       "name": "sovereign-beacon",
-      "kb": 21,
-      "pushed_at": "2026-10-12T15:00:02Z",
+      "kb": 23,
+      "pushed_at": "2026-10-12T18:37:26Z",
       "cloned": true
     },
     {
       "name": "sovereign-lighthouse",
-      "kb": 894,
-      "pushed_at": "2026-10-12T15:00:01Z",
+      "kb": 920,
+      "pushed_at": "2026-10-12T19:47:04Z",
       "cloned": true
     },
     {
       "name": "sovereign-runner-kit",
-      "kb": 0,
+      "kb": 12,
       "pushed_at": "2026-10-12T16:05:15Z",
       "cloned": true
     },
@@ -150,42 +162,37 @@
     },
     {
       "name": "steem",
-      "kb": 456985,
-      "pushed_at": "2026-10-12T16:10:17Z",
+      "kb": 468665,
+      "pushed_at": "2026-10-12T20:06:44Z",
       "cloned": true
     },
     {
       "name": "TruthRail",
-      "kb": 154,
-      "pushed_at": "2026-10-12T12:54:09Z",
+      "kb": 170,
+      "pushed_at": "2026-10-12T19:54:13Z",
       "cloned": true
     },
     {
       "name": "vault-home",
-      "kb": 7036,
-      "pushed_at": "2026-10-12T15:30:52Z",
+      "kb": 7046,
+      "pushed_at": "2026-10-12T18:15:29Z",
       "cloned": true
     },
     {
       "name": "Zip",
-      "kb": 113310,
-      "pushed_at": "2026-10-12T16:04:24Z",
+      "kb": 115747,
+      "pushed_at": "2026-10-12T18:06:47Z",
       "cloned": true
     }
   ],
-  "skippedRepos": [
-    {
-      "name": "negen",
-      "reason": "Command failed: git clone --depth 1 --single-branch --no-tags --branch main http"
-    }
-  ],
+  "skippedRepos": [],
   "totals": {
-    "statusCandidates": 3432,
-    "measured": 3432,
+    "statusCandidates": 3467,
+    "measured": 3467,
     "dupGroups": 682,
     "dupInstances": 1403,
     "redundantCopies": 721,
-    "dupRatio": 0.2101
+    "dupRatio": 0.208
   },
   "dupGroups": [
     {
@@ -5739,7 +5746,10 @@
       "Defi:73ea1c8999",
       "Domain:c2bc0e2789",
       "FleetHQ:84e8d98a35",
+      "GridWatch:46bb6026bc",
+      "negen:71af26eee4",
       "Project-files:5ed2172d88",
+      "Pulse:4f8e35080c",
       "roshpina:d52194b236",
       "Sandbox:57da190e7a",
       "sandbox-private:275366f925",
@@ -5755,7 +5765,7 @@
       "sovereign-runner-kit:7dc138276b",
       "SovereignConsole:869cf99b8a",
       "steem:cc83444042",
-      "TruthRail:3d8f815a80",
+      "TruthRail:717cf95bb7",
       "vault-home:98fa70fb26",
       "Zip:9b7213f7b4"
     ],
@@ -6706,11 +6716,11 @@
       "Domain:e242593645"
     ],
     "status.json": [
-      "Console:64f10989aa",
-      "Domain:b758460d36"
+      "Console:530dfc430c",
+      "Domain:a6ca6b2141"
     ],
     "mirror.json": [
-      "Console:94641235a9",
+      "Console:02ee6cfe9e",
       "Domain:2b82745cf8"
     ],
     "DESIGN.md": [
@@ -6735,8 +6745,8 @@
       "Domain:dc5d1fa883"
     ],
     "agent/handoff.md": [
-      "Console:b5e3a0ed00",
-      "Domain:2318dfb718"
+      "Console:f4cc948ec8",
+      "Domain:9da13bc67f"
     ],
     "agent/limitations.md": [
       "Console:b26afbaf03",
@@ -6766,7 +6776,7 @@
       "sandbox-private:52c57fa53b",
       "SovereignConsole:13894670f2",
       "steem:5318efc5cc",
-      "TruthRail:ab1fc70186",
+      "TruthRail:02e90c6833",
       "vault-home:5b6f0d6762"
     ],
     "SECURITY.md": [
@@ -6798,6 +6808,10 @@
     "sovereign/ROAST.md": [
       "FleetHQ:37ad9e7f75",
       "vault-home:712fe9c6e8"
+    ],
+    "BOOTSTRAP.md": [
+      "Pulse:d573caf899",
+      "saos-control-center:68ea020bb3"
     ],
     "AGENT-BRIEFING.md": [
       "roshpina:37bea8f830",
@@ -6862,8 +6876,8 @@
       "steem:8b5578df54"
     ],
     "state.json": [
-      "sovereign-beacon:40f2637b3f",
-      "sovereign-lighthouse:9996de07c4"
+      "sovereign-beacon:a9c1d4f3ab",
+      "sovereign-lighthouse:fae3766fca"
     ]
   }
 }
