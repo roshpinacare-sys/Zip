@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-10-12T20:10:49.939Z",
+  "measuredAt": "2026-10-12T20:43:11.805Z",
   "owner": "roshpinacare-sys",
   "definition": "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
   "method": "T-49: shallow git clones (zero API quota) — every status file hashed locally; clone-failed repos listed in skippedRepos and excluded",
@@ -17,9 +17,15 @@
       "cloned": true
     },
     {
+      "name": "Autonomy",
+      "kb": 0,
+      "pushed_at": "2026-10-12T20:40:55Z",
+      "cloned": true
+    },
+    {
       "name": "Console",
       "kb": 10342,
-      "pushed_at": "2026-10-12T19:52:24Z",
+      "pushed_at": "2026-10-12T20:20:54Z",
       "cloned": true
     },
     {
@@ -30,20 +36,20 @@
     },
     {
       "name": "Domain",
-      "kb": 20370,
-      "pushed_at": "2026-10-12T20:00:26Z",
+      "kb": 20253,
+      "pushed_at": "2026-10-12T20:40:38Z",
       "cloned": true
     },
     {
       "name": "FleetHQ",
-      "kb": 70198,
-      "pushed_at": "2026-10-12T20:07:08Z",
+      "kb": 72712,
+      "pushed_at": "2026-10-12T20:25:05Z",
       "cloned": true
     },
     {
       "name": "GridWatch",
       "kb": 0,
-      "pushed_at": "2026-10-12T20:09:06Z",
+      "pushed_at": "2026-10-12T20:40:59Z",
       "cloned": true
     },
     {
@@ -61,12 +67,12 @@
     {
       "name": "Pulse",
       "kb": 0,
-      "pushed_at": "2026-10-12T19:44:11Z",
+      "pushed_at": "2026-10-12T20:33:31Z",
       "cloned": true
     },
     {
       "name": "roshpina",
-      "kb": 984,
+      "kb": 986,
       "pushed_at": "2026-10-12T19:13:38Z",
       "cloned": true
     },
@@ -96,7 +102,7 @@
     },
     {
       "name": "saos-dex",
-      "kb": 48631,
+      "kb": 48632,
       "pushed_at": "2026-10-12T19:24:56Z",
       "cloned": true
     },
@@ -109,7 +115,7 @@
     {
       "name": "saos-runtime",
       "kb": 228,
-      "pushed_at": "2026-10-12T17:22:34Z",
+      "pushed_at": "2026-10-12T20:31:13Z",
       "cloned": true
     },
     {
@@ -139,12 +145,12 @@
     {
       "name": "sovereign-beacon",
       "kb": 23,
-      "pushed_at": "2026-10-12T18:37:26Z",
+      "pushed_at": "2026-10-12T20:20:30Z",
       "cloned": true
     },
     {
       "name": "sovereign-lighthouse",
-      "kb": 920,
+      "kb": 932,
       "pushed_at": "2026-10-12T19:47:04Z",
       "cloned": true
     },
@@ -162,8 +168,8 @@
     },
     {
       "name": "steem",
-      "kb": 468665,
-      "pushed_at": "2026-10-12T20:06:44Z",
+      "kb": 474305,
+      "pushed_at": "2026-10-12T20:24:43Z",
       "cloned": true
     },
     {
@@ -181,18 +187,18 @@
     {
       "name": "Zip",
       "kb": 115747,
-      "pushed_at": "2026-10-12T18:06:47Z",
+      "pushed_at": "2026-10-12T20:10:59Z",
       "cloned": true
     }
   ],
   "skippedRepos": [],
   "totals": {
-    "statusCandidates": 3467,
-    "measured": 3467,
-    "dupGroups": 682,
-    "dupInstances": 1403,
-    "redundantCopies": 721,
-    "dupRatio": 0.208
+    "statusCandidates": 3479,
+    "measured": 3479,
+    "dupGroups": 689,
+    "dupInstances": 1417,
+    "redundantCopies": 728,
+    "dupRatio": 0.2093
   },
   "dupGroups": [
     {
@@ -360,6 +366,62 @@
       "files": [
         "anchor-baseline:docs/reports/TOKEN-DOSSIER-2026-09-12-V77.md",
         "saos-sovereign-platform:docs/TOKEN-DOSSIER.md"
+      ]
+    },
+    {
+      "hash": "c9d211647221b14982c75405e34da1c67a49976ad5e1043387e0ef5fe441dbc2",
+      "size": 3714,
+      "files": [
+        "Autonomy:SECURITY.md",
+        "Sandbox:SECURITY.md"
+      ]
+    },
+    {
+      "hash": "0fab2fb45575b1453da2549facc69efaef57296f26d450e469069ec533ee423c",
+      "size": 2393,
+      "files": [
+        "Autonomy:heal/README.md",
+        "Sandbox:heal/README.md"
+      ]
+    },
+    {
+      "hash": "1b6cfec17cf930992ff0a740017777463b751cc81595a4d09adb500d71e59c66",
+      "size": 1616,
+      "files": [
+        "Autonomy:ops/fresh-oracle/verdict.md",
+        "Sandbox:ops/fresh-oracle/verdict.md"
+      ]
+    },
+    {
+      "hash": "c1cfe2b8164e509a06518bcb4e070db543dde168924a0e50669442c9342e4a3a",
+      "size": 10655,
+      "files": [
+        "Autonomy:ops/fresh-oracle/README.md",
+        "Sandbox:ops/fresh-oracle/README.md"
+      ]
+    },
+    {
+      "hash": "493c615703af575b23d4b4785af94172e25982e6b495292c8826261759bc3fc0",
+      "size": 951,
+      "files": [
+        "Autonomy:ops/evo-windows-staleness/verdict.md",
+        "Sandbox:ops/evo-windows-staleness/verdict.md"
+      ]
+    },
+    {
+      "hash": "371bd8e1b3c072a3da89c7f9cc2f41d9e9082595034d2d79f6a0c901213ddb77",
+      "size": 7079,
+      "files": [
+        "Autonomy:agents/README.md",
+        "Sandbox:agents/README.md"
+      ]
+    },
+    {
+      "hash": "c7e8104c449b499f18c79412cd983eb0f4714797372ba1cf1f4704971a20b826",
+      "size": 138,
+      "files": [
+        "Autonomy:agents/reports/README.md",
+        "Sandbox:agents/reports/README.md"
       ]
     },
     {
@@ -5742,6 +5804,7 @@
     "README.md": [
       "Adsmarket:03cde55a16",
       "anchor-baseline:32e3d94cca",
+      "Autonomy:2dce799092",
       "Console:2657813a88",
       "Defi:73ea1c8999",
       "Domain:c2bc0e2789",
@@ -6705,6 +6768,24 @@
       "Saosmartwallet:49f5935844",
       "Sdk:9176d6bf3a"
     ],
+    "SECURITY.md": [
+      "Autonomy:c9d2116472",
+      "FleetHQ:c49b296d1e",
+      "Sandbox:c9d2116472",
+      "saos-agents:9b05268084"
+    ],
+    "ops/flow/flow-map.md": [
+      "Autonomy:a7c8a89fa6",
+      "Sandbox:9b85ea1105"
+    ],
+    "ops/lessons/ledger.md": [
+      "Autonomy:b029f2ac95",
+      "Sandbox:e3551b3cd4"
+    ],
+    "ops/integrity/REPORT.md": [
+      "Autonomy:af76ad18df",
+      "Sandbox:b4eedc3561"
+    ],
     "feature_list.json": [
       "Console:2e3bb8dde5",
       "Domain:1fcfbedbd6",
@@ -6717,7 +6798,7 @@
     ],
     "status.json": [
       "Console:530dfc430c",
-      "Domain:a6ca6b2141"
+      "Domain:12acc313ef"
     ],
     "mirror.json": [
       "Console:02ee6cfe9e",
@@ -6778,11 +6859,6 @@
       "steem:5318efc5cc",
       "TruthRail:02e90c6833",
       "vault-home:5b6f0d6762"
-    ],
-    "SECURITY.md": [
-      "FleetHQ:c49b296d1e",
-      "Sandbox:c9d2116472",
-      "saos-agents:9b05268084"
     ],
     "SOVEREIGNTY.md": [
       "FleetHQ:56a963e72e",
@@ -6850,6 +6926,10 @@
       "saos-sovereign-foundry:51eaa4ed52",
       "saos-sovereign-platform:331c3a51bb"
     ],
+    "STATUS.md": [
+      "saos-dex:b40338b76d",
+      "saos-runtime:907ad2ddda"
+    ],
     "RELAY-PATCH-2.md": [
       "saos-dex:b5eb13df5e",
       "saos-sovereign-foundry:4a87b1a8e3",
@@ -6876,7 +6956,7 @@
       "steem:8b5578df54"
     ],
     "state.json": [
-      "sovereign-beacon:a9c1d4f3ab",
+      "sovereign-beacon:d4afe602ab",
       "sovereign-lighthouse:fae3766fca"
     ]
   }
