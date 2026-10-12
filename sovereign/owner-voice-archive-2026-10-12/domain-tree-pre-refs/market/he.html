@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SAOS: מערכת ההפעלה הריבונית · ריבונות עם קבלות</title>
+<meta name="description" content="SAOS: מכונת מצב ריבונית שמעגנת כל חותם, כל טענה וכל סירוב על 7 רשתות ציבוריות. Every agent can claim anything. Only a public chain cannot lie.">
+<meta property="og:title" content="SAOS, ריבונות עם קבלות">
+<meta property="og:description" content="מערכת ההפעלה הריבונית: כל חותם, כל טענה וכל סירוב, עם קבלה פומבית שאי-אפשר למחוק. לא הבטחות, קבלות.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://roshpinacare-sys.github.io/Domain/assets/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SAOS, Proof Over Promises">
+<meta name="twitter:description" content="Every claim gets a public, permanent receipt. Verify everything yourself.">
+<meta name="twitter:image" content="assets/og-cover.png">
+<link rel="canonical" href="https://roshpinacare-sys.github.io/Domain/market/he.html">
+<meta property="og:url" content="https://roshpinacare-sys.github.io/Domain/market/he.html">
+<meta property="og:site_name" content="SAOS · THE WEAVE">
+<meta property="og:locale" content="he_IL">
+<link rel="stylesheet" href="../assets/site.css">
+<script src="../assets/site.js" defer></script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.5 20.5 7v10L12 21.5 3.5 17V7z' fill='none' stroke='%23d4af37' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='9' r='2' fill='%23d4af37'/%3E%3Ccircle cx='8.5' cy='15' r='2' fill='%23a78bfa'/%3E%3Ccircle cx='15.5' cy='15' r='2' fill='%23a78bfa'/%3E%3C/svg%3E">
+
+<style>
+:root{
+  --bg:#09090b; --panel:#18181b; --panel2:#131316; --border:#27272a; --border2:#3f3f46;
+  --tx:#fafafa; --mut:#a1a1aa; --dim:#71717a;
+  --gold:#d4af37; --gold-dim:#8a7423; --purple:#a78bfa; --green:#22c55e; --yellow:#eab308; --red:#ef4444;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans Hebrew",sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
+.mono{font-family:var(--mono);direction:ltr;unicode-bidi:isolate}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+
+nav{position:fixed;top:0;right:0;left:0;z-index:50;background:rgba(9,9,11.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:1140px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;gap:26px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:700;font-size:18px;letter-spacing:.12em}
+.logo svg{width:26px;height:26px}
+.logo .dot{color:var(--gold)}
+.nav-links{display:flex;gap:20px;font-size:13.5px;color:var(--mut)}
+.nav-links a:hover{color:var(--tx)}
+.nav-cta{margin-right:auto;font-size:13px;font-family:var(--mono);border:1px solid var(--gold-dim);color:var(--gold);padding:7px 14px;border-radius:6px;transition:.2s}
+.nav-cta:hover{background:rgba(212,175,55.08);border-color:var(--gold)}
+@media(max-width:900px){.nav-links{display:none}}
+
+.hero{padding:148px 0 64px;position:relative}
+.hero::before{content:"";position:absolute;inset:0;background:
+  radial-gradient(640px 320px at 82% 0%,rgba(167,139,250.07),transparent 60%),
+  radial-gradient(520px 260px at 12% 12%,rgba(212,175,55.05),transparent 60%);pointer-events:none}
+.tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--purple);border:1px solid rgba(167,139,250.3);background:rgba(167,139,250.06);padding:5px 12px;border-radius:100px;margin-bottom:26px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94.4)}50%{opacity:.7;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+h1{font-size:clamp(33px,5.2vw,56px);font-weight:800;line-height:1.16;letter-spacing:-.01em;max-width:850px}
+h1 .gold{color:var(--gold)}
+.sub{margin-top:22px;font-size:clamp(16px,2vw,19px);color:var(--mut);max-width:700px}
+.hero-cta{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:8px;font-size:15px;font-weight:600;transition:.2s}
+.btn-gold{background:var(--gold);color:#1c1917}
+.btn-gold:hover{background:#e5c354}
+.btn-ghost{border:1px solid var(--border2);color:var(--tx)}
+.btn-ghost:hover{border-color:var(--mut);background:var(--panel)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:58px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.stat{background:var(--panel2);padding:20px}
+.stat .v{font-family:var(--mono);font-size:clamp(19px,2.5vw,26px);font-weight:700}
+.stat .v small{font-size:.55em;color:var(--mut);font-weight:400}
+.stat .l{font-size:12px;color:var(--mut);margin-top:4px}
+.badge{font-family:var(--mono);font-size:10px;color:var(--green);border:1px solid rgba(34,197,94.35);border-radius:4px;padding:1px 6px;margin-right:5px;vertical-align:2px}
+.badge.th{color:var(--purple);border-color:rgba(167,139,250.35)}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+section{padding:80px 0;border-top:1px solid var(--border)}
+.kicker{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.18em;margin-bottom:14px}
+h2{font-size:clamp(25px,3.5vw,37px);font-weight:800;letter-spacing:-.01em;margin-bottom:14px}
+.lead{color:var(--mut);font-size:16.5px;max-width:740px;margin-bottom:42px}
+
+.thesis{border-top:1px solid var(--border);padding:70px 0;background:linear-gradient(180deg,rgba(212,175,55.04),transparent)}
+.thesis blockquote{max-width:860px;font-size:clamp(22px,3.4vw,34px);font-weight:800;line-height:1.35}
+.thesis blockquote .gold{color:var(--gold)}
+.thesis .en{font-family:var(--mono);font-size:14px;color:var(--mut);margin-top:18px;direction:ltr;text-align:right}
+.thesis .attr{font-size:13px;color:var(--dim);margin-top:14px;font-family:var(--mono)}
+
+.proof{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel2)}
+.prow{display:grid;grid-template-columns:200px 1fr 210px;gap:16px;align-items:center;padding:16px 22px;border-bottom:1px solid var(--border);transition:.15s}
+.prow:last-child{border-bottom:none}
+.prow:hover{background:var(--panel)}
+.phead{background:var(--panel);font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em}
+.chain{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14.5px}
+.chain .st{width:9px;height:9px;border-radius:50%;flex:none}
+.st.live{background:var(--green);box-shadow:0 0 8px rgba(34,197,94.5)}
+.st.wait{background:var(--yellow)}
+.st.armed{background:var(--purple)}
+.chain small{display:block;font-weight:400;font-size:11px;color:var(--dim)}
+.tx{font-family:var(--mono);font-size:12px;color:var(--mut);direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx a:hover{color:var(--gold)}
+.pmeta{font-family:var(--mono);font-size:11.5px;color:var(--dim);direction:ltr;text-align:left}
+.pmeta a{color:var(--purple);border-bottom:1px dashed rgba(167,139,250.4)}
+@media(max-width:760px){.prow{grid-template-columns:1fr;gap:6px}.phead{display:none}.tx.pmeta{text-align:right}}
+.consistency{margin-top:24px;border:1px solid rgba(212,175,55.35);background:linear-gradient(135deg,rgba(212,175,55.06),rgba(167,139,250.04));border-radius:12px;padding:24px 26px;display:flex;gap:20px;align-items:flex-start}
+.consistency .icon{flex:none;width:42px;height:42px;border-radius:10px;background:rgba(212,175,55.12);border:1px solid rgba(212,175,55.3);display:flex;align-items:center;justify-content:center;color:var(--gold);font-family:var(--mono);font-weight:700}
+.consistency h3{font-size:16.5px;margin-bottom:6px}
+.consistency p{color:var(--mut);font-size:14px}
+.consistency .mono{color:var(--gold);font-size:13px}
+
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:1000px){.grid4{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}
+@media(max-width:640px){.grid4.grid3.grid2{grid-template-columns:1fr}}
+.card{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:24px 22px;transition:.2s}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card .num{font-family:var(--mono);font-size:11px;color:var(--gold-dim);margin-bottom:12px}
+.card h3{font-size:16.5px;margin-bottom:9px;line-height:1.4}
+.card p{font-size:13.5px;color:var(--mut)}
+.card .hl{color:var(--tx);font-weight:600}
+.card .bound{margin-top:12px;padding-top:10px;border-top:1px dashed var(--border);font-size:12px;color:var(--dim)}
+.card .bound b{color:var(--yellow);font-family:var(--mono);font-weight:600;font-size:10.5px}
+.card .v{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--gold);margin-bottom:4px}
+
+.prod{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media(max-width:860px){.prod{grid-template-columns:1fr}}
+.pcard{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:28px 26px;transition:.2s}
+.pcard:hover{border-color:var(--gold-dim)}
+.pcard .pk{font-family:var(--mono);font-size:10.5px;color:var(--purple);letter-spacing:.14em;margin-bottom:10px}
+.pcard h3{font-size:19px;margin-bottom:8px}
+.pcard p{font-size:14px;color:var(--mut)}
+.pcard .metric{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--gold)}
+
+.clock{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:stretch}
+@media(max-width:860px){.clock{grid-template-columns:1fr}}
+.clockbox{background:var(--panel2);border:1px solid rgba(167,139,250.3);border-radius:12px;padding:30px 28px;background-image:linear-gradient(135deg,rgba(167,139,250.05),transparent 55%)}
+.clockbox h3{font-size:19px;margin-bottom:10px}
+.clockbox p{color:var(--mut);font-size:14.5px}
+.clockstats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.cs{background:var(--panel2);padding:20px 18px}
+.cs .v{font-family:var(--mono);font-size:22px;font-weight:800;color:var(--purple)}
+.cs .l{font-size:11.5px;color:var(--mut);margin-top:3px}
+
+.flow{display:flex;align-items:stretch;gap:0;margin-top:8px;overflow-x:auto;padding-bottom:8px}
+.fnode{flex:1;min-width:168px;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:18px 14px;text-align:center}
+.fnode .t{font-weight:700;font-size:14px;margin-bottom:5px}
+.fnode .d{font-size:11.5px;color:var(--mut);line-height:1.5}
+.fnode .d .mono{font-size:10.5px;color:var(--purple)}
+.farrow{flex:none;display:flex;align-items:center;padding:0 9px;color:var(--gold-dim);font-family:var(--mono);font-size:19px}
+.fnode.core{border-color:rgba(212,175,55.4);background:linear-gradient(180deg,rgba(212,175,55.05),var(--panel2))}
+.fnode.chains{border-color:rgba(167,139,250.35)}
+@media(max-width:860px){.flow{flex-direction:column}.farrow{transform:rotate(90deg);justify-content:center;padding:4px 0}}
+
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:760px){.counters{grid-template-columns:1fr}}
+.counter{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:26px 24px;text-align:center}
+.counter .v{font-family:var(--mono);font-size:34px;font-weight:800;color:var(--red)}
+.counter .v.g{color:var(--green)}
+.counter .v.y{color:var(--yellow)}
+.counter .l{font-size:13px;color:var(--mut);margin-top:6px}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{font-family:var(--mono);font-size:11.5px;color:var(--mut);border:1px solid var(--border2);border-radius:6px;padding:5px 11px;background:var(--panel2)}
+.chip.hot{color:var(--purple);border-color:rgba(167,139,250.4)}
+
+.honesty{margin-top:20px;border-right:3px solid var(--gold);background:var(--panel2);border-radius:0 12px 12px 0;padding:22px 26px}
+.honesty p{color:var(--mut);font-size:14.5px}
+.honesty strong{color:var(--tx)}
+.honesty .mono{font-size:12px;color:var(--dim)}
+
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.strip .cell{background:var(--panel2);padding:22px 18px}
+.strip .v{font-family:var(--mono);font-size:24px;font-weight:800;color:var(--green)}
+.strip .l{font-size:12px;color:var(--mut);margin-top:4px}
+@media(max-width:760px){.strip{grid-template-columns:repeat(2,1fr)}}
+
+.road{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.road{grid-template-columns:1fr}}
+.road .col{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:26px}
+.road .col h3{font-size:14px;font-family:var(--mono);letter-spacing:.06em;margin-bottom:16px}
+.road .col.done h3{color:var(--green)}
+.road .col.next h3{color:var(--purple)}
+.road li{list-style:none;padding:9px 0;border-bottom:1px dashed var(--border);font-size:14px;color:var(--mut);display:flex;gap:10px;align-items:baseline}
+.road li:last-child{border-bottom:none}
+.road li .m{font-family:var(--mono);font-size:11.5px;flex:none}
+.road .done .m{color:var(--green)}
+.road .next .m{color:var(--purple)}
+
+.cta{border-top:1px solid var(--border);padding:86px 0;text-align:center;background:radial-gradient(700px 300px at 50% 100%,rgba(212,175,55.06),transparent 70%)}
+.cta h2{margin-bottom:16px}
+.cta p{color:var(--mut);max-width:580px;margin:0 auto 32px}
+footer{border-top:1px solid var(--border);padding:38px 0 48px}
+.foot{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap}
+.disclaimer{max-width:660px;font-size:12px;color:var(--dim);line-height:1.7}
+.foot-links{font-size:13px;color:var(--mut);display:flex;flex-direction:column;gap:8px}
+.foot-links a:hover{color:var(--gold)}
+.rv{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.rv.in{opacity:1;transform:none}
+</style>
+</head>
+<body class="sop">
+
+<nav class="nhead">
+  <div class="nav-in">
+    <a class="logo" href="#top">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#d4af37" stroke-width="1.6">
+        <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/>
+        <circle cx="12" cy="8" r="1.4" fill="#d4af37" stroke="none"/>
+        <circle cx="8.5" cy="14.5" r="1.4" fill="#a78bfa" stroke="none"/>
+        <circle cx="15.5" cy="14.5" r="1.4" fill="#a78bfa" stroke="none"/>
+        <path d="M12 9.4v2.2M11.4 12.8 9.2 13.9M12.6 12.8l2.2 1.1" stroke="#71717a" stroke-width="1.2"/>
+      </svg>
+      SAOS<span class="dot">·</span>
+    </a>
+    <div class="nav-links">
+      <a href="#proof">קבלות חיות</a>
+      <a href="#products">המוצרים</a>
+      <a href="#clock">השעון האטומי</a>
+      <a href="#breakthroughs">פריצות הדרך</a>
+      <a href="#econ">כלכלה כנה</a>
+      <a href="#road">מפת דרכים</a>
+    </div>
+    <a class="nav-cta" href="#proof">לראות קבלות</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="tag"><span class="pulse"></span> חי על 9 רשתות · כל טענה עם קבלה · אומת on-chain</div>
+    <h1>מערכת ההפעלה הריבונית.<br><span class="gold">10 רשתות ציבוריות הן ההיקף שלה.</span></h1>
+    <p class="sub">כל מה שקורה מקבל קבלה פומבית שאי-אפשר למחוק, ואתם יכולים לאמת אותה בעצמכם תוך שניות. SAOS היא רשת ריבונית (133,259+ בלוקים) שמעגנת כל טענה, כל חותם וכל סירוב על 9 רשתות ציבוריות שהיא לא שולטת בהן. חינם ב-Graphene, אגורות בשאר. אנחנו לא מבקשים אמון. אנחנו מפרסמים קבלות.</p>
+    <div class="hero-cta">
+      <a class="btn btn-gold" href="#proof">הקבלות החיות</a>
+      <a class="btn btn-ghost" href="#products">משפחת המוצרים</a>
+    </div>
+    <div class="stats rv">
+      <div class="stat">
+        <div class="v">133,259+ <small>בלוקים</small></div>
+        <div class="l">SAOS-NET · חי אחרי fork מתוכנן @130,000, 4 באגי kernel תוקנו + שמרי anti-poison <span class="badge">נמדד</span></div>
+      </div>
+      <div class="stat">
+        <div class="v">32,603 <small>tx/s</small></div>
+        <div class="l">ריפליי 65,238 עסקאות ארכיון אמיתיות <span class="badge">נמדד</span></div>
+      </div>
+      <div class="stat">
+        <div class="v">$0.0000081</div>
+        <div class="l">רשומת נוטריון קבועה (אצווה של 10K) <span class="badge">נמדד</span></div>
+      </div>
+      <div class="stat">
+        <div class="v">0 <small>mismatches</small></div>
+        <div class="l">אימות bit-for-bit מול RPC ציבורי · מאות עיגונים <span class="badge">נמדד</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="thesis">
+  <div class="wrap rv">
+    <blockquote>"כל סוכן יכול לטעון הכל.<br><span class="gold">רק שרשרת ציבורית לא יכולה לשקר.</span>"</blockquote>
+    <div class="en">"Every agent can claim anything. Only a public chain cannot lie."</div>
+    <div class="attr">, JUMPPER thesis · SAOS makes lying expensive: $0.0000081 per permanent claim</div>
+  </div>
+</div>
+
+<section id="proof">
+  <div class="wrap">
+    <div class="kicker">PROOF, NOT PROMISES</div>
+    <h2>הקבלות. פתוחות. עכשיו.</h2>
+    <p class="lead">כל שורה כאן היא עסקה אמיתית על רשת ציבורית. לחצו, פתחו בסייר, השוו בעצמכם. זה כל המודל: אתם לא צריכים להאמין לנו, אתם צריכים לקרוא את השרשרת.</p>
+    <div class="proof rv">
+      <div class="prow phead"><div>מסילה / סטטוס</div><div>קבלה (txid / signature)</div><div>מיקום + אימות עצמאי</div></div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>ETHEREUM<small>mainnet · EIP-1559 · bytes32 נטיבי</small></div></div>
+        <div class="tx"><a href="https://etherscan.io/tx/0x102ec1935be6cb3ff3acc20189a85377cf57486515f3121472c6611b20e0ef41" target="_blank" rel="noopener">0x102ec1935be6cb3ff3acc20189a85377cf57486515f3121472c6611b20e0ef41</a></div>
+        <div class="pmeta">block 25,929,261 · <a href="https://etherscan.io/tx/0x102ec1935be6cb3ff3acc20189a85377cf57486515f3121472c6611b20e0ef41" target="_blank" rel="noopener">etherscan</a></div>
+      </div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>SOLANA<small>mainnet-beta · SPL Memo v2</small></div></div>
+        <div class="tx"><a href="https://solscan.com/tx/2M1rkRggRcaePk6vMZpgSaM3WVWQU92RZAs1v7PtNeMLsxLmZoqBNCeEtuY7Rkj5aPbs4jS1g2wUQXCnoejUM2M9" target="_blank" rel="noopener">2M1rkRggRcaePk6vMZpgSaM3WVWQU92RZAs1v7PtNeMLsxLmZoqBNCeEtuY7Rkj5aPbs4jS1g2wUQXCnoejUM2M9</a></div>
+        <div class="pmeta">solscan</div>
+      </div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>STEEM<small>כל חותם · custom_json · $0 (RC)</small></div></div>
+        <div class="tx"><a href="https://steemworld.org/tx/390bcfc2586def1ef02cc40a0e983c8dd8fce177" target="_blank" rel="noopener">390bcfc2586def1ef02cc40a0e983c8dd8fce177</a></div>
+        <div class="pmeta">block 10,937,394 · <a href="https://steemworld.org/tx/390bcfc2586def1ef02cc40a0e983c8dd8fce177" target="_blank" rel="noopener">steemworld</a></div>
+      </div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>HIVE<small>חי בפעימות RC · 21 עיגונים ב-22 שע' (נמדד 09.09 00:29Z) · $0</small></div></div>
+        <div class="tx"><a href="https://hiveblocks.com/tx/d4cf936b0b5e1eff8dcc8a508532f67c95682bd5" target="_blank" rel="noopener">d4cf936b0b5e1eff8dcc8a508532f67c95682bd5</a></div>
+        <div class="pmeta">blocks 109,708,562-734,678 · <a href="https://hiveblocks.com/tx/d4cf936b0b5e1eff8dcc8a508532f67c95682bd5" target="_blank" rel="noopener">hiveblocks</a></div>
+      </div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>TRON<small>אפס עמלה נטו · ביט-אנקודינג · טבעת 6</small></div></div>
+        <div class="tx">cp#33612 → txid 1db5006b… (בתוך הבלוק)</div>
+        <div class="pmeta"><a href="https://tronscan.org/#/block/86019974" target="_blank" rel="noopener">block 86,019,974</a> · 6/6 נמדד · tronscan</div>
+      </div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>BLURT<small>חי · anchor-pulse: seal→sign→broadcast→verify</small></div></div>
+        <div class="tx">computeTxId מאומת 64-hex מול הצומת · אפס silent-death</div>
+        <div class="pmeta">block 63,502,020 · עמלה 0.129 BLURT · STEEM pulse: 109,438,757+812</div>
+      </div>
+      <div class="prow">
+        <div class="chain"><span class="st live"></span><div>SOLANA<small>עוגן אבן-הפינה הראשון · זרע אחד → 5 אקוסיסטמים</small></div></div>
+        <div class="tx"><a href="https://solscan.com/tx/5z46xVFc3cf8d6daeRhoe2VE1uxPtPQ3S2gPVw2iBSphJhZsFUMwKZiADGbjAb841j8PoRUazic9Bqgjuu5RwZr5" target="_blank" rel="noopener">5z46xVFc3cf8d6daeRhoe2VE1uxPtPQ3…</a></div>
+        <div class="pmeta">slot 445,822,974 · err=null · אומת מ-mainnet-beta · solscan</div>
+      </div>
+    </div>
+    <div class="consistency rv">
+      <div class="icon">1:1</div>
+      <div>
+        <h3>עקביות בין-שרשרתית: מוכחת, לא מוצהרת</h3>
+        <p>אותו stateRoot בדיוק, <span class="mono">d4970bb5…</span> בגובה 2388, עוגן בו-זמנית ב-<strong>Ethereum</strong> (בלוק 25,929,269) וב-<strong>Solana</strong> (slot 445,209,689), ואומת bit-for-bit משתי קריאות RPC ציבוריות נפרדות. וחומת-העוגנים (v50) מאמתת את חמש הרשתות הממומנות read-only ישירות מהשרשראות עצמן, ETH/BSC/SOL חרוטות עם שורש <span class="mono">6097f929…</span>, TRON/XRPL עם <span class="mono">39575b3b…</span>: שני שורשים, מפתח אחד, חמש רשתות. ומודלי הגז שלנו נמדדו בנפרד, כל אחד מול הקבלה שלו: מודל הנוטריון חזה עסקת mainnet <span class="mono">עד ה-wei</span> (30,920 gas · 32,493,358,294,280 wei · בלוק 25,929,672 · כולל תיקון EIP-7623 שרוב המודלים בתעשייה מפספסים), ומודל עוגני הארנק צדק <span class="mono">7 פעמים ברצף</span> (32,680 gas מדויק לעוגן).</p>
+      </div>
+    </div>
+    <div class="consistency rv" style="border-color:rgba(167,139,250.4);background:linear-gradient(135deg,rgba(167,139,250.06),rgba(212,175,55.03));margin-top:14px">
+      <div class="icon" style="background:rgba(167,139,250.12);border-color:rgba(167,139,250.35);color:var(--purple)">v30</div>
+      <div>
+        <h3>הכסף הישן שנמצא: חובר, ואז זז פיזית</h3>
+        <p>אבק שנשכח בארנק ישן, ETH, BNB ו-XRP, אותר דרך נתיב הגזירה הנכון (v29 חובר אותו 1:1 בלי להזיז יחידה). ואז, בהנחיית הבעלים "הוא חייב לזוז פיזית", <strong>הוא זז</strong>: ETH נסחף ב-mainnet ו-BNB נסחף ב-BSC אל בית האוצר, עסקאות אמיתיות, וכתובות המקור רוקנו לאפס. החוסם של אתמול ("הגז יקר מהאבק") התמוסס מול מדידה חיה: 0.068 gwei, בערך 0.5% מהאבק עצמו. ועל XRPL פועם לב: פעימות AccountSet חיות עם ממו עברי חרוט, 4 אישורי tesSUCCESS. וגם הכישלון מתועד: תשלום-עצמי נדחה כ-temREDUNDANT, שתי שורות כנות ביומן. <strong>הכסף זז פיזית, וגם מועסק.</strong></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="products">
+  <div class="wrap">
+    <div class="kicker">THE PRODUCT FAMILY</div>
+    <h2>ארבע דלתות לאותה ריבונות</h2>
+    <p class="lead">SAOS היא לא מוצר בודד, זו מערכת שכבות, וכל מוצר הוא דלת לאותו עיקרון: הוכחה במקום אמון.</p>
+    <div class="prod">
+      <div class="pcard rv" style="grid-column:1/-1;border-color:rgba(212,175,55.45);background:linear-gradient(135deg,rgba(212,175,55.06),var(--panel2))">
+        <div class="pk" style="color:var(--gold)">IDENTITY API · המוצר הראשון שחי ומוכח</div>
+        <h3>הוכחת זהות חוצת-רשתות: בקריאת API אחת</h3>
+        <p>שאלה אחת, תשובה מתמטית: <span class="hl">האם חשבון ה-Steem/Hive הזה וכתובת ה-EVM הזאת שייכים לאותו מפתח?</span> ההוכחה נקראת ישירות מהשרשרת (עוגן saos.id.v1 → EIP-191 → התאמת authority חיה). ממוטר ושקוף: מפתחות API נשמרים כ-hash בלבד, quota יומית, ledger של כל קריאה, וגם תשובה שלילית היא תוצאה כנה ומדודה, לא שגיאה. SDK רשמי באפס תלויות, חי בריפו ומאומת E2E (הפרסום ל-npm, <span class="mono">saos-id-verify</span>, בתהליך) · אומת חי מול בלוק 109,389,994.</p>
+      </div>
+      <div class="pcard rv">
+        <div class="pk">WALLET · חי ומאומת</div>
+        <h3>Saosmartwallet: 7 רשתות, ארנק אחד</h3>
+        <p>ארנק self-custodial שנבנה סביב היררכיית המפתחות של Graphene (owner/active/posting/memo) במקום לחקות ארנקי EVM. מפתחות לעולם לא עוזבים את הלקוח; owner key לעולם לא חם. M0-M4 מאומתים מול bytes אמיתיים מהשרשרת.</p>
+        <div class="metric">STEEM · HIVE · BLURT · TRON · SAOS-NET · ETH · SOL, Sovereign Key Vault + router/quotes חיים</div>
+      </div>
+      <div class="pcard rv">
+        <div class="pk">NOTARY · Phase 1 ירוק</div>
+        <h3>JUMPPER: נוטריון הוכחות אצווה</h3>
+        <p>כל טענה דיגיטלית → רשומה קבועה, זולה, ברת-אימות עצמאי. Merkle batching, חתימה תמיד מחוץ למערכת, 3 טיירות אימות (self-verify ללא רשת / API / on-chain), golden vectors לפורטים בין-שפתיים. 77/77 טסטים מ-clone טרי.</p>
+        <div class="metric">$0.0000081 לרשומה (10K batch) · מודל גז מדויק ל-wei · 12 פעולות attestation חינמיות</div>
+      </div>
+      <div class="pcard rv">
+        <div class="pk">MARKET · חי על הרשת שלנו</div>
+        <h3>SAOS DEX + בורסה (v28): השוק שהסירובים שלו גלויים</h3>
+        <p>ספר הזמנות עם escrow מלא, מילוי במחיר-מייקר, ארנה אוטונומית עם שער-שוליים. ומעל הכול הבורסה הריבונית החיה על הרשת שלנו: AMM עם בוט ארביטראז' מול אורקל חי, harvest שזורם לשכר אמיתי (עם tx), וראוטר שמשווה מול Uniswap/Pancake/Sushi בזמן אמת. ומעל הכול מנוע כלכלה ve(3,3): כל 600 בלוקים 40% מהרווחים קונים-ושרפים (דפלציה אמיתית, מוגבלת ברווח-שנמדד בלבד), עמלות דינמיות 4-1500bps, אורקל מחירים קנוני בתוך ה-stateRoot עצמו (המחיר חתום בקונצנזוס), ומסחר אוטומטי ללא-שומרים, DCA ו-TP/SL כשבונה-הבלוקים עצמו הוא השומר. וחדש: סליקת CoW אחידה פר-בלוק, העודף חוזר לסוחרים, חסינות-סנדוויץ' מבנית · לאונצ'פאד ריבוני עם graduation חי ל-AMM (100% POL) · ו-ProtoRev עם רווח אמיתי נמדד: ‎+50,468µ. 72+ עסקאות אמיתיות נמדדו (v28 snapshot · 09.09); TVL זעיר בכנות, המנגנון הוכח, קנה-המידה הוא השער הבא.</p>
+        <div class="metric">20bps: 10bps אוצר + 10bps צמיחת בריכות אוטונומית · הוכחת ארב: WETH נמכר בסטייה 5.04% · chaos 13/13</div>
+      </div>
+      <div class="pcard rv">
+        <div class="pk">PROOF ENGINE · חי, keyless</div>
+        <h3>Atomic Clock: שעון אטומי מבוזר</h3>
+        <p>ברגע אחד T, מצב-הראש של 6 רשתות הטרוגניות נקשר לשורש Merkle אחד של 32 בייט. בלי מפתחות, בלי גז, בלי עסקאות, read-only ברמת המכונה. כל צד שלישי קורא את אותם RPCs ציבוריים ומאמת בעצמו תוך מילישניות.</p>
+        <div class="metric">15.9ms חישוב · 6.8ms אימות · 435B הוכחה · $0.00 · 6 קבוצות קונצנזוס</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="clock">
+  <div class="wrap">
+    <div class="kicker">ATOMIC STATE CLOCK, LIVE MEASUREMENT</div>
+    <h2>6 ערכאות. שורש אחד. אפס אמון.</h2>
+    <div class="clock">
+      <div class="clockbox rv">
+        <h3>מה נמדד בריצה מתועדת (2026-09-08T02:04Z)</h3>
+        <p>חמישה עדים חיים נקראו במקביל מרשתות ציבוריות, STEEM #109,307,680 · HIVE #109,722,158 · TRON #86,063,739 · ETH #25,929,640 · SOL #445,219,905, ו-BLURT נופה <strong>בכנות</strong> (endpoint לא נגיש). כל עד → canonical JSON → sha256 → עלה; העץ כולו → שורש אטומי אחד <span class="mono">0896c3c6…</span>, משורשר לשרשרת ראיות DAG שרק מתחזקת. כל ריצה ניתנת לשחזור בידי כל אחד: אין חתימה שלנו בסיפור, רק נתונים ציבוריים שקוראים חזרה.</p>
+      </div>
+      <div class="clockstats rv">
+        <div class="cs"><div class="v">15.9ms</div><div class="l">חישוב כולל (עלים+עץ+הוכחות+אימות)</div></div>
+        <div class="cs"><div class="v">6.8ms</div><div class="l">אימות 5 הוכחות-כלילה</div></div>
+        <div class="cs"><div class="v">435B</div><div class="l">הוכחת JSON (160B גלם · 3 hashes)</div></div>
+        <div class="cs"><div class="v">$0.00</div><div class="l">keyless · gasless · אפס עסקאות</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="breakthroughs">
+  <div class="wrap">
+    <div class="kicker">FIVE DEFENSIBLE BREAKTHROUGHS</div>
+    <h2>מה שקשה להעתיק: עם הגבול הכן של כל אחד</h2>
+    <p class="lead">פריצת דרך שלא שורדת את פסקת "מה עוד לא" היא שיווק. לכן כל כרטיס כאן מסתיים בגבול הכן שלה. זה לא חולשה, זה המוצר.</p>
+    <div class="grid4">
+      <div class="card rv"><div class="num">B1 / IDENTITY</div>
+        <h3>זהות חוצת-פרדיגמות</h3>
+        <p>אותו סקלר secp256k1 הוא <span class="hl">הסמכות הפעילה ב-Steem+Hive+Blurt</span> וגם כתובת EVM. חתימת EIP-191 אחת מתפרסמת על 3 השרשראות, וכל צד שלישי מריץ ecrecover ומקשר מתמטית. בלי לחשוף את המפתח. שוק היעד: מיליוני חשבונות Graphene ותיקים שאף ארנק EVM לא יודע לשרת.</p>
+        <div class="bound"><b>גבול כן:</b> מוכיח שליטה; login/recovery אוטומטי עוד לא מחובר.</div>
+      </div>
+      <div class="card rv"><div class="num">B2 / SHADOW-L1</div>
+        <h3>צל-L1 עם תקציב אבטחה ~אפס</h3>
+        <p>במקום לשלם לוולידטורים מיליונים: כל צ'קפוינט נחתם ב-custom_json חינמי, וב-TRON, <span class="hl">ביט-אנקודינג של ההאש בסכומי העברה על טבעת 6 כתובות</span> שנטו העמלה מתאפס. שרשרת ריבונית עם נוטריון חיצוני, בעלות של כמה מאות עסקאות זולות ביום.</p>
+        <div class="bound"><b>גבול כן:</b> סופיות יורשת מהמארחים; כלכלת טוקן עצמאית טרם הוגדרה.</div>
+      </div>
+      <div class="card rv"><div class="num">B3 / REFUSE-COUNTER ECONOMY</div>
+        <h3>שוק שהסירובים שלו הם ההוכחה</h3>
+        <p>כל פעולה עוברת שער <span class="hl">edge ≥ fee + min-profit</span>, ומוני הסירוב עצמם פומביים: 383,836 דילוגים · 130,499 דחיות · 109,919µ דליפה מיושבת. רצפת מחיר עולה רק כשרווח אמיתי מגבה אותה (9 מדרגות, כל גיבוי ברשומות). כנות כאינווריאנט של פרוטוקול, לא הבטחה בדשבורד.</p>
+        <div class="bound"><b>גבול כן:</b> תקרת המנגנון נמדדה (32,603 tx/s); הקצב החי מוגבל תקציבית (dust-scale).</div>
+      </div>
+      <div class="card rv"><div class="num">B4 / PROVABLY SOLVENT</div>
+        <h3>עטיפות 1:1 כאינווריאנט קוד</h3>
+        <p>כל קריסת גשר בתעשייה (>2B$) נבעה מניתוק supply מהגיבוי. אצלנו <span class="hl">supply==locked נאכף בקוד</span>: 20 נכסים עטופים, כל mint מצטט txid של נעילה פומבית, 9 חוזי TRC20 אומתו חיים על TRON, mint-coverage ≤99% נאכף במנוע.</p>
+        <div class="bound"><b>גבול כן:</b> סך הנעול כיום קטן (מאות דולרים); מסילות ETH/SOL לחוזים ממתינות לפריסה.</div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="card rv"><div class="num">B5 / SELF-DOCUMENTING HONEST SYSTEM</div>
+        <h3>המערכת המתעדת-עצמה בכנות: פריצת הדרך שהופכת את הארבע האחרות לביקורתיות</h3>
+        <p>23 לולאות תפעול אוטונומיות, כל טענה נשלחת עם ידית-אימות (txid / counter / endpoint), ו-zero-mock כאינווריאנט נאכף, <span class="hl">כולל פרסום תיקונים נגד הטענות של הבעלים עצמו</span> (באג ה-RC של HIVE: דיווחנו "חסום", גילינו שטעינו פי 52.6, פרסמנו, תיקנו, נעצנו ב-34 assertions מול מדידות חיות).</p>
+      </div>
+      <div class="card rv"><div class="num">THE MOAT, HONESTLY</div>
+        <h3>החפיר: והחלקים שעוד לא</h3>
+        <p><span class="hl">חפיר טכני:</span> bit-exact serialization (30/30 oracle מול bytes אמיתיים מ-api.steemit.com), משמעת מפתחות חוצת-פרדיגמות, kernel דטרמיניסטי, שנים של אינסטלציה לא-זוהרת, נמדדת בכל צעד. <span class="hl">חפיר תרבותי:</span> zero-mock נאכף. <span class="hl">עוד לא חפיר:</span> סדר גודל כלכלי, חוזי גשר פרוסים, טוקונומיקה מוגדרת, ביקורת צד-שלישי, כל אלה gates מתועדים, לא משאלות.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="arch">
+  <div class="wrap">
+    <div class="kicker">ARCHITECTURE</div>
+    <h2>מפעימה מקומית לעדות עולמית: ב-36 שניות</h2>
+    <div class="flow rv">
+      <div class="fnode core"><div class="t">SAOS Kernel</div><div class="d">133,259+ בלוקים · מצב-תושב<br>ריפליי דטרמיניסטי<br><span class="mono">fail-fast → HALT</span></div></div>
+      <div class="farrow">&#8592;</div>
+      <div class="fnode"><div class="t">Seal</div><div class="d">כל 12 בלוקים<br>שורש מרקל של כל המצב<br><span class="mono">sha256 = bytes32</span></div></div>
+      <div class="farrow">&#8592;</div>
+      <div class="fnode"><div class="t">Relay</div><div class="d">breakers · backoff+jitter<br>5 מסילות במקביל<br><span class="mono">verifyOnChain read-back</span></div></div>
+      <div class="farrow">&#8592;</div>
+      <div class="fnode chains"><div class="t">7 רשתות עדים</div><div class="d">Steem · Hive · Blurt · TRON<br>Ethereum · Solana<br><span class="mono">$0 → אגורות → אפס-נטו</span></div></div>
+      <div class="farrow">&#8592;</div>
+      <div class="fnode"><div class="t">אימות עצמאי</div><div class="d">כל אחד · כל סייר<br>bit-for-bit<br><span class="mono">0 mismatches</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="econ">
+  <div class="wrap">
+    <div class="kicker">HONEST ECONOMICS</div>
+    <h2>המספרים שאף אחד לא מפרסם: אנחנו מתחילים בהם</h2>
+    <p class="lead">אוצר אוטומטי אמיתי נמדד במה שהוא מסרב לעשות. המונים האלה חיים ב-state ומוצגים ב-API, לא נאספו לפוסט.</p>
+    <div class="counters rv">
+      <div class="counter"><div class="v">383,836</div><div class="l">עסקאות שדולגו, לא עברו את שער הרווח (edge ≥ fee + min-profit)</div></div>
+      <div class="counter"><div class="v y">130,499</div><div class="l">פעולות שנדחו בכנות, כל דחייה עם סיבה מתועדת</div></div>
+      <div class="counter"><div class="v g">9,935,250µ</div><div class="l">PnL מצטבר לאוצר · 5,606 עסקאות · PnL פר-חייל פומבי</div></div>
+    </div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card rv"><div class="v">30bps</div><h3>עמלות שקופות</h3><p>70% לספקי הנזילות · 30% לאוצר · harvest rail עם txid פומבי. סולם-רצפה: ≤0.5% למדרגה, כל מדרגה מגובה ב-µ מדויק ברשומות.</p></div>
+      <div class="card rv"><div class="v">20 × 1:1</div><h3>עטיפות מגובות</h3><p>supply==locked לכל נכס חי · כל mint מצטט נעילה פומבית · אורקל חתום שעתי עם src+ref: ודילוג כן על כשל רשת במקום מחיר מומצא.</p></div>
+      <div class="card rv"><div class="v">0</div><h3>הבטחות תשואה</h3><p>סולם-הערך מגובה עמלות-שנמדדו בלבד; harvest מעל עמלות אמיתיות נדחה אוטומטית. מי שמבטיח תשואה: שיזהיר אתכם.</p></div>
+    </div>
+    <div class="honesty rv">
+      <p><strong>כנות היא תכונת ליבה, לא סיסמה.</strong> כל דחייה מנומקת בקוד: <span class="mono">insufficient-escrow · min-out · no-cross · harvest-exceeds-measured-fees</span>. סטטוס לא-מושלם מוצג כפי שהוא. והטעויות שלנו מפורסמות עם התיקון, כמו באג ה-RC של HIVE שגרם לנו לדווח "חסום" כשהחשבון החזיק פי 52.6 ממה שקראנו. מערכת שמסוגלת להגיד "טעינו" בכנות היא מערכת שאפשר לסמוך על ה"צדקנו" שלה.</p>
+    </div>
+  </div>
+</section>
+
+<section id="fleet">
+  <div class="wrap">
+    <div class="kicker">SOVEREIGN FLEET & WORKFORCE</div>
+    <h2>ארגן שמפעיל את עצמו: ומראה את העבודה</h2>
+    <div class="grid3">
+      <div class="card rv"><div class="v">13/13</div><h3>חיילים חיים על Steem</h3><p>אומת ב-get_accounts (נמדד 08.09): מפקד-הצי + 11 סוחברים + @powerspan. PnL פר-חייל פומבי (wog +163,295µ מוביל). RC/HP נמדד שעתיים. מפתחות לעולם לא עוזבים את המכונה.</p></div>
+      <div class="card rv"><div class="v">23</div><h3>לולאות תפעול אוטונומיות</h3><p>claims · curation · trading · bridging · healing · sweeping: הכל תחת beat.lock יחיד (single-writer, אפס file-races). 5 לולאות = קריאת RPC אחת לחלון 15s. DRY_RUN ברירת-מחדל. והצי גם בונה את הרשת: סוכנים מפרסמים ומצביעים אוטונומית כל יום: בסמכות posting בלבד (השרשרת עצמה אוסרת עליה להזיז כספים): עם E2E חי ו-tx אמיתי (פוסט בבלוק 109,443,160).</p></div>
+      <div class="card rv"><div class="v">12 × 10</div><h3>רישום צי רב-פרוטוקולי</h3><p>12 סוכנים עם זהויות ב-EVM (7 רשתות) + TRON + SOL + BTC · מניפסט מעוגן on-chain · כתובות EVM זהות בכל הרשתות: מוכן ל-CREATE2 ולסף 7/11 (EIP-712) + כוונות גזלס עם gas-tank.</p>
+        <div class="chips"><span class="chip hot">ethereum</span><span class="chip hot">bsc</span><span class="chip hot">polygon</span><span class="chip hot">arbitrum</span><span class="chip hot">optimism</span><span class="chip hot">base</span><span class="chip hot">avalanche</span><span class="chip">tron</span><span class="chip">solana</span><span class="chip">bitcoin</span></div>
+      </div>
+    </div>
+    <div class="strip rv" style="margin-top:16px">
+      <div class="cell"><div class="v">13/13</div><div class="l">Chaos suite, ניתוקי RPC, root מזויף זוהה ונדחה, txid רפאים</div></div>
+      <div class="cell"><div class="v">8+4</div><div class="l">אינווריאנטות fail-fast פר רגל-מילוי ופר חותם · HALT + סיבה פומבית</div></div>
+      <div class="cell"><div class="v">66</div><div class="l">דמונים משדרים-פוטנציאליים, כולם DRY-by-default (LIVE-GATE), שידור חי דורש חמוש מודע כפול, ו-dry תמיד מנצח</div></div>
+      <div class="cell"><div class="v">0</div><div class="l">סודות שדלפו · AES-256-GCM vault · סריקות על כל דחיפה</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="road">
+  <div class="wrap">
+    <div class="kicker">ROADMAP</div>
+    <h2>נבנה והוכח · מתוכנן ומתועד</h2>
+    <p class="lead">אנחנו לא מפרסמים תאריכים. אנחנו מפרסמים קבלות, וכששלב נוחת, הוא נוחת עם txid.</p>
+    <div class="road">
+      <div class="col done rv">
+        <h3>// נבנה, חי ומוכח</h3>
+        <ul>
+            <li><span class="m">[v]</span> <strong>ליבה:</strong> 133,259+ בלוקים (שרד fork מתוכנן @130,000 עם תיקוני kernel) · ריפליי דטרמיניסטי · 32,603 tx/s נמדד בריפליי ארכיון אמיתי · בלוק כל 3 שניות</li>
+            <li><span class="m">[v]</span> <strong>חומת עוגנים:</strong> 5/5 הרשתות הממומנות מאומתות read-only מהשרשראות עצמן (ETH · BSC · SOL · TRON · XRPL) + מסילות Graphene חינמיות (Steem · Hive · Blurt) · מודל גז 7/7 מדויק · שני שורשים, מפתח אחד, חמש רשתות</li>
+            <li><span class="m">[v]</span> <strong>כסף אמיתי:</strong> כסף ישן אותר, חובר 1:1 וזז פיזית (tx אמיתיים, מקורות רוקנו) · חדר המרה: 65/65 רגליים אטומיות, p50 88ms מול 10-90 דקות בצד-שלישי · כל 10 הנכסים בניתוב אטומי, התיישבות exact-to-quote (הוכחה: 2268µ) · מיקרו-מסילה: פרמיה +459%→+24.7%, נטו +133kµ מדוד · פער-פנטום אותר ונשרף פרו-רטה בכנות</li>
+            <li><span class="m">[v]</span> <strong>כלכלה ושוק:</strong> מנוע ve(3,3), buy-&amp;-burn 40% כל 600 בלוקים מוגבל ברווח-שנמדד · סליקת CoW חסינת-סנדוויץ' מבנית · לאונצ'פאד עם graduation חי (100% POL) · מסחר keeperless (DCA+TP/SL) · 20 עטיפות supply==locked · 383,836 סירובים פומביים</li>
+            <li><span class="m">[v]</span> <strong>אוטונומיה והחלמה:</strong> 13 חיילים + 23 לולאות · נחיל בינה עם שער סוכנים (חיצוני ראשון עבר) · ריפוי-עצמי 36s הוכח · משפחת זהויות שוחזרה משורש אחד וחתמה עוגן #12 על Ethereum · זהות כ-product: API ממוטר + SDK אפס-תלויות</li>
+            <li><span class="m">[v]</span> <strong>ביקורת עצמית כשיטה:</strong> chaos 13/13 · אינווריאנטות תפסו LP-פנטום חי (HALT @h20808) · 100+ פערי אמת נסגרו בהוכחות חיות · גבהים מסועפים סומנו AMBIGUOUS במקום להכריע שרירותית · חבילת ביקורת חיצונית ארוזה וממתינה</li>
+          </ul>
+      </div>
+      <div class="col next rv">
+        <h3>// מתוכנן, מתועד, ללא תאריכים</h3>
+        <ul>
+          <li><span class="m">[&gt;]</span> הרחבת ריבונות, נחקרה ואומתה חי: SKALE (גז-חינם) · NOSTR · Vara · 6 מסילות-מודול · הארגון גדל 8→12 ריפואים</li>
+          <li><span class="m">[&gt;]</span> השקיית-גז ≈$0.40 (מדידה חיה 09-12; הייתה ≈$0.94 ב-v52, הגז נרגע): בקשת הגז הרשמית שודרה ל-11/11 הריפואים (סוגיה 003) · 6 דלתות EVM אפלות: BSC · פוליגון · ארביטרום · AVAX · xDAI · SKALE · הסורק מודד כל 60 שנ' ויורה לבד עם מימון · החלטת בעלים</li>
+          <li><span class="m">[&gt;]</span> כלכלת SAOS, מסמך tokenomics ממה שהקוד באמת אוכף (שער S2, אישור בעלים)</li>
+          <li><span class="m">[&gt;]</span> חוזה גשר Ethereum + תוכנת Solana, מוכנים ב-staging; הפעלת הפקדות Task 117 (mint 1:1 בקנה מידה)</li>
+          <li><span class="m">[&gt;]</span> זהות, ההמשך: login/recovery אוטומטי למיליוני חשבונות ותיקים · פרסום ה-SDK ל-npm ופתיחת gateway ציבורי (פעולות בעלים)</li>
+          <li><span class="m">[&gt;]</span> SealRegistry + כספת wSAOS (סף 7/11 מול seal סופי) · CREATE2 על 7 רשתות EVM</li>
+          <li><span class="m">[&gt;]</span> JUMPPER Phase 3: API ציבורי + explorer + שידור חי (חותם חיצוני, by design)</li>
+          <li><span class="m">[&gt;]</span> ביקורת צד-שלישי (החבילה byte-identical ממתינה) · HSM · Prometheus/Grafana</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta">
+  <div class="wrap rv">
+    <h2>אל תאמינו לנו. תאמתו.</h2>
+    <p>כל טענה בדף הזה נגזרת ממדידה או מקבלה משורשרת. פתחו סייר בלוקים, השוו root, ספרו בלוקים, קראו את מוני הסירוב. זו בדיוק הסיבה שבנינו כך, כי בעידן שבו כל סוכן יכול לטעון הכל, רק שרשרת ציבורית לא יכולה לשקר.</p>
+    <div class="hero-cta" style="justify-content:center">
+      <a class="btn btn-gold" href="#proof">חזרה לקבלות</a>
+      <a class="btn btn-ghost" href="https://etherscan.io/tx/0x102ec1935be6cb3ff3acc20189a85377cf57486515f3121472c6611b20e0ef41" target="_blank" rel="noopener">פתחו עוגן חי ב-Etherscan</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap foot">
+    <div class="disclaimer">
+      SAOS היא תשתית טכנולוגית ריבונית בשלב פיתוח. אין לראות באמור ייעוץ השקעות, הצעה לרכישת נייר ערך או הבטחת תשואה כלשהי. כל הנתונים נמדדים או מעוגנים on-chain וניתנים לאימות עצמאי; נתונים תיאורטיים מסומנים ככאלה במפורש, וגבולות כנים מצוינים לצד כל פריצת דרך. השימוש ברשתות ציבוריות (Steem, Hive, Blurt, TRON, Ethereum, Solana, Bitcoin) כשכבות אימות אינו מהווה שותפות או חסות של אותן רשתות. סימני מסחר שייכים לבעליהם. כל המספרים בעמוד הם snapshot מדידה נכון ל-2026-09-10; המקורות החיים והתאריכים המדויקים ב-fact-sheet.
+    </div>
+    <div class="foot-links">
+      <a href="fact-sheet.md">Fact Sheet v2 (מקור האמת)</a>
+      <a href="/Domain/hub/ecosystem.html">Ecosystem Map (הרפורם)</a>
+      <a href="index-en.html">English version</a>
+      <a href="onepager-en.html">One-Pager להדפסה</a>
+      <a href="#proof">הקבלות החיות</a>
+      <span class="mono" style="color:var(--dim);font-size:11px;margin-top:8px">SAOS· Adsmarket v2.0, 2026-09-08</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

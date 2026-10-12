@@ -1,0 +1,117 @@
+# blurt-revival — P0-5 (master plan T7)
+# Ends the "ONE live endpoint" concentration and re-opens the BLURT rail.
+# hourly: health probe of all nodes + receipt commit (keyless)
+# dry:    key-fit + byte-law proof with CI_ADOPT_WIF_POSTING / CI_BLURT_POSTING_WIF (no broadcast)
+# post:   ONLY when CI_BLURT_ENABLED === "true" (owner DecisionQueue: GEN-2 rotation first)
+#
+# HONESTY LAW (zai-13b, task 13-b, measured on runs 38148771443..38149406329):
+# external/refusal states are recorded honestly, never performed as red noise —
+#   all-nodes-down  = green run + BLURT-NODES-DOWN=true marker in the receipt + step summary;
+#   key-fit refusal = honest state file key-fit-last.json (owner key rotation pending),
+#                     never a red run (the machine refuses by law — that IS the success);
+#   dry/post modes stay fail-closed (operator-invoked red = the alarm working).
+name: blurt-revival
+on:
+  schedule:
+    - cron: '19 */2 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'health | dry | post'
+        default: 'health'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: blurt-revival
+  cancel-in-progress: false
+
+jobs:
+  revive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Install deps (pure-JS crypto only)
+        run: npm install --no-audit --no-fund
+      - name: BLURT health probe (keyless)
+        if: ${{ github.event.inputs.mode != 'dry' && github.event.inputs.mode != 'post' }}
+        run: |
+          node scripts/blurt-connector.mjs health | tee blurt-receipt.json
+          # all-nodes-down honesty: green-with-marker, the receipt commit is the state file
+          if node -e 'process.exit(JSON.parse(require("fs").readFileSync("blurt-receipt.json","utf8")).nodesDown ? 0 : 1)'; then
+            {
+              echo "## כנה: כל-צמתי-ה-BLURT מתים (BLURT-NODES-DOWN=true)"
+              echo ""
+              echo "מצבה-כנה במקום אדום: כשל חיצוני (RPC outage) אינו כשל-המכונה. הרכבת נשארת fail-closed; ה-owner מסובב צמתים."
+              echo ""
+              echo '```json'
+              cat blurt-receipt.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Key-fit measure (honest state, never a red run — drip verdict is data)
+        if: ${{ github.event.inputs.mode != 'dry' && github.event.inputs.mode != 'post' }}
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          BLURT_ACCOUNT: headcorner
+        run: |
+          # health-mode law (zai-13b): the drip's fail-closed refusal (NO-GEN-FITS-CHAIN,
+          # owner key-rotation pending) is an HONEST STATE, not a CI failure — five
+          # identical red runs in ten minutes (14:49-14:59Z, all Vault-drip) were noise
+          # masking real failures. When a key FITS, the WIF is wiped and never printed;
+          # only the public verdict (derived vs live pubkeys) is recorded.
+          set -uo pipefail
+          rm -rf /tmp/engine
+          git clone --depth 1 --branch saos-cockpit "https://x-access-token:${GH_PAT}@github.com/roshpinacare-sys/steem.git" /tmp/engine
+          if node scripts/vault-drip.mjs "$BLURT_ACCOUNT" /tmp/engine > /tmp/drip-wif.out 2> /tmp/drip-verdict.err; then
+            node -e 'const fs=require("fs");fs.writeFileSync("key-fit-last.json",JSON.stringify({keyFit:"PASS",at:new Date().toISOString()})+"\n")'
+            echo "key-fit: PASS — a vault key derives the live posting authority (WIF wiped, never printed)"
+          else
+            node -e 'const fs=require("fs");let v=null;try{v=JSON.parse(fs.readFileSync("/tmp/drip-verdict.err","utf8"))}catch{};fs.writeFileSync("key-fit-last.json",JSON.stringify({keyFit:"NO",at:new Date().toISOString(),dripVerdict:v,note:"owner key rotation pending — machine refuses by law; run honest-green with this marker"})+"\n")'
+            echo "key-fit: NO — honest state recorded in key-fit-last.json (owner rotation pending); machine refuses by law, run stays green"
+          fi
+          rm -f /tmp/drip-wif.out /tmp/drip-verdict.err
+          rm -rf /tmp/engine
+
+      - name: Vault-drip (posting WIF from git vault - runner-only, masked, wiped)
+        if: ${{ github.event.inputs.mode == 'dry' || github.event.inputs.mode == 'post' }}
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/engine
+          git clone --depth 1 --branch saos-cockpit "https://x-access-token:${GH_PAT}@github.com/roshpinacare-sys/steem.git" /tmp/engine
+          WIF=$(node scripts/vault-drip.mjs "${BLURT_ACCOUNT:-headcorner}" /tmp/engine)
+          if [ -z "$WIF" ]; then echo "VAULT-DRIP-EMPTY"; exit 1; fi
+          echo "::add-mask::$WIF"
+          echo "CI_BLURT_POSTING_WIF=$WIF" >> "$GITHUB_ENV"
+          rm -rf /tmp/engine
+
+      - name: BLURT dry — key-fit + byte-law (no broadcast)
+        if: ${{ github.event.inputs.mode == 'dry' }}
+        env:
+          CI_ADOPT_WIF_POSTING: ${{ secrets.CI_ADOPT_WIF_POSTING }}  # fallback only - vault-drip is primary
+          BLURT_ACCOUNT: headcorner
+        run: node scripts/blurt-connector.mjs dry | tee blurt-receipt.json
+      - name: BLURT post — double-gated
+        if: ${{ github.event.inputs.mode == 'post' }}
+        env:
+          CI_ADOPT_WIF_POSTING: ${{ secrets.CI_ADOPT_WIF_POSTING }}  # fallback only - vault-drip is primary
+          CI_BLURT_ENABLED: ${{ secrets.CI_BLURT_ENABLED }}
+          BLURT_ACCOUNT: headcorner
+        run: node scripts/blurt-connector.mjs post | tee blurt-receipt.json
+      - name: Commit receipt
+        if: always()
+        run: |
+          git config user.name "blurt-revival[bot]"
+          git config user.email "bot@roshpinacare-sys.local"
+          mkdir -p learning/blurt
+          cp blurt-receipt.json "learning/blurt/revival-$(date -u +%Y%m%dT%H%M%SZ).json" 2>/dev/null || true
+          cp key-fit-last.json learning/blurt/key-fit-last.json 2>/dev/null || true
+          git add learning/blurt 2>/dev/null || true
+          git commit -m "blurt-revival: receipt $(date -u +%FT%TZ) [skip ci]" || echo "nothing to commit"
+          git push || echo "push skipped"

@@ -1,0 +1,28 @@
+{
+  "id": "CR-0074",
+  "slot": 74,
+  "title": "Fleet Rung 44 — THE OPPOSING HANDS: the counter-grids ARM and the pegout hand proves itself. The owner ordered the opposing grids to stand on our own network — \"אני רוצה לייצר עוד גרידים מתנגדים על הרשת שלנו מצד שני\" (trace 1a1…c3a5) — and re-confirmed with the rung trigger (trace 1a1…c3ed). THIS FILE IS THE GATE: its presence in the repo IS the open gate (an artifact auditable in git history, never a boolean an import can flip).",
+  "date": "2026-10-04",
+  "at": "2026-10-04T16:00:00.000Z",
+  "owner": "owner",
+  "design": {
+    "kernel": "dex-core.cjs v1.3.0 → v1.4.0 — counterGridGate() (the artifact law), rungSizeLaw() (cap 2%-of-depth marked to the anchor + GRID_DUST floor), rungId() (sha256-16 deterministic idempotency), armCounterGrids() (the arm: PLAN → GATED-ARMED-BROADCAST-READY; TWO-SIDED law — REFUSED-ONE-SIDED otherwise; GRID-TOO-THIN dust refusal), GRID-ARM ops in the append-only ledger, the gate as a 6th settle argument (byte-determinism untouched)",
+    "ringDesk": "counter-grid.cjs (SAOS-COUNTER-GRID/1, keyless) — publishes the ring: audits every armed grid (ids re-derive, two-sided, sizes uniform), books a sha256-16 payload seal, honest verdicts (GATE-CLOSED / ARMED / TOO-THIN / REFUSED / NO-ARMED-GRIDS)",
+    "handDesk": "pegout-hand.cjs (SAOS-PEGOUT-HAND/1, keyed) — the real-value law's second half: dest-allowlist (estate roster only, else REFUSED-DEST-NOT-ESTATE), µ→chain floor law, pure single-writer queue consumption, own transfer serializer byte-verified against steem-js (golden vectors), gate-crypto.js sovereign ECDSA signing, synchronous-broadcast RECEIPT LAW (txid or nothing — the silent accept-and-drop caught live is retracted in the append-only history)",
+    "evals": "E67 in the suite (v1.52.0 → v1.53.0, 67/67 GREEN): white-box gate/sizing/arm/allowlist/floor/purity/serializer-golden + black-box both selftests fresh-process + real-tree ring re-derivation and refusal-row/txid books"
+  },
+  "questions": {
+    "Q73_what_is_the_opposing_grid": "A counter-grid (גריד מתנגד) is a BOTH-SIDED ladder resting on OUR side of the book, anchored to the POOL MID (our network's own price — the other side of R39's CEX anchor): when external flow pushes the market, our grid sells into strength and buys into weakness, capturing the round-trip the direction bettors pay for. The two-sided law is the essence: a one-sided grid is a direction bet, REFUSED — מתנגד means both hands.",
+    "Q74_why_was_it_gated_and_why_open_now": "R39/R40 booked the grids PLAN-POOL-GATED-NOT-BROADCAST — the plan was visible, the broadcast waited for the owner's word (the mesh never fires a gated rung). The owner has now given that word twice, explicitly ordering MORE counter-grids on our network. R44 arms them under law: deterministic rung ids (sha256-16, idempotent re-arm), the CAP law (per-side notional ≤ 2% of that side's depth value marked to the anchor — the impermanent-value defense), the DUST law (a rung under 1000µ keeps the grid quiet — GRID-TOO-THIN, dust never rests), and settle stays pure (the gate is an argument — byte-determinism untouched).",
+    "Q75_what_is_the_pegout_hand": "The second half of the real-value law (\"באמת להחליף למטבע האמיתי עם ערך ולא סתם שקר\"): R42/R43 queue chain-side payouts to dex/pegout-queue.json — R44 lands the KEYED CONSUMER (agents/pegout-hand.cjs, SAOS-PEGOUT-HAND/1). DEST-ALLOWLIST LAW: a chain payout fires ONLY to an estate-roster account (the 15 documented accounts of soldier_auth_audit.json); a row naming a non-estate account is REFUSED-DEST-NOT-ESTATE — never a transfer to a squatter (the live queue's 'treasury' row is exactly that refusal, booked honestly). The rail proves itself with a 0.001 STEEM self-transfer (value-neutral, receipted with txid) — the hand is real, the queue law is enforced.",
+    "Q76_what_changed_in_the_kernel": "dex-core.cjs v1.3.0 → v1.4.0: counterGridGate() (the artifact law), rungSizeLaw() (cap+dust sizing, both sides marked to the anchor), rungId() (deterministic idempotency), armCounterGrids() (the arm: PLAN→GATED-ARMED-BROADCAST-READY, one-sided REFUSED, thin GRID-TOO-THIN, sized rungs + broadcastPayload), GRID-ARM ops booked in the append-only ledger, the settle gate as a 6th argument, LAWS extended with the arm law + the hand law.",
+    "Q77_what_stays_gated": "The EXTERNAL rails stay untouched: market-exec / grid-beat / the operator CEX remain the only signing surfaces for the external chains; the mesh still never fires a keyed rail; the pegout hand fires only STEEM/SBD corridors (the estate holds the active key) and only to allowlisted dests; HIVE/HBD/BLURT payouts stay PLAN-PEGOUT-KEYED-OPERATOR (no key material — R38 law)."
+  },
+  "evidence": {
+    "ownerDirective": "trace 1a1…c3a5 (2026-10-04): DEX full directive incl. 'גרידים מתנגדים על הרשת שלנו מצד שני' + real-value redemption law",
+    "rungTrigger": "trace 1a1…c3ed (2026-10-04): תמשיך — the rung authority, hcsoldier custody verification ordered and answered in the same rung",
+    "selftest": "dex-core selftest 62/62 GREEN with the R44 laws (gate artifact, cap golden 5183µ, dust refusal, one-sided refusal, settle plumbing both branches)",
+    "queueRow": "dex/pegout-queue.json row 401c2409c4583ac5 (9358µ STEEM, dest 'treasury') — REFUSED-DEST-NOT-ESTATE by the hand (the honest refusal IS the proof the law bites)"
+  },
+  "verdict": "GATE-OPEN — the opposing grids stand under law; the pegout hand is keyed, allowlisted and receipted"
+}

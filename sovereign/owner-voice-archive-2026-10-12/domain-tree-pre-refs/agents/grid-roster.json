@@ -1,0 +1,186 @@
+{
+  "schema": "saos/grid-roster/1",
+  "generatedAt": "2026-10-11T13:50:00Z",
+  "by": "zai-sec-1a12af86",
+  "chains": {
+    "steem": {
+      "rpc": "https://api.steemit.com",
+      "accounts": [
+        {
+          "name": "owner",
+          "role": "treasury"
+        },
+        {
+          "name": "cornerstone",
+          "role": "legacy-treasury"
+        },
+        {
+          "name": "haran",
+          "role": "worker-active"
+        },
+        {
+          "name": "cashmachine",
+          "role": "worker-active"
+        },
+        {
+          "name": "wic",
+          "role": "worker-active"
+        },
+        {
+          "name": "woq",
+          "role": "worker-active"
+        },
+        {
+          "name": "tov",
+          "role": "worker-active"
+        },
+        {
+          "name": "hcsoldier4",
+          "role": "worker-active"
+        },
+        {
+          "name": "hcsoldier5",
+          "role": "worker-active"
+        },
+        {
+          "name": "hcsoldier6",
+          "role": "worker-active"
+        },
+        {
+          "name": "spaminator",
+          "role": "quarantine-vp-empty"
+        },
+        {
+          "name": "hcsoldier1",
+          "role": "keyless-stranded"
+        },
+        {
+          "name": "hcsoldier2",
+          "role": "keyless-stranded"
+        },
+        {
+          "name": "hcsoldier3",
+          "role": "keyless-stranded"
+        },
+        {
+          "name": "saos",
+          "role": "shell"
+        },
+        {
+          "name": "powerspan",
+          "role": "shell"
+        },
+        {
+          "name": "ynet",
+          "role": "dead"
+        },
+        {
+          "name": "israelnews",
+          "role": "worker-active"
+        },
+        {
+          "name": "lsa",
+          "role": "worker-active"
+        },
+        {
+          "name": "macrame",
+          "role": "worker-active"
+        },
+        {
+          "name": "siq",
+          "role": "worker-active"
+        },
+        {
+          "name": "wog",
+          "role": "worker-active"
+        }
+      ]
+    },
+    "hive": {
+      "rpc": "https://api.hive.blog",
+      "accounts": [
+        {
+          "name": "cornerstone",
+          "role": "treasury-primary"
+        },
+        {
+          "name": "owner",
+          "role": "worker-active"
+        }
+      ]
+    },
+    "blurt": {
+      "rpc": "https://blurt-rpc.saboin.com",
+      "accounts": [
+        {
+          "name": "cornerstone",
+          "role": "connect-target"
+        },
+        {
+          "name": "owner",
+          "role": "worker-active"
+        }
+      ]
+    }
+  },
+  "expectations": {
+    "vp_floor_pct": 20,
+    "active_post_max_age_days": 7,
+    "treasury_liquid_floor": {
+      "steem:owner": 90,
+      "hive:cornerstone": 10000,
+      "blurt:cornerstone": 60
+    },
+    "keyless_no_liquid_above": 1,
+    "drift": {
+      "liquid_abs": 5,
+      "power_abs": 1.0
+    },
+    "sp_floor": {
+      "steem:owner": 3000
+    }
+  },
+  "claims": [
+    {
+      "id": "fleet-steem-eff-baseline",
+      "chain": "steem",
+      "account": null,
+      "metric": "effective_power",
+      "claimed": 4470,
+      "label": "SP fleet effective (post-arming measured)",
+      "source": "grid-doctor v2.2 live k 2026-10-11T16:36Z \u2014 original 4001 was real; naive /1e6 was the phantom"
+    },
+    {
+      "id": "owner-eff-post-arming",
+      "chain": "steem",
+      "account": "owner",
+      "metric": "effective_power",
+      "claimed": 2926,
+      "label": "SP owner effective (post-arming, floor 3000)",
+      "source": "measured live 2026-10-11 \u2014 SP-UNDERFLOOR watches the 74 SP gap"
+    },
+    {
+      "id": "cornerstone-hive-eff-baseline",
+      "chain": "hive",
+      "account": "cornerstone",
+      "metric": "effective_power",
+      "claimed": 102433,
+      "label": "HP cornerstone (the real whale treasury)",
+      "source": "grid-doctor v2.2 live k=0.0006222 2026-10-11 \u2014 v1 book said 164 HP, 622x phantom"
+    }
+  ],
+  "rosterReconciliation": {
+    "at": "2026-10-11T16:30:00Z",
+    "by": "zai-sec-1a12af86",
+    "authority": "agents/fleet-roster.json (owner directive 2026-10-04, trace 1a1…0451)",
+    "union": "grid-roster \u222a fleet-roster.steemFleet \u2014 chain is the referee",
+    "bannedCapital": [
+      "hcsoldier1",
+      "hcsoldier2",
+      "hcsoldier3",
+      "ynet",
+      "owner"
+    ],
+    "note": "delegation waves armed fleet workers with ~1100 SP real (israelnews 94, lsa 80, haran 78, cashmachine 75, macrame 75, woq 70, wic 33, tov 31, siq 31, wog 12) \u2014 owner left at 2926 eff, below its own 3000 floor by 74 SP (SP-UNDERFLOOR watches this)"
+  }
+}

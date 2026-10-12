@@ -1,0 +1,89 @@
+{
+ "schema": "saos/treasury-plan/1",
+ "at": "2026-10-11T15:20:00Z",
+ "by": "zai-sec-1a12af86",
+ "ownerArtifacts": [
+  "agents/change-requests/CR-0076-owner-approval.json",
+  "agents/receipts/owner-directives.jsonl i=3 (traces 1a1…89d5 + 1a1…7275)"
+ ],
+ "steem": {
+  "rpc": "https://api.steemit.com",
+  "wif_env": "STEEM_ACTIVE_WIF",
+  "source": "owner",
+  "min_liquid_reserve": 90,
+  "per_run_cap": 15,
+  "targets": [
+   {
+    "name": "haran",
+    "powerup_steem": 3
+   },
+   {
+    "name": "cashmachine",
+    "powerup_steem": 3
+   },
+   {
+    "name": "wic",
+    "powerup_steem": 3
+   },
+   {
+    "name": "woq",
+    "powerup_steem": 3
+   },
+   {
+    "name": "tov",
+    "powerup_steem": 3
+   }
+  ],
+  "note": "5 active workers (measured live 2026-10-11, each ~0.1 SP) — real capability top-up, treasury keeps 90+ liquid float for the grid ladder",
+  "census_candidates": [
+   "STEEM_ACTIVE_WIF",
+   "SA_HEAD_ACTIVE",
+   "FLEET_CRED",
+   "MAIN_KEY",
+   "SA_FLEET_KEYS",
+   "CORNERSTONE_STEEM_WIF"
+  ],
+  "owner_provision_note": "G1 round 2026-10-12: live STEEM active key (rotated 10-08 17:29 on-chain) is NOT in any secret (census-refused measured x2); owner provisions via secrets.CORNERSTONE_STEEM_WIF (owner active) or re-seals the vault; until then STEEM signing legs stay honestly refused"
+ },
+ "hive": {
+  "rpc": "https://api.hive.blog",
+  "wif_env": "HIVE_ACTIVE_WIF",
+  "source": "cornerstone",
+  "min_liquid_reserve": 10000,
+  "per_run_cap": 2500,
+  "self_powerup_hive": 2500,
+  "delegate": {
+   "to": "owner",
+   "hp": 500
+  },
+  "note": "the real treasury: 13,036 HIVE liquid + 165 HP. Powering up 2,500 (19%) arms curation + RC and locks funds away from any key-holder abuse path; delegation gives the active hive agent working HP",
+  "census_candidates": [
+   "HIVE_ACTIVE_WIF",
+   "WEAVE_HIVE_WIF",
+   "MAIN_KEY",
+   "SA_FLEET_KEYS",
+   "CORNERSTONE_HIVE_WIF"
+  ],
+  "owner_provision_note": "G1 round 2026-10-12: vault B-keys proven LIVE for owner-on-HIVE (bit-compare vs chain) and provisioned clean into HIVE_ACTIVE_WIF; cornerstone (13,036 HIVE treasury) has NO matching key in any secret — owner provisions via secrets.CORNERSTONE_HIVE_WIF; grid owner inventory 0.034 HIVE / 0.003 HBD = ARMED-WAITING by design"
+ },
+ "blurt": {
+  "rpc": "https://blurt-rpc.saboin.com",
+  "wif_env": "BLURT_ACTIVE_WIF",
+  "source": "cornerstone",
+  "min_liquid_reserve": 60,
+  "per_run_cap": 150,
+  "self_powerup_blurt": 150,
+  "posting": {
+   "wif_env": "BLURT_POSTING_WIF",
+   "pub": "BLT7NuGadC2wNv8PuimyiWbTs8hvwEYpjQEbzqT73nWMaRBTJNxCk",
+   "account": "cornerstone"
+  },
+  "note": "cornerstone holds 233.86 BLURT with 0 BP and never posted — powerup 150 arms BP, posting key connects the account",
+  "census_candidates": [
+   "BLURT_ACTIVE_WIF",
+   "SA_FLEET_KEYS",
+   "MAIN_KEY"
+  ],
+  "chain_id": "cd8d90f29ae273abec3eaa7731e25934c63eb654d55080caff2ebb7f5df6381f"
+ }
+}

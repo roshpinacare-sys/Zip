@@ -1,0 +1,44 @@
+{
+  "id": "CR-0077",
+  "kind": "owner-approval",
+  "at": "2026-10-11T23:35:00Z",
+  "recordedBy": "zai-sec-1a12af86",
+  "ownerDirectives": [
+    {
+      "trace": "1a1…9241",
+      "at": "2026-10-11",
+      "quote": "[redacted — owner voice sealed in private custody]",
+      "meaning": "FULL LIFT: open every capital lane immediately; the locks were never ordered (owner disavows the 2026-10-04 freeze framing); sweep ALL git homes for locked capital lanes and open them; everything, everything, everything."
+    }
+  ],
+  "opens": [
+    {
+      "lane": "*",
+      "lanes": [
+        "claims",
+        "grid",
+        "general",
+        "powerup",
+        "delegation",
+        "connect",
+        "dex-batch-settle"
+      ],
+      "tools": "every signing tool of every home (directives chain i=5 staged-open lanes=[*], trace 1a1…9241)",
+      "caps": "per-lane caps remain where already codified (CR-0076 powerup/delegation/connect caps; treasury-plan.json per_run_cap + min_liquid_reserve; dex internal-book conservation law)",
+      "reversibility": "append a halt-all entry to agents/receipts/owner-directives.jsonl — the lift dies mechanically (staged-open must be newer than the last halt-all); or delete this file + remove lanes from STASIS.json stagedLanes.allow"
+    }
+  ],
+  "unchanged": {
+    "bannedCapital": "hcsoldier1, hcsoldier2, hcsoldier3 — LOST-NO-CUSTODY, zero capital to keyless accounts (fleet-roster bannedCapital; no owner word can make money appear on keyless accounts)",
+    "mechanicalGates": "capital-gate ROSTER (targets) + JOURNAL (decisions) + sign-time stasisHalt + read-back verification after every broadcast",
+    "vault": "vault-home CHAIN-JUDGED stays per sovereign decision D-2 (2026-10-11): opening = key rotation (r11 lane), never key reuse; root subscription requires the owner's air-gapped machine step",
+    "selfModel": "organism.json stays honest: C-002 (unknown-writer, grid) stays OPEN as an observed fact; haltCoverage stays ORGANISM_ONLY; the gate consumes the owner's lift as recorded risk-acceptance — facts are never edited to match authority"
+  },
+  "guards": [
+    "capital-gate.cjs stasisHalt at sign-time (STASIS-STAGED-ALLOW receipts cite the lift + trace)",
+    "directives chain tamper-EVIDENT verifyChain before every decision",
+    "roster + journal on every signing",
+    "capital-gate.selftest.cjs R30 lift vectors must be green before any dispatch (resumePolicy judge-node law)"
+  ],
+  "executor": "zai-sec-1a12af86 (session trace 1a1…9241)"
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "saos/g1-receipt/1",
+  "at": "2026-10-12T02:10:00Z",
+  "ownerTrace": "1a1…5721",
+  "ownerWords": "[redacted — owner voice sealed in private custody]",
+  "measured": {
+    "vault_unseal": "autonomous (wraps × registered credential) — zero plaintext printed",
+    "vault_keys_vs_chain": {
+      "steem_owner": "0/6 WIFs + primary-credential-derived 0/4 roles match live authorities (owner rotation 10-08 17:29 on-chain: owner STM7KbgN***, active STM5jRfQ***, posting STM7RqZt***)",
+      "hive_owner": "B-series WIFs are the LIVE keys — active+owner+posting all match (bit-compare)",
+      "cornerstone_hive_13036_treasury": "NO matching key in any secret (census-refused measured 10-11 ×2 + this round)"
+    },
+    "provisioned_clean": {
+      "Domain/HIVE_ACTIVE_WIF": "204, sealed-box, chain-self-checked before upload (pub === live HIVE active)",
+      "Domain/HIVE_POSTING_WIF": "204, same law",
+      "saos-dex/HIVE_ACTIVE_WIF": "204, repo-own key seal",
+      "honesty_note": "first provisioning attempt was CRLF-polluted (bash source keeps \\r) — caught by the engine's authorityOk=false verdict, re-sealed clean, authorityOk flipped TRUE in run 01:59:52"
+    },
+    "hive_leg_verdict": "ARMED-WAITING — authority TRUE, rc TRUE (11.87B mana, 27.7%), book healthy (28bps), honest blocker: working inventory 0.034 HIVE / 0.003 HBD below price-fidelity minimums",
+    "steem_leg_verdict": "ARMED-KEY-STALE — the 10-08 rotated STEEM active key exists only with the owner; fail-closed holds both legs' broadcasts",
+    "steem_posting_leg": "ALIVE — twins provisioned STEEM_POSTING_WIF 01:38, daily posted 01:41 (saos-daily-20261012, 2109 chars, honest $0 economics)"
+  },
+  "owner_provision_paths": {
+    "steem_active": "secrets.CORNERSTONE_STEEM_WIF (slot added to census) — or re-seal vault keys.env",
+    "cornerstone_hive": "secrets.CORNERSTONE_HIVE_WIF (slot added to census) — unlocks the 13,036 HIVE treasury lane (CR-0076 caps already approved)"
+  },
+  "selfProof": "see git sha of this file; zero key material printed anywhere (all comparisons bit-wise in memory)"
+}

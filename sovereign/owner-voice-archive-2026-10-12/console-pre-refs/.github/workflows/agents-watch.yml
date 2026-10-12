@@ -1,0 +1,76 @@
+#
+#
+#
+
+name: agents-watch
+
+on:
+  schedule:
+    - cron: '41 */2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agents-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Refresh the agents registry
+        env:
+          AGENTS_WATCH_TOKEN: ${{ secrets.AGENTS_WATCH_TOKEN }}
+        run: node agents/watch.mjs
+
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet agents/registry.json agents/gh-snapshot.json; then
+            # forcing a commit (and a Pages build) even when the fleet is
+            # semantically identical. Commit only when the agent roster, its
+            # states, or the repo set truly change, or when the last committed
+            # heartbeat is older than 3h. Measured root cause of the
+            SEM_NOW="$(node -e 'const r=require("./agents/registry.json");console.log(JSON.stringify({n:r.agents.length,s:r.agents.map(a=>a.name+":"+(a.state||"")).sort(),repos:(r.reposWithAgents||[]).length}))' 2>/dev/null || echo x$$)"
+            git show HEAD:agents/registry.json > /tmp/prev-reg.json 2>/dev/null \
+              && SEM_PREV="$(node -e 'const r=require("/tmp/prev-reg.json");console.log(JSON.stringify({n:r.agents.length,s:r.agents.map(a=>a.name+":"+(a.state||"")).sort(),repos:(r.reposWithAgents||[]).length}))' 2>/dev/null || echo y$$)" \
+              || SEM_PREV=""
+            LAST_TS="$(git log -1 --format=%cI -- agents/registry.json agents/gh-snapshot.json)"
+            LAST_S="$(date -u -d "$LAST_TS" +%s 2>/dev/null || echo 0)"
+            AGE_H=$(( ($(date -u +%s) - LAST_S) / 3600 ))
+            if [ "$SEM_NOW" = "$SEM_PREV" ] && [ "$AGE_H" -lt 6 ]; then
+              echo "fleet semantically unchanged and heartbeat fresh (${AGE_H}h < 6h) - no commit, Pages quota spared"
+              exit 0
+            fi
+            git config user.name "agents-watch"
+            git config user.email "actions@users.noreply.github.com"
+            node agents/redact-telemetry.mjs agents/registry.json agents/gh-snapshot.json
+            git add agents/registry.json agents/gh-snapshot.json
+            git commit -m "agents-watch: $(date -u +%Y-%m-%dT%H:%M:%SZ) · $(node -e 'const r=require("./agents/registry.json");console.log(r.agents.length+" agents · "+r.reposWithAgents.length+" agent-repos (live count)")') · snapshot $(node -e 'const s=require("./agents/gh-snapshot.json");console.log((s.repos||[]).length+" repos")' 2>/dev/null || echo kept)"
+            PUSHED=0
+            for attempt in 1 2 3; do
+              if git pull --rebase -X theirs origin main && git push; then
+                PUSHED=1
+                echo "pushed on attempt ${attempt}"
+                break
+              fi
+              echo "push attempt ${attempt} lost the race - rebasing on the newest fleet state and retrying"
+              sleep 5
+            done
+            if [ "$PUSHED" != "1" ]; then
+              echo "::error::push failed after 3 rebases - the registry stays local; next hourly run will measure again"
+              exit 1
+            fi
+          else
+            echo "registry and snapshot unchanged - no commit"
+          fi

@@ -1,0 +1,67 @@
+{
+  "protocol": "SAOS-FATE-DEFENSE-STASIS/1",
+  "active": true,
+  "mode": "staged",
+  "reason": "OWNER DIRECTIVE 2026-10-04 (IM trace 1a10…0451): '[owner-directive]' — measured live: ~60 delegation ops on owner in one day (2026-10-04), including fresh SP delegated to hcsoldier1/2/3 (LOST-NO-CUSTODY — no keys exist, no authority anchors), delegation flapping between 6+ conflicting target values from uncoordinated writers (05:17Z/05:21Z/05:22Z/11:43-45Z/14:55Z/17:48-49Z/20:33-34Z), and 15 signing agents that did not obey this brake. STAGED RE-ENTRY 2026-10-05 (IM trace 1a10…2391): '[owner-directive]' + calibration mandate (staged re-entry, limited exposure, observation, increasing confidence) — the brake stays armed; only the staged lanes below open.",
+  "requestedBy": "owner directive 2026-10-04 (IM trace 1a10…0451), executed by the platform main agent; staged-lanes opened on owner directive 2026-10-05 (IM trace 1a10…2391), executed by the T-B agent",
+  "since": "2026-10-04T22:06:00Z",
+  "scope": "all capital lanes: delegations, transfers, claims, converts, bridges, trades, votes — every signing agent obeys (capital-gate.cjs); measurement-only lanes continue",
+  "stagedLanes": {
+    "allow": [
+      "grid",
+      "claims",
+      "dex-batch-settle",
+      "powerup",
+      "delegation",
+      "connect",
+      "general"
+    ],
+    "reason": "R30 FULL LIFT (2026-10-11, owner IM trace 1a12…9241): פתיחה מלאה — כל-המסילות פתוחות: claims (daily-claim/fleet-claim) + grid (market-exec) + general (head-delegate, treasury-desk, pegout-hand, community-founder, curates, econ-desk, כל-כלי-חתימה) + powerup + delegation + connect + dex-batch-settle. החיוב המכני נשאר: שער-ROSTER והיומן בכל-חתימה, caps ב-treasury-plan.json, bannedCapital hcsoldier1/2/3 (LOST-NO-CUSTODY) לעולם, ושער-הבלם בזמן-חתימה נשאר חמוש (active=true). ביטול = הוספת halt-all לשרשרת. Full lift — all lanes open per owner word; mechanical gates unchanged (roster/journal/caps/sign-time); breakers stay armed.",
+    "since": "2026-10-11T23:03:26.001Z"
+  },
+  "resumeLog": [
+    {
+      "at": "2026-10-05T13:05:00Z",
+      "what": "staged lanes grid+claims opened",
+      "authority": "owner directive 2026-10-05 IM trace 1a10…2391: '[owner-directive]' + calibration mandate; root-cause closed R24/R25; Wave-3 targeted resume; judge-green selftests R25-d; first-run observation required"
+    },
+    {
+      "at": "2026-10-07T20:40:00Z",
+      "what": "staged lane dex-batch-settle opened (R77 THE OWNER GATES) — the approved uniform batch settlement on the engine book (keyless, internal-only SIM units, one price, conservation-checked, idempotent) + the engine fee law adopted (the Meteora take, trade-time only, ledger fee stays base)",
+      "authority": "owner directive 2026-10-07 IM trace 1a11…3b25: '[owner-directive]', ratified '[owner-directive]'; within the staged re-entry calibration mandate 2026-10-05 (IM trace 1a10…2391) — the safest path first; owner artifact agents/change-requests/CR-0075-owner-approval.json (presence + opens[] IS the gate; revocation = delete/remove-kind, fail-closed)"
+    },
+    {
+      "at": "2026-10-11T14:21:41Z",
+      "what": "staged lanes powerup+delegation+connect opened (R78 CR-0076) — capped treasury arming (steem powerup to 5 active workers, hive powerup+delegation, blurt powerup) + blurt connectivity bootstrap",
+      "authority": "owner directives 2026-10-11: IM trace 1a12…89d5 '[owner-directive]' + IM trace 1a12…7275 '[owner-directive]' + mission '[owner-directive]'; directives-chain entry i=3 (hash 0f5e3040415a1dac...) verified; owner artifact agents/change-requests/CR-0076-owner-approval.json (revocation = delete file or remove lane — fail-closed)",
+      "note": "cognition-beat revived in cloud (fresh self-model law satisfied); C-002 contradiction scoped to grid lane (unknown-writer fingerprint = limit-orders only, measured again 12:56Z); bannedCapital hcsoldier1/2/3 untouched (LOST-NO-CUSTODY); all broadcasts read-back verified + booked"
+    },
+    {
+      "at": "2026-10-11T23:03:26.002Z",
+      "what": "R30 FULL LIFT — lanes general added; allow=[claims,grid,dex-batch-settle,powerup,delegation,connect,general] = every canonical lane open (owner full-lift [*] on directives chain i=5)",
+      "authority": "owner directive 2026-10-11 (trace 1a12…9241): [owner-directive — full-lift] [owner-directive] — directives chain entry i=5 staged-open lanes=[*] verified (hasEntryForLanes=true); selfModelGate consumes the lift (owner-full-lift-over-contradiction on C-002; owner-full-lift-accepted-uncovered-surface on ORGANISM_ONLY); contradictions remain open in the model (facts, not permissions)",
+      "note": "executed by zai-sec-1a12af86; CR-0077-owner-approval.json is the owner artifact; selftest judge: capital-gate.selftest.cjs extended with R30 lift vectors, must be green before any dispatch"
+    }
+  ],
+  "resumePolicy": "STASIS is a mechanical circuit breaker (FATE-DEFENSE law #1). Active=true halts the engine BEFORE any seal/open/broadcast as a healthy no-op (exit 0, STASIS-HALT receipt line). Set active=true only after N consecutive red engine runs or an owner directive; resume only after root-cause + judge-node green + explicit owner word. The file itself is the audit trail — never delete history, flip the flag. Staged lanes (mode=staged + stagedLanes.allow) are enforced per-tool-lane by capital-gate.cjs laneOf(); an allowed lane prints a STASIS-STAGED-ALLOW receipt; everything else halts exactly as before.",
+  "history": [
+    {
+      "at": "2026-10-04T22:06:00Z",
+      "action": "engaged",
+      "by": "platform main agent on owner directive (trace 1a10…0451)",
+      "note": "capital-lane freeze: auto-delegation chaos + capital sent to keyless lost soldiers (hcsoldier1/2/3); 15 signers wired to capital-gate (STASIS+ROSTER+JOURNAL) in the same commit"
+    },
+    {
+      "at": "2026-10-05T13:05:00Z",
+      "action": "staged-lanes-opened",
+      "by": "T-B agent on owner directive 2026-10-05 (IM trace 1a10…2391) — '[owner-directive]' + calibration mandate",
+      "note": "resumePolicy conditions measured and satisfied: (1) root-cause CLOSED — R24 forensics (stale-signer class closed by sign-time gates; orderid ledger proved the 882 STEEM is standing in ~70 grid orders) + R25-a..d fixes pushed and API-verified; (2) judge-node GREEN — selftests green (capital-gate staged-lane selftest; pegout 17/17; evals baseline unchanged); (3) owner directive on record. Wave-3 of MASTER-ORDER-DRAFT-2026-10-05 §7 = targeted lift for the grid. mode=staged, active stays true; lanes grid+claims only; every other lane halts; fail-closed hardening: unreadable STASIS.json now HALTS (was fail-open)"
+    },
+    {
+      "at": "2026-10-07T20:40:00Z",
+      "what": "staged lane dex-batch-settle opened (R77 THE OWNER GATES) — the approved uniform batch settlement on the engine book (keyless, internal-only SIM units, one price, conservation-checked, idempotent) + the engine fee law adopted (the Meteora take, trade-time only, ledger fee stays base)",
+      "authority": "owner directive 2026-10-07 IM trace 1a11…3b25: '[owner-directive]', ratified '[owner-directive]'; within the staged re-entry calibration mandate 2026-10-05 (IM trace 1a10…2391) — the safest path first; owner artifact agents/change-requests/CR-0075-owner-approval.json (presence + opens[] IS the gate; revocation = delete/remove-kind, fail-closed)",
+      "note": "resumePolicy measured: judge-node GREEN (selftest-batch-settle 28/28 + selftest-batch 15/15 + engine selftest green) + owner directive on record) + zero real-chain exposure (keyless SIM book, honest-econ marks unchanged). active stays true, mode=staged; the lane list is now grid+claims+dex-batch-settle; every other lane halts exactly as before"
+    }
+  ]
+}

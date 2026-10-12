@@ -1,0 +1,31 @@
+{
+  "protocol": "SAOS-DEX-CORE/1",
+  "at": "2026-10-12T07:26:47.297Z",
+  "agent": "dex-core v1.6.0 (R77 THE OWNER GATES)",
+  "verdict": "EXCHANGE-CORE-HALTED-STASIS",
+  "stasisHalted": true,
+  "stasisReason": "OWNER DIRECTIVE 2026-10-04 (IM trace 1a1…0451): '[owner-directive]' — measured live: ~60 delegation ops on owner in one day (2026-10-04), including fresh SP delegated to hcsoldier1/2/3 (LOST-NO-CUSTODY — no keys exist, no authority anchors), delegation flapping between 6+ conflicting target values from uncoordinated writers (05:17Z/05:21Z/05:22Z/11:43-45Z/14:55Z/17:48-49Z/20:33-34Z), and 15 signing agents that did not obey this brake. STAGED RE-ENTRY 2026-10-05 (IM trace 1a1…2391): '[owner-directive]' + calibration mandate (staged re-entry, limited exposure, observation, increasing confidence) — the brake stays armed; only the staged lanes below open.",
+  "laws": [
+    "counter-grid arm (R44): the owner gate is the CR-0074 ARTIFACT (present = open); the arm adds deterministic rung ids, the 2%-of-depth cap law, the dust refusal (GRID-TOO-THIN) and the two-sided law (a one-sided grid is a direction bet — REFUSED); settle stays pure (the gate is an argument)",
+    "pegout hand (R44): the keyed consumer of the pegout queue — DEST-ALLOWLIST law (chain payouts fire ONLY to estate-roster accounts, non-estate dests are REFUSED-DEST-NOT-ESTATE); the rail proves itself with a value-neutral self-transfer, receipted",
+    "intent gates (R43): XC intents settle on ONE balance universe — escrow in, route through OUR pools, chain payouts queued to the corridor (keyless code never broadcasts), refund whole behind the 2:1 clock, corridor exposure bonded ≤ 2× custody",
+    "units: µ BigInt end to end, no floats in settlement",
+    "volatile pools: x·y ≥ k (Uniswap v2 exact, fee on input, floor to user)",
+    "peg pools: Curve stableswap A=10 (canonical, fee on output, −1 pad)",
+    "real value: wrapped mint 1:1 reserve-backed, redeem ALWAYS honored 1:1",
+    "atomicity: minOut guard, refused swaps leave state byte-unchanged",
+    "conservation: custody − wrappedReserve − Σ claims === 0 every tick",
+    "ledger: append-only op-log, monotonic seq, state = fold(ops)",
+    "floor law: rebalance only above 2×(fees+floor) — below it a plan, never a trade",
+    "feed law: settle consumes the booked router feed; measurement and settlement are separated",
+    "honest money: the powerdown drip is the booked fuel; no invented locks",
+    "mesh law (R41): fleet agents settle atomically on this ledger — batch-idempotent, no naked shorts, wires capped at 10% of free treasury per batch, a fill never exceeds 5% of first-hop depth, edge marked to fair (null when no fair exists)",
+    "multi-network vault (R42): custody classes — MEASURED-KEYED is the only mintable class; adjacent networks are OBSERVED (seen, never custody, never a reserve); redeem is ALWAYS honored 1:1 in-ledger (burn before payout); the chain payout is queued for the keyed desks — keyless code never fires a broadcast",
+    "uniform batch clearing (R76): the queue clears as ONE batch - canonical order, two-sided netting at the measured fair, one uniform clearing price for every trader, the solver absorbs the remainder; order-invariance (a permuted queue clears byte-identical) is the anti-sandwich proof · the proof lane is DRY (moves nothing), the settle gate stays the owner's"
+  ],
+  "pools": [],
+  "routes": [],
+  "arb": [],
+  "counterGrids": {},
+  "errors": []
+}

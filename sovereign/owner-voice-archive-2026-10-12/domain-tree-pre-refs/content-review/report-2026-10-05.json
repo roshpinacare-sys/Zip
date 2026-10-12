@@ -1,0 +1,130 @@
+{
+ "tool": "content-reviewer.mjs",
+ "runAt": "2026-10-05T05:25:36.169Z",
+ "day": "2026-10-05",
+ "windowHours": 24,
+ "accounts": [
+  "cashmachine",
+  "haran",
+  "israelnews",
+  "lsa",
+  "macrame",
+  "siq",
+  "tov",
+  "wic",
+  "wog",
+  "woq",
+  "owner"
+ ],
+ "measured": {
+  "posts24h": 13,
+  "comments24h": 0,
+  "errors": []
+ },
+ "duplication": {
+  "threshold": 0.6,
+  "similarity": "content-Jaccard (normalized tokens, markdown-stripped, stopwords removed)",
+  "comparablePairs": 78,
+  "crossAccountPairs": 50,
+  "nearDuplicatePairs": 0,
+  "pairDuplicationPct": 0,
+  "commentLevelDuplicationPct": 0,
+  "issueGatePct": 30,
+  "gateTripped": false
+ },
+ "nearDuplicatePairs": [],
+ "reportablePairsBelowThreshold": [],
+ "staleness": {
+  "silentAccounts24h": [
+   "haran",
+   "lsa",
+   "wic",
+   "wog",
+   "woq"
+  ],
+  "silentCount": 5,
+  "perAccount": [
+   {
+    "account": "cashmachine",
+    "posts24h": 1,
+    "comments24h": 0,
+    "lastPublicItemAt": "2026-10-04T15:58:45",
+    "silent24h": false
+   },
+   {
+    "account": "haran",
+    "posts24h": 0,
+    "comments24h": 0,
+    "lastPublicItemAt": null,
+    "silent24h": true
+   },
+   {
+    "account": "israelnews",
+    "posts24h": 1,
+    "comments24h": 0,
+    "lastPublicItemAt": "2026-10-04T11:03:57",
+    "silent24h": false
+   },
+   {
+    "account": "lsa",
+    "posts24h": 0,
+    "comments24h": 0,
+    "lastPublicItemAt": null,
+    "silent24h": true
+   },
+   {
+    "account": "macrame",
+    "posts24h": 1,
+    "comments24h": 0,
+    "lastPublicItemAt": "2026-10-04T17:57:12",
+    "silent24h": false
+   },
+   {
+    "account": "siq",
+    "posts24h": 1,
+    "comments24h": 0,
+    "lastPublicItemAt": "2026-10-04T11:04:09",
+    "silent24h": false
+   },
+   {
+    "account": "tov",
+    "posts24h": 1,
+    "comments24h": 0,
+    "lastPublicItemAt": "2026-10-04T21:13:42",
+    "silent24h": false
+   },
+   {
+    "account": "wic",
+    "posts24h": 0,
+    "comments24h": 0,
+    "lastPublicItemAt": null,
+    "silent24h": true
+   },
+   {
+    "account": "wog",
+    "posts24h": 0,
+    "comments24h": 0,
+    "lastPublicItemAt": null,
+    "silent24h": true
+   },
+   {
+    "account": "woq",
+    "posts24h": 0,
+    "comments24h": 0,
+    "lastPublicItemAt": null,
+    "silent24h": true
+   },
+   {
+    "account": "owner",
+    "posts24h": 8,
+    "comments24h": 0,
+    "lastPublicItemAt": "2026-10-05T01:13:27",
+    "silent24h": false
+   }
+  ]
+ },
+ "verdict": {
+  "duplication": "0% of cross-account pairs in the 24h window are near-duplicates (>=0.6); 0% of items touched",
+  "staleness": "silent 24h: haran, lsa, wic, wog, woq"
+ }
+}

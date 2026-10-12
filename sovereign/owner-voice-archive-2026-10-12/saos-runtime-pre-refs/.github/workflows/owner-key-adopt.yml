@@ -1,0 +1,199 @@
+# owner-key-adopt.yml — adopts the owner's posting key onto the live account authorities.
+# Law: fail-closed at every gate:
+#  G1: secret WIF parses + derives (graphene ripemd160(pub) checksum).
+#  G2: derived pubkey ∈ LIVE active authorities (measured from node) — else refuse.
+#  G3: condenser verify_authority with the SIGNED tx must return true — else refuse.
+# Only then: broadcast_transaction_synchronous + independent chain re-verification.
+# The key is never logged, never printed, never written to disk.
+# Sig law (FC/graphene): 65B = [recid+31] || r || s. Op id 43 = account_update2 (steem-js wire map).
+name: owner-key-adopt
+
+on:
+  workflow_dispatch:
+    inputs:
+      account:
+        default: 'headcorner'
+      new_posting_pub:
+        default: 'STM8StTG4aesGfmAUgBpMU9LKvoz98E5uz9eCCtEUvYM8Ywk398TD'
+      dry_run:
+        description: 'true = gates+verify_authority only (no broadcast)'
+        default: 'true'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: owner-key-adopt
+  cancel-in-progress: false
+
+jobs:
+  adopt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      STEEM_ACTIVE_WIF: ${{ secrets.STEEM_ACTIVE_WIF }}
+      IN_ACCOUNT: ${{ github.event.inputs.account }}
+      IN_PUB: ${{ github.event.inputs.new_posting_pub }}
+      IN_DRY: ${{ github.event.inputs.dry_run }}
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Gates + adopt (fail-closed, key never logged)
+        run: |
+          set -Eeuo pipefail
+          npm install --prefix /tmp/deps @noble/secp256k1@2.2.3 --omit=dev --no-audit --no-fund --loglevel=error
+          NODE_PATH=/tmp/deps/node_modules node << 'EOS'
+          const crypto = require('crypto');
+          const secp = require('@noble/secp256k1');
+          secp.etc.hmacSha256Sync = (key, ...msgs) => {
+            const h = crypto.createHmac('sha256', Buffer.from(key));
+            msgs.forEach((m) => h.update(Buffer.from(m)));
+            return new Uint8Array(h.digest());
+          };
+          const sha256 = (b) => crypto.createHash('sha256').update(b).digest();
+          const ripemd160 = (b) => crypto.createHash('ripemd160').update(b).digest();
+          const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+          const fail = (v, r) => { console.log(JSON.stringify({ verdict: v, reason: String(r).slice(0, 300) })); process.exit(1); };
+          const b58dec = (s) => {
+            let n = 0n;
+            for (const c of s) { const i = B58.indexOf(c); if (i < 0) throw new Error('bad-b58'); n = n * 58n + BigInt(i); }
+            let h = n.toString(16).padStart(2, '0'); if (h.length % 2) h = '0' + h;
+            const buf = Buffer.from(h, 'hex');
+            let pad = 0;
+            for (const c of s) { if (c === '1') pad++; else break; }
+            return Buffer.concat([Buffer.alloc(pad), buf]);
+          };
+          const u16 = (v) => { const b = Buffer.alloc(2); b.writeUInt16LE(v); return b; };
+          const u32 = (v) => { const b = Buffer.alloc(4); b.writeUInt32LE(v >>> 0); return b; };
+          const varint = (v) => { const o = []; let x = v >>> 0; do { let b = x & 0x7f; x >>>= 7; if (x) b |= 0x80; o.push(b); } while (x); return Buffer.from(o); };
+          const str = (s) => { const b = Buffer.from(s, 'utf-8'); return Buffer.concat([varint(b.length), b]); };
+          const authBytes = (a) => {
+            const p = [u32(a.weight_threshold), varint(a.account_auths.length)];
+            for (const [acc, w] of a.account_auths) p.push(str(acc), u16(w));
+            p.push(varint(a.key_auths.length));
+            for (const [k, w] of a.key_auths) { const raw = b58dec(k.slice(3)).subarray(0, 33); p.push(raw, u16(w)); }
+            return Buffer.concat(p);
+          };
+          const NODES = ['https://api.justyy.com', 'https://api.steemit.com'];
+          async function rpc(node, method, params) {
+            const res = await fetch(node, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }), signal: AbortSignal.timeout(15000) });
+            const j = await res.json();
+            if (j.error) throw new Error((j.error.message || 'rpc-error').slice(0, 200));
+            return j.result;
+          }
+          (async () => {
+            const ACCOUNT = (process.env.IN_ACCOUNT || 'headcorner').trim();
+            const NEWPUB = (process.env.IN_PUB || 'STM8StTG4aesGfmAUgBpMU9LKvoz98E5uz9eCCtEUvYM8Ywk398TD').trim();
+            const DRY = String(process.env.IN_DRY ?? 'true') === 'true';
+            const WIF = (process.env.STEEM_ACTIVE_WIF || '').trim();
+            if (!WIF) fail('NO-SECRET', 'STEEM_ACTIVE_WIF missing');
+            if (!/^STM[1-9A-HJ-NP-Za-km-z]{50,52}$/.test(NEWPUB)) fail('BAD-PUB', 'new posting pub malformed');
+            let priv, derived;
+            try {
+              let w = WIF;
+              if (w.length === 52 && w.startsWith('P')) w = w.slice(1);
+              const dec = b58dec(w);
+              if (dec.length !== 37) throw new Error('wif-len-' + dec.length);
+              const payload = dec.slice(0, -4);
+              if (!sha256(sha256(payload)).slice(0, 4).equals(dec.slice(-4))) throw new Error('wif-checksum');
+              if (payload[0] !== 0x80) throw new Error('wif-version-' + payload[0]);
+              priv = payload.slice(1);
+              const p33 = Buffer.from(secp.getPublicKey(priv, true));
+              derived = 'STM' + (() => {
+                const full = Buffer.concat([p33, ripemd160(p33).slice(0, 4)]);
+                let n = 0n;
+                for (const x of full) n = n * 256n + BigInt(x);
+                let s = '';
+                while (n > 0n) { s = B58[Number(n % 58n)] + s; n /= 58n; }
+                for (const x of full) { if (x === 0) s = '1' + s; else break; }
+                return s;
+              })();
+            } catch (e) { return fail('BAD-WIF', e.message); }
+            let acc, nodeUsed = '';
+            for (const node of NODES) {
+              try {
+                const accs = await rpc(node, 'condenser_api.get_accounts', [[ACCOUNT]]);
+                if (accs && accs[0]) { acc = accs[0]; nodeUsed = node; break; }
+              } catch (e) { /* next node */ }
+            }
+            if (!acc) return fail('ACCOUNT-LOOKUP-FAIL', 'all nodes failed');
+            const liveActive = (acc.active && acc.active.key_auths ? acc.active.key_auths : []).map((x) => x[0]);
+            const livePosting = (acc.posting && acc.posting.key_auths ? acc.posting.key_auths : []).map((x) => x[0]);
+            const thr = (acc.posting && acc.posting.weight_threshold) != null ? acc.posting.weight_threshold : 1;
+            if (!liveActive.includes(derived)) {
+              return fail('ACTIVE-AUTHORITY-MISMATCH', 'derived ' + derived.slice(0, 14) + '... not in live active (' + liveActive.length + ' auths) — refused, nothing broadcast');
+            }
+            if (livePosting.includes(NEWPUB)) {
+              console.log(JSON.stringify({ verdict: 'ALREADY-REGISTERED', posting: livePosting }));
+              process.exit(0);
+            }
+            // FC flat_map law: key_auths are SERIALIZED SORTED by the key string —
+            // we must pre-sort or the node's digest differs from ours (measured: rejection).
+            const newPosting = {
+              weight_threshold: thr,
+              account_auths: ((acc.posting && acc.posting.account_auths) || []).slice().sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)),
+              key_auths: [...livePosting.map((k) => [k, 1]), [NEWPUB, 1]].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0)),
+            };
+            const gp = await rpc(nodeUsed, 'condenser_api.get_dynamic_global_properties', []);
+            const txParts = {
+              refBlockNum: gp.head_block_number & 0xffff,
+              refBlockPrefix: Buffer.from(gp.head_block_id, 'hex').readUInt32LE(4),
+              expirationUnix: Math.floor(new Date(gp.time + 'Z').getTime() / 1000) + 90,
+            };
+            const op = Buffer.concat([
+              varint(43), str(ACCOUNT), varint(0), varint(0), varint(1), authBytes(newPosting), varint(0), str(''), str(''), varint(0),
+            ]);
+            const txBytes = Buffer.concat([u16(txParts.refBlockNum), u32(txParts.refBlockPrefix), u32(txParts.expirationUnix), varint(1), op, varint(0)]);
+            const digest = sha256(Buffer.concat([Buffer.alloc(32, 0), txBytes]));
+            const raw = secp.sign(digest, priv, { prehash: false });
+            // Manual canonical low-S normalization (FC law) — no library-behavior dependence
+            const N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141n;
+            let s = raw.s, rec = Number(raw.recovery);
+            if (s > N / 2n) { s = N - s; rec = rec ^ 1; }
+            if (s > N / 2n) return fail('NON-CANONICAL-S', 'normalization failed');
+            const rBuf = Buffer.from(raw.r.toString(16).padStart(64, '0'), 'hex');
+            const sBuf = Buffer.from(s.toString(16).padStart(64, '0'), 'hex');
+            const sig65 = Buffer.concat([Buffer.from([rec + 31]), rBuf, sBuf]);
+            if (sBuf[0] & 0x80) return fail('NON-CANONICAL-S', 's high bit set');
+            const txJson = {
+              ref_block_num: txParts.refBlockNum, ref_block_prefix: txParts.refBlockPrefix,
+              expiration: new Date(txParts.expirationUnix * 1000).toISOString().slice(0, 19),
+              operations: [['account_update2', { account: ACCOUNT, owner: null, active: null, posting: newPosting, memo_key: null, json_metadata: '', posting_json_metadata: '' }]],
+              extensions: [], signatures: [sig65.toString('hex')],
+            };
+            if (DRY) {
+              console.log('DEBUG_TXBYTES ' + txBytes.toString('hex'));
+              console.log('DEBUG_DERIVED ' + derived);
+              console.log('DEBUG_TXJSON ' + JSON.stringify(txJson));
+              for (const node of NODES) {
+                try {
+                  const v = await rpc(node, 'condenser_api.verify_authority', [txJson]);
+                  console.log('DEBUG_VA ' + node + ' => ' + JSON.stringify(v));
+                } catch (e) { console.log('DEBUG_VA ' + node + ' => ERR ' + e.message.slice(0, 120)); }
+              }
+              console.log(JSON.stringify({ verdict: 'DRY-RUN-OK', derived: derived.slice(0, 14) + '...', node: nodeUsed, would_set_posting: newPosting }));
+              process.exit(0);
+            }
+            // G3: the node itself must confirm the sigs satisfy the required authorities
+            const va = await rpc(nodeUsed, 'condenser_api.verify_authority', [txJson]);
+            if (va !== true) return fail('VERIFY-AUTHORITY-FALSE', JSON.stringify(va).slice(0, 200));
+            let bcRes;
+            try {
+              bcRes = await rpc(nodeUsed, 'condenser_api.broadcast_transaction_synchronous', [txJson]);
+            } catch (e) {
+              // try second node
+              const node2 = NODES.find((n) => n !== nodeUsed);
+              bcRes = await rpc(node2, 'condenser_api.broadcast_transaction_synchronous', [txJson]);
+            }
+            await new Promise((r) => setTimeout(r, 4000));
+            const accs2 = await rpc(nodeUsed, 'condenser_api.get_accounts', [[ACCOUNT]]);
+            const p2 = (accs2[0].posting && accs2[0].posting.key_auths ? accs2[0].posting.key_auths : []).map((x) => x[0]);
+            const ok = p2.includes(NEWPUB) && livePosting.every((k) => p2.includes(k));
+            console.log(JSON.stringify({ verdict: ok ? 'ADOPTED-AND-VERIFIED' : 'VERIFY-FAILED', tx: (bcRes && bcRes.id) || null, block: (bcRes && bcRes.block_num) || null, posting_now: p2 }));
+            process.exit(ok ? 0 : 1);
+          })().catch((e) => fail('UNEXPECTED', e.message));
+          EOS
+      - name: Always-report
+        if: always()
+        run: echo "owner-key-adopt finished"

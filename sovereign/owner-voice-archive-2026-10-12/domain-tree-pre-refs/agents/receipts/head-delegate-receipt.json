@@ -1,0 +1,90 @@
+{
+  "ok": true,
+  "tool": "head-delegate.cjs",
+  "version": 2,
+  "doctrine": "equal-share self-capital (CR-0065): (own SP - powerdown committed - RC reserve) shared equally across soldiers, hysteresis band 5%, delegations glide with the powerdown, idempotent, bounded",
+  "at": "2026-10-04T20:33:17.211Z",
+  "finishedAt": "2026-10-04T20:34:20.022Z",
+  "dry": false,
+  "law": {
+    "ownSP": 1196,
+    "powerdownCommittedSP": 3946.9,
+    "reserveSP": 500,
+    "targetSPPerSoldier": 30,
+    "soldiers": 10
+  },
+  "target": "48393.301791 VESTS",
+  "tally": {
+    "delegatedVerified": 2,
+    "reclaimedVerified": 5,
+    "skippedAlready": 1,
+    "failed": 3
+  },
+  "results": [
+    {
+      "to": "cashmachine",
+      "target": "30 SP",
+      "readbackSp": 30,
+      "status": "RECLAIMED-VERIFIED"
+    },
+    {
+      "to": "haran",
+      "target": "30 SP",
+      "readbackSp": 30,
+      "status": "RECLAIMED-VERIFIED"
+    },
+    {
+      "to": "israelnews",
+      "target": "30 SP",
+      "readbackSp": 48.6,
+      "status": "NO-READBACK"
+    },
+    {
+      "to": "lsa",
+      "target": "30 SP",
+      "readbackSp": 31,
+      "status": "RECLAIMED-VERIFIED"
+    },
+    {
+      "to": "macrame",
+      "target": "30 SP",
+      "readbackSp": 30,
+      "status": "RECLAIMED-VERIFIED"
+    },
+    {
+      "to": "siq",
+      "target": "30 SP",
+      "readbackSp": 31,
+      "status": "RECLAIMED-VERIFIED"
+    },
+    {
+      "to": "tov",
+      "target": "30 SP",
+      "readbackSp": 31.1,
+      "status": "DELEGATED-VERIFIED"
+    },
+    {
+      "to": "wic",
+      "target": "30 SP",
+      "readbackSp": 32.5,
+      "status": "NO-READBACK"
+    },
+    {
+      "to": "wog",
+      "target": "30 SP",
+      "readbackSp": 31.1,
+      "status": "DELEGATED-VERIFIED"
+    },
+    {
+      "to": "woq",
+      "target": "30 SP",
+      "status": "FAIL",
+      "err": "Assert Exception:available_shares >= delta: Account owner does not have enough mana t"
+    },
+    {
+      "to": "ynet",
+      "action": "reclaim-retired-delegation",
+      "status": "SKIP-NO-DELEGATION"
+    }
+  ]
+}

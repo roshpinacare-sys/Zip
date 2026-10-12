@@ -1,0 +1,177 @@
+{
+ "tool": "content-reviewer.mjs",
+ "runAt": "2026-10-07T05:20:38.976Z",
+ "day": "2026-10-07",
+ "windowHours": 24,
+ "accounts": [
+  "cashmachine",
+  "haran",
+  "israelnews",
+  "lsa",
+  "macrame",
+  "siq",
+  "tov",
+  "wic",
+  "wog",
+  "woq",
+  "owner"
+ ],
+ "measured": {
+  "posts24h": 20,
+  "comments24h": 26,
+  "errors": []
+ },
+ "duplication": {
+  "threshold": 0.6,
+  "similarity": "content-Jaccard (normalized tokens, markdown-stripped, stopwords removed)",
+  "comparablePairs": 1035,
+  "crossAccountPairs": 916,
+  "nearDuplicatePairs": 2,
+  "pairDuplicationPct": 0.2,
+  "commentLevelDuplicationPct": 8.7,
+  "issueGatePct": 30,
+  "gateTripped": false
+ },
+ "nearDuplicatePairs": [
+  {
+   "a": {
+    "author": "israelnews",
+    "permlink": "how-effective-is-steem-s-curation-reward-system-20261006-0",
+    "kind": "post"
+   },
+   "b": {
+    "author": "owner",
+    "permlink": "how-effective-is-steem-s-curation-reward-system-2026-10-07",
+    "kind": "post"
+   },
+   "sim": 1,
+   "containment": 1,
+   "nearDuplicate": true,
+   "snippetA": "Curation forms the backbone of Steem's content discovery and quality control mechanism. When you upvote content, you're ",
+   "snippetB": "Curation forms the backbone of Steem's content discovery and quality control mechanism. When you upvote content, you're "
+  },
+  {
+   "a": {
+    "author": "siq",
+    "permlink": "streamlining-your-steem-workflow-tools-for-efficiency-20261006-0",
+    "kind": "post"
+   },
+   "b": {
+    "author": "owner",
+    "permlink": "streamlining-your-steem-workflow-tools-for-efficiency-2026-10-07",
+    "kind": "post"
+   },
+   "sim": 1,
+   "containment": 1,
+   "nearDuplicate": true,
+   "snippetA": "Active Steem users can benefit from optimizing their workflow to maximize engagement and minimize time investment. Sever",
+   "snippetB": "Active Steem users can benefit from optimizing their workflow to maximize engagement and minimize time investment. Sever"
+  }
+ ],
+ "reportablePairsBelowThreshold": [
+  {
+   "a": {
+    "author": "cashmachine",
+    "permlink": "understanding-steem-s-dual-token-system-steem-vs-sbd-20261006-0",
+    "kind": "post"
+   },
+   "b": {
+    "author": "wic",
+    "permlink": "understanding-steem-s-dual-token-economy-20261006-0",
+    "kind": "post"
+   },
+   "sim": 0.343,
+   "containment": 0.563,
+   "nearDuplicate": false,
+   "snippetA": "Steem operates on a unique dual-token model that distinguishes it from many other blockchain platforms. The native STEEM",
+   "snippetB": "Steem operates with a unique dual-token system that powers its blockchain ecosystem. The native STEEM token serves as bo"
+  }
+ ],
+ "staleness": {
+  "silentAccounts24h": [],
+  "silentCount": 0,
+  "perAccount": [
+   {
+    "account": "cashmachine",
+    "posts24h": 1,
+    "comments24h": 1,
+    "lastPublicItemAt": "2026-10-06T21:55:12",
+    "silent24h": false
+   },
+   {
+    "account": "haran",
+    "posts24h": 1,
+    "comments24h": 2,
+    "lastPublicItemAt": "2026-10-06T22:05:24",
+    "silent24h": false
+   },
+   {
+    "account": "israelnews",
+    "posts24h": 1,
+    "comments24h": 3,
+    "lastPublicItemAt": "2026-10-06T21:55:21",
+    "silent24h": false
+   },
+   {
+    "account": "lsa",
+    "posts24h": 1,
+    "comments24h": 2,
+    "lastPublicItemAt": "2026-10-06T22:35:30",
+    "silent24h": false
+   },
+   {
+    "account": "macrame",
+    "posts24h": 1,
+    "comments24h": 3,
+    "lastPublicItemAt": "2026-10-06T20:55:24",
+    "silent24h": false
+   },
+   {
+    "account": "siq",
+    "posts24h": 1,
+    "comments24h": 2,
+    "lastPublicItemAt": "2026-10-06T21:15:09",
+    "silent24h": false
+   },
+   {
+    "account": "tov",
+    "posts24h": 1,
+    "comments24h": 1,
+    "lastPublicItemAt": "2026-10-06T20:53:57",
+    "silent24h": false
+   },
+   {
+    "account": "wic",
+    "posts24h": 1,
+    "comments24h": 3,
+    "lastPublicItemAt": "2026-10-06T20:54:15",
+    "silent24h": false
+   },
+   {
+    "account": "wog",
+    "posts24h": 1,
+    "comments24h": 3,
+    "lastPublicItemAt": "2026-10-06T22:45:42",
+    "silent24h": false
+   },
+   {
+    "account": "woq",
+    "posts24h": 1,
+    "comments24h": 3,
+    "lastPublicItemAt": "2026-10-06T20:54:48",
+    "silent24h": false
+   },
+   {
+    "account": "owner",
+    "posts24h": 10,
+    "comments24h": 3,
+    "lastPublicItemAt": "2026-10-07T03:46:24",
+    "silent24h": false
+   }
+  ]
+ },
+ "verdict": {
+  "duplication": "0.2% of cross-account pairs in the 24h window are near-duplicates (>=0.6); 8.7% of items touched",
+  "staleness": "all accounts publicly active in the window"
+ }
+}

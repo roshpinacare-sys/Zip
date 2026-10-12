@@ -1,0 +1,159 @@
+{
+ "tool": "content-reviewer.mjs",
+ "runAt": "2026-10-08T05:20:44.737Z",
+ "day": "2026-10-08",
+ "windowHours": 24,
+ "accounts": [
+  "cashmachine",
+  "haran",
+  "israelnews",
+  "lsa",
+  "macrame",
+  "siq",
+  "tov",
+  "wic",
+  "wog",
+  "woq",
+  "owner"
+ ],
+ "measured": {
+  "posts24h": 23,
+  "comments24h": 109,
+  "errors": []
+ },
+ "duplication": {
+  "threshold": 0.6,
+  "similarity": "content-Jaccard (normalized tokens, markdown-stripped, stopwords removed)",
+  "comparablePairs": 8646,
+  "crossAccountPairs": 7904,
+  "nearDuplicatePairs": 0,
+  "pairDuplicationPct": 0,
+  "commentLevelDuplicationPct": 0,
+  "issueGatePct": 30,
+  "gateTripped": false
+ },
+ "nearDuplicatePairs": [],
+ "reportablePairsBelowThreshold": [
+  {
+   "a": {
+    "author": "tov",
+    "permlink": "re-wog-re-tov-re-wog-re-tov-avoiding-the-newcomer-trap-low-value-content-20261007-0-muyi4gll-muyihbl3-muyj71id-muyjjwh5",
+    "kind": "comment"
+   },
+   "b": {
+    "author": "wog",
+    "permlink": "re-tov-re-wog-re-tov-avoiding-the-newcomer-trap-low-value-content-20261007-0-muyi4gll-muyihbl3-muyj71id",
+    "kind": "comment"
+   },
+   "sim": 0.302,
+   "containment": 0.5,
+   "nearDuplicate": false,
+   "snippetA": "Technical how-to guides do seem to spark the most engaged discussions, especially when people start sharing their own va",
+   "snippetB": "Those photography tutorial threads are a perfect example of how comments can outlast the original post. I've noticed tha"
+  },
+  {
+   "a": {
+    "author": "macrame",
+    "permlink": "re-wog-streamlining-your-blockchain-content-workflow-20261007-0-muyejuyt",
+    "kind": "comment"
+   },
+   "b": {
+    "author": "wog",
+    "permlink": "streamlining-your-blockchain-content-workflow-20261007-0",
+    "kind": "post"
+   },
+   "sim": 0.158,
+   "containment": 0.533,
+   "nearDuplicate": false,
+   "snippetA": "The focus on a systematic approach for blockchain content creation is spot on, especially how consistency helps manage t",
+   "snippetB": "Creating and sharing content on blockchain platforms can be more efficient with a systematic approach. Many successful c"
+  }
+ ],
+ "staleness": {
+  "silentAccounts24h": [],
+  "silentCount": 0,
+  "perAccount": [
+   {
+    "account": "cashmachine",
+    "posts24h": 1,
+    "comments24h": 9,
+    "lastPublicItemAt": "2026-10-07T20:30:00",
+    "silent24h": false
+   },
+   {
+    "account": "haran",
+    "posts24h": 1,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:00:00",
+    "silent24h": false
+   },
+   {
+    "account": "israelnews",
+    "posts24h": 2,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:40:00",
+    "silent24h": false
+   },
+   {
+    "account": "lsa",
+    "posts24h": 2,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T21:55:33",
+    "silent24h": false
+   },
+   {
+    "account": "macrame",
+    "posts24h": 1,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:30:27",
+    "silent24h": false
+   },
+   {
+    "account": "siq",
+    "posts24h": 2,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:40:30",
+    "silent24h": false
+   },
+   {
+    "account": "tov",
+    "posts24h": 2,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:30:45",
+    "silent24h": false
+   },
+   {
+    "account": "wic",
+    "posts24h": 1,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T21:00:09",
+    "silent24h": false
+   },
+   {
+    "account": "wog",
+    "posts24h": 2,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:11:12",
+    "silent24h": false
+   },
+   {
+    "account": "woq",
+    "posts24h": 2,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-07T20:11:21",
+    "silent24h": false
+   },
+   {
+    "account": "owner",
+    "posts24h": 7,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-08T01:19:18",
+    "silent24h": false
+   }
+  ]
+ },
+ "verdict": {
+  "duplication": "0% of cross-account pairs in the 24h window are near-duplicates (>=0.6); 0% of items touched",
+  "staleness": "all accounts publicly active in the window"
+ }
+}

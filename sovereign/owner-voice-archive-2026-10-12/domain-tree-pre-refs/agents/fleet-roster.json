@@ -1,0 +1,44 @@
+{
+  "protocol": "SAOS-FLEET-ROSTER/1",
+  "asOf": "2026-10-04T22:06:00Z",
+  "authority": "owner directive 2026-10-04 (IM trace 1a1…0451): capital lanes obey the canonical roster; agents think before they sign",
+  "head": "owner",
+  "steemFleet": [
+    "cashmachine",
+    "haran",
+    "israelnews",
+    "lsa",
+    "macrame",
+    "siq",
+    "tov",
+    "wic",
+    "wog",
+    "woq",
+    "hcsoldier4",
+    "hcsoldier5",
+    "hcsoldier6"
+  ],
+  "bannedCapital": [
+    {
+      "name": "hcsoldier1",
+      "reason": "LOST-NO-CUSTODY — no key material exists anywhere in the estate (agent/receipts/2026-10-04-hcsoldier-custody-audit.json); zero authority anchors measured live 2026-10-04; capital delegated here is stranded for 7 days and liquid balances (18.667 STEEM + 0.139 SBD) are unrecoverable"
+    },
+    {
+      "name": "hcsoldier2",
+      "reason": "LOST-NO-CUSTODY — same evidence as hcsoldier1; no keys, no anchors, live-measured 2026-10-04"
+    },
+    {
+      "name": "hcsoldier3",
+      "reason": "LOST-NO-CUSTODY — same evidence as hcsoldier1; no keys, no anchors, live-measured 2026-10-04"
+    },
+    {
+      "name": "ynet",
+      "reason": "retired steem-side 2026-09-29 (keyless by sovereign decision, head-delegate RETIRED list); sovereign retirement on blurt with economicUse=false"
+    },
+    {
+      "name": "owner",
+      "reason": "self is the treasury — delegating/transferring to itself is not a fleet operation"
+    }
+  ],
+  "law": "every capital-lane signer validates every target against this roster BEFORE signing; a refused row is an honest receipt, never a silent skip; the roster changes only by owner directive"
+}

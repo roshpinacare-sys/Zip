@@ -1,0 +1,584 @@
+{
+  "protocol": "SAOS-SELFMODEL/1",
+  "generatedAt": "2026-10-12T09:45:22.445Z",
+  "homes": {
+    "Domain": {
+      "repo": "roshpinacare-sys/Domain",
+      "role": "policy + gates + books + capital-gate",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub API",
+          "ref": "repo exists, Actions active",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    "saos-dex": {
+      "repo": "roshpinacare-sys/saos-dex",
+      "role": "engine book + grid twins",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub API",
+          "ref": "repo exists",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    "Sandbox": {
+      "repo": "roshpinacare-sys/Sandbox",
+      "role": "arteries + liveness",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub API",
+          "ref": "repo exists",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    "saos-runtime": {
+      "repo": "roshpinacare-sys/saos-runtime",
+      "role": "self-rescheduling runtime",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub API",
+          "ref": "repo exists",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "id": "grid-doctor",
+      "home": "Domain",
+      "lane": "measurement",
+      "status": "REAL",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub Actions runs API",
+          "ref": "grid-doctor run 38229278258 success at 2026-10-12T09:20:40Z https://github.com/roshpinacare-sys/Domain/actions/runs/38229278258",
+          "at": "2026-10-12T09:20:40Z"
+        },
+        {
+          "source": "agents/grid-truth.json",
+          "ref": "generatedAt 2026-10-12T09:21:15.746Z ageH=0.4",
+          "at": "2026-10-12T09:21:15.746Z"
+        }
+      ],
+      "note": "fleet truth machine (read-only RPC) — hourly in cloud",
+      "ageHours": 0
+    },
+    {
+      "id": "cognition-beat",
+      "home": "Domain",
+      "lane": "cognition",
+      "status": "STAGED",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "this beat",
+          "ref": "generatedAt=2026-10-12T09:45:22.445Z",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ],
+      "note": "self-model regeneration in cloud — shrink-only, never opens lanes",
+      "ageHours": 0
+    },
+    {
+      "id": "sovereign-heartbeat",
+      "home": "Sandbox",
+      "lane": "liveness",
+      "status": "HALTED",
+      "epistemic": "INFERRED",
+      "evidence": [],
+      "note": "sandbox artery heartbeat (public repo CI)",
+      "ageHours": 0
+    },
+    {
+      "id": "claims-lane",
+      "home": "Domain",
+      "lane": "claims",
+      "status": "HALTED",
+      "epistemic": "INFERRED",
+      "evidence": [],
+      "note": "reward harvesting — posting-only, no capital exit",
+      "ageHours": 0
+    },
+    {
+      "id": "grid-lane",
+      "home": "saos-dex",
+      "lane": "grid",
+      "status": "STAGED",
+      "epistemic": "INFERRED",
+      "evidence": [],
+      "note": "limit-order ladder — STASIS-staged; NOTE: unguarded money-family-live actor also signs here (C-002 family)",
+      "ageHours": 0
+    },
+    {
+      "id": "treasury-arm",
+      "home": "Domain",
+      "lane": "powerup+delegation",
+      "status": "STAGED",
+      "epistemic": "INFERRED",
+      "evidence": [
+        {
+          "source": "agents/change-requests/CR-0076-owner-approval.json",
+          "ref": "owner directive traces 1a1…89d5 + 1a1…7275 (2026-10-11)",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ],
+      "note": "capped powerup/delegation under owner-directives chain; first runs pending — will flip to OBSERVED with tx evidence",
+      "ageHours": 0
+    },
+    {
+      "id": "blurt-connect",
+      "home": "Domain",
+      "lane": "connect",
+      "status": "STAGED",
+      "epistemic": "INFERRED",
+      "evidence": [
+        {
+          "source": "agents/change-requests/CR-0076-owner-approval.json",
+          "ref": "owner directive 2026-10-11 (trace 1a1…89d5): connect blurt accounts",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ],
+      "note": "blurt connectivity bootstrap; first runs pending — will flip to OBSERVED with post/tx evidence",
+      "ageHours": 0
+    },
+    {
+      "id": "posting-stream",
+      "home": "saos-runtime",
+      "lane": "social",
+      "status": "HALTED",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "saos-runtime T-61",
+          "ref": "arming via CI_SOCIAL_ARMED secret; run evidence pending",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ],
+      "note": "continuous posting stream",
+      "ageHours": 0
+    }
+  ],
+  "writers": [
+    {
+      "id": "cognition-beat-ci",
+      "kind": "ci-workflow",
+      "confidence": 0.95,
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub Actions",
+          "ref": "this run regenerates organism.json",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    {
+      "id": "grid-doctor-ci",
+      "kind": "ci-workflow",
+      "confidence": 0.9,
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "GitHub Actions runs API",
+          "ref": "grid-doctor run 38229278258 success at 2026-10-12T09:20:40Z https://github.com/roshpinacare-sys/Domain/actions/runs/38229278258",
+          "at": "2026-10-12T09:20:40Z"
+        }
+      ]
+    },
+    {
+      "id": "parallel-agent-sessions",
+      "kind": "parallel-session",
+      "confidence": 0.8,
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "Sandbox/ops/AGENT-LEDGER.md",
+          "ref": "zai-code-agent + zai-code-2 + zai-sec-1a12af86 registered 2026-10-11",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    {
+      "id": "money-family-live",
+      "kind": "unknown",
+      "confidence": 0.5,
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "chain forensics R29",
+          "ref": "batched-order fingerprint measured again 2026-10-11T12:56Z; machine identity UNKNOWN",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    }
+  ],
+  "authorities": {
+    "decideAlone": [
+      "grid-doctor (read-only)",
+      "cognition-beat (shrink-only)",
+      "daily-claim (posting-only)"
+    ],
+    "stopShrink": [
+      "any agent (shrink is free)",
+      "lane-guards (mechanical)"
+    ],
+    "policyGated": [
+      "grid lane",
+      "powerup lane",
+      "delegation lane",
+      "connect lane"
+    ],
+    "ownerOnly": [
+      "STASIS.json protocol edits beyond recorded directives",
+      "signing keys / rotation",
+      "money-family-live machine",
+      "branch protection"
+    ]
+  },
+  "canonicalTruths": [
+    {
+      "id": "T-phantom-refuted",
+      "claim": "fleet Steem SP ≈ 6.5 (live RPC 2026-10-11), NOT ~4001 — phantom numbers existed in an agent plan; grid-doctor is the countermeasure",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "agents/grid-truth.json",
+          "ref": "live RPC totals per run",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    {
+      "id": "T-real-treasury",
+      "claim": "real treasury = cornerstone on Hive (13,036 HIVE liquid + ~165 HP); Steem liquid ≈ 125 STEEM on owner + 56 STEEM stranded on keyless hcsoldier1/2/3",
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "agents/grid-truth.json",
+          "ref": "STRANDED-CAPITAL alerts + balances",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    }
+  ],
+  "contradictions": [
+    {
+      "id": "C-002",
+      "kind": "writer-attribution",
+      "a": "grid run ledger attributes micro-orders to dex-grid #23",
+      "b": "2 micro-orders arrived in separate trx 8065683d with no owning code in any repo (unidentified writer)",
+      "confidence": 0.9,
+      "firstSeen": "2026-10-05",
+      "status": "open",
+      "epistemic": "OBSERVED",
+      "lanes": [
+        "grid"
+      ],
+      "note": "carried forward by cognition-beat; unknown-writer family (micro-order batching fingerprint) — measured ACTIVE again 2026-10-11T12:56Z on steem (trx batched 2×limit_order_create) — remains grid-scoped"
+    }
+  ],
+  "frontier": {
+    "lanes": {
+      "measurement": {
+        "level": "REAL",
+        "justification": "read-only public RPC — no capital exposure",
+        "evidence": [
+          {
+            "source": "GitHub Actions runs API",
+            "ref": "grid-doctor run 38229278258 success at 2026-10-12T09:20:40Z https://github.com/roshpinacare-sys/Domain/actions/runs/38229278258",
+            "at": "2026-10-12T09:20:40Z"
+          }
+        ]
+      },
+      "claims": {
+        "level": "STAGED",
+        "justification": "posting-only harvesting, STASIS-staged since 2026-10-05",
+        "evidence": [
+          {
+            "source": "STASIS.json",
+            "ref": "stagedLanes.allow includes claims",
+            "at": "2026-10-04T22:06:00Z"
+          }
+        ]
+      },
+      "grid": {
+        "level": "STAGED",
+        "justification": "STASIS-staged; open contradiction C-002 scoped here; unguarded actor fingerprint present",
+        "evidence": [
+          {
+            "source": "agents/STASIS.json",
+            "ref": "stagedLanes.allow includes grid",
+            "at": "2026-10-04T22:06:00Z"
+          }
+        ]
+      },
+      "powerup": {
+        "level": "STAGED",
+        "justification": "owner-directed 2026-10-11 (traces 1a1…89d5+1a1…7275), hard caps, idempotent, read-back verified; no observed uncontrolled actor performs powerups",
+        "evidence": [
+          {
+            "source": "agents/change-requests/CR-0076-owner-approval.json",
+            "ref": "directive chain i=3 staged-open",
+            "at": "2026-10-12T09:45:22.445Z"
+          }
+        ]
+      },
+      "delegation": {
+        "level": "STAGED",
+        "justification": "owner-directed 2026-10-11, 7-day-reversible, roster-gated targets, caps",
+        "evidence": [
+          {
+            "source": "agents/change-requests/CR-0076-owner-approval.json",
+            "ref": "directive chain i=3 staged-open",
+            "at": "2026-10-12T09:45:22.445Z"
+          }
+        ]
+      },
+      "connect": {
+        "level": "STAGED",
+        "justification": "owner-directed 2026-10-11: account_update (posting auth) + verification comment only; no transfers beyond micro powerup within caps",
+        "evidence": [
+          {
+            "source": "agents/change-requests/CR-0076-owner-approval.json",
+            "ref": "directive chain i=3 staged-open",
+            "at": "2026-10-12T09:45:22.445Z"
+          }
+        ]
+      }
+    },
+    "computedAt": "2026-10-12T09:45:22.445Z",
+    "rule": "REAL requires: gate-authenticity green + >=N observed cycles + zero open contradictions on lane + writer attributed"
+  },
+  "custody": {
+    "steem_signers": {
+      "paths": [
+        "GH Secrets STEEM_ACTIVE_WIF/STEEM_POSTING_WIF (Domain CI)",
+        "vault archives in steem repo (DESIGN-COMPROMISED — rotation pending, owner)]"
+      ],
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "fleet audit 2026-10-11",
+          "ref": "vault sha256-wrap breakable from public material; rotation = owner action pending",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    "hive_signers": {
+      "paths": [
+        "GH Secrets HIVE_ACTIVE_WIF/HIVE_POSTING_WIF (Domain CI)"
+      ],
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "fleet audit 2026-10-11",
+          "ref": "no raw key shapes in git HEAD trees (measured)",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    },
+    "blurt_signers": {
+      "paths": [
+        "GH Secret BLURT_ACTIVE_WIF (Domain CI)"
+      ],
+      "epistemic": "OBSERVED",
+      "evidence": [
+        {
+          "source": "Domain secrets API",
+          "ref": "BLURT_ACTIVE_WIF exists",
+          "at": "2026-10-12T09:45:22.445Z"
+        }
+      ]
+    }
+  },
+  "unknowns": [
+    "which machine runs money-family-live (measured active again 2026-10-11 12:56Z)",
+    "holder census of current owner active key (rotation pending)",
+    "whether the 12:56Z batched-create writer will exceed the ladder pattern"
+  ],
+  "measurementNotes": [
+    "beat measures via unauthenticated GitHub API + public RPCs — no secrets needed, no secrets seen",
+    "STAGED lanes with no runs yet are recorded INFERRED with directive evidence — they flip to OBSERVED after first evidenced run"
+  ],
+  "sovereignty": {
+    "protocol": "SAOS-SOVEREIGNTY/1",
+    "computedAt": "2026-10-12T09:45:22.445Z",
+    "haltSemantics": {
+      "measured": "A",
+      "meaning": "HALTED means: (A) the organism’s own registered lanes will not sign. It does NOT mean (B) no actor inside the sovereignty domain can act, and does NOT mean (C) no actor in the world can act.",
+      "evidence": [
+        {
+          "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+          "ref": "2026-10-05T17:07:36Z: 10 capital ops signed by money-family-live while every internal guard was active in all 3 homes (synced 17:05:40Z) → A holds, B and C falsified",
+          "at": "2026-10-05T18:07:41.637Z"
+        }
+      ]
+    },
+    "haltCoverage": "ORGANISM_ONLY",
+    "haltCoverageReason": "money-family-live (unknown machine, measured again 2026-10-11T12:56Z) + any external holder of owner active key sign outside organism stop-power. Owner remediation (key rotation / machine stop) pending. Per R29 law, capital lanes (grid/general) stay closed to NEW claims; claims (posting-only) and the owner-directed capped lanes (powerup/delegation/connect) open only under the directives chain with caps and read-back.",
+    "capitalLanes": [
+      "grid",
+      "general"
+    ],
+    "capitalLanesRationale": "lanes where an uncontrolled actor is observed signing or unknown tools land. powerup/delegation/connect are NOT in this list because: (1) no uncontrolled actor has ever been observed performing them (fingerprint census 2026-10-05/10-11 shows limit-order ops only); (2) they are hard-capped, idempotent, read-back verified, and recorded in the tamper-evident directives chain; (3) the owner explicitly directed them 2026-10-11 (traces 1a1…89d5, 1a1…7275). This is recorded reasoning, not silent re-labeling.",
+    "capitalPaths": [
+      {
+        "id": "dex-grid-ci",
+        "path": "owner-directive→STASIS staged→dex-grid.yml dispatch→grid-beat.ts→brake.mjs(stasisHalt: STASIS+guards+directives)→realmarket.signAndBroadcast→owner",
+        "guarded": true,
+        "kill": "guards+STASIS+cancel CI schedule",
+        "owner": "organism (policy-gated expansion)",
+        "epistemic": "OBSERVED",
+        "evidence": [
+          {
+            "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+            "ref": "saos-dex dex-grid run 12:56:12Z → ops 12:56:33-48Z; Domain dex-grid run 04:00:57Z → ops 04:01:33-45Z; brake consumption committed 82e9de4",
+            "at": "2026-10-05T18:07:41.637Z"
+          }
+        ]
+      },
+      {
+        "id": "money-family-live",
+        "path": "money-mover v1.9.0 (60s check, 30min cooldown, reprice-on-drift)→/api/money (vault WIF)→steem.broadcast→owner; orderid=date-scheme (shared with CI)",
+        "guarded": false,
+        "kill": "NONE reachable from organism — runs on a machine outside all homes, outside GitHub Actions",
+        "owner": "OWNER-ONLY (identify machine, stop daemon or brake its signing route)",
+        "epistemic": "OBSERVED",
+        "evidence": [
+          {
+            "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+            "ref": "16:37:15-45Z + 17:07:36-17:08:03Z + 17:39:39Z ops; zero CI runs alive at those seconds in ALL org repos; orderid scheme + 30min cadence + REPRICE-FAIL-cancel-all match Zip money stack contract (orderid doc line: \"money-mover הוא סכמת-יום\"); zero STASIS/brake references in the entire Zip money stack",
+            "at": "2026-10-05T18:07:41.637Z"
+          }
+        ]
+      },
+      {
+        "id": "micro-session-scripts",
+        "path": "ad-hoc session scripts → 2-op batched trx, 0.5 STEEM, 1h expiry, orderid 21000003xx",
+        "guarded": false,
+        "kill": "NONE (no owning tool exists)",
+        "owner": "OWNER-ONLY",
+        "epistemic": "INFERRED",
+        "evidence": [
+          {
+            "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+            "ref": "12:56:45Z trx 8065683d: two limit_order_create in one transaction — no repo tool batches creates this way",
+            "at": "2026-10-05T18:07:41.637Z"
+          }
+        ]
+      },
+      {
+        "id": "ladder-refresh-manual",
+        "path": "agent/ladder_refresh.cjs (sessions) → gate → chain",
+        "guarded": true,
+        "kill": "capital gate (lane grid)",
+        "owner": "organism (shrink) / owner (expand)",
+        "epistemic": "OBSERVED",
+        "evidence": [
+          {
+            "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+            "ref": "receipts 2026-10-05-ladder-refresh-* both abort-anomaly, zero ops",
+            "at": "2026-10-05T18:07:41.637Z"
+          }
+        ]
+      },
+      {
+        "id": "claims-suite",
+        "path": "claim workflows → capital gate (claims lane) → chain",
+        "guarded": true,
+        "kill": "guards+STASIS",
+        "owner": "organism (shrink)",
+        "epistemic": "OBSERVED",
+        "evidence": [
+          {
+            "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+            "ref": "posting-only ops, idempotent",
+            "at": "2026-10-05T18:07:41.637Z"
+          }
+        ]
+      },
+      {
+        "id": "unknown-external",
+        "path": "any holder of the owner active key (R11-era broadcasts) → direct broadcast",
+        "guarded": false,
+        "kill": "NONE — key-holder outside the fleet is unreachable",
+        "owner": "OWNER-ONLY (key rotation is the only real kill)",
+        "epistemic": "UNKNOWN",
+        "evidence": [
+          {
+            "source": "R29 forensics (chain + GitHub runs API + repo code), 2026-10-05",
+            "ref": "117o incident: all 4 authorities rotated 2026-09-08; holder census of the CURRENT active key does not exist",
+            "at": "2026-10-05T18:07:41.637Z"
+          }
+        ]
+      }
+    ],
+    "capabilityMatrix": [
+      {
+        "actor": "dex-grid-ci (grid-beat.ts in CI)",
+        "can": "sign ladder orders (steem+hive) within parity/level caps",
+        "may": "only staged-allowed lanes under directives coverage + guards + fresh clean self-model",
+        "should": "maintain the parity ladder only",
+        "mustNot": "touch non-grid capital, expand lanes alone",
+        "canStop": "yes (guards close lanes; gate refuses)",
+        "canBypass": "no — brake consumed at sign-time (82e9de4)",
+        "ownerOnly": false
+      },
+      {
+        "actor": "money-family-live (money-mover v1.9.0 on an unknown machine)",
+        "can": "sign cancel+create ladders autonomously every ~30min",
+        "may": "everything its code allows — it consumes NO STASIS, NO guards, NO directives",
+        "should": "(its code believes) maintain the money ladder",
+        "mustNot": "unknown to the organism",
+        "canStop": "NO — I CANNOT STOP THIS ACTOR",
+        "canBypass": "yes — it is structurally outside the guard perimeter (BOUNDARY_ESCAPE=TRUE)",
+        "ownerOnly": true
+      },
+      {
+        "actor": "cognition-beat",
+        "can": "close lanes (guards), publish receipts, rebase",
+        "may": "shrink-only, never open",
+        "should": "observe, contradict, shrink, record",
+        "mustNot": "open lanes, edit STASIS/chain, sign capital",
+        "canStop": "yes (self-stop proven R28)",
+        "canBypass": "no",
+        "ownerOnly": false
+      },
+      {
+        "actor": "agent-llm-sessions",
+        "can": "run any repo tool incl. gated ones; historically placed micro-orders",
+        "may": "gated tools only (gate enforces at sign-time)",
+        "should": "measure, verify, shrink",
+        "mustNot": "unguarded capital ops",
+        "canStop": "partially (they are sessions — they die with the session)",
+        "canBypass": "manual scripts can bypass gates when writing new code — convention-backed",
+        "ownerOnly": false
+      },
+      {
+        "actor": "owner (human)",
+        "can": "everything",
+        "may": "everything",
+        "should": "remediate money-family-live surface; consider key rotation; own the directives chain",
+        "mustNot": "—",
+        "canStop": "yes (root)",
+        "canBypass": "yes (root)",
+        "ownerOnly": true
+      }
+    ],
+    "cannotStop": [
+      "money-family-live — live signing loop on an unreachable machine (measured again 2026-10-11T12:56Z)",
+      "any external holder of the active key (rotation pending)",
+      "owner-direct manual operations"
+    ]
+  }
+}

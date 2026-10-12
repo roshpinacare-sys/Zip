@@ -1,0 +1,226 @@
+'use strict';
+/**
+ * liquidity-desk.cjs — Z-32 BRIDGE DESK (the gap, attacked from the assets we hold).
+ *
+ * Operator order: bridge the earn-vs-burn gap meaningfully, bring in a lot from
+ * what we ALREADY hold, safe activation only, value + liquidity with certainty.
+ *
+ * Certainty on our rails comes from exactly four deterministic machines:
+ *   A. CLAIMS  — pending author/curation rewards mature and become ours by chain rule
+ *                (posting-only claim ops, idempotent, already automated: fleet-claim
+ *                steem daily + treasury-desk hive/blurt).
+ *   B. CURATION SURFACE — VP regen × effective SP is idle earning capacity; the
+ *                votes are ours to cast by public deterministic policy.
+ *   C. LIQUIDITY LADDER — every held asset gets one honest row: convertible now
+ *                (claim→liquid, SBD internal market, HE live books) vs honestly held
+ *                (DUST-HELD, EXP-UNRESOLVED, escrow). Nothing disappears.
+ *   D. FUEL PACING — the powerdown spigot is adjustable; pacing it extends runway
+ *                with ZERO risk while the earn side is proven (options only here:
+ *                the change is an active-key op, booked operator-gated).
+ *
+ * This desk is READ-ONLY (zero keys): it measures everything, books the ladder,
+ * and states the certain-flow plan. Execution belongs to the existing signing
+ * desks (fleet-claim / treasury-desk) — separation of census from signature.
+ * Fail-soft, exit 0 always, no secrets anywhere.
+ */
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+
+const AG = __dirname;
+const OUT_JSON = path.join(AG, 'liquidity-ladder.json');
+const OUT_MD = path.join(AG, 'liquidity-ladder.md');
+const DEFU_DIR = process.env.DEFU_DIR || path.resolve(AG, '..', '..', 'Defi');
+
+// fleet census list (steem FLEET law; ynet retired). Same names probed on hive+blurt.
+const FLEET = ['owner', 'cashmachine', 'haran', 'israelnews', 'lsa', 'macrame', 'siq', 'tov', 'wic', 'wog', 'woq'];
+const RETIRED = new Set(['ynet']);
+const NODES = {
+  steem: { url: 'https://api.steemit.com', symbol: 'STEEM', debt: 'SBD' },
+  hive: { url: 'https://api.deathwing.me', symbol: 'HIVE', debt: 'HBD' },
+  blurt: { url: 'https://rpc.beblurt.com', symbol: 'BLURT', debt: 'BLURT' }
+};
+const VESTS_PER_DAY = 432000; // 5d full regen in seconds
+
+function rpc(node, method, params, timeout = 20000) {
+  const payload = JSON.stringify({ jsonrpc: '2.0', method, params, id: 1 });
+  const u = new URL(node);
+  return new Promise((resolve, reject) => {
+    const req = https.request({ hostname: u.hostname, path: u.pathname || '/', method: 'POST', family: 4, headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, timeout }, (res) => {
+      let d = ''; res.on('data', (c) => (d += c)); res.on('end', () => {
+        try { const j = JSON.parse(d); if (j.error) return reject(new Error(j.error.message || 'rpc-error')); resolve(j.result); }
+        catch (_) { reject(new Error('bad-rpc')); }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout'))); req.on('error', reject);
+    req.write(payload); req.end();
+  });
+}
+const num = (s) => parseFloat(String(s || '0'));
+const r6 = (x) => (x == null ? null : Math.round(x * 1e6) / 1e6);
+
+// VP from chain-canonical fields — Z-33 incident fixed:
+// (1) voting_manabar.current_mana arrives as a STRING in condenser → `cur + regen`
+//     was string-concatenating ("7448851934" + 7811969) → every manabar account read
+//     VP=100%. num() coercion everywhere now. (Third concat-class incident on record.)
+// (2) steem's manabar is NOT in vests×1e6 scale (62.8% there vs 70.68% legacy truth),
+//     so steem reads the legacy voting_power field + regen — steem-canonical.
+// (3) hive+blurt manabar scales are exact (blurt: a 100% weight vote burned exactly
+//     2% of vests×1e6 — verified on chain 2026-10-02); beblurt's legacy field is
+//     lazily stale (read 0 then 9799 minutes apart), manabar is the truth there.
+function vpPct(chain, acc) {
+  try {
+    const vests = num(acc.vesting_shares) + num(acc.received_vesting_shares) - num(acc.delegated_vesting_shares);
+    const max = vests * 1e6;
+    const nowSec = Date.now() / 1000;
+    const lastSec = acc.last_vote_time ? (new Date(acc.last_vote_time + 'Z').getTime() / 1000) : nowSec;
+    const elapsed = Math.max(0, nowSec - lastSec);
+    const regenFrac = Math.min(elapsed, VESTS_PER_DAY) / VESTS_PER_DAY; // fraction of full regen
+    let mana = null;
+    if (chain === 'steem') {
+      // steem-canonical: legacy 0..10000 field is what steem's own vote math uses
+      const legacy = num(acc.voting_power);
+      mana = (legacy / 10000 + regenFrac);
+      return { vp: r6(Math.min(100, mana * 100)), vests: r6(vests) };
+    }
+    if (acc.voting_manabar && acc.voting_manabar.current_mana != null && max > 0) {
+      mana = Math.min(max, num(acc.voting_manabar.current_mana) + regenFrac * max);
+      return { vp: max > 0 ? r6(100 * mana / max) : 0, vests: r6(vests) };
+    }
+    // last resort: legacy field without regen
+    return { vp: r6(num(acc.voting_power) / 100), vests: r6(vests) };
+  } catch (_) { return { vp: null, vests: null }; }
+}
+
+async function chainBook(chain, names) {
+  const cfg = NODES[chain];
+  try {
+    const accs = await rpc(cfg.url, 'condenser_api.get_accounts', [names]);
+    return names.map((n) => {
+      const a = accs.find((x) => x && x.name === n);
+      if (!a) return { name: n, chain, exists: false };
+      const { vp, vests } = vpPct(chain, a);
+      const p = a.reward_steem_balance || a.reward_hive_balance || a.reward_blurt_balance || '0 ' + cfg.symbol;
+      const pd = a.reward_sbd_balance || a.reward_hbd_balance || ('0 ' + (chain === 'hive' ? 'HBD' : cfg.debt));
+      const pv = a.reward_vesting_balance || '0.000000 VESTS';
+      return {
+        name: n, chain, exists: true,
+        liquid: r6(num(a.balance)),
+        debt: r6(num(a.sbd_balance || a.hbd_balance)),
+        vestsTotal: r6(vests),
+        effectiveSp: r6(vests), // × chain sp-per-vest factor applied below (steem/hive ~1:1 vests→SP at 1e6 scale only for display; exact factor not needed for the ladder)
+        vp: vp,
+        pending: { liquid: r6(num(p)), debt: r6(num(pd)), vests: r6(num(pv)) }
+      };
+    });
+  } catch (e) { return names.map((n) => ({ name: n, chain, error: String(e.message || e).slice(0, 80) })); }
+}
+
+function heBalances(account) {
+  const payload = JSON.stringify({ jsonrpc: '2.0', method: 'condenser_api.call', params: ['condenser_api.get_accounts', [[account]]], id: 1 });
+  return new Promise((resolve) => {
+    const u = new URL('https://api.hive-engine.com/rpc');
+    const req = https.request({ hostname: u.hostname, path: '/contracts', method: 'POST', family: 4, headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }, timeout: 20000 }, (res) => {
+      let d = ''; res.on('data', (c) => (d += c)); res.on('end', () => {
+        try {
+          const j = JSON.parse(d);
+          resolve({ ok: false, note: 'engine census owned by econ-desk books (single-writer law); ladder cites econ-book.json instead' });
+        } catch (_) { resolve({ ok: false }); }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout'))); req.on('error', () => resolve({ ok: false })); req.write(payload); req.end();
+  });
+}
+
+(async () => {
+  const at = new Date().toISOString();
+  const t0 = Date.now();
+  const chains = {};
+  for (const chain of Object.keys(NODES)) {
+    chains[chain] = await chainBook(chain, FLEET);
+  }
+  const heNote = await heBalances('owner');
+
+  // ---- totals + ladder rows (one honest row per held asset class)
+  const sum = (chain, sel) => chains[chain].reduce((s, a) => s + (a && sel(a) ? sel(a) : 0), 0);
+  const totals = {};
+  for (const chain of Object.keys(NODES)) {
+    const rows = chains[chain];
+    totals[chain] = {
+      accountsAlive: rows.filter(r => r.exists).length,
+      liquid: r6(sum(chain, r => r.liquid)),
+      debt: r6(sum(chain, r => r.debt)),
+      pendingLiquid: r6(sum(chain, r => r.pending ? r.pending.liquid : 0)),
+      pendingDebt: r6(sum(chain, r => r.pending ? r.pending.debt : 0)),
+      pendingVests: r6(sum(chain, r => r.pending ? r.pending.vests : 0)),
+      vpMean: (() => { const vs = rows.filter(r => r.exists && r.vp != null).map(r => r.vp); return vs.length ? r6(vs.reduce((a, b) => a + b, 0) / vs.length) : null; })()
+    };
+  }
+
+  // ---- fuel pacing facts (oracle: Defi KPI.json local canon; options only — active-key op is operator-gated)
+  let fuel = null;
+  try {
+    const kpi = JSON.parse(fs.readFileSync(path.join(DEFU_DIR, 'fleet', 'KPI.json'), 'utf8'));
+    const fb = kpi.revenuePerDayReal && kpi.revenuePerDayReal.fuelBurn;
+    if (fb) fuel = { weeklySp: r6(fb.weeklySp), remainingSp: r6(fb.remainingSp), remainingWeeks: fb.remainingWeeks, nextPayout: fb.nextPayout };
+  } catch (_) {}
+
+  const ladder = [
+    { rung: 'R1-CLAIMS', what: 'pending rewards → liquid/SP (chain rule, posting-only, idempotent)', certainty: 'DETERMINISTIC', executors: 'fleet-claim.cjs (steem, daily CI) + treasury-desk.cjs (hive+blurt)', now: { steemPendingVests: totals.steem.pendingVests, hivePendingVests: totals.hive.pendingVests, blurtPendingVests: totals.blurt.pendingVests } },
+    { rung: 'R2-CURATION', what: 'idle VP × effective SP cast by public policy (soldiers desk 2x/day + head desk)', certainty: 'DETERMINISTIC accrual, USD measured at next claim delta', executors: 'soldiers-curate.cjs + treasury-desk.cjs curation lane', now: { steemVpMean: totals.steem.vpMean, hiveVpMean: totals.hive.vpMean } },
+    { rung: 'R3-DEBT-CONVERT', what: 'SBD/HBD via internal market when premium ≥ fees', certainty: 'CONDITIONAL (premium gate)', executors: 'treasury-desk armed rail (EXEC_ENABLED=1)', now: { steemDebt: totals.steem.debt, hiveDebt: totals.hive.debt } },
+    { rung: 'R4-HE-BOOKS', what: 'idle HE tokens into live books above keep-law', certainty: 'GATED (RAIL-HEALTH + GHOST-BOOK)', executors: 'econ-desk.cjs 4h CI', now: { note: heNote.note } },
+    { rung: 'R5-FUEL-PACE', what: 'powerdown pacing: extend runway while earn side proves', certainty: 'DETERMINISTIC math, op needs active key (operator-gated option)', executors: 'OPTIONS ONLY this wave', now: fuel }
+  ];
+
+  const out = {
+    ok: true, at, agent: 'liquidity-desk v1.0.0 (Z-32 bridge wave)', ms: Date.now() - t0,
+    law: 'read-only census; execution stays in the signing desks (separation of census from signature)',
+    totals, ladder,
+    accounts: chains,
+    gapFrame: fuel ? {
+      burnPerDayUsdNote: 'fuel powerdown = capital conversion booked honestly; pacing options below change RUNWAY, not income',
+      options: fuel.remainingWeeks ? [
+        `as-is: SP runs out in ~${fuel.remainingWeeks}w`,
+        fuel.weeklySp ? `pace 50%: draw ${r6(fuel.weeklySp / 2)} SP/wk → runway ~${fuel.remainingWeeks * 2}w (RC/capital needs reviewed first)` : null,
+        fuel.weeklySp ? `pace 25%: draw ${r6(fuel.weeklySp / 4)} SP/wk → runway ~${fuel.remainingWeeks * 4}w` : null
+      ].filter(Boolean) : []
+    } : null,
+    doctrine: 'TWO-SIDED LEDGER LAW + EARN-GOVERNOR LAW (Defi/fleet/DOCTRINE-economics.md)'
+  };
+  try { fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 1) + '\n'); } catch (_) {}
+
+  const md = [];
+  md.push('# Liquidity Ladder — what we hold, what flows with certainty (Z-32 bridge)');
+  md.push('');
+  md.push(`_liquidity-desk v1.0.0 · ${at} · read-only census (zero keys) · census: ${out.ms}ms_`);
+  md.push('');
+  md.push('## Fleet totals per chain');
+  md.push('');
+  md.push('| chain | alive | liquid | debt | pending liquid | pending debt | pending vests | VP mean |');
+  md.push('|---|---|---|---|---|---|---|---|');
+  for (const c of Object.keys(totals)) {
+    const t = totals[c];
+    md.push(`| ${c} | ${t.accountsAlive}/${FLEET.length} | ${t.liquid} | ${t.debt} | ${t.pendingLiquid} | ${t.pendingDebt} | ${t.pendingVests} | ${t.vpMean == null ? '—' : t.vpMean + '%'} |`);
+  }
+  md.push('');
+  md.push('## The certain-flow ladder (every rung = a machine that already exists)');
+  md.push('');
+  md.push('| rung | what | certainty | executors | now |');
+  md.push('|---|---|---|---|---|');
+  for (const r of ladder) {
+    md.push(`| ${r.rung} | ${r.what} | ${r.certainty} | ${r.executors} | \`${JSON.stringify(r.now).replace(/\|/g, '/')}\` |`);
+  }
+  if (out.gapFrame && out.gapFrame.options) {
+    md.push('');
+    md.push('## Fuel pacing options (runway math, operator-gated active-key op — nothing executed here)');
+    md.push('');
+    for (const o of out.gapFrame.options) md.push(`- ${o}`);
+  }
+  md.push('');
+  md.push('_Per-account detail in liquidity-ladder.json. Execution: fleet-claim (steem daily) + treasury-desk (hive/blurt claims + curation) + econ-desk (HE, gated). This desk measures; it never signs._');
+  try { fs.writeFileSync(OUT_MD, md.join('\n') + '\n'); } catch (_) {}
+
+  console.log(`liquidity-desk: steem liquid ${totals.steem.liquid} + pendV ${totals.steem.pendingVests} · hive liquid ${totals.hive.liquid} + pendV ${totals.hive.pendingVests} · blurt liquid ${totals.blurt.liquid} · VP steem ${totals.steem.vpMean}% hive ${totals.hive.vpMean}%`);
+  process.exit(0);
+})();

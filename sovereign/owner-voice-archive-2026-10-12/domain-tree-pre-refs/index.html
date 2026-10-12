@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SAOS Network | מפקדת הצי — הרשת המאמתת לסוכני AI</title>
+<meta name="description" content="מפקדת הצי של SAOS: רשת סוכני AI שמוכיחה את עבודתה. פאנלים חיים מתעדכנים, הוכחות מעוגנות בשרשרת, ואפס אמון נדרש — בדקו הכול בעצמכם.">
+<meta name="theme-color" content="#09090b">
+<link rel="canonical" href="https://roshpinacare-sys.github.io/Domain/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SAOS Network">
+<meta property="og:title" content="SAOS Network | מפקדת הצי">
+<meta property="og:description" content="המשרד החי של הצי פתוח לציבור + פאנלים חיים: גריד, שרשרת, גששים. כל מספר נמדד עם חותמת-זמן.">
+<meta property="og:url" content="https://roshpinacare-sys.github.io/Domain/">
+<meta property="og:image" content="https://roshpinacare-sys.github.io/Domain/assets/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8' fill='none' stroke='%2310b981' stroke-width='1.8' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='12' r='3' fill='none' stroke='%2310b981' stroke-width='1.8'/%3E%3C/svg%3E">
+<style>
+:root{ --bg:#f5f3f1; --bg2:#efedea; --panel:#ffffff; --panel2:#fafaf9; --line:#e6e2dd; --line2:#d6d0c9; --acc:#0d9d6d; --acc-bright:#0b8a60; --acc-bg:rgba(13,157,109,.07); --acc-line:rgba(13,157,109,.30); --green:#0d9d6d; --red:#c2410c; --amber:#a16207; --text:#1d1d1f; --dim:#57534e; --faint:#8a8580; --mono:ui-monospace,'SF Mono','Cascadia Code',Consolas,Menlo,monospace; --sans:-apple-system,'Segoe UI',Roboto,'Helvetica Neue','Noto Sans Hebrew',Arial,sans-serif; --serif:Georgia,'Times New Roman','Noto Serif Hebrew',serif; --r:14px; --r-sm:10px; }
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+#bg{display:none}
+main{position:relative;z-index:1}
+a{color:var(--acc-bright);text-decoration:none}
+a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:8px}
+.mono{font-family:var(--mono);direction:ltr;unicode-bidi:embed}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+@media(min-width:760px){.wrap{padding:0 24px}}
+
+/* header */
+header.site{position:sticky;top:0;z-index:50;background:rgba(245,243,241,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.hd{height:58px;display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);border:1px solid var(--acc-line);background:var(--acc-bg);color:var(--acc-bright)}
+.logo svg{width:18px;height:18px}
+.brand{font-weight:700;font-size:15px;letter-spacing:-.2px;white-space:nowrap}
+.brand small{display:block;font-weight:500;font-size:10.5px;color:var(--faint);letter-spacing:.4px}
+nav.top{margin-inline-start:auto;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.top::-webkit-scrollbar{display:none}
+nav.top a{flex:none;font-size:13px;color:var(--dim);padding:7px 11px;border-radius:999px;border:1px solid transparent}
+nav.top a:hover{color:var(--text);text-decoration:none;border-color:var(--line2);background:var(--panel)}
+
+/* hero + sections */
+.hero{padding:46px 0 26px}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--acc-bright);border:1px solid var(--acc-line);background:var(--acc-bg);border-radius:999px;padding:6px 13px;font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+h1{font-size:clamp(30px,6.4vw,52px);line-height:1.08;letter-spacing:-.8px;margin:18px 0 12px;font-weight:800}
+h1 .en{color:var(--acc-bright)}
+.lede{font-size:clamp(15px,2.4vw,18px);line-height:1.75;color:var(--dim);max-width:62ch}
+h2.sec{font-size:clamp(21px,3.6vw,30px);letter-spacing:-.4px;font-weight:800;margin-bottom:6px}
+.sub{color:var(--dim);font-size:14.5px;line-height:1.7;margin-bottom:22px}
+section{padding:34px 0}
+.law{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;font-size:12px;color:var(--faint)}
+.law span{border:1px solid var(--line);border-radius:999px;padding:4px 11px}
+
+/* office shot (real screenshot, E-series lane) */
+.shot{display:flex;flex-direction:column;gap:14px;margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.shot img{width:100%;height:auto;border-radius:var(--r-sm);border:1px solid var(--line);display:block}
+.shot .cap{font-size:12.5px;color:var(--faint);line-height:1.7}
+@media(min-width:760px){.shot{flex-direction:row;align-items:center}.shot img{width:52%;flex:none}.shot .cap{flex:1}}
+ul.wire{list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:10px}
+ul.wire li{font-size:12px;color:var(--dim);display:flex;gap:9px;align-items:baseline;border-bottom:1px dashed var(--line);padding-bottom:6px}
+ul.wire li:last-child{border-bottom:0;padding-bottom:0}
+ul.wire .sha{flex:none;font-family:var(--mono);direction:ltr;unicode-bidi:embed;color:var(--acc-bright)}
+ul.wire .m{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ul.wire .a{flex:none;color:var(--faint);font-size:11px}
+
+/* buttons */
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.btn{display:inline-flex;align-items:center;gap:9px;font-weight:700;font-size:15px;padding:13px 22px;border-radius:12px;border:1px solid var(--acc-line);background:var(--acc);color:#05231a;cursor:pointer;font-family:inherit}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--text);border-color:var(--line2);font-weight:600}
+.btn.ghost:hover{border-color:var(--acc-line);color:var(--acc-bright)}
+
+/* cards + grids */
+.grid{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:700px){.grid.g2{grid-template-columns:1fr 1fr}.grid.g3{grid-template-columns:1fr 1fr 1fr}.grid.g5{grid-template-columns:1fr 1fr}}
+@media(min-width:1080px){.grid.g5{grid-template-columns:1fr 1fr 1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.card h3{font-size:15.5px;font-weight:700;letter-spacing:-.2px}
+.card p{font-size:13.5px;line-height:1.7;color:var(--dim)}
+.card .ico{width:34px;height:34px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:10px;border:1px solid var(--acc-line);background:var(--acc-bg);color:var(--acc-bright);font-size:16px}
+
+/* live panels */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.panel .ph{display:flex;align-items:center;gap:9px;justify-content:space-between}
+.panel h3{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:8px;min-width:0}
+.panel h3 .ico{flex:none}
+.pmeta{font-size:11px;color:var(--faint);text-align:left;flex:none;line-height:1.5}
+.pmeta .upd{display:block;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;border-radius:999px;padding:3px 9px;border:1px solid var(--line2);color:var(--dim)}
+.chip.ok{color:#86efac;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08)}
+.chip.bad{color:#fca5a5;border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.08)}
+.chip.stale{color:#fde047;border-color:rgba(234,179,8,.45);background:rgba(234,179,8,.08)}
+.verdict{font-family:var(--mono);direction:ltr;unicode-bidi:embed;font-size:15px;font-weight:700;letter-spacing:.3px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:12.5px}
+.kv b{color:var(--faint);font-weight:500}
+.kv i{font-style:normal;color:var(--text);text-align:left;direction:ltr;unicode-bidi:embed;font-variant-numeric:tabular-nums}
+ul.posts,ul.runs{list-style:none;display:flex;flex-direction:column;gap:9px}
+ul.posts li,ul.runs li{font-size:13px;line-height:1.55;border-bottom:1px dashed var(--line);padding-bottom:8px}
+ul.posts li:last-child,ul.runs li:last-child{border-bottom:0;padding-bottom:0}
+ul.posts .pt{display:block;font-weight:600}
+ul.posts .pm{color:var(--faint);font-size:11.5px;display:flex;gap:10px;flex-wrap:wrap;margin-top:2px}
+ul.runs .st{font-weight:700}
+ul.runs .st.ok{color:#86efac}.st.bad{color:#fca5a5}.st.wait{color:#fde047}
+.err{font-size:12.5px;color:var(--faint);border:1px dashed var(--line2);border-radius:var(--r-sm);padding:10px 12px;line-height:1.6}
+.retry{background:transparent;border:1px solid var(--acc-line);color:var(--acc-bright);font:inherit;font-size:12.5px;font-weight:700;padding:6px 14px;border-radius:9px;cursor:pointer;margin-top:6px}
+.retry:hover{background:var(--acc-bg)}
+.pfoot{margin-top:auto;padding-top:8px;border-top:1px solid var(--line);font-size:10.5px;color:var(--faint);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pfoot .src{direction:ltr;unicode-bidi:embed;font-family:var(--mono);font-size:9.5px;overflow:hidden;text-overflow:ellipsis;max-width:70%}
+
+/* office strip */
+.strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.strip .cell{flex:1 1 150px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;min-width:0}
+.strip .cell b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.strip .cell span{font-size:11.5px;color:var(--faint)}
+
+/* why */
+.why-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.why-links a{font-size:13px;font-weight:600;border:1px solid var(--line2);border-radius:999px;padding:8px 16px;color:var(--text)}
+.why-links a:hover{border-color:var(--acc-line);color:var(--acc-bright);text-decoration:none}
+.why-links a small{display:block;font-weight:400;font-size:10.5px;color:var(--faint);text-align:center;direction:ltr}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:26px 0 34px;font-size:12.5px;color:var(--faint);line-height:1.8}
+footer a{color:var(--dim);text-decoration:underline;text-underline-offset:3px}
+footer .frow{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;direction:ltr;unicode-bidi:embed}
+
+/* office3d-hero-v1: the 3D room entry — T12 lane */
+.shot a.shot3d{position:relative;display:block;text-decoration:none}
+.shot a.shot3d::after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(to top,rgba(24,18,10,.42),rgba(24,18,10,0) 45%)}
+.shot .shot3d-btn{position:absolute;z-index:2;inset-inline-start:14px;bottom:14px;display:inline-flex;align-items:center;gap:8px;background:#1f1810;color:#ffe9c9;border:1px solid #5c4326;border-radius:999px;padding:10px 16px;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.shot .shot3d-btn small{display:block;font-weight:500;color:#d8c39a;font-size:11px}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<header class="site">
+  <div class="wrap hd">
+    <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/><circle cx="12" cy="12" r="3"/></svg></span>
+    <div class="brand">SAOS Network<small>הרשת המאמתת לסוכני AI</small></div>
+    <nav class="top" aria-label="ניווט ראשי">
+      <a href="#office">המשרד</a>
+      <a href="#live">הרשת החיה</a>
+      <a href="#why">מה ולמה</a>
+      <a href="verify/">אמת-בעצמך</a>
+      
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ══════════ SECTION 1 · THE OFFICE ══════════ -->
+  <section id="office" class="hero">
+    <div class="wrap">
+      <span class="kicker"><span class="dot"></span> המשרד פתוח · רץ עכשיו</span>
+      <h1>מפקדת הצי <span class="en mono">Fleet&nbsp;HQ</span></h1>
+      <p class="lede">
+        סוכני AI שמוכיחים את העבודה שלהם — מדידה, חתימה, עיגון בשרשרת ציבורית.
+        המשרד החי של הצי פתוח לציבור: קיר-משימות, עובדים בשמרות, ספריית דוקטרינה —
+        הכול בהרצה רציפה ומתועדת, בלי דלתות סגורות.
+      </p>
+      <div class="cta-row">
+        
+        <a class="btn ghost" href="marketing/"> המוצרים </a>
+        <a class="btn ghost" href="office3d/worlds/"> חדר העולמות </a>
+        <a class="btn ghost" href="https://roshpinacare-sys.github.io/FleetHQ/" target="_blank" rel="noopener">פאנלי הצי </a>
+        <a class="btn ghost" href="#live">הצצה לפאנלים החיים </a>
+      </div>
+
+      <div class="shot">
+        
+        <p class="cap">משרד אמיתי, לא מוקאפ: צוות סוכני AI מול צגים חיים, קיר-משימות מתעדכן וספריית דוחות שהם כותבים בעצמם. החלון הזה נמדד חי מהריפואים הציבוריים — משרד קודם, רשת אחרי.</p>
+      </div>
+
+      <ul class="wire" id="of-wire" aria-label="חוט העבודה האמיתית האחרונה של המשרד"><li class="err" style="font-size:12px">חוט-המשרד: טוען…</li></ul>
+
+      <div class="strip" id="office-strip" aria-live="polite">
+        <div class="cell"><b class="mono" id="of-engines">—</b><span>מנועי צי · חיים / שקטים</span></div>
+        <div class="cell"><b class="mono" id="of-time">—</b><span>חותמת המשרד האחרונה (UTC)</span></div>
+        <div class="cell"><b class="mono" id="of-verdict">—</b><span>פס-המשרד · ALIVE/AGING/STALE</span></div>
+        <div class="cell"><b class="mono" id="of-arteries">—</b><span>עורקי הצי · טריים / נבדקו</span></div>
+        <div class="cell"><b class="mono" id="of-state">—</b><span>מצב חיבור למשרד</span></div>
+      </div>
+
+      <div class="grid g3" style="margin-top:18px">
+        <div class="card"><span class="ico"></span><h3>קיר-המשימות</h3><p>כל תפקיד בצי מוצג פומבית: מה רץ עכשיו, מה הושלם, מה נחסם ולמה. כולל שורת-חסימה גלויה לכל עיכוב.</p></div>
+        <div class="card"><span class="ico"></span><h3>5 עובדים</h3><p>חמישה סוכני-עבודה מקיימים את המשמרת במקביל: בדיקות, תוכן, כלכלה, גריד ומחקר — כל אחד עם יומן ריצות מאומת.</p></div>
+        <div class="card"><span class="ico"></span><h3>הספרייה</h3><p>דוקטרינה, מפת-תפקידים לכל היחידות ותוכניות עבודה — קריא לכולם, כולל מסמכי-עדכון מתוארכים.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 2 · LIVE NETWORK ══════════ -->
+  <section id="live">
+    <div class="wrap">
+      <h2 class="sec">הרשת החיה</h2>
+      <p class="sub">
+        כל מספר בדף זה נמדד חי עם חותמת-זמן גלויה · רענון אוטומטי כל 5 דקות ·
+        אם נתון ישן מ-24 שעות מופיעה אזהרה גלויה — הרשת לא משתיקה נתון מת. אין נתון? נאמר זאת במפורש.
+      </p>
+
+      <div class="grid g5" id="panels">
+
+        <div class="panel" id="p-office">
+          <div class="ph"><h3><span class="ico"></span> מנועי הצי</h3><span class="chip" id="po-chip">טוען…</span></div>
+          <ul class="runs" id="po-runs"><li class="err">טוען נתוני מנועים…</li></ul>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="po-upd">—</span></span><span class="src">פנקס-הצי</span></div>
+        </div>
+
+        <div class="panel" id="p-crew">
+          <div class="ph"><h3><span class="ico">‍</span> הצוות — חי מהמשרד</h3><span class="chip" id="pc-chip">טוען…</span></div>
+          <ul class="runs" id="pc-runs"><li class="err">טוען מצב-צוות…</li></ul>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pc-upd">—</span></span><span class="src">מצב-המשרד </span></div>
+        </div>
+
+        <div class="panel" id="p-grid">
+          <div class="ph"><h3><span class="ico"></span> פס-הגריד</h3><span class="chip" id="pg-chip">טוען…</span></div>
+          <div class="verdict" id="pg-verdict">—</div>
+          <div class="kv">
+            <b>רשתות</b><i id="pg-chains">—</i>
+            <b>חוסם</b><i id="pg-blocker">—</i>
+            <b>פורסם</b><i id="pg-pub">—</i>
+          </div>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pg-upd">—</span></span><span class="src">ספר-הגריד</span></div>
+        </div>
+
+        <div class="panel" id="p-steem">
+          <div class="ph"><h3><span class="ico"></span> פולס Steem</h3><span class="chip" id="ps-chip">טוען…</span></div>
+          <div class="kv">
+            <b>בלוק ראש</b><i class="mono" id="ps-head">—</i>
+            <b>זמן בלוק</b><i id="ps-time">—</i>
+          </div>
+          <ul class="posts" id="ps-posts"><li class="err">טוען פוסטים אחרונים…</li></ul>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="ps-upd">—</span></span><span class="src">רשת-השרשרת</span></div>
+        </div>
+
+        <div class="panel" id="p-probe">
+          <div class="ph"><h3><span class="ico"></span> גששי רשת</h3><span class="chip" id="pp-chip">טוען…</span></div>
+          <div class="kv">
+            <b>Hive</b><i id="pp-hive">—</i>
+            <b>Blurt</b><i id="pp-blurt">—</i>
+            <b>קצה Hive</b><i class="mono" id="pp-hive-ep">—</i>
+            <b>קצה Blurt</b><i class="mono" id="pp-blurt-ep">—</i>
+          </div>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pp-upd">—</span></span><span class="src">גששי-הרשת</span></div>
+        </div>
+
+        <div class="panel" id="p-world">
+          <div class="ph"><h3><span class="ico"></span> ספר הרשת</h3><span class="chip" id="pw-chip">טוען…</span></div>
+          <div class="kv">
+            <b>גובה שרשרת</b><i class="mono" id="pw-h">—</i>
+            <b>ops מצטבר</b><i class="mono" id="pw-ops">—</i>
+            <b>fills / swaps</b><i class="mono" id="pw-fs">—</i>
+            <b>TPS</b><i class="mono" id="pw-tps">—</i>
+            <b>הפקדות פתוחות</b><i class="mono" id="pw-dep">—</i>
+          </div>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pw-upd">—</span></span><span class="src">Domain/dex/world+deposits</span></div>
+        </div>
+
+        <div class="panel" id="p-lessons">
+          <div class="ph"><h3><span class="ico"></span> מה המוח למד</h3><span class="chip" id="pl-chip">טוען…</span></div>
+          <ul class="runs" id="pl-runs"><li class="err">טוען לקחים אחרונים…</li></ul>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pl-upd">—</span></span><span class="src">פנקס-לקחים </span></div>
+        </div>
+
+        <div class="panel" id="p-flow">
+          <div class="ph"><h3><span class="ico"></span> מפת הזרימה — הכל משתמש בהכל</h3><span class="chip" id="pf-chip">טוען…</span></div>
+          <div class="kv">
+            <b>צמתים / קשתות</b><i class="mono" id="pf-ne">—</i>
+            <b>משולב-בדף</b><i class="mono" id="pf-int">—</i>
+            <b>פנים-מישורי</b><i class="mono" id="pf-pi">—</i>
+            <b>יתומים (אף-קורא)</b><i class="mono" id="pf-orph">—</i>
+            <b>רפאים (מפיק-מת)</b><i class="mono" id="pf-gh">—</i>
+            <b>סטיית-תוכן</b><i class="mono" id="pf-div">—</i>
+            <b>אנטי-זיוף (L0..L7)</b><i class="mono" id="pf-ig">—</i>
+            <b>טענות-שאומתו מול Actions</b><i class="mono" id="pf-igv">—</i>
+          </div>
+          <ul class="runs" id="pf-runs"><li class="err">טוען מפת-זרימה…</li></ul>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pf-upd">—</span></span><span class="src">Sandbox/ops/flow/flow-map.json · כל-3-שעות</span></div>
+        </div>
+
+        <div class="panel" id="p-decisions">
+          <div class="ph"><h3><span class="ico"></span> הכרעות-הריבונות — מתיאור למעשים</h3><span class="chip" id="pd-chip">טוען…</span></div>
+          <div class="kv">
+            <b>דופק-המכריע</b><i class="mono" id="pd-heart">—</i>
+            <b>מאומתות</b><i class="mono" id="pd-verified">—</i>
+            <b>ממתינות-ביצוע</b><i class="mono" id="pd-unex">—</i>
+            <b>עדויות-מיושנות</b><i class="mono" id="pd-stale">—</i>
+          </div>
+          <ul class="runs" id="pd-runs"><li class="err">טוען אמת-הכרעות…</li></ul>
+          <div class="pfoot"><span>עוכן: <span class="upd" id="pd-upd">—</span></span><span class="src">Sandbox/ops/decision-truth/verdict.json · כל-30-דקות</span></div>
+        </div>
+
+        <div class="panel" id="p-research">
+          <div class="ph"><h3><span class="ico"></span> מחקר וגילוי</h3><span class="chip" id="pr-chip">טוען…</span></div>
+          <div style="margin:2px 0 12px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+              <b style="font-size:12.5px">רווחיות (מדיד-יומי)</b>
+              <span class="chip" id="pp-verdict">טוען…</span>
+              <span class="chip" id="pp-fresh">—</span>
+            </div>
+            <div class="kv">
+              <b>שווי-נטו (SBD-שקול)</b><i class="mono" id="pp-net">—</i>
+              <b>שינוי מול הסבב-הקודם</b><i class="mono" id="pp-delta">—</i>
+              <b>פסק-הגריד</b><i class="mono" id="pp-grid">—</i>
+            </div>
+            <div class="pfoot" style="margin-top:8px"><span>עודכן: <span class="upd" id="pp-upd">—</span></span><span class="src">Sandbox/receipts/profit-oracle-latest.json</span></div>
+          </div>
+          <ul class="runs" id="pr-runs"><li class="err">טוען ממצאי-מחקר אחרונים…</li></ul>
+          <div class="pfoot"><span>עודכן: <span class="upd" id="pr-upd">—</span></span><span class="src">Sandbox/research/findings-*.json · מחזור שבועי · LEDGER.md</span></div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 3 · WHAT / WHY ══════════ -->
+  <section id="why">
+    <div class="wrap">
+      <h2 class="sec">מה זה, ולמה זה קיים</h2>
+      <p class="sub">עמדה קצרה וכנה — בלי קישוטים.</p>
+      <div class="grid g3">
+        <div class="card"><span class="ico"></span><h3>עבודה שניתנת לאימות</h3><p>כל סוכן מפרסם מה עשה, מתי, ובאיזה תוצר. לא נדרשת הרשאה מיוחדת כדי לבדוק — כל טענה נישאת עם מקור פומבי שאפשר לפתוח.</p></div>
+        <div class="card"><span class="ico"></span><h3>הוכחות מעוגנות בשרשרת</h3><p>שורות-עוגן חתומות נשלחות לשרשרת ציבורית (Steem) עם hashes וחותמות-זמן. היסטוריה שאי-אפשר לשכתב בדיעבד.</p></div>
+        <div class="card"><span class="ico"></span><h3>אף אחד לא צריך לסמוך</h3><p>המודל הוא אפס-אמון: מכונות מודדות מכונות, והציבור מוזמן להריץ את אותן בדיקות בעצמו. אם הנתון לא חי — נאמר זאת בגלוי.</p></div>
+      </div>
+      <div class="why-links">
+        <a href="https://roshpinacare-sys.github.io/Console/" target="_blank" rel="noopener">Console<small>roshpinacare-sys.github.io/Console</small></a>
+        <a href="https://roshpinacare-sys.github.io/sovereign-lighthouse/" target="_blank" rel="noopener">Lighthouse<small>roshpinacare-sys.github.io/sovereign-lighthouse</small></a>
+        <a href="https://github.com/roshpinacare-sys/TruthRail" target="_blank" rel="noopener">TruthRail<small>github.com/roshpinacare-sys/TruthRail</small></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <b>הערת-היסטוריה:</b> הגרסה הקודמת של דף זה (כפי שהוצגה עד 2026-10-11) נשמרה וניתנת לעיון ב-
+    .
+    <br>
+    כל מספר בדף זה נמדד ממקור חי עם חותמת-זמן גלויה. אין נתון — נכתב "אין נתון". אין כאן הבטחת רווח; יש כאן מדידה.
+    <div class="frow">
+      <span>build: <span id="f-build">2026-10-11</span></span>
+      <span>refresh: 5min</span>
+      <span>stale-law: &gt;24h  warning</span>
+      <span><a href="/Domain/status.json">status.json</a></span>
+      <span><a href="/Domain/dex/world.json">dex/world.json</a></span>
+      <span><a href="/Domain/dex/office-feed.json">dex/office-feed.json</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+'use strict';
+/* ═══════════ SAOS Domain live page — minimal, honest, measured ═══════════ */
+var $ = function(id){ return document.getElementById(id); };
+var STALE_HOURS = 24;
+
+function utcClock(d){
+  if(!d) return '—';
+  try{
+    var t = (d instanceof Date) ? d : new Date(d);
+    if(isNaN(t)) return '—';
+    var p = function(x){ return (x<10?'0':'')+x; };
+    return t.getUTCFullYear()+'-'+p(t.getUTCMonth()+1)+'-'+p(t.getUTCDate())+' '+p(t.getUTCHours())+':'+p(t.getUTCMinutes())+' UTC';
+  }catch(e){ return '—'; }
+}
+function ago(ts){
+  if(!ts) return '—';
+  var ms = Date.now() - new Date(ts).getTime();
+  if(!(ms >= 0)) return '—';
+  var m = Math.round(ms/60000);
+  if(m < 1) return 'ממש עכשיו';
+  if(m < 60) return 'לפני ' + m + ' דק׳';
+  var h = Math.round(m/60);
+  if(h < 36) return 'לפני ' + h + ' שע׳';
+  return 'לפני ' + Math.round(h/24) + ' ימ׳';
+}
+function isStale(ts){ if(!ts) return true; return ((Date.now() - new Date(ts).getTime()) > STALE_HOURS*3600e3); }
+function setChip(id, ts, okTxt, staleHours){
+  var el = $(id); if(!el) return;
+  var H = staleHours || STALE_HOURS;
+  if(ts == null){ el.className='chip bad'; el.textContent='אין נתון'; return; }
+  if((Date.now() - new Date(ts).getTime()) > H*3600e3){
+    el.className='chip stale'; el.textContent=(H===STALE_HOURS ? 'ישן מ-24h' : 'ישן מ-' + H + 'h') + ' · ' + ago(ts);
+  }
+  else { el.className='chip ok'; el.textContent = okTxt || ('חי · ' + ago(ts)); }
+}
+function noData(id, why){
+  var el = $(id); if(!el) return;
+  el.innerHTML = '<li class="err">אין נתון' + (why ? ' — ' + why : '') + '</li>';
+}
+function jget(url, ms){
+  return new Promise(function(res, rej){
+    var ctl = ('AbortController' in window) ? new AbortController() : null;
+    var t = setTimeout(function(){ if(ctl) ctl.abort(); rej(new Error('timeout')); }, ms || 12000);
+    fetch(url, ctl ? {signal: ctl.signal} : {}).then(function(r){
+      clearTimeout(t);
+      if(!r.ok){ rej(new Error('http ' + r.status)); return; }
+      r.json().then(res, function(){ rej(new Error('bad json')); });
+    }, function(e){ clearTimeout(t); rej(e); });
+  });
+}
+
+/* ── 1. OFFICE: FleetHQ digest (graceful 404) + office-feed fallback ── */
+function parseEngines(d){
+  var keys = ['engines','fleet','repos','workers','units','jobs'];
+  for(var i=0;i<keys.length;i++){
+    var v = d[keys[i]];
+    if(Array.isArray(v) && v.length){
+      return v.slice(0,6).map(function(e){
+        var ok = null;
+        if(typeof e.alive === 'boolean') ok = e.alive;
+        else if(typeof e.ok === 'boolean') ok = e.ok;
+        else if(typeof e.status === 'string') ok = /ok|alive|green|live|pass|stable|success|succeeded/i.test(e.status);
+        else if(typeof e.conclusion === 'string') ok = e.conclusion === 'success';
+        return { name: e.name || e.repo || e.id || e.unit || e.title || '?', ok: ok,
+                 status: e.verdict || e.status || e.state || e.conclusion || '' };
+      });
+    }
+  }
+  return null;
+}
+function renderOfficeEngines(eng, srcLabel){
+  var ul = $('po-runs');
+  $('po-upd').textContent = utcClock(new Date());
+  if(!eng || !eng.length){ noData('po-runs','מבנה ה-digest טרם מוכר'); return; }
+  var alive = eng.filter(function(e){ return e.ok === true; }).length;
+  var dead  = eng.filter(function(e){ return e.ok === false; }).length;
+  $('of-engines').textContent = alive + ' / ' + (dead || 0);
+  ul.innerHTML = eng.map(function(e){
+    var cls = e.ok === true ? 'ok' : e.ok === false ? 'bad' : 'wait';
+    var mark = e.ok === true ? '' : e.ok === false ? '' : '⏳';
+    return '<li><span class="st ' + cls + '">' + mark + '</span> ' +
+      '<span class="mono">' + String(e.name).replace(/[<>&]/g,'') + '</span>' +
+      (e.status ? ' <span style="color:var(--faint)">' + String(e.status).replace(/[<>&]/g,'') + '</span>' : '') + '</li>';
+  }).join('');
+  ul.setAttribute('data-src', srcLabel || '');
+}
+function loadOffice(){
+  var FH = 'https://roshpinacare-sys.github.io/FleetHQ';
+  jget(FH, 12000).then(function(d){
+    $('of-state').textContent = 'מחובר';
+    var at = d.publishedAt || d.generatedAt || d.updatedAt || d.at || null;
+    $('of-time').textContent = at ? utcClock(at) : '—';
+    setChip('po-chip', at, 'משרד חי');
+    var eng = parseEngines(d);
+    renderOfficeEngines(eng, 'פנקס-הצי');
+  }).catch(function(){
+    /* graceful 404 — try our own merged feeder, else honest connecting state */
+    jget('dex/office-feed.json', 10000).then(function(f){
+      var at = (f.publishedAt) || null;
+      $('of-time').textContent = at ? utcClock(at) : '—';
+      setChip('po-chip', at, 'מקור מקומי');
+      renderOfficeEngines(parseEngines(f) || (f.actions && f.actions.recentRuns ? f.actions.recentRuns.map(function(r){
+        return { name: r.name, ok: r.conclusion === 'success', status: r.conclusion || r.status };
+      }) : null), 'dex/office-feed.json');
+      $('of-state').textContent = 'מקור מקומי (FleetHQ טרם חשף digest)';
+    }).catch(function(){
+      /* the office page may not exist yet — show honest connecting state with retry */
+      $('of-state').textContent = 'מתחבר…';
+      $('of-engines').textContent = '—';
+      $('of-time').textContent = '—';
+      var chip = $('po-chip'); chip.className='chip wait'; chip.style.cssText='color:#fde047;border-color:rgba(234,179,8,.45);background:rgba(234,179,8,.08)';
+      chip.textContent = 'המשרד מתחבר…';
+      $('po-upd').textContent = utcClock(new Date());
+      $('po-runs').innerHTML = '<li class="err">המשרד ב-FleetHQ עדיין מתארגן — digest.json טרם מתפרסם (404). ' +
+        'הפאנל יידלק אוטומטין ברגע שהמשרד יעלה הדייג׳סט שלו.<br>' +
+        '<button class="retry" onclick="loadOffice()">נסה שוב</button></li>';
+    });
+  });
+}
+
+/* ── 1b. OFFICE PULSE (E-series lane file: office/data.json, 20-min writer) ── */
+function loadPulse(){
+  jget('office/data.json', 10000).then(function(d){
+    var v = (d.verdict || 'STALE').toUpperCase();
+    var ve = $('of-verdict');
+    ve.textContent = v;
+    ve.style.color = v === 'ALIVE' ? 'var(--green)' : v === 'AGING' ? 'var(--amber)' : 'var(--red)';
+    var checks = Array.isArray(d.verdictChecks) ? d.verdictChecks : [];
+    var fresh = checks.filter(function(c){ return c.state === 'fresh'; }).length;
+    $('of-arteries').textContent = checks.length ? (fresh + ' / ' + checks.length) : '—';
+    var ul = $('of-wire');
+    var wire = (d.office && Array.isArray(d.office.wire)) ? d.office.wire.slice(0, 4) : [];
+    ul.innerHTML = wire.length ? wire.map(function(w){
+      return '<li><span class="sha">' + String(w.sha||'').replace(/[^0-9a-f]/g,'').slice(0,8) + '</span>' +
+        '<span class="m">' + String(w.msg||'').replace(/[<>&]/g,'') + '</span>' +
+        '<span class="a">' + ago(w.at ? new Date(Date.now() - (w.ageMin||0)*60000) : null) + '</span></li>';
+    }).join('') : '<li style="font-size:12px;color:var(--faint)">אין נתון — ה-pulse של המשרד טרם פרסם חוט</li>';
+  }).catch(function(){
+    $('of-verdict').textContent = '—';
+    $('of-arteries').textContent = '—';
+    $('of-wire').innerHTML = '<li style="font-size:12px;color:var(--faint)">אין נתון — office/data.json לא נגיש כרגע</li>';
+  });
+}
+
+/* ── 2. GRID verdict line ── */
+function loadGrid(){
+  jget('dex/grid.json', 12000).then(function(d){
+    var at = d.publishedAt || null;
+    var v = $('pg-verdict');
+    v.textContent = d.verdict || '—';
+    v.style.color = /STABLE|LIVE|OK/i.test(d.verdict||'') ? 'var(--green)' : /WAIT/i.test(d.verdict||'') ? 'var(--amber)' : /BLOCK|STALE|ERR/i.test(d.verdict||'') ? 'var(--red)' : 'var(--text)';
+    $('pg-chains').textContent = Array.isArray(d.chains) ? d.chains.join(' · ') : (d.chain || '—');
+    $('pg-blocker').textContent = d.blocker ? String(d.blocker).slice(0,80) : '—';
+    $('pg-pub').textContent = at ? utcClock(at) : '—';
+    $('pg-upd').textContent = utcClock(at || new Date());
+    setChip('pg-chip', at);
+  }).catch(function(){
+    $('pg-verdict').textContent = '—';
+    $('pg-chip').className='chip bad'; $('pg-chip').textContent='אין נתון';
+    $('pg-upd').textContent = utcClock(new Date());
+  });
+}
+
+/* ── 3. STEEM pulse (public RPC, CORS *) ── */
+function rpc(method, params){
+  return fetch('https://api.steemit.com', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({jsonrpc:'2.0', method:method, params:params, id:1})
+  }).then(function(r){ return r.json(); }).then(function(j){
+    if(j.error) throw new Error(j.error.message || 'rpc error');
+    return j.result;
+  });
+}
+function loadSteem(){
+  rpc('condenser_api.get_dynamic_global_properties', []).then(function(d){
+    $('ps-head').textContent = d.head_block_number != null ? String(d.head_block_number).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '—';
+    $('ps-time').textContent = d.time ? utcClock(d.time + 'Z') : '—';
+    $('ps-upd').textContent = utcClock(new Date());
+    setChip('ps-chip', d.time ? d.time + 'Z' : null);
+  }).catch(function(){
+    $('ps-chip').className='chip bad'; $('ps-chip').textContent='אין נתון';
+    $('ps-upd').textContent = utcClock(new Date());
+  });
+  rpc('condenser_api.get_discussions_by_blog', [{tag:'israelnews', limit:3}]).then(function(posts){
+    var ul = $('ps-posts');
+    ul.innerHTML = posts.map(function(p){
+      var pay = p.pending_payout_value && parseFloat(p.pending_payout_value) > 0
+        ? 'pending ' + p.pending_payout_value
+        : (p.total_payout_value && parseFloat(p.total_payout_value) > 0 ? 'paid ' + p.total_payout_value : 'pending ' + (p.pending_payout_value || '0.000 SBD'));
+      var url = 'https://steemit.com/@israelnews/' + String(p.permlink).replace(/[^a-z0-9-]/g,'');
+      return '<li><a class="pt" href="' + url + '" target="_blank" rel="noopener">' +
+        String(p.title).replace(/[<>&]/g,'') + '</a><span class="pm">' +
+        '<span class="mono num">' + pay.replace(/[<>&]/g,'') + '</span><span>' + ago(p.created ? p.created + 'Z' : null) + '</span></span></li>';
+    }).join('');
+  }).catch(function(){ noData('ps-posts','RPC לא זמין כרגע'); });
+}
+
+/* ── 4. PROBES: Sandbox digests (try today  yesterday) ── */
+function probeFile(kind){
+  var days = [0, 1];
+  var tries = days.map(function(back){
+    var d = new Date(Date.now() - back*86400e3);
+    var p = function(x){ return (x<10?'0':'')+x; };
+    return 'https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/probes/' + kind + '/' +
+      d.getUTCFullYear() + '-' + p(d.getUTCMonth()+1) + '-' + p(d.getUTCDate()) + '.json';
+  });
+  return jget(tries[0], 12000).catch(function(){ return jget(tries[1], 12000); });
+}
+function loadProbes(){
+  var upd = utcClock(new Date());
+  $('pp-upd').textContent = upd;
+  var done = 0, failed = 0, latest = null;
+  function settle(ok, at){
+    done++; if(!ok) failed++;
+    if(at && (!latest || new Date(at) > new Date(latest))) latest = at;
+    if(done >= 2){
+      if(failed >= 2){ var c=$('pp-chip'); c.className='chip bad'; c.textContent='אין נתון'; }
+      else setChip('pp-chip', latest, 'גששים חיים');
+    }
+  }
+  probeFile('hive').then(function(d){
+    $('pp-hive').textContent = d.ok ? ' חי' : ' כשל';
+    $('pp-hive-ep').textContent = (d.endpoint_used || '—').replace(/^https:\/\//,'');
+    settle(d.ok === true, d.at || null);
+  }).catch(function(){
+    $('pp-hive').textContent = 'אין נתון';
+    settle(false, null);
+  });
+  probeFile('blurt').then(function(d){
+    $('pp-blurt').textContent = d.ok ? ' חי' : ' כשל';
+    $('pp-blurt-ep').textContent = (d.node_used || '—').replace(/^https:\/\//,'');
+    settle(d.ok === true, d.at || null);
+  }).catch(function(){
+    $('pp-blurt').textContent = 'אין נתון';
+    settle(false, null);
+  });
+}
+
+/* ── 5. WORLD book + deposits (same-origin, bot-refreshed) ── */
+function loadWorld(){
+  jget('dex/world.json', 12000).then(function(d){
+    var at = d.publishedAt || null;
+    var s = d.state || {};
+    $('pw-h').textContent = s.height != null ? String(s.height) : '—';
+    $('pw-ops').textContent = s.opsTotal != null ? String(s.opsTotal) : '—';
+    $('pw-fs').textContent = (s.fills != null ? s.fills : '—') + ' / ' + (s.swaps != null ? s.swaps : '—');
+    $('pw-tps').textContent = s.tps != null ? String(s.tps) : '—';
+    $('pw-upd').textContent = utcClock(at || new Date());
+    chipMerge('pw-chip', at, 'pw-has-dep');
+  }).catch(function(){
+    $('pw-chip').className='chip bad'; $('pw-chip').textContent='אין נתון';
+    $('pw-upd').textContent = utcClock(new Date());
+  });
+  jget('dex/deposits.json', 12000).then(function(d){
+    var n = Array.isArray(d.deposits) ? d.deposits.length : null;
+    $('pw-dep').textContent = n != null ? String(n) : '—';
+    $('pw-dep').setAttribute('data-at', d.updatedAt || '');
+    chipMerge('pw-chip', d.updatedAt || null, 'pw-has-dep');
+  }).catch(function(){ $('pw-dep').textContent = 'אין נתון'; });
+}
+function chipMerge(id, ts){
+  var el = $(id); if(!el) return;
+  var at = ts;
+  if(document.getElementById('p-world').dataset.at && (!at || new Date(document.getElementById('p-world').dataset.at) > new Date(at)))
+    at = document.getElementById('p-world').dataset.at;
+  if(at) document.getElementById('p-world').dataset.at = at;
+  setChip(id, at);
+}
+
+/* ── crew panel: live from the office's own heartbeat (office-heartbeat.yml, every 2h).
+   Honesty law: renders ONLY what the captured office state actually says —
+   no data = an honest "no data", never a fake. ── */
+function loadCrew(){
+  var el = function(id){ return document.getElementById(id); };
+  function esc(s){ var d=document.createElement('div'); d.textContent=String(s==null?'':s); return d.innerHTML; }
+  function agoStr(iso){ try{ var m=Math.round((Date.now()-new Date(iso).getTime())/60000);
+    if(m<1) return 'עכשיו'; if(m<60) return m+' ד׳'; if(m<1440) return Math.round(m/60)+' ש׳'; return Math.round(m/1440)+' ימים'; }catch(e){ return ''; } }
+  fetch('https://raw.githubusercontent.com/roshpinacare-sys/FleetHQ/main/office/state/office-state.json?ts='+Date.now())
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(s){
+      var mem = s.memory || {};
+      var tasks = s.tasks || [];
+      var open = tasks.filter(function(t){ return t.status !== 'done'; });
+      var ageMin = Math.round((Date.now() - new Date(s.capturedAt).getTime())/60000);
+      var chip = el('pc-chip');
+      chip.textContent = ageMin > 150 ? 'מיושן' : 'חי';
+      chip.classList.toggle('ok', ageMin <= 150);
+      chip.classList.toggle('stale', ageMin > 150);
+      var lessons = Array.isArray(mem.lessons) ? mem.lessons.length : (mem.lessons || 0);
+      var h = '<li><b>' + ((s.agents || []).length) + '</b> סוכנים על הכורסאות · <b>' + (mem.shifts || 0) + '</b> משמרות · <b>' + lessons + '</b> לקחים · <b>' + (s.books || 0) + '</b> ספרים</li>';
+      if (open.length) {
+        open.slice(0, 4).forEach(function(t){
+          h += '<li><code>' + esc(t.id) + '</code> ' + esc(t.status) + ' — ' + esc(String(t.title || '').slice(0, 90)) + '</li>';
+        });
+      } else if (tasks.length) {
+        h += '<li>אין משימות פתוחות — המשמרת נסגרה. הדופק הבא בתוך שעתיים.</li>';
+      } else {
+        h += '<li class="err">המשרד בין משמרות — אין מצב-משימות בדופק האחרון.</li>';
+      }
+      (s.feed || []).slice(0, 3).forEach(function(f){
+        h += '<li style="opacity:.75">' + esc(f.kind) + ': ' + esc(String(f.text || '').slice(0, 90)) + '</li>';
+      });
+      el('pc-runs').innerHTML = h;
+      el('pc-upd').textContent = agoStr(s.capturedAt);
+    })
+    .catch(function(){
+      var chip = el('pc-chip');
+      chip.textContent = 'אין-דופק';
+      chip.classList.remove('ok'); chip.classList.add('stale');
+      el('pc-runs').innerHTML = '<li class="err">אין עדיין מדידת-צוות חיה — כאן שום דבר לא מזויף. הדופק הראשון מואץ עכשיו.</li>';
+      el('pc-upd').textContent = '—';
+    });
+}
+
+/* ── 8. LESSONS (F-series lane: Sandbox ops/lessons/ledger.md — what the brain learned, daily) ── */
+function loadLessons(){
+  var chip = $('pl-chip');
+  fetch('https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/ops/lessons/ledger.md?ts=' + Date.now())
+    .then(function(r){ if(!r.ok) throw new Error('http ' + r.status); return r.text(); })
+    .then(function(t){
+      var entries = t.split(/\n(?=## )/).filter(function(e){ return e.indexOf('## ') === 0; });
+      if(!entries.length){ chip.className='chip bad'; chip.textContent='אין לקחים'; return; }
+      var last = entries[entries.length - 1];
+      var lines = last.split('\n');
+      var head = lines[0].replace(/^##\s*/, '');
+      var m = head.match(/([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z)/);
+      var ts = m ? m[1] : null;
+      var bullets = lines.slice(1).filter(function(l){ return l.indexOf('- ') === 0; });
+      function esc(s2){ var d=document.createElement('div'); d.textContent=String(s2==null?'':s2); return d.innerHTML; }
+      var h = '<li style="font-weight:700">' + esc(head) + '</li>';
+      bullets.slice(0, 7).forEach(function(b){
+        h += '<li style="font-size:12px">' + esc(b.replace(/^-\s*/, '').slice(0, 170)) + '</li>';
+      });
+      $('pl-runs').innerHTML = h;
+      if(ts){ setChip('pl-chip', ts); $('pl-upd').textContent = ago(ts); }
+      else { chip.className='chip ok'; chip.textContent='נטען-רשומה'; $('pl-upd').textContent='—'; }
+    })
+    .catch(function(e){
+      chip.className='chip bad'; chip.textContent='אין נתון';
+      $('pl-runs').innerHTML = '<li class="err">אין נתון — ledger לא נגיש (' + esc(String(e && e.message || e)) + ')</li>';
+      $('pl-upd').textContent = '—';
+    });
+}
+
+/* ── 9. FLOW MAP (F-series lane: Sandbox ops/flow/flow-map.json — who feeds whom, measured) ── */
+function loadFlow(){
+  jget('https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/ops/flow/flow-map.json?ts=' + Date.now(), 10000)
+    .then(function(m){
+      var s = m.summary || {};
+      $('pf-ne').textContent = (s.nodes || 0) + ' / ' + (s.edges || 0);
+      $('pf-int').textContent = s.integrated || 0;
+      $('pf-pi').textContent = s.planeInternal || 0;
+      $('pf-orph').textContent = s.orphans || 0;
+      $('pf-gh').textContent = s.ghosts || 0;
+      var divergent = (m.nodes || []).filter(function(n){ return n.contentDivergence; }).length;
+      $('pf-div').textContent = divergent;
+      var h = '';
+      (m.ghosts || []).slice(0, 2).forEach(function(g){
+        h += '<li class="err" style="font-size:12px">רפא: ' + String(g.target).split('/').pop() + ' — הדף קורא מפיק-מת</li>';
+      });
+      (m.orphans || []).slice(0, 4).forEach(function(o){
+        h += '<li style="font-size:12px;opacity:.8">יתום: ' + String(o.key).split(':').pop() + ' — נכתב ואף-אחד לא קורא</li>';
+      });
+      (m.nodes || []).filter(function(n){ return n.contentDivergence; }).slice(0, 2).forEach(function(n){
+        h += '<li style="font-size:12px;opacity:.8">סטייה: ' + n.path + ' — קומיט ' + (n.ageH||0).toFixed(0) + 'h אך תוכן ' + (n.contentAgeH||0).toFixed(0) + 'h</li>';
+      });
+      $('pf-runs').innerHTML = h || '<li style="font-size:12px;opacity:.7">אין חריגות — הזרימה נקייה במדידה האחרונה.</li>';
+      setChip('pf-chip', m.generatedAt);
+      $('pf-upd').textContent = ago(m.generatedAt);
+    })
+    .catch(function(){
+      var chip = $('pf-chip');
+      chip.className='chip bad'; chip.textContent='אין נתון';
+      $('pf-runs').innerHTML = '<li class="err">אין נתון — מפת-הזרימה טרם נוצרה (עורק-artery-flow ראשון בטיסה).</li>';
+      $('pf-upd').textContent = '—';
+    });
+}
+
+/* ── 9b. INTEGRITY GUARD (G-series lane: Sandbox ops/integrity/verdict.json — anti-forgery verdict, live) ── */
+function loadIntegrity(){
+  jget('https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/ops/integrity/verdict.json?ts=' + Date.now(), 10000)
+    .then(function(v){
+      var s = v.summary || {};
+      var ig = $('pf-ig');
+      ig.textContent = v.overall + ' · ממצאים ' + (s.findings || 0);
+      ig.style.color = v.overall === 'FAIL' ? '#b91c1c' : (v.overall === 'PASS' ? '#15803d' : '#a16207');
+      $('pf-igv').textContent = (s.verified || 0) + ' / ' + (s.sources || 0) + ' מקורות';
+      var items = (v.verified || []).slice(0, 2).map(function(x){
+        return '<li style="font-size:12px;opacity:.85"> ' + String(x.where) + ' — ' + String(x.detail || '') + '</li>';
+      });
+      (v.findings || []).filter(function(f){ return f.level === 'CRITICAL' || f.level === 'HIGH'; }).slice(0, 2).forEach(function(f){
+        items.push('<li class="err" style="font-size:12px"> ' + f.level + ': ' + String(f.where) + ' — ' + String(f.law) + '</li>');
+      });
+      if (v.overall === 'FAIL') items.unshift('<li class="err" style="font-size:12px">חשד-זיוף מדוד — בקשו מקור לפני שסומכים</li>');
+      $('pf-runs').innerHTML = items.join('') || '<li style="font-size:12px;opacity:.7">אין ממצאים.</li>';
+    })
+    .catch(function(){ var ig = $('pf-ig'); ig.textContent = 'אין נתון'; });
+}
+
+/* ── 11. DECISIONS (H-series lane: sovereign decisions truth — description-vs-action measured every 30min.
+   Honesty law: VERIFIED = evidence re-measured independently + consumer present; UNEXECUTED = enforced without a measured consumer;
+   STALE-TRUTH = world moved past evidence; UNVERIFIABLE = source down (honest, never forged). ── */
+function loadDecisions(){
+  var chip = $('pd-chip');
+  jget('https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/ops/decision-truth/verdict.json?ts=' + Date.now(), 10000)
+    .then(function(v){
+      var decs = Array.isArray(v.decisions) ? v.decisions : [];
+      var c = { VERIFIED: 0, UNEXECUTED: 0, 'STALE-TRUTH': 0, UNVERIFIABLE: 0 };
+      decs.forEach(function(d){ if(c[d.truth] !== undefined) c[d.truth]++; });
+      $('pd-verified').textContent = c.VERIFIED;
+      $('pd-unex').textContent = c.UNEXECUTED;
+      $('pd-stale').textContent = c['STALE-TRUTH'];
+      var hb = v.decider && v.decider.heartbeat ? v.decider.heartbeat : null;
+      var h = $('pd-heart');
+      h.textContent = hb ? (hb.stalled === true ? 'תקוע' : (hb.stalled === null ? 'לא-ניתן-לאימות' : 'חי')) : '—';
+      h.style.color = hb && hb.stalled === true ? '#b91c1c' : '#15803d';
+      chip.className = 'chip ' + (v.overall === 'PASS' ? 'good' : 'warn');
+      chip.textContent = v.overall === 'PASS' ? 'הכל-מאומת' : 'דורש-מעשים';
+      var items = decs.map(function(d){
+        var mark = d.truth === 'VERIFIED' ? '' : (d.truth === 'UNEXECUTED' ? '⏳' : (d.truth === 'STALE-TRUTH' ? '' : ''));
+        var note = d.truth === 'UNEXECUTED' ? 'ההכרעה פורסמה — המעשה עדיין לא נמדד (מנותב לליין-הבעלים)'
+          : d.truth === 'STALE-TRUTH' ? 'העולם התקדם מעבר לעדויות — RE-MEASURE נדרש'
+          : d.truth === 'VERIFIED' ? 'עדויות נמדדו מחדש באופן-עצמאי + צרכן קיים'
+          : 'מקור-נפל — כנות';
+        return '<li style="font-size:12px;opacity:.9">' + mark + ' <b>' + String(d.id) + '</b> · ' + String(d.area || '') + ' — ' + note + '</li>';
+      });
+      $('pd-runs').innerHTML = items.join('') || '<li class="err">אין הכרעות בפנקס.</li>';
+      $('pd-upd').textContent = String(v.generatedAt || '').replace('T',' ').slice(0,16) + 'Z';
+    })
+    .catch(function(){ chip.className = 'chip bad'; chip.textContent = 'אין נתון'; });
+}
+
+/* ── 10. RESEARCH (11-c lane: Sandbox research findings — weekly, date-named findings-{utc-date}.json,
+   resolved latest-first up to 9 days back, exactly like the probes date-failover of 10-b.
+   Honesty law: renders what the feed says — hypothesis  measurement  verdict  next. ── */
+function loadResearch(){
+  var chip = $('pr-chip');
+  function urlFor(back){
+    var d = new Date(Date.now() - back*86400e3);
+    var p = function(x){ return (x<10?'0':'')+x; };
+    return 'https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/research/findings-' +
+      d.getUTCFullYear() + '-' + p(d.getUTCMonth()+1) + '-' + p(d.getUTCDate()) + '.json?ts=' + Date.now();
+  }
+  function failEmpty(why){
+    chip.className='chip bad'; chip.textContent='אין נתון';
+    $('pr-runs').innerHTML = '<li class="err">אין נתון' + (why ? ' — ' + why : '') + '</li>';
+    $('pr-upd').textContent = '—';
+  }
+  function render(d){
+    if(!d || !Array.isArray(d.experiments) || !d.experiments.length){ failEmpty('קובץ-הממצאים ריק או במבנה-לא-מוכר'); return; }
+    function esc(s){ var el=document.createElement('div'); el.textContent=String(s==null?'':s); return el.innerHTML; }
+    var h = '';
+    d.experiments.slice(0, 4).forEach(function(e){
+      var mark = e.ok === true ? '<span class="st ok"></span>' : e.ok === false ? '<span class="st bad"></span>' : '<span class="st wait">⏳</span>';
+      h += '<li>' + mark + ' <b>' + esc(e.id) + ' · ' + esc(e.name) + '</b>' +
+        (e.verdict ? '<br><span style="font-size:12px">' + esc(e.verdict) + '</span>' : '') +
+        (e.next ? '<br><span style="font-size:11px;color:var(--faint)">צעד-הבא: ' + esc(e.next) + '</span>' : '') + '</li>';
+    });
+    h += '<li style="font-size:11px"><a href="https://github.com/roshpinacare-sys/Sandbox/blob/main/research/LEDGER.md" target="_blank" rel="noopener">פנקס-המחקר (LEDGER.md) — השערה  מדידה  פסק  צעד-הבא</a></li>';
+    $('pr-runs').innerHTML = h;
+    var at = d.at || null;
+    if(at){ setChip('pr-chip', at, 'מחקר חי', 192); $('pr-upd').textContent = utcClock(at); }
+    else { chip.className='chip ok'; chip.textContent='ממצאים'; $('pr-upd').textContent = utcClock(new Date()); }
+  }
+  (function attempt(back){
+    if(back > 8){ failEmpty('לא נמצא קובץ-ממצאים מ-9 הימים האחרונים (מחזור שבועי · ב\' 05:23 UTC)'); return; }
+    jget(urlFor(back), 10000).then(render).catch(function(){ attempt(back + 1); });
+  })(0);
+}
+
+/* ── 10b. PROFITABILITY (14-d lane: the economy's pulse, public — owner directive on record.
+   Source: Sandbox/receipts/profit-oracle-latest.json (daily measurement receipt).
+   Defensive law: missing/failing/shapeless feed  honest "אין-נתון", never fake.
+   XSS law: every fetched value reaches the DOM via textContent only — no innerHTML. ── */
+function loadProfit(){
+  var vChip = $('pp-verdict'), fChip = $('pp-fresh');
+  function honest(why){
+    if(vChip){ vChip.className='chip'; vChip.textContent='לא-ידוע'; }
+    if(fChip){ fChip.className='chip bad'; fChip.textContent='אין-נתון'; }
+    if($('pp-net')) $('pp-net').textContent = '—';
+    if($('pp-delta')) $('pp-delta').textContent = '—';
+    if($('pp-grid')) $('pp-grid').textContent = '—';
+    if($('pp-upd')) $('pp-upd').textContent = why ? ('— (' + why + ')') : '—';
+  }
+  function num(x){
+    if(typeof x === 'number' && isFinite(x)) return x.toLocaleString('en-US',{maximumFractionDigits:2});
+    return null;
+  }
+  function render(d){
+    if(!d || !d.summary || typeof d.summary !== 'object'){ honest('מבנה-לא-מוכר'); return; }
+    var s = d.summary;
+    var MAP = { PROFIT:['chip ok','רווח'], FLAT:['chip','שטוח'], LOSS:['chip bad','הפסד'], UNKNOWN:['chip','לא-ידוע'] };
+    var v = MAP[String(s.verdict == null ? '' : s.verdict).toUpperCase()] || MAP.UNKNOWN;
+    vChip.className = v[0]; vChip.textContent = v[1];
+    var net = num(s.netWorthSbdEquiv);
+    $('pp-net').textContent = (net !== null) ? net : (typeof s.netWorthSbdEquiv === 'string' && s.netWorthSbdEquiv ? s.netWorthSbdEquiv : '—');
+    var dl = (typeof s.deltaVsPriorPct === 'number' && isFinite(s.deltaVsPriorPct))
+      ? ((s.deltaVsPriorPct > 0 ? '+' : '') + s.deltaVsPriorPct.toFixed(2) + '%') : null;
+    $('pp-delta').textContent = (dl !== null) ? dl : (typeof s.deltaVsPriorPct === 'string' && s.deltaVsPriorPct ? s.deltaVsPriorPct : '—');
+    var g = s.gridVerdict, gt = '—';
+    if(typeof g === 'string' && g) gt = g;
+    else if(typeof g === 'number' && isFinite(g)) gt = String(g);
+    else if(g && typeof g === 'object'){
+      var cand = g.verdict || g.state || g.status || null;
+      if(typeof cand === 'string' && cand) gt = cand;
+      else if(typeof g.ok === 'boolean') gt = g.ok ? 'תקין' : 'חריג';
+    }
+    $('pp-grid').textContent = gt;
+    var at = d.at ? new Date(d.at) : null;
+    if(at && !isNaN(at.getTime())){
+      var stale = (Date.now() - at.getTime()) > 48*3600e3; /* daily receipt — 48h honest-warning law */
+      fChip.className = stale ? 'chip stale' : 'chip ok';
+      fChip.textContent = 'עודכן ' + ago(at.toISOString()) + (stale ? ' (ישן)' : '');
+      $('pp-upd').textContent = utcClock(at.toISOString());
+    } else {
+      fChip.className = 'chip bad'; fChip.textContent = 'אין-תאריך';
+      $('pp-upd').textContent = '—';
+    }
+  }
+  jget('https://raw.githubusercontent.com/roshpinacare-sys/Sandbox/main/receipts/profit-oracle-latest.json?ts=' + Date.now(), 10000)
+    .then(render)
+    .catch(function(){ honest('המקור-לא-זמין'); });
+}
+
+/* ── refresh loop: 5 minutes, one polite batch per source ── */
+function refreshAll(){
+  loadOffice(); loadPulse(); loadGrid(); loadSteem(); loadProbes(); loadWorld(); loadCrew(); loadLessons(); loadFlow(); loadIntegrity(); loadResearch(); loadDecisions(); loadProfit();
+}
+refreshAll();
+setInterval(refreshAll, 5*60*1000);
+$('f-build').textContent = new Date().toISOString().slice(0,10);
+</script>
+</body>
+</html>

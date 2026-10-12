@@ -1,0 +1,160 @@
+{
+ "tool": "content-reviewer.mjs",
+ "runAt": "2026-10-10T11:04:56.905Z",
+ "day": "2026-10-10",
+ "windowHours": 24,
+ "accounts": [
+  "cashmachine",
+  "haran",
+  "israelnews",
+  "lsa",
+  "macrame",
+  "siq",
+  "tov",
+  "wic",
+  "wog",
+  "woq",
+  "owner"
+ ],
+ "measured": {
+  "posts24h": 2,
+  "comments24h": 103,
+  "errors": []
+ },
+ "duplication": {
+  "threshold": 0.6,
+  "similarity": "content-Jaccard (normalized tokens, markdown-stripped, stopwords removed)",
+  "comparablePairs": 5460,
+  "crossAccountPairs": 5001,
+  "nearDuplicatePairs": 1,
+  "pairDuplicationPct": 0,
+  "commentLevelDuplicationPct": 1.9,
+  "issueGatePct": 30,
+  "gateTripped": false
+ },
+ "nearDuplicatePairs": [
+  {
+   "a": {
+    "author": "cashmachine",
+    "permlink": "the-drawer-audit-counting-what-the-tools-actually-earned-20261009-0",
+    "kind": "post"
+   },
+   "b": {
+    "author": "owner",
+    "permlink": "the-drawer-audit-counting-what-the-tools-actually-earned-20261009-0",
+    "kind": "post"
+   },
+   "sim": 1,
+   "containment": 1,
+   "nearDuplicate": true,
+   "snippetA": "There is a drawer in most homes that works like a museum of good intentions. Mine held three screwdrivers that do the sa",
+   "snippetB": "There is a drawer in most homes that works like a museum of good intentions. Mine held three screwdrivers that do the sa"
+  }
+ ],
+ "reportablePairsBelowThreshold": [
+  {
+   "a": {
+    "author": "cashmachine",
+    "permlink": "re-madpop-madpop-tistory-061bdb61b311df26-mv24erb8",
+    "kind": "comment"
+   },
+   "b": {
+    "author": "haran",
+    "permlink": "re-selina1-recipe-for-bhuna-chana-dal-with-chicken-liver-mv28x77j",
+    "kind": "comment"
+   },
+   "sim": 0.294,
+   "containment": 0.5,
+   "nearDuplicate": false,
+   "snippetA": "There is a specific kind of attention in writing about the 2027 part the way you did. Reading out loud finds the broken ",
+   "snippetB": "There is a specific kind of attention in writing about the chicken part the way you did. Routines are how a place slowly"
+  }
+ ],
+ "staleness": {
+  "silentAccounts24h": [],
+  "silentCount": 0,
+  "perAccount": [
+   {
+    "account": "cashmachine",
+    "posts24h": 1,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-10T10:31:09",
+    "silent24h": false
+   },
+   {
+    "account": "haran",
+    "posts24h": 0,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-10T10:24:48",
+    "silent24h": false
+   },
+   {
+    "account": "israelnews",
+    "posts24h": 0,
+    "comments24h": 8,
+    "lastPublicItemAt": "2026-10-09T19:35:27",
+    "silent24h": false
+   },
+   {
+    "account": "lsa",
+    "posts24h": 0,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-09T22:26:39",
+    "silent24h": false
+   },
+   {
+    "account": "macrame",
+    "posts24h": 0,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-09T18:26:36",
+    "silent24h": false
+   },
+   {
+    "account": "siq",
+    "posts24h": 0,
+    "comments24h": 6,
+    "lastPublicItemAt": "2026-10-09T16:12:06",
+    "silent24h": false
+   },
+   {
+    "account": "tov",
+    "posts24h": 0,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-09T16:12:39",
+    "silent24h": false
+   },
+   {
+    "account": "wic",
+    "posts24h": 0,
+    "comments24h": 9,
+    "lastPublicItemAt": "2026-10-09T19:57:42",
+    "silent24h": false
+   },
+   {
+    "account": "wog",
+    "posts24h": 0,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-09T21:14:45",
+    "silent24h": false
+   },
+   {
+    "account": "woq",
+    "posts24h": 0,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-09T17:20:00",
+    "silent24h": false
+   },
+   {
+    "account": "owner",
+    "posts24h": 1,
+    "comments24h": 10,
+    "lastPublicItemAt": "2026-10-09T18:04:00",
+    "silent24h": false
+   }
+  ]
+ },
+ "verdict": {
+  "duplication": "0% of cross-account pairs in the 24h window are near-duplicates (>=0.6); 1.9% of items touched",
+  "staleness": "all accounts publicly active in the window"
+ }
+}

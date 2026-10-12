@@ -1,0 +1,58 @@
+{
+  "format": "saos-pnl-desk/1",
+  "generatedAt": "2026-10-12T13:27:49.249Z",
+  "law": "weekly edge >= +1% or the grid holds (T2, master plan 2026-10-11 — \"edge positive or off\")",
+  "sources": {
+    "pnlBook": {
+      "fetched": true,
+      "ts": "2026-10-04T16:16:46.743Z"
+    },
+    "fillLedger": {
+      "fetched": true,
+      "rows": 243
+    },
+    "maxSourceAgeH": 48
+  },
+  "lifetime": {
+    "fills": 158,
+    "sells": 111,
+    "buys": 47,
+    "sellVwap": 0.100228,
+    "buyVwap": 0.102532,
+    "edgePct": -2.25,
+    "realizedSbd": -0.388666,
+    "proceedsUnbasedSbd": 48.069,
+    "inventorySteem": 55.848,
+    "inventoryAvgCostSbd": 0.103143,
+    "unclassified": 30
+  },
+  "postLaw": {
+    "since": "2026-10-03T22:00:00Z",
+    "fills": 61,
+    "sells": 39,
+    "buys": 22,
+    "sellVwap": 0.100582,
+    "buyVwap": 0.103636,
+    "edgePct": -3,
+    "realizedSbd": -0.187217,
+    "proceedsUnbasedSbd": 1.226,
+    "inventorySteem": 16.056,
+    "inventoryAvgCostSbd": 0.104309,
+    "unclassified": 2
+  },
+  "trailing7d": {
+    "windowDays": 7,
+    "fills": 85,
+    "skippedRows": 158,
+    "sellSteem": 40.517,
+    "sellSbd": 4.146,
+    "buySbd": 5.037,
+    "buySteem": 49.674,
+    "sellVwap": 0.1023,
+    "buyVwap": 0.1014,
+    "edgePct": 1,
+    "realizedSbd": -0.891
+  },
+  "verdict": "EDGE-NEGATIVE-GRID-HOLD",
+  "consumer": "Domain market-exec governorVerdict() reads this verdict via the hourly mirror — EDGE-NEGATIVE-GRID-HOLD suppresses all placements"
+}
