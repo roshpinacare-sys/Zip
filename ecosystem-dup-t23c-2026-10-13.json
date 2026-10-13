@@ -1,0 +1,492 @@
+{
+ "measuredAt": "2026-10-13T23C-agent-scan",
+ "owner": "roshpinacare-sys",
+ "definition": "status-file: any *.md (any depth) + root *.json/*.yml/*.txt, <=256KB, no locks/boilerplate; dup-group: identical sha256 in >=2 repos; dup = redundant copies / total measured",
+ "method": "T-49 replica (shallow git clones, zero API quota) run by T23-C agent because private-repo Actions startup-fail since 2026-10-05",
+ "repos": [
+  {
+   "name": "Adsmarket",
+   "cloned": true
+  },
+  {
+   "name": "anchor-baseline",
+   "cloned": true
+  },
+  {
+   "name": "Autonomy",
+   "cloned": true
+  },
+  {
+   "name": "Console",
+   "cloned": true
+  },
+  {
+   "name": "Defi",
+   "cloned": true
+  },
+  {
+   "name": "Domain",
+   "cloned": true
+  },
+  {
+   "name": "FleetHQ",
+   "cloned": true
+  },
+  {
+   "name": "GridWatch",
+   "cloned": true
+  },
+  {
+   "name": "negen",
+   "cloned": true
+  },
+  {
+   "name": "ops-forge",
+   "cloned": true
+  },
+  {
+   "name": "ops-intake",
+   "cloned": true
+  },
+  {
+   "name": "Project-files",
+   "cloned": true
+  },
+  {
+   "name": "Pulse",
+   "cloned": true
+  },
+  {
+   "name": "roshpina",
+   "cloned": true
+  },
+  {
+   "name": "roshpinacare-sys.github.io",
+   "cloned": true
+  },
+  {
+   "name": "Sandbox",
+   "cloned": true
+  },
+  {
+   "name": "sandbox-private",
+   "cloned": true
+  },
+  {
+   "name": "saos-agents",
+   "cloned": true
+  },
+  {
+   "name": "saos-control-center",
+   "cloned": true
+  },
+  {
+   "name": "saos-dex",
+   "cloned": true
+  },
+  {
+   "name": "saos-jummper",
+   "cloned": true
+  },
+  {
+   "name": "saos-runtime",
+   "cloned": true
+  },
+  {
+   "name": "saos-sovereign-foundry",
+   "cloned": true
+  },
+  {
+   "name": "saos-sovereign-platform",
+   "cloned": true
+  },
+  {
+   "name": "Saosmartwallet",
+   "cloned": true
+  },
+  {
+   "name": "Sdk",
+   "cloned": true
+  },
+  {
+   "name": "sovereign-beacon",
+   "cloned": true
+  },
+  {
+   "name": "sovereign-lighthouse",
+   "cloned": true
+  },
+  {
+   "name": "sovereign-runner-kit",
+   "cloned": true
+  },
+  {
+   "name": "SovereignConsole",
+   "cloned": true
+  },
+  {
+   "name": "steem",
+   "cloned": true
+  },
+  {
+   "name": "TruthRail",
+   "cloned": true
+  },
+  {
+   "name": "vault-home",
+   "cloned": true
+  },
+  {
+   "name": "Zip",
+   "cloned": true
+  }
+ ],
+ "skippedRepos": [],
+ "totals": {
+  "measured": 3516,
+  "dupGroups": 38,
+  "dupInstances": 91,
+  "redundantCopies": 53,
+  "dupRatio": 0.0151
+ },
+ "dupGroups": [
+  {
+   "hash": "0a345f2f749266ca2d137ab27249a8480f89a9bcb33ad51fe3afb149c81a7acc",
+   "size": 34,
+   "files": [
+    "anchor-baseline:download/README.md",
+    "FleetHQ:download/README.md",
+    "saos-control-center:download/README.md",
+    "saos-sovereign-foundry:download/README.md",
+    "saos-sovereign-platform:download/README.md",
+    "Saosmartwallet:download/README.md",
+    "SovereignConsole:download/README.md",
+    "steem:download/README.md"
+   ]
+  },
+  {
+   "hash": "b8be06c49cf44d97a973a6f7ad38a6bc78ab04f78a2614d407738de9aa900983",
+   "size": 430,
+   "files": [
+    "FleetHQ:components.json",
+    "roshpina:components.json",
+    "saos-control-center:components.json",
+    "saos-sovereign-platform:components.json",
+    "Saosmartwallet:components.json",
+    "SovereignConsole:components.json",
+    "steem:components.json",
+    "Zip:components.json"
+   ]
+  },
+  {
+   "hash": "bd4ff7145c7bbb4e7b1a94f17161287a562c98eab3604d6d78b7cebe2484c4ab",
+   "size": 1088,
+   "files": [
+    "roshpina:FLEET-NOTE.md",
+    "saos-dex:FLEET-NOTE.md",
+    "saos-jummper:FLEET-NOTE.md",
+    "saos-sovereign-platform:FLEET-NOTE.md",
+    "Zip:FLEET-NOTE.md"
+   ]
+  },
+  {
+   "hash": "5b48961b1e9be1f05d59c80ca3bd1c2fb70f7240a3383d72661f94009e07d3e0",
+   "size": 10601,
+   "files": [
+    "anchor-baseline:docs/reports/TOKEN-DOSSIER-2026-09-12-V77.md",
+    "saos-sovereign-platform:docs/TOKEN-DOSSIER.md"
+   ]
+  },
+  {
+   "hash": "c9d211647221b14982c75405e34da1c67a49976ad5e1043387e0ef5fe441dbc2",
+   "size": 3714,
+   "files": [
+    "Autonomy:SECURITY.md",
+    "Sandbox:SECURITY.md"
+   ]
+  },
+  {
+   "hash": "0fab2fb45575b1453da2549facc69efaef57296f26d450e469069ec533ee423c",
+   "size": 2393,
+   "files": [
+    "Autonomy:heal/README.md",
+    "Sandbox:heal/README.md"
+   ]
+  },
+  {
+   "hash": "371bd8e1b3c072a3da89c7f9cc2f41d9e9082595034d2d79f6a0c901213ddb77",
+   "size": 7079,
+   "files": [
+    "Autonomy:agents/README.md",
+    "Sandbox:agents/README.md"
+   ]
+  },
+  {
+   "hash": "c7e8104c449b499f18c79412cd983eb0f4714797372ba1cf1f4704971a20b826",
+   "size": 138,
+   "files": [
+    "Autonomy:agents/reports/README.md",
+    "Sandbox:agents/reports/README.md"
+   ]
+  },
+  {
+   "hash": "e4d99bcbf4bd41d38cba612943a9576bcd676acfa7f788307fe1dda930ac1bfc",
+   "size": 4488,
+   "files": [
+    "Autonomy:fleet/DEPENDENCY-AUDIT.md",
+    "Sandbox:fleet/DEPENDENCY-AUDIT.md"
+   ]
+  },
+  {
+   "hash": "b88fbe628a44b6b5632e891bf56838dba56691b366a412dcae177835807d2436",
+   "size": 3448,
+   "files": [
+    "Autonomy:fleet/README.md",
+    "Sandbox:fleet/README.md"
+   ]
+  },
+  {
+   "hash": "d1a65b9c4ed7290433bcdfd6185e3f69475de2f2a6791f384f37d70a105202c6",
+   "size": 3083,
+   "files": [
+    "Autonomy:proof/README.md",
+    "Sandbox:proof/README.md"
+   ]
+  },
+  {
+   "hash": "7ea3a2149cfe3035f5da28e6a1d3f9b52abbb13124883a19124553d4a0c78f15",
+   "size": 4989,
+   "files": [
+    "Autonomy:ops/sovereign/DECIDER/CHARTER.md",
+    "Sandbox:ops/sovereign/DECIDER/CHARTER.md"
+   ]
+  },
+  {
+   "hash": "493c615703af575b23d4b4785af94172e25982e6b495292c8826261759bc3fc0",
+   "size": 951,
+   "files": [
+    "Autonomy:ops/evo-windows-staleness/verdict.md",
+    "Sandbox:ops/evo-windows-staleness/verdict.md"
+   ]
+  },
+  {
+   "hash": "1b6cfec17cf930992ff0a740017777463b751cc81595a4d09adb500d71e59c66",
+   "size": 1616,
+   "files": [
+    "Autonomy:ops/fresh-oracle/verdict.md",
+    "Sandbox:ops/fresh-oracle/verdict.md"
+   ]
+  },
+  {
+   "hash": "c1cfe2b8164e509a06518bcb4e070db543dde168924a0e50669442c9342e4a3a",
+   "size": 10655,
+   "files": [
+    "Autonomy:ops/fresh-oracle/README.md",
+    "Sandbox:ops/fresh-oracle/README.md"
+   ]
+  },
+  {
+   "hash": "2657813a8873820118df848911cf88f6976ba8a4f0b3b7e9496feff1e7f02218",
+   "size": 5802,
+   "files": [
+    "Console:README.md",
+    "Zip:console/README.md"
+   ]
+  },
+  {
+   "hash": "b7ceb740687b869ad68580c1080e6cc1c7dcc8ccaa84897b0328ceee9f7e9471",
+   "size": 1155,
+   "files": [
+    "Console:saos-live.json",
+    "Domain:saos-live.json"
+   ]
+  },
+  {
+   "hash": "063ee9225525834d0da6cac8adccf94bf37bd0bb22feb90bf73e489ab0fb0f0c",
+   "size": 2505,
+   "files": [
+    "Console:verify/README.md",
+    "Zip:console/verify/README.md"
+   ]
+  },
+  {
+   "hash": "dee70a346308d151a6de6a7770664649ca819b5290a417defa95c7e7268d6cfb",
+   "size": 1793,
+   "files": [
+    "Console:verify/VERIFY.md",
+    "Zip:console/verify/VERIFY.md"
+   ]
+  },
+  {
+   "hash": "2c556501de4e75a0093906460df1c2bfeb75a9f0e699d6fb20663d924b4bdd9d",
+   "size": 3931,
+   "files": [
+    "Defi:DOCTRINE.md",
+    "Zip:sovereign/defi-seed/DOCTRINE.md"
+   ]
+  },
+  {
+   "hash": "21994f466a6ccc38b51636f141fe449fd0251f586de0aebe5d80fbf79f029de5",
+   "size": 7787,
+   "files": [
+    "Defi:reports/r91-charter-anchor-2026-09-22.md",
+    "Zip:sovereign/reports/r91-charter-anchor-2026-09-22.md"
+   ]
+  },
+  {
+   "hash": "a6ea6f42c13b1fb8cfb28221e8e3e13f8165dab42ad6cc9de50b36817a16695e",
+   "size": 5775,
+   "files": [
+    "Defi:reports/r92-charter-events-memory-2026-09-22.md",
+    "Zip:sovereign/reports/r92-charter-events-memory-2026-09-22.md"
+   ]
+  },
+  {
+   "hash": "bbd24941e10deeed48f98d37e00f2664658ec6f3fcba0dfec007564830449d74",
+   "size": 5021,
+   "files": [
+    "Defi:reports/r83-grid-pulse-2026-09-22.md",
+    "Zip:sovereign/reports/r83-grid-pulse-2026-09-22.md"
+   ]
+  },
+  {
+   "hash": "d58c1748055772498215f0b5c428198043ce9c2a3bb17b3158711346f2e5b5d3",
+   "size": 6749,
+   "files": [
+    "Defi:reports/r84-keeper-2026-09-22.md",
+    "Zip:sovereign/reports/r84-keeper-2026-09-22.md"
+   ]
+  },
+  {
+   "hash": "2b322d62d04729d374d4c05625f40ef3ba3d651f9d114cd032e121fc0d8c783d",
+   "size": 4369,
+   "files": [
+    "Defi:reports/publisher-2026-09-21.md",
+    "Zip:sovereign/reports/publisher-2026-09-21.md"
+   ]
+  },
+  {
+   "hash": "47f073b127f57790ed3a899b6c6242fb0d5970eda702d7058b9fbec61f5cfd4b",
+   "size": 5657,
+   "files": [
+    "Domain:agent/limitations.md",
+    "Zip:console/agent/limitations.md"
+   ]
+  },
+  {
+   "hash": "83f3e9d8273889b0bf77cffe7391fcaa656df97befcdd263e4cfe0d6ae79c872",
+   "size": 10172,
+   "files": [
+    "roshpina:PATCH-SPEC-P10.md",
+    "saos-jummper:docs/PATCH-SPEC-P09-P10.md"
+   ]
+  },
+  {
+   "hash": "5ecfd2482f2e91c18d5eeed0cadee9c171124c231bb912c2f478e2f7b29dcbab",
+   "size": 9972,
+   "files": [
+    "saos-dex:EPOCH-PATCH-SPEC.md",
+    "saos-jummper:docs/RELAY-EPOCH-PATCH.md"
+   ]
+  },
+  {
+   "hash": "1d865b06451725a24bfee4ce0b07448a63784514065f107b3b92df2808e6331e",
+   "size": 4825,
+   "files": [
+    "saos-sovereign-platform:skills/zero-hallucination-coder/SKILL.md",
+    "steem:skills/zero-hallucination-coder/SKILL.md"
+   ]
+  },
+  {
+   "hash": "9512c84227102bcea7e5be6d06465a94c761d098d4adc7b939f7018ac66048c8",
+   "size": 3012,
+   "files": [
+    "saos-sovereign-platform:skills/grill-me/SKILL.md",
+    "steem:skills/grill-me/SKILL.md"
+   ]
+  },
+  {
+   "hash": "da44f8d954cb89558008035c91e3538232b666931bee1fece04632e8328a9512",
+   "size": 4453,
+   "files": [
+    "saos-sovereign-platform:skills/aeo-answer-engine-optimization/SKILL.md",
+    "steem:skills/aeo-answer-engine-optimization/SKILL.md"
+   ]
+  },
+  {
+   "hash": "6b5a9ab1890825102bdea05f77f1c8abc626042d664fde9a6402586a1f75b419",
+   "size": 7544,
+   "files": [
+    "saos-sovereign-platform:skills/openreview-review/SKILL.md",
+    "steem:skills/openreview-review/SKILL.md"
+   ]
+  },
+  {
+   "hash": "3aac2f5f33b769075090afef8de12d92964423413a12e57903239b88a2d19fad",
+   "size": 4353,
+   "files": [
+    "saos-sovereign-platform:skills/loop-doctor/SKILL.md",
+    "steem:skills/loop-doctor/SKILL.md"
+   ]
+  },
+  {
+   "hash": "95f9ae3c2de08dd12a68c2465c24328207586429cb9417b2eff3539e781cc353",
+   "size": 6042,
+   "files": [
+    "saos-sovereign-platform:skills/ax-orchestrator/SKILL.md",
+    "steem:skills/ax-orchestrator/SKILL.md"
+   ]
+  },
+  {
+   "hash": "17ecaf712965fe9e2c6bd00c23579d880b2b094092524970f3942f70b5f44dea",
+   "size": 5136,
+   "files": [
+    "saos-sovereign-platform:skills/laya-system1/SKILL.md",
+    "steem:skills/laya-system1/SKILL.md"
+   ]
+  },
+  {
+   "hash": "1345cb651c971b7d9ee84095ea9117a79eea77fb9f28a5693ed6a89d2f6fc308",
+   "size": 6231,
+   "files": [
+    "saos-sovereign-platform:skills/strix-pentest/SKILL.md",
+    "steem:skills/strix-pentest/SKILL.md"
+   ]
+  },
+  {
+   "hash": "95328ff6798ef79dc190d7c5831090d5de4cd516893de093e386951a923860c6",
+   "size": 4941,
+   "files": [
+    "saos-sovereign-platform:skills/swarm-discipline/SKILL.md",
+    "steem:skills/swarm-discipline/SKILL.md"
+   ]
+  },
+  {
+   "hash": "f762b4ad753b66cdd15bf8d24bd45da6e81f970273d85b5ad5fe90e9b8af177c",
+   "size": 7116,
+   "files": [
+    "saos-sovereign-platform:skills/fcc-llm-chain/SKILL.md",
+    "steem:skills/fcc-llm-chain/SKILL.md"
+   ]
+  }
+ ],
+ "t23cStory": {
+  "before": {
+   "measuredAt": "2026-10-13T01:14:46Z",
+   "dupRatio": 0.2085,
+   "redundantCopies": 734,
+   "measured": 3521,
+   "source": "sovereign/reports/ecosystem-dup-latest.json (weave-ecosystem G6 daily enforcement)"
+  },
+  "rootCause": "677/734 redundant copies (92%) = one duplicated library corpus: the skills/books library mirrored byte-identical between Saosmartwallet and steem (plus boilerplate groups, doctrine-functional, untouched).",
+  "fix": "T23-C agent commit Saosmartwallet@d61db08136: 668 copy-side library files tombstoned to their canonical homes (steem et al.) per the weave-ecosystem tombstone law; bytes preserved in git history; verified tree-diff 668/668, zero unexpected changes.",
+  "after": {
+   "measuredAt": "2026-10-13 (T23-C agent scan, ~11:05Z)",
+   "dupRatio": 0.0151,
+   "redundantCopies": 53,
+   "measured": 3516
+  },
+  "whyAgentScan": "Zip private-repo Actions startup-fail since 2026-10-05 (all workflows, 0 steps, ~2s; public repos unaffected) \u2014 the workflow could not re-measure, so the agent re-ran the exact documented law (T-49 shallow-clone scan). Dispatch 38386417376 recorded the honest startup failure.",
+  "wideningNote": "dup is NOT measured against a generation window \u2014 it is cross-repo identical-file dedup over all 34 repos. Adding genuinely new, unique library-derived content anywhere in the estate LOWERS dup further (denominator grows); filler padding would be gaming and was not done."
+ }
+}
