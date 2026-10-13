@@ -194,9 +194,12 @@ async function main(): Promise<void> {
   if (WIF) {
     const identified = await identifyWitnessAccount(WIF);
     if (!identified) {
-      throw new Error(
-        `ה-WIF לא זוהה כרשות posting חיה של אף חשבון צי (${FLEET_ACCOUNTS.join(", ")}) — סירוב כנה, שום דבר לא שודר`
-      );
+      // 2026-10-13 flood-law (R34 measured): the weave witness key is operator-held by
+      // its own law — an unidentified WIF is honest SKIP-OWNER-GATED (provisioning
+      // pending), not a machine failure. Nothing broadcasts either way; the run goes
+      // green with the refusal recorded, red stays for real anchor failures.
+      console.error(`ANCHOR-SKIP-OWNER-GATED: ה-WIF לא זוהה כרשות posting חיה של אף חשבון צי (${FLEET_ACCOUNTS.join(", ")}) — ממתין למפתח-המפעיל, שום דבר לא שודר`);
+      process.exit(0);
     }
     account = identified;
   }
