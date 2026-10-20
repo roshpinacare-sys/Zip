@@ -1,21 +1,51 @@
 {
   "format": "weave-anchor-baseline-leaves-v1",
-  "derivedAt": "2026-09-14T23:41:53.428Z",
+  "derivedAt": "2026-10-20T20:02:48.329Z",
   "source": {
     "repo": "roshpinacare-sys/anchor-baseline",
     "branch": "main",
-    "commit": "f97ac018a8829a7c384469281b3a0c64b4846d8a",
-    "pushedAt": "2026-09-14T17:36:13Z"
+    "commit": "0f7836029cb14641e0e7ba08ddc74fad182adeda",
+    "pushedAt": "2026-10-20T07:43:25Z"
   },
   "hashPlan": {
     "fileHash": "sha256",
     "leaf": "keccak256(\"path:sha256\")",
     "tree": "merkle-keccak256 (מרקל של הרשת, זוגות ממוינים)"
   },
-  "fileCount": 86,
-  "totalBytes": 474747,
-  "root": "0x4fd5063694faf29e41aa5ff8e82266b04dc3bf85b36c115c0b1d82891736c10b",
+  "fileCount": 101,
+  "totalBytes": 521681,
+  "root": "0xbfeb425f7749cf00942a57b54f9e8631b8a2d0294e3f67f9be03dfe2a19586b2",
   "leaves": [
+    {
+      "path": ".github/scripts/yaml_guard.py",
+      "sha256": "0xd03ce4d0cef3574372215d870b07b2cc8dbb4342d4032198185996244f2b4fb2",
+      "leaf": "0xda67f2f17f5202e3daf0849680e1657abaf17dac8dd633f8baa7a57405beabf5",
+      "bytes": 1290
+    },
+    {
+      "path": ".github/workflows/baseline-integrity.yml",
+      "sha256": "0xe23bc460524cbf21d05988cc51e9c15a1d0717ea28171b2f0433f274018f073d",
+      "leaf": "0x48ceebee6675f4fc3a278a3f16143e18d05bcb61cc8f3dfd9537f4bea28cba5f",
+      "bytes": 3255
+    },
+    {
+      "path": ".github/workflows/conformance-selftest.yml",
+      "sha256": "0xd3b150745295a8f5f58b4707e6e16be859a2c01a52f2f3a83838b2e875130146",
+      "leaf": "0xf04d87c92da7b59cd2e68880e46031e616b4d650331852275ecab88ed43d3da7",
+      "bytes": 2089
+    },
+    {
+      "path": ".github/workflows/gitleaks.yml",
+      "sha256": "0x238a7f195e76cc1efb9c41c7526e5ee9b32125aad89899dd7a10a5faa3175cae",
+      "leaf": "0xda53a19f52427a2941a973f2eb4b20974856c1ba23658115b16df3b258ba2dcc",
+      "bytes": 1760
+    },
+    {
+      "path": ".github/workflows/workflow-yaml-guard.yml",
+      "sha256": "0x9309bd490cc7dc75c1c7b73f086fc9a767d27eb373f8b2e95623d81f0f679ee4",
+      "leaf": "0x38881101ff4911d9e46e89891b464a2ee221373a8855e0b10416d6225161bbfd",
+      "bytes": 1216
+    },
     {
       "path": ".gitignore",
       "sha256": "0xa43d030ea79902a14c4c11a90e05e481355482708579d3e061f60a8e7787887b",
@@ -23,10 +53,34 @@
       "bytes": 22
     },
     {
+      "path": ".gitleaksignore",
+      "sha256": "0x2c2a1517809b89e0e2909e0caaba41741f06d976e66d4063c9e885c3e3a063d1",
+      "leaf": "0x9d67e6ee2cf0dd7d0019e4861ae360b8e27b854ca3a50814a2f667f1132a6402",
+      "bytes": 497
+    },
+    {
       "path": "2026-09-11-roast-78-addendum.md",
       "sha256": "0xffc20dd20cdb31284b8e6a8cce2338752b9e30aca4fdc87d5e77c4ea8a9cd3b2",
       "leaf": "0xfaa483543e72f00a19fec12b29f7cdf35201b06312716c4a194427d022640ede",
       "bytes": 1206
+    },
+    {
+      "path": "agent/conformance-status.json",
+      "sha256": "0x3184e9f3582b5c48265b4e61b6f2ad0234060a470ae5e4b4dcea1abc44d00632",
+      "leaf": "0xf1303095057c7d3c428160d40c035aa92385b43551a75044a43ea25d068f5751",
+      "bytes": 201
+    },
+    {
+      "path": "agent/manifest.sha256",
+      "sha256": "0xcb93e0063c7fabc7a8af57f916aec0b068211e630a036146a3447fefdaa4aefd",
+      "leaf": "0x01412bf2a7460afcf5496b34b961e77a8f3c5cc36307ad3f3f133fe73a7e86c4",
+      "bytes": 7695
+    },
+    {
+      "path": "agent/status.json",
+      "sha256": "0x22c7aeb135af6deb3a97353cd10443ca9fe09e5e14de32619b8bc12a2083b707",
+      "leaf": "0xb44f1e524f085ea19ac8236c8d386b00ccc576365d24e084ee9c321dfb689a4f",
+      "bytes": 295
     },
     {
       "path": "broadcasts/2026-09-11-authorized-try.md",
@@ -201,6 +255,36 @@
       "sha256": "0xd75bb822062823a891f0754ac61c1864781bedab06fad5548f92c300cc9a89b9",
       "leaf": "0x957b69aed3957ae1ec3c6cc9c03c9892424c91e517e7424331a9532bb0c6dcea",
       "bytes": 1578
+    },
+    {
+      "path": "conformance/PROTOCOL.md",
+      "sha256": "0x7410e15349ce3222a29a2391e8015134cbaf0fa43abdd8dffe563108e4371246",
+      "leaf": "0x360881ac6295c43d344e9d20f8f7107be8ac125e9bbf1ca3ffc1911aa8284bf6",
+      "bytes": 3646
+    },
+    {
+      "path": "conformance/README.md",
+      "sha256": "0x67e665a42d87327aaf048f7938226af6898f571364b402a6d5beacb3003c1ccd",
+      "leaf": "0x646d53ce5e804cd9359a83cfbedf4dbc5a0c85186e67bea14144acfbdba8b51f",
+      "bytes": 1435
+    },
+    {
+      "path": "conformance/selftest.mjs",
+      "sha256": "0x2229b86c3efa3be5ef6e832191a3de282af8139b0fa54e5c01e7c6bb58df6173",
+      "leaf": "0x6f0be4e1795a12d5c9e5c2c52a35e79ff565140ac884752570f16919acf003ab",
+      "bytes": 3992
+    },
+    {
+      "path": "conformance/validate.mjs",
+      "sha256": "0xf0a2bd53f76079dd51a8debcc4ac9d212951cc7c85546c1032e4203d36a219fd",
+      "leaf": "0x408a572e276a993b270d30bf214c9189bdd6b9a70ad16c9794b7b098694ef400",
+      "bytes": 8413
+    },
+    {
+      "path": "conformance/vectors.json",
+      "sha256": "0x644450a06309768599993d8a7fb2d10d2fc99914b7b557133d8f1917a334d06c",
+      "leaf": "0xbdb86eb997f95d6ff126351fffd1b54e154a651419f9e28d241fdeba1f17dea1",
+      "bytes": 8500
     },
     {
       "path": "CRITICAL-R11-KEY-BROADCAST.md",
@@ -435,6 +519,12 @@
       "sha256": "0x0a345f2f749266ca2d137ab27249a8480f89a9bcb33ad51fe3afb149c81a7acc",
       "leaf": "0x03f7a1c122733d07434b4a2e1efc2fd83130f44d9d338c9da5b0855da722ccc9",
       "bytes": 34
+    },
+    {
+      "path": "README.md",
+      "sha256": "0x32e3d94cca3baf26023f01f32eed9a1d6e2925c1f29dd09e154bcba043ed97e9",
+      "leaf": "0x6caaf8824be2f5ea9c436a09b84a18c42dd2f3c54af1a73f978e632852848d5e",
+      "bytes": 2650
     },
     {
       "path": "SAOS-BRIEFING-2026-09-11-ROAST-80.md",
