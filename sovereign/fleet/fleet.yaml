@@ -233,3 +233,46 @@ spec:
   resources:
     limits: { memoryMB: 120 }
   phase: Running
+---
+apiVersion: sovereign.io/v1alpha1
+kind: FleetService
+metadata:
+  name: market-maker
+  notes: r199 audit brought it into the revive book (was living outside every revive manifest
+    — the silent-death class measured at r197); declared here to close the FLO-1 gap the
+    fleet-audit measured 2026-10-21 04:59Z (run 39547013953). Main grid engine.
+spec:
+  port: 3049
+  healthPath: /health
+  entry: mini-services/market-maker (bun)
+  resources:
+    limits: { memoryMB: 200 }
+  phase: Running
+---
+apiVersion: sovereign.io/v1alpha1
+kind: FleetService
+metadata:
+  name: dex-grid
+  notes: r197 audit entry (the counter-grid — was outside the revive book and died silently);
+    FLO-1 declaration closed after the 2026-10-21 fleet-audit red. Its autonomous gate lives in code.
+spec:
+  port: 3051
+  healthPath: /health
+  entry: mini-services/dex-grid (bun)
+  resources:
+    limits: { memoryMB: 200 }
+  phase: Running
+---
+apiVersion: sovereign.io/v1alpha1
+kind: FleetService
+metadata:
+  name: arbitrage
+  notes: r202 moved from 3050 (console port) to 3053 ending the measured port war; declared
+    here for FLO-1 after the 2026-10-21 fleet-audit red (revive book ⊄ manifest).
+spec:
+  port: 3053
+  healthPath: /health
+  entry: mini-services/arbitrage (bun)
+  resources:
+    limits: { memoryMB: 200 }
+  phase: Running
