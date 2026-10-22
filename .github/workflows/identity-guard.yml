@@ -26,6 +26,7 @@ on:
   schedule:
     - cron: '53 6 * * 1'   # weekly Monday deep sweep, offset from Domain's 06:33Z
     - cron: '23 9 * * *'   # daily silence-sweep 09:23Z — the unsilenceable channel against skip-CI-marker pushes (wave 19.69)
+    - cron: '29 12 * * *'  # daily silence-sweep HEDGE 29 12Z — second chance when GitHub sheds the primary slot (measured 2026-10-22, wave 19.71: zero first-day schedule slots fired across five active guard repos)
 
 permissions:
   contents: read
