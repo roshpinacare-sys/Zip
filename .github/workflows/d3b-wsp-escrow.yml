@@ -1,0 +1,50 @@
+name: d3b-wsp-escrow
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  escrow:
+    runs-on: ubuntu-latest
+    env:
+      PUB2_HEX: "3059301306072a8648ce3d020106082a8648ce3d030107034200045f7049341a75eeb71268841601ddb9f3a364dec410145d4e439b5c2d73d06740f281c90d2303e072935f55b43fafcf431a8aea43043a776ac1f7f76d99c10ae4"
+    steps:
+      - uses: actions/checkout@v5
+
+      # D3b (owner order 1a1620a8+1a1629d9): WEAVE_SEAL_PASSPHRASE escrow —
+      # persona-store resolution-order candidate 3 (PERSONAS_KEY || MAIN_KEY ||
+      # WEAVE_SEAL_PASSPHRASE). Sealed ECDH P-256 to vault-home-1 (private half
+      # sealed in vault-home custody-intake/vault-transfer-priv.enc).
+      - name: Seal WEAVE_SEAL_PASSPHRASE
+        env:
+          S_WSP: ${{ secrets.WEAVE_SEAL_PASSPHRASE }}
+        run: |
+          mkdir -p blobout
+          cat > seal.cjs <<'SEALEOF'
+          const crypto = require("crypto");
+          const fs = require("fs");
+          const val = process.env.S_WSP;
+          if (!val || val.length < 4) { console.log("WSP-MISSING — honest skip"); process.exit(0); }
+          const recipRaw = Buffer.from(process.env.PUB2_HEX, "hex").subarray(-65);
+          const eph = crypto.createECDH("prime256v1");
+          eph.generateKeys();
+          const shared = eph.computeSecret(recipRaw);
+          const key = Buffer.from(crypto.hkdfSync("sha256", shared, Buffer.alloc(32), Buffer.from("weave-vault-transfer-1"), 32));
+          const iv = crypto.randomBytes(12);
+          const c = crypto.createCipheriv("aes-256-gcm", key, iv);
+          const ct = Buffer.concat([c.update(val, "utf8"), c.final()]);
+          const blob = { format: "WEAVE-VAULT-TRANSFER-1", name: "WEAVE_SEAL_PASSPHRASE", purpose: "D3b persona-escrow (resolution-order candidate 3)", at: new Date().toISOString(), items: [{ name: "WEAVE_SEAL_PASSPHRASE", eph: eph.getPublicKey("hex"), iv: iv.toString("hex"), tag: c.getAuthTag().toString("hex"), ct: ct.toString("hex") }] };
+          fs.writeFileSync("blobout/wsp.json", JSON.stringify(blob, null, 1));
+          console.log("WSP sealed to vault-home-1 (zero values printed)");
+          SEALEOF
+          node seal.cjs
+
+      - name: Upload sealed blob artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: d3b-wsp-blob
+          path: blobout/wsp.json
+          retention-days: 7
