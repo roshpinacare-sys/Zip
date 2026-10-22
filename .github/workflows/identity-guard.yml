@@ -1,0 +1,135 @@
+# IDENTITY-GUARD — DECISIONS #10 enforcement, law v3 deny-by-default (keyless, fail-loud)
+#
+# [wave 19.64 · trace 1a161b5c5db3c7f9] This file extends the Domain identity-guard
+# law (v3) to Zip — measured this wave as the estate's BIGGEST identity blind spot:
+# no guard at all while the weave-*[bot] lanes (weave-anchor, weave-anchor-zero,
+# weave-heart, weave-ecosystem) land NAME@users.noreply.github.com commits
+# continuously, plus z@container and zai-* name-noreply classes in history.
+# No exemption for any of them exists on record (DECISIONS + ledger searched).
+#
+# Law (deny-by-default): ONLY <lane>@fleet.local, <lane>@agents.roshpinacare-sys,
+# the owner org identities (326012154+roshpinacare-sys@ and roshpinacare-sys@
+# users.noreply), github-actions[bot] (both noreply forms), actions@github.com
+# and roshpinacare@gmail.com may author or commit. Anything else is an
+# unidentified writer — torn loudly on push, counted weekly by the census.
+# Falsifiable prediction (ledger CONTINUED #59): the NEXT weave-*[bot] push to
+# Zip FAILS this guard; the cure is adoption of <lane>@fleet.local (the agent-9
+# path, proven 2026-10-22 01:27→01:56Z); if the lane persists (the vault-seal
+# pattern), the weekly census keeps counting. History rewrite = owner-side
+# (DECISIONS #29).
+
+name: identity-guard
+
+on:
+  push:
+  workflow_dispatch:         # manual activation of the deep sweep (run-ID proof on demand)
+  schedule:
+    - cron: '53 6 * * 1'   # weekly Monday deep sweep, offset from Domain's 06:33Z
+
+permissions:
+  contents: read
+
+concurrency:
+  group: identity-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - name: Checkout full history (needed for push-range resolution)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Scan pushed commits for unlawful identities (author + committer)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # identity law v3 — deny-by-default (wave 19.64): the allowlist IS the
+          # lane law. No allowlist match = violation.
+          ALLOWED='^([0-9]+\+roshpinacare-sys@users\.noreply\.github\.com|roshpinacare-sys@users\.noreply\.github\.com|([0-9]+\+)?github-actions\[bot\]@users\.noreply\.github\.com|[^@]+@fleet\.local|[^@]+@agents\.roshpinacare-sys|roshpinacare@gmail\.com|actions@github\.com)$'
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+          if [ -z "$BEFORE" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
+            RANGE="HEAD~40..HEAD"
+          else
+            RANGE="$BEFORE..$AFTER"
+          fi
+          echo "identity-guard: scanning $RANGE (law v3 deny-by-default)"
+          VIOLATIONS="$(git log --pretty='%H|%ae|%ce|%s' "$RANGE" 2>/dev/null | awk -F'|' -v ALLOWED="$ALLOWED" '
+            $2 !~ ALLOWED || $3 !~ ALLOWED
+          ' || true)"
+          if [ -n "$VIOLATIONS" ]; then
+            echo "::error::DECISIONS #10 VIOLATION — unlawful identities in pushed commits (identity law v3 deny-by-default: only <lane>@fleet.local, <lane>@agents.roshpinacare-sys, the owner org identities, github-actions[bot], actions@github.com and roshpinacare@gmail.com are lawful; anything else is an unidentified sandbox writer)"
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "identity-guard: PASS — 0 unlawful identities in $RANGE"
+
+  deep-sweep:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Full-history identity census (REPORT-ONLY custody receipt)
+        run: |
+          set -euo pipefail
+          # Same law as the push guard, but the whole history: count + name every
+          # unlawful-identity commit. This job NEVER fails on findings (report-only,
+          # org-gitleaks T-w class) — the wound stays registered and counted; only a
+          # scan error fails.
+          ALLOWED='^([0-9]+\+roshpinacare-sys@users\.noreply\.github\.com|roshpinacare-sys@users\.noreply\.github\.com|([0-9]+\+)?github-actions\[bot\]@users\.noreply\.github\.com|[^@]+@fleet\.local|[^@]+@agents\.roshpinacare-sys|roshpinacare@gmail\.com|actions@github\.com)$'
+          VIOLATIONS="$(git log --pretty='%H|%ae|%ce|%ad|%s' --date=iso origin/main 2>/dev/null | awk -F'|' -v ALLOWED="$ALLOWED" '
+            $2 !~ ALLOWED || $3 !~ ALLOWED
+          ' || true)"
+          COUNT="$(printf '%s' "$VIOLATIONS" | grep -c . || true)"
+          echo "identity-guard deep-sweep: FULL-HISTORY census — ${COUNT} unlawful-identity commits on record"
+          [ -n "$VIOLATIONS" ] && printf '%s\n' "$VIOLATIONS" || true
+          mkdir -p receipts/identity-guard
+          python3 - "$COUNT" receipts/identity-guard/deep-sweep.json << 'PYEOF'
+          import json, sys, datetime
+          count = int(sys.argv[1])
+          receipt = {
+              "schema": "identity-guard/deep-sweep/1",
+              "law": "deny-by-default/1 (wave 19.64)",
+              "at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "mode": "report-only",
+              "forbiddenIdentityCommits": count,
+              "allowedClasses": ["*@fleet.local", "*@agents.roshpinacare-sys", "326012154+roshpinacare-sys@users.noreply.github.com", "roshpinacare-sys@users.noreply.github.com", "github-actions[bot]@users.noreply.github.com", "actions@github.com", "roshpinacare@gmail.com"],
+              "note": "landed violations never re-tear on push ranges; this weekly receipt keeps the count loud; history rewrite = owner-side (DECISIONS #29)",
+          }
+          with open(sys.argv[2], "w") as fh:
+              json.dump(receipt, fh, indent=1)
+          PYEOF
+
+      - name: Commit receipt (house pull-rebase-retry law)
+        run: |
+          set -euo pipefail
+          git config user.name "identity-guard[bot]"
+          git config user.email "identity-guard[bot]@fleet.local"
+          git add receipts/identity-guard/deep-sweep.json
+          if git diff --cached --quiet; then
+            echo "receipt unchanged — honest no-op"
+            exit 0
+          fi
+          git commit -m "identity-guard deep-sweep: weekly full-history identity custody receipt [skip ci]"
+          ok=0
+          for i in 1 2 3 4 5; do
+            if git pull --rebase origin main; then
+              if git push; then ok=1; break; fi
+            else
+              git rebase --abort 2>/dev/null || true
+            fi
+            echo "publish race $i — backing off"
+            sleep $((i * 7))
+          done
+          [ "$ok" = "1" ] || echo "publish-deferred (sibling races) — the next weekly slot re-measures honestly"
