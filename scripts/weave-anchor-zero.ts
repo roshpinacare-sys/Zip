@@ -626,7 +626,7 @@ async function main(): Promise<void> {
     throw new Error("אין remote origin — בלי ריפו אין עדות");
   }
   if (IS_ACTIONS) {
-    sh('git config user.name "weave-anchor-zero[bot]" && git config user.email "weave-anchor-zero[bot]@users.noreply.github.com"');
+    sh('git config user.name "weave-anchor-zero[bot]" && git config user.email "weave-anchor-zero@fleet.local"');
   }
   execSync(`git add -A`, { cwd: ROOT, stdio: "ignore" });
   const staged = gitOrNull("git diff --cached") ?? "";

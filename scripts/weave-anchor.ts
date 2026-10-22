@@ -459,7 +459,7 @@ async function main(): Promise<void> {
       // דחיקת הדוח בלבד — הספר לא שושנה (אין עדות לרשום)
       if (!NO_PUSH && gitOrNull("git remote get-url origin")) {
         if (IS_ACTIONS) {
-          sh('git config user.name "weave-anchor[bot]" && git config user.email "weave-anchor[bot]@users.noreply.github.com"');
+          sh('git config user.name "weave-anchor[bot]" && git config user.email "weave-anchor@fleet.local"');
         }
         execSync(`git add -A`, { cwd: ROOT, stdio: "ignore" });
         const stagedRc = gitOrNull("git diff --cached") ?? "";
@@ -599,7 +599,7 @@ async function main(): Promise<void> {
     throw new Error("אין remote origin — בלי ריפו אין עדות");
   }
   if (IS_ACTIONS) {
-    sh('git config user.name "weave-anchor[bot]" && git config user.email "weave-anchor[bot]@users.noreply.github.com"');
+    sh('git config user.name "weave-anchor[bot]" && git config user.email "weave-anchor@fleet.local"');
   }
   execSync(`git add -A`, { cwd: ROOT, stdio: "ignore" });
   const staged = gitOrNull("git diff --cached") ?? "";

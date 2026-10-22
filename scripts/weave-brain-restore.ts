@@ -236,7 +236,7 @@ async function main(): Promise<void> {
 
   // 9. שער-סודות ואז דחיפה — הגושים האטומים ברשימה הלבנה הקנונית
   if (process.env.GITHUB_ACTIONS) {
-    execSync('git config user.name "weave-restore[bot]" && git config user.email "weave-restore[bot]@users.noreply.github.com"', { cwd: ROOT, stdio: "ignore" });
+    execSync('git config user.name "weave-restore[bot]" && git config user.email "weave-restore@fleet.local"', { cwd: ROOT, stdio: "ignore" });
   }
   execSync("git add -A", { cwd: ROOT, stdio: "ignore" });
   const staged = gitOrNull("git diff --cached") ?? "";
