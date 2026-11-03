@@ -602,8 +602,12 @@ async function main(): Promise<void> {
     throw new Error("אין remote origin - מוגדר: git remote add origin <url>. בלי ריפו אין פעימה");
   }
   // זהות הרץ בענן בלבד - כך שהיסטוריית הגיט מבדילה פעימות ענן מפעימות מקומיות
+  // [wave 19.73 · 2026-11-03] אימוץ משעול-הזהות (agent-9 path): weave-heart מקבל
+  // זהות חוקית <lane>@fleet.local כמו weave-anchor/weave-anchor-zero — הכתובת
+  // NAME@users.noreply.github.com אסורה בחוק-הזהות v3 (deny-by-default) וה-
+  // silence-sweep קורע על כל פעימה. תוכן הפעימות לא משתנה — רק החותם.
   if (IS_ACTIONS && !FORCE_LOCAL) {
-    sh('git config user.name "weave-heart[bot]" && git config user.email "weave-heart[bot]@users.noreply.github.com"');
+    sh('git config user.name "weave-heart[bot]" && git config user.email "weave-heart@fleet.local"');
   }
   execSync(`git add -A`, { cwd: ROOT, stdio: "ignore" });
   const staged = gitOrNull("git diff --cached") ?? "";

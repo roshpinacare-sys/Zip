@@ -69,8 +69,11 @@ jobs:
       - name: Commit the measurement beacon
         run: |
           set -e
+          # [wave 19.73 · 2026-11-03] אימוץ משעול-הזהות (agent-9 path): זהות
+          # חוקית <lane>@fleet.local — כתובת NAME@users.noreply.github.com
+          # אסורה בחוק-הזהות v3 (deny-by-default, DECISIONS #10)
           git config user.name "weave-ecosystem[bot]"
-          git config user.email "weave-ecosystem[bot]@users.noreply.github.com"
+          git config user.email "weave-ecosystem@fleet.local"
           git add sovereign/reports/ecosystem-dup-latest.json
           if git diff --cached --quiet; then
             echo "no status change — the ecosystem is stable"
