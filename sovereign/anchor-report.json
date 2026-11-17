@@ -1,39 +1,34 @@
 {
-  "at": "2026-11-17T06:51:42.921Z",
+  "at": "2026-11-17T10:35:25.397Z",
   "runner": "github-actions",
-  "mode": "ANCHORED",
-  "checkpoint": {
-    "index": 2346,
-    "root": "0xba7c2efd3221880b7b4a0498fcd8707cd29f2f5f22d6d2798ddb58679e2ed203",
-    "attFrom": 2404,
-    "attTo": 2404
+  "mode": "BROADCAST-FAILED (no chain landed — honest red, nothing attested)",
+  "payload": {
+    "protocol": "saos-weave-core/v1",
+    "action": "checkpoint",
+    "at": "2026-11-17T10:35:25.397Z",
+    "net": "weave-core",
+    "repo": "roshpinacare-sys/Domain",
+    "checkpoint": 2348,
+    "root": "0x9d33c26d25d1b7e85ece1357bb46a8a5d76a5a4ee938e93bda45ad6c2558ad92",
+    "attFrom": 2406,
+    "attTo": 2406,
+    "attestations": 2406,
+    "headHash": "0x9d33c26d25d1b7e85ece1357bb46a8a5d76a5a4ee938e93bda45ad6c2558ad92",
+    "commit": "5ad4e48"
   },
-  "txids": {
-    "steem": "c48a4ee548d3aa0764d401b0d34e2f0a920f3d1d",
-    "hive": null,
-    "blurt": null
-  },
-  "hiveSkipped": null,
   "notes": [
+    "steem: HTTP 403: Forbidden",
     "hive: missing required posting authority:s.check_authority( id ): Missing Posting Authority headcornerTransaction failed to validate using both ne",
     "blurt: Assert Exception:acnt.balance >= fee: Account does not have sufficient funds for transaction fee."
   ],
-  "attSeq": 2405,
-  "nextCheckpoint": {
-    "index": 2347,
-    "root": "0xb7de3f3968ccffc876e036a6b413fe1a9a7e9f70344d409f0462e2f1975d8ef7"
+  "rcGates": {
+    "steem": null,
+    "hive": null
   },
-  "market": {
-    "settled": [],
-    "refunded": [],
-    "attSeqs": [],
-    "checkpoint": null
-  },
-  "attestations": 2405,
   "context": {
     "runner": "github-actions",
-    "gitHead": "309b34a",
+    "gitHead": "5ad4e48",
     "repoSlug": "roshpinacare-sys/Domain",
-    "runUrl": "https://github.com/roshpinacare-sys/Domain/actions/runs/44034270364"
+    "runUrl": "https://github.com/roshpinacare-sys/Domain/actions/runs/44066171525"
   }
 }
