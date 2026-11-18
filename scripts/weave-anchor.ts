@@ -440,9 +440,16 @@ async function main(): Promise<void> {
     // (מדוד: Steem ~9ש' · Hive ~14ש') — השער יעבור והעיגון יחדש.
     const rcOnly = [steemSkipped, hiveSkipped].filter(Boolean).length === 2
       || (notes.length > 0 && notes.every((n) => /rc|mana|resource/i.test(n)));
+    // §68 · סיווג-guard: סמכות-posting חסרה ו/או אין-כספי-עמלות על רשת-חוץ =
+    // תנאי-guard של-הבעלים (הקצאה), לא כשל-ביצוע — דילוג-כנה ירוק עם דוח,
+    // באותו-חוק של "skipped-by-guard = green honest skip" ב-verdict של ה-workflow.
+    // כשל-רשת חולף (403/timeout) נשאר אדום-כנה — אין-ירוק-שקרי.
+    const guardOnly = !rcOnly && notes.length > 0 && notes.every((n) => /posting authority|insufficient funds|acnt\.balance/i.test(n));
     const mode = rcOnly
       ? "RC-SKIPPED (both chains regenerating \u2014 honest skip; ZERO line anchors in $0)"
-      : "BROADCAST-FAILED (no chain landed \u2014 honest red, nothing attested)";
+      : guardOnly
+        ? "GUARD-SKIPPED (external chains await owner provisioning \u2014 posting authority / fee funds; honest skip; ZERO line anchors in $0)"
+        : "BROADCAST-FAILED (no chain landed \u2014 honest red, nothing attested)";
     const report = {
       at,
       runner,
@@ -454,8 +461,8 @@ async function main(): Promise<void> {
     };
     fs.mkdirSync(path.dirname(REPORT_PATH), { recursive: true });
     fs.writeFileSync(REPORT_PATH, JSON.stringify(report, null, 2) + "\n");
-    if (rcOnly) {
-      console.log(`[weave-anchor] שני הקווים ברגנרציית RC — דילוג-כנה, הריצה ירוקה; קו ה-ZERO מעגן`);
+    if (rcOnly || guardOnly) {
+      console.log(`[weave-anchor] ${rcOnly ? "שני הקווים ברגנרציית RC" : "סגירת-guard (authority/funds ממתינים-להקצאת-הבעלים)"} — דילוג-כנה, הריצה ירוקה; קו ה-ZERO מעגן`);
       // דחיקת הדוח בלבד — הספר לא שושנה (אין עדות לרשום)
       if (!NO_PUSH && gitOrNull("git remote get-url origin")) {
         if (IS_ACTIONS) {
@@ -468,7 +475,7 @@ async function main(): Promise<void> {
           execSync("git reset", { cwd: ROOT, stdio: "ignore" });
           throw new Error(`שער הסודות חסם את הדחיקה: ${leakRc} ב-diff — כלום לא נדחף`);
         }
-        execSync(`git commit -m ${JSON.stringify(`weave-anchor: ${at} · RC-SKIPPED · שני הקווים ברגנרציית — דילוג-כנה`)}`, { cwd: ROOT, stdio: "ignore" });
+        execSync(`git commit -m ${JSON.stringify(`weave-anchor: ${at} · ${rcOnly ? "RC-SKIPPED" : "GUARD-SKIPPED"} · דילוג-כנה`)}`, { cwd: ROOT, stdio: "ignore" });
         const pushRc = gitPushRetry(ROOT, BRANCH);
         console.log(`[weave-anchor] דוח הדילוג נדחף: ${pushRc.split("\n").slice(-1)[0] || "pushed"}`);
       }
