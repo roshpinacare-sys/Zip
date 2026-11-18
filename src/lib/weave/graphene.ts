@@ -23,10 +23,12 @@ import type { GrapheneOperation, SignedGrapheneTransaction } from "steem";
 import { operation as steemOperation } from "steem/lib/auth/serializer/src/operations";
 
 // R120: steem.61bts.com מת (דומיין-חניה סיני, תשובת-HTML עם BOM — נמדד חי)
-// — הוסר. שני הצמתים הנותרים אומתו חי בזמן ההסרה.
+// — הוסר. §68: הוסף boylikegirl + steem.buzz — 403/5xx בצומת-אחד לא מפיל עיגון.
 export const STEEM_RPC_NODES = [
-  "https://api.steemit.com",
   "https://api.justyy.com",
+  "https://api.steemit.com",
+  "https://steemapi.boylikegirl.club",
+  "https://api.steem.buzz",
 ] as const;
 
 export const HIVE_RPC = process.env.HIVE_RPC || "https://api.hive.blog";
@@ -258,15 +260,23 @@ export async function steemBroadcast(
   ops: GrapheneOperation[],
   wif: string
 ): Promise<{ txid: string | null; note?: string }> {
-  try {
-    const conf = await steem.broadcast.sendAsync(
-      { operations: ops, extensions: [] },
-      [wif]
-    );
-    return { txid: conf?.id || null };
-  } catch (e) {
-    return { txid: null, note: String((e as Error).message || e).slice(0, 140) };
+  // §68 · רוטציית-צמתים-בשידור: כל-ניסיון מכוון במפורש לצומת-אחר
+  // (steem.api.setOptions) — 403/5xx של-צומת-יחיד כבר-לא-מפיל את העיגון.
+  // שגיאת-שרשרת-אמת (RC/authority) תיכשל-בכל-הצמתים — ההערה-האחרונה נשמרת-בכנות.
+  let lastNote = "";
+  for (const node of STEEM_RPC_NODES) {
+    try {
+      (steem.api as unknown as { setOptions: (o: { url: string }) => void }).setOptions({ url: node });
+      const conf = await steem.broadcast.sendAsync(
+        { operations: ops, extensions: [] },
+        [wif]
+      );
+      return { txid: conf?.id || null };
+    } catch (e) {
+      lastNote = String((e as Error).message || e).slice(0, 140);
+    }
   }
+  return { txid: null, note: lastNote };
 }
 
 /** שידור Hive — חתימה מקומית + broadcast_transaction גולמי (העבר מדויק של הצי) */
